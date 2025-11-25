@@ -10,18 +10,19 @@ namespace Commander
 {
     internal static class FileReportCommandExtensions
     {
+        /// <summary>
+        /// Generates and displays a report of file attachments in the vault.
+        /// </summary>
         public static async Task FileReportCommand(this VaultContext context, FileReportCommandOptions options)
         {
             void Logger(Severity severity, string message)
             {
-                if (severity == Severity.Warning || severity == Severity.Error || severity == Severity.Information)
+                if (severity == Severity.Information)
                 {
                     Console.WriteLine(message);
                 }
                 Debug.WriteLine(message);
             }
-
-            Console.WriteLine("Generating file attachment report...");
 
             var reportOptions = new FileReportOptions
             {
@@ -36,62 +37,38 @@ namespace Commander
                 return;
             }
 
-            Console.WriteLine($"Found {report.Count} file attachment(s) in {report.Select(r => r.RecordUid).Distinct().Count()} record(s).");
             Console.WriteLine();
-
             DisplayReport(report, options.TryDownload);
         }
 
+        private const int BaseColumnCount = 6;
+        private const int DownloadableColumnCount = 7;
+
         private static void DisplayReport(System.Collections.Generic.List<FileReportItem> report, bool includeDownloadable)
         {
-            var columnCount = includeDownloadable ? 7 : 6;
+            var columnCount = includeDownloadable ? DownloadableColumnCount : BaseColumnCount;
             var table = new Tabulate(columnCount)
             {
-                DumpRowNo = true,
-                LeftPadding = 4
+                DumpRowNo = false,
+                LeftPadding = 0
             };
 
-            var headers = new[] { "Title", "Record UID", "Record Type", "File ID", "File Name", "File Size" };
-            if (includeDownloadable)
-            {
-                headers = headers.Concat(new[] { "Downloadable" }).ToArray();
-            }
+            var headers = includeDownloadable
+                ? new[] { "Title", "Record UID", "Record Type", "File ID", "File Name", "File Size", "Downloadable" }
+                : new[] { "Title", "Record UID", "Record Type", "File ID", "File Name", "File Size" };
 
             table.AddHeader(headers);
 
             foreach (var item in report)
             {
-                var row = new object[]
-                {
-                    item.RecordTitle,
-                    item.RecordUid ?? "",
-                    item.RecordType ?? "",
-                    item.FileId ?? "",
-                    item.FileName ?? "",
-                    FormatFileSize(item.FileSize)
-                };
-
-                if (includeDownloadable)
-                {
-                    row = row.Concat(new object[] { item.Downloadable ?? "" }).ToArray();
-                }
+                var row = includeDownloadable
+                    ? new object[] { item.RecordTitle ?? "", item.RecordUid ?? "", item.RecordType ?? "", item.FileId ?? "", item.FileName ?? "", item.FileSize.ToString(), item.Downloadable ?? "" }
+                    : new object[] { item.RecordTitle ?? "", item.RecordUid ?? "", item.RecordType ?? "", item.FileId ?? "", item.FileName ?? "", item.FileSize.ToString() };
 
                 table.AddRow(row);
             }
 
             table.Dump();
-        }
-
-        private static string FormatFileSize(long size)
-        {
-            if (size < 1024)
-                return $"{size} B";
-            else if (size < 1024 * 1024)
-                return $"{size / 1024.0:F1} KB";
-            else if (size < 1024 * 1024 * 1024)
-                return $"{size / (1024.0 * 1024):F1} MB";
-            else
-                return $"{size / (1024.0 * 1024 * 1024):F2} GB";
         }
     }
 

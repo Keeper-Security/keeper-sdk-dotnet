@@ -1,7 +1,10 @@
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace KeeperSecurity.Vault
@@ -207,11 +210,171 @@ namespace KeeperSecurity.Vault
             Action<Severity, string> logger)
         {
             var statuses = new Dictionary<string, string>();
-            logger?.Invoke(Severity.Information, $"Testing download accessibility for record: {recordTitle}");
 
-            logger?.Invoke(Severity.Warning, "Download testing is not fully implemented in this version");
-
+            try
+            {
+                var downloads = PrepareAttachmentDownloadAsync(vault, recordUid).GetAwaiter().GetResult();
+                
+                if (downloads.Count > 0)
+                {
+                    logger?.Invoke(Severity.Information, $"Downloading attachment(s) for record: {recordTitle}");
+                }
+                
+                foreach (var download in downloads)
+                {
+                    try
+                    {
+                        var status = TestDownloadUrl(download.Url, vault.Auth.Endpoint.WebProxy).GetAwaiter().GetResult();
+                        statuses[download.FileId] = status;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger?.Invoke(Severity.Information, $"Error testing download for {download.FileId}: {ex.Message}");
+                        statuses[download.FileId] = "Error";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke(Severity.Warning, $"Failed to test downloads for record: {ex.Message}");
+            }
+            
             return statuses;
+        }
+
+        private static async Task<List<AttachmentDownloadInfo>> PrepareAttachmentDownloadAsync(VaultOnline vault, string recordUid)
+        {
+            var downloads = new List<AttachmentDownloadInfo>();
+
+            if (!vault.TryGetKeeperRecord(recordUid, out var record))
+            {
+                return downloads;
+            }
+
+            if (record is PasswordRecord pr && pr.Attachments != null && pr.Attachments.Count > 0)
+            {
+                var command = new RequestDownloadCommand
+                {
+                    RecordUid = recordUid,
+                    FileIDs = pr.Attachments.Select(a => a.Id).ToArray()
+                };
+                vault.ResolveRecordAccessPath(command);
+                
+                var response = await vault.Auth.ExecuteAuthCommand<RequestDownloadCommand, RequestDownloadResponse>(command);
+                
+                for (int i = 0; i < response.Downloads.Length && i < pr.Attachments.Count; i++)
+                {
+                    var download = response.Downloads[i];
+                    if (!string.IsNullOrEmpty(download.Url))
+                    {
+                        downloads.Add(new AttachmentDownloadInfo
+                        {
+                            FileId = pr.Attachments[i].Id,
+                            Url = download.Url
+                        });
+                    }
+                }
+            }
+            else if (record is TypedRecord tr)
+            {
+                var fileRefFields = tr.Fields?.Where(f =>
+                    string.Equals(f.FieldName, "fileRef", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (fileRefFields != null && fileRefFields.Count > 0)
+                {
+                    var fileUids = new List<string>();
+                    foreach (var fileRefField in fileRefFields)
+                    {
+                        for (int i = 0; i < fileRefField.Count; i++)
+                        {
+                            var fileUid = fileRefField.GetValueAt(i) as string;
+                            if (!string.IsNullOrEmpty(fileUid))
+                            {
+                                fileUids.Add(fileUid);
+                            }
+                        }
+                    }
+
+                    if (fileUids.Count > 0)
+                    {
+                        var request = new Records.FilesGetRequest
+                        {
+                            ForThumbnails = false
+                        };
+
+                        foreach (var fileUid in fileUids)
+                        {
+                            request.RecordUids.Add(Google.Protobuf.ByteString.CopyFrom(fileUid.Base64UrlDecode()));
+                        }
+
+                        var response = await vault.Auth.ExecuteAuthRest(
+                            "vault/files_download",
+                            request,
+                            typeof(Records.FilesGetResponse)) as Records.FilesGetResponse;
+
+                        if (response != null)
+                        {
+                            foreach (var fileStatus in response.Files)
+                            {
+                                if (fileStatus.Status == Records.FileGetResult.FgSuccess && !string.IsNullOrEmpty(fileStatus.Url))
+                                {
+                                    var fileUid = fileStatus.RecordUid.ToByteArray().Base64UrlEncode();
+                                    downloads.Add(new AttachmentDownloadInfo
+                                    {
+                                        FileId = fileUid,
+                                        Url = fileStatus.Url
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return downloads;
+        }
+
+        private static async Task<string> TestDownloadUrl(string url, System.Net.IWebProxy proxy)
+        {
+            try
+            {
+                var httpMessageHandler = new HttpClientHandler();
+                if (proxy != null)
+                {
+                    httpMessageHandler.Proxy = proxy;
+                }
+
+                using var httpClient = new HttpClient(httpMessageHandler, true);
+                httpClient.Timeout = TimeSpan.FromSeconds(10);
+
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Range", "bytes=0-1");
+
+                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.OK || 
+                    response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+                {
+                    return "OK";
+                }
+                
+                return ((int)response.StatusCode).ToString();
+            }
+            catch (TaskCanceledException)
+            {
+                return "Timeout";
+            }
+            catch (Exception)
+            {
+                return "Error";
+            }
+        }
+
+        private class AttachmentDownloadInfo
+        {
+            public string FileId { get; set; }
+            public string Url { get; set; }
         }
     }
 }

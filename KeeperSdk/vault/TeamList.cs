@@ -73,11 +73,15 @@ namespace KeeperSecurity.Vault
             TeamListOptions options = null,
             Action<Severity, string> logger = null)
         {
+            if (vault == null)
+            {
+                throw new ArgumentNullException(nameof(vault));
+            }
+
             options = options ?? new TeamListOptions();
             var teams = new List<TeamListItem>();
 
-            teams.AddRange(GetTeamsFromSharedFolders(vault, options));
-            teams.AddRange(GetTeamsFromRecords(vault, options));
+            teams.AddRange(await GetTeamsFromSharedFolders(vault, options));
             var uniqueTeams = teams
                 .GroupBy(t => t.TeamUid)
                 .Select(g => g.First())
@@ -93,7 +97,7 @@ namespace KeeperSecurity.Vault
             return uniqueTeams;
         }
 
-        private static List<TeamListItem> GetTeamsFromSharedFolders(VaultOnline vault, TeamListOptions options)
+        private static async Task<List<TeamListItem>> GetTeamsFromSharedFolders(VaultOnline vault, TeamListOptions options)
         {
             var teams = new List<TeamListItem>();
 
@@ -101,10 +105,10 @@ namespace KeeperSecurity.Vault
             {
                 var request = new global::Records.GetShareObjectsRequest();
                 
-                var response = (global::Records.GetShareObjectsResponse)vault.Auth.ExecuteAuthRest(
+                var response = (global::Records.GetShareObjectsResponse)await vault.Auth.ExecuteAuthRest(
                     "vault/get_share_objects",
                     request,
-                    typeof(global::Records.GetShareObjectsResponse)).GetAwaiter().GetResult();
+                    typeof(global::Records.GetShareObjectsResponse));
 
                 var enterpriseNames = new Dictionary<long, string>();
                 foreach (var enterprise in response.ShareEnterpriseNames)
@@ -142,41 +146,38 @@ namespace KeeperSecurity.Vault
             catch (Exception)
             {
                 // If API call fails, return empty list
-                // Could log error here if logger was passed
             }
 
             return teams;
         }
 
-        private static List<TeamListItem> GetTeamsFromRecords(VaultOnline vault, TeamListOptions options)
-        {
-            // Additional teams could be extracted from record permissions if needed
-            // For now, we rely on shared folders as the primary source
-            return new List<TeamListItem>();
-        }
 
         private static async Task LoadTeamMembers(
             VaultOnline vault,
             List<TeamListItem> teams,
             Action<Severity, string> logger)
         {
-            // Fetch all team members in parallel for better performance
-            var fetchTasks = teams.Select(async team =>
+            const int BatchSize = 10;
+            
+            for (int i = 0; i < teams.Count; i += BatchSize)
             {
-                try
+                var batch = teams.Skip(i).Take(BatchSize).ToList();
+                var fetchTasks = batch.Select(async team =>
                 {
-                    var members = await FetchTeamMembersFromServer(vault, team.TeamUid, logger);
-                    team.Members = members;
-                }
-                catch (Exception ex)
-                {
-                    logger?.Invoke(Severity.Warning, $"Failed to load members for team {team.Name}: {ex.Message}");
-                    team.Members = new List<string>();
-                }
-            }).ToList();
+                    try
+                    {
+                        var members = await FetchTeamMembersFromServer(vault, team.TeamUid, logger);
+                        team.Members = members;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger?.Invoke(Severity.Warning, $"Failed to load members for team {team.Name}: {ex.Message}");
+                        team.Members = new List<string>();
+                    }
+                }).ToList();
 
-            // Wait for all parallel fetches to complete
-            await Task.WhenAll(fetchTasks);
+                await Task.WhenAll(fetchTasks);
+            }
         }
 
         private static async Task<List<string>> FetchTeamMembersFromServer(

@@ -29,18 +29,30 @@ namespace Commander
                 SortBy = options.Sort ?? "company"
             };
 
-            var teams = await context.Vault.GetTeamList(teamOptions, Logger);
-
-            if (teams.Count == 0)
+            try
             {
-                Console.WriteLine("No teams found.");
-                return;
+                var teams = await context.Vault.GetTeamList(teamOptions, Logger);
+
+                if (teams.Count == 0)
+                {
+                    Console.WriteLine("No teams found.");
+                    return;
+                }
+
+                Console.WriteLine($"Found {teams.Count} team(s).");
+                Console.WriteLine();
+
+                DisplayTeams(teams, options);
             }
-
-            Console.WriteLine($"Found {teams.Count} team(s).");
-            Console.WriteLine();
-
-            DisplayTeams(teams, options);
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Error: Access denied. {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: Failed to retrieve team list. {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
         }
 
         private static void DisplayTeams(System.Collections.Generic.List<TeamListItem> teams, TeamListCommandOptions options)
@@ -64,21 +76,13 @@ namespace Commander
 
             foreach (var team in teams)
             {
-                var row = new object[]
-                {
-                    team.Company ?? "",
-                    team.TeamUid ?? "",
-                    team.Name ?? ""
-                };
+                var members = showMembers && team.Members != null && team.Members.Count > 0
+                    ? string.Join("\n", team.Members)
+                    : "";
 
-                if (showMembers)
-                {
-                    var members = team.Members != null && team.Members.Count > 0
-                        ? string.Join("\n", team.Members)
-                        : "";
-
-                    row = row.Concat(new object[] { members }).ToArray();
-                }
+                var row = showMembers
+                    ? new object[] { team.Company ?? "", team.TeamUid ?? "", team.Name ?? "", members }
+                    : new object[] { team.Company ?? "", team.TeamUid ?? "", team.Name ?? "" };
 
                 table.AddRow(row);
             }
