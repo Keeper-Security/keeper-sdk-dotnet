@@ -69,14 +69,14 @@
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'Enterprise.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
-        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'MembershipCommands.ps1')
+        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
         'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
-        'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
+        'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperRoleName', 'New-KeeperEnterpriseTeam',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
         'Remove-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
@@ -105,7 +105,7 @@
     # VariablesToExport = '*'
 
     # Aliases to export from this module
-    AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
+    AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder',
         'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'msp-license', 
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',

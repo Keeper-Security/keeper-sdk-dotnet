@@ -32,6 +32,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
 | Get-KeeperFolder                       | kgetfolder  | Get detailed information about a Keeper folder
+| Get-KeeperFolders                      | kfolders    | List all folders in the vault with filtering options
 | Edit-KeeperFolder                      |             | Edit Keeper folder
 | Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard

@@ -90,20 +90,18 @@ function Export-KeeperMembership {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-    # Ensure .json extension
-    if (-not $FileName.EndsWith(".json", [StringComparison]::OrdinalIgnoreCase)) {
-        $FileName += ".json"
-    }
-
-    $fileExists = Test-Path $FileName
-    if ($fileExists -and $Force) {
-        Write-Host "File `"$FileName`" will be overwritten (--force flag is set)."
-    }
-
     Write-Host "Downloading shared folder membership from Keeper..."
 
     $downloadOptions = New-Object KeeperSecurity.Vault.DownloadMembershipOptions
     $downloadOptions.FoldersOnly = $FoldersOnly.IsPresent
+
+    if ($ForceManageUsers -and $RestrictManageUsers) {
+         throw "Cannot specify both -ForceManageUsers and -RestrictManageUsers" 
+    }
+    
+    if ($ForceManageRecords -and $RestrictManageRecords) {
+        throw "Cannot specify both -ForceManageRecords and -RestrictManageRecords" 
+    }
 
     if ($ForceManageUsers.IsPresent) {
         $downloadOptions.ForceManageUsers = $true
@@ -113,10 +111,7 @@ function Export-KeeperMembership {
         $downloadOptions.ForceManageRecords = $true
     }
 
-    if ($RestrictManageUsers.IsPresent) {
-        $downloadOptions.ForceManageUsers = $false
-    }
-
+    
     if ($RestrictManageRecords.IsPresent) {
         $downloadOptions.ForceManageRecords = $false
     }
@@ -134,6 +129,15 @@ function Export-KeeperMembership {
         $downloadTask.Wait()
         $exportFile = $downloadTask.Result
 
+        if (-not $FileName.EndsWith(".json", [StringComparison]::OrdinalIgnoreCase)) {
+            $FileName += ".json"
+        }
+
+        $fileExists = Test-Path $FileName
+        if ($fileExists -and $Force) {
+            Write-Host "File `"$FileName`" will be overwritten (--force flag is set)."
+        }
+        
         $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
         
         $directory = [System.IO.Path]::GetDirectoryName($fullPath)

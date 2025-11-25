@@ -152,6 +152,139 @@ function resolveKeeperFolder {
     Write-Error -Message "Folder `"$Identifier`" not found or not accessible" -ErrorAction Stop
 }
 
+function Get-KeeperFolders {
+    <#
+	.Synopsis
+	List all folders in the Keeper vault.
+
+	.Description
+	Returns a list of all folders in the Keeper vault with their details including
+	UID, Name, Type (UserFolder/SharedFolder), Parent folder, and counts of subfolders and records.
+	
+	.Parameter Filter
+	Filter folders by name (supports wildcards: * and ?)
+
+	.Parameter Type
+	Filter by folder type: 'User', 'Shared', or 'All' (default: All)
+
+	.Parameter IncludeRoot
+	Include the root folder in the results
+
+	.Parameter Verbose
+	Show detailed information including full paths
+    
+	.Parameter AsObject
+	Return the folders as objects instead of displaying formatted information
+
+	.Example
+	Get-KeeperFolders
+	Lists all folders in the vault
+
+	.Example
+	Get-KeeperFolders -Filter "Engineering*"
+	Lists all folders whose names start with "Engineering"
+
+	.Example
+	Get-KeeperFolders -Type Shared
+	Lists only shared folders
+
+	.Example
+	Get-KeeperFolders -Verbose
+	Lists all folders with detailed information including full paths
+#>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0)][string] $Filter,
+        [Parameter()][ValidateSet('All', 'User', 'Shared')]
+        [string] $Type = 'All',
+        [Parameter()][switch] $IncludeRoot,
+        [Parameter()][switch] $AsObject
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    $folders = @()
+    
+    foreach ($folder in $vault.Folders) {
+        if ([string]::IsNullOrEmpty($folder.FolderUid) -and -not $IncludeRoot.IsPresent) {
+            continue
+        }
+        
+        if ($Type -ne 'All') {
+            $isShared = $folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::SharedFolder -or 
+                        $folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::SharedFolderFolder
+            
+            if ($Type -eq 'Shared' -and -not $isShared) {
+                continue
+            }
+            if ($Type -eq 'User' -and $isShared) {
+                continue
+            }
+        }
+        
+        if ($Filter) {
+            if (-not ($folder.Name -like $Filter)) {
+                continue
+            }
+        }
+        
+        $folderInfo = [PSCustomObject]@{
+            FolderUid     = $folder.FolderUid
+            Name          = $folder.Name
+            FolderType    = $folder.FolderType.ToString()
+            ParentUid     = $folder.ParentUid
+            SharedFolderUid = $folder.SharedFolderUid
+            SubfolderCount = $folder.Subfolders.Count
+            RecordCount   = $folder.Records.Count
+            Path          = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { 
+                getVaultFolderPath $vault $folder.FolderUid 
+            } else { 
+                $null 
+            }
+        }
+        
+        $folders += $folderInfo
+    }
+    
+    $folders = $folders | Sort-Object Name
+    
+    if ($folders.Count -eq 0) {
+        Write-Host "No folders found matching criteria."
+        return
+    }
+    
+    if ($AsObject.IsPresent) {
+        return $folders
+    }
+
+    Write-Host ""
+    Write-Host "Found $($folders.Count) folder(s)" -ForegroundColor Green
+    Write-Host ""
+    
+    if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+        $folders | Format-Table -Property @(
+            @{Label='UID'; Expression={$_.FolderUid}; Width=25},
+            @{Label='Name'; Expression={$_.Name}; Width=30},
+            @{Label='Type'; Expression={$_.FolderType}; Width=20},
+            @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
+            @{Label='Records'; Expression={$_.RecordCount}; Width=8; Align='Right'},
+            @{Label='Path'; Expression={$_.Path}}
+        ) -AutoSize
+    } else {
+        $folders | Format-Table -Property @(
+            @{Label='UID'; Expression={$_.FolderUid}; Width=25},
+            @{Label='Name'; Expression={$_.Name}; Width=35},
+            @{Label='Type'; Expression={$_.FolderType}; Width=20},
+            @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
+            @{Label='Records'; Expression={$_.RecordCount}; Width=8; Align='Right'}
+        ) -AutoSize
+    }
+
+
+}
+New-Alias -Name kfolders -Value Get-KeeperFolders
+
 function Get-KeeperFolder {
     <#
 	.Synopsis

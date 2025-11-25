@@ -38,8 +38,9 @@ Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
 Export-ModuleMember -Function Get-KeeperSharedFolder
 Export-ModuleMember -Alias ksf
 
-Export-ModuleMember -Function Add-KeeperFolder, Edit-KeeperFolder, Remove-KeeperFolder, Get-KeeperFolder
-Export-ModuleMember -Alias kmkdir, krmdir, kgetfolder
+Export-ModuleMember -Function Add-KeeperFolder, Edit-KeeperFolder, Remove-KeeperFolder, 
+Get-KeeperFolder,Get-KeeperFolders
+Export-ModuleMember -Alias kmkdir, krmdir, kgetfolder, kfolders
 
 Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperRoleName
 

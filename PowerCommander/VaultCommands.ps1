@@ -7,7 +7,7 @@ function getVault {
         Write-Error -Message "Not Connected" -ErrorAction Stop
     }
     if (-not $Script:Context.Vault) {
-        Write-Error -Message "Not Connected" -ErrorAction Stop
+        Write-Error -Message "Not Connected to Keeper vault. Please login first." -ErrorAction Stop
     }
     $Script:Context.Vault
 }
