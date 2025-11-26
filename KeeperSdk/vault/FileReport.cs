@@ -67,6 +67,11 @@ namespace KeeperSecurity.Vault
     public static class KeeperFileReport
     {
         /// <summary>
+        /// Default timeout for testing file download accessibility (in seconds)
+        /// </summary>
+        private const int DownloadTestTimeoutSeconds = 10;
+
+        /// <summary>
         /// Generate a report of all records with file attachments
         /// </summary>
         public static async Task<List<FileReportItem>> GenerateFileReport(
@@ -99,19 +104,19 @@ namespace KeeperSecurity.Vault
                 case PasswordRecord pr:
                     if (pr.Attachments != null && pr.Attachments.Count > 0)
                     {
-                        items.AddRange(await GetPasswordRecordFileItems(vault, pr, options, logger));
+                        items.AddRange(await GetPasswordRecordFileItemsAsync(vault, pr, options, logger));
                     }
                     break;
 
                 case TypedRecord tr:
-                    items.AddRange(await GetTypedRecordFileItems(vault, tr, options, logger));
+                    items.AddRange(await GetTypedRecordFileItemsAsync(vault, tr, options, logger));
                     break;
             }
 
             return items;
         }
 
-        private static Task<List<FileReportItem>> GetPasswordRecordFileItems(
+        private static async Task<List<FileReportItem>> GetPasswordRecordFileItemsAsync(
             VaultOnline vault,
             PasswordRecord record,
             FileReportOptions options,
@@ -122,7 +127,7 @@ namespace KeeperSecurity.Vault
 
             if (options.TryDownload)
             {
-                downloadStatuses = TestAttachmentDownloads(vault, record.Uid, record.Title, logger);
+                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title, logger);
             }
 
             foreach (var attachment in record.Attachments)
@@ -145,10 +150,10 @@ namespace KeeperSecurity.Vault
                 items.Add(item);
             }
 
-            return Task.FromResult(items);
+            return items;
         }
 
-        private static Task<List<FileReportItem>> GetTypedRecordFileItems(
+        private static async Task<List<FileReportItem>> GetTypedRecordFileItemsAsync(
             VaultOnline vault,
             TypedRecord record,
             FileReportOptions options,
@@ -162,12 +167,12 @@ namespace KeeperSecurity.Vault
                 .ToList();
 
             if (fileRefFields == null || fileRefFields.Count == 0)
-                return Task.FromResult(items);
+                return items;
 
             Dictionary<string, string> downloadStatuses = null;
             if (options.TryDownload)
             {
-                downloadStatuses = TestAttachmentDownloads(vault, record.Uid, record.Title, logger);
+                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title, logger);
             }
 
             foreach (var fileRefField in fileRefFields)
@@ -200,10 +205,10 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            return Task.FromResult(items);
+            return items;
         }
 
-        private static Dictionary<string, string> TestAttachmentDownloads(
+        private static async Task<Dictionary<string, string>> TestAttachmentDownloadsAsync(
             VaultOnline vault,
             string recordUid,
             string recordTitle,
@@ -213,7 +218,7 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                var downloads = PrepareAttachmentDownloadAsync(vault, recordUid).GetAwaiter().GetResult();
+                var downloads = await PrepareAttachmentDownloadAsync(vault, recordUid);
                 
                 if (downloads.Count > 0)
                 {
@@ -224,7 +229,7 @@ namespace KeeperSecurity.Vault
                 {
                     try
                     {
-                        var status = TestDownloadUrl(download.Url, vault.Auth.Endpoint.WebProxy).GetAwaiter().GetResult();
+                        var status = await TestDownloadUrlAsync(download.Url, vault.Auth.Endpoint.WebProxy);
                         statuses[download.FileId] = status;
                     }
                     catch (Exception ex)
@@ -335,7 +340,7 @@ namespace KeeperSecurity.Vault
             return downloads;
         }
 
-        private static async Task<string> TestDownloadUrl(string url, System.Net.IWebProxy proxy)
+        private static async Task<string> TestDownloadUrlAsync(string url, System.Net.IWebProxy proxy)
         {
             try
             {
@@ -346,7 +351,7 @@ namespace KeeperSecurity.Vault
                 }
 
                 using var httpClient = new HttpClient(httpMessageHandler, true);
-                httpClient.Timeout = TimeSpan.FromSeconds(10);
+                httpClient.Timeout = TimeSpan.FromSeconds(DownloadTestTimeoutSeconds);
 
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Range", "bytes=0-1");
@@ -361,13 +366,17 @@ namespace KeeperSecurity.Vault
                 
                 return ((int)response.StatusCode).ToString();
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException ex)
             {
-                return "Timeout";
+                return $"Timeout ({ex.Message})";
             }
-            catch (Exception)
+            catch (HttpRequestException ex)
             {
-                return "Error";
+                return $"Request Error: {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.GetType().Name} - {ex.Message}";
             }
         }
 

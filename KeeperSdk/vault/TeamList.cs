@@ -81,7 +81,7 @@ namespace KeeperSecurity.Vault
             options = options ?? new TeamListOptions();
             var teams = new List<TeamListItem>();
 
-            teams.AddRange(await GetTeamsFromSharedFolders(vault, options));
+            teams.AddRange(await GetTeamsFromSharedFolders(vault, options, logger));
             var uniqueTeams = teams
                 .GroupBy(t => t.TeamUid)
                 .Select(g => g.First())
@@ -97,7 +97,10 @@ namespace KeeperSecurity.Vault
             return uniqueTeams;
         }
 
-        private static async Task<List<TeamListItem>> GetTeamsFromSharedFolders(VaultOnline vault, TeamListOptions options)
+        private static async Task<List<TeamListItem>> GetTeamsFromSharedFolders(
+            VaultOnline vault, 
+            TeamListOptions options, 
+            Action<Severity, string> logger)
         {
             var teams = new List<TeamListItem>();
 
@@ -143,9 +146,10 @@ namespace KeeperSecurity.Vault
                     });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // If API call fails, return empty list
+                logger?.Invoke(Severity.Information, $"Failed to fetch teams from shared folders API: {ex.Message}");
             }
 
             return teams;

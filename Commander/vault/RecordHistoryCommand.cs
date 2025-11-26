@@ -143,7 +143,7 @@ namespace Commander
                 var rev = history[i];
                 var versionLabel = i == 0 ? "Current" : $"V.{history.Length - i}";
                 var modified = rev.KeeperRecord.ClientModified != DateTimeOffset.MinValue
-                    ? rev.KeeperRecord.ClientModified.ToOffset(TimeSpan.FromHours(5.5)).ToString("yyyy-MM-dd HH:mm:ss")
+                    ? rev.KeeperRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
                     : "";
                 
                 var changes = rev.RecordChange != 0 ? FormatChanges(rev.RecordChange) : "";
