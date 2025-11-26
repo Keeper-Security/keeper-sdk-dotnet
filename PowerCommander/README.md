@@ -32,6 +32,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
 | Get-KeeperFolder                       | kgetfolder  | Get detailed information about a Keeper folder
+| Get-KeeperFolders                      | kfolders    | List all folders in the vault with filtering options
 | Edit-KeeperFolder                      |             | Edit Keeper folder
 | Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
@@ -54,6 +55,12 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperTrashedRecordDetails         | ktrash-get     | Get details of a deleted record
 | Restore-KeeperTrashRecords             | ktrash-restore | Restore deleted records from trash
 | Remove-TrashedKeeperRecordShares       | ktrash-unshare | Remove shares from deleted records
+
+### Import/Export Cmdlets
+| Cmdlet name                            | Alias          | Description
+|----------------------------------------|----------------|----------------------------
+| Export-KeeperVault                     | kexport        | Export vault records and shared folders to JSON file
+| Export-KeeperMembership                | kdwnmbs        | Download shared folder and team membership data to JSON file
 
 ### Biometric Cmdlets
 | Cmdlet name                            | Alias       | Description
