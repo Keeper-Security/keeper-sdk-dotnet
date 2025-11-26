@@ -338,7 +338,7 @@ namespace Commander
 
 
             cli.Commands.Add("record-history",
-                new SimpleCommand
+                new ParseableCommand<RecordHistoryCommandOptions>
                 {
                     Order = 15,
                     Description = "Display record history",
@@ -501,6 +501,22 @@ namespace Commander
                 Description = "Generate comprehensive password security report",
                 Action = context.GetPasswordReport
             });
+
+            cli.Commands.Add("file-report",
+                new ParseableCommand<FileReportCommandOptions>
+                {
+                    Order = 38,
+                    Description = "List records with file attachments",
+                    Action = context.FileReportCommand
+                });
+
+            cli.Commands.Add("list-team",
+                new ParseableCommand<TeamListCommandOptions>
+                {
+                    Order = 37,
+                    Description = "Display teams",
+                    Action = context.TeamListCommand
+                });
 
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {

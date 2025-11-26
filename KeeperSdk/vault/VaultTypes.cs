@@ -288,6 +288,11 @@ namespace KeeperSecurity.Vault
         /// Summary of changes
         /// </summary>
         public RecordChange RecordChange { get; internal set; }
+
+        /// <summary>
+        /// Revision number for this history entry
+        /// </summary>
+        public long Revision { get; internal set; }
     }
 
 

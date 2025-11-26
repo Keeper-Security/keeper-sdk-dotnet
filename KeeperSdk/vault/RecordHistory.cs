@@ -36,6 +36,7 @@ namespace KeeperSecurity
                         {
                             KeeperRecord = rh.Load(r.RecordKey),
                             Username = rh.Username,
+                            Revision = rh.Revision,
                         });
                     }
                     catch (Exception e)
