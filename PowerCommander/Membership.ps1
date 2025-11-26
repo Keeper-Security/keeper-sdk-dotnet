@@ -111,6 +111,9 @@ function Export-KeeperMembership {
         $downloadOptions.ForceManageRecords = $true
     }
 
+    if ($RestrictManageUsers.IsPresent) {
+        $downloadOptions.ForceManageUsers = $false
+    }
     
     if ($RestrictManageRecords.IsPresent) {
         $downloadOptions.ForceManageRecords = $false
