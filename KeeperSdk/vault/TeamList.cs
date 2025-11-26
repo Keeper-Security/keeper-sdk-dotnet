@@ -3,6 +3,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -81,7 +82,7 @@ namespace KeeperSecurity.Vault
             options = options ?? new TeamListOptions();
             var teams = new List<TeamListItem>();
 
-            teams.AddRange(await GetTeamsFromSharedFolders(vault, options, logger));
+            teams.AddRange(await GetTeamsFromSharedFolders(vault, options));
             var uniqueTeams = teams
                 .GroupBy(t => t.TeamUid)
                 .Select(g => g.First())
@@ -99,8 +100,7 @@ namespace KeeperSecurity.Vault
 
         private static async Task<List<TeamListItem>> GetTeamsFromSharedFolders(
             VaultOnline vault, 
-            TeamListOptions options, 
-            Action<Severity, string> logger)
+            TeamListOptions options)
         {
             var teams = new List<TeamListItem>();
 
@@ -149,7 +149,7 @@ namespace KeeperSecurity.Vault
             catch (Exception ex)
             {
                 // If API call fails, return empty list
-                logger?.Invoke(Severity.Information, $"Failed to fetch teams from shared folders API: {ex.Message}");
+                Debug.WriteLine($"Failed to fetch teams from shared folders API: {ex.Message}");
             }
 
             return teams;

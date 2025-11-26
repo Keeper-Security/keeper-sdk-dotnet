@@ -3,6 +3,7 @@ using KeeperSecurity.Utils;
 using KeeperSecurity.Commands;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -84,7 +85,7 @@ namespace KeeperSecurity.Vault
 
             foreach (var record in vault.KeeperRecords)
             {
-                var items = await GetRecordFileItems(vault, record, options, logger);
+                var items = await GetRecordFileItems(vault, record, options);
                 report.AddRange(items);
             }
 
@@ -94,8 +95,7 @@ namespace KeeperSecurity.Vault
         private static async Task<List<FileReportItem>> GetRecordFileItems(
             VaultOnline vault,
             KeeperRecord record,
-            FileReportOptions options,
-            Action<Severity, string> logger)
+            FileReportOptions options)
         {
             var items = new List<FileReportItem>();
 
@@ -104,12 +104,12 @@ namespace KeeperSecurity.Vault
                 case PasswordRecord pr:
                     if (pr.Attachments != null && pr.Attachments.Count > 0)
                     {
-                        items.AddRange(await GetPasswordRecordFileItemsAsync(vault, pr, options, logger));
+                        items.AddRange(await GetPasswordRecordFileItemsAsync(vault, pr, options));
                     }
                     break;
 
                 case TypedRecord tr:
-                    items.AddRange(await GetTypedRecordFileItemsAsync(vault, tr, options, logger));
+                    items.AddRange(await GetTypedRecordFileItemsAsync(vault, tr, options));
                     break;
             }
 
@@ -119,15 +119,14 @@ namespace KeeperSecurity.Vault
         private static async Task<List<FileReportItem>> GetPasswordRecordFileItemsAsync(
             VaultOnline vault,
             PasswordRecord record,
-            FileReportOptions options,
-            Action<Severity, string> logger)
+            FileReportOptions options)
         {
             var items = new List<FileReportItem>();
             Dictionary<string, string> downloadStatuses = null;
 
             if (options.TryDownload)
             {
-                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title, logger);
+                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title);
             }
 
             foreach (var attachment in record.Attachments)
@@ -156,8 +155,7 @@ namespace KeeperSecurity.Vault
         private static async Task<List<FileReportItem>> GetTypedRecordFileItemsAsync(
             VaultOnline vault,
             TypedRecord record,
-            FileReportOptions options,
-            Action<Severity, string> logger)
+            FileReportOptions options)
         {
             var items = new List<FileReportItem>();
 
@@ -172,7 +170,7 @@ namespace KeeperSecurity.Vault
             Dictionary<string, string> downloadStatuses = null;
             if (options.TryDownload)
             {
-                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title, logger);
+                downloadStatuses = await TestAttachmentDownloadsAsync(vault, record.Uid, record.Title);
             }
 
             foreach (var fileRefField in fileRefFields)
@@ -211,8 +209,7 @@ namespace KeeperSecurity.Vault
         private static async Task<Dictionary<string, string>> TestAttachmentDownloadsAsync(
             VaultOnline vault,
             string recordUid,
-            string recordTitle,
-            Action<Severity, string> logger)
+            string recordTitle)
         {
             var statuses = new Dictionary<string, string>();
 
@@ -222,7 +219,7 @@ namespace KeeperSecurity.Vault
                 
                 if (downloads.Count > 0)
                 {
-                    logger?.Invoke(Severity.Information, $"Downloading attachment(s) for record: {recordTitle}");
+                    Debug.WriteLine($"Downloading attachment(s) for record: {recordTitle}");
                 }
                 
                 foreach (var download in downloads)
@@ -234,14 +231,14 @@ namespace KeeperSecurity.Vault
                     }
                     catch (Exception ex)
                     {
-                        logger?.Invoke(Severity.Information, $"Error testing download for {download.FileId}: {ex.Message}");
+                        Debug.WriteLine($"Error testing download for {download.FileId}: {ex.Message}");
                         statuses[download.FileId] = "Error";
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger?.Invoke(Severity.Warning, $"Failed to test downloads for record: {ex.Message}");
+                Debug.WriteLine($"Failed to test downloads for record: {ex.Message}");
             }
             
             return statuses;
