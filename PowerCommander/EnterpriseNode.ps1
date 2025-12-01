@@ -20,6 +20,17 @@ function New-KeeperEnterpriseNode {
     [KeeperSecurity.Enterprise.EnterpriseNode] $parent = $null
     if ($ParentNode) {
         $parent = resolveSingleNode $ParentNode
+    } else {
+        if ($nodeToUpdate.ParentNodeId -gt 0) {
+            [KeeperSecurity.Enterprise.EnterpriseNode] $existingParent = $null
+            if ($enterprise.enterpriseData.TryGetNode($nodeToUpdate.ParentNodeId, [ref]$existingParent)) {
+                $parent = $existingParent
+            } else {
+                $parent = $enterprise.enterpriseData.RootNode
+            }
+        } else {
+            $parent = $enterprise.enterpriseData.RootNode
+        }
     }
 
     $n = [KeeperSecurity.Enterprise.EnterpriseExtensions]::CreateNode($enterprise.enterpriseData, $NodeName, $parent).GetAwaiter().GetResult()
@@ -76,29 +87,37 @@ function Edit-KeeperEnterpriseNode {
         $parent = resolveSingleNode $ParentNode
     }
 
+    $hasChanges = $false
     if (-not [string]::IsNullOrEmpty($NewNodeName)) {
         $nodeToUpdate.DisplayName = $NewNodeName
+        $hasChanges = $true
     }
 
-    try {
-        [KeeperSecurity.Enterprise.EnterpriseExtensions]::UpdateNode($enterprise.enterpriseData, $nodeToUpdate, $parent).GetAwaiter().GetResult() | Out-Null
-        Write-Output "Node `"$($nodeToUpdate.DisplayName)`" updated."
-    }
-    catch {
-        Write-Error -Message "Failed to update node `"$($nodeToUpdate.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
-    }
+    if ($hasChanges -or $ParentNode -or $RestrictVisibility.IsPresent) {
+        if ($hasChanges -or $ParentNode) {
+            try {
+                [KeeperSecurity.Enterprise.EnterpriseExtensions]::UpdateNode($enterprise.enterpriseData, $nodeToUpdate, $parent).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Node `"$($nodeToUpdate.DisplayName)`" updated."
+            }
+            catch {
+                Write-Error -Message "Failed to update node `"$($nodeToUpdate.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
+            }
+        }
 
-    if ($RestrictVisibility.IsPresent) {
-        try {
-            [KeeperSecurity.Enterprise.EnterpriseExtensions]::SetRestrictVisibility($enterprise.enterpriseData, $nodeToUpdate.Id).GetAwaiter().GetResult() | Out-Null
-            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null 
-            
-            $nodeToUpdate = resolveSingleNode $nodeToUpdate.Id
-            Write-Output "Node Isolation: $($nodeToUpdate.RestrictVisibility ? 'ON' : 'OFF')"
+        if ($RestrictVisibility.IsPresent) {
+            try {
+                [KeeperSecurity.Enterprise.EnterpriseExtensions]::SetRestrictVisibility($enterprise.enterpriseData, $nodeToUpdate.Id).GetAwaiter().GetResult() | Out-Null
+                $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null 
+                
+                $nodeToUpdate = resolveSingleNode $nodeToUpdate.Id
+                Write-Output "Node Isolation: $($nodeToUpdate.RestrictVisibility ? 'ON' : 'OFF')"
+            }
+            catch {
+                Write-Error -Message "Failed to set node isolation for `"$($nodeToUpdate.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
+            }
         }
-        catch {
-            Write-Error -Message "Failed to set node isolation for `"$($nodeToUpdate.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
-        }
+    } else {
+        Write-Warning "No changes specified. Use -NewNodeName, -ParentNode, or -RestrictVisibility to update the node."
     }
 }
 New-Alias -Name kenu -Value Edit-KeeperEnterpriseNode

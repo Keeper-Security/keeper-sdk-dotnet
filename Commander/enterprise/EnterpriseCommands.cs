@@ -1029,7 +1029,7 @@ namespace Commander
                 return;
             }
 
-            if (string.CompareOrdinal(arguments.Command, "update") == 0 || string.CompareOrdinal(arguments.Command, "edit") == 0)
+            if (string.CompareOrdinal(arguments.Command, "update") == 0)
             {
                 bool? newUserInherit = null;
                 bool? visibleBelow = null;

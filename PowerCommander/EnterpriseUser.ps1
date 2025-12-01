@@ -29,6 +29,8 @@ function Add-KeeperEnterpriseUser {
         if ($n) {
             $nodeId = $n.Id
         }
+    } else {
+        $nodeId = $enterprise.enterpriseData.RootNode.Id
     }
 
     $inviteOptions = New-Object KeeperSecurity.Enterprise.InviteUserOptions
@@ -69,11 +71,13 @@ function Lock-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if ($userObject) {
-        $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $true).GetAwaiter().GetResult()
-        if ($saved) {
-            Write-Output "User `"$($saved.Email)`" was locked"
-        }
+    if (-not $userObject) {
+        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
+        return
+    }
+    $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $true).GetAwaiter().GetResult()
+    if ($saved) {
+        Write-Output "User `"$($saved.Email)`" was locked"
     }
 }
 Register-ArgumentCompleter -CommandName Lock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
@@ -94,11 +98,13 @@ function Unlock-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if ($userObject) {
-        $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $false).GetAwaiter().GetResult()
-        if ($saved) {
-            Write-Output "User `"$($saved.Email)`" was unlocked"
-        }
+    if (-not $userObject) {
+        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
+        return
+    }
+    $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $false).GetAwaiter().GetResult()
+    if ($saved) {
+        Write-Output "User `"$($saved.Email)`" was unlocked"
     }
 }
 Register-ArgumentCompleter -CommandName Unlock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_LockedUserCompleter
@@ -185,17 +191,19 @@ function Remove-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if ($userObject) {
-        if (-not $Force.IsPresent) {
-            Write-Output  "`nDeleting a user will also delete any records owned and shared by this user."
-            "Before you delete this user, we strongly recommend you lock their account"
-            "and transfer any important records to other user.`n"
-            "This action cannot be undone."
+    if (-not $userObject) {
+        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
+        return
+    }
+    if (-not $Force.IsPresent) {
+        Write-Output  "`nDeleting a user will also delete any records owned and shared by this user."
+        "Before you delete this user, we strongly recommend you lock their account"
+        "and transfer any important records to other user.`n"
+        "This action cannot be undone."
 
-            if ($PSCmdlet.ShouldProcess($userObject.Email, "Removing Enterprise User")) {
-                $enterprise.enterpriseData.DeleteUser($userObject).GetAwaiter().GetResult() | Out-Null
-                Write-Output "User $($userObject.Email) has been deleted"
-            }
+        if ($PSCmdlet.ShouldProcess($userObject.Email, "Removing Enterprise User")) {
+            $enterprise.enterpriseData.DeleteUser($userObject).GetAwaiter().GetResult() | Out-Null
+            Write-Output "User $($userObject.Email) has been deleted"
         }
     }
 }

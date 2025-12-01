@@ -27,6 +27,8 @@ function New-KeeperEnterpriseTeam {
     if ($ParentNode) {
         $parent = resolveSingleNode $ParentNode
         $team.ParentNodeId = $parent.Id
+    } else {
+        $team.ParentNodeId = $enterprise.enterpriseData.RootNode.Id
     }
     if ($RestrictView.IsPresent) {
         $team.RestrictView = $true
