@@ -71,10 +71,6 @@ function Lock-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
-        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
-        return
-    }
     $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $true).GetAwaiter().GetResult()
     if ($saved) {
         Write-Output "User `"$($saved.Email)`" was locked"
@@ -98,10 +94,6 @@ function Unlock-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
-        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
-        return
-    }
     $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $false).GetAwaiter().GetResult()
     if ($saved) {
         Write-Output "User `"$($saved.Email)`" was unlocked"
@@ -153,7 +145,7 @@ function Move-KeeperEnterpriseUser {
     }
     $transferResult = $enterprise.enterpriseData.TransferUserAccount($enterprise.roleData, $fromUserObject, $targetUserObject).GetAwaiter().GetResult()
     if ($transferResult) {
-        Write-Information "Successfully Transfered:"
+        Write-Information "Successfully Transferred:"
         Write-Information "        Records: $($transferResult.RecordsTransfered)"
         Write-Information " Shared Folders: $($transferResult.SharedFoldersTransfered)"
         Write-Information "           Team: $($transferResult.TeamsTransfered)"
@@ -191,10 +183,6 @@ function Remove-KeeperEnterpriseUser {
 
     [Enterprise]$enterprise = getEnterprise
     $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
-        Write-Error "Invalid user: `"$User`" not found" -ErrorAction Stop
-        return
-    }
     if (-not $Force.IsPresent) {
         Write-Output  "`nDeleting a user will also delete any records owned and shared by this user."
         "Before you delete this user, we strongly recommend you lock their account"

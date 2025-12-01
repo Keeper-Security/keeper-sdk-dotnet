@@ -260,6 +260,24 @@ namespace Commander
                         {
                             node.DisplayName = arguments.Name;
                         }
+                        if (parentNode == null)
+                        {
+                            if (node.ParentNodeId > 0)
+                            {
+                                if (enterpriseData.TryGetNode(node.ParentNodeId, out var existingParent))
+                                {
+                                    parentNode = existingParent;
+                                }
+                                else
+                                {
+                                    parentNode = enterpriseData.RootNode;
+                                }
+                            }
+                            else
+                            {
+                                parentNode = enterpriseData.RootNode;
+                            }
+                        }
                         await enterpriseData.UpdateNode(node, parentNode);
                         Console.WriteLine($"Node \"{node.DisplayName}\" updated.");
                         if (arguments.RestrictVisibility)
