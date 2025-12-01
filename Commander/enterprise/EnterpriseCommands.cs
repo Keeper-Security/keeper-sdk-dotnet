@@ -925,7 +925,7 @@ namespace Commander
                     nodeId = enterpriseData.RootNode.Id;
                 }
 
-                await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser);
+                await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser ?? false);
                 Console.WriteLine($"Role \"{arguments.Role}\" successfully added.");
                 return;
             }
@@ -1029,6 +1029,48 @@ namespace Commander
                 return;
             }
 
+            if (string.CompareOrdinal(arguments.Command, "update") == 0 || string.CompareOrdinal(arguments.Command, "edit") == 0)
+            {
+                bool? newUserInherit = null;
+                bool? visibleBelow = null;
+                string displayName = null;
+
+                if (arguments.NewUser.HasValue)
+                {
+                    newUserInherit = arguments.NewUser.Value;
+                }
+                if (arguments.VisibleBelow.HasValue)
+                {
+                    visibleBelow = arguments.VisibleBelow.Value;
+                }
+                if (!string.IsNullOrEmpty(arguments.NewRoleName))
+                {
+                    displayName = arguments.NewRoleName;
+                }
+
+                if (!newUserInherit.HasValue && !visibleBelow.HasValue && string.IsNullOrEmpty(displayName))
+                {
+                    Console.WriteLine("No properties specified to update. Use --new-user, --visible-below, or --new-role-name options.");
+                    return;
+                }
+
+                var updatedRole = await roleData.UpdateRole(role, newUserInherit, visibleBelow, displayName);
+                if (updatedRole != null)
+                {
+                    Console.WriteLine($"Role \"{updatedRole.DisplayName}\" updated successfully.");
+                    var tab = new Tabulate(2)
+                    {
+                        DumpRowNo = false
+                    };
+                    tab.SetColumnRightAlign(0, true);
+                    tab.AddRow(" Role Name:", updatedRole.DisplayName);
+                    tab.AddRow(" Visible Below:", updatedRole.VisibleBelow);
+                    tab.AddRow(" New User Inherit:", updatedRole.NewUserInherit);
+                    tab.Dump();
+                }
+                return;
+            }
+
             var cmds = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             cmds.UnionWith(new[] { "add-members", "remove-members" });
             if (cmds.Contains(arguments.Command))
@@ -1122,7 +1164,7 @@ namespace Commander
                 return;
             }
 
-            Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"add-members\", \"remove-members\"");
+            Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\"");
         }
 
         public static async Task EnterpriseTeamCommand(this IEnterpriseContext context, EnterpriseTeamOptions arguments)
@@ -2305,10 +2347,16 @@ namespace Commander
         [Option("node", Required = false, HelpText = "Node Name or ID. \"add\"")]
         public string Node { get; set; }
 
-        [Option('n', "new-user", Required = false, Default = false, HelpText = "New users automatically get this role assigned. \"add\"")]
-        public bool NewUser { get; set; }
+        [Option('n', "new-user", Required = false, Default = false, HelpText = "New users automatically get this role assigned. \"add\", \"update\"")]
+        public bool? NewUser { get; set; }
 
-        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"add-members\", \"remove-members\"")]
+        [Option("visible-below", Required = false, HelpText = "ON | OFF: Set role visibility to subnodes. \"update\"")]
+        public bool? VisibleBelow { get; set; }
+
+        [Option("new-role-name", Required = false, HelpText = "New role display name. \"update\"")]
+        public string NewRoleName { get; set; }
+
+        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Role Name or ID")]
