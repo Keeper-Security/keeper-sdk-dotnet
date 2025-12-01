@@ -85,6 +85,17 @@ function Edit-KeeperEnterpriseNode {
     [KeeperSecurity.Enterprise.EnterpriseNode] $parent = $null
     if ($ParentNode) {
         $parent = resolveSingleNode $ParentNode
+    } else {
+        if ($nodeToUpdate.ParentNodeId -gt 0) {
+            [KeeperSecurity.Enterprise.EnterpriseNode] $existingParent = $null
+            if ($enterprise.enterpriseData.TryGetNode($nodeToUpdate.ParentNodeId, [ref]$existingParent)) {
+                $parent = $existingParent
+            } else {
+                $parent = $enterprise.enterpriseData.RootNode
+            }
+        } else {
+            $parent = $enterprise.enterpriseData.RootNode
+        }
     }
 
     $hasChanges = $false
