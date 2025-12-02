@@ -464,8 +464,15 @@ function Connect-Keeper {
                     Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
                     $biometricPresent = $false
                 } else {
-                    Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
-                    Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    $isCancelled = $biometricResult.ErrorMessage -match "cancelled|cancel" -or 
+                                   $biometricResult.ErrorType -eq "OperationCanceledException"
+                    
+                    if ($isCancelled) {
+                        Write-Host "Windows Hello authentication was cancelled. Falling back to default login method." -ForegroundColor Yellow
+                    } else {
+                        Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
+                        Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    }
                     $biometricPresent = $false 
                 }
             }

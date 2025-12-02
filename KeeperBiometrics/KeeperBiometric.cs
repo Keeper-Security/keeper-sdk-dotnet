@@ -42,6 +42,115 @@ namespace KeeperBiometric
         private const int SW_SHOW = 5;
 
         /// <summary>
+        /// Error codes that indicate user cancellation
+        /// </summary>
+        private static readonly HashSet<uint> CancellationErrorCodes = new HashSet<uint>
+        {
+            (uint)NativeWebAuthn.HRESULT.NTE_NOT_ALLOWED,    
+            (uint)NativeWebAuthn.HRESULT.NTE_USER_CANCELLED,  
+            (uint)NativeWebAuthn.HRESULT.ERROR_CANCELLED      
+        };
+
+        /// <summary>
+        /// Maps Windows Hello error codes to user-friendly error messages
+        /// Based on Microsoft documentation: https://learn.microsoft.com/en-us/windows/security/identity-protection/hello-for-business/hello-errors-during-pin-creation
+        /// </summary>
+        private static readonly Dictionary<uint, string> WindowsHelloErrorMessages = new Dictionary<uint, string>
+        {
+            { (uint)NativeWebAuthn.HRESULT.NTE_NOT_ALLOWED, "Windows Hello authentication was cancelled by the user. Please try again or use password login." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_USER_CANCELLED, "Windows Hello authentication was cancelled by the user." },
+            { (uint)NativeWebAuthn.HRESULT.ERROR_CANCELLED, "Operation was cancelled by the user." },
+            
+            { (uint)NativeWebAuthn.HRESULT.NTE_BAD_KEYSET, "TPM (Trusted Platform Module) is not set up. Please configure TPM in Windows Settings or contact your administrator." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_TPM_REQUIRED, "TPM is required but not available on this device. Please use a device with TPM support or change Windows Hello policy." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_AUTHENTICATION_IGNORED, "TPM authentication was ignored. Try rebooting the device. If the problem persists, you may need to reset the TPM." },
+            
+            { (uint)NativeWebAuthn.HRESULT.NTE_NO_MEMORY, "Insufficient memory. Please close other programs and try again." },
+            { (uint)NativeWebAuthn.HRESULT.E_OUTOFMEMORY, "Out of memory. Please close other programs and try again." },
+            
+            { (uint)NativeWebAuthn.HRESULT.NTE_BAD_DATA, "Invalid data detected. Try signing out and signing in again, or unjoin and rejoin the device from your organization." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_EXISTS, "The credential container or key already exists. Try unjoining and rejoining the device from your organization." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_NOT_FOUND, "The credential container or key was not found. Try unjoining and rejoining the device from your organization." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_BAD_KEYSET_PARAM, "Invalid parameter provided. This may indicate a configuration issue." },
+            
+            { (uint)NativeWebAuthn.HRESULT.WHFB_USER_NOT_AUTHORIZED, "You are not authorized to use Windows Hello. Please check with your administrator." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_REGISTRATION_QUOTA, "Registration quota reached. You have too many devices registered. Unregister another device or contact your administrator." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_SERVER_AUTH_FAILED, "Server failed to authorize the user or device. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_MFA_REQUIRED, "Multi-factor authentication is required but was not performed. Please sign out and sign in again." },
+            
+            { (uint)NativeWebAuthn.HRESULT.WHFB_INVALID_SERVER_RESPONSE, "Server response message is invalid. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_INVALID_HTTP_STATUS, "Server response HTTP status is invalid. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_SERVER_EXCEPTION, "Unhandled exception from server. Please sign out and sign in again." },
+            
+            { (uint)NativeWebAuthn.HRESULT.WHFB_INVALID_AIK_CERT, "The AIK certificate is not valid or trusted. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_INVALID_ATTESTATION, "The attestation statement is invalid. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_ATTESTATION_FAILED, "Attestation failed. Please sign out and sign in again." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_AIK_CERT_EXPIRED, "The AIK certificate is no longer valid. Please sign out and sign in again." },
+            
+            { (uint)NativeWebAuthn.HRESULT.WHFB_AD_DOMAIN_REQUIRED, "The device must be joined to an Active Directory domain to use Windows Hello." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_MISSING_DEVICE_ID, "Authorization token does not contain device ID. Try unjoining and rejoining the device from your organization." },
+            { (uint)NativeWebAuthn.HRESULT.WHFB_CREDENTIAL_INPUT_FAILED, "Failed to receive user credentials input. Please sign out and sign in again." },
+            
+            { (uint)NativeWebAuthn.HRESULT.E_INVALIDARG, "Invalid parameter or argument. Please try again." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_PERM, "Permission denied. Please check with your administrator." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_FAIL, "Operation failed. Please try again." },
+            { (uint)NativeWebAuthn.HRESULT.NTE_INTERNAL_ERROR, "Internal error occurred. Please try again or contact support." },
+            { (uint)NativeWebAuthn.HRESULT.STATUS_NOT_SUPPORTED, "Your PIN or this option is temporarily unavailable. The destination domain controller may not support this login method. Try using a different login method." }
+        };
+
+        /// <summary>
+        /// Gets a user-friendly error message for a Windows Hello error code
+        /// </summary>
+        /// <param name="hrValue">HRESULT error code</param>
+        /// <param name="defaultError">Default error message if code is not found</param>
+        /// <returns>User-friendly error message</returns>
+        private static string GetUserFriendlyErrorMessage(uint hrValue, string defaultError)
+        {
+            if (WindowsHelloErrorMessages.TryGetValue(hrValue, out var friendlyMessage))
+            {
+                return friendlyMessage;
+            }
+            return defaultError;
+        }
+
+        /// <summary>
+        /// Checks if an error code indicates user cancellation
+        /// </summary>
+        /// <param name="hrValue">HRESULT error code</param>
+        /// <param name="errorMessage">Optional error message to check for cancellation keywords</param>
+        /// <returns>True if the error indicates user cancellation</returns>
+        private static bool IsCancellationError(uint hrValue, string errorMessage = null)
+        {
+            if (CancellationErrorCodes.Contains(hrValue))
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                var errorLower = errorMessage.ToLowerInvariant();
+                if (errorLower.Contains("cancel") || 
+                    errorLower.Contains("abort") ||
+                    errorLower.Contains("notallowed") ||
+                    errorLower.Contains("not allowed"))
+                {
+                    return true;
+                }
+            }
+
+            if (WindowsHelloErrorMessages.TryGetValue(hrValue, out var friendlyMessage))
+            {
+                var msgLower = friendlyMessage.ToLowerInvariant();
+                if (msgLower.Contains("cancelled") || msgLower.Contains("cancel"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Gets the best window handle for Windows Hello dialogs
         /// This helps with dialog positioning and interaction issues
         /// </summary>
@@ -454,7 +563,19 @@ namespace KeeperBiometric
                         var ptr = NativeWebAuthn.WebAuthNGetErrorName(hr);
                         var error = Marshal.PtrToStringUni(ptr);
                         var hrValue = (uint)hr;
-                        taskSource.SetException(new Exception($"WebAuthn GetAssertion error: {error} (HRESULT: 0x{hrValue:X8})"));
+                        
+                        if (IsCancellationError(hrValue, error))
+                        {
+                            var cancellationMessage = GetUserFriendlyErrorMessage(hrValue, 
+                                "Windows Hello authentication was cancelled by the user.");
+                            taskSource.SetException(new OperationCanceledException(cancellationMessage));
+                        }
+                        else
+                        {
+                            var friendlyMessage = GetUserFriendlyErrorMessage(hrValue, 
+                                $"Windows Hello authentication failed: {error ?? "Unknown error"}");
+                            taskSource.SetException(new Exception($"{friendlyMessage} (HRESULT: 0x{hrValue:X8})"));
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -664,7 +785,19 @@ namespace KeeperBiometric
                         var ptr = NativeWebAuthn.WebAuthNGetErrorName(hr);
                         var error = Marshal.PtrToStringUni(ptr);
                         var hrValue = (uint)hr;
-                        taskSource.SetException(new Exception($"WebAuthn MakeCredential error: {error} (HRESULT: 0x{hrValue:X8})"));
+                        
+                        if (IsCancellationError(hrValue, error))
+                        {
+                            var cancellationMessage = GetUserFriendlyErrorMessage(hrValue, 
+                                "Windows Hello credential creation was cancelled by the user.");
+                            taskSource.SetException(new OperationCanceledException(cancellationMessage));
+                        }
+                        else
+                        {
+                            var friendlyMessage = GetUserFriendlyErrorMessage(hrValue, 
+                                $"Windows Hello credential creation failed: {error ?? "Unknown error"}");
+                            taskSource.SetException(new Exception($"{friendlyMessage} (HRESULT: 0x{hrValue:X8})"));
+                        }
                     }
 
                     if (pubKeyPtr != IntPtr.Zero)
@@ -1213,7 +1346,36 @@ namespace KeeperBiometric
             S_FALSE = 0x0001,
             S_OK = 0x0000,
             E_INVALIDARG = 0x80070057,
-            E_OUTOFMEMORY = 0x8007000E
+            E_OUTOFMEMORY = 0x8007000E,
+            ERROR_CANCELLED = 0x800704C7,
+            NTE_USER_CANCELLED = 0x8009002F,
+            NTE_NOT_ALLOWED = 0x80090036,
+            NTE_BAD_KEYSET = 0x80090029,
+            NTE_TPM_REQUIRED = 0x80090035,
+            NTE_AUTHENTICATION_IGNORED = 0x80090031,
+            NTE_NO_MEMORY = 0x8009002A,
+            NTE_BAD_DATA = 0x80090005,
+            NTE_EXISTS = 0x8009000F,
+            NTE_NOT_FOUND = 0x80090011,
+            NTE_BAD_KEYSET_PARAM = 0x80090027,
+            NTE_PERM = 0x80090010,
+            NTE_FAIL = 0x80090020,
+            NTE_INTERNAL_ERROR = 0x8009002D,
+            WHFB_USER_NOT_AUTHORIZED = 0x801C0003,
+            WHFB_REGISTRATION_QUOTA = 0x801C000E,
+            WHFB_SERVER_AUTH_FAILED = 0x801C03EA,
+            WHFB_MFA_REQUIRED = 0x801C03ED,
+            WHFB_INVALID_SERVER_RESPONSE = 0x801C03E9,
+            WHFB_INVALID_HTTP_STATUS = 0x801C03EB,
+            WHFB_SERVER_EXCEPTION = 0x801C03EC,
+            WHFB_INVALID_AIK_CERT = 0x801C0010,
+            WHFB_INVALID_ATTESTATION = 0x801C0011,
+            WHFB_ATTESTATION_FAILED = 0x801C03EE,
+            WHFB_AIK_CERT_EXPIRED = 0x801C03EF,
+            WHFB_AD_DOMAIN_REQUIRED = 0x801C0015,
+            WHFB_MISSING_DEVICE_ID = 0x801C044D,
+            WHFB_CREDENTIAL_INPUT_FAILED = 0x801C044E,
+            STATUS_NOT_SUPPORTED = 0xC00000BB
         }
 
         [DllImport("webauthn.dll", EntryPoint = "WebAuthNGetApiVersionNumber", CharSet = CharSet.Unicode)]

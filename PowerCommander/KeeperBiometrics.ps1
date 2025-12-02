@@ -179,7 +179,11 @@ function Assert-KeeperBiometricCredential {
         if ($result.Success) {
             Write-Host "Verification completed successfully!" -ForegroundColor Green
         } else {
-            Write-Warning "Verification failed: $($result.ErrorMessage)"
+            if ($result.ErrorMessage -match "cancelled|cancel" -or $result.ErrorType -eq "OperationCanceledException") {
+                Write-Host "Windows Hello authentication was cancelled." -ForegroundColor Yellow
+            } else {
+                Write-Warning "Verification failed: $($result.ErrorMessage)"
+            }
         }
         
         if ($PassThru) {
