@@ -397,6 +397,14 @@ namespace KeeperBiometric
                     Message = "Authentication successful"
                 };
             }
+            catch (OperationCanceledException ex)
+            {
+                return new PasskeyAuthenticationResult
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message ?? "Windows Hello authentication was cancelled by the user."
+                };
+            }
             catch (Exception ex)
             {
                 return new PasskeyAuthenticationResult

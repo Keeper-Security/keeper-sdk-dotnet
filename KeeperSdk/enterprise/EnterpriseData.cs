@@ -286,11 +286,13 @@ namespace KeeperSecurity.Enterprise
                 {
                     sdk.DisplayName = keeper.EncryptedData;
                 }
-                else 
+                else
                 {
                     EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
                 }
             }
+            sdk.TransferAcceptanceStatus = (TransferAcceptanceStatus)keeper.TransferAcceptanceStatus;
+            sdk.TwoFactorEnabled = keeper.TfaEnabled;
         }
 
         public bool TryGetUserByEmail(string email, out EnterpriseUser user)
