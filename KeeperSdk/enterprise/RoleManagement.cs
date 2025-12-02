@@ -22,6 +22,15 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Created role</returns>
         Task<EnterpriseRole> CreateRole(string roleName, long nodeId, bool newUserInherit);
         /// <summary>
+        /// Updates Enterprise Role properties
+        /// </summary>
+        /// <param name="role">Enterprise role to update</param>
+        /// <param name="newUserInherit">Optional: Set role as default for new users. If null, property is not changed.</param>
+        /// <param name="visibleBelow">Optional: Set role visibility to subnodes. If null, property is not changed.</param>
+        /// <param name="displayName">Optional: New role display name. If null, property is not changed.</param>
+        /// <returns>Updated role</returns>
+        Task<EnterpriseRole> UpdateRole(EnterpriseRole role, bool? newUserInherit = null, bool? visibleBelow = null, string displayName = null);
+        /// <summary>
         /// Deletes Enterprise Role
         /// </summary>
         /// <param name="role">Enterprise role</param>
@@ -86,6 +95,33 @@ namespace KeeperSecurity.Enterprise
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
             return TryGetRole(roleId, out var role) ? role : null;
+        }
+
+        /// <inheritdoc />
+        public async Task<EnterpriseRole> UpdateRole(EnterpriseRole role, bool? newUserInherit = null, bool? visibleBelow = null, string displayName = null)
+        {
+            var encryptedData = new EncryptedData();
+            if (!string.IsNullOrEmpty(displayName))
+            {
+                encryptedData.DisplayName = displayName;
+            }
+            else
+            {
+                encryptedData.DisplayName = role.DisplayName;
+            }
+
+            var rq = new RoleUpdateCommand
+            {
+                RoleId = role.Id,
+                NodeId = role.ParentNodeId,
+                EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, Enterprise.TreeKey),
+                NewUserInherit = newUserInherit ?? role.NewUserInherit,
+                VisibleBelow = visibleBelow ?? role.VisibleBelow
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+            return TryGetRole(role.Id, out var updatedRole) ? updatedRole : null;
         }
 
         /// <inheritdoc />
