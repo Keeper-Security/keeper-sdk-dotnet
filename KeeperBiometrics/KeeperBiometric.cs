@@ -453,7 +453,8 @@ namespace KeeperBiometric
                     {
                         var ptr = NativeWebAuthn.WebAuthNGetErrorName(hr);
                         var error = Marshal.PtrToStringUni(ptr);
-                        taskSource.SetException(new Exception($"WebAuthn GetAssertion error: {error} (HRESULT: 0x{hr:X8})"));
+                        var hrValue = (uint)hr;
+                        taskSource.SetException(new Exception($"WebAuthn GetAssertion error: {error} (HRESULT: 0x{hrValue:X8})"));
                     }
                 }
                 catch (Exception ex)
@@ -662,7 +663,8 @@ namespace KeeperBiometric
                     {
                         var ptr = NativeWebAuthn.WebAuthNGetErrorName(hr);
                         var error = Marshal.PtrToStringUni(ptr);
-                        taskSource.SetException(new Exception($"WebAuthn MakeCredential error: {error} (HRESULT: 0x{hr:X8})"));
+                        var hrValue = (uint)hr;
+                        taskSource.SetException(new Exception($"WebAuthn MakeCredential error: {error} (HRESULT: 0x{hrValue:X8})"));
                     }
 
                     if (pubKeyPtr != IntPtr.Zero)
@@ -886,7 +888,8 @@ namespace KeeperBiometric
                     }
                     
                     result.Success = false;
-                    result.ErrorMessage = $"WebAuthNGetPlatformCredentialList failed: 0x{hr:X8}";
+                    var hrValue = unchecked((uint)hr);
+                    result.ErrorMessage = $"WebAuthNGetPlatformCredentialList failed: 0x{hrValue:X8}";
                     result.ErrorType = "WebAuthnApiError";
                     return result;
                 }
