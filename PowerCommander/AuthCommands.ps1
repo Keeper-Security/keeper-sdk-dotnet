@@ -299,6 +299,13 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         Catch [KeeperSecurity.Authentication.KeeperAuthFailed] {
             Write-Warning 'Invalid password'
         }
+        Catch [KeeperSecurity.Authentication.KeeperApiException] {
+            if ($_.Exception.Message -match 'Invalid|Credential|password|authentication failed' -or $_.Exception.Code -match 'invalid') {
+                Write-Warning "Invalid credentials: $($_.Exception.Message)"
+            } else {
+                Write-Error $_
+            }
+        }
         Catch {
             Write-Error $_
         }
