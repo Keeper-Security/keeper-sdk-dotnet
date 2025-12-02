@@ -27,29 +27,31 @@ function getEnterprise {
         $Script:Context.ManagedCompanyId = 0
     }
 
-    if ($Script:Context.ManagedCompanyId -gt 0) {
-        if ($null -ne $enterprise.ManagedCompanies) {
-            $enterpriseMc = $enterprise.ManagedCompanies[$Script:Context.ManagedCompanyId]
-            if ($null -eq $enterpriseMc) {
-                $authMc = New-Object KeeperSecurity.Enterprise.ManagedCompanyAuth
-                $authMc.LoginToManagedCompany($Script:Context.Enterprise.loader, $Script:Context.ManagedCompanyId).GetAwaiter().GetResult() | Out-Null
-
-                $enterpriseMc = New-Object Enterprise
-                $enterpriseMc.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
-                $enterpriseMc.roleData = New-Object KeeperSecurity.Enterprise.RoleData
-        
-                [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData
-        
-                $enterpriseMc.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
-                $enterpriseMc.loader.Load().GetAwaiter().GetResult() | Out-Null
-                $enterprise.ManagedCompanies[$Script:Context.ManagedCompanyId] = $enterpriseMc
-            }
-            $enterprise = $enterpriseMc
-        }
-        else {
-            $Script:Context.ManagedCompanyId = 0
-        }
+    if ($Script:Context.ManagedCompanyId -le 0) {
+        return $enterprise
     }
+
+    if ($null -eq $enterprise.ManagedCompanies) {
+        $Script:Context.ManagedCompanyId = 0
+        return $enterprise
+    }
+
+    $enterpriseMc = $enterprise.ManagedCompanies[$Script:Context.ManagedCompanyId]
+    if ($null -eq $enterpriseMc) {
+        $authMc = New-Object KeeperSecurity.Enterprise.ManagedCompanyAuth
+        $authMc.LoginToManagedCompany($Script:Context.Enterprise.loader, $Script:Context.ManagedCompanyId).GetAwaiter().GetResult() | Out-Null
+
+        $enterpriseMc = New-Object Enterprise
+        $enterpriseMc.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
+        $enterpriseMc.roleData = New-Object KeeperSecurity.Enterprise.RoleData
+
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData
+
+        $enterpriseMc.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
+        $enterpriseMc.loader.Load().GetAwaiter().GetResult() | Out-Null
+        $enterprise.ManagedCompanies[$Script:Context.ManagedCompanyId] = $enterpriseMc
+    }
+    $enterprise = $enterpriseMc
 
     return $enterprise
 }
