@@ -546,6 +546,14 @@ namespace Commander
                     Action = context.TeamListCommand
                 });
 
+            cli.Commands.Add("audit-report",
+                new ParseableCommand<AuditReportCommandOptions>
+                {
+                    Order = 43,
+                    Description = "Run audit trail reports",
+                    Action = context.AuditReportCommand
+                });
+
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)
