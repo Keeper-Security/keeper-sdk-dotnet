@@ -112,7 +112,8 @@ function Edit-KeeperEnterpriseNode {
                 $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null 
                 
                 $nodeToUpdate = resolveSingleNode $nodeToUpdate.Id
-                Write-Output "Node Isolation: $($nodeToUpdate.RestrictVisibility ? 'ON' : 'OFF')"
+                $isolationStatus = if ($nodeToUpdate.RestrictVisibility) { 'ON' } else { 'OFF' }
+                Write-Output "Node Isolation: $isolationStatus"
             }
             catch {
                 Write-Error -Message "Failed to set node isolation for `"$($nodeToUpdate.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
