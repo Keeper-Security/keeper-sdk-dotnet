@@ -1336,7 +1336,7 @@ function Export-KeeperRecordTypes {
         }
 
         if ($recordTypesForDownload.Count -gt 0) {
-            $json = ConvertTo-Json @{ recordTypes = $recordTypesForDownload } -Depth 10
+            $json = ConvertTo-Json @{ record_types = $recordTypesForDownload } -Depth 10
             Set-Content -Path $FileName -Value $json -Encoding UTF8
             Write-Host "Downloaded $($recordTypesForDownload.Count) record types to '$(Resolve-Path $FileName)'"
         } else {

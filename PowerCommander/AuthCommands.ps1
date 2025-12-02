@@ -299,6 +299,13 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         Catch [KeeperSecurity.Authentication.KeeperAuthFailed] {
             Write-Warning 'Invalid password'
         }
+        Catch [KeeperSecurity.Authentication.KeeperApiException] {
+            if ($_.Exception.Message -match 'Invalid|Credential|password|authentication failed' -or $_.Exception.Code -match 'invalid') {
+                Write-Warning "Invalid credentials: $($_.Exception.Message)"
+            } else {
+                Write-Error $_
+            }
+        }
         Catch {
             Write-Error $_
         }
@@ -464,8 +471,15 @@ function Connect-Keeper {
                     Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
                     $biometricPresent = $false
                 } else {
-                    Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
-                    Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    $isCancelled = $biometricResult.ErrorMessage -match "cancelled|cancel" -or 
+                                   $biometricResult.ErrorType -eq "OperationCanceledException"
+                    
+                    if ($isCancelled) {
+                        Write-Host "Windows Hello authentication was cancelled. Falling back to default login method." -ForegroundColor Yellow
+                    } else {
+                        Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
+                        Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    }
                     $biometricPresent = $false 
                 }
             }
