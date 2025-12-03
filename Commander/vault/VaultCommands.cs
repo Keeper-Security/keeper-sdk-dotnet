@@ -1326,15 +1326,6 @@ namespace Commander
     {
         public static async Task DownloadMembershipCommand(this VaultContext context, DownloadMembershipCommandOptions options)
         {
-            static void Logger(Severity severity, string message)
-            {
-                if (severity == Severity.Warning || severity == Severity.Error)
-                {
-                    Console.WriteLine(message);
-                }
-                Debug.WriteLine(message);
-            }
-
             if (string.IsNullOrEmpty(options.Source))
             {
                 options.Source = "keeper";
@@ -1402,13 +1393,13 @@ namespace Commander
             KeeperSecurity.Commands.ExportFile exportFile;
             if (File.Exists(filename) && !options.Force)
             {
-                await context.Vault.MergeMembershipToFile(filename, downloadOptions, Logger);
-                exportFile = await context.Vault.DownloadMembership(downloadOptions, Logger);
+                await context.Vault.MergeMembershipToFile(filename, downloadOptions);
+                exportFile = await context.Vault.DownloadMembership(downloadOptions);
             }
             else
             {
-                await context.Vault.DownloadMembershipToFile(filename, downloadOptions, Logger);
-                exportFile = await context.Vault.DownloadMembership(downloadOptions, Logger);
+                await context.Vault.DownloadMembershipToFile(filename, downloadOptions);
+                exportFile = await context.Vault.DownloadMembership(downloadOptions);
             }
 
             var table = new Tabulate(2)
