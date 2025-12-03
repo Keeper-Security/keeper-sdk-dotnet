@@ -77,6 +77,9 @@ namespace KeeperSecurity
         [DataContract]
         public class ImportSharedFolder
         {
+            [DataMember(Name = "uid", EmitDefaultValue = false)]
+            public string Uid { get; set; }
+
             [DataMember(Name = "path", EmitDefaultValue = false)]
             public string Path { get; set; }
 
@@ -89,7 +92,7 @@ namespace KeeperSecurity
         }
 
         [DataContract]
-        public class ImportFile
+        public partial class ImportFile
         {
             [DataMember(Name = "records")] public ImportRecord[] Records { get; set; }
             [DataMember(Name = "shared_folders")] public ImportSharedFolder[] SharedFolders { get; set; }
