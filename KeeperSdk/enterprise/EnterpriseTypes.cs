@@ -249,6 +249,37 @@ namespace KeeperSecurity.Enterprise
     }
 
     /// <summary>
+    ///     Specifies Account Transfer Acceptance Status.
+    /// </summary>
+    public enum TransferAcceptanceStatus
+    {
+        /// <summary>
+        ///     Status is undefined or not set.
+        /// </summary>
+        Undefined = 0,
+
+        /// <summary>
+        ///     Account transfer is not required.
+        /// </summary>
+        NotRequired = 1,
+
+        /// <summary>
+        ///     Account transfer has not been accepted.
+        /// </summary>
+        NotAccepted = 2,
+
+        /// <summary>
+        ///     Account transfer has been partially accepted.
+        /// </summary>
+        PartiallyAccepted = 3,
+
+        /// <summary>
+        ///     Account transfer has been accepted.
+        /// </summary>
+        Accepted = 4
+    }
+
+    /// <summary>
     ///     Represents Enterprise User
     /// </summary>
     public class EnterpriseUser : IEnterpriseEntity, IParentNodeEntity, IEncryptedData, IDisplayName
@@ -291,6 +322,21 @@ namespace KeeperSecurity.Enterprise
         /// Account Share Expiration. Unix epoch time in milliseconds.
         /// </summary>
         public long AccountShareExpiration { get; internal set; }
+
+        /// <summary>
+        /// Transfer Acceptance Status. Indicates the account transfer acceptance status.
+        /// </summary>
+        public TransferAcceptanceStatus TransferAcceptanceStatus { get; internal set; }
+
+        /// <summary>
+        /// Indicates if the user has accepted account transfer. Returns true if TransferAcceptanceStatus is Accepted.
+        /// </summary>
+        public bool IsTransferAccepted => TransferAcceptanceStatus == TransferAcceptanceStatus.Accepted;
+
+        /// <summary>
+        /// Two Factor Authentication Enabled. Indicates if 2FA is enabled for the user.
+        /// </summary>
+        public bool TwoFactorEnabled { get; internal set; }
     }
 
     /// <summary>

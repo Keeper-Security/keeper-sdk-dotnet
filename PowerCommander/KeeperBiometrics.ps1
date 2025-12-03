@@ -1,9 +1,15 @@
-try {
-    $null = [KeeperBiometric.PasskeyManager]
-    $KeeperBiometricAvailable = $true
+$KeeperBiometricAvailable = $false
+if ($IsWindows -or ($PSVersionTable.Platform -eq 'Win32NT') -or ($env:OS -like '*Windows*')) {
+    try {
+        $null = [KeeperBiometric.PasskeyManager]
+        $KeeperBiometricAvailable = $true
+    }
+    catch {
+        Write-Warning "KeeperBiometric assembly not available: $($_.Exception.Message)"
+        $KeeperBiometricAvailable = $false
+    }
 }
-catch {
-    Write-Warning "KeeperBiometric assembly not available: $($_.Exception.Message)"
+else {
     $KeeperBiometricAvailable = $false
 }
 
@@ -24,13 +30,15 @@ function Test-AssemblyAvailable {
         [switch]$Quiet
     )
     
-    if (-not $KeeperBiometricAvailable) {
-        if (-not $Quiet) {
-            Write-Warning "KeeperBiometric assembly not available. Please build the project first."
-        }
-        return $false
+    if ($KeeperBiometricAvailable) {
+        return $true
     }
-    return $true
+    
+    if (-not $Quiet -and ($IsWindows -or ($PSVersionTable.Platform -eq 'Win32NT') -or ($env:OS -like '*Windows*'))) {
+        Write-Warning "KeeperBiometric assembly not available. Please build the project first."
+    }
+    
+    return $false
 }
 
 
@@ -179,7 +187,11 @@ function Assert-KeeperBiometricCredential {
         if ($result.Success) {
             Write-Host "Verification completed successfully!" -ForegroundColor Green
         } else {
-            Write-Warning "Verification failed: $($result.ErrorMessage)"
+            if ($result.ErrorMessage -match "cancelled|cancel" -or $result.ErrorType -eq "OperationCanceledException") {
+                Write-Host "Windows Hello authentication was cancelled." -ForegroundColor Yellow
+            } else {
+                Write-Warning "Verification failed: $($result.ErrorMessage)"
+            }
         }
         
         if ($PassThru) {
