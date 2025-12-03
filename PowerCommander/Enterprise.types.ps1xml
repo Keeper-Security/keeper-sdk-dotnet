@@ -15,12 +15,6 @@
                     $this.IsTransferAccepted
                 </GetScriptBlock>
             </ScriptProperty>
-            <ScriptProperty>
-                <Name>TwoFactorEnabled</Name>
-                <GetScriptBlock>
-                    $this.TwoFactorEnabled
-                </GetScriptBlock>
-            </ScriptProperty>
         </Members>
     </Type>
 
