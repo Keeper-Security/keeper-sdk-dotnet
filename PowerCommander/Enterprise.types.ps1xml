@@ -9,6 +9,12 @@
                     Get-KeeperNodeName $this.ParentNodeId
                 </GetScriptBlock>
             </ScriptProperty>
+            <ScriptProperty>
+                <Name>TransferStatus</Name>
+                <GetScriptBlock>
+                    $this.IsTransferAccepted
+                </GetScriptBlock>
+            </ScriptProperty>
         </Members>
     </Type>
 
