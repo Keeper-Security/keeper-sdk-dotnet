@@ -128,99 +128,62 @@ namespace KeeperSecurity.Vault
         protected string GetTimezone()
         {
             if (!string.IsNullOrEmpty(Timezone))
-            {
                 return Timezone;
-            }
 
-            var now = DateTimeOffset.Now;
-            var offset = now.Offset;
-            var hours = (int)offset.TotalHours;
+            var hours = (int)DateTimeOffset.Now.Offset.TotalHours;
             return $"Etc/GMT{(hours >= 0 ? "+" : "")}{hours}";
         }
 
         protected Dictionary<string, object> GetFilterDictionary()
         {
             if (Filter == null)
-            {
                 return null;
-            }
 
             var reportFilter = new Dictionary<string, object>();
 
             if (Filter.Created != null)
             {
-                if (Filter.Created is CreatedFilterCriteria criteria)
+                switch (Filter.Created)
                 {
-                    var created = new Dictionary<string, object>();
-                    if (criteria.FromDate.HasValue)
-                    {
-                        created["min"] = criteria.FromDate.Value;
-                        if (criteria.ExcludeFrom == true)
+                    case CreatedFilterCriteria criteria:
+                        var created = new[]
                         {
-                            created["exclude_min"] = true;
+                            (key: "min", value: (object)criteria.FromDate, condition: criteria.FromDate.HasValue),
+                            (key: "exclude_min", value: (object)true, condition: criteria.FromDate.HasValue && criteria.ExcludeFrom == true),
+                            (key: "max", value: (object)criteria.ToDate, condition: criteria.ToDate.HasValue),
+                            (key: "exclude_max", value: (object)true, condition: criteria.ToDate.HasValue && criteria.ExcludeTo == true)
                         }
-                    }
-                    if (criteria.ToDate.HasValue)
-                    {
-                        created["max"] = criteria.ToDate.Value;
-                        if (criteria.ExcludeTo == true)
-                        {
-                            created["exclude_max"] = true;
-                        }
-                    }
-                    if (created.Count > 0)
-                    {
-                        reportFilter["created"] = created;
-                    }
-                }
-                else if (Filter.Created is string createdStr)
-                {
-                    var validPresets = new[] { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" };
-                    if (validPresets.Contains(createdStr))
-                    {
+                        .Where(x => x.condition)
+                        .ToDictionary(x => x.key, x => x.value);
+                        
+                        if (created.Count > 0)
+                            reportFilter["created"] = created;
+                        break;
+                        
+                    case string createdStr when new[] { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" }.Contains(createdStr):
                         reportFilter["created"] = createdStr;
-                    }
+                        break;
                 }
             }
 
-            if (Filter.EventType != null)
+            var filterMappings = new (string key, object value)[]
             {
-                reportFilter["event_type"] = Filter.EventType;
-            }
+                ("event_type", Filter.EventType),
+                ("keeper_version", Filter.KeeperVersion),
+                ("username", Filter.Username),
+                ("to_username", Filter.ToUsername),
+                ("ip_address", Filter.IpAddress),
+                ("record_uid", Filter.RecordUid),
+                ("shared_folder_uid", Filter.SharedFolderUid),
+                ("parent_id", Filter.ParentId)
+            };
 
-            if (Filter.KeeperVersion != null)
+            foreach (var (key, value) in filterMappings)
             {
-                reportFilter["keeper_version"] = Filter.KeeperVersion;
-            }
-
-            if (Filter.Username != null)
-            {
-                reportFilter["username"] = Filter.Username;
-            }
-
-            if (Filter.ToUsername != null)
-            {
-                reportFilter["to_username"] = Filter.ToUsername;
-            }
-
-            if (Filter.IpAddress != null)
-            {
-                reportFilter["ip_address"] = Filter.IpAddress;
-            }
-
-            if (Filter.RecordUid != null)
-            {
-                reportFilter["record_uid"] = Filter.RecordUid;
-            }
-
-            if (Filter.SharedFolderUid != null)
-            {
-                reportFilter["shared_folder_uid"] = Filter.SharedFolderUid;
-            }
-
-            if (Filter.ParentId != null)
-            {
-                reportFilter["parent_id"] = Filter.ParentId;
+                if (value != null)
+                {
+                    reportFilter[key] = value;
+                }
             }
 
             return reportFilter.Count > 0 ? reportFilter : null;
@@ -255,19 +218,8 @@ namespace KeeperSecurity.Vault
                     toDate = today;
                     break;
                 case "last_month":
-                    var year = today.Year;
-                    var month = today.Month;
-                    toDate = new DateTime(year, month, 1);
-                    if (month == 1)
-                    {
-                        month = 12;
-                        year -= 1;
-                    }
-                    else
-                    {
-                        month -= 1;
-                    }
-                    fromDate = new DateTime(year, month, 1);
+                    toDate = new DateTime(today.Year, today.Month, 1);
+                    fromDate = toDate.AddMonths(-1);
                     break;
                 case "last_year":
                     fromDate = new DateTime(today.Year - 1, 1, 1);
@@ -303,9 +255,7 @@ namespace KeeperSecurity.Vault
             var limit = Limit ?? 50;
 
             if (limit == 0)
-            {
                 return events;
-            }
 
             var isPaginated = limit < 0 || limit > 1000;
             var currentFilter = Filter;
@@ -336,22 +286,9 @@ namespace KeeperSecurity.Vault
                 done = true;
                 int queryLimit;
 
-                if (isPaginated)
-                {
-                    if (limit <= 0)
-                    {
-                        queryLimit = 1000;
-                    }
-                    else
-                    {
-                        var left = limit - eventsReturned;
-                        queryLimit = Math.Min(1000, left);
-                    }
-                }
-                else
-                {
-                    queryLimit = limit;
-                }
+                queryLimit = isPaginated
+                    ? (limit <= 0 ? 1000 : Math.Min(1000, limit - eventsReturned))
+                    : limit;
 
                 var originalFilter = Filter;
                 Filter = currentFilter;
@@ -370,68 +307,32 @@ namespace KeeperSecurity.Vault
 
                 var response = await Auth.ExecuteAuthCommand<AuditReportCommand, AuditReportResponse>(command);
                 
-                if (response != null && response.Rows != null)
-                {
-                    var currentBatch = response.Rows;
-
-                    if (isPaginated && currentBatch.Count == 1000)
-                    {
-                        done = false;
-                        var lastEvent = currentBatch.Last();
-                        var ts = Convert.ToInt64(lastEvent["created"]);
-                        var pos = currentBatch.Count - 1;
-
-                        while (pos > 900)
-                        {
-                            var eTs = Convert.ToInt64(currentBatch[pos]["created"]);
-                            if (eTs == ts)
-                            {
-                                pos--;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-
-                        if (pos > 900)
-                        {
-                            currentBatch = currentBatch.Take(pos).ToList();
-                        }
-                        else
-                        {
-                            ts += 1;
-                        }
-
-                        if (currentFilter == null)
-                        {
-                            currentFilter = new AuditReportFilter();
-                        }
-                        if (currentFilter.Created == null || currentFilter.Created is string)
-                        {
-                            currentFilter.Created = new CreatedFilterCriteria();
-                        }
-
-                        var createdFilter = currentFilter.Created as CreatedFilterCriteria;
-                        if (order == ReportOrder.Asc)
-                        {
-                            createdFilter.FromDate = ts;
-                            createdFilter.ExcludeFrom = false;
-                        }
-                        else
-                        {
-                            createdFilter.ToDate = ts;
-                            createdFilter.ExcludeTo = false;
-                        }
-                    }
-
-                    eventsReturned += currentBatch.Count;
-                    events.AddRange(currentBatch);
-                }
-                else
-                {
+                if (response?.Rows == null)
                     break;
+
+                var currentBatch = response.Rows;
+
+                if (isPaginated && currentBatch.Count == 1000)
+                {
+                    done = false;
+                    var ts = Convert.ToInt64(currentBatch.Last()["created"]);
+                    var pos = currentBatch.FindLastIndex(e => Convert.ToInt64(e["created"]) != ts);
+
+                    (currentBatch, ts) = pos > 900 
+                        ? (currentBatch.Take(pos + 1).ToList(), Convert.ToInt64(currentBatch[pos]["created"]))
+                        : (currentBatch, ts + 1);
+
+                    currentFilter ??= new AuditReportFilter();
+                    var createdFilter = currentFilter.Created as CreatedFilterCriteria ?? new CreatedFilterCriteria();
+                    currentFilter.Created = createdFilter;
+
+                    _ = order == ReportOrder.Asc
+                        ? (createdFilter.FromDate, createdFilter.ExcludeFrom) = (ts, false)
+                        : (createdFilter.ToDate, createdFilter.ExcludeTo) = (ts, false);
                 }
+
+                eventsReturned += currentBatch.Count;
+                events.AddRange(currentBatch);
             }
 
             return events;
@@ -451,15 +352,9 @@ namespace KeeperSecurity.Vault
         public string SummaryType
         {
             get => _summaryType;
-            set
-            {
-                var validTypes = new[] { "hour", "day", "week", "month", "span" };
-                if (!validTypes.Contains(value))
-                {
-                    throw new ArgumentException($"\"{value}\" is not a valid summary report type");
-                }
-                _summaryType = value;
-            }
+            set => _summaryType = new[] { "hour", "day", "week", "month", "span" }.Contains(value)
+                ? value
+                : throw new ArgumentException($"\"{value}\" is not a valid summary report type");
         }
 
         public List<string> Aggregates { get; set; }
@@ -467,16 +362,7 @@ namespace KeeperSecurity.Vault
 
         public async Task<List<Dictionary<string, object>>> ExecuteSummaryReport()
         {
-            var limit = Limit ?? 100;
-            if (limit <= 0)
-            {
-                limit = 100;
-            }
-            else if (limit > 2000)
-            {
-                limit = 2000;
-            }
-
+            var limit = Math.Max(1, Math.Min(Limit ?? 100, 2000));
             var timezone = GetTimezone();
 
             var jsonFilter = GetFilterDictionary();
@@ -494,13 +380,7 @@ namespace KeeperSecurity.Vault
             };
 
             var response = await Auth.ExecuteAuthCommand<AuditReportCommand, AuditReportResponse>(command);
-
-            if (response != null && response.Rows != null)
-            {
-                return response.Rows;
-            }
-
-            return new List<Dictionary<string, object>>();
+            return response?.Rows ?? new List<Dictionary<string, object>>();
         }
     }
 
@@ -522,30 +402,23 @@ namespace KeeperSecurity.Vault
 
             var response = await Auth.ExecuteAuthCommand<DimensionReportCommand, DimensionReportResponse>(command);
 
-            if (response != null && response.Dimensions != null &&
-                response.Dimensions.TryGetValue(dimension, out var dimensionsList))
+            if (response?.Dimensions?.TryGetValue(dimension, out var dimensions) != true)
+                return new List<Dictionary<string, object>>();
+
+            if (dimension == "ip_address")
             {
-                var dimensions = dimensionsList;
-
-                if (dimension == "ip_address")
+                foreach (var row in dimensions)
                 {
-                    foreach (var row in dimensions)
-                    {
-                        var city = row.ContainsKey("city") ? row["city"]?.ToString() : "";
-                        var region = row.ContainsKey("region") ? row["region"]?.ToString() : "";
-                        var country = row.ContainsKey("country_code") ? row["country_code"]?.ToString() : "";
+                    var parts = new[] { "city", "region", "country_code" }
+                        .Select(k => row.TryGetValue(k, out var v) ? v?.ToString() : "")
+                        .Where(s => !string.IsNullOrEmpty(s));
 
-                        if (!string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(region) || !string.IsNullOrEmpty(country))
-                        {
-                            row["geo_location"] = string.Join(", ", new[] { city, region, country }.Where(s => !string.IsNullOrEmpty(s)));
-                        }
-                    }
+                    if (parts.Any())
+                        row["geo_location"] = string.Join(", ", parts);
                 }
-
-                return dimensions;
             }
 
-            return new List<Dictionary<string, object>>();
+            return dimensions;
         }
     }
 
