@@ -2,6 +2,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
@@ -72,14 +73,13 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public static async Task<ExportFile> DownloadMembership(
             this VaultOnline vault,
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
         {
             options = options ?? new DownloadMembershipOptions();
             
             var exportFile = new ExportFile();
             var sharedFoldersList = new List<ExportSharedFolder>();
-            var teamsList = new List<ExportTeam>();
+            var referencedTeams = new Dictionary<string, ExportTeam>();
 
             // Build folder path lookup
             var folderPaths = new Dictionary<string, string>();
@@ -97,6 +97,20 @@ namespace KeeperSecurity.Vault
                 {
                     // Ignore folders we can't access
                 }
+            }
+
+            var teamLookup = new Dictionary<string, string>();
+            try
+            {
+                var teams = await vault.GetTeamsForShare();
+                foreach (var team in teams)
+                {
+                    teamLookup[team.TeamUid] = team.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load teams: {ex.Message}");
             }
 
             foreach (var sf in vault.SharedFolders)
@@ -147,11 +161,32 @@ namespace KeeperSecurity.Vault
                         {
                             manageRecords = options.ForceManageRecords.Value;
                         }
+
+                        var permName = perm.Name;
+                        var isTeam = perm.UserType == UserType.Team;
+                        
+                        if (isTeam && !string.IsNullOrEmpty(perm.Uid))
+                        {
+                            if (teamLookup.TryGetValue(perm.Uid, out var teamName))
+                            {
+                                permName = teamName;
+                            }
+                            
+                            if (!referencedTeams.ContainsKey(perm.Uid))
+                            {
+                                referencedTeams[perm.Uid] = new ExportTeam
+                                {
+                                    Uid = perm.Uid,
+                                    Name = permName ?? perm.Uid,
+                                    Members = null
+                                };
+                            }
+                        }
                         
                         permissions.Add(new ExportSharedFolderPermissions
                         {
-                            Uid = perm.Uid,
-                            Name = perm.Name,
+                            Uid = isTeam ? perm.Uid : null,
+                            Name = permName,
                             ManageUsers = manageUsers,
                             ManageRecords = manageRecords
                         });
@@ -162,36 +197,14 @@ namespace KeeperSecurity.Vault
                 sharedFoldersList.Add(exportSf);
             }
 
-            if (!options.FoldersOnly)
-            {
-                try
-                {
-                    var teams = await vault.GetTeamsForShare();
-                    foreach (var team in teams)
-                    {
-                        var exportTeam = new ExportTeam
-                        {
-                            Uid = team.TeamUid,
-                            Name = team.Name,
-                            Members = null
-                        };
-                        teamsList.Add(exportTeam);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger?.Invoke(Severity.Warning, $"Failed to download teams: {ex.Message}");
-                }
-            }
-
             if (sharedFoldersList.Count > 0)
             {
                 exportFile.SharedFolders = sharedFoldersList.ToArray();
             }
             
-            if (teamsList.Count > 0)
+            if (!options.FoldersOnly && referencedTeams.Count > 0)
             {
-                exportFile.Teams = teamsList.ToArray();
+                exportFile.Teams = referencedTeams.Values.ToArray();
             }
 
             return exportFile;
@@ -202,10 +215,9 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public static async Task<string> DownloadMembershipToJson(
             this VaultOnline vault,
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
         {
-            var exportFile = await vault.DownloadMembership(options, logger);
+            var exportFile = await vault.DownloadMembership(options);
             var jsonBytes = JsonUtils.DumpJson(exportFile, indent: true);
             return System.Text.Encoding.UTF8.GetString(jsonBytes);
         }
@@ -216,12 +228,11 @@ namespace KeeperSecurity.Vault
         public static async Task DownloadMembershipToFile(
             this VaultOnline vault,
             string filename,
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
         {
-            var json = await vault.DownloadMembershipToJson(options, logger);
+            var json = await vault.DownloadMembershipToJson(options);
             System.IO.File.WriteAllText(filename, json);
-            logger?.Invoke(Severity.Information, $"Downloaded membership to {filename}");
+            Debug.WriteLine($"Downloaded membership to {filename}");
         }
 
         /// <summary>
@@ -230,10 +241,9 @@ namespace KeeperSecurity.Vault
         public static async Task MergeMembershipToFile(
             this VaultOnline vault,
             string filename,
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
         {
-            var newExportFile = await vault.DownloadMembership(options, logger);
+            var newExportFile = await vault.DownloadMembership(options);
 
             ExportFile mergedExportFile;
             
@@ -301,12 +311,12 @@ namespace KeeperSecurity.Vault
                             Records = existingExportFile.Records
                         };
                         
-                        logger?.Invoke(Severity.Information, $"Merged with existing file \"{filename}\"");
+                        Debug.WriteLine($"Merged with existing file \"{filename}\"");
                     }
                 }
                 catch (Exception ex)
                 {
-                    logger?.Invoke(Severity.Warning, $"Failed to merge with existing file: {ex.Message}. Overwriting.");
+                    Debug.WriteLine($"Failed to merge with existing file: {ex.Message}. Overwriting.");
                     mergedExportFile = newExportFile;
                 }
             }
@@ -319,7 +329,7 @@ namespace KeeperSecurity.Vault
             var jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
             System.IO.File.WriteAllText(filename, jsonString);
             
-            logger?.Invoke(Severity.Information, $"Downloaded membership to {filename}");
+            Debug.WriteLine($"Downloaded membership to {filename}");
         }
     }
 }
