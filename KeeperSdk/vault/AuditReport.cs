@@ -5,97 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-    using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 
 namespace KeeperSecurity.Vault
 {
-    [DataContract]
-    internal class AuditReportCommand : AuthenticatedCommand
-    {
-        public AuditReportCommand() : base("get_audit_event_reports")
-        {
-        }
-
-        [DataMember(Name = "report_type", EmitDefaultValue = false)]
-        public string ReportType { get; set; }
-
-        [DataMember(Name = "scope", EmitDefaultValue = false)]
-        public string Scope { get; set; }
-
-        [DataMember(Name = "filter", EmitDefaultValue = false)]
-        public Dictionary<string, object> Filter { get; set; }
-
-        [DataMember(Name = "timezone", EmitDefaultValue = false)]
-        public string Timezone { get; set; }
-
-        [DataMember(Name = "limit", EmitDefaultValue = false)]
-        public int? Limit { get; set; }
-
-        [DataMember(Name = "order", EmitDefaultValue = false)]
-        public string Order { get; set; }
-
-        [DataMember(Name = "columns", EmitDefaultValue = false)]
-        public List<string> Columns { get; set; }
-
-        [DataMember(Name = "aggregate", EmitDefaultValue = false)]
-        public List<string> Aggregate { get; set; }
-    }
-
-    [DataContract]
-    internal class DimensionReportCommand : AuthenticatedCommand
-    {
-        public DimensionReportCommand() : base("get_audit_event_dimensions")
-        {
-        }
-
-        [DataMember(Name = "report_type", EmitDefaultValue = false)]
-        public string ReportType { get; set; }
-
-        [DataMember(Name = "scope", EmitDefaultValue = false)]
-        public string Scope { get; set; }
-
-        [DataMember(Name = "columns", EmitDefaultValue = false)]
-        public List<string> Columns { get; set; }
-
-        [DataMember(Name = "limit", EmitDefaultValue = false)]
-        public int? Limit { get; set; }
-    }
-
-    [DataContract]
-    internal class AuditReportResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "audit_event_overview_report_rows", EmitDefaultValue = false)]
-        public List<Dictionary<string, object>> Rows { get; set; }
-    }
-
-    [DataContract]
-    internal class DimensionReportResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "dimensions", EmitDefaultValue = false)]
-        public Dictionary<string, List<Dictionary<string, object>>> Dimensions { get; set; }
-    }
-
     public enum ReportOrder
     {
         Asc,
         Desc
-    }
-
-    [DataContract]
-    public class CreatedFilterCriteria
-    {
-        [DataMember(Name = "min", EmitDefaultValue = false)]
-        public long? FromDate { get; set; }
-
-        [DataMember(Name = "exclude_min", EmitDefaultValue = false)]
-        public bool? ExcludeFrom { get; set; }
-
-        [DataMember(Name = "max", EmitDefaultValue = false)]
-        public long? ToDate { get; set; }
-
-        [DataMember(Name = "exclude_max", EmitDefaultValue = false)]
-        public bool? ExcludeTo { get; set; }
     }
 
     public class AuditReportFilter
@@ -134,6 +51,32 @@ namespace KeeperSecurity.Vault
             return $"Etc/GMT{(hours >= 0 ? "+" : "")}{hours}";
         }
 
+        private static readonly string[] ValidDatePresets = { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" };
+
+        private static object BuildCreatedFilter(object created)
+        {
+            switch (created)
+            {
+                case CreatedFilterCriteria criteria:
+                    var dict = new[]
+                    {
+                        (key: "min", value: (object)criteria.FromDate, condition: criteria.FromDate.HasValue),
+                        (key: "exclude_min", value: (object)true, condition: criteria.FromDate.HasValue && criteria.ExcludeFrom == true),
+                        (key: "max", value: (object)criteria.ToDate, condition: criteria.ToDate.HasValue),
+                        (key: "exclude_max", value: (object)true, condition: criteria.ToDate.HasValue && criteria.ExcludeTo == true)
+                    }
+                    .Where(x => x.condition)
+                    .ToDictionary(x => x.key, x => x.value);
+                    return dict.Count > 0 ? dict : null;
+
+                case string preset when ValidDatePresets.Contains(preset):
+                    return preset;
+
+                default:
+                    return null;
+            }
+        }
+
         protected Dictionary<string, object> GetFilterDictionary()
         {
             if (Filter == null)
@@ -141,30 +84,9 @@ namespace KeeperSecurity.Vault
 
             var reportFilter = new Dictionary<string, object>();
 
-            if (Filter.Created != null)
-            {
-                switch (Filter.Created)
-                {
-                    case CreatedFilterCriteria criteria:
-                        var created = new[]
-                        {
-                            (key: "min", value: (object)criteria.FromDate, condition: criteria.FromDate.HasValue),
-                            (key: "exclude_min", value: (object)true, condition: criteria.FromDate.HasValue && criteria.ExcludeFrom == true),
-                            (key: "max", value: (object)criteria.ToDate, condition: criteria.ToDate.HasValue),
-                            (key: "exclude_max", value: (object)true, condition: criteria.ToDate.HasValue && criteria.ExcludeTo == true)
-                        }
-                        .Where(x => x.condition)
-                        .ToDictionary(x => x.key, x => x.value);
-                        
-                        if (created.Count > 0)
-                            reportFilter["created"] = created;
-                        break;
-                        
-                    case string createdStr when new[] { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" }.Contains(createdStr):
-                        reportFilter["created"] = createdStr;
-                        break;
-                }
-            }
+            var createdFilter = BuildCreatedFilter(Filter.Created);
+            if (createdFilter != null)
+                reportFilter["created"] = createdFilter;
 
             var filterMappings = new (string key, object value)[]
             {
@@ -439,5 +361,91 @@ namespace KeeperSecurity.Vault
             return new DimAuditReport(vault.Auth);
         }
     }
+
+    #region Data Contracts
+
+    [DataContract]
+    public class CreatedFilterCriteria
+    {
+        [DataMember(Name = "min", EmitDefaultValue = false)]
+        public long? FromDate { get; set; }
+
+        [DataMember(Name = "exclude_min", EmitDefaultValue = false)]
+        public bool? ExcludeFrom { get; set; }
+
+        [DataMember(Name = "max", EmitDefaultValue = false)]
+        public long? ToDate { get; set; }
+
+        [DataMember(Name = "exclude_max", EmitDefaultValue = false)]
+        public bool? ExcludeTo { get; set; }
+    }
+
+    #endregion
+
+    #region Internal API Contracts
+
+    [DataContract]
+    internal class AuditReportCommand : AuthenticatedCommand
+    {
+        public AuditReportCommand() : base("get_audit_event_reports") { }
+
+        [DataMember(Name = "report_type", EmitDefaultValue = false)]
+        public string ReportType { get; set; }
+
+        [DataMember(Name = "scope", EmitDefaultValue = false)]
+        public string Scope { get; set; }
+
+        [DataMember(Name = "filter", EmitDefaultValue = false)]
+        public Dictionary<string, object> Filter { get; set; }
+
+        [DataMember(Name = "timezone", EmitDefaultValue = false)]
+        public string Timezone { get; set; }
+
+        [DataMember(Name = "limit", EmitDefaultValue = false)]
+        public int? Limit { get; set; }
+
+        [DataMember(Name = "order", EmitDefaultValue = false)]
+        public string Order { get; set; }
+
+        [DataMember(Name = "columns", EmitDefaultValue = false)]
+        public List<string> Columns { get; set; }
+
+        [DataMember(Name = "aggregate", EmitDefaultValue = false)]
+        public List<string> Aggregate { get; set; }
+    }
+
+    [DataContract]
+    internal class DimensionReportCommand : AuthenticatedCommand
+    {
+        public DimensionReportCommand() : base("get_audit_event_dimensions") { }
+
+        [DataMember(Name = "report_type", EmitDefaultValue = false)]
+        public string ReportType { get; set; }
+
+        [DataMember(Name = "scope", EmitDefaultValue = false)]
+        public string Scope { get; set; }
+
+        [DataMember(Name = "columns", EmitDefaultValue = false)]
+        public List<string> Columns { get; set; }
+
+        [DataMember(Name = "limit", EmitDefaultValue = false)]
+        public int? Limit { get; set; }
+    }
+
+    [DataContract]
+    internal class AuditReportResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "audit_event_overview_report_rows", EmitDefaultValue = false)]
+        public List<Dictionary<string, object>> Rows { get; set; }
+    }
+
+    [DataContract]
+    internal class DimensionReportResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "dimensions", EmitDefaultValue = false)]
+        public Dictionary<string, List<Dictionary<string, object>>> Dimensions { get; set; }
+    }
+
+    #endregion
 }
 

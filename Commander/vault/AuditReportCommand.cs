@@ -13,8 +13,23 @@ namespace Commander
 {
     internal static class AuditReportCommandExtensions
     {
+        private const string FIELD_CREATED = "created";
+        private const string FIELD_FIRST_CREATED = "first_created";
+        private const string FIELD_LAST_CREATED = "last_created";
+        private const string FIELD_AUDIT_EVENT_TYPE = "audit_event_type";
+        private const string FIELD_USERNAME = "username";
+        private const string FIELD_IP_ADDRESS = "ip_address";
+        private const string FIELD_KEEPER_VERSION = "keeper_version";
+        private const string FIELD_GEO_LOCATION = "geo_location";
+        private const string FIELD_MESSAGE = "message";
+
+        private const string REPORT_TYPE_RAW = "raw";
+        private const string REPORT_TYPE_DIM = "dim";
+
+        private static readonly string[] ValidDatePresets = { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" };
+
         private static Dictionary<string, string> _syslogTemplates;
-        private static Dictionary<string, List<Dictionary<string, object>>> _dimensionCache = new Dictionary<string, List<Dictionary<string, object>>>();
+        private static readonly Dictionary<string, List<Dictionary<string, object>>> _dimensionCache = new Dictionary<string, List<Dictionary<string, object>>>();
 
         public static async Task AuditReportCommand(this VaultContext context, AuditReportCommandOptions options)
         {
@@ -49,14 +64,14 @@ namespace Commander
                 return;
             }
 
-            var reportType = string.IsNullOrEmpty(options.ReportType) ? "raw" : options.ReportType.ToLower();
+            var reportType = string.IsNullOrEmpty(options.ReportType) ? REPORT_TYPE_RAW : options.ReportType.ToLower();
 
             switch (reportType)
             {
-                case "dim":
+                case REPORT_TYPE_DIM:
                     await ExecuteDimensionReport(context, options);
                     break;
-                case "raw":
+                case REPORT_TYPE_RAW:
                     await ExecuteRawReport(context, options);
                     break;
                 case "hour":
@@ -126,24 +141,40 @@ namespace Commander
             rawReport.Order = options.Order?.ToLower() == "asc" ? ReportOrder.Asc : ReportOrder.Desc;
             rawReport.Timezone = options.Timezone;
 
-            var reportFormat = options.ReportFormat ?? "message";
-            var fields = new List<string> { "created", "audit_event_type", "username", "ip_address", "keeper_version", "geo_location" };
+            var reportFormat = options.ReportFormat ?? FIELD_MESSAGE;
+            var fields = new List<string> { FIELD_CREATED, FIELD_AUDIT_EVENT_TYPE, FIELD_USERNAME, FIELD_IP_ADDRESS, FIELD_KEEPER_VERSION, FIELD_GEO_LOCATION };
 
-            if (reportFormat == "message")
+            if (reportFormat == FIELD_MESSAGE)
             {
-                fields.Add("message");
+                fields.Add(FIELD_MESSAGE);
                 await LoadSyslogTemplates(context);
             }
 
-            var events = await rawReport.ExecuteAuditReport();
+            List<Dictionary<string, object>> events;
+            try
+            {
+                events = await rawReport.ExecuteAuditReport();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving audit report: {ex.Message}");
+                return;
+            }
+
+            if (events == null || events.Count == 0)
+            {
+                Console.WriteLine("No audit events found.");
+                return;
+            }
+
             var table = new List<List<object>>();
 
             foreach (var evt in events)
             {
                 var row = fields.Select(field => 
-                    field == "message" 
+                    field == FIELD_MESSAGE 
                         ? GetEventMessage(evt) 
-                        : FormatFieldValue(field, evt.TryGetValue(field, out var v) ? v : null, "raw")
+                        : FormatFieldValue(field, evt.TryGetValue(field, out var v) ? v : null, REPORT_TYPE_RAW)
                 ).ToList();
                 table.Add(row);
             }
@@ -199,7 +230,23 @@ namespace Commander
             }
             fields.AddRange(columns);
 
-            var events = await summaryReport.ExecuteSummaryReport();
+            List<Dictionary<string, object>> events;
+            try
+            {
+                events = await summaryReport.ExecuteSummaryReport();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving summary report: {ex.Message}");
+                return;
+            }
+
+            if (events == null || events.Count == 0)
+            {
+                Console.WriteLine("No audit events found.");
+                return;
+            }
+
             var table = new Tabulate(fields.Count)
             {
                 DumpRowNo = true,
@@ -224,8 +271,7 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.Created))
             {
-                var validPresets = new[] { "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year" };
-                filter.Created = validPresets.Contains(options.Created) ? options.Created : (object)ParseCreatedFilter(options.Created);
+                filter.Created = ValidDatePresets.Contains(options.Created) ? options.Created : (object)ParseCreatedFilter(options.Created);
             }
 
             var eventTypeList = options.EventType?.ToList();
@@ -235,7 +281,6 @@ namespace Commander
                 filter.EventType = parsed.Count == 1 ? parsed[0] : parsed;
             }
 
-            // Helper to convert list to single item or list
             object ToFilterValue(List<string> list) => list?.Count > 0 ? (list.Count == 1 ? (object)list[0] : list) : null;
 
             filter.Username = ToFilterValue(options.Username?.ToList());
@@ -246,29 +291,7 @@ namespace Commander
             var ipFilter = new HashSet<string>();
             
             if (!string.IsNullOrEmpty(options.GeoLocation))
-            {
-                var geoComps = options.GeoLocation.Split(',');
-                var country = (geoComps.Length > 0 ? geoComps[geoComps.Length - 1] : "").Trim().ToLower();
-                var region = (geoComps.Length > 1 ? geoComps[geoComps.Length - 2] : "").Trim().ToLower();
-                var city = (geoComps.Length > 2 ? geoComps[geoComps.Length - 3] : "").Trim().ToLower();
-
-                var geoDimensions = LoadAuditDimension(context, "geo_location").Result;
-                if (geoDimensions != null)
-                {
-                    foreach (var geo in geoDimensions)
-                    {
-                        if (!string.IsNullOrEmpty(country) && geo.GetValueOrDefault("country_code", "").ToString().ToLower() != country)
-                            continue;
-                        if (!string.IsNullOrEmpty(region) && geo.GetValueOrDefault("region", "").ToString().ToLower() != region)
-                            continue;
-                        if (!string.IsNullOrEmpty(city) && geo.GetValueOrDefault("city", "").ToString().ToLower() != city)
-                            continue;
-
-                        if (geo.TryGetValue("ip_addresses", out var ips) && ips is List<object> ipList)
-                            ipFilter.UnionWith(ipList.Select(ip => ip.ToString()));
-                    }
-                }
-            }
+                ipFilter.UnionWith(GetIpAddressesFromGeoLocation(context, options.GeoLocation));
 
             if (options.IpAddress != null)
                 ipFilter.UnionWith(options.IpAddress);
@@ -278,24 +301,7 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.DeviceType))
             {
-                var deviceComps = options.DeviceType.Split(',');
-                var deviceType = deviceComps.ElementAtOrDefault(0)?.Trim().ToLower() ?? "";
-                var version = deviceComps.ElementAtOrDefault(1)?.Trim().ToLower() ?? "";
-                if (!string.IsNullOrEmpty(version) && !version.Contains("."))
-                    version += ".";
-
-                var deviceTypes = LoadAuditDimension(context, "device_type").Result ?? new List<Dictionary<string, object>>();
-
-                var versionFilter = deviceTypes
-                    .Where(dev => string.IsNullOrEmpty(deviceType) ||
-                        dev.GetValueOrDefault("type_name", "")?.ToString().ToLower() == deviceType ||
-                        dev.GetValueOrDefault("type_category", "")?.ToString().ToLower() == deviceType)
-                    .Where(dev => string.IsNullOrEmpty(version) ||
-                        dev.GetValueOrDefault("version", "")?.ToString().StartsWith(version, StringComparison.OrdinalIgnoreCase) == true)
-                    .Where(dev => dev.TryGetValue("version_ids", out _))
-                    .SelectMany(dev => (dev["version_ids"] as List<object>)?.OfType<int>() ?? Enumerable.Empty<int>())
-                    .ToList();
-
+                var versionFilter = GetVersionIdsFromDeviceType(context, options.DeviceType);
                 if (versionFilter.Count > 0)
                     filter.KeeperVersion = versionFilter;
             }
@@ -316,21 +322,19 @@ namespace Commander
             }
 
             var prefixes = new[] { ">=", "<=", ">", "<", "=" };
-            foreach (var prefix in prefixes)
+            var matchedPrefix = prefixes.FirstOrDefault(p => filterValue.StartsWith(p));
+            if (matchedPrefix != null)
             {
-                if (filterValue.StartsWith(prefix))
+                var value = ParseDateValue(filterValue.Substring(matchedPrefix.Length).Trim());
+                return matchedPrefix switch
                 {
-                    var value = ParseDateValue(filterValue.Substring(prefix.Length).Trim());
-                    return prefix switch
-                    {
-                        ">=" => new CreatedFilterCriteria { FromDate = value },
-                        "<=" => new CreatedFilterCriteria { ToDate = value },
-                        ">" => new CreatedFilterCriteria { FromDate = value, ExcludeFrom = true },
-                        "<" => new CreatedFilterCriteria { ToDate = value, ExcludeTo = true },
-                        "=" => new CreatedFilterCriteria { FromDate = value, ToDate = value },
-                        _ => throw new ArgumentException($"Invalid created filter prefix: {prefix}")
-                    };
-                }
+                    ">=" => new CreatedFilterCriteria { FromDate = value },
+                    "<=" => new CreatedFilterCriteria { ToDate = value },
+                    ">" => new CreatedFilterCriteria { FromDate = value, ExcludeFrom = true },
+                    "<" => new CreatedFilterCriteria { ToDate = value, ExcludeTo = true },
+                    "=" => new CreatedFilterCriteria { FromDate = value, ToDate = value },
+                    _ => throw new ArgumentException($"Invalid created filter prefix: {matchedPrefix}")
+                };
             }
 
             throw new ArgumentException($"Invalid created filter value: {filterValue}");
@@ -345,6 +349,46 @@ namespace Commander
             var format = value.Length <= 10 ? "yyyy-MM-dd" : "yyyy-MM-ddTHH:mm:ssZ";
             var dt = DateTime.ParseExact(value, format, CultureInfo.InvariantCulture);
             return new DateTimeOffset(dt, TimeSpan.Zero).ToUnixTimeSeconds();
+        }
+
+        private static IEnumerable<string> GetIpAddressesFromGeoLocation(VaultContext context, string geoLocation)
+        {
+            var geoComps = geoLocation.Split(',');
+            var country = geoComps.ElementAtOrDefault(geoComps.Length - 1)?.Trim().ToLower() ?? "";
+            var region = geoComps.ElementAtOrDefault(geoComps.Length - 2)?.Trim().ToLower() ?? "";
+            var city = geoComps.ElementAtOrDefault(geoComps.Length - 3)?.Trim().ToLower() ?? "";
+
+            var geoDimensions = LoadAuditDimension(context, "geo_location").Result ?? new List<Dictionary<string, object>>();
+
+            return geoDimensions
+                .Where(geo => string.IsNullOrEmpty(country) || geo.GetValueOrDefault("country_code", "")?.ToString().ToLower() == country)
+                .Where(geo => string.IsNullOrEmpty(region) || geo.GetValueOrDefault("region", "")?.ToString().ToLower() == region)
+                .Where(geo => string.IsNullOrEmpty(city) || geo.GetValueOrDefault("city", "")?.ToString().ToLower() == city)
+                .SelectMany(geo => geo.TryGetValue("ip_addresses", out var ips) && ips is List<object> ipList
+                    ? ipList.Select(ip => ip.ToString())
+                    : Enumerable.Empty<string>());
+        }
+
+        private static List<int> GetVersionIdsFromDeviceType(VaultContext context, string deviceTypeFilter)
+        {
+            var deviceComps = deviceTypeFilter.Split(',');
+            var deviceType = deviceComps.ElementAtOrDefault(0)?.Trim().ToLower() ?? "";
+            var version = deviceComps.ElementAtOrDefault(1)?.Trim().ToLower() ?? "";
+            
+            if (!string.IsNullOrEmpty(version) && !version.Contains("."))
+                version += ".";
+
+            var deviceTypes = LoadAuditDimension(context, "device_type").Result ?? new List<Dictionary<string, object>>();
+
+            return deviceTypes
+                .Where(dev => string.IsNullOrEmpty(deviceType) ||
+                    dev.GetValueOrDefault("type_name", "")?.ToString().ToLower() == deviceType ||
+                    dev.GetValueOrDefault("type_category", "")?.ToString().ToLower() == deviceType)
+                .Where(dev => string.IsNullOrEmpty(version) ||
+                    dev.GetValueOrDefault("version", "")?.ToString().StartsWith(version, StringComparison.OrdinalIgnoreCase) == true)
+                .Where(dev => dev.TryGetValue("version_ids", out _))
+                .SelectMany(dev => (dev["version_ids"] as List<object>)?.OfType<int>() ?? Enumerable.Empty<int>())
+                .ToList();
         }
 
         private static async Task LoadSyslogTemplates(VaultContext context)
@@ -366,7 +410,7 @@ namespace Commander
             if (_syslogTemplates == null)
                 return "";
 
-            var eventType = evt.GetValueOrDefault("audit_event_type", "")?.ToString() ?? "";
+            var eventType = evt.GetValueOrDefault(FIELD_AUDIT_EVENT_TYPE, "")?.ToString() ?? "";
             if (string.IsNullOrEmpty(eventType) || !_syslogTemplates.TryGetValue(eventType, out var template))
                 return "";
 
@@ -430,7 +474,7 @@ namespace Commander
 
         private static object FormatFieldValue(string field, object value, string reportType)
         {
-            if (field != "created" && field != "first_created" && field != "last_created")
+            if (field != FIELD_CREATED && field != FIELD_FIRST_CREATED && field != FIELD_LAST_CREATED)
                 return value ?? "";
 
             if (value == null || (value is string s && string.IsNullOrEmpty(s)))
