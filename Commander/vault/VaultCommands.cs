@@ -546,7 +546,7 @@ namespace Commander
                     Action = context.TeamListCommand
                 });
             
-            cli.Commands.Add("apply-membership-from-file",
+            cli.Commands.Add("apply-membership",
                 new ParseableCommand<ApplyMembershipCommandOptions>
                 {
                     Order = 44,
