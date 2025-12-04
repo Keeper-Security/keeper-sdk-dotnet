@@ -96,12 +96,24 @@ namespace KeeperSecurity.Vault
 
                 var cleanedFields = validateRecordTypeData(scope, fields);
 
+                var fieldMap = customRecordObject.Fields.ToDictionary(f => f.Ref, f => f);
+
                 var recordTypeData = new CustomRecordType
                 {
                     Id = title,
                     Description = description,
                     Categories = parsedCategroies,
-                    Fields = cleanedFields.Select(f => new RecordTypeField { Ref = f["$ref"] }).ToArray()
+                    Fields = cleanedFields.Select(f =>
+                    {
+                        var refValue = f["$ref"];
+                        var originalField = fieldMap.ContainsKey(refValue) ? fieldMap[refValue] : null;
+                        return new RecordTypeField
+                        {
+                            Ref = refValue,
+                            Label = originalField?.Label,
+                            Required = originalField?.Required
+                        };
+                    }).ToArray()
                 };
 
                 var recordTypeProto = new Records.RecordType
