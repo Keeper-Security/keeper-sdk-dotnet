@@ -114,6 +114,13 @@ namespace Commander
                     Action = async options => { await context.RunAuditEventsReport(options); },
                 });
 
+            cli.Commands.Add("action-report",
+                new ParseableCommand<Enterprise.ActionReportCommandOptions>
+                {
+                    Order = 71,
+                    Description = "Run an action based on user activity report",
+                    Action = async options => { await context.ActionReportCommand(options); },
+                });
 
             cli.Aliases["eget"] = "enterprise-get-data";
             cli.Aliases["en"] = "enterprise-node";
