@@ -22,250 +22,111 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
+using Sample.RecordsExamples;
+using Sample.AttachmentsExamples;
+
+
 
 namespace Sample
 {
     internal static class Program
     {
         private static async Task Main()
-        {   
+        {
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
+            var getRecords = new GetRecordsExample();
+            await getRecords.GetRecordsWithName("Google");
 
-            // Keeper SDK needs a storage to save configuration
-            // such as: last login name, device token, etc
-            var configurationStorage = new JsonConfigurationStorage("config.json");
-            var configuration = configurationStorage.Get();
-            var prompt = "Enter Email Address: ";
-            if (!string.IsNullOrEmpty(configuration.LastLogin))
+            // Add Record Example
+            await AddRecordExample.AddRecord(name: "AddEx2", type: "bankCard", folderUid: "<folderUid_if_any>");
+
+            // Update Record Example
+            await UpdateRecordExample.UpdateRecord(
+                recordUid: "<recordUid_here>",
+                newTitle: "UpdatedAddEx2",
+                newRecordType: "serverCredentials"
+            );
+
+            // Delete Record Example
+            await DeleteRecordExample.DeleteRecord(recordUid: "<recordUid_here>");
+
+            // List Records Example
+            await ListRecordExample.ListAllRecords();
+
+            // Get Record Details Example
+            var getRecord = new GetRecordExample();
+            await getRecord.GetRecordDetails(recordUid: "<recordUid_here>");
+
+            // Get Record History Example
+            var getRecordHistory = new GetRecordHistoryExample();
+            await getRecordHistory.GetRecordHistory1(recordUid: "<recordUid_here>");
+
+            // Upload Attachment Example
+            await UploadAttachmentExample.UploadAttachment(
+                recordUid: "<recordUid_here>",
+                filePath: "<file to upload path here>",
+                thumbnailPath: "<thumbnail of the file path here>"
+            );
+
+            // Download Attachment Example
+            await DownloadAttachmentExample.DownloadAttachment(
+                recordUid: "<recordUid_here>",
+                attachmentIdentifier: "<attachment id or name or title>",
+                destinationPath: "<destination file path here>"
+            );
+
+            // Remove Attachment Example
+            await RemoveAttachmentExample.RemoveAttachment(
+                recordUid: "<recordUid_here>",
+                attachmentId: "<attachment id here>"
+            );
+
+            // List Folders Example
+            await FoldersExample.ListFolderExample.ListFolder();
+
+            // Move Folder Example
+            await FoldersExample.MoveFolderExample.MoveExistingFolder(
+                folderUid: "<folderUid_here>",
+                newParentFolderUid: "<newParentFolderUid_here>",
+                link: false
+            );
+
+            // Remove Folder Example
+            await FoldersExample.RemoveFolderExample.RemoveFolder(
+                folderUid: "<folderUid_here>"
+            );
+
+            // Create Shared Folder Example
+            var options = new SharedFolderOptions
             {
-                Console.WriteLine($"Default Email Address: {configuration.LastLogin}");
-            }
+                ManageRecords = true,
+                ManageUsers = false,
+                CanShare = true
+            };
 
-            Console.Write(prompt);
-            var username = Console.ReadLine();
-            if (string.IsNullOrEmpty(username))
+            await FoldersExample.CreateFolder.CreateNewFolder(
+                folderName: "NewFolderFromSDK",
+                parentFolderUid: "<parentFolderUid_if_any>",
+                sharedFolderOptions: options
+            );
+
+            // List Shared Folders Example
+            await SharedFolderExamples.ListSharedFolder.ListAllSharedFolders();
+
+            // Change Record Permissions of a Shared Folder Example
+            var permissions = new SharedFolderRecordOptions
             {
-                if (string.IsNullOrEmpty(configuration.LastLogin))
-                {
-                    Console.WriteLine("Bye.");
-                    return;
-                }
+                CanEdit = true,
+                CanShare = true,
+                Expiration = DateTimeOffset.Now.AddMinutes(5)
 
-                username = configuration.LastLogin;
-            }
+            };
 
-            var inputManager = new SimpleInputManager();
-
-            // Login to Keeper
-            Console.WriteLine("Logging in...");
-            var authFlow = new AuthSync(configurationStorage);
-            await Utils.LoginToKeeper(authFlow, inputManager, username);
-
-            if (authFlow.Step is ErrorStep es)
-            {
-                Console.WriteLine(es.Message);
-                return;
-            }
-            if (!authFlow.IsAuthenticated()) return;
-
-            var auth = authFlow;
-
-            var vault = new VaultOnline(auth);
-            Console.WriteLine("Retrieving records...");
-            await vault.SyncDown();
-
-            Console.WriteLine($"Hello {username}!");
-            Console.WriteLine($"Vault has {vault.RecordCount} records.");
-
-            // Find record with title "Google"
-            var search = vault
-                .KeeperRecords
-                .Where(x => x.Version == 2 || x.Version == 3)
-                .FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-            // Create a record if it does not exist.
-            if (search == null)
-            {
-                var loginRecord = new TypedRecordFacade<LoginRecordType>();
-                loginRecord.Fields.Login = "<Account Name>";
-                loginRecord.Fields.Password = "<Account Password>";
-                loginRecord.Fields.Url = "https://google.com";
-
-                var typed = loginRecord.TypedRecord;
-                typed.Title = "Google";
-                typed.Notes = "Stores google credentials";
-
-                search = typed;
-                search = await vault.CreateRecord(search);
-            }
-
-            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid) ?? new NonSharedData3();
-            nsd3.Data1 = "1";
-            nsd3.Data3 = "3";
-            await vault.StoreNonSharedData(search.Uid, nsd3);
-
-            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid) ?? new NonSharedData2();
-            nsd2.Data2 = "2";
-            await vault.StoreNonSharedData(search.Uid, nsd2);
-
-            // Update record
-            if (search is PasswordRecord password)
-            {
-                var cf = password.GetCustomField("Security Token");
-                var tokenValue = cf?.Value ?? "1";
-                password.SetCustomField("Security Token", tokenValue + "1");
-            }
-            else if (search is TypedRecord typed) 
-            {
-                var recordField = new RecordTypeField("text", "Security Token");
-                if (!typed.FindTypedField(recordField, out var rf)) {
-
-                    rf = recordField.CreateTypedField();
-                    typed.Custom.Add(rf);
-                }
-                var tokenValue = rf.ObjectValue == null ? "1" : rf.ObjectValue.ToString();
-                rf.ObjectValue = tokenValue + 1;
-            }
-            search = await vault.UpdateRecord(search);
-
-
-            var attachment = vault.RecordAttachments(search)
-                .FirstOrDefault(x => string.Compare(x.Title, "google", StringComparison.InvariantCultureIgnoreCase) == 0);
-
-            if (attachment == null)
-            {
-                // Upload local file "google.txt". 
-                // var uploadTask = new FileAttachmentUploadTask("google.txt")
-                var fileContent = Encoding.UTF8.GetBytes("Google");
-                using (var stream = new MemoryStream(fileContent))
-                {
-                    var uploadTask = new AttachmentUploadTask(stream)
-                    {
-                        Title = "Google",
-                        Name = "google.txt",
-                        MimeType = "text/plain"
-                    };
-                    await vault.UploadAttachment(search, uploadTask);
-                }
-            }
-            else
-            {
-                // Download attachment into the stream
-                // The stream could be a local file "google.txt"
-                // using (var stream = File.OpenWrite("google.txt"))
-                using (var stream = new MemoryStream())
-                {
-                    await vault.DownloadAttachment(search, attachment.Id, stream);
-                }
-
-                await vault.DeleteAttachment(search, attachment.Id);
-            }
-
-            // Find shared folder with name "Google".
-            var sharedFolder = vault.SharedFolders
-                .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-            
-            try
-            {
-                if (sharedFolder == null)
-                {
-                    // Create shared folder.
-                    var folder = await vault.CreateFolder("Google",
-                        null,
-                        new SharedFolderOptions
-                        {
-                            ManageRecords = true,
-                            ManageUsers = false,
-                            CanEdit = false,
-                            CanShare = false,
-                        });
-                    vault.TryGetSharedFolder(folder.FolderUid, out sharedFolder);
-                }
-
-                if (sharedFolder != null)
-                {
-                    // Add user to shared folder.
-                    try
-                    {
-                        await vault.PutUserToSharedFolder(sharedFolder.Uid,
-                            "user@google.com",
-                            UserType.User,
-                            new SharedFolderUserOptions
-                            {
-                                ManageRecords = false,
-                                ManageUsers = false,
-                            });
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
-                    }
-
-                    // Add record to shared folder.
-                    await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);
-                }
-                else
-                {
-                    Console.WriteLine("Shared folder could not be created or accessed.");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Shared folder operations error: {e.Message}");
-            }
-
-            if (auth.AuthContext.IsEnterpriseAdmin)
-            {
-                // Load enterprise data.
-                var enterprise = new EnterpriseData();
-                var enterpriseLoader = new EnterpriseLoader(auth, new[] { enterprise });
-                await enterpriseLoader.Load();
-
-                // Find team with name "Google".
-                var team = enterprise.Teams
-                    .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-                if (team == null)
-                {
-                    // Create team.
-                    team = await enterprise.CreateTeam(new EnterpriseTeam
-                    {
-                        Name = "Google",
-                        RestrictEdit = false,
-                        RestrictSharing = true,
-                        RestrictView = false,
-                    });
-                }
-
-                if (team != null)
-                {
-                    // Add users to the "Google" team.
-                    await enterprise.AddUsersToTeams(
-                        new[] {"username@company.com", "username1@company.com"},
-                        new[] {team.Uid},
-                        Console.WriteLine);
-                }
-            }
-
-            Console.WriteLine("Press any key to quit");
-            Console.ReadKey();
+            await SharedFolderExamples.SharedFolderPermissions.ManageSharedFolderPermissions1(
+                sharedFolderUid: "<sharedFolderUid_here>",
+                recordUid: "<recordUid_here>",
+                permissionsOptions: permissions
+            );
         }
     }
-
-    public class NonSharedData1 : RecordNonSharedData
-    {
-        [DataMember(Name = "data1")]
-        public string Data1 { get; set; }
-    }
-
-    public class NonSharedData2 : RecordNonSharedData
-    {
-        [DataMember(Name = "data2")]
-        public string Data2 { get; set; }
-    }
-
-    public class NonSharedData3 : NonSharedData1
-    {
-        [DataMember(Name = "data3")]
-        public string Data3 { get; set; }
-    }
-
 }

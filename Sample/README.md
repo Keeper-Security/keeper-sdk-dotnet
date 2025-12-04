@@ -48,15 +48,15 @@ The main program demonstrates advanced SDK features including:
 
 This is a complete example showing most SDK capabilities in action.
 
-### BasicAuthExample.cs - Simple Authentication Example
+### AuthenticateAndGetVault.cs - Simple Authentication Example
 
 A minimal example demonstrating the basic authentication flow:
 
-* **Authentication**: Master password, 2FA, and device approval using `AuthSync`
+* **Authentication**: Master password, 2FA, and device approval using `AuthSync` and `Utils.LoginToKeeper`
 * **Input Management**: Using `SimpleInputManager` for console input
 * **Configuration Storage**: Using `JsonConfigurationStorage` for persisting settings
+* **Persistent Login**: Enables persistent login for future sessions
 * **Vault Sync**: Download and decrypt vault using `VaultOnline`
-* **Basic Vault Stats**: Display record, folder, and shared folder counts
 
 This example is ideal for:
 * Understanding the authentication flow with AuthSync
@@ -65,9 +65,38 @@ This example is ideal for:
 * Building console applications with Keeper SDK
 * Quick integration testing
 
-**View the code**: [BasicAuthExample.cs](BasicAuthExample.cs)
+**View the code**: [AuthenticateAndGetVault.cs](AuthenticateAndGetVault.cs)
 
-To run just this example, call `await BasicAuthExample.Run();` from the Main method.
+To use this example in your code, call `await AuthenticateAndGetVault.GetVault();` which returns a `VaultOnline` instance ready for use.
+
+### Example Modules
+
+The Sample project includes organized example modules demonstrating specific features:
+
+* **RecordsExamples/**: Create, read, update, delete, and list records
+  * `AddRecord.cs` - Create new records
+  * `GetRecord.cs` - Retrieve record details
+  * `UpdateRecord.cs` - Modify existing records
+  * `DeleteRecord.cs` - Remove records
+  * `ListRecord.cs` - List all records
+  * `RecordHistory.cs` - View record history
+
+* **AttachmentsExamples/**: Manage file attachments
+  * `UploadAttachment.cs` - Upload files to records
+  * `DownloadAttachment.cs` - Download attachments from records
+  * `RemoveAttachment.cs` - Delete attachments
+
+* **FoldersExample/**: Folder management
+  * `CreateFolder.cs` - Create new folders
+  * `ListFolder.cs` - List folders and structure
+  * `MoveFolder.cs` - Move folders
+  * `RemoveFolder.cs` - Delete folders
+
+* **SharedFolderExamples/**: Shared folder operations
+  * `ListSharedFolder.cs` - List shared folders
+  * `SharedFolderPermissions.cs` - Manage permissions
+
+These examples can be used independently or combined in your own applications.
 
 ## Usage Tips
 
