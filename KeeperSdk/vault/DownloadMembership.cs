@@ -43,25 +43,16 @@ namespace KeeperSecurity.Vault
         private static string GetFolderPath(IVaultData vault, string folderUid)
         {
             if (string.IsNullOrEmpty(folderUid))
-            {
                 return "";
-            }
 
             var path = new List<string>();
-            var folder = folderUid;
             var visited = new HashSet<string>();
 
-            while (!string.IsNullOrEmpty(folder) && visited.Add(folder))
+            for (var folder = folderUid; 
+                 !string.IsNullOrEmpty(folder) && visited.Add(folder) && vault.TryGetFolder(folder, out var node); 
+                 folder = node.ParentUid)
             {
-                if (vault.TryGetFolder(folder, out var folderNode))
-                {
-                    path.Add(folderNode.Name);
-                    folder = folderNode.ParentUid;
-                }
-                else
-                {
-                    break;
-                }
+                path.Add(node.Name);
             }
 
             path.Reverse();
@@ -75,260 +66,124 @@ namespace KeeperSecurity.Vault
             this VaultOnline vault,
             DownloadMembershipOptions options = null)
         {
-            options = options ?? new DownloadMembershipOptions();
-            
-            var exportFile = new ExportFile();
-            var sharedFoldersList = new List<ExportSharedFolder>();
+            options ??= new DownloadMembershipOptions();
             var referencedTeams = new Dictionary<string, ExportTeam>();
+            var folderPaths = vault.Folders.ToDictionary(f => f.FolderUid, f => GetFolderPath(vault, f.FolderUid));
+            var teamLookup = await GetTeamLookup(vault);
+            var pathDelimiter = BatchVaultOperations.PathDelimiter;
+            var handling = options.SubFolderHandling?.ToLower();
 
-            // Build folder path lookup
-            var folderPaths = new Dictionary<string, string>();
-            foreach (var folder in vault.Folders)
+            string GetPath(SharedFolder sf)
             {
-                try
-                {
-                    var path = GetFolderPath(vault, folder.FolderUid);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        folderPaths[folder.FolderUid] = path;
-                    }
-                }
-                catch
-                {
-                    // Ignore folders we can't access
-                }
+                var path = folderPaths.TryGetValue(sf.Uid, out var p) && !string.IsNullOrEmpty(p) ? p : sf.Name;
+                return handling == "flatten" && path.Contains(pathDelimiter) 
+                    ? string.Join(" - ", path.Split(pathDelimiter)) : path;
             }
 
-            var teamLookup = new Dictionary<string, string>();
-            try
-            {
-                var teams = await vault.GetTeamsForShare();
-                foreach (var team in teams)
-                {
-                    teamLookup[team.TeamUid] = team.Name;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to load teams: {ex.Message}");
-            }
-
-            foreach (var sf in vault.SharedFolders)
-            {
-                var path = folderPaths.ContainsKey(sf.Uid) ? folderPaths[sf.Uid] : sf.Name;
-                
-                if (!string.IsNullOrEmpty(options.SubFolderHandling))
-                {
-                    var pathDelimiter = BatchVaultOperations.PathDelimiter;
-                    var handling = options.SubFolderHandling.ToLower();
-                    if (handling == "ignore" && path.Contains(pathDelimiter))
-                    {
-                        continue;
-                    }
-                    else if (handling == "flatten" && path.Contains(pathDelimiter))
-                    {
-                        var parts = path.Split(pathDelimiter);
-                        if (parts.Length > 1)
-                        {
-                            path = parts[0] + " - " + string.Join(" - ", parts.Skip(1));
-                        }
-                    }
-                }
-                
-                var exportSf = new ExportSharedFolder
+            var sharedFolders = vault.SharedFolders
+                .Where(sf => !(handling == "ignore" && (folderPaths.TryGetValue(sf.Uid, out var p) ? p : sf.Name).Contains(pathDelimiter)))
+                .Select(sf => new ExportSharedFolder
                 {
                     Uid = sf.Uid,
-                    Path = path,
+                    Path = GetPath(sf),
                     CanEdit = sf.DefaultCanEdit,
                     CanShare = sf.DefaultCanShare,
                     ManageUsers = sf.DefaultManageUsers,
-                    ManageRecords = sf.DefaultManageRecords
-                };
+                    ManageRecords = sf.DefaultManageRecords,
+                    Permissions = sf.UsersPermissions?.Count > 0 
+                        ? sf.UsersPermissions.Select(perm => CreatePermission(perm, teamLookup, referencedTeams, options)).ToArray() 
+                        : null
+                }).ToArray();
 
-                if (sf.UsersPermissions != null && sf.UsersPermissions.Count > 0)
-                {
-                    var permissions = new List<ExportSharedFolderPermissions>();
-                    foreach (var perm in sf.UsersPermissions)
-                    {
-                        var manageUsers = perm.ManageUsers;
-                        var manageRecords = perm.ManageRecords;
-                        
-                        if (options.ForceManageUsers.HasValue)
-                        {
-                            manageUsers = options.ForceManageUsers.Value;
-                        }
-                        if (options.ForceManageRecords.HasValue)
-                        {
-                            manageRecords = options.ForceManageRecords.Value;
-                        }
-
-                        var permName = perm.Name;
-                        var isTeam = perm.UserType == UserType.Team;
-                        
-                        if (isTeam && !string.IsNullOrEmpty(perm.Uid))
-                        {
-                            if (teamLookup.TryGetValue(perm.Uid, out var teamName))
-                            {
-                                permName = teamName;
-                            }
-                            
-                            if (!referencedTeams.ContainsKey(perm.Uid))
-                            {
-                                referencedTeams[perm.Uid] = new ExportTeam
-                                {
-                                    Uid = perm.Uid,
-                                    Name = permName ?? perm.Uid,
-                                    Members = null
-                                };
-                            }
-                        }
-                        
-                        permissions.Add(new ExportSharedFolderPermissions
-                        {
-                            Uid = isTeam ? perm.Uid : null,
-                            Name = permName,
-                            ManageUsers = manageUsers,
-                            ManageRecords = manageRecords
-                        });
-                    }
-                    exportSf.Permissions = permissions.ToArray();
-                }
-
-                sharedFoldersList.Add(exportSf);
-            }
-
-            if (sharedFoldersList.Count > 0)
+            return new ExportFile
             {
-                exportFile.SharedFolders = sharedFoldersList.ToArray();
-            }
-            
-            if (!options.FoldersOnly && referencedTeams.Count > 0)
-            {
-                exportFile.Teams = referencedTeams.Values.ToArray();
-            }
+                SharedFolders = sharedFolders.Length > 0 ? sharedFolders : null,
+                Teams = !options.FoldersOnly && referencedTeams.Count > 0 ? referencedTeams.Values.ToArray() : null
+            };
+        }
 
-            return exportFile;
+        private static async Task<Dictionary<string, string>> GetTeamLookup(VaultOnline vault)
+        {
+            try { return (await vault.GetTeamsForShare()).ToDictionary(t => t.TeamUid, t => t.Name); }
+            catch (Exception ex) { Debug.WriteLine($"Failed to load teams: {ex.Message}"); return new Dictionary<string, string>(); }
+        }
+
+        private static ExportSharedFolderPermissions CreatePermission(
+            SharedFolderPermission perm, 
+            Dictionary<string, string> teamLookup, 
+            Dictionary<string, ExportTeam> referencedTeams,
+            DownloadMembershipOptions options)
+        {
+            var isTeam = perm.UserType == UserType.Team;
+            var permName = isTeam && !string.IsNullOrEmpty(perm.Uid) && teamLookup.TryGetValue(perm.Uid, out var teamName) ? teamName : perm.Name;
+
+            if (isTeam && !string.IsNullOrEmpty(perm.Uid) && !referencedTeams.ContainsKey(perm.Uid))
+                referencedTeams[perm.Uid] = new ExportTeam { Uid = perm.Uid, Name = permName ?? perm.Uid };
+
+            return new ExportSharedFolderPermissions
+            {
+                Uid = isTeam ? perm.Uid : null,
+                Name = permName,
+                ManageUsers = options.ForceManageUsers ?? perm.ManageUsers,
+                ManageRecords = options.ForceManageRecords ?? perm.ManageRecords
+            };
         }
 
         /// <summary>
         /// Downloads membership and exports to JSON string
         /// </summary>
-        public static async Task<string> DownloadMembershipToJson(
-            this VaultOnline vault,
-            DownloadMembershipOptions options = null)
-        {
-            var exportFile = await vault.DownloadMembership(options);
-            var jsonBytes = JsonUtils.DumpJson(exportFile, indent: true);
-            return System.Text.Encoding.UTF8.GetString(jsonBytes);
-        }
+        public static async Task<string> DownloadMembershipToJson(this VaultOnline vault, DownloadMembershipOptions options = null)
+            => System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(await vault.DownloadMembership(options), indent: true));
 
         /// <summary>
         /// Downloads membership and exports to JSON file
         /// </summary>
-        public static async Task DownloadMembershipToFile(
-            this VaultOnline vault,
-            string filename,
-            DownloadMembershipOptions options = null)
+        public static async Task DownloadMembershipToFile(this VaultOnline vault, string filename, DownloadMembershipOptions options = null)
         {
-            var json = await vault.DownloadMembershipToJson(options);
-            System.IO.File.WriteAllText(filename, json);
+            System.IO.File.WriteAllText(filename, await vault.DownloadMembershipToJson(options));
             Debug.WriteLine($"Downloaded membership to {filename}");
         }
+
+        private static readonly DataContractJsonSerializer _serializer = new DataContractJsonSerializer(
+            typeof(ExportFile), 
+            new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true, EmitTypeInformation = System.Runtime.Serialization.EmitTypeInformation.Never });
 
         /// <summary>
         /// Merges downloaded membership with existing JSON file
         /// </summary>
-        public static async Task MergeMembershipToFile(
-            this VaultOnline vault,
-            string filename,
-            DownloadMembershipOptions options = null)
+        public static async Task MergeMembershipToFile(this VaultOnline vault, string filename, DownloadMembershipOptions options = null)
         {
-            var newExportFile = await vault.DownloadMembership(options);
-
-            ExportFile mergedExportFile;
+            var newExport = await vault.DownloadMembership(options);
+            var result = newExport;
             
             if (System.IO.File.Exists(filename))
             {
                 try
                 {
-                    var existingJson = System.IO.File.ReadAllText(filename);
-                    var jOptions = new System.Runtime.Serialization.Json.DataContractJsonSerializerSettings
+                    using var ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(System.IO.File.ReadAllText(filename)));
+                    var existing = (ExportFile)_serializer.ReadObject(ms);
+                    var newSfUids = new HashSet<string>(newExport.SharedFolders?.Select(sf => sf.Uid) ?? Enumerable.Empty<string>());
+                    var newTeamUids = new HashSet<string>(newExport.Teams?.Select(t => t.Uid) ?? Enumerable.Empty<string>());
+
+                    T[] Merge<T>(T[] existingArr, T[] newArr, Func<T, string> getUid, HashSet<string> newUids) =>
+                        (existingArr ?? Array.Empty<T>()).Where(x => !string.IsNullOrEmpty(getUid(x)) && !newUids.Contains(getUid(x)))
+                        .Concat(newArr ?? Array.Empty<T>()).ToArray();
+
+                    var folders = Merge(existing.SharedFolders, newExport.SharedFolders, sf => sf.Uid, newSfUids);
+                    var teams = Merge(existing.Teams, newExport.Teams, t => t.Uid, newTeamUids);
+
+                    result = new ExportFile
                     {
-                        UseSimpleDictionaryFormat = true,
-                        EmitTypeInformation = System.Runtime.Serialization.EmitTypeInformation.Never
+                        SharedFolders = folders.Length > 0 ? folders : null,
+                        Teams = teams.Length > 0 ? teams : null,
+                        Records = existing.Records
                     };
-                    var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(
-                        typeof(ExportFile), jOptions);
-                    
-                    using (var ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(existingJson)))
-                    {
-                        var existingExportFile = (ExportFile)serializer.ReadObject(ms);
-                        
-                        var mergedSharedFolders = new List<ExportSharedFolder>();
-                        var updatedUids = new HashSet<string>(
-                            newExportFile.SharedFolders?.Select(sf => sf.Uid) ?? Enumerable.Empty<string>());
-                        
-                        if (existingExportFile.SharedFolders != null)
-                        {
-                            foreach (var existingSf in existingExportFile.SharedFolders)
-                            {
-                                if (!string.IsNullOrEmpty(existingSf.Uid) && !updatedUids.Contains(existingSf.Uid))
-                                {
-                                    mergedSharedFolders.Add(existingSf);
-                                }
-                            }
-                        }
-                        
-                        if (newExportFile.SharedFolders != null)
-                        {
-                            mergedSharedFolders.AddRange(newExportFile.SharedFolders);
-                        }
-
-                        var mergedTeams = new List<ExportTeam>();
-                        var updatedTeamUids = new HashSet<string>(
-                            newExportFile.Teams?.Select(t => t.Uid) ?? Enumerable.Empty<string>());
-                        
-                        if (existingExportFile.Teams != null)
-                        {
-                            foreach (var existingTeam in existingExportFile.Teams)
-                            {
-                                if (!string.IsNullOrEmpty(existingTeam.Uid) && !updatedTeamUids.Contains(existingTeam.Uid))
-                                {
-                                    mergedTeams.Add(existingTeam);
-                                }
-                            }
-                        }
-                        
-                        if (newExportFile.Teams != null)
-                        {
-                            mergedTeams.AddRange(newExportFile.Teams);
-                        }
-
-                        mergedExportFile = new ExportFile
-                        {
-                            SharedFolders = mergedSharedFolders.Count > 0 ? mergedSharedFolders.ToArray() : null,
-                            Teams = mergedTeams.Count > 0 ? mergedTeams.ToArray() : null,
-                            Records = existingExportFile.Records
-                        };
-                        
-                        Debug.WriteLine($"Merged with existing file \"{filename}\"");
-                    }
+                    Debug.WriteLine($"Merged with existing file \"{filename}\"");
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to merge with existing file: {ex.Message}. Overwriting.");
-                    mergedExportFile = newExportFile;
-                }
-            }
-            else
-            {
-                mergedExportFile = newExportFile;
+                catch (Exception ex) { Debug.WriteLine($"Failed to merge: {ex.Message}. Overwriting."); }
             }
 
-            var jsonBytes = JsonUtils.DumpJson(mergedExportFile, indent: true);
-            var jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
-            System.IO.File.WriteAllText(filename, jsonString);
-            
+            System.IO.File.WriteAllText(filename, System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(result, indent: true)));
             Debug.WriteLine($"Downloaded membership to {filename}");
         }
     }
