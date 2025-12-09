@@ -1,11 +1,10 @@
 using CommandLine;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Commander
@@ -25,6 +24,7 @@ namespace Commander
     internal static class ApplyMembershipCommandExtensions
     {
         private const string DefaultFileName = "shared_folder_membership.json";
+        private const long MaxFileSizeBytes = 50 * 1024 * 1024; // 50 MB limit
 
         public static async Task ApplyMembershipCommand(this VaultContext context, ApplyMembershipCommandOptions options)
         {
@@ -36,11 +36,18 @@ namespace Commander
                 return;
             }
 
+            var fileInfo = new FileInfo(fileName);
+            if (fileInfo.Length > MaxFileSizeBytes)
+            {
+                Console.WriteLine($"Error: File size ({fileInfo.Length / (1024 * 1024)} MB) exceeds maximum allowed size ({MaxFileSizeBytes / (1024 * 1024)} MB)");
+                return;
+            }
+
             ImportFile importFile;
             try
             {
-                using var jsonDoc = JsonDocument.Parse(File.ReadAllText(fileName));
-                importFile = ParseMembershipJson(jsonDoc.RootElement);
+                var jsonBytes = File.ReadAllBytes(fileName);
+                importFile = JsonUtils.ParseJson<ImportFile>(jsonBytes);
             }
             catch (Exception ex)
             {
@@ -79,53 +86,5 @@ namespace Commander
             if (messages.All(m => m.count == 0))
                 Console.WriteLine("No changes applied. All memberships are up to date.");
         }
-
-        private static ImportFile ParseMembershipJson(JsonElement root)
-        {
-            if (!root.TryGetProperty("shared_folders", out var sfArray))
-                return new ImportFile();
-
-            var sharedFolders = sfArray.EnumerateArray()
-                .Select(ParseSharedFolder)
-                .ToArray();
-
-            return new ImportFile { SharedFolders = sharedFolders };
-        }
-
-        private static ImportSharedFolder ParseSharedFolder(JsonElement element)
-        {
-            var sf = new ImportSharedFolder
-            {
-                Uid = GetStringProperty(element, "uid"),
-                Path = GetStringProperty(element, "path"),
-                CanEdit = GetBoolProperty(element, "can_edit") ?? false,
-                CanShare = GetBoolProperty(element, "can_share") ?? false,
-                ManageRecords = GetBoolProperty(element, "manage_records") ?? false,
-                ManageUsers = GetBoolProperty(element, "manage_users") ?? false
-            };
-
-            if (element.TryGetProperty("permissions", out var permsArray))
-            {
-                sf.Permissions = permsArray.EnumerateArray()
-                    .Select(ParsePermission)
-                    .ToArray();
-            }
-
-            return sf;
-        }
-
-        private static ImportSharedFolderPermissions ParsePermission(JsonElement element) => new ImportSharedFolderPermissions
-        {
-            Uid = GetStringProperty(element, "uid"),
-            Name = GetStringProperty(element, "name"),
-            ManageRecords = GetBoolProperty(element, "manage_records"),
-            ManageUsers = GetBoolProperty(element, "manage_users")
-        };
-
-        private static string GetStringProperty(JsonElement element, string name)
-            => element.TryGetProperty(name, out var prop) ? prop.GetString() : null;
-
-        private static bool? GetBoolProperty(JsonElement element, string name)
-            => element.TryGetProperty(name, out var prop) ? prop.GetBoolean() : (bool?)null;
     }
 }

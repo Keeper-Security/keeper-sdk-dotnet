@@ -83,7 +83,12 @@ namespace KeeperSecurity.Vault
         private static Dictionary<string, string> BuildTeamLookup(IEnumerable<TeamInfo> teams)
         {
             return teams
-                .SelectMany(t => new[] { (t.TeamUid, t.TeamUid), (t.Name.ToLower(), t.TeamUid) })
+                .SelectMany(t => new[]
+                {
+                    (t.TeamUid, t.TeamUid),
+                    (!string.IsNullOrEmpty(t.Name) ? t.Name.ToLower() : null, t.TeamUid)
+                })
+                .Where(x => !string.IsNullOrEmpty(x.Item1))
                 .GroupBy(x => x.Item1)
                 .ToDictionary(g => g.Key, g => g.First().Item2);
         }
@@ -181,9 +186,13 @@ namespace KeeperSecurity.Vault
         private static void IncrementSummary(MembershipSummary summary, UserType userType, bool isUpdate)
         {
             if (isUpdate)
-                _ = userType == UserType.Team ? summary.TeamsUpdated++ : summary.UsersUpdated++;
+            {
+                if (userType == UserType.Team) summary.TeamsUpdated++; else summary.UsersUpdated++;
+            }
             else
-                _ = userType == UserType.Team ? summary.TeamsAdded++ : summary.UsersAdded++;
+            {
+                if (userType == UserType.Team) summary.TeamsAdded++; else summary.UsersAdded++;
+            }
         }
 
         private static async Task RemoveUnprocessedPermissions(

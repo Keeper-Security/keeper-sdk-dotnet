@@ -92,7 +92,7 @@ namespace KeeperSecurity
         }
 
         [DataContract]
-        public partial class ImportFile
+        public class ImportFile
         {
             [DataMember(Name = "records")] public ImportRecord[] Records { get; set; }
             [DataMember(Name = "shared_folders")] public ImportSharedFolder[] SharedFolders { get; set; }
