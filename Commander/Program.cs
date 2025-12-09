@@ -24,10 +24,10 @@ namespace Commander
 
         public static IExternalLoader CommanderStorage { get; private set; }
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
-            Utils.Welcome();
+            OutputUtils.Welcome();
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             var configFile = "";
@@ -42,8 +42,14 @@ namespace Commander
             CommanderStorage = StorageUtils.SetupCommanderStorage(configFile);
             MainLoop.StateContext = new NotConnectedCliContext(true);
 
-            _ = MainLoop.Run(GetInputManager());
-            InputManager.Run();
+            var inputTask = Task.Run(() =>
+            {
+                InputManager.Run();
+            });
+
+            await MainLoop.Run(GetInputManager());
+            InputManager.Stop();
+            await inputTask;
         }
     }
 

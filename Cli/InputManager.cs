@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Cli
@@ -22,6 +23,17 @@ namespace Cli
         Task<string> ReadLine(ReadLineParameters parameters = null);
         void InterruptReadTask(Task<string> task);
     }
+
+    public interface IInterruptable
+    {
+        event EventHandler<EventArgs> InterruptKeyPressed; 
+    }
+
+    public interface ICommandHistory
+    {
+        void ClearHistory();
+    }
+
 
     public class SimpleInputManager : IInputManager
     {
@@ -56,26 +68,30 @@ namespace Cli
 
         public void InterruptReadTask(Task<string> task)
         {
-            Console.WriteLine("Press <Enter>");
+            if (_isInReadLine)
+            {
+                Console.WriteLine("Press <Enter>");
+            }
         }
 
+        private bool _isInReadLine;
         public Task<string> ReadLine(ReadLineParameters parameters = null)
         {
             string input;
-            if (parameters?.IsSecured == true)
+            try
             {
-                input = ReadPassword();
+                _isInReadLine = true;
+                input = parameters?.IsSecured == true ? ReadPassword() : Console.ReadLine();
             }
-            else
-            {
-                input = Console.ReadLine();
+            finally {
+                _isInReadLine = false;
             }
             return Task.FromResult(input);
         }
     }
 
     /// <exclude/>
-    public class InputManager : IInputManager
+    public class InputManager : IInputManager, IInterruptable, ICommandHistory
     {
         private readonly StringBuilder _buffer = new StringBuilder();
         private bool _isSecured;
@@ -88,12 +104,31 @@ namespace Cli
         private int _cursorPosition;
         private readonly Queue<string> _yankRing = new Queue<string>();
         private readonly List<string> _history = new List<string>();
+        private CancellationTokenSource _token;
+
+        public void Stop()
+        {
+            if (_token != null && !_token.IsCancellationRequested) 
+            { 
+                _token.Cancel();
+            }
+        }
 
         public void Run()
         {
+            _token = new CancellationTokenSource();
             Console.TreatControlCAsInput = true;
             while (true)
             {
+                if (!Console.KeyAvailable) 
+                {
+                    _token.Token.WaitHandle.WaitOne(40);
+                    if (_token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    continue;
+                }
                 var keyInfo = Console.ReadKey(true);
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 && keyInfo.Key == ConsoleKey.C)
                 {
@@ -135,23 +170,13 @@ namespace Cli
                     }
                     else
                     {
-                        if (CancelKeyPress != null)
+                        try
                         {
-                            var ev = new InputManagerCancelEventArgs();
-                            try
-                            {
-                                CancelKeyPress(this, ev);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                                ev.Cancel = true;
-                            }
-
-                            if (ev.Cancel)
-                            {
-                                break;
-                            }
+                            InterruptKeyPressed?.Invoke(this, EventArgs.Empty);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
                         }
                     }
                 }
@@ -505,6 +530,8 @@ namespace Cli
                     }
                 }
             }
+            _token?.Dispose();
+            _token = null;
         }
 
         public void ClearHistory()
@@ -576,11 +603,6 @@ namespace Cli
             }
         }
 
-        public sealed class InputManagerCancelEventArgs : EventArgs
-        {
-            public bool Cancel { get; set; }
-        }
-
-        public event EventHandler<InputManagerCancelEventArgs> CancelKeyPress;
+        public event EventHandler<EventArgs> InterruptKeyPressed;
     }
 }
