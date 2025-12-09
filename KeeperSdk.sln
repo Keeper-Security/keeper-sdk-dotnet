@@ -30,6 +30,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cli", "Cli\Cli.csproj", "{4
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFSample", "WPFSample\WPFSample.csproj", "{189F9A70-0767-4A48-AF0A-80B643455DBC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeeperBiometrics", "KeeperBiometrics\KeeperBiometrics.csproj", "{C995C88B-6538-7C13-C919-4BCB92DE03AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeeperCli", "KeeperCli\KeeperCli.csproj", "{F50B526A-C9F0-4B7C-A504-712AC7FA7C45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +67,14 @@ Global
 		{189F9A70-0767-4A48-AF0A-80B643455DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{189F9A70-0767-4A48-AF0A-80B643455DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{189F9A70-0767-4A48-AF0A-80B643455DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C995C88B-6538-7C13-C919-4BCB92DE03AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C995C88B-6538-7C13-C919-4BCB92DE03AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C995C88B-6538-7C13-C919-4BCB92DE03AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C995C88B-6538-7C13-C919-4BCB92DE03AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F50B526A-C9F0-4B7C-A504-712AC7FA7C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F50B526A-C9F0-4B7C-A504-712AC7FA7C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F50B526A-C9F0-4B7C-A504-712AC7FA7C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F50B526A-C9F0-4B7C-A504-712AC7FA7C45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
