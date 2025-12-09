@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Cli
@@ -58,13 +57,13 @@ namespace Cli
 
     public static class CommandExtensions
     {
-        public static Parser DefaultParser = new Parser(with =>
+        public static readonly Parser DefaultParser = new Parser(with =>
         {
             with.EnableDashDash = true;
             with.HelpWriter = Console.Error;
         });
 
-        public static bool IsWhiteSpace(char ch)
+        private static bool IsWhiteSpace(char ch)
         {
             return char.IsWhiteSpace(ch);
         }
@@ -172,7 +171,7 @@ namespace Cli
                 Description = "Exit",
                 Action = (args) =>
                 {
-                    if (StateContext.BackStateCommands != null)
+                    if (StateContext?.BackStateCommands != null)
                     {
                         var oldContext = StateContext;
                         StateContext = oldContext.BackStateCommands;
@@ -198,34 +197,43 @@ namespace Cli
             {
                 Order = 1002,
                 Description = "Quit",
-                Action = (args) =>
+                Action = args =>
                 {
-                    Finished = true;
                     StateContext = null;
-                    Environment.Exit(0);
+                    OnCancelRunLoop?.Invoke(this, EventArgs.Empty);
                     return Task.FromResult(true);
                 }
             };
         }
 
         public StateCommands StateContext { get; set; }
-        public bool Finished { get; set; }
         public Queue<string> CommandQueue { get; } = new Queue<string>();
 
-        public async Task Run(InputManager inputManager)
-        {
-            ICommandMeta runningCommand = null;
-            CancellationTokenSource tokenSource = null;
+        private event EventHandler<EventArgs> OnCancelRunLoop;
 
-            inputManager.CancelKeyPress += (sender, e) =>
+        public async Task Run(IInputManager inputManager)
+        {
+            ICommandMeta runningCommand;
+            Task<string> currentReadLineTask = null;
+            void InputCancelHandler(object sender, EventArgs e) {
+                // TODO support cancellable commands
+            }
+
+            OnCancelRunLoop += (s, e) =>
             {
-                e.Cancel = false;
-                if (runningCommand != null)
+                var t = currentReadLineTask;
+                if (t != null)
                 {
-                    e.Cancel = true;
+                    inputManager.InterruptReadTask(t);
                 }
             };
-            while (!Finished)
+
+            if (inputManager is IInterruptable ic)
+            {
+                ic.InterruptKeyPressed += InputCancelHandler;
+            }
+
+            while (true)
             {
                 if (StateContext == null) break;
                 if (StateContext.NextStateCommands != null)
@@ -256,7 +264,10 @@ namespace Cli
                         StateContext.NextStateCommands = null;
                     }
 
-                    inputManager.ClearHistory();
+                    if (inputManager is ICommandHistory ch)
+                    {
+                        ch.ClearHistory();
+                    }
                 }
 
                 string command;
@@ -269,14 +280,23 @@ namespace Cli
                     Console.Write(StateContext.GetPrompt() + "> ");
                     try
                     {
-                        command = await inputManager.ReadLine(new ReadLineParameters
+                        currentReadLineTask = inputManager.ReadLine(new ReadLineParameters
                         {
                             IsHistory = true
                         });
+                        command = await currentReadLineTask;
                     }
                     catch (KeyboardInterrupt)
                     {
                         command = "";
+                    }
+                    catch
+                    {
+                        break;
+                    }
+                    finally
+                    {
+                        currentReadLineTask = null;
                     }
                 }
 
@@ -350,8 +370,6 @@ namespace Cli
                         finally
                         {
                             runningCommand = null;
-                            tokenSource?.Dispose();
-                            tokenSource = null;
                         }
                     }
                     else
@@ -392,6 +410,10 @@ namespace Cli
                     Console.WriteLine();
                     break;
                 }
+            }
+            if (inputManager is IInterruptable icc)
+            {
+                icc.InterruptKeyPressed -= InputCancelHandler;
             }
         }
     }
