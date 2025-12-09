@@ -292,7 +292,7 @@ namespace Commander
             {
                 if (isSsoProvider)
                 {
-                    await Utils.LoginToSsoProvider(_auth, Program.GetInputManager(), username);
+                    await KeeperLoginFlow.LoginToSsoProvider(_auth, Program.GetInputManager(), username);
                 }
                 else
                 {
@@ -315,7 +315,7 @@ namespace Commander
                         passwords.Add(uc.Password);
                     }
 
-                    await Utils.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
+                    await KeeperLoginFlow.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
                 }
 
                 if (_auth.IsAuthenticated())
