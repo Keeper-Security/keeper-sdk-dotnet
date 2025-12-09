@@ -64,7 +64,7 @@ namespace Sample
             // Login to Keeper using AuthSync
             Console.WriteLine("Logging in...");
             var authFlow = new AuthSync(configurationStorage);
-            await Utils.LoginToKeeper(authFlow, inputManager, username);
+            await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
 
             // Check for authentication errors
             if (authFlow.Step is ErrorStep es)

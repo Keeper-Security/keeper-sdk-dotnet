@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cli\Cli.csproj" />
+    <ProjectReference Include="..\KeeperCli\KeeperCli.csproj" />
     <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" />
   </ItemGroup>
 
