@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Cli
@@ -200,32 +199,42 @@ namespace Cli
                 Description = "Quit",
                 Action = (args) =>
                 {
-                    Finished = true;
                     StateContext = null;
-                    Environment.Exit(0);
+                    onCancelRunLoop?.Invoke(this, new EventArgs());
                     return Task.FromResult(true);
                 }
             };
         }
 
         public StateCommands StateContext { get; set; }
-        public bool Finished { get; set; }
         public Queue<string> CommandQueue { get; } = new Queue<string>();
 
-        public async Task Run(InputManager inputManager)
+        private event EventHandler<EventArgs> onCancelRunLoop;
+
+        public async Task Run(IInputManager inputManager)
         {
             ICommandMeta runningCommand = null;
-            CancellationTokenSource tokenSource = null;
 
-            inputManager.CancelKeyPress += (sender, e) =>
-            {
+            void InputCancelHandler(object sender, InputManagerCancelEventArgs e) {
                 e.Cancel = false;
                 if (runningCommand != null)
                 {
                     e.Cancel = true;
                 }
+            }
+
+            onCancelRunLoop += (s, e) => 
+            {
+                inputManager.Cancel();
             };
-            while (!Finished)
+
+            if (inputManager is IInputCancel ic)
+            {
+                ic.CancelKeyPress += InputCancelHandler;
+            }
+
+            var finished = false;
+            while (!finished)
             {
                 if (StateContext == null) break;
                 if (StateContext.NextStateCommands != null)
@@ -256,7 +265,10 @@ namespace Cli
                         StateContext.NextStateCommands = null;
                     }
 
-                    inputManager.ClearHistory();
+                    if (inputManager is ICommandHistory ch)
+                    {
+                        ch.ClearHistory();
+                    }
                 }
 
                 string command;
@@ -277,6 +289,10 @@ namespace Cli
                     catch (KeyboardInterrupt)
                     {
                         command = "";
+                    }
+                    catch 
+                    {
+                        break;
                     }
                 }
 
@@ -308,6 +324,7 @@ namespace Cli
                         case "quit":
                         case "q":
                             runningCommand = _quitCommand;
+                            finished = true;
                             break;
                         default:
                             if (groupCommand.Aliases.TryGetValue(command, out var fullCommand))
@@ -350,8 +367,6 @@ namespace Cli
                         finally
                         {
                             runningCommand = null;
-                            tokenSource?.Dispose();
-                            tokenSource = null;
                         }
                     }
                     else
@@ -393,6 +408,12 @@ namespace Cli
                     break;
                 }
             }
+            if (inputManager is IInputCancel icc)
+            {
+                icc.CancelKeyPress -= InputCancelHandler;
+            }
+
+            inputManager.Cancel();
         }
     }
 

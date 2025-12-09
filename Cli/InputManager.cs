@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Cli
@@ -21,7 +22,24 @@ namespace Cli
     {
         Task<string> ReadLine(ReadLineParameters parameters = null);
         void InterruptReadTask(Task<string> task);
+        void Cancel();
     }
+
+    public sealed class InputManagerCancelEventArgs : EventArgs
+    {
+        public bool Cancel { get; set; }
+    }
+
+    public interface IInputCancel
+    {
+        event EventHandler<InputManagerCancelEventArgs> CancelKeyPress;
+    }
+
+    public interface ICommandHistory
+    {
+        void ClearHistory();
+    }
+
 
     public class SimpleInputManager : IInputManager
     {
@@ -59,23 +77,38 @@ namespace Cli
             Console.WriteLine("Press <Enter>");
         }
 
+        public void Cancel() 
+        {
+            if (_isInReadLine) 
+            {
+                Console.WriteLine("Press <Enter>");
+            }
+        }
+        private bool _isInReadLine = false;
         public Task<string> ReadLine(ReadLineParameters parameters = null)
         {
             string input;
-            if (parameters?.IsSecured == true)
+            try
             {
-                input = ReadPassword();
+                _isInReadLine = true;
+                if (parameters?.IsSecured == true)
+                {
+                    input = ReadPassword();
+                }
+                else
+                {
+                    input = Console.ReadLine();
+                }
             }
-            else
-            {
-                input = Console.ReadLine();
+            finally {
+                _isInReadLine = false;
             }
             return Task.FromResult(input);
         }
     }
 
     /// <exclude/>
-    public class InputManager : IInputManager
+    public class InputManager : IInputManager, IInputCancel, ICommandHistory
     {
         private readonly StringBuilder _buffer = new StringBuilder();
         private bool _isSecured;
@@ -88,12 +121,31 @@ namespace Cli
         private int _cursorPosition;
         private readonly Queue<string> _yankRing = new Queue<string>();
         private readonly List<string> _history = new List<string>();
+        private CancellationTokenSource token;
+
+        public void Cancel()
+        {
+            if (token != null && !token.IsCancellationRequested) 
+            { 
+                token.Cancel();
+            }
+        }
 
         public void Run()
         {
+            token = new CancellationTokenSource();
             Console.TreatControlCAsInput = true;
             while (true)
             {
+                if (!Console.KeyAvailable) 
+                {
+                    token.Token.WaitHandle.WaitOne(40);
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    continue;
+                }
                 var keyInfo = Console.ReadKey(true);
                 if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0 && keyInfo.Key == ConsoleKey.C)
                 {
@@ -505,6 +557,8 @@ namespace Cli
                     }
                 }
             }
+            token?.Dispose();
+            token = null;
         }
 
         public void ClearHistory()
@@ -574,11 +628,6 @@ namespace Cli
                 _taskSource = new TaskCompletionSource<string>();
                 return _taskSource.Task;
             }
-        }
-
-        public sealed class InputManagerCancelEventArgs : EventArgs
-        {
-            public bool Cancel { get; set; }
         }
 
         public event EventHandler<InputManagerCancelEventArgs> CancelKeyPress;
