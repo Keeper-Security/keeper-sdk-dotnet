@@ -16,6 +16,8 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
+using KeeperSecurity.Plugins.PEDM;
+using Commander.PEDM;
 using KeeperSecurity.Utils;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
@@ -38,6 +40,35 @@ namespace Commander
         EcPrivateKey EnterprisePrivateKey { get; set; }
 
         IDictionary<string, AuditEventType> AuditEvents { get; set; }
+    }
+
+    internal static class IEnterpriseContextExtensions
+    {
+        private static readonly Dictionary<IEnterpriseContext, IPedmAdmin> _pedmPlugins = new Dictionary<IEnterpriseContext, IPedmAdmin>();
+
+        internal static IPedmAdmin GetPedmPlugin(this IEnterpriseContext context)
+        {
+            if (!context.Enterprise?.Auth?.AuthContext?.IsEnterpriseAdmin ?? true)
+            {
+                return null;
+            }
+
+            if (_pedmPlugins.TryGetValue(context, out var plugin))
+            {
+                return plugin;
+            }
+
+            try
+            {
+                var pedmPlugin = new PedmPlugin(context.Enterprise);
+                _pedmPlugins[context] = pedmPlugin;
+                return pedmPlugin;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
     internal static class EnterpriseExtensions
@@ -114,6 +145,70 @@ namespace Commander
                     Action = async options => { await context.RunAuditEventsReport(options); },
                 });
 
+            var pedmSyncDown = new PedmSyncDownCommand(context);
+            cli.Commands.Add("pedm-sync-down",
+                new ParseableCommand<PedmSyncDownOptions>
+                {
+                    Order = 80,
+                    Description = "Sync PEDM data from server",
+                    Action = async options => { await pedmSyncDown.ExecuteAsync(options); },
+                });
+            cli.Aliases["pedm-sync"] = "pedm-sync-down";
+
+            var pedmDeployment = new PedmDeploymentCommand(context);
+            cli.Commands.Add("pedm-deployment",
+                new ParseableCommand<PedmDeploymentOptions>
+                {
+                    Order = 81,
+                    Description = "Manage PEDM deployments",
+                    Action = async options => { await pedmDeployment.ExecuteAsync(options); },
+                });
+            cli.Aliases["pedm-dep"] = "pedm-deployment";
+
+            var pedmAgent = new PedmAgentCommand(context);
+            cli.Commands.Add("pedm-agent",
+                new ParseableCommand<PedmAgentOptions>
+                {
+                    Order = 82,
+                    Description = "Manage PEDM agents",
+                    Action = async options => { await pedmAgent.ExecuteAsync(options); },
+                });
+
+            var pedmPolicy = new PedmPolicyCommand(context);
+            cli.Commands.Add("pedm-policy",
+                new ParseableCommand<PedmPolicyOptions>
+                {
+                    Order = 83,
+                    Description = "Manage PEDM policies",
+                    Action = async options => { await pedmPolicy.ExecuteAsync(options); },
+                });
+
+            var pedmCollection = new PedmCollectionCommand(context);
+            cli.Commands.Add("pedm-collection",
+                new ParseableCommand<PedmCollectionOptions>
+                {
+                    Order = 84,
+                    Description = "Manage PEDM collections",
+                    Action = async options => { await pedmCollection.ExecuteAsync(options); },
+                });
+
+            var pedmApproval = new PedmApprovalCommand(context);
+            cli.Commands.Add("pedm-approval",
+                new ParseableCommand<PedmApprovalOptions>
+                {
+                    Order = 85,
+                    Description = "Manage PEDM approvals",
+                    Action = async options => { await pedmApproval.ExecuteAsync(options); },
+                });
+
+            var pedmCollectionLink = new PedmCollectionLinkCommand(context);
+            cli.Commands.Add("pedm-collection-link",
+                new ParseableCommand<PedmCollectionLinkOptions>
+                {
+                    Order = 86,
+                    Description = "Manage PEDM collection links",
+                    Action = async options => { await pedmCollectionLink.ExecuteAsync(options); },
+                });
 
             cli.Aliases["eget"] = "enterprise-get-data";
             cli.Aliases["en"] = "enterprise-node";

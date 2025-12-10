@@ -14,6 +14,8 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using System.Net.Http;
+using Router;
+using System.Reflection;
 
 namespace KeeperSecurity.Authentication
 {
@@ -212,6 +214,11 @@ namespace KeeperSecurity.Authentication
             return $"push.services.{Server}";
         }
 
+        private string GetRouterServer()
+        {
+            return $"connect.{Server}";
+        }
+
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
             Uri uri;
@@ -341,6 +348,191 @@ namespace KeeperSecurity.Authentication
             }
 
             throw lastKeeperError ?? new Exception("Keeper Api error");
+        }
+
+
+        /// <summary>
+        /// Executes Router REST API request.
+        /// </summary>
+        /// <param name="endpoint">Router endpoint path.</param>
+        /// <param name="sessionToken">Session token bytes.</param>
+        /// <param name="payload">Optional payload bytes to send. If provided, will be encrypted with transmission key.</param>
+        /// <returns>Task returning decrypted response bytes, or null if no payload in response.</returns>
+        public async Task<byte[]> ExecuteRouterRest(string endpoint, byte[] sessionToken, byte[] payload = null)
+        {
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+            var encryptedSessionToken = CryptoUtils.EncryptAesV2(sessionToken, transmissionKey);
+            var encryptedTransmissionKey = EncryptWithKeeperKey(transmissionKey, ServerKeyId);
+
+            var headers = new Dictionary<string, string>
+            {
+                ["TransmissionKey"] = Convert.ToBase64String(encryptedTransmissionKey),
+                ["Authorization"] = "KeeperUser " + Convert.ToBase64String(encryptedSessionToken)
+            };
+
+            Uri uri;
+            var routerUrl = Environment.GetEnvironmentVariable("ROUTER_URL");
+            if (!string.IsNullOrEmpty(routerUrl))
+            {
+                var routerUri = new Uri(routerUrl);
+                uri = new Uri(routerUri, $"api/user/{endpoint}");
+            }
+            else
+            {
+                var builder = new UriBuilder
+                {
+                    Scheme = "https",
+                    Host = GetRouterServer(),
+                    Path = $"api/user/{endpoint}",
+                };
+                uri = builder.Uri;
+            }
+
+            byte[] encryptedPayload = null;
+            if (payload != null)
+            {
+                encryptedPayload = CryptoUtils.EncryptAesV2(payload, transmissionKey);
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            foreach (var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+
+            if (encryptedPayload != null)
+            {
+                request.Content = new ByteArrayContent(encryptedPayload);
+            }
+
+            using var response = await _httpClient.SendAsync(request);
+            var statusCode = (int) response.StatusCode;
+            if (statusCode == 200)
+            {
+                var rsBody = await response.Content.ReadAsByteArrayAsync();
+                if (rsBody != null && rsBody.Length > 0)
+                {
+                    var routerResponse = RouterResponse.Parser.ParseFrom(rsBody);
+                    if (routerResponse.ResponseCode == RouterResponseCode.RrcOk)
+                    {
+                        if (routerResponse.EncryptedPayload != null && routerResponse.EncryptedPayload.Length > 0)
+                        {
+                            return CryptoUtils.DecryptAesV2(routerResponse.EncryptedPayload.ToByteArray(), transmissionKey);
+                        }
+                    }
+                    else
+                    {
+                        string code;
+                        switch (routerResponse.ResponseCode)
+                        {
+                            case RouterResponseCode.RrcBadRequest:
+                                code = "bad_request";
+                                break;
+                            case RouterResponseCode.RrcNotAllowed:
+                                code = "not_allowed";
+                                break;
+                            default:
+                                code = "router_error";
+                                break;
+                        }
+
+                        var errorMessage = routerResponse.ErrorMessage ?? "Unknown router error";
+                        throw new KeeperApiException(code, errorMessage);
+                    }
+                }
+
+                return null;
+            }
+            else
+            {
+                var message = response.ReasonPhrase ?? "Unknown error";
+                throw new KeeperApiException("router_error", $"{message}: {statusCode}");
+            }
+        }
+
+        /// <summary>
+        /// Executes Router BI API request.
+        /// </summary>
+        /// <typeparam name="TRQ">Request protobuf message type.</typeparam>
+        /// <typeparam name="TRS">Response protobuf message type.</typeparam>
+        /// <param name="encryptionKey">Pre-existing encryption key for payload encryption/decryption.</param>
+        /// <param name="endpoint">Router BI endpoint path.</param>
+        /// <param name="request">Optional request protobuf message.</param>
+        /// <returns>Task returning parsed response protobuf message, or null if no response.</returns>
+        public async Task<TRS> ExecuteRouterBi<TRQ, TRS>(byte[] encryptionKey, string endpoint, TRQ request = default)
+            where TRQ : class, IMessage<TRQ>
+            where TRS : class, IMessage<TRS>, new()
+        {
+            Uri uri;
+            var routerUrl = Environment.GetEnvironmentVariable("ROUTER_URL");
+            if (!string.IsNullOrEmpty(routerUrl))
+            {
+                var routerUri = new Uri(routerUrl);
+                uri = new Uri(routerUri, $"api/bi/{endpoint}");
+            }
+            else
+            {
+                var builder = new UriBuilder
+                {
+                    Scheme = "https",
+                    Host = Server,
+                    Path = $"api/bi/{endpoint}",
+                    Port = 443
+                };
+                uri = builder.Uri;
+            }
+
+            var rq = new ApiRequestByKey
+            {
+                KeyId = 2
+            };
+
+            if (request != default(TRQ))
+            {
+                var payload = CryptoUtils.EncryptAesV2(request.ToByteArray(), encryptionKey);
+                rq.Payload = ByteString.CopyFrom(payload);
+            }
+
+            var requestContent = new ByteArrayContent(rq.ToByteArray());
+            using var response = await _httpClient.PostAsync(uri, requestContent);
+            var statusCode = (int)response.StatusCode;
+
+            if (statusCode == 200)
+            {
+                var rsBody = await response.Content.ReadAsByteArrayAsync();
+                if (rsBody != null && rsBody.Length > 0)
+                {
+                    var payload = CryptoUtils.DecryptAesV2(rsBody, encryptionKey);
+                    
+                    // Get the Parser for the response type using reflection
+                    var responseType = typeof(TRS);
+                    var parserProperty = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
+                    if (parserProperty == null)
+                    {
+                        throw new KeeperInvalidParameter("ExecuteRouterBi", "responseType", responseType.Name,
+                            "Google Protobuf class expected with static Parser property");
+                    }
+
+                    var parser = parserProperty.GetValue(null);
+                    if (parser is MessageParser<TRS> typedParser)
+                    {
+                        var routerResponse = typedParser.ParseFrom(payload);
+                    return routerResponse;
+                    }
+                    else
+                    {
+                        throw new KeeperInvalidParameter("ExecuteRouterBi", "responseType", responseType.Name,
+                            "Parser must be MessageParser<T>");
+                    }
+                }
+
+                return default;
+            }
+            else
+            {
+                var message = response.ReasonPhrase ?? "Unknown error";
+                throw new KeeperApiException("router_error", $"{message}: {statusCode}");
+            }
         }
 
         private void SetConfigurationValid(int keyId)
