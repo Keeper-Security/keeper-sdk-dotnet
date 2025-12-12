@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Cli;
 using Commander;
@@ -111,10 +113,69 @@ namespace Commander.PEDM
                 return;
             }
 
+            // Check for duplicate name unless force is used
+            if (!options.Force)
+            {
+                var lName = options.Name.ToLowerInvariant();
+                var hasName = Plugin.Deployments.GetAll()
+                    .Any(x => x.Name.ToLowerInvariant() == lName);
+                if (hasName)
+                {
+                    Console.WriteLine($"Deployment \"{options.Name}\" already exists.");
+                    return;
+                }
+            }
+
+            // Load SPIFFE certificate from file if provided
+            string spiffeCertBase64 = null;
+            if (!string.IsNullOrEmpty(options.SpiffeCert))
+            {
+                var spiffePath = options.SpiffeCert;
+                if (File.Exists(spiffePath))
+                {
+                    // Load certificate from file
+                    try
+                    {
+                        var ext = Path.GetExtension(spiffePath).ToLowerInvariant();
+                        byte[] certBytes;
+                        
+                        if (ext == ".cer" || ext == ".der")
+                        {
+                            // DER format
+                            certBytes = File.ReadAllBytes(spiffePath);
+                        }
+                        else if (ext == ".pem")
+                        {
+                            // PEM format
+                            var cert = new X509Certificate2(spiffePath);
+                            certBytes = cert.Export(X509ContentType.Cert);
+                        }
+                        else
+                        {
+                            // Try PEM format as default
+                            var cert = new X509Certificate2(spiffePath);
+                            certBytes = cert.Export(X509ContentType.Cert);
+                        }
+                        
+                        spiffeCertBase64 = certBytes.Base64UrlEncode();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to load SPIFFE certificate from file \"{spiffePath}\": {ex.Message}");
+                        return;
+                    }
+                }
+                else
+                {
+                    // Assume it's already base64url encoded
+                    spiffeCertBase64 = options.SpiffeCert;
+                }
+            }
+
             var addDeployment = new DeploymentDataInput
             {
                 Name = options.Name,
-                SpiffeCert = options.SpiffeCert
+                SpiffeCert = spiffeCertBase64
             };
 
             var addStatus = await Plugin.ModifyDeployments(
@@ -122,7 +183,23 @@ namespace Commander.PEDM
                 updateDeployments: null,
                 removeDeployments: null);
 
-            Console.WriteLine($"Deployment '{options.Name}' added.");
+            // Check for errors in the response (similar to Python implementation)
+            if (addStatus.AddErrors?.Count > 0)
+            {
+                var error = addStatus.AddErrors[0];
+                Console.WriteLine($"Failed to add deployment \"{error.EntityUid}\": {error.Message}");
+                return;
+            }
+
+            if (addStatus.Add?.Count > 0)
+            {
+                Console.WriteLine($"Deployment '{options.Name}' added.");
+            }
+            else
+            {
+                Console.WriteLine($"Warning: No deployment was added. Check server response for errors.");
+            }
+
             if (addStatus.Add?.Count > 0 || addStatus.Update?.Count > 0 || addStatus.Remove?.Count > 0)
             {
                 PrintModifyStatus(addStatus);
@@ -198,8 +275,11 @@ namespace Commander.PEDM
         [Option("disabled", Required = false, HelpText = "true/false: Disable deployment (for update)")]
         public string Disabled { get; set; }
 
-        [Option("spiffe-cert", Required = false, HelpText = "SPIFFE certificate (base64url encoded)")]
+        [Option("spiffe-cert", Required = false, HelpText = "SPIFFE certificate file path (.cer, .der, .pem) or base64url encoded string")]
         public string SpiffeCert { get; set; }
+
+        [Option('f', "force", Required = false, HelpText = "Do not prompt for confirmation; allow duplicate names")]
+        public bool Force { get; set; }
     }
 }
 

@@ -182,29 +182,72 @@ namespace KeeperSecurity.Plugins.PEDM
         public List<string> Add { get; set; } = new List<string>();
         public List<string> Update { get; set; } = new List<string>();
         public List<string> Remove { get; set; } = new List<string>();
+        
+        public List<EntityStatus> AddErrors { get; set; } = new List<EntityStatus>();
+        public List<EntityStatus> UpdateErrors { get; set; } = new List<EntityStatus>();
+        public List<EntityStatus> RemoveErrors { get; set; } = new List<EntityStatus>();
 
         public static ModifyStatus FromProto(PEDMProto.PedmStatusResponse response)
         {
             var status = new ModifyStatus();
             foreach (var item in response.AddStatus)
             {
-                foreach (var key in item.Key)
+                var entityUid = item.Key.Count > 0 ? item.Key[0].ToByteArray().Base64UrlEncode() : null;
+                if (entityUid != null)
                 {
-                    status.Add.Add(key.ToByteArray().Base64UrlEncode());
+                    if (item.Success)
+                    {
+                        status.Add.Add(entityUid);
+                    }
+                    else
+                    {
+                        status.AddErrors.Add(new EntityStatus
+                        {
+                            EntityUid = entityUid,
+                            Success = item.Success,
+                            Message = item.Message
+                        });
+                    }
                 }
             }
             foreach (var item in response.UpdateStatus)
             {
-                foreach (var key in item.Key)
+                var entityUid = item.Key.Count > 0 ? item.Key[0].ToByteArray().Base64UrlEncode() : null;
+                if (entityUid != null)
                 {
-                    status.Update.Add(key.ToByteArray().Base64UrlEncode());
+                    if (item.Success)
+                    {
+                        status.Update.Add(entityUid);
+                    }
+                    else
+                    {
+                        status.UpdateErrors.Add(new EntityStatus
+                        {
+                            EntityUid = entityUid,
+                            Success = item.Success,
+                            Message = item.Message
+                        });
+                    }
                 }
             }
             foreach (var item in response.RemoveStatus)
             {
-                foreach (var key in item.Key)
+                var entityUid = item.Key.Count > 0 ? item.Key[0].ToByteArray().Base64UrlEncode() : null;
+                if (entityUid != null)
                 {
-                    status.Remove.Add(key.ToByteArray().Base64UrlEncode());
+                    if (item.Success)
+                    {
+                        status.Remove.Add(entityUid);
+                    }
+                    else
+                    {
+                        status.RemoveErrors.Add(new EntityStatus
+                        {
+                            EntityUid = entityUid,
+                            Success = item.Success,
+                            Message = item.Message
+                        });
+                    }
                 }
             }
             return status;
@@ -215,6 +258,9 @@ namespace KeeperSecurity.Plugins.PEDM
             Add.AddRange(other.Add);
             Update.AddRange(other.Update);
             Remove.AddRange(other.Remove);
+            AddErrors.AddRange(other.AddErrors);
+            UpdateErrors.AddRange(other.UpdateErrors);
+            RemoveErrors.AddRange(other.RemoveErrors);
         }
     }
 
@@ -776,7 +822,9 @@ namespace KeeperSecurity.Plugins.PEDM
 
                     if (!string.IsNullOrEmpty(ad.SpiffeCert))
                     {
-                        aRq.SpiffeCertificate = ByteString.CopyFrom(Encoding.UTF8.GetBytes(ad.SpiffeCert));
+                        // SpiffeCert is base64url encoded, decode it to bytes
+                        var spiffeCertBytes = ad.SpiffeCert.Base64UrlDecode();
+                        aRq.SpiffeCertificate = ByteString.CopyFrom(spiffeCertBytes);
                     }
 
                     var agentDataDict = new Dictionary<string, object>
@@ -843,7 +891,8 @@ namespace KeeperSecurity.Plugins.PEDM
 
                     if (!string.IsNullOrEmpty(ud.SpiffeCert))
                     {
-                        uRq.SpiffeCertificate = ByteString.CopyFrom(Encoding.UTF8.GetBytes(ud.SpiffeCert));
+                        var spiffeCertBytes = ud.SpiffeCert.Base64UrlDecode();
+                        uRq.SpiffeCertificate = ByteString.CopyFrom(spiffeCertBytes);
                     }
 
                     mrq.UpdateDeployment.Add(uRq);
