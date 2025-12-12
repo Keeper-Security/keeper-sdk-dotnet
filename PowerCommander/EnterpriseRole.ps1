@@ -501,3 +501,326 @@ Register-ArgumentCompleter -CommandName Revoke-KeeperEnterpriseRoleFromTeam -Par
 Register-ArgumentCompleter -CommandName Revoke-KeeperEnterpriseRoleFromTeam -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
 New-Alias -Name kertr -Value Revoke-KeeperEnterpriseRoleFromTeam
 
+function New-KeeperEnterpriseRole {
+    <#
+        .SYNOPSIS
+        Create new enterprise role in the Keeper Enterprise.
+
+        .DESCRIPTION
+        Creates new enterprise role with optional settings for parent node, new user inheritance, visibility, and enforcements.
+
+        .PARAMETER Role
+        Role Name of the new role.
+
+        .PARAMETER ParentNode
+        Parent node name or ID. If not specified, the role will be created in the root node.
+
+        .PARAMETER NewUser
+        Assign this role to new users. Valid values: 'ON', 'OFF'. Default is 'OFF'.
+
+        .PARAMETER VisibleBelow
+        Make role visible to all subnodes. Valid values: 'ON', 'OFF'. Default is 'OFF'.
+
+        .PARAMETER Enforcement
+        Sets role enforcement in KEY:VALUE format. Can be repeated multiple times.
+
+        .PARAMETER Force
+        Do not prompt for confirmation when a role with the same name already exists.
+
+        .EXAMPLE
+        New-KeeperEnterpriseRole -Role "Manager"
+        Creates a role named "Manager" in the root node.
+
+        .EXAMPLE
+        New-KeeperEnterpriseRole -Role "Manager", "Employee" -ParentNode "Sales" -NewUser "ON"
+        Creates two roles "Manager" and "Employee" in the "Sales" node, assigned to new users.
+
+        .EXAMPLE
+        New-KeeperEnterpriseRole -Role "Admin" -ParentNode 123456789 -VisibleBelow "ON" -Enforcement "logout_timer_desktop:3600"
+        Creates an "Admin" role in node 123456789, visible to subnodes, with a logout timer enforcement.
+
+        .EXAMPLE
+        New-KeeperEnterpriseRole -Role "TestRole" -Force
+        Creates a role even if one with the same name already exists, without prompting.
+    #>
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $false)]
+        [string[]]$Role,
+        
+        [Parameter()][string]$ParentNode,
+        
+        [Parameter()][ValidateSet('ON', 'OFF')][string]$NewUser = 'OFF',
+        
+        [Parameter()][ValidateSet('ON', 'OFF')][string]$VisibleBelow = 'OFF',
+        
+        [Parameter()][string[]]$Enforcement,
+        
+        [Parameter()][switch]$Force
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $roleData = $enterprise.roleData
+    $auth = $enterprise.loader.Auth
+
+    if ($ParentNode) {
+        $ParentNode = $ParentNode.Trim()
+        if ([string]::IsNullOrWhiteSpace($ParentNode)) {
+            $ParentNode = $null
+        }
+    }
+
+    $nodeId = $null
+    if ($ParentNode) {
+        $parsedId = 0
+        if ([long]::TryParse($ParentNode, [ref]$parsedId)) {
+            $node = $null
+            if ($enterpriseData.TryGetNode($parsedId, [ref]$node)) {
+                $nodeId = $parsedId
+            }
+        }
+        
+        if (-not $nodeId) {
+            $nodes = $enterpriseData.Nodes | Where-Object { $_.DisplayName -ieq $ParentNode }
+            if ($nodes.Count -eq 1) {
+                $nodeId = $nodes[0].Id
+            }
+            elseif ($nodes.Count -eq 0) {
+                Write-Error "Node `"$ParentNode`" not found" -ErrorAction Stop
+                return
+            }
+            else {
+                Write-Error "More than one node with name `"$ParentNode`" are found. Use Node ID." -ErrorAction Stop
+                return
+            }
+        }
+    }
+    else {
+        $nodeId = $enterpriseData.RootNode.Id
+    }
+
+    $newUserInherit = $NewUser -eq 'ON'
+    $visibleBelowBool = $VisibleBelow -eq 'ON'
+
+    $uniqueRoles = $Role | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+    if ($uniqueRoles.Count -ne ($Role | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count) {
+        Write-Warning "Duplicate role names detected in input. Only unique names will be processed."
+    }
+    $Role = $uniqueRoles
+
+    if ($Enforcement -and $Enforcement.Count -gt 0) {
+        foreach ($enf in $Enforcement) {
+            if (-not [string]::IsNullOrWhiteSpace($enf) -and $enf -notmatch '^[^:]+:.+$') {
+                Write-Warning "Enforcement `"$enf`" does not match KEY:VALUE format. It will be skipped."
+            }
+        }
+    }
+
+    $createdRoles = @()
+    foreach ($roleName in $Role) {
+        if ([string]::IsNullOrWhiteSpace($roleName)) {
+            Write-Warning "Skipping empty role name"
+            continue
+        }
+
+        $roleName = $roleName.Trim()
+        if ($roleName.Length -gt 255) {
+            Write-Error "Role name `"$roleName`" exceeds maximum length of 255 characters" -ErrorAction Continue
+            continue
+        }
+        if ($roleName.Length -eq 0) {
+            Write-Warning "Skipping empty role name after trimming"
+            continue
+        }
+
+        $existingRoles = Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -ieq $roleName }
+        if ($existingRoles.Count -gt 0) {
+            if (-not $Force) {
+                $confirmation = Read-Host "Role with name `"$roleName`" already exists. Do you want to create a new one? (Yes/No)"
+                if ($confirmation -notmatch '^[Yy]([Ee][Ss])?$') {
+                    Write-Output "Skipping role `"$roleName`""
+                    continue
+                }
+            }
+            else {
+                Write-Verbose "Role `"$roleName`" already exists, but Force is set. Creating anyway."
+            }
+        }
+
+        $actionDescription = "Create Enterprise Role `"$roleName`""
+        if ($PSCmdlet.ShouldProcess($actionDescription, "Create")) {
+            try {
+                $createdRole = $roleData.CreateRole($roleName, $nodeId, $newUserInherit).GetAwaiter().GetResult()
+                
+                if (-not $createdRole) {
+                    Write-Error "Failed to create role `"$roleName`"" -ErrorAction Continue
+                    continue
+                }
+
+                Write-Output "Role `"$roleName`" created successfully (ID: $($createdRole.Id))"
+
+                if ($visibleBelowBool) {
+                    try {
+                        $updatedRole = $roleData.UpdateRole($createdRole, $null, $true, $null).GetAwaiter().GetResult()
+                        if ($updatedRole) {
+                            Write-Verbose "Role `"$roleName`" set to visible below subnodes"
+                        }
+                    }
+                    catch {
+                        Write-Warning "Failed to set VisibleBelow for role `"$roleName`": $($_.Exception.Message)"
+                    }
+                }
+
+                if ($Enforcement -and $Enforcement.Count -gt 0) {
+                    foreach ($enf in $Enforcement) {
+                        if ([string]::IsNullOrWhiteSpace($enf)) {
+                            continue
+                        }
+
+                        $parts = $enf -split ':', 2
+                        if ($parts.Count -ne 2) {
+                            Write-Warning "Invalid enforcement format `"$enf`". Expected KEY:VALUE format. Skipping."
+                            continue
+                        }
+
+                        $enforcementKey = $parts[0].Trim()
+                        $enforcementValue = $parts[1].Trim()
+
+                        if ([string]::IsNullOrWhiteSpace($enforcementKey) -or [string]::IsNullOrWhiteSpace($enforcementValue)) {
+                            Write-Warning "Invalid enforcement format `"$enf`". Key and Value cannot be empty. Skipping."
+                            continue
+                        }
+
+                        try {
+                            $enfCmd = New-Object KeeperSecurity.Commands.RoleEnforcementAddCommand
+                            $enfCmd.RoleId = $createdRole.Id
+                            $enfCmd.Enforcement = $enforcementKey
+                            $enfCmd.Value = $enforcementValue
+
+                            [KeeperSecurity.Authentication.AuthExtensions]::ExecuteAuthCommand($auth, $enfCmd).GetAwaiter().GetResult() | Out-Null
+                            Write-Verbose "Added enforcement `"$enforcementKey`" = `"$enforcementValue`" to role `"$roleName`""
+                        }
+                        catch {
+                            Write-Warning "Failed to add enforcement `"$enf`" to role `"$roleName`": $($_.Exception.Message)"
+                        }
+                    }
+                }
+
+                $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+
+                $finalRole = $null
+                if ($roleData.TryGetRole($createdRole.Id, [ref]$finalRole)) {
+                    $createdRoles += $finalRole
+                }
+                else {
+                    Write-Warning "Role `"$roleName`" was created (ID: $($createdRole.Id)) but could not be retrieved after reload. The role may still exist."
+                    $createdRoles += $createdRole
+                }
+            }
+            catch {
+                Write-Error "Failed to create role `"$roleName`": $($_.Exception.Message)" `
+                    -ErrorAction Continue `
+                    -ErrorId "RoleCreationFailed" `
+                    -Category InvalidOperation
+                continue
+            }
+        }
+    }
+
+    if ($createdRoles.Count -gt 0) {
+        return $createdRoles
+    }
+}
+Register-ArgumentCompleter -CommandName New-KeeperEnterpriseRole -ParameterName ParentNode -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    $result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = $wordToComplete + '*'
+    }
+    else {
+        $to_complete = '*'
+    }
+    foreach ($node in $enterprise.enterpriseData.Nodes) {
+        if ($node.DisplayName -like $to_complete) {
+            $nodeName = $node.DisplayName
+            if ($nodeName -match '[\s'']') {
+                $nodeName = $nodeName -replace '''', ''''''
+                $nodeName = "'${nodeName}'"
+            }
+            $result += $nodeName
+        }
+    }
+    if ($result.Count -gt 0) {
+        return $result
+    }
+    else {
+        return $null
+    }
+}
+New-Alias -Name keradd -Value New-KeeperEnterpriseRole
+
+function Remove-KeeperEnterpriseRole {
+    <#
+        .SYNOPSIS
+        Delete an enterprise role
+
+        .DESCRIPTION
+        Removes an enterprise role from the Keeper Enterprise. This operation cannot be undone.
+
+        .PARAMETER Role
+        Role Name, ID, or EnterpriseRole object to delete
+
+        .PARAMETER Force
+        Do not prompt for confirmation before deleting the role
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseRole -Role "MyRole"
+        Deletes the role named "TestRole" after confirmation
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseRole -Role "MyRole" -Force
+        Deletes the role named "MyRole" without prompting for confirmation
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Remove-KeeperEnterpriseRole
+        Deletes a role using pipeline input
+    #>
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]$Role,
+        [Parameter()][switch]$Force
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $roleName = $roleObject.DisplayName
+    $roleId = $roleObject.Id
+
+    if (-not $Force -and -not $PSCmdlet.ShouldProcess("Role `"$roleName`" (ID: $roleId)", "Delete Enterprise Role")) {
+        return
+    }
+
+    try {
+        $roleData.DeleteRole($roleObject).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Role `"$roleName`" (ID: $roleId) deleted successfully"
+    }
+    catch {
+        Write-Error "Failed to delete role `"$roleName`": $($_.Exception.Message)" `
+            -ErrorAction Stop `
+            -ErrorId "RoleDeletionFailed" `
+            -Category InvalidOperation
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRole -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name kerdel -Value Remove-KeeperEnterpriseRole
