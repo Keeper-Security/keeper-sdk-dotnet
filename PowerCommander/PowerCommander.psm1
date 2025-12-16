@@ -51,14 +51,14 @@ Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
-Grant-KeeperEnterpriseRoleToTeam, Revoke-KeeperEnterpriseRoleFromTeam
+Grant-KeeperEnterpriseRoleToTeam, Revoke-KeeperEnterpriseRoleFromTeam, New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole
 
 Export-ModuleMember -Function New-KeeperEnterpriseTeam, Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, 
 Remove-KeeperEnterpriseTeamMember
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode
 
-Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr,
+Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
 invite-user, lock-user, unlock-user, transfer-user, delete-user
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
