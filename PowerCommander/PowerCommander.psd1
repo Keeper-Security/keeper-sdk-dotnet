@@ -86,7 +86,8 @@
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
-        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 'Revoke-KeeperEnterpriseRoleFromTeam',
+        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
+        'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole',
         #'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
@@ -112,7 +113,7 @@
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
-        'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs', 'kers', 'kerua', 'kerur', 'kerta', 'kertr')
+        'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs', 'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel')
 
     # List of all modules packaged with this module
     # ModuleList = @()
