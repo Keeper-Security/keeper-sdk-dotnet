@@ -109,6 +109,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseRoleTeams          | kert        | Get a list of enterprise teams for role 
 | Get-KeeperEnterpriseAdminRole          | kerap       | Enumerate all enterprise role admin permissions
 | Set-KeeperEnterpriseRole               | kers        | Update Enterprise Role properties (NewUserInherit, VisibleBelow, DisplayName)
+| New-KeeperEnterpriseRole               | keradd      | Create a new enterprise role in the Keeper Enterprise
+| Remove-KeeperEnterpriseRole            | kerdel      | Delete an enterprise role from the Keeper Enterprise
 | Grant-KeeperEnterpriseRoleToUser       | kerua       | Add a user to an Enterprise Role
 | Revoke-KeeperEnterpriseRoleFromUser    | kerur       | Remove a user from an Enterprise Role
 | Grant-KeeperEnterpriseRoleToTeam       | kerta       | Add a team to an Enterprise Role
