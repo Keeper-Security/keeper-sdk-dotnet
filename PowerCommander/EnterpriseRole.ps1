@@ -564,15 +564,9 @@ function New-KeeperEnterpriseRole {
     $roleData = $enterprise.roleData
     $auth = $enterprise.loader.Auth
 
-    if ($ParentNode) {
-        $ParentNode = $ParentNode.Trim()
-        if ([string]::IsNullOrWhiteSpace($ParentNode)) {
-            $ParentNode = $null
-        }
-    }
-
     $nodeId = $null
-    if ($ParentNode) {
+    if (-not [string]::IsNullOrWhiteSpace($ParentNode)) {
+        $ParentNode = $ParentNode.Trim()
         $parsedId = 0
         if ([long]::TryParse($ParentNode, [ref]$parsedId)) {
             $node = $null
@@ -582,7 +576,7 @@ function New-KeeperEnterpriseRole {
         }
         
         if (-not $nodeId) {
-            $nodes = $enterpriseData.Nodes | Where-Object { $_.DisplayName -ieq $ParentNode }
+            $nodes = @($enterpriseData.Nodes | Where-Object { $_.DisplayName -ieq $ParentNode })
             if ($nodes.Count -eq 1) {
                 $nodeId = $nodes[0].Id
             }
@@ -608,6 +602,7 @@ function New-KeeperEnterpriseRole {
         Write-Warning "Duplicate role names detected in input. Only unique names will be processed."
     }
     $Role = $uniqueRoles
+    $allRoles = Get-KeeperEnterpriseRole
 
     if ($Enforcement -and $Enforcement.Count -gt 0) {
         foreach ($enf in $Enforcement) {
@@ -629,12 +624,8 @@ function New-KeeperEnterpriseRole {
             Write-Error "Role name `"$roleName`" exceeds maximum length of 255 characters" -ErrorAction Continue
             continue
         }
-        if ($roleName.Length -eq 0) {
-            Write-Warning "Skipping empty role name after trimming"
-            continue
-        }
 
-        $existingRoles = Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -ieq $roleName }
+        $existingRoles = $allRoles | Where-Object { $_.DisplayName -ieq $roleName }
         if ($existingRoles.Count -gt 0) {
             if (-not $Force) {
                 $confirmation = Read-Host "Role with name `"$roleName`" already exists. Do you want to create a new one? (Yes/No)"
@@ -648,8 +639,7 @@ function New-KeeperEnterpriseRole {
             }
         }
 
-        $actionDescription = "Create Enterprise Role `"$roleName`""
-        if ($PSCmdlet.ShouldProcess($actionDescription, "Create")) {
+        if ($PSCmdlet.ShouldProcess($roleName, "Create Enterprise Role")) {
             try {
                 $createdRole = $roleData.CreateRole($roleName, $nodeId, $newUserInherit).GetAwaiter().GetResult()
                 
@@ -707,7 +697,12 @@ function New-KeeperEnterpriseRole {
                     }
                 }
 
-                $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+                try {
+                    $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+                }
+                catch {
+                    Write-Warning "Failed to reload enterprise data after creating role `"$roleName`": $($_.Exception.Message)"
+                }
 
                 $finalRole = $null
                 if ($roleData.TryGetRole($createdRole.Id, [ref]$finalRole)) {
@@ -728,9 +723,7 @@ function New-KeeperEnterpriseRole {
         }
     }
 
-    if ($createdRoles.Count -gt 0) {
-        return $createdRoles
-    }
+    return $createdRoles
 }
 Register-ArgumentCompleter -CommandName New-KeeperEnterpriseRole -ParameterName ParentNode -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -780,7 +773,7 @@ function Remove-KeeperEnterpriseRole {
 
         .EXAMPLE
         Remove-KeeperEnterpriseRole -Role "MyRole"
-        Deletes the role named "TestRole" after confirmation
+        Deletes the role named "MyRole" after confirmation
 
         .EXAMPLE
         Remove-KeeperEnterpriseRole -Role "MyRole" -Force
@@ -807,7 +800,7 @@ function Remove-KeeperEnterpriseRole {
     $roleName = $roleObject.DisplayName
     $roleId = $roleObject.Id
 
-    if (-not $Force -and -not $PSCmdlet.ShouldProcess("Role `"$roleName`" (ID: $roleId)", "Delete Enterprise Role")) {
+    if (-not $Force -and -not $PSCmdlet.ShouldProcess($roleName, "Delete Enterprise Role")) {
         return
     }
 
