@@ -50,7 +50,7 @@ namespace Commander.PEDM
 
                 case "remove":
                 case "delete":
-                    await RemoveDeploymentAsync(options.DeploymentUid);
+                    await RemoveDeploymentAsync(options);
                     break;
 
                 default:
@@ -113,7 +113,6 @@ namespace Commander.PEDM
                 return;
             }
 
-            // Check for duplicate name unless force is used
             if (!options.Force)
             {
                 var lName = options.Name.ToLowerInvariant();
@@ -126,14 +125,12 @@ namespace Commander.PEDM
                 }
             }
 
-            // Load SPIFFE certificate from file if provided
             string spiffeCertBase64 = null;
             if (!string.IsNullOrEmpty(options.SpiffeCert))
             {
                 var spiffePath = options.SpiffeCert;
                 if (File.Exists(spiffePath))
                 {
-                    // Load certificate from file
                     try
                     {
                         var ext = Path.GetExtension(spiffePath).ToLowerInvariant();
@@ -141,18 +138,15 @@ namespace Commander.PEDM
                         
                         if (ext == ".cer" || ext == ".der")
                         {
-                            // DER format
                             certBytes = File.ReadAllBytes(spiffePath);
                         }
                         else if (ext == ".pem")
                         {
-                            // PEM format
                             var cert = new X509Certificate2(spiffePath);
                             certBytes = cert.Export(X509ContentType.Cert);
                         }
                         else
                         {
-                            // Try PEM format as default
                             var cert = new X509Certificate2(spiffePath);
                             certBytes = cert.Export(X509ContentType.Cert);
                         }
@@ -167,7 +161,6 @@ namespace Commander.PEDM
                 }
                 else
                 {
-                    // Assume it's already base64url encoded
                     spiffeCertBase64 = options.SpiffeCert;
                 }
             }
@@ -183,7 +176,6 @@ namespace Commander.PEDM
                 updateDeployments: null,
                 removeDeployments: null);
 
-            // Check for errors in the response (similar to Python implementation)
             if (addStatus.AddErrors?.Count > 0)
             {
                 var error = addStatus.AddErrors[0];
@@ -238,12 +230,32 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task RemoveDeploymentAsync(string deploymentUid)
+        private async Task RemoveDeploymentAsync(PedmDeploymentOptions options)
         {
-            if (string.IsNullOrEmpty(deploymentUid))
+            if (string.IsNullOrEmpty(options.DeploymentUid))
             {
                 Console.WriteLine("Deployment UID is required for 'remove' command.");
                 return;
+            }
+
+            var deploymentUid = options.DeploymentUid;
+
+            var deployment = Plugin.Deployments.GetEntity(deploymentUid);
+            if (deployment == null)
+            {
+                Console.WriteLine($"Deployment \"{deploymentUid}\" does not exist");
+                return;
+            }
+
+            if (!options.Force)
+            {
+                Console.Write($"Do you want to delete 1 deployment(s)? [y/n]: ");
+                var answer = await Program.GetInputManager().ReadLine();
+                if (string.IsNullOrEmpty(answer) || 
+                    !answer.Trim().StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return;
+                }
             }
 
             var removeStatus = await Plugin.ModifyDeployments(
@@ -251,8 +263,14 @@ namespace Commander.PEDM
                 updateDeployments: null,
                 removeDeployments: new[] { deploymentUid });
 
-            Console.WriteLine($"Deployment '{deploymentUid}' removed.");
-            if (removeStatus.Add?.Count > 0 || removeStatus.Update?.Count > 0 || removeStatus.Remove?.Count > 0)
+            if (removeStatus.RemoveErrors?.Count > 0)
+            {
+                var error = removeStatus.RemoveErrors[0];
+                Console.WriteLine($"Failed to delete deployment \"{error.EntityUid}\": {error.Message}");
+                return;
+            }
+
+            if (removeStatus.Remove?.Count > 0 || removeStatus.Add?.Count > 0 || removeStatus.Update?.Count > 0)
             {
                 PrintModifyStatus(removeStatus);
             }
@@ -277,9 +295,6 @@ namespace Commander.PEDM
 
         [Option("spiffe-cert", Required = false, HelpText = "SPIFFE certificate file path (.cer, .der, .pem) or base64url encoded string")]
         public string SpiffeCert { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Do not prompt for confirmation; allow duplicate names")]
-        public bool Force { get; set; }
     }
 }
 

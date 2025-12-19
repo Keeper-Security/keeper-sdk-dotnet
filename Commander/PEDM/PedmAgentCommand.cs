@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Cli;
@@ -41,7 +42,7 @@ namespace Commander.PEDM
 
                 case "remove":
                 case "delete":
-                    await RemoveAgentAsync(options.AgentUid);
+                    await RemoveAgentAsync(options.AgentUid?.FirstOrDefault());
                     break;
 
                 default:
@@ -87,14 +88,15 @@ namespace Commander.PEDM
             }
         }
 
-        private void ViewAgent(string agentUid)
+        private void ViewAgent(IList<string> agentUids)
         {
-            if (string.IsNullOrEmpty(agentUid))
+            if (agentUids == null || agentUids.Count == 0)
             {
                 Console.WriteLine("Agent UID is required for 'view' command.");
                 return;
             }
 
+            var agentUid = agentUids[0];
             var agentView = Plugin.Agents.GetEntity(agentUid);
             if (agentView == null)
             {
@@ -115,25 +117,84 @@ namespace Commander.PEDM
 
         private async Task UpdateAgentAsync(PedmAgentOptions options)
         {
-            if (string.IsNullOrEmpty(options.AgentUid))
+            var agentUids = options.AgentUid?.Where(u => !string.IsNullOrEmpty(u)).ToList() ?? new List<string>();
+
+            if (agentUids.Count == 0)
             {
-                Console.WriteLine("Agent UID is required for 'update' command.");
+                Console.WriteLine("Agent UID(s) are required for 'update' command.");
                 return;
             }
 
-            var updateAgent = new UpdateAgent
+            string deploymentUid = null;
+            if (!string.IsNullOrEmpty(options.DeploymentUid))
             {
-                AgentUid = options.AgentUid,
-                DeploymentUid = options.DeploymentUid,
-                Disabled = ParseBoolOption(options.Disabled)
-            };
+                var deployment = Plugin.Deployments.GetEntity(options.DeploymentUid);
+                if (deployment == null)
+                {
+                    Console.WriteLine($"Deployment \"{options.DeploymentUid}\" does not exist");
+                    return;
+                }
+                deploymentUid = options.DeploymentUid;
+            }
+
+            bool? disabled = null;
+            if (!string.IsNullOrEmpty(options.Enable))
+            {
+                var enableLower = options.Enable.ToLowerInvariant();
+                if (enableLower == "on")
+                {
+                    disabled = false;
+                }
+                else if (enableLower == "off")
+                {
+                    disabled = true;
+                }
+                else
+                {
+                    Console.WriteLine($"\"enable\" argument must be \"on\" or \"off\"");
+                    return;
+                }
+            }
+
+            var updateAgents = new List<UpdateAgent>();
+            foreach (var agentUid in agentUids)
+            {
+                var agent = Plugin.Agents.GetEntity(agentUid);
+                if (agent == null)
+                {
+                    Console.WriteLine($"Agent \"{agentUid}\" does not exist");
+                    return;
+                }
+
+                updateAgents.Add(new UpdateAgent
+                {
+                    AgentUid = agent.AgentUid,
+                    DeploymentUid = deploymentUid,
+                    Disabled = disabled
+                });
+            }
+
+            if (updateAgents.Count == 0)
+            {
+                return;
+            }
 
             var updateStatus = await Plugin.ModifyAgents(
-                updateAgents: new[] { updateAgent },
+                updateAgents: updateAgents,
                 removeAgents: null);
 
-            Console.WriteLine($"Agent '{options.AgentUid}' updated.");
-            if (updateStatus.Add?.Count > 0 || updateStatus.Update?.Count > 0 || updateStatus.Remove?.Count > 0)
+            if (updateStatus.UpdateErrors?.Count > 0)
+            {
+                foreach (var error in updateStatus.UpdateErrors)
+                {
+                    if (!error.Success)
+                    {
+                        Console.WriteLine($"Failed to update agent \"{error.EntityUid}\": {error.Message}");
+                    }
+                }
+            }
+
+            if (updateStatus.Update?.Count > 0 || updateStatus.Add?.Count > 0 || updateStatus.Remove?.Count > 0)
             {
                 PrintModifyStatus(updateStatus);
             }
@@ -168,14 +229,14 @@ namespace Commander.PEDM
         [Value(0, Required = false, HelpText = "Command: list, view, update, remove")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "Agent UID (for view, update, remove)")]
-        public string AgentUid { get; set; }
+        [Value(1, Required = false, HelpText = "Agent UID(s) (for view, update, remove) - can specify multiple for update")]
+        public IList<string> AgentUid { get; set; }
 
         [Option("deployment", Required = false, HelpText = "Deployment UID (for update)")]
         public string DeploymentUid { get; set; }
 
-        [Option("disabled", Required = false, HelpText = "true/false: Disable agent (for update)")]
-        public string Disabled { get; set; }
+        [Option("enable", Required = false, HelpText = "Enable or disable agents: 'on' to enable, 'off' to disable (for update)")]
+        public string Enable { get; set; }
     }
 }
 

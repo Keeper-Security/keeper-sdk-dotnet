@@ -835,8 +835,7 @@ namespace KeeperSecurity.Plugins.PEDM
                         ["device_uid"] = _deviceUid
                     };
                     var agentDataJson = JsonUtils.DumpJson(agentDataDict, indent: false);
-                    var agentDataBytes = Encoding.UTF8.GetString(agentDataJson);
-                    var agentDataEncrypted = CryptoUtils.EncryptEc(Encoding.UTF8.GetBytes(agentDataBytes), ecPublicKey);
+                    var agentDataEncrypted = CryptoUtils.EncryptEc(agentDataJson, ecPublicKey);
                     aRq.AgentData = ByteString.CopyFrom(agentDataEncrypted);
 
                     mrq.AddDeployment.Add(aRq);
