@@ -27,7 +27,7 @@ namespace KeeperSecurity.Vault
 
             };
             var existingPermission = sharedFolder.UsersPermissions
-                .FirstOrDefault(x => x.UserType == UserType.User && (string.Equals(x.Name, userId, StringComparison.InvariantCultureIgnoreCase) || x.Uid == userId));
+                .FirstOrDefault(x => x.UserType == userType && (string.Equals(x.Name, userId, StringComparison.InvariantCultureIgnoreCase) || x.Uid == userId));
             if (userType == UserType.User)
             {
                 if (TryGetUsername(userId, out var u))

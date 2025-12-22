@@ -545,7 +545,14 @@ namespace Commander
                     Description = "Display teams",
                     Action = context.TeamListCommand
                 });
-
+            
+            cli.Commands.Add("apply-membership",
+                new ParseableCommand<ApplyMembershipCommandOptions>
+                {
+                    Order = 44,
+                    Description = "Load shared folder membership from JSON file into Keeper",
+                    Action = context.ApplyMembershipCommand
+                });
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)
