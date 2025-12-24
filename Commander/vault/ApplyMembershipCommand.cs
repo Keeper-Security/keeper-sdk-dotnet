@@ -3,6 +3,8 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,7 +49,8 @@ namespace Commander
             try
             {
                 var jsonBytes = File.ReadAllBytes(fileName);
-                importFile = JsonUtils.ParseJson<ImportFile>(jsonBytes);
+                var jsonDict = JsonUtils.ParseJson<Dictionary<string, object>>(jsonBytes);
+                importFile = KeeperImport.LoadJsonDictionary(jsonDict);
             }
             catch (Exception ex)
             {
