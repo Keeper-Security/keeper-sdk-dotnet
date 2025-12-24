@@ -38,6 +38,7 @@ namespace KeeperSecurity.Vault
         {
             var summary = new MembershipSummary();
             var teamLookup = BuildTeamLookup(await vault.GetTeamsForShare());
+            var bo = new BatchVaultOperations(vault);
 
             foreach (var sharedFolder in sharedFolders.Where(sf => sf.Permissions?.Length > 0))
             {
@@ -55,6 +56,11 @@ namespace KeeperSecurity.Vault
 
                 foreach (var permission in sharedFolder.Permissions)
                 {
+                    if (permission == null)
+                    {
+                        continue;
+                    }
+
                     var (userId, userType) = ResolveUserOrTeam(permission, teamLookup);
                     if (string.IsNullOrEmpty(userId))
                     {
@@ -68,15 +74,15 @@ namespace KeeperSecurity.Vault
                     var existing = FindExistingPermission(currentPermissions, userId, permission.Name);
                     if (existing?.Uid != null) processedIds.Add(existing.Uid);
 
-                    await ApplyPermission(vault, sharedFolderUid, userId, userType, 
+                    ApplyPermission(bo, sharedFolderUid, userId, userType, 
                         new SharedFolderUserOptions { ManageUsers = permission.ManageUsers, ManageRecords = permission.ManageRecords },
                         existing, permission, summary);
                 }
 
                 if (fullSync)
-                    await RemoveUnprocessedPermissions(vault, sharedFolderUid, currentPermissions, processedIds, summary);
+                    RemoveUnprocessedPermissions(bo, sharedFolderUid, currentPermissions, processedIds, summary);
             }
-
+            await bo.ApplyChanges();
             return summary;
         }
 
@@ -161,8 +167,8 @@ namespace KeeperSecurity.Vault
              : !string.IsNullOrEmpty(name) && currentPermissions.TryGetValue(name.ToLower(), out var byName) ? byName
              : null;
 
-        private static async Task ApplyPermission(
-            VaultOnline vault,
+        private static void ApplyPermission(
+            BatchVaultOperations bo,
             string sharedFolderUid,
             string userId,
             UserType userType,
@@ -179,7 +185,7 @@ namespace KeeperSecurity.Vault
             if (!needsChange)
                 return;
 
-            await vault.PutUserToSharedFolder(sharedFolderUid, userId, userType, options);
+            bo.PutUserToSharedFolder(sharedFolderUid, userId, userType, options);
             IncrementSummary(summary, userType, isUpdate);
         }
 
@@ -195,8 +201,8 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private static async Task RemoveUnprocessedPermissions(
-            VaultOnline vault,
+        private static void RemoveUnprocessedPermissions(
+            BatchVaultOperations bo,
             string sharedFolderUid,
             Dictionary<string, SharedFolderPermission> currentPermissions,
             HashSet<string> processedIds,
@@ -210,8 +216,8 @@ namespace KeeperSecurity.Vault
             foreach (var perm in uniquePerms)
             {
                 var removeId = perm.UserType == UserType.Team ? perm.Uid : perm.Name;
-                await vault.RemoveUserFromSharedFolder(sharedFolderUid, removeId, perm.UserType);
-                _ = perm.UserType == UserType.Team ? summary.TeamsRemoved++ : summary.UsersRemoved++;
+                bo.RemoveUserFromSharedFolder(sharedFolderUid, removeId, perm.UserType);
+                if (perm.UserType == UserType.Team) summary.TeamsRemoved++; else summary.UsersRemoved++;
             }
         }
 
