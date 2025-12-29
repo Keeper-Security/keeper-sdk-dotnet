@@ -40,8 +40,8 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
-                // var getRecords = new GetRecordsExample();
-                // await getRecords.GetRecordsWithName("Google");
+                var getRecords = new GetRecordsExample();
+                await getRecords.GetRecordsWithName("Google");
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(name: "AddEx2", type: "bankCard", folderUid: "<folderUid_if_any>");
