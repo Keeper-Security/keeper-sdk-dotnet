@@ -592,7 +592,7 @@ namespace KeeperSecurity.Enterprise
 
         public async Task ResendEnterpriseInvite(EnterpriseUser enterpriseUser)
         {
-            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
 
             if (enterpriseUser.UserStatus != UserStatus.Inactive)
             {
@@ -610,7 +610,7 @@ namespace KeeperSecurity.Enterprise
 
         public async Task SetMasterPasswordExpire(string email)
         {
-            ArgumentNullException.ThrowIfNull(nameof(email));
+            if (email == null) throw new ArgumentNullException(nameof(email));
 
             var rq = new SetMasterPasswordExpireCommand
             {
@@ -623,8 +623,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task TeamEnterpriseUserUpdate(EnterpriseTeam enterpriseTeam, EnterpriseUser enterpriseUser, int userType)
         {
-            ArgumentNullException.ThrowIfNull(nameof(enterpriseTeam));
-            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+            if (enterpriseTeam == null) throw new ArgumentNullException(nameof(enterpriseTeam));
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
             if (userType < 0 || userType > 2) throw new ArgumentException("User type must be 0, 1, or 2");
 
             var rq = new TeamEnterpriseUserUpdateCommand
@@ -640,7 +640,7 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<EnterpriseUser> EnterpriseUserUpdate(EnterpriseUser enterpriseUser, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
         {
-            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
 
             var rq = new EnterpriseUserUpdatecommand
             {

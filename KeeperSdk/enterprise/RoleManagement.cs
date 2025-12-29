@@ -310,8 +310,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task RoleManagedNodeUpdate(EnterpriseRole role, EnterpriseNode node, bool cascadeNodeManagement)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(node);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (node == null) throw new ArgumentNullException(nameof(node));
 
             var rq = new RoleManagedNodeUpdateCommand
             {
@@ -326,8 +326,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task RoleManagedNodeRemove(EnterpriseRole role, EnterpriseNode node)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(node);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (node == null) throw new ArgumentNullException(nameof(node));
 
             var rq = new RoleManagedNodeRemoveCommand
             {
@@ -340,9 +340,9 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<IList<KeeperApiResponse>> RoleManagedNodePrivilegeAddBatch(EnterpriseRole role, EnterpriseNode node, List<RoleManagedNodePrivilege> privileges)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(node);
-            ArgumentNullException.ThrowIfNull(privileges);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (node == null) throw new ArgumentNullException(nameof(node));
+            if (privileges == null) throw new ArgumentNullException(nameof(privileges));
 
             var commands = new List<KeeperApiCommand>();
 
@@ -420,9 +420,9 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<IList<KeeperApiResponse>> RoleManagedNodePrivilegeRemoveBatch(EnterpriseRole role, EnterpriseNode node, List<RoleManagedNodePrivilege> privileges)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(node);
-            ArgumentNullException.ThrowIfNull(privileges);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (node == null) throw new ArgumentNullException(nameof(node));
+            if (privileges == null) throw new ArgumentNullException(nameof(privileges));
 
             var commands = new List<KeeperApiCommand>();
             foreach (var privilege in privileges)
@@ -442,8 +442,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<IList<KeeperApiResponse>> RoleEnforcementAddBatch(EnterpriseRole role, IDictionary<RoleEnforcementPolicies, string> enforcements)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(enforcements);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (enforcements == null) throw new ArgumentNullException(nameof(enforcements));
 
             var commands = new List<KeeperApiCommand>();
 
@@ -487,8 +487,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<IList<KeeperApiResponse>> RoleEnforcementRemoveBatch(EnterpriseRole role, List<RoleEnforcementPolicies> enforcements)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(enforcements);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (enforcements == null) throw new ArgumentNullException(nameof(enforcements));
 
             var commands = new List<KeeperApiCommand>();
             foreach (var enforcement in enforcements)
@@ -507,8 +507,8 @@ namespace KeeperSecurity.Enterprise
 
         public async Task<IList<KeeperApiResponse>> RoleEnforcementUpdateBatch(EnterpriseRole role, IDictionary<RoleEnforcementPolicies, string> enforcements)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            ArgumentNullException.ThrowIfNull(enforcements);
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (enforcements == null) throw new ArgumentNullException(nameof(enforcements));
 
             var commands = new List<KeeperApiCommand>();
 
