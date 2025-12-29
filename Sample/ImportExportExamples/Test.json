@@ -1,0 +1,19 @@
+{
+    "records": [
+        {
+            "$type": "login",
+            "folders": [
+                {
+                    "can_edit": true,
+                    "can_share": true,
+                    "shared_folders": "test_share"
+                }
+            ],
+            "last_modified": 1761535028,
+            "login": "123412341234@xyasd.co",
+            "login_url": "https:\/\/123412341234",
+            "password": "ZR]x%~R>b}7pD7&|@His",
+            "title": "ts022"
+        }
+    ]
+}

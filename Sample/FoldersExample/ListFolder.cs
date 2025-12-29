@@ -11,6 +11,7 @@ namespace Sample.FoldersExample
         {
             var vault = await AuthenticateAndGetVault.GetVault();
             ListFolderSimple(vault);
+
         }
 
         public static void ListFolderSimple(VaultOnline vault)

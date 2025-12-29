@@ -1,0 +1,190 @@
+{
+    "record_types": [
+        {
+            "fields": [
+                {
+                    "$type": "login",
+                    "label": "Login",
+                    "required": true
+                },
+                {
+                    "$type": "host",
+                    "label": "Hostname or IP Address",
+                    "required": true
+                },
+                {
+                    "$type": "bankAccount",
+                    "label": "Bank Account",
+                    "required": false
+                },
+                {
+                    "$type": "secret",
+                    "label": "Hidden Field",
+                    "required": true
+                },
+                {
+                    "$type": "fileRef",
+                    "label": "File or Photo",
+                    "required": false
+                },
+                {
+                    "$type": "otp",
+                    "label": "Two-Factor Code",
+                    "required": false
+                },
+                {
+                    "$type": "passkey",
+                    "label": "Passkey",
+                    "required": false
+                },
+                {
+                    "$type": "url",
+                    "label": "URL",
+                    "required": false
+                },
+                {
+                    "$type": "password",
+                    "label": "Password",
+                    "required": false
+                },
+                {
+                    "$type": "securityQuestion",
+                    "label": "Security Question & Answer",
+                    "required": false
+                },
+                {
+                    "$type": "multiline",
+                    "label": "Multi-line Text",
+                    "required": false
+                },
+                {
+                    "$type": "secret",
+                    "label": "Hidden Field",
+                    "required": false
+                },
+                {
+                    "$type": "date",
+                    "label": "Date",
+                    "required": false
+                },
+                {
+                    "$type": "cardRef",
+                    "label": "Payment Card",
+                    "required": false
+                },
+                {
+                    "$type": "pinCode",
+                    "label": "Pin Code",
+                    "required": false
+                },
+                {
+                    "$type": "name",
+                    "label": "Name",
+                    "required": false
+                },
+                {
+                    "$type": "email",
+                    "label": "Email",
+                    "required": false
+                },
+                {
+                    "$type": "addressRef",
+                    "label": "Address",
+                    "required": false
+                },
+                {
+                    "$type": "phone",
+                    "label": "Phone Number",
+                    "required": false
+                },
+                {
+                    "$type": "appFiller",
+                    "label": "Native App Filler",
+                    "required": false
+                }
+            ],
+            "record_type_name": "custom_credential_test"
+        },
+        {
+            "description": "",
+            "fields": [
+                {
+                    "$type": "passkey",
+                    "label": "Passkey",
+                    "required": false
+                },
+                {
+                    "$type": "login",
+                    "label": "Login",
+                    "required": false
+                },
+                {
+                    "$type": "password",
+                    "label": "Password",
+                    "required": false
+                },
+                {
+                    "$type": "url",
+                    "label": "Website Address",
+                    "required": false
+                },
+                {
+                    "$type": "fileRef",
+                    "label": "Attachments",
+                    "required": false
+                },
+                {
+                    "$type": "oneTimeCode",
+                    "label": "Two-Factor Code",
+                    "required": false
+                },
+                {
+                    "$type": "name",
+                    "label": "Nam\/qwe\/rty\/uio\/e",
+                    "required": false
+                }
+            ],
+            "record_type_name": "abcdef"
+        },
+        {
+            "fields": [
+                {
+                    "$type": "passkey",
+                    "label": "Passkey",
+                    "required": false
+                },
+                {
+                    "$type": "login",
+                    "label": "Login",
+                    "required": false
+                },
+                {
+                    "$type": "password",
+                    "label": "Password",
+                    "required": false
+                },
+                {
+                    "$type": "url",
+                    "label": "Website Address",
+                    "required": false
+                },
+                {
+                    "$type": "fileRef",
+                    "label": "Attachments",
+                    "required": false
+                },
+                {
+                    "$type": "oneTimeCode",
+                    "label": "Two-Factor Code",
+                    "required": false
+                },
+                {
+                    "$type": "name",
+                    "label": "Nam\/qwe\/rty\/uio\/e",
+                    "required": false
+                }
+            ],
+            "record_type_name": "ab"
+        }
+    ]
+}

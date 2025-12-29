@@ -342,7 +342,7 @@ namespace Cli
                             {
                                 if (e is AggregateException ae)
                                 {
-                                    e = ae.InnerException;
+                                    e = ae.InnerException ?? ae;
                                 }
                                 Console.WriteLine($"Error \"{e.GetType().Name}\": {e.Message}");
                             }

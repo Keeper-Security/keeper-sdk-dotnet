@@ -46,6 +46,7 @@ namespace Sample.RecordsExamples
                 return;
             }
 
+            // Find folder (including root folder)
             var folders = Enumerable.Repeat(vault.RootFolder, 1)
                 .Concat(vault.Folders)
                 .Where(f => f.Records.Contains(recordUid))
@@ -53,6 +54,7 @@ namespace Sample.RecordsExamples
 
             if (folders.Length == 0)
             {
+                // Fallback to root folder if not found anywhere
                 folders = new[] { vault.RootFolder };
             }
 

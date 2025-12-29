@@ -11,59 +11,76 @@ namespace Sample.RecordsExamples
         public async Task GetRecordDetails(string recordUid)
         {
             var vault = await AuthenticateAndGetVault.GetVault();
-            var requiredRecord = GetRecordFromVaultWithUid(vault, recordUid);
+            var found = vault.TryGetKeeperRecord(recordUid, out var record);
 
-            if (requiredRecord != null)
-            {
-                Console.WriteLine($"Record found: {requiredRecord.Uid}");
-                PrintRecordDetails(requiredRecord);
-            }
-            else
+            if (!found || record == null)
             {
                 Console.WriteLine("Record not found.");
+                return;
             }
-        }
 
-        private KeeperRecord GetRecordFromVaultWithUid(VaultOnline vault, string recordUid)
-        {
-            var cleanedUid = recordUid.Trim();
-            return vault.KeeperRecords
-                .Where(x => x.Version == 2 || x.Version == 3)
-                .FirstOrDefault(x => string.Equals(
-                    x.Uid, cleanedUid, StringComparison.InvariantCultureIgnoreCase));
-        }
+            Console.WriteLine("======== Record Details ========");
+            
 
-        private static void PrintRecordDetails(KeeperRecord record)
-        {
-            Console.WriteLine("---- Record Details ----");
+            Console.WriteLine($"UID:             {record.Uid}");
+            Console.WriteLine($"Title:           {record.Title}");
+            Console.WriteLine($"Version:         {record.Version}");
+            Console.WriteLine($"Revision:        {record.Revision}");
+            Console.WriteLine($"ClientModified:  {record.ClientModified}");
+            Console.WriteLine($"Owner:           {record.Owner}");
+            Console.WriteLine($"Shared:          {record.Shared}");
+            Console.WriteLine($"RecordKey:       {(record.RecordKey != null ? Convert.ToBase64String(record.RecordKey) : "N/A")}");
 
-            var props = record.GetType().GetProperties();
-            foreach (var prop in props)
+            Console.WriteLine($"Login:           {record.ExtractLogin() ?? "N/A"}");
+            Console.WriteLine($"Password:        {record.ExtractPassword() ?? "N/A"}");
+            Console.WriteLine($"URL:             {record.ExtractUrl() ?? "N/A"}");
+
+            
+            switch (record)
             {
-                var value = prop.GetValue(record);
-
-                if (value is System.Collections.IEnumerable list && !(value is string))
-                {
-
-                    if (prop.Name == "Fields")
+                case PasswordRecord pr:
+                    Console.WriteLine("\n-- Password Record Specific --");
+                    Console.WriteLine($"Notes:           {pr.Notes}");
+                    Console.WriteLine($"Link:            {pr.Link}");
+                    Console.WriteLine($"Totp:            {pr.Totp}");
+                    if (pr.Custom?.Any() == true)
                     {
-                        continue;
+                        Console.WriteLine("Custom Fields:");
+                        foreach (var field in pr.Custom)
+                        {
+                            Console.WriteLine($"  {field.Name}: {field.Value}");
+                        }
                     }
-                    Console.WriteLine($"{prop.Name}:");
-                    foreach (var item in list)
+                    if (pr.Attachments?.Any() == true)
                     {
-                        Console.WriteLine($"  - {item}");
+                        Console.WriteLine($"Attachments:     {pr.Attachments.Count} file(s)");
                     }
-                }
-                else
-                {
-                    Console.WriteLine($"{prop.Name}: {value}");
-                }
+                    break;
+
+                case TypedRecord tr:
+                    Console.WriteLine("\n-- Typed Record Specific --");
+                    Console.WriteLine($"TypeName:        {tr.TypeName}");
+                    Console.WriteLine($"Notes:           {tr.Notes}");
+                    if (tr.Fields?.Any() == true)
+                    {
+                        Console.WriteLine("Fields:");
+                        foreach (var field in tr.Fields)
+                        {
+                            Console.WriteLine($"  [{field.FieldName}] {field.FieldLabel}");
+                        }
+                    }
+                    if (tr.Custom?.Any() == true)
+                    {
+                        Console.WriteLine("Custom Fields:");
+                        foreach (var field in tr.Custom)
+                        {
+                            Console.WriteLine($"  [{field.FieldName}] {field.FieldLabel}");
+                        }
+                    }
+                    break;
             }
 
-            Console.WriteLine("------------------------");
+            Console.WriteLine("================================");
         }
-
-
     }
 }

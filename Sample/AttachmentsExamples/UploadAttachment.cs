@@ -77,7 +77,7 @@ namespace Sample.AttachmentsExamples
                 catch {/*Mime is calculated from the extension*/}
 
                 Stream = File.Open(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                
+
                 // Set thumbnail size (20x20 pixels)
                 // Note: In a production app, you might want to read actual image dimensions
                 // using a cross-platform image library like SixLabors.ImageSharp

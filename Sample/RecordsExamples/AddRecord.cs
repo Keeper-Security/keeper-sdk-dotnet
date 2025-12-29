@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 
 
+
 namespace Sample.RecordsExamples
 {
     class AddRecordExample
@@ -66,6 +67,11 @@ namespace Sample.RecordsExamples
             else
             {
                 var rt1 = vault.RecordTypes.FirstOrDefault(x => x.Name.Equals(recordType, StringComparison.OrdinalIgnoreCase));
+
+                // foreach (var rt in vault.RecordTypes)
+                // {
+                //     Console.WriteLine(rt.Name);
+                // }
 
                 if (rt1 == null)
                 {

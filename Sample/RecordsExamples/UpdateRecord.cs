@@ -20,8 +20,9 @@ namespace Sample.RecordsExamples
                 newTitle,
                 newRecordType
             );
+
+
         }
-        
         private static async Task UpdateRecordSimple(
             VaultOnline vault,
             string recordUid,

@@ -238,7 +238,7 @@ namespace Commander
 
             if (rev.KeeperRecord.ClientModified != DateTimeOffset.MinValue)
             {
-                var modifiedTime = rev.KeeperRecord.ClientModified.ToOffset(TimeSpan.FromHours(5.5));
+                var modifiedTime = rev.KeeperRecord.ClientModified.ToLocalTime();
                 WriteField("Modified", modifiedTime.ToString("yyyy-MM-dd HH:mm:ss"));
             }
             

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using KeeperSecurity.Commands;
 using KeeperSecurity.Vault;
 
 namespace Sample.SharedFolderExamples
@@ -12,7 +11,7 @@ namespace Sample.SharedFolderExamples
             IRecordShareOptions permissionsOptions)
         {
             var vault = await AuthenticateAndGetVault.GetVault();
-            var result = await SharedFolderPermissions.ManageSharedFolderPermissions(
+            var result = await ManageSharedFolderPermissionsSimple(
                 vault,
                 sharedFolderUid,
                 recordUid,
@@ -26,7 +25,7 @@ namespace Sample.SharedFolderExamples
                 Console.WriteLine("Failed to update permissions.");
             }
         }
-        public static async Task<bool> ManageSharedFolderPermissions(
+        public static async Task<bool> ManageSharedFolderPermissionsSimple(
             VaultOnline vault,
             string sharedFolderUid,
             string recordUid,
@@ -35,12 +34,12 @@ namespace Sample.SharedFolderExamples
             try
             {
                 await vault.ChangeRecordInSharedFolder(sharedFolderUid, recordUid, permissionsOptions);
-                return true;
+                return true;   // success
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                return false;
+                return false;  // failure
             }
         }
 

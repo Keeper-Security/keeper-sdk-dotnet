@@ -23,6 +23,7 @@ namespace Sample
     /// <summary>
     /// Basic authentication example demonstrating:
     /// - Master password authentication
+    /// - Two-factor authentication
     /// - Device approval
     /// - Vault synchronization
     /// </summary>
@@ -64,14 +65,11 @@ namespace Sample
                 username = configuration.LastLogin;
             }
 
-            // Use SimpleInputManager from CLI package for handling console input
             var inputManager = new SimpleInputManager();
 
-            // Login to Keeper using AuthSync
             var authFlow = new AuthSync(configurationStorage);
             await Utils.LoginToKeeper(authFlow, inputManager, username);
 
-            // Check for authentication errors
             if (authFlow.Step is ErrorStep es)
             {
                 Console.WriteLine($"Authentication error: {es.Message}");
@@ -86,7 +84,6 @@ namespace Sample
 
             await authFlow.SetSessionParameter("persistent_login", "1");
 
-            // Sync vault
             var vault = new VaultOnline(authFlow);
             await vault.SyncDown();
             return vault;
