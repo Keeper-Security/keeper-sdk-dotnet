@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked) 
+        public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked)
         {
             var userId = user.Id;
             var rq = new EnterpriseUserLockCommand
@@ -67,7 +68,7 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task DeleteUser(EnterpriseUser user) 
+        public async Task DeleteUser(EnterpriseUser user)
         {
             var rq = new EnterpriseUserDeleteCommand
             {
@@ -315,7 +316,6 @@ namespace KeeperSecurity.Enterprise
                         {
                             key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
                         }
-
                         break;
                     case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
                         key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
@@ -325,7 +325,6 @@ namespace KeeperSecurity.Enterprise
                         {
                             key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
                         }
-
                         break;
                 }
 
@@ -385,7 +384,6 @@ namespace KeeperSecurity.Enterprise
         public async Task<EnterpriseTeam> UpdateTeam(EnterpriseTeam team)
         {
             if (string.IsNullOrEmpty(team.Uid)) return await CreateTeam(team);
-
             if (!TryGetTeam(team.Uid, out _)) throw new EnterpriseException($"Team UID {team.Uid} not found in enterprise");
 
             var rq = new TeamUpdateCommand
@@ -469,8 +467,6 @@ namespace KeeperSecurity.Enterprise
                 warnings?.Invoke("No teams to add");
                 return;
             }
-
-
             await Enterprise.Auth.LoadUsersKeys(userEmails);
 
             var commands = new List<KeeperApiCommand>();
@@ -560,7 +556,8 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var email in emails)
                 {
-                    if (!TryGetUserByEmail(email, out var user)) {
+                    if (!TryGetUserByEmail(email, out var user))
+                    {
                         warnings?.Invoke($"User \'{email}\' not found");
                         continue;
                     }
@@ -591,6 +588,87 @@ namespace KeeperSecurity.Enterprise
 
                 await Enterprise.Load();
             }
+        }
+
+        public async Task ResendEnterpriseInvite(EnterpriseUser enterpriseUser)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+
+            if (enterpriseUser.UserStatus != UserStatus.Inactive)
+            {
+                throw new KeeperApiException("user_accepted_invitation", "User has already accepted invitation.");
+            }
+
+            var rq = new ResendEnterpriseInviteCommand
+            {
+                EnterpriseUserId = enterpriseUser.Id
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task SetMasterPasswordExpire(string email)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(email));
+
+            var rq = new SetMasterPasswordExpireCommand
+            {
+                Email = email
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task TeamEnterpriseUserUpdate(EnterpriseTeam enterpriseTeam, EnterpriseUser enterpriseUser, int userType)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(enterpriseTeam));
+            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+            if (userType < 0 || userType > 2) throw new ArgumentException("User type must be 0, 1, or 2");
+
+            var rq = new TeamEnterpriseUserUpdateCommand
+            {
+                TeamUid = enterpriseTeam.Uid,
+                EnterpriseUserId = enterpriseUser.Id,
+                UserType = userType
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task<EnterpriseUser> EnterpriseUserUpdate(EnterpriseUser enterpriseUser, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(enterpriseUser));
+
+            var rq = new EnterpriseUserUpdatecommand
+            {
+                EnterpriseUserId = enterpriseUser.Id,
+                EnterpriseUserUsername = enterpriseUser.Email,
+                NodeId = nodeId ?? enterpriseUser.ParentNodeId
+            };
+
+            EncryptedData encrypted = new EncryptedData();
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                encrypted.DisplayName = fullName;
+            }
+            else if (!string.IsNullOrEmpty(enterpriseUser.DisplayName))
+            {
+                encrypted.DisplayName = enterpriseUser.DisplayName;
+            }
+
+            if (!string.IsNullOrEmpty(jobTitle))
+            {
+                rq.JobTitle = jobTitle;
+            }
+
+            rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+            TryGetUserById(enterpriseUser.Id, out var user);
+            return user;
         }
     }
 }
