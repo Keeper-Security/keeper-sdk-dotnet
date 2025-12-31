@@ -16,8 +16,7 @@ namespace Sample.ImportExportExamples
             await KeeperMembershipDownload.MergeMembershipToFile(
                 vault,
                 filename,
-                options,
-                logger
+                options
             );
         }
     }

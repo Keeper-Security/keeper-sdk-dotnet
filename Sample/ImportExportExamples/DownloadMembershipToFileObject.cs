@@ -15,8 +15,7 @@ namespace Sample.ImportExportExamples
             var vault = await AuthenticateAndGetVault.GetVault();
             var exportFile = await KeeperMembershipDownload.DownloadMembership(
                 vault,
-                options,
-                logger);
+                options);
             Console.WriteLine($"Export file object: {exportFile}");
         }
 
