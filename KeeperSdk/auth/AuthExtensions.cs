@@ -81,8 +81,6 @@ namespace KeeperSecurity.Authentication
                         responses.RemoveAt(responses.Count - 1);
                         pos -= 1;
                         delayInSec = 10;
-                    }else{
-                        responses.Add(lastStatus);
                     }
                 }
                 else
