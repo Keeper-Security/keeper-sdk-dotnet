@@ -8,8 +8,7 @@ namespace Sample.ImportExportExamples
     {
         public static async Task MergeDownloadMembershipFile(
             string filename,
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
 
         {
             var vault = await AuthenticateAndGetVault.GetVault();

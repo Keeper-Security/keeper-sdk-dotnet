@@ -7,8 +7,7 @@ namespace Sample.ImportExportExamples
     public static class DownloadMembershipToJsonExample
     {
         public static async Task DownloadToJson(
-            DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+            DownloadMembershipOptions options = null)
 
         {
             var vault = await AuthenticateAndGetVault.GetVault();

@@ -8,8 +8,7 @@ namespace Sample.ImportExportExamples
     public static class DownloadMembershipToFileObjectExample
     {
         public static async Task DownloadMembershipToFileObject(
-           DownloadMembershipOptions options = null,
-            Action<Severity, string> logger = null)
+           DownloadMembershipOptions options = null)
 
         {
             var vault = await AuthenticateAndGetVault.GetVault();
