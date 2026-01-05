@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace KeeperSecurity.Commands
 {
@@ -720,5 +721,138 @@ namespace KeeperSecurity.Commands
     {
         [DataMember(Name = "account_share_expiration")]
         public long AccountShareExpiration { get; set; }
+    }
+
+    [DataContract]
+    public class SetEnterpriseCustomEmailCommand : AuthenticatedCommand
+    {
+        public SetEnterpriseCustomEmailCommand(string command) : base(command)
+        {
+        }
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+    }
+
+    [DataContract]
+    public class SetEnterpriseCustomInvitationCommand : SetEnterpriseCustomEmailCommand
+    {
+        public SetEnterpriseCustomInvitationCommand() : base("set_enterprise_custom_invitation")
+        {
+        }
+        [DataMember(Name = "subject")]
+        public string Subject { get; set; }
+
+        [DataMember(Name = "header")]
+        public string Header { get; set; }
+
+        [DataMember(Name = "body")]
+        public string Body { get; set; }
+
+        [DataMember(Name = "button_label")]
+        public string ButtonLabel { get; set; }
+    }
+
+    [DataContract]
+    public class GetEnterpriseCustomInvitationCommand : SetEnterpriseCustomEmailCommand
+    {
+        public GetEnterpriseCustomInvitationCommand() : base("get_enterprise_custom_invitation")
+        {
+        }
+    }
+
+    [DataContract]
+    public class GetEnterpriseCustomInvitationResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "subject")]
+        public string Subject { get; set; }
+
+        [DataMember(Name = "header")]
+        public string Header { get; set; }
+
+        [DataMember(Name = "body")]
+        public string Body { get; set; }
+
+        [DataMember(Name = "button_label")]
+        public string ButtonLabel { get; set; }
+
+        [DataMember(Name = "logo_path", EmitDefaultValue = false)]
+        public string LogoPath { get; set; }
+    }
+
+    [DataContract]
+    public class SetEnterpriseCustomLogoCommand : AuthenticatedCommand
+    {
+        public SetEnterpriseCustomLogoCommand(string logoType) : base($"request_{logoType}_logo_upload")
+        {
+        }
+
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+    }
+
+    [DataContract]
+    public class SetEnterpriseCustomLogoResponse : KeeperApiResponse
+    {
+
+        [DataMember(Name = "parameters")]
+        public IDictionary<string, string> Parameters { get; set; }
+
+        [DataMember(Name = "file_parameter")]
+        public string FileParameter { get; set; }
+
+        [DataMember(Name = "upload_id")]
+        public long UploadId { get; set; }
+
+        [DataMember(Name = "success_status_code")]
+        public int SuccessStatusCode { get; set; }
+
+        [DataMember(Name = "url")]
+        public string Url { get; set; }
+
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "max_file_size")]
+        public long MaxFileSize { get; set; }
+    }
+
+    [DataContract]
+    public class CheckEnterpriseCustomLogoUploadCommand : AuthenticatedCommand
+    {
+        public CheckEnterpriseCustomLogoUploadCommand(string logoType) : base($"check_{logoType}_logo_upload")
+        {
+        }
+
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "upload_id")]
+        public long UploadId { get; set; }
+    }
+
+    [DataContract]
+    public class CheckEnterpriseCustomLogoUploadResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "logo_path")]
+        public string LogoPath { get; set; }
+
+        [DataMember(Name = "status")]
+        public string Status { get; set; }
+    }
+
+    [DataContract]
+    public class CustomInvitationTemplate
+    {
+        [DataMember(Name = "subject")]
+        public string Subject { get; set; }
+
+        [DataMember(Name = "header")]
+        public string Header { get; set; }
+
+        [DataMember(Name = "body")]
+        public string Body { get; set; }
+
+        [DataMember(Name = "buttonLabel")]
+        public string ButtonLabel { get; set; }
     }
 }
