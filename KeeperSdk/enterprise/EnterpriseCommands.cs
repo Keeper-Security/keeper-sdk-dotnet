@@ -721,4 +721,68 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "account_share_expiration")]
         public long AccountShareExpiration { get; set; }
     }
+
+    [DataContract]
+    public class ResendEnterpriseInviteCommand : AuthenticatedCommand
+    {
+        public ResendEnterpriseInviteCommand() : base("resend_enterprise_invite")
+        {
+        }
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+    }
+
+    [DataContract]
+    public class SetMasterPasswordExpireCommand : AuthenticatedCommand
+    {
+        public SetMasterPasswordExpireCommand() : base("set_master_password_expire")
+        {
+        }
+        [DataMember(Name = "email")]
+        public string Email { get; set; }
+    }
+
+    [DataContract]
+    public class TeamEnterpriseUserUpdateCommand : AuthenticatedCommand
+    {
+        public TeamEnterpriseUserUpdateCommand() : base("team_enterprise_user_update")
+        {
+        }
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+
+        [DataMember(Name = "user_type")]
+        public int UserType { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUserUpdatecommand : EnterpriseUserCommand
+    {
+        public EnterpriseUserUpdatecommand() : base("enterprise_user_update")
+        {
+        }
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "encrypted_data", EmitDefaultValue = false)]
+        public string EncryptedData { get; set; }
+
+        [DataMember(Name = "key_type", EmitDefaultValue = false)]
+        public string KeyType { get; set; }
+
+        [DataMember(Name = "enterprise_user_username")]
+        public string EnterpriseUserUsername { get; set; }
+
+        [DataMember(Name = "full_name", EmitDefaultValue = false)]
+        public string FullName { get; set; }
+
+        [DataMember(Name = "job_title", EmitDefaultValue = false)]
+        public string JobTitle { get; set; }
+
+        [DataMember(Name = "invitee_locale", EmitDefaultValue = false)]
+        public string InviteeLocale { get; set; }
+    }
 }
