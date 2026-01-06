@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
-    public static class RoleManagedNodeRemove
+    public static class RoleManagedNodeRemoveExample
     {
        public static async Task RoleManagedNodeRemove(string roleName, long nodeId)
         {

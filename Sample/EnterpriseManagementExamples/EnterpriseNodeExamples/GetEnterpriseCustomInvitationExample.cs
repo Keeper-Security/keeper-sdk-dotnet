@@ -8,7 +8,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class GetEnterpriseCustomInvitationExample
     {
-        public static async Task GetEnterpriseCustomInvitationExample(long nodeId)
+        public static async Task GetEnterpriseCustomInvitation(long nodeId)
         {
             try
             {

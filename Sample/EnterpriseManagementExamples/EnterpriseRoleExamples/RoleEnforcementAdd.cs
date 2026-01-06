@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
-    public static class RoleEnforcementAdd
+    public static class RoleEnforcementAddExample
     {
         public static async Task RoleEnforcementAdd(string roleName, IDictionary<RoleEnforcementPolicies, string> enforcements)
         {

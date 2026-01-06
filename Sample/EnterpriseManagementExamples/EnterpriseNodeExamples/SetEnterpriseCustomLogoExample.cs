@@ -8,7 +8,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class SetEnterpriseCustomLogoExample
     {
-        public static async Task SetEnterpriseCustomLogoExample(long nodeId, string logoType, string filePath)
+        public static async Task SetEnterpriseCustomLogo(long nodeId, string logoType, string filePath)
         {
             try
             {   

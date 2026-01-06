@@ -7,7 +7,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class SetMasterPasswordExpireExample
     {
-        public static async Task SetMasterPasswordExpireExample(string email)
+        public static async Task SetMasterPasswordExpire(string email)
         {
             try
             {

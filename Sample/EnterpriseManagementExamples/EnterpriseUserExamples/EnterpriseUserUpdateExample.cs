@@ -7,7 +7,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class EnterpriseUserUpdateExample
     {
-        public static async Task EnterpriseUserUpdateExample(string email, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
+        public static async Task EnterpriseUserUpdate(string email, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
         {
             try
             {

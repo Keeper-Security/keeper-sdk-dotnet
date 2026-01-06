@@ -7,7 +7,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class ResendEnterpriseInviteExample
     {
-        public static async Task ResendEnterpriseInviteExample(string email)
+        public static async Task ResendEnterpriseInvite(string email)
         {
             try
             {

@@ -7,7 +7,7 @@ using Cli;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
-    public static class RoleEnforcementUpdate
+    public static class RoleEnforcementUpdateExample
     {
         public static async Task RoleEnforcementUpdate(string roleName, IDictionary<RoleEnforcementPolicies, string> enforcements)
         {

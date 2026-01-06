@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
-    public static class RoleManagedNodePrivilegeAdd
+    public static class RoleManagedNodePrivilegeAddExample
     {
 public static async Task RoleManagedNodePrivilegeAdd(string roleName, long nodeId, List<RoleManagedNodePrivilege> privileges)
         {
