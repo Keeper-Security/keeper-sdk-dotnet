@@ -326,8 +326,10 @@ namespace Commander
                             return;
                         }
                         
-                        await enterpriseData.UploadEnterpriseCustomLogo(node.Id, arguments.LogoType, arguments.LogoPath);
+                        var logoResponse = await enterpriseData.UploadEnterpriseCustomLogo(node.Id, arguments.LogoType, arguments.LogoPath);
                         Console.WriteLine($"Custom logo uploaded for node \"{node.DisplayName}\"");
+                        Console.WriteLine($"Logo status: {logoResponse.Status}");
+                        Console.WriteLine($"Logo path: {logoResponse.LogoPath}");
                         break;
 
                     default:
