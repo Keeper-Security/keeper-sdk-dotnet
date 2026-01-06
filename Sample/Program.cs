@@ -551,19 +551,19 @@ namespace Sample
 
                 // // Enterprise Role Managed Node Management Example
                 // // Add Managed Node to Role Example
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeAdd.RoleManagedNodeAdd(roleName: "Test1", nodeId: 70411693850884, cascadeNodeManagement: true);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeAddExample.RoleManagedNodeAdd(roleName: "Test1", nodeId: 70411693850884, cascadeNodeManagement: true);
 
                 // // Update Managed Node to Role Example
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeUpdate.RoleManagedNodeUpdate(roleName: "Test1", nodeId: 70411693850884, cascadeNodeManagement: true);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeUpdateExample.RoleManagedNodeUpdate(roleName: "Test1", nodeId: 70411693850884, cascadeNodeManagement: true);
 
                 // Remove Managed Node from Role Example
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeRemove.RoleManagedNodeRemove(roleName: "Test1", nodeId: 70411693850884);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeRemoveExample.RoleManagedNodeRemove(roleName: "Test1", nodeId: 70411693850884);
 
                 // Add Privilege to Managed Node Example
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeAdd.RoleManagedNodePrivilegeAdd(roleName: "Test1", nodeId: 70411693850884, privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeAddExample.RoleManagedNodePrivilegeAdd(roleName: "Test1", nodeId: 70411693850884, privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
 
                 // Remove Privilege from Managed Node Example
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeRemove.RoleManagedNodePrivilegeRemove(roleName: "Test1", nodeId: 70411693850884, privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeRemoveExample.RoleManagedNodePrivilegeRemove(roleName: "Test1", nodeId: 70411693850884, privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
 
                 // Add Enforcement to Role Example
                 // JSON value for TWO_FACTOR_BY_IP - IPs in this range don't require 2FA
@@ -580,7 +580,7 @@ namespace Sample
                 //     { RoleEnforcementPolicies.LOGOUT_TIMER_DESKTOP, "100"},
                 //     { RoleEnforcementPolicies.RESTRICT_IMPORT, "true"},
                 // };
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementAdd.RoleEnforcementAdd(roleName: "Test1", enforcements: enforcements);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementAddExample.RoleEnforcementAdd(roleName: "Test1", enforcements: enforcements);
 
                 // Remove Enforcement to Role Example
                 // var enforcements = new List<RoleEnforcementPolicies> {
@@ -596,7 +596,7 @@ namespace Sample
                 //     { RoleEnforcementPolicies.LOGOUT_TIMER_DESKTOP},
                 //     { RoleEnforcementPolicies.RESTRICT_IMPORT},
                 // };
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementRemove.RoleEnforcementRemove(roleName: "Test1", enforcement: enforcements);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementRemoveExample.RoleEnforcementRemove(roleName: "Test1", enforcement: enforcements);
 
                 // Update Enforcement to Role Example  ---- Dont Update Boolean Values you will get an error
 
@@ -606,28 +606,28 @@ namespace Sample
                 //     { RoleEnforcementPolicies.RESTRICT_IP_ADDRESSES, "1.1.1.1-2.1.1.1" },
                 //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LENGTH, "15"}
                 // };
-                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementUpdate.RoleEnforcementUpdate(roleName: "Test1", enforcements: enforcements);
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementUpdateExample.RoleEnforcementUpdate(roleName: "Test1", enforcements: enforcements);
 
                 // Resend Enterprise Invite Example
-                // await EnterpriseManagementExamples.EnterpriseUserExamples.ResendEnterpriseInviteExample.ResendEnterpriseInviteExample("tohela1765@icousd.com");
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.ResendEnterpriseInviteExample.ResendEnterpriseInvite("tohela1765@icousd.com");
 
                 // Set Master Password Expire Example
-                // await EnterpriseManagementExamples.EnterpriseUserExamples.SetMasterPasswordExpireExample.SetMasterPasswordExpireExample("nelelex252@hudisk.com");
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.SetMasterPasswordExpireExample.SetMasterPasswordExpire("nelelex252@hudisk.com");
 
                 // Update Enterprise Team User Example
-                // await EnterpriseManagementExamples.EnterpriseUserExamples.TeamEnterpriseUserUpdateExample.TeamEnterpriseUserUpdateExample("jTiPyIP4NmPiyAVv2oKFpw", "nebilem641@nctime.com", 0);
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.TeamEnterpriseUserUpdateExample.TeamEnterpriseUserUpdate("jTiPyIP4NmPiyAVv2oKFpw", "nebilem641@nctime.com", 0);
 
                 // Update Enterprise User Example
-                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserUpdateExample.EnterpriseUserUpdateExample("nebilem641@nctime.com", 70411693850884, "TestUser1", "Test Engineer", "en-US");
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserUpdateExample.EnterpriseUserUpdate("nebilem641@nctime.com", 70411693850884, "TestUser1", "Test Engineer", "en-US");
 
                 // Set Enterprise Custom Invitation Example
-                // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomInvitationExample.SetEnterpriseCustomInvitationExample(70411693850884, "Test Subject TS1", "Test Header TH1", "Test Body TB1", "Test Button Label TBL1");
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomInvitationExample.SetEnterpriseCustomInvitation(70411693850884, "<Path_to_jsonFile>");
 
                 // Get Enterprise Custom Invitation Example
-                // await EnterpriseManagementExamples.EnterpriseNodeExamples.NodeExamples.GetEnterpriseCustomInvitationExample(70411693850884);
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.GetEnterpriseCustomInvitationExample.GetEnterpriseCustomInvitation(70411693850884);
 
                 // Set Enterprise Custom Logo Example
-                // await EnterpriseManagementExamples.EnterpriseNodeExamples.NodeExamples.SetEnterpriseCustomLogoExample(70411693850884, "email", "C:\\Users\\AnanthReddyMandli\\Downloads\\download.jpg");
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomLogoExample.SetEnterpriseCustomLogo(70411693850884, "email", "C:\\Users\\AnanthReddyMandli\\Downloads\\download.jpg");
 
             }
             catch (Exception ex)
