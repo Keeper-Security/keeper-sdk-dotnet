@@ -382,6 +382,26 @@ namespace Commander
                 return;
             }
 
+            if (arguments.Command == "resend-invite")
+            {
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if (user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+                try {
+                    await context.EnterpriseData.ResendEnterpriseInvite(user);
+                    Console.WriteLine($"Invite for {arguments.User} resent.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to resend invite: {ex.Message}");
+                    return;
+                }
+            }
+
             KeeperSecurity.Enterprise.EnterpriseUser singleUser = null;
             if (arguments.User.All(x => char.IsDigit(x)))
             {
@@ -566,6 +586,122 @@ namespace Commander
                 await context.EnterpriseData.DeleteUser(singleUser);
 
                 Console.WriteLine($"User {singleUser.Email} deleted");
+            }
+            else if(arguments.Command == "set-master-password-expire")
+            {
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if (user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if (user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                try{
+                    await context.EnterpriseData.SetMasterPasswordExpire(user.Email);
+                    Console.WriteLine($"Master password expiration set for {arguments.User}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed set master password expiration: {ex.Message}");
+                }
+            }
+            else if(arguments.Command == "team-user-update")
+            {
+                if(string.IsNullOrEmpty(arguments.Team))
+                {
+                    Console.WriteLine("Team name parameter is mandatory.");
+                    return;
+                }
+
+                if(string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.WriteLine("User email parameter is mandatory.");
+                    return;
+                }
+
+                var teams = context.EnterpriseData.Teams
+                    .Where(x => string.Equals(x.Name, arguments.Team, StringComparison.InvariantCultureIgnoreCase))
+                    .ToArray();
+
+                if(teams.Length == 0)
+                {
+                    Console.WriteLine($"Team \"{arguments.Team}\" not found");
+                    return;
+                }
+
+                if(teams.Length > 1)
+                {
+                    Console.WriteLine($"Multiple teams found with name \"{arguments.Team}\". Please use team UID.");
+                    return;
+                }
+
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if(user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if(user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                try
+                {
+                    await context.EnterpriseData.TeamEnterpriseUserUpdate(teams[0], user, arguments.UserType);
+                    Console.WriteLine($"Team user {arguments.User} updated");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to update team user: {ex.Message}");
+                }
+            }
+
+            else if(arguments.Command == "user-update")
+            {
+                if(string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.WriteLine("User email parameter is mandatory.");
+                    return;
+                }
+                
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if(user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if(user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                var node = context.EnterpriseData.Nodes.FirstOrDefault(x => string.Equals(x.DisplayName, arguments.Node, StringComparison.InvariantCultureIgnoreCase));
+                if(node == null)
+                {
+                    Console.WriteLine($"Node \"{arguments.Node}\" not found so we are taking users parent node"); 
+                }
+
+                try{
+                    await context.EnterpriseData.EnterpriseUserUpdate(user, node?.Id, arguments.FullName, arguments.JobTitle, arguments.InviteeLocale);
+                    Console.WriteLine($"User {arguments.User} updated");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to update user: {ex.Message}");
+                }
+                return;
             }
             else
             {
@@ -2304,7 +2440,7 @@ namespace Commander
 
     class EnterpriseUserOptions : EnterpriseGenericOptions
     {
-        [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\"")]
+        [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\", \"team-user-update\"")]
         public string Team { get; set; }
 
         [Option("alias", Required = false, HelpText = "user alias. \"alias-add\", \"alias-remove\"")]
@@ -2313,17 +2449,26 @@ namespace Commander
         [Option("node", Required = false, HelpText = "node name or ID. \"invite\"")]
         public string Node { get; set; }
 
-        [Option("name", Required = false, HelpText = "user full name. \"invite\"")]
+        [Option("name", Required = false, HelpText = "user full name. \"invite\", \"user-update\"")]
         public string FullName { get; set; }
 
         [Option("yes", Required = false, HelpText = "delete user without confirmation prompt. \"delete\"")]
         public bool Confirm { get; set; }
 
+        [Option("user-type", Required = false, HelpText = "user type. \"team-user-update\"")]
+        public int UserType { get; set; }
+
+        [Option("job-title", Required = false, HelpText = "user job title. \"user-update\"")]
+        public string JobTitle { get; set; }
+
+        [Option("invitee-locale", Required = false, HelpText = "user invitee locale. \"user-update\"")]
+        public string InviteeLocale { get; set; }
+
         [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\", " +
-            "\"delete\", \"alias-add\", \"alias-remove\"")]
+            "\"delete\", \"alias-add\", \"alias-remove\", \"resend-invite\", \"set-master-password-expire\", \"team-user-update\", \"user-update\"")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\")")]
+        [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\", \"resend-invite\", \"set-master-password-expire\")")]
         public string User { get; set; }
     }
 

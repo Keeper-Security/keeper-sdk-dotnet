@@ -592,5 +592,90 @@ namespace KeeperSecurity.Enterprise
                 await Enterprise.Load();
             }
         }
+
+        public async Task ResendEnterpriseInvite(EnterpriseUser enterpriseUser)
+        {
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+
+            if (enterpriseUser.UserStatus != UserStatus.Inactive)
+            {
+                throw new KeeperApiException("user_accepted_invitation", "User has already accepted invitation.");
+            }
+
+            var rq = new ResendEnterpriseInviteCommand
+            {
+                EnterpriseUserId = enterpriseUser.Id
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task SetMasterPasswordExpire(string email)
+        {
+            if (email == null) throw new ArgumentNullException(nameof(email));
+
+            var rq = new SetMasterPasswordExpireCommand
+            {
+                Email = email
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task TeamEnterpriseUserUpdate(EnterpriseTeam enterpriseTeam, EnterpriseUser enterpriseUser, int userType)
+        {
+            if (enterpriseTeam == null) throw new ArgumentNullException(nameof(enterpriseTeam));
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+            if (userType < 0 || userType > 2) throw new ArgumentException("User type must be 0, 1, or 2");
+
+            var rq = new TeamEnterpriseUserUpdateCommand
+            {
+                TeamUid = enterpriseTeam.Uid,
+                EnterpriseUserId = enterpriseUser.Id,
+                UserType = userType
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task<EnterpriseUser> EnterpriseUserUpdate(EnterpriseUser enterpriseUser, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
+        {
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+
+            EncryptedData encrypted = new EncryptedData();
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                encrypted.DisplayName = fullName;
+            }
+            else if (!string.IsNullOrEmpty(enterpriseUser.DisplayName))
+            {
+                encrypted.DisplayName = enterpriseUser.DisplayName;
+            }
+
+            var rq = new EnterpriseUserUpdatecommand
+            {
+                EnterpriseUserId = enterpriseUser.Id,
+                EnterpriseUserUsername = enterpriseUser.Email,
+                NodeId = nodeId ?? enterpriseUser.ParentNodeId
+            };
+            if (!string.IsNullOrEmpty(jobTitle))
+            {
+                rq.JobTitle = jobTitle;
+            }
+            if (!string.IsNullOrEmpty(inviteeLocale))
+            {
+                rq.InviteeLocale = inviteeLocale;
+            }
+            rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+
+            TryGetUserById(enterpriseUser.Id, out var user);
+            return user;
+        }
     }
 }
