@@ -95,7 +95,7 @@ function Move-KeeperRecordOwnership {
         if ($rec) {
             try {
                 $vault.TransferRecordToUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
-                Write-Output "Record `"$($rec.Title)`" was transfered to $($User)`nThe new record owner can edit or remove your access to this record."
+                Write-Output "Record `"$($rec.Title)`" was transferred to $($User)`nThe new record owner can edit or remove your access to this record."
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
                 Write-Output $_

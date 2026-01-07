@@ -74,19 +74,13 @@ namespace KeeperSecurity.Authentication
                     {
                         delayInSec = 5;
                     }
-                    if (execRs.Results.Count > 1)
-                    {
-                        responses.AddRange(execRs.Results.Take(execRs.Results.Count - 1));
-                    }
-                    var lastStatus = responses.Last();
+                    responses.AddRange(execRs.Results);
+                    var lastStatus = execRs.Results.Last();
                     if (lastStatus.resultCode == "throttled")
                     {
+                        responses.RemoveAt(responses.Count - 1);
                         pos -= 1;
                         delayInSec = 10;
-                    }
-                    else
-                    {
-                        responses.Add(lastStatus);
                     }
                 }
                 else
@@ -144,7 +138,7 @@ namespace KeeperSecurity.Authentication
         /// <returns>Task returning Protobuf response.</returns>
         /// <seealso cref="IAuthentication.ExecuteAuthRest"/>
         /// <seealso cref="IKeeperEndpoint.ExecuteRest"/>
-        public static async Task<TR> ExecuteAuthRest<TC, TR>(this IAuthentication auth, string endpoint, TC request, int apiVersion=0)
+        public static async Task<TR> ExecuteAuthRest<TC, TR>(this IAuthentication auth, string endpoint, TC request, int apiVersion = 0)
             where TC : IMessage
             where TR : IMessage
         {
