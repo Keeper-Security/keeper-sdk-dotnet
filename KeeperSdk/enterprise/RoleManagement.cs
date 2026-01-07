@@ -11,7 +11,7 @@ using System;
 namespace KeeperSecurity.Enterprise
 {
     /// <summary>
-    /// Defines methods for managing enerprise roles
+    /// Defines methods for managing enterprise roles
     /// </summary>
     public interface IRoleDataManagement
     {
@@ -41,7 +41,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Add a user to a role
         /// </summary>
-        /// <param name="role">Enterprise role</param>r
+        /// <param name="role">Enterprise role</param>
         /// <param name="user">Enterprise user</param>
         /// <returns>Task</returns>
         Task AddUserToRole(EnterpriseRole role, EnterpriseUser user);
@@ -184,6 +184,8 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task DeleteRole(EnterpriseRole role)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            
             await Enterprise.Auth.ExecuteAuthCommand(new RoleDeleteCommand { RoleId = role.Id }); ;
             await Enterprise.Load();
         }
@@ -191,6 +193,9 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task AddUserToRole(EnterpriseRole role, EnterpriseUser user)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var rq = new RoleUserAddCommand
             {
                 RoleId = role.Id,
@@ -204,6 +209,8 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task AddUserToAdminRole(EnterpriseRole role, EnterpriseUser user)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (user == null) throw new ArgumentNullException(nameof(user));
 
             await Enterprise.Auth.LoadUsersKeys(Enumerable.Repeat(user.Email, 1));
             if (!Enterprise.Auth.TryGetUserKeys(user.Email, out var keys))
@@ -214,13 +221,15 @@ namespace KeeperSecurity.Enterprise
             var rq = new RoleUserAddCommand
             {
                 RoleId = role.Id,
-                EnterpriseUserId = user.UserId,
+                EnterpriseUserId = user.Id,
                 TreeKey = CryptoUtils.EncryptRsa(Enterprise.TreeKey, publicKey).Base64UrlEncode(),
+                TreeKeyType = "encrypted_by_public_key",
             };
             var roleKey = await GetRoleKey(role.Id);
             if (roleKey != null)
             {
                 rq.RoleAdminKey = CryptoUtils.EncryptRsa(roleKey, publicKey).Base64UrlEncode();
+                rq.RoleAdminKeyType = "encrypted_by_public_key";
             }
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
@@ -229,6 +238,9 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task RemoveUserFromRole(EnterpriseRole role, EnterpriseUser user)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var rq = new RoleUserRemoveCommand
             {
                 RoleId = role.Id,
@@ -242,6 +254,9 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task AddTeamToRole(EnterpriseRole role, EnterpriseTeam team)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (team == null) throw new ArgumentNullException(nameof(team));
+
             var rq = new RoleTeams();
             rq.RoleTeam.Add(new RoleTeam
             {
@@ -256,19 +271,24 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task RemoveTeamFromRole(EnterpriseRole role, EnterpriseTeam team)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (team == null) throw new ArgumentNullException(nameof(team));
+
             var rq = new RoleTeams();
             rq.RoleTeam.Add(new RoleTeam
             {
                 RoleId = role.Id,
                 TeamUid = ByteString.CopyFrom(team.Uid.Base64UrlDecode()),
             });
-
             await Enterprise.Auth.ExecuteAuthRest("enterprise/role_team_remove", rq);
             await Enterprise.Load();
         }
 
         public async Task RoleManagedNodeAdd(EnterpriseRole role, EnterpriseNode node, bool cascadeNodeManagement)
         {
+            if (role == null) throw new ArgumentNullException(nameof(role));
+            if (node == null) throw new ArgumentNullException(nameof(node));
+
             RoleManagedNodeTreeKey[] treeKeys = null;
 
             if (EnterpriseData != null)
@@ -529,7 +549,7 @@ namespace KeeperSecurity.Enterprise
                     Enforcement = enforcement.ToString().ToLowerInvariant(),
                 };
 
-                var rqRemBool = new RoleEnforcementAddCommand
+                var rqRemBool = new RoleEnforcementRemoveCommand
                 {
                     RoleId = role.Id,
                     Enforcement = enforcement.ToString().ToLowerInvariant(),

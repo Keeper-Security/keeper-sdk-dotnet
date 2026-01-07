@@ -631,10 +631,10 @@ namespace Commander
             };
 
             tab.SetColumnRightAlign(0, true);
-            tab.AddRow("Successfully Transfered  ", "");
-            tab.AddRow("Records:", result.RecordsTransfered);
-            tab.AddRow("Shared Folders:", result.SharedFoldersTransfered);
-            tab.AddRow("Teams:", result.TeamsTransfered);
+            tab.AddRow("Successfully Transferred  ", "");
+            tab.AddRow("Records:", result.RecordsTransferred);
+            tab.AddRow("Shared Folders:", result.SharedFoldersTransferred);
+            tab.AddRow("Teams:", result.TeamsTransferred);
             if (result.RecordsCorrupted > 0 || result.SharedFoldersCorrupted > 0 || result.TeamsCorrupted > 0)
             {
                 tab.AddRow("Failed to Transfer       ", "");
@@ -1420,7 +1420,7 @@ namespace Commander
             }
 
             var cmds = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            cmds.UnionWith(new[] { "add-members", "remove-members" });
+            cmds.UnionWith(new[] { "add-members", "remove-members", "add-users-to-admin-role" });
             if (cmds.Contains(arguments.Command))
             {
                 var users = new Dictionary<long, KeeperSecurity.Enterprise.EnterpriseUser>();
@@ -1468,7 +1468,7 @@ namespace Commander
                 }
 
                 var isAdd = string.Equals(arguments.Command, "add-members");
-                Console.WriteLine($"{(isAdd ? "Addding members to" : "Removing members from")} role \"{role.DisplayName}\"");
+                Console.WriteLine($"{(isAdd ? "Addding members to" : string.Equals(arguments.Command, "add-users-to-admin-role") ? "Adding users to admin role" : "Removing members from")} role \"{role.DisplayName}\"");
                 foreach (var user in users.Values) {
                     try
                     {
@@ -1476,6 +1476,10 @@ namespace Commander
                         if (isAdd)
                         {
                             await roleData.AddUserToRole(role, user);
+                        }
+                        else if (string.Equals(arguments.Command, "add-users-to-admin-role"))
+                        {
+                            await roleData.AddUserToAdminRole(role, user);
                         }
                         else
                         {
@@ -2719,7 +2723,7 @@ namespace Commander
         [Value(1, Required = false, HelpText = "Role Name or ID")]
         public string Role { get; set; }
 
-        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\": list of User Emails, Team Names, User IDs, or Team UIDs. ")]
+        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\", \"add-users-to-admin-role\" : list of User Emails, Team Names, User IDs, or Team UIDs. ")]
         public IEnumerable<string> Parameters { get; set; }
     }
 

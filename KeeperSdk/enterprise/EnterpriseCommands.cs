@@ -214,7 +214,7 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "user_folder_keys", EmitDefaultValue = false)]
         public TransferAndDeleteUserFolderKey[] UserFolderKeys { get; set; }
 
-        [DataMember(Name = "corrupted_record_keys")]
+        [DataMember(Name = "corrupted_record_keys", EmitDefaultValue = false)]
         public PreAccountTransferRecordKey[] CorruptedRecordKeys { get; set; }
         [DataMember(Name = "corrupted_shared_folder_keys")]
         public PreAccountTransferSharedFolderKey[] CorruptedSharedFolderKeys { get; set; }
@@ -541,11 +541,18 @@ namespace KeeperSecurity.Commands
         public RoleUserAddCommand() : base("role_user_add")
         {
         }
+
         [DataMember(Name = "tree_key", EmitDefaultValue = false)]
         public string TreeKey { get; set; }
 
         [DataMember(Name = "role_admin_key", EmitDefaultValue = false)]
         public string RoleAdminKey { get; set; }
+
+        [DataMember(Name = "tree_key_type", EmitDefaultValue = false)]
+        public string TreeKeyType { get; set; }
+
+        [DataMember(Name = "role_admin_key_type", EmitDefaultValue = false)]
+        public string RoleAdminKeyType { get; set; }
     }
 
     [DataContract]
@@ -900,11 +907,10 @@ namespace KeeperSecurity.Commands
         public int UserType { get; set; }
     }
 
-
     [DataContract]
-    public class EnterpriseUserUpdatecommand : EnterpriseUserCommand
+    public class EnterpriseUserUpdateCommand : EnterpriseUserCommand
     {
-        public EnterpriseUserUpdatecommand() : base("enterprise_user_update")
+        public EnterpriseUserUpdateCommand() : base("enterprise_user_update")
         {
         }
         [DataMember(Name = "node_id")]

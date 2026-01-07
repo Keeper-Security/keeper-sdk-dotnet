@@ -22,6 +22,8 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Invited User</returns>
         public async Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null)
         {
+            if (email == null) throw new ArgumentNullException(nameof(email));
+
             var userId = await Enterprise.GetEnterpriseId();
             var rq = new EnterpriseUserAddCommand
             {
@@ -54,6 +56,8 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc/>
         public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var userId = user.Id;
             var rq = new EnterpriseUserLockCommand
             {
@@ -70,11 +74,12 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc/>
         public async Task DeleteUser(EnterpriseUser user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var rq = new EnterpriseUserDeleteCommand
             {
                 EnterpriseUserId = user.Id
             };
-
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
         }
@@ -155,14 +160,14 @@ namespace KeeperSecurity.Enterprise
             };
             if (preRs.RecordKeys != null)
             {
-                var transfered = new List<TransferAndDeleteRecordKey>();
+                var transferred = new List<TransferAndDeleteRecordKey>();
                 var corrupted = new List<PreAccountTransferRecordKey>();
                 foreach (var rk in preRs.RecordKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType);
-                        transfered.Add(new TransferAndDeleteRecordKey
+                        transferred.Add(new TransferAndDeleteRecordKey
                         {
                             RecordUid = rk.RecordUid,
                             RecordKey = kt.Item1.Base64UrlEncode(),
@@ -176,20 +181,20 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.RecordKeys = transfered.ToArray();
+                tdRq.RecordKeys = transferred.ToArray();
                 tdRq.CorruptedRecordKeys = corrupted.ToArray();
             }
 
             if (preRs.SharedFolderKeys != null)
             {
-                var transfered = new List<TransferAndDeleteSharedFolderKey>();
+                var transferred = new List<TransferAndDeleteSharedFolderKey>();
                 var corrupted = new List<PreAccountTransferSharedFolderKey>();
                 foreach (var sfk in preRs.SharedFolderKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType);
-                        transfered.Add(new TransferAndDeleteSharedFolderKey
+                        transferred.Add(new TransferAndDeleteSharedFolderKey
                         {
                             SharedFolderUid = sfk.SharedFolderUid,
                             SharedFolderKey = kt.Item1.Base64UrlEncode(),
@@ -203,20 +208,20 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.SharedFolderKeys = transfered.ToArray();
+                tdRq.SharedFolderKeys = transferred.ToArray();
                 tdRq.CorruptedSharedFolderKeys = corrupted.ToArray();
             }
 
             if (preRs.TeamKeys != null)
             {
-                var transfered = new List<TransferAndDeleteTeamKey>();
+                var transferred = new List<TransferAndDeleteTeamKey>();
                 var corrupted = new List<PreAccountTransferTeamKey>();
                 foreach (var tk in preRs.TeamKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType);
-                        transfered.Add(new TransferAndDeleteTeamKey
+                        transferred.Add(new TransferAndDeleteTeamKey
                         {
                             TeamUid = tk.TeamUid,
                             TeamKey = kt.Item1.Base64UrlEncode(),
@@ -230,7 +235,7 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.TeamKeys = transfered.ToArray();
+                tdRq.TeamKeys = transferred.ToArray();
                 tdRq.CorruptedTeamKeys = corrupted.ToArray();
             }
 
@@ -293,10 +298,10 @@ namespace KeeperSecurity.Enterprise
 
             return new AccountTransferResult
             {
-                RecordsTransfered = tdRq.RecordKeys?.Length ?? 0,
-                SharedFoldersTransfered = tdRq.SharedFolderKeys?.Length ?? 0,
-                TeamsTransfered = tdRq.TeamKeys?.Length ?? 0,
-                UserFoldersTransfered = tdRq.UserFolderKeys?.Length ?? 0,
+                RecordsTransferred = tdRq.RecordKeys?.Length ?? 0,
+                SharedFoldersTransferred = tdRq.SharedFolderKeys?.Length ?? 0,
+                TeamsTransferred = tdRq.TeamKeys?.Length ?? 0,
+                UserFoldersTransferred = tdRq.UserFolderKeys?.Length ?? 0,
                 RecordsCorrupted = tdRq.CorruptedRecordKeys?.Length ?? 0,
                 SharedFoldersCorrupted = tdRq.CorruptedSharedFolderKeys?.Length ?? 0,
                 TeamsCorrupted = tdRq.CorruptedTeamKeys?.Length ?? 0,
@@ -321,7 +326,7 @@ namespace KeeperSecurity.Enterprise
                         key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
                         break;
                     case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
-                        if (userRsaKey != null)
+                        if (userEcKey != null)
                         {
                             key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
                         }
@@ -642,7 +647,7 @@ namespace KeeperSecurity.Enterprise
         {
             if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
 
-            var rq = new EnterpriseUserUpdatecommand
+            var rq = new EnterpriseUserUpdateCommand
             {
                 EnterpriseUserId = enterpriseUser.Id,
                 EnterpriseUserUsername = enterpriseUser.Email,
