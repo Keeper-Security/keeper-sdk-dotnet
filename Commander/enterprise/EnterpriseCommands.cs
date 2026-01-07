@@ -379,6 +379,44 @@ namespace Commander
                         await enterpriseData.DeleteNode(node.Id);
                         Console.WriteLine($"Node \"{node.DisplayName}\" deleted.");
                         break;
+                    
+                    case "set-custom-invitation":
+                        if (string.IsNullOrEmpty(arguments.JsonFilePath))
+                        {
+                            Console.WriteLine("JSON file path parameter is mandatory.");
+                            return;
+                        }
+
+                        await enterpriseData.SetEnterpriseCustomInvitation(node.Id, arguments.JsonFilePath);
+                        Console.WriteLine($"Custom invitation set for node \"{node.DisplayName}\"");
+                        break;
+
+                    case "get-custom-invitation":
+                        var invitation = await enterpriseData.GetEnterpriseCustomInvitation(node.Id);
+                        Console.WriteLine($"Custom invitation for node \"{node.DisplayName}\":");
+                        Console.WriteLine($"Subject: {invitation.Subject}");
+                        Console.WriteLine($"Header: {invitation.Header}");
+                        Console.WriteLine($"Body: {invitation.Body}"); 
+                        Console.WriteLine($"Button Label: {invitation.ButtonLabel}");
+                        break;
+
+                    case "upload-custom-logo":
+                        if (string.IsNullOrEmpty(arguments.LogoType))
+                        {
+                            Console.WriteLine("Logo type parameter is mandatory.");
+                            return;
+                        }
+                        if (string.IsNullOrEmpty(arguments.LogoPath))
+                        {
+                            Console.WriteLine("Logo path parameter is mandatory.");
+                            return;
+                        }
+                        
+                        var logoResponse = await enterpriseData.UploadEnterpriseCustomLogo(node.Id, arguments.LogoType, arguments.LogoPath);
+                        Console.WriteLine($"Custom logo uploaded for node \"{node.DisplayName}\"");
+                        Console.WriteLine($"Logo status: {logoResponse.Status}");
+                        Console.WriteLine($"Logo path: {logoResponse.LogoPath}");
+                        break;
 
                     default:
                         Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
@@ -466,6 +504,26 @@ namespace Commander
                 await context.EnterpriseData.InviteUser(arguments.User, options);
                 Console.WriteLine($"User {arguments.User} invited.");
                 return;
+            }
+
+            if (arguments.Command == "resend-invite")
+            {
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if (user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+                try {
+                    await context.EnterpriseData.ResendEnterpriseInvite(user);
+                    Console.WriteLine($"Invite for {arguments.User} resent.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to resend invite: {ex.Message}");
+                    return;
+                }
             }
 
             KeeperSecurity.Enterprise.EnterpriseUser singleUser = null;
@@ -653,6 +711,122 @@ namespace Commander
 
                 Console.WriteLine($"User {singleUser.Email} deleted");
             }
+            else if(arguments.Command == "set-master-password-expire")
+            {
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if (user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if (user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                try{
+                    await context.EnterpriseData.SetMasterPasswordExpire(user.Email);
+                    Console.WriteLine($"Master password expiration set for {arguments.User}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed set master password expiration: {ex.Message}");
+                }
+            }
+            else if(arguments.Command == "team-user-update")
+            {
+                if(string.IsNullOrEmpty(arguments.Team))
+                {
+                    Console.WriteLine("Team name parameter is mandatory.");
+                    return;
+                }
+
+                if(string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.WriteLine("User email parameter is mandatory.");
+                    return;
+                }
+
+                var teams = context.EnterpriseData.Teams
+                    .Where(x => string.Equals(x.Name, arguments.Team, StringComparison.InvariantCultureIgnoreCase))
+                    .ToArray();
+
+                if(teams.Length == 0)
+                {
+                    Console.WriteLine($"Team \"{arguments.Team}\" not found");
+                    return;
+                }
+
+                if(teams.Length > 1)
+                {
+                    Console.WriteLine($"Multiple teams found with name \"{arguments.Team}\". Please use team UID.");
+                    return;
+                }
+
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if(user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if(user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                try
+                {
+                    await context.EnterpriseData.TeamEnterpriseUserUpdate(teams[0], user, arguments.UserType);
+                    Console.WriteLine($"Team user {arguments.User} updated");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to update team user: {ex.Message}");
+                }
+            }
+
+            else if(arguments.Command == "user-update")
+            {
+                if(string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.WriteLine("User email parameter is mandatory.");
+                    return;
+                }
+                
+                var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
+                if(user == null)
+                {
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
+                    return;
+                }
+
+                if(user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User {arguments.User} is not active");
+                    return;
+                }
+
+                var node = context.EnterpriseData.Nodes.FirstOrDefault(x => string.Equals(x.DisplayName, arguments.Node, StringComparison.InvariantCultureIgnoreCase));
+                if(node == null)
+                {
+                    Console.WriteLine($"Node \"{arguments.Node}\" not found so we are taking users parent node"); 
+                }
+
+                try{
+                    await context.EnterpriseData.EnterpriseUserUpdate(user, node?.Id, arguments.FullName, arguments.JobTitle, arguments.InviteeLocale);
+                    Console.WriteLine($"User {arguments.User} updated");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to update user: {ex.Message}");
+                }
+                return;
+            }
             else
             {
                 Console.WriteLine($"Unsupported command \"{arguments.Command}\". Commands are \"list\", \"view\", \"invite\", \"team-add\", \"team-remove\"");
@@ -717,10 +891,10 @@ namespace Commander
             };
 
             tab.SetColumnRightAlign(0, true);
-            tab.AddRow("Successfully Transfered  ", "");
-            tab.AddRow("Records:", result.RecordsTransfered);
-            tab.AddRow("Shared Folders:", result.SharedFoldersTransfered);
-            tab.AddRow("Teams:", result.TeamsTransfered);
+            tab.AddRow("Successfully Transferred  ", "");
+            tab.AddRow("Records:", result.RecordsTransferred);
+            tab.AddRow("Shared Folders:", result.SharedFoldersTransferred);
+            tab.AddRow("Teams:", result.TeamsTransferred);
             if (result.RecordsCorrupted > 0 || result.SharedFoldersCorrupted > 0 || result.TeamsCorrupted > 0)
             {
                 tab.AddRow("Failed to Transfer       ", "");
@@ -862,6 +1036,162 @@ namespace Commander
 
         private static string[] _privilegeNames = new string[] { "MANAGE_NODES", "MANAGE_USER", "MANAGE_ROLES", "MANAGE_TEAMS", "RUN_REPORTS", "MANAGE_BRIDGE", "APPROVE_DEVICE", "TRANSFER_ACCOUNT" };
 
+        // Command name constants
+        private const string CMD_MANAGED_NODE_ADD = "managed-node-add";
+        private const string CMD_MANAGED_NODE_UPDATE = "managed-node-update";
+        private const string CMD_MANAGED_NODE_DELETE = "managed-node-delete";
+        private const string CMD_ADD_PRIVILEGES = "add-privileges";
+        private const string CMD_REMOVE_PRIVILEGES = "remove-privileges";
+        private const string CMD_ADD_ENFORCEMENTS = "add-enforcements";
+        private const string CMD_UPDATE_ENFORCEMENTS = "update-enforcements";
+        private const string CMD_REMOVE_ENFORCEMENTS = "remove-enforcements";
+
+        private static string GetNodeDisplayName(EnterpriseNode node)
+        {
+            return string.IsNullOrEmpty(node.DisplayName) ? node.Id.ToString() : node.DisplayName;
+        }
+
+        private static bool TryResolveNode(EnterpriseData enterpriseData, string nodeToFind, out EnterpriseNode node, out string errorMessage)
+        {
+            node = null;
+            errorMessage = null;
+
+            if (string.IsNullOrEmpty(nodeToFind))
+            {
+                errorMessage = "Node parameter is required.";
+                return false;
+            }
+
+            if (long.TryParse(nodeToFind, out var nodeId))
+            {
+                enterpriseData.TryGetNode(nodeId, out node);
+            }
+
+            if (node == null)
+            {
+                var nodes = enterpriseData.Nodes
+                    .Where(x => string.Equals(x.DisplayName, nodeToFind, StringComparison.InvariantCultureIgnoreCase))
+                    .ToArray();
+
+                if (nodes.Length == 1)
+                {
+                    node = nodes[0];
+                }
+                else if (nodes.Length > 1)
+                {
+                    errorMessage = $"More than one node with name \"{nodeToFind}\" found. Use Node ID.";
+                    return false;
+                }
+            }
+
+            if (node == null)
+            {
+                errorMessage = $"Node \"{nodeToFind}\" not found.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static Dictionary<RoleEnforcementPolicies, string> ParseEnforcements(
+            IEnumerable<string> enforcementInputs,
+            out List<RoleEnforcementPolicies> enforcementKeys,
+            out List<string> invalidEnforcements)
+        {
+            var enforcementDict = new Dictionary<RoleEnforcementPolicies, string>();
+            enforcementKeys = new List<RoleEnforcementPolicies>();
+            invalidEnforcements = new List<string>();
+
+            foreach (var item in enforcementInputs)
+            {
+                var parts = item.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var part in parts)
+                {
+                    var trimmedPart = part.Trim();
+                    if (string.IsNullOrEmpty(trimmedPart)) continue;
+
+                    var separatorIndex = trimmedPart.IndexOf('=');
+                    if (separatorIndex < 0)
+                    {
+                        separatorIndex = trimmedPart.IndexOf(':');
+                    }
+
+                    string key;
+                    string value = null;
+
+                    if (separatorIndex > 0)
+                    {
+                        key = trimmedPart.Substring(0, separatorIndex).Trim();
+                        value = trimmedPart.Substring(separatorIndex + 1).Trim();
+                    }
+                    else
+                    {
+                        key = trimmedPart;
+                    }
+
+                    if (Enum.TryParse<RoleEnforcementPolicies>(key, true, out var enforcementPolicy))
+                    {
+                        enforcementDict[enforcementPolicy] = value;
+                        enforcementKeys.Add(enforcementPolicy);
+                    }
+                    else
+                    {
+                        invalidEnforcements.Add(key);
+                    }
+                }
+            }
+
+            return enforcementDict;
+        }
+        
+        private static void PrintPrivilegeBatchResponses(
+            IList<KeeperApiResponse> responses,
+            IList<RoleManagedNodePrivilege> privileges)
+        {
+            for (int i = 0; i < responses.Count; i++)
+            {
+                var response = responses[i];
+                var privilege = privileges[i];
+                if (response.IsSuccess)
+                {
+                    Console.WriteLine($"Command: {response.command}, Privilege: {privilege}, Result: {response.result}");
+                }
+                else
+                {
+                    Console.WriteLine($"Command: {response.command}, Privilege: {privilege}, Result: {response.result}, Code: {response.resultCode}, Message: {response.message}");
+                }
+            }
+        }
+
+        private static void PrintEnforcementBatchResponses(
+            IList<KeeperApiResponse> responses,
+            IList<RoleEnforcementPolicies> enforcementKeys,
+            Dictionary<RoleEnforcementPolicies, string> enforcementDict,
+            bool includeValue = true)
+        {
+            for (int i = 0; i < responses.Count; i++)
+            {
+                var response = responses[i];
+                var enforcementKey = enforcementKeys[i];
+                if (response.IsSuccess)
+                {
+                    if (includeValue && enforcementDict.TryGetValue(enforcementKey, out var value) && value != null)
+                    {
+                        Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}={value}, Result: {response.result}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}, Result: {response.result}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}, Result: {response.result}, Code: {response.resultCode}, Message: {response.message}");
+                }
+            }
+        }
+
         public static async Task EnterpriseRoleCommand(this RoleData roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
         {
             if (arguments.Force)
@@ -903,7 +1233,7 @@ namespace Commander
                 }
                 if (roles.Length == 0)
                 {
-                    Console.WriteLine($"Role \"{arguments.Role ?? ""}\" not found");
+                    Console.WriteLine($"Role \"{arguments.Role ?? ""}\" not found.");
                     return;
                 }
                 {
@@ -1014,7 +1344,7 @@ namespace Commander
                         {
                             if (nodes.Length == 0)
                             {
-                                Console.WriteLine($"Node \"{arguments.Node}\" not found");
+                                Console.WriteLine($"Node \"{arguments.Node}\" not found.");
                             }
                             else
                             {
@@ -1038,7 +1368,7 @@ namespace Commander
             {
                 if (roles.Length == 0)
                 {
-                    Console.WriteLine($"Role \"{arguments.Role}\" not found");
+                    Console.WriteLine($"Role \"{arguments.Role}\" not found.");
                 }
                 else
                 {
@@ -1174,9 +1504,183 @@ namespace Commander
                 }
                 return;
             }
+            
+            var managedNodeCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_MANAGED_NODE_ADD, CMD_MANAGED_NODE_UPDATE, CMD_MANAGED_NODE_DELETE };
+            if (managedNodeCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+
+                if (!TryResolveNode(enterpriseData, arguments.Node, out var node, out var errorMessage))
+                {
+                    Console.WriteLine(errorMessage);
+                    return;
+                }
+
+                try
+                {
+                    switch (arguments.Command)
+                    {
+                        case CMD_MANAGED_NODE_ADD:
+                            await roleData.RoleManagedNodeAdd(role, node, arguments.Cascade);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" added to role \"{role.DisplayName}\" successfully.");
+                            break;
+                        case CMD_MANAGED_NODE_UPDATE:
+                            await roleData.RoleManagedNodeUpdate(role, node, arguments.Cascade);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" updated for role \"{role.DisplayName}\" successfully.");
+                            break;
+                        case CMD_MANAGED_NODE_DELETE:
+                            await roleData.RoleManagedNodeRemove(role, node);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" deleted from role \"{role.DisplayName}\" successfully.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_MANAGED_NODE_ADD ? "add" : 
+                                 arguments.Command == CMD_MANAGED_NODE_UPDATE ? "update" : "delete";
+                    Console.WriteLine($"Failed to {action} managed node: {ex.Message}");
+                }
+                return;
+            }
+
+            var privilegeCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_ADD_PRIVILEGES, CMD_REMOVE_PRIVILEGES };
+            if (privilegeCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+
+                if (!TryResolveNode(enterpriseData, arguments.Node, out var node, out var errorMessage))
+                {
+                    Console.WriteLine(errorMessage);
+                    return;
+                }
+
+                var managedNode = roleData.GetManagedNodes().FirstOrDefault(x => x.RoleId == role.Id && x.ManagedNodeId == node.Id);
+                if (managedNode == null)
+                {
+                    Console.WriteLine($"Role \"{role.DisplayName}\" does not have node \"{GetNodeDisplayName(node)}\" as a managed node. Use \"{CMD_MANAGED_NODE_ADD}\" first.");
+                    return;
+                }
+
+                if (arguments.Privileges == null || !arguments.Privileges.Any())
+                {
+                    Console.WriteLine("Privileges parameter is required. Format: --privileges \"PRIVILEGE1,PRIVILEGE2\"");
+                    return;
+                }
+
+                var privilegeList = new List<RoleManagedNodePrivilege>();
+                var invalidPrivileges = new List<string>();
+                foreach (var priv in arguments.Privileges)
+                {
+                    if (Enum.TryParse<RoleManagedNodePrivilege>(priv, true, out var privilege))
+                    {
+                        privilegeList.Add(privilege);
+                    }
+                    else
+                    {
+                        invalidPrivileges.Add(priv);
+                    }
+                }
+
+                if (invalidPrivileges.Count > 0)
+                {
+                    Console.WriteLine($"Invalid privileges: {string.Join(", ", invalidPrivileges)}. Valid values: {string.Join(", ", Enum.GetNames(typeof(RoleManagedNodePrivilege)))}");
+                    return;
+                }
+
+                if (privilegeList.Count == 0)
+                {
+                    Console.WriteLine("No valid privileges specified.");
+                    return;
+                }
+
+                try {
+                    switch (arguments.Command)
+                    {
+                        case CMD_ADD_PRIVILEGES:
+                            var responses = await roleData.RoleManagedNodePrivilegeAddBatch(role, node, privilegeList);
+                            PrintPrivilegeBatchResponses(responses, privilegeList);
+                            break;
+                        case CMD_REMOVE_PRIVILEGES:
+                            var responses1 = await roleData.RoleManagedNodePrivilegeRemoveBatch(role, node, privilegeList);
+                            PrintPrivilegeBatchResponses(responses1, privilegeList);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_ADD_PRIVILEGES ? "add" : "remove";
+                    Console.WriteLine($"Failed to {action} privileges: {ex.Message}");
+                }
+                return;
+            }
+
+            var enforcementCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_ADD_ENFORCEMENTS, CMD_UPDATE_ENFORCEMENTS, CMD_REMOVE_ENFORCEMENTS };
+            if (enforcementCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+        
+                if (arguments.Enforcement == null || !arguments.Enforcement.Any())
+                {
+                    Console.WriteLine("Enforcement parameter is required. Format: --enforcement \"KEY=value;KEY2=value2\" (semicolon or comma separated).");
+                    return;
+                }
+
+                // Parse enforcements using helper method
+                var enforcementDict = ParseEnforcements(arguments.Enforcement, out var enforcementKeys, out var invalidEnforcements);
+
+                if (invalidEnforcements.Count > 0)
+                {
+                    Console.WriteLine($"Invalid enforcements: {string.Join(", ", invalidEnforcements)}. Valid values: {string.Join(", ", Enum.GetNames(typeof(RoleEnforcementPolicies)))}");
+                    return;
+                }
+
+                if (enforcementKeys.Count == 0)
+                {
+                    Console.WriteLine("No valid enforcements specified.");
+                    return;
+                }
+
+                try
+                {
+                    switch (arguments.Command)
+                    {
+                        case CMD_ADD_ENFORCEMENTS:
+                            var responses = await roleData.RoleEnforcementAddBatch(role, enforcementDict);
+                            PrintEnforcementBatchResponses(responses, enforcementKeys, enforcementDict, includeValue: true);
+                            break;
+                        case CMD_UPDATE_ENFORCEMENTS:
+                            var responses1 = await roleData.RoleEnforcementUpdateBatch(role, enforcementDict);
+                            PrintEnforcementBatchResponses(responses1, enforcementKeys, enforcementDict, includeValue: true);
+                            break;
+                        case CMD_REMOVE_ENFORCEMENTS:
+                            var responses2 = await roleData.RoleEnforcementRemoveBatch(role, enforcementKeys);
+                            PrintEnforcementBatchResponses(responses2, enforcementKeys, enforcementDict, includeValue: false);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_ADD_ENFORCEMENTS ? "add" :
+                                 arguments.Command == CMD_UPDATE_ENFORCEMENTS ? "update" : "remove";
+                    Console.WriteLine($"Failed to {action} enforcements: {ex.Message}");
+                }
+                return;
+            }
 
             var cmds = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            cmds.UnionWith(new[] { "add-members", "remove-members" });
+            cmds.UnionWith(new[] { "add-members", "remove-members", "add-users-to-admin-role" });
             if (cmds.Contains(arguments.Command))
             {
                 var users = new Dictionary<long, KeeperSecurity.Enterprise.EnterpriseUser>();
@@ -1224,7 +1728,7 @@ namespace Commander
                 }
 
                 var isAdd = string.Equals(arguments.Command, "add-members");
-                Console.WriteLine($"{(isAdd ? "Addding members to" : "Removing members from")} role \"{role.DisplayName}\"");
+                Console.WriteLine($"{(isAdd ? "Addding members to" : string.Equals(arguments.Command, "add-users-to-admin-role") ? "Adding users to admin role" : "Removing members from")} role \"{role.DisplayName}\"");
                 foreach (var user in users.Values) {
                     try
                     {
@@ -1232,6 +1736,10 @@ namespace Commander
                         if (isAdd)
                         {
                             await roleData.AddUserToRole(role, user);
+                        }
+                        else if (string.Equals(arguments.Command, "add-users-to-admin-role"))
+                        {
+                            await roleData.AddUserToAdminRole(role, user);
                         }
                         else
                         {
@@ -2369,10 +2877,10 @@ namespace Commander
 
     class EnterpriseNodeOptions : EnterpriseGenericOptions
     {
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete]\" <Node name or ID>")]
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]\" <Node name or ID>")]
         public string Node { get; set; }
 
-        [Option("command", Required = false, HelpText = "[tree, add, update, delete]")]
+        [Option("command", Required = false, HelpText = "[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]")]
         public string Command { get; set; }
 
         [Option("parent", Required = false, HelpText = "parent node name or ID")]
@@ -2386,11 +2894,20 @@ namespace Commander
 
         [Option("toggle-isolated", Required = false, HelpText = "toggle node isolation flag")]
         public bool RestrictVisibility { get; set; }
+
+        [Option("json-file-path", Required = false, HelpText = "Path to JSON file containing invitation template")]
+        public string JsonFilePath { get; set; }
+
+        [Option("logo-type", Required = false, HelpText = "Custom logo type")]
+        public string LogoType { get; set; }
+
+        [Option("logo-path", Required = false, HelpText = "Custom logo path")]
+        public string LogoPath { get; set; }
     }
 
     class EnterpriseUserOptions : EnterpriseGenericOptions
     {
-        [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\"")]
+        [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\", \"team-user-update\"")]
         public string Team { get; set; }
 
         [Option("alias", Required = false, HelpText = "user alias. \"alias-add\", \"alias-remove\"")]
@@ -2399,17 +2916,26 @@ namespace Commander
         [Option("node", Required = false, HelpText = "node name or ID. \"invite\"")]
         public string Node { get; set; }
 
-        [Option("name", Required = false, HelpText = "user full name. \"invite\"")]
+        [Option("name", Required = false, HelpText = "user full name. \"invite\", \"user-update\"")]
         public string FullName { get; set; }
 
         [Option("yes", Required = false, HelpText = "delete user without confirmation prompt. \"delete\"")]
         public bool Confirm { get; set; }
 
+        [Option("user-type", Required = false, HelpText = "user type. \"team-user-update\"")]
+        public int UserType { get; set; }
+
+        [Option("job-title", Required = false, HelpText = "user job title. \"user-update\"")]
+        public string JobTitle { get; set; }
+
+        [Option("invitee-locale", Required = false, HelpText = "user invitee locale. \"user-update\"")]
+        public string InviteeLocale { get; set; }
+
         [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\", " +
-            "\"delete\", \"alias-add\", \"alias-remove\"")]
+            "\"delete\", \"alias-add\", \"alias-remove\", \"resend-invite\", \"set-master-password-expire\", \"team-user-update\", \"user-update\"")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\")")]
+        [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\", \"resend-invite\", \"set-master-password-expire\")")]
         public string User { get; set; }
     }
 
@@ -2448,7 +2974,7 @@ namespace Commander
 
     class EnterpriseRoleOptions : EnterpriseGenericOptions
     {
-        [Option("node", Required = false, HelpText = "Node Name or ID. \"add\"")]
+        [Option("node", Required = false, HelpText = "Node Name or ID. \"add\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\"")]
         public string Node { get; set; }
 
         [Option('n', "new-user", Required = false, Default = false, HelpText = "New users automatically get this role assigned. \"add\", \"update\"")]
@@ -2460,13 +2986,22 @@ namespace Commander
         [Option("new-role-name", Required = false, HelpText = "New role display name. \"update\"")]
         public string NewRoleName { get; set; }
 
-        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\"")]
+        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"managed-node-add\", \"managed-node-update\"")]
+        public bool Cascade { get; set; }
+
+        [Option("privileges", Required = false, Separator = ',', HelpText = "Comma-separated list of privileges. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS")]
+        public IEnumerable<string> Privileges { get; set; }
+
+        [Option("enforcements", Required = false, Separator = ';', HelpText = "Semicolon or comma-separated list of enforcements: KEY=value; KEY2=value2 or KEY=value,KEY2=value2 (values can contain commas). For remove operations, use KEY only (no value). Possible parameters are provided at https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#changing-role-enforcements-and-privileges")]
+        public IEnumerable<string> Enforcement { get; set; }
+
+        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\", \"add-enforcements\", \"update-enforcements\", \"remove-enforcements\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Role Name or ID")]
         public string Role { get; set; }
 
-        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\": list of User Emails, Team Names, User IDs, or Team UIDs. ")]
+        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\", \"add-users-to-admin-role\" : list of User Emails, Team Names, User IDs, or Team UIDs. ")]
         public IEnumerable<string> Parameters { get; set; }
     }
 

@@ -106,7 +106,7 @@ namespace KeeperSecurity.Configuration
             else
             {
                 var filename = Path.GetFileName(fileName);
-                if (string.IsNullOrEmpty(filename)) 
+                if (string.IsNullOrEmpty(filename))
                 {
                     fileName = Path.Combine(fileName, "config.json");
                 }
@@ -118,8 +118,8 @@ namespace KeeperSecurity.Configuration
                     {
                         fileName = Path.GetFullPath(fileName);
                     }
-                    else 
-                    { 
+                    else
+                    {
                         fileName = Path.GetFileName(fileName);
                     }
                 }
@@ -128,7 +128,7 @@ namespace KeeperSecurity.Configuration
                 {
                     FilePath = fileName;
                 }
-                else 
+                else
                 {
                     var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".keeper");
                     if (!Directory.Exists(personalFolder))
@@ -247,7 +247,8 @@ namespace KeeperSecurity.Configuration
             return new KeeperConfiguration();
         }
 
-        private void DecryptConfiguration(JsonConfiguration configuration) {
+        private void DecryptConfiguration(JsonConfiguration configuration)
+        {
             var algorithm = configuration.security;
 
             if (ConfigurationProtection != null && !string.IsNullOrEmpty(algorithm))
@@ -407,7 +408,7 @@ namespace KeeperSecurity.Configuration
         /// Gets / sets configuration protection factory.
         /// </summary>
         public IConfigurationProtectionFactory ConfigurationProtection { get; set; }
-        
+
         /// <exclude/>
         public bool SkipSecurity { get; set; }
 
@@ -476,10 +477,8 @@ namespace KeeperSecurity.Configuration
                 device_token = userDevConf.DeviceToken;
             }
         }
-
         string IUserDeviceConfiguration.DeviceToken => device_token;
     }
-
 
     [DataContract]
     internal class JsonUserConfiguration : IUserConfiguration, IEntityCopy<IUserConfiguration>, IExtensibleDataObject
