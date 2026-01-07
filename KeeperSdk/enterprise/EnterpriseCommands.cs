@@ -1069,4 +1069,32 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "buttonLabel")]
         public string ButtonLabel { get; set; }
     }
+
+    [DataContract]
+    public class EnterpriseUserUpdatecommand : EnterpriseUserCommand
+    {
+        public EnterpriseUserUpdatecommand() : base("enterprise_user_update")
+        {
+        }
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "encrypted_data", EmitDefaultValue = false)]
+        public string EncryptedData { get; set; }
+
+        [DataMember(Name = "key_type", EmitDefaultValue = false)]
+        public string KeyType { get; set; }
+
+        [DataMember(Name = "enterprise_user_username")]
+        public string EnterpriseUserUsername { get; set; }
+
+        [DataMember(Name = "full_name", EmitDefaultValue = false)]
+        public string FullName { get; set; }
+
+        [DataMember(Name = "job_title", EmitDefaultValue = false)]
+        public string JobTitle { get; set; }
+
+        [DataMember(Name = "invitee_locale", EmitDefaultValue = false)]
+        public string InviteeLocale { get; set; }
+    }
 }

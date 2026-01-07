@@ -647,13 +647,6 @@ namespace KeeperSecurity.Enterprise
         {
             if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
 
-            var rq = new EnterpriseUserUpdateCommand
-            {
-                EnterpriseUserId = enterpriseUser.Id,
-                EnterpriseUserUsername = enterpriseUser.Email,
-                NodeId = nodeId ?? enterpriseUser.ParentNodeId
-            };
-
             EncryptedData encrypted = new EncryptedData();
             if (!string.IsNullOrEmpty(fullName))
             {
@@ -664,14 +657,25 @@ namespace KeeperSecurity.Enterprise
                 encrypted.DisplayName = enterpriseUser.DisplayName;
             }
 
+            var rq = new EnterpriseUserUpdatecommand
+            {
+                EnterpriseUserId = enterpriseUser.Id,
+                EnterpriseUserUsername = enterpriseUser.Email,
+                NodeId = nodeId ?? enterpriseUser.ParentNodeId
+            };
             if (!string.IsNullOrEmpty(jobTitle))
             {
                 rq.JobTitle = jobTitle;
             }
-
+            if (!string.IsNullOrEmpty(inviteeLocale))
+            {
+                rq.InviteeLocale = inviteeLocale;
+            }
             rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
+
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
+
             TryGetUserById(enterpriseUser.Id, out var user);
             return user;
         }
