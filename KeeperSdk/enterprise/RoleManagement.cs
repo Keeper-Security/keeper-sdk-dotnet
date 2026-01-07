@@ -536,49 +536,29 @@ namespace KeeperSecurity.Enterprise
             {
                 var enforcement = kvp.Key;
                 var value = kvp.Value;
+                var enforcementName = enforcement.ToString().ToLowerInvariant();
 
-                var rq = new RoleEnforcementUpdateCommand
+                if (!string.IsNullOrEmpty(value) && bool.TryParse(value, out var boolValue))
                 {
-                    RoleId = role.Id,
-                    Enforcement = enforcement.ToString().ToLowerInvariant(),
-                };
-
-                var rqAddBool = new RoleEnforcementAddCommand
-                {
-                    RoleId = role.Id,
-                    Enforcement = enforcement.ToString().ToLowerInvariant(),
-                };
-
-                var rqRemBool = new RoleEnforcementRemoveCommand
-                {
-                    RoleId = role.Id,
-                    Enforcement = enforcement.ToString().ToLowerInvariant(),
-                };
-
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (bool.TryParse(value, out var boolValue))
-                    {
-                        if (boolValue == true)
-                        {
-                            commands.Add(rqAddBool);
-                        }
-                        else
-                        {
-                            commands.Add(rqRemBool);
-                        }
-                        continue;
-                    }
-                    else if (long.TryParse(value, out var longValue))
-                    {
-                        rq.Value = longValue;
-                    }
-                    else
-                    {
-                        rq.Value = value;
-                    }
+                    commands.Add(boolValue
+                        ? new RoleEnforcementAddCommand { RoleId = role.Id, Enforcement = enforcementName, }
+                        : new RoleEnforcementRemoveCommand { RoleId = role.Id, Enforcement = enforcementName,});
                 }
-                commands.Add(rq);
+                else
+                {
+                    var rq = new RoleEnforcementUpdateCommand
+                    {
+                        RoleId = role.Id,
+                        Enforcement = enforcementName,
+                    };
+
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        rq.Value = long.TryParse(value, out var longValue) ? longValue : value;
+                    }
+
+                    commands.Add(rq);
+                }
             }
 
             var responses = await Enterprise.Auth.ExecuteBatch(commands);
