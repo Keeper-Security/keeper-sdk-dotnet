@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Invited User</returns>
         public async Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null)
         {
+            if (email == null) throw new ArgumentNullException(nameof(email));
+
             var userId = await Enterprise.GetEnterpriseId();
             var rq = new EnterpriseUserAddCommand
             {
@@ -51,8 +54,10 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked) 
+        public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var userId = user.Id;
             var rq = new EnterpriseUserLockCommand
             {
@@ -67,13 +72,14 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task DeleteUser(EnterpriseUser user) 
+        public async Task DeleteUser(EnterpriseUser user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var rq = new EnterpriseUserDeleteCommand
             {
                 EnterpriseUserId = user.Id
             };
-
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
         }
@@ -154,14 +160,14 @@ namespace KeeperSecurity.Enterprise
             };
             if (preRs.RecordKeys != null)
             {
-                var transfered = new List<TransferAndDeleteRecordKey>();
+                var transferred = new List<TransferAndDeleteRecordKey>();
                 var corrupted = new List<PreAccountTransferRecordKey>();
                 foreach (var rk in preRs.RecordKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType);
-                        transfered.Add(new TransferAndDeleteRecordKey
+                        transferred.Add(new TransferAndDeleteRecordKey
                         {
                             RecordUid = rk.RecordUid,
                             RecordKey = kt.Item1.Base64UrlEncode(),
@@ -175,20 +181,20 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.RecordKeys = transfered.ToArray();
+                tdRq.RecordKeys = transferred.ToArray();
                 tdRq.CorruptedRecordKeys = corrupted.ToArray();
             }
 
             if (preRs.SharedFolderKeys != null)
             {
-                var transfered = new List<TransferAndDeleteSharedFolderKey>();
+                var transferred = new List<TransferAndDeleteSharedFolderKey>();
                 var corrupted = new List<PreAccountTransferSharedFolderKey>();
                 foreach (var sfk in preRs.SharedFolderKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType);
-                        transfered.Add(new TransferAndDeleteSharedFolderKey
+                        transferred.Add(new TransferAndDeleteSharedFolderKey
                         {
                             SharedFolderUid = sfk.SharedFolderUid,
                             SharedFolderKey = kt.Item1.Base64UrlEncode(),
@@ -202,20 +208,20 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.SharedFolderKeys = transfered.ToArray();
+                tdRq.SharedFolderKeys = transferred.ToArray();
                 tdRq.CorruptedSharedFolderKeys = corrupted.ToArray();
             }
 
             if (preRs.TeamKeys != null)
             {
-                var transfered = new List<TransferAndDeleteTeamKey>();
+                var transferred = new List<TransferAndDeleteTeamKey>();
                 var corrupted = new List<PreAccountTransferTeamKey>();
                 foreach (var tk in preRs.TeamKeys)
                 {
                     try
                     {
                         var kt = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType);
-                        transfered.Add(new TransferAndDeleteTeamKey
+                        transferred.Add(new TransferAndDeleteTeamKey
                         {
                             TeamUid = tk.TeamUid,
                             TeamKey = kt.Item1.Base64UrlEncode(),
@@ -229,7 +235,7 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
 
-                tdRq.TeamKeys = transfered.ToArray();
+                tdRq.TeamKeys = transferred.ToArray();
                 tdRq.CorruptedTeamKeys = corrupted.ToArray();
             }
 
@@ -292,10 +298,10 @@ namespace KeeperSecurity.Enterprise
 
             return new AccountTransferResult
             {
-                RecordsTransfered = tdRq.RecordKeys?.Length ?? 0,
-                SharedFoldersTransfered = tdRq.SharedFolderKeys?.Length ?? 0,
-                TeamsTransfered = tdRq.TeamKeys?.Length ?? 0,
-                UserFoldersTransfered = tdRq.UserFolderKeys?.Length ?? 0,
+                RecordsTransferred = tdRq.RecordKeys?.Length ?? 0,
+                SharedFoldersTransferred = tdRq.SharedFolderKeys?.Length ?? 0,
+                TeamsTransferred = tdRq.TeamKeys?.Length ?? 0,
+                UserFoldersTransferred = tdRq.UserFolderKeys?.Length ?? 0,
                 RecordsCorrupted = tdRq.CorruptedRecordKeys?.Length ?? 0,
                 SharedFoldersCorrupted = tdRq.CorruptedSharedFolderKeys?.Length ?? 0,
                 TeamsCorrupted = tdRq.CorruptedTeamKeys?.Length ?? 0,
@@ -315,17 +321,15 @@ namespace KeeperSecurity.Enterprise
                         {
                             key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
                         }
-
                         break;
                     case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
                         key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
                         break;
                     case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
-                        if (userRsaKey != null)
+                        if (userEcKey != null)
                         {
                             key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
                         }
-
                         break;
                 }
 
@@ -385,7 +389,6 @@ namespace KeeperSecurity.Enterprise
         public async Task<EnterpriseTeam> UpdateTeam(EnterpriseTeam team)
         {
             if (string.IsNullOrEmpty(team.Uid)) return await CreateTeam(team);
-
             if (!TryGetTeam(team.Uid, out _)) throw new EnterpriseException($"Team UID {team.Uid} not found in enterprise");
 
             var rq = new TeamUpdateCommand
@@ -469,8 +472,6 @@ namespace KeeperSecurity.Enterprise
                 warnings?.Invoke("No teams to add");
                 return;
             }
-
-
             await Enterprise.Auth.LoadUsersKeys(userEmails);
 
             var commands = new List<KeeperApiCommand>();
@@ -560,7 +561,8 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var email in emails)
                 {
-                    if (!TryGetUserByEmail(email, out var user)) {
+                    if (!TryGetUserByEmail(email, out var user))
+                    {
                         warnings?.Invoke($"User \'{email}\' not found");
                         continue;
                     }
@@ -591,6 +593,91 @@ namespace KeeperSecurity.Enterprise
 
                 await Enterprise.Load();
             }
+        }
+
+        public async Task ResendEnterpriseInvite(EnterpriseUser enterpriseUser)
+        {
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+
+            if (enterpriseUser.UserStatus != UserStatus.Inactive)
+            {
+                throw new KeeperApiException("user_accepted_invitation", "User has already accepted invitation.");
+            }
+
+            var rq = new ResendEnterpriseInviteCommand
+            {
+                EnterpriseUserId = enterpriseUser.Id
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task SetMasterPasswordExpire(string email)
+        {
+            if (email == null) throw new ArgumentNullException(nameof(email));
+
+            var rq = new SetMasterPasswordExpireCommand
+            {
+                Email = email
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task TeamEnterpriseUserUpdate(EnterpriseTeam enterpriseTeam, EnterpriseUser enterpriseUser, int userType)
+        {
+            if (enterpriseTeam == null) throw new ArgumentNullException(nameof(enterpriseTeam));
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+            if (userType < 0 || userType > 2) throw new ArgumentException("User type must be 0, 1, or 2");
+
+            var rq = new TeamEnterpriseUserUpdateCommand
+            {
+                TeamUid = enterpriseTeam.Uid,
+                EnterpriseUserId = enterpriseUser.Id,
+                UserType = userType
+            };
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+        }
+
+        public async Task<EnterpriseUser> EnterpriseUserUpdate(EnterpriseUser enterpriseUser, long? nodeId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
+        {
+            if (enterpriseUser == null) throw new ArgumentNullException(nameof(enterpriseUser));
+
+            EncryptedData encrypted = new EncryptedData();
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                encrypted.DisplayName = fullName;
+            }
+            else if (!string.IsNullOrEmpty(enterpriseUser.DisplayName))
+            {
+                encrypted.DisplayName = enterpriseUser.DisplayName;
+            }
+
+            var rq = new EnterpriseUserUpdatecommand
+            {
+                EnterpriseUserId = enterpriseUser.Id,
+                EnterpriseUserUsername = enterpriseUser.Email,
+                NodeId = nodeId ?? enterpriseUser.ParentNodeId
+            };
+            if (!string.IsNullOrEmpty(jobTitle))
+            {
+                rq.JobTitle = jobTitle;
+            }
+            if (!string.IsNullOrEmpty(inviteeLocale))
+            {
+                rq.InviteeLocale = inviteeLocale;
+            }
+            rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
+
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+
+            TryGetUserById(enterpriseUser.Id, out var user);
+            return user;
         }
     }
 }
