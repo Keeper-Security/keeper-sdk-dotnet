@@ -665,6 +665,10 @@ namespace KeeperSecurity.Enterprise
             {
                 rq.JobTitle = jobTitle;
             }
+            if (!string.IsNullOrEmpty(inviteeLocale))
+            {
+                rq.InviteeLocale = inviteeLocale;
+            }
             rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
 
             await Enterprise.Auth.ExecuteAuthCommand(rq);

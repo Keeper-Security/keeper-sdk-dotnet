@@ -387,12 +387,7 @@ namespace Commander
                 var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
                 if (user == null)
                 {
-                    Console.WriteLine($"Enterprise user \"{arguments.User}\" not found");
-                    return;
-                }
-                if (user.UserStatus != UserStatus.Inactive)
-                {
-                    Console.WriteLine($"User {arguments.User} is not inactive");
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
                     return;
                 }
                 try {
@@ -597,7 +592,7 @@ namespace Commander
                 var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
                 if (user == null)
                 {
-                    Console.WriteLine($"Enterprise user \"{arguments.User}\" not found");
+                    Console.WriteLine($"User \"{arguments.User}\" not found");
                     return;
                 }
 
