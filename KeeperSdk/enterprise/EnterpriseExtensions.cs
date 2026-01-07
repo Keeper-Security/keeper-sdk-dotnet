@@ -23,6 +23,7 @@ namespace KeeperSecurity.Enterprise
         private const string CHECK_STATUS_INVALID_DIMENSIONS = "invalid_dimensions";
         private const string CONTENT_TYPE_HEADER = "Content-Type";
         private const long MAX_FILE_SIZE_BYTES = 500000;
+        private const int MAX_UPLOAD_STATUS_RETRIES = 10;
         /// <summary>
         /// Toggles "Node Isolation" flag for enterprise node.
         /// </summary>
@@ -31,11 +32,13 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Awaitable Task</returns>
         public static async Task SetRestrictVisibility(this EnterpriseData enterpriseData, long nodeId)
         {
+            if(nodeId == 0) throw new ArgumentNullException("nodeId is required.");
+            enterpriseData.TryGetNode(nodeId, out var node);
+
             var rq = new SetRestrictVisibilityRequest
             {
                 NodeId = nodeId
             };
-            enterpriseData.TryGetNode(nodeId, out var node);
             await enterpriseData.Enterprise.Auth.ExecuteAuthRest("enterprise/set_restrict_visibility", rq);
             if (node != null)
             {
@@ -69,15 +72,9 @@ namespace KeeperSecurity.Enterprise
                 rq.ParentId = parentNode.Id;
             }
             await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
-            var node = new EnterpriseNode
-            {
-                Id = nodeId,
-                DisplayName = nodeName,
-                ParentNodeId = parentNode.Id,
-            };
 
             await enterpriseData.Enterprise.Load();
-
+            enterpriseData.TryGetNode(nodeId, out var node);
             return node;
         }
 
@@ -182,6 +179,19 @@ namespace KeeperSecurity.Enterprise
         /// <param name="logoType">Logo Type (e.g., "enterprise", "email")</param>
         /// <param name="filePath">Path to the logo image file</param>
         /// <returns>Awaitable task returning the upload response with logo path and status</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when <paramref name="enterpriseData"/>, <paramref name="logoType"/>, or <paramref name="filePath"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown when the file type is not supported or the file size exceeds the allowed limit.
+        /// </exception>
+        /// <exception cref="FileNotFoundException">
+        /// Thrown when the file specified by <paramref name="filePath"/> does not exist.
+        /// </exception>
+        /// <exception cref="IOException">
+        /// Thrown when an I/O error occurs during file upload.
+        /// </exception>
+
         public static async Task<CheckEnterpriseCustomLogoUploadResponse> UploadEnterpriseCustomLogo(this EnterpriseData enterpriseData, long nodeId, string logoType, string filePath)
         {
             if (string.IsNullOrEmpty(logoType)) throw new ArgumentNullException(nameof(logoType));
@@ -242,13 +252,15 @@ namespace KeeperSecurity.Enterprise
                 UploadId = uploadParams.UploadId
             };
 
-            while (true)
+            var retryCount = 0;
+            while (retryCount < MAX_UPLOAD_STATUS_RETRIES)
             {
                 var checkResponse = await enterpriseData.Enterprise.Auth.ExecuteAuthCommand<CheckEnterpriseCustomLogoUploadCommand, CheckEnterpriseCustomLogoUploadResponse>(checkRq);
                 var checkStatus = checkResponse.Status?.ToLowerInvariant();
 
                 if (checkStatus == CHECK_STATUS_PENDING)
                 {
+                    retryCount++;
                     await Task.Delay(2000);
                 }
                 else
@@ -271,6 +283,7 @@ namespace KeeperSecurity.Enterprise
                     }
                 }
             }
+            throw new TimeoutException($"Logo upload verification timed out after {MAX_UPLOAD_STATUS_RETRIES * 2} seconds. The upload may still be processing on the server.");
         }
     }
 }
