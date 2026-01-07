@@ -2820,22 +2820,22 @@
             Defines Transfer Account Result properties
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.RecordsTransfered">
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.RecordsTransferred">
             <summary>
             Number of records
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.SharedFoldersTransfered">
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.SharedFoldersTransferred">
             <summary>
             Number of shared folders
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.TeamsTransfered">
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.TeamsTransferred">
             <summary>
             Number of teams
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.UserFoldersTransfered">
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.UserFoldersTransferred">
             <summary>
             Number of user folders
             </summary>

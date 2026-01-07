@@ -631,10 +631,10 @@ namespace Commander
             };
 
             tab.SetColumnRightAlign(0, true);
-            tab.AddRow("Successfully Transfered  ", "");
-            tab.AddRow("Records:", result.RecordsTransfered);
-            tab.AddRow("Shared Folders:", result.SharedFoldersTransfered);
-            tab.AddRow("Teams:", result.TeamsTransfered);
+            tab.AddRow("Successfully Transferred  ", "");
+            tab.AddRow("Records:", result.RecordsTransferred);
+            tab.AddRow("Shared Folders:", result.SharedFoldersTransferred);
+            tab.AddRow("Teams:", result.TeamsTransferred);
             if (result.RecordsCorrupted > 0 || result.SharedFoldersCorrupted > 0 || result.TeamsCorrupted > 0)
             {
                 tab.AddRow("Failed to Transfer       ", "");
@@ -776,6 +776,162 @@ namespace Commander
 
         private static string[] _privilegeNames = new string[] { "MANAGE_NODES", "MANAGE_USER", "MANAGE_ROLES", "MANAGE_TEAMS", "RUN_REPORTS", "MANAGE_BRIDGE", "APPROVE_DEVICE", "TRANSFER_ACCOUNT" };
 
+        // Command name constants
+        private const string CMD_MANAGED_NODE_ADD = "managed-node-add";
+        private const string CMD_MANAGED_NODE_UPDATE = "managed-node-update";
+        private const string CMD_MANAGED_NODE_DELETE = "managed-node-delete";
+        private const string CMD_ADD_PRIVILEGES = "add-privileges";
+        private const string CMD_REMOVE_PRIVILEGES = "remove-privileges";
+        private const string CMD_ADD_ENFORCEMENTS = "add-enforcements";
+        private const string CMD_UPDATE_ENFORCEMENTS = "update-enforcements";
+        private const string CMD_REMOVE_ENFORCEMENTS = "remove-enforcements";
+
+        private static string GetNodeDisplayName(EnterpriseNode node)
+        {
+            return string.IsNullOrEmpty(node.DisplayName) ? node.Id.ToString() : node.DisplayName;
+        }
+
+        private static bool TryResolveNode(EnterpriseData enterpriseData, string nodeToFind, out EnterpriseNode node, out string errorMessage)
+        {
+            node = null;
+            errorMessage = null;
+
+            if (string.IsNullOrEmpty(nodeToFind))
+            {
+                errorMessage = "Node parameter is required.";
+                return false;
+            }
+
+            if (long.TryParse(nodeToFind, out var nodeId))
+            {
+                enterpriseData.TryGetNode(nodeId, out node);
+            }
+
+            if (node == null)
+            {
+                var nodes = enterpriseData.Nodes
+                    .Where(x => string.Equals(x.DisplayName, nodeToFind, StringComparison.InvariantCultureIgnoreCase))
+                    .ToArray();
+
+                if (nodes.Length == 1)
+                {
+                    node = nodes[0];
+                }
+                else if (nodes.Length > 1)
+                {
+                    errorMessage = $"More than one node with name \"{nodeToFind}\" found. Use Node ID.";
+                    return false;
+                }
+            }
+
+            if (node == null)
+            {
+                errorMessage = $"Node \"{nodeToFind}\" not found.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static Dictionary<RoleEnforcementPolicies, string> ParseEnforcements(
+            IEnumerable<string> enforcementInputs,
+            out List<RoleEnforcementPolicies> enforcementKeys,
+            out List<string> invalidEnforcements)
+        {
+            var enforcementDict = new Dictionary<RoleEnforcementPolicies, string>();
+            enforcementKeys = new List<RoleEnforcementPolicies>();
+            invalidEnforcements = new List<string>();
+
+            foreach (var item in enforcementInputs)
+            {
+                var parts = item.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var part in parts)
+                {
+                    var trimmedPart = part.Trim();
+                    if (string.IsNullOrEmpty(trimmedPart)) continue;
+
+                    var separatorIndex = trimmedPart.IndexOf('=');
+                    if (separatorIndex < 0)
+                    {
+                        separatorIndex = trimmedPart.IndexOf(':');
+                    }
+
+                    string key;
+                    string value = null;
+
+                    if (separatorIndex > 0)
+                    {
+                        key = trimmedPart.Substring(0, separatorIndex).Trim();
+                        value = trimmedPart.Substring(separatorIndex + 1).Trim();
+                    }
+                    else
+                    {
+                        key = trimmedPart;
+                    }
+
+                    if (Enum.TryParse<RoleEnforcementPolicies>(key, true, out var enforcementPolicy))
+                    {
+                        enforcementDict[enforcementPolicy] = value;
+                        enforcementKeys.Add(enforcementPolicy);
+                    }
+                    else
+                    {
+                        invalidEnforcements.Add(key);
+                    }
+                }
+            }
+
+            return enforcementDict;
+        }
+        
+        private static void PrintPrivilegeBatchResponses(
+            IList<KeeperApiResponse> responses,
+            IList<RoleManagedNodePrivilege> privileges)
+        {
+            for (int i = 0; i < responses.Count; i++)
+            {
+                var response = responses[i];
+                var privilege = privileges[i];
+                if (response.IsSuccess)
+                {
+                    Console.WriteLine($"Command: {response.command}, Privilege: {privilege}, Result: {response.result}");
+                }
+                else
+                {
+                    Console.WriteLine($"Command: {response.command}, Privilege: {privilege}, Result: {response.result}, Code: {response.resultCode}, Message: {response.message}");
+                }
+            }
+        }
+
+        private static void PrintEnforcementBatchResponses(
+            IList<KeeperApiResponse> responses,
+            IList<RoleEnforcementPolicies> enforcementKeys,
+            Dictionary<RoleEnforcementPolicies, string> enforcementDict,
+            bool includeValue = true)
+        {
+            for (int i = 0; i < responses.Count; i++)
+            {
+                var response = responses[i];
+                var enforcementKey = enforcementKeys[i];
+                if (response.IsSuccess)
+                {
+                    if (includeValue && enforcementDict.TryGetValue(enforcementKey, out var value) && value != null)
+                    {
+                        Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}={value}, Result: {response.result}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}, Result: {response.result}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Command: {response.command}, Enforcement: {enforcementKey}, Result: {response.result}, Code: {response.resultCode}, Message: {response.message}");
+                }
+            }
+        }
+
         public static async Task EnterpriseRoleCommand(this RoleData roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
         {
             if (arguments.Force)
@@ -817,7 +973,7 @@ namespace Commander
                 }
                 if (roles.Length == 0)
                 {
-                    Console.WriteLine($"Role \"{arguments.Role ?? ""}\" not found");
+                    Console.WriteLine($"Role \"{arguments.Role ?? ""}\" not found.");
                     return;
                 }
                 {
@@ -928,7 +1084,7 @@ namespace Commander
                         {
                             if (nodes.Length == 0)
                             {
-                                Console.WriteLine($"Node \"{arguments.Node}\" not found");
+                                Console.WriteLine($"Node \"{arguments.Node}\" not found.");
                             }
                             else
                             {
@@ -952,7 +1108,7 @@ namespace Commander
             {
                 if (roles.Length == 0)
                 {
-                    Console.WriteLine($"Role \"{arguments.Role}\" not found");
+                    Console.WriteLine($"Role \"{arguments.Role}\" not found.");
                 }
                 else
                 {
@@ -1088,9 +1244,183 @@ namespace Commander
                 }
                 return;
             }
+            
+            var managedNodeCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_MANAGED_NODE_ADD, CMD_MANAGED_NODE_UPDATE, CMD_MANAGED_NODE_DELETE };
+            if (managedNodeCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+
+                if (!TryResolveNode(enterpriseData, arguments.Node, out var node, out var errorMessage))
+                {
+                    Console.WriteLine(errorMessage);
+                    return;
+                }
+
+                try
+                {
+                    switch (arguments.Command)
+                    {
+                        case CMD_MANAGED_NODE_ADD:
+                            await roleData.RoleManagedNodeAdd(role, node, arguments.Cascade);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" added to role \"{role.DisplayName}\" successfully.");
+                            break;
+                        case CMD_MANAGED_NODE_UPDATE:
+                            await roleData.RoleManagedNodeUpdate(role, node, arguments.Cascade);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" updated for role \"{role.DisplayName}\" successfully.");
+                            break;
+                        case CMD_MANAGED_NODE_DELETE:
+                            await roleData.RoleManagedNodeRemove(role, node);
+                            Console.WriteLine($"Managed node \"{GetNodeDisplayName(node)}\" deleted from role \"{role.DisplayName}\" successfully.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_MANAGED_NODE_ADD ? "add" : 
+                                 arguments.Command == CMD_MANAGED_NODE_UPDATE ? "update" : "delete";
+                    Console.WriteLine($"Failed to {action} managed node: {ex.Message}");
+                }
+                return;
+            }
+
+            var privilegeCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_ADD_PRIVILEGES, CMD_REMOVE_PRIVILEGES };
+            if (privilegeCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+
+                if (!TryResolveNode(enterpriseData, arguments.Node, out var node, out var errorMessage))
+                {
+                    Console.WriteLine(errorMessage);
+                    return;
+                }
+
+                var managedNode = roleData.GetManagedNodes().FirstOrDefault(x => x.RoleId == role.Id && x.ManagedNodeId == node.Id);
+                if (managedNode == null)
+                {
+                    Console.WriteLine($"Role \"{role.DisplayName}\" does not have node \"{GetNodeDisplayName(node)}\" as a managed node. Use \"{CMD_MANAGED_NODE_ADD}\" first.");
+                    return;
+                }
+
+                if (arguments.Privileges == null || !arguments.Privileges.Any())
+                {
+                    Console.WriteLine("Privileges parameter is required. Format: --privileges \"PRIVILEGE1,PRIVILEGE2\"");
+                    return;
+                }
+
+                var privilegeList = new List<RoleManagedNodePrivilege>();
+                var invalidPrivileges = new List<string>();
+                foreach (var priv in arguments.Privileges)
+                {
+                    if (Enum.TryParse<RoleManagedNodePrivilege>(priv, true, out var privilege))
+                    {
+                        privilegeList.Add(privilege);
+                    }
+                    else
+                    {
+                        invalidPrivileges.Add(priv);
+                    }
+                }
+
+                if (invalidPrivileges.Count > 0)
+                {
+                    Console.WriteLine($"Invalid privileges: {string.Join(", ", invalidPrivileges)}. Valid values: {string.Join(", ", Enum.GetNames(typeof(RoleManagedNodePrivilege)))}");
+                    return;
+                }
+
+                if (privilegeList.Count == 0)
+                {
+                    Console.WriteLine("No valid privileges specified.");
+                    return;
+                }
+
+                try {
+                    switch (arguments.Command)
+                    {
+                        case CMD_ADD_PRIVILEGES:
+                            var responses = await roleData.RoleManagedNodePrivilegeAddBatch(role, node, privilegeList);
+                            PrintPrivilegeBatchResponses(responses, privilegeList);
+                            break;
+                        case CMD_REMOVE_PRIVILEGES:
+                            var responses1 = await roleData.RoleManagedNodePrivilegeRemoveBatch(role, node, privilegeList);
+                            PrintPrivilegeBatchResponses(responses1, privilegeList);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_ADD_PRIVILEGES ? "add" : "remove";
+                    Console.WriteLine($"Failed to {action} privileges: {ex.Message}");
+                }
+                return;
+            }
+
+            var enforcementCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { CMD_ADD_ENFORCEMENTS, CMD_UPDATE_ENFORCEMENTS, CMD_REMOVE_ENFORCEMENTS };
+            if (enforcementCommands.Contains(arguments.Command))
+            {
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return;
+                }
+        
+                if (arguments.Enforcement == null || !arguments.Enforcement.Any())
+                {
+                    Console.WriteLine("Enforcement parameter is required. Format: --enforcement \"KEY=value;KEY2=value2\" (semicolon or comma separated).");
+                    return;
+                }
+
+                // Parse enforcements using helper method
+                var enforcementDict = ParseEnforcements(arguments.Enforcement, out var enforcementKeys, out var invalidEnforcements);
+
+                if (invalidEnforcements.Count > 0)
+                {
+                    Console.WriteLine($"Invalid enforcements: {string.Join(", ", invalidEnforcements)}. Valid values: {string.Join(", ", Enum.GetNames(typeof(RoleEnforcementPolicies)))}");
+                    return;
+                }
+
+                if (enforcementKeys.Count == 0)
+                {
+                    Console.WriteLine("No valid enforcements specified.");
+                    return;
+                }
+
+                try
+                {
+                    switch (arguments.Command)
+                    {
+                        case CMD_ADD_ENFORCEMENTS:
+                            var responses = await roleData.RoleEnforcementAddBatch(role, enforcementDict);
+                            PrintEnforcementBatchResponses(responses, enforcementKeys, enforcementDict, includeValue: true);
+                            break;
+                        case CMD_UPDATE_ENFORCEMENTS:
+                            var responses1 = await roleData.RoleEnforcementUpdateBatch(role, enforcementDict);
+                            PrintEnforcementBatchResponses(responses1, enforcementKeys, enforcementDict, includeValue: true);
+                            break;
+                        case CMD_REMOVE_ENFORCEMENTS:
+                            var responses2 = await roleData.RoleEnforcementRemoveBatch(role, enforcementKeys);
+                            PrintEnforcementBatchResponses(responses2, enforcementKeys, enforcementDict, includeValue: false);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var action = arguments.Command == CMD_ADD_ENFORCEMENTS ? "add" :
+                                 arguments.Command == CMD_UPDATE_ENFORCEMENTS ? "update" : "remove";
+                    Console.WriteLine($"Failed to {action} enforcements: {ex.Message}");
+                }
+                return;
+            }
 
             var cmds = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            cmds.UnionWith(new[] { "add-members", "remove-members" });
+            cmds.UnionWith(new[] { "add-members", "remove-members", "add-users-to-admin-role" });
             if (cmds.Contains(arguments.Command))
             {
                 var users = new Dictionary<long, KeeperSecurity.Enterprise.EnterpriseUser>();
@@ -1138,7 +1468,7 @@ namespace Commander
                 }
 
                 var isAdd = string.Equals(arguments.Command, "add-members");
-                Console.WriteLine($"{(isAdd ? "Addding members to" : "Removing members from")} role \"{role.DisplayName}\"");
+                Console.WriteLine($"{(isAdd ? "Addding members to" : string.Equals(arguments.Command, "add-users-to-admin-role") ? "Adding users to admin role" : "Removing members from")} role \"{role.DisplayName}\"");
                 foreach (var user in users.Values) {
                     try
                     {
@@ -1146,6 +1476,10 @@ namespace Commander
                         if (isAdd)
                         {
                             await roleData.AddUserToRole(role, user);
+                        }
+                        else if (string.Equals(arguments.Command, "add-users-to-admin-role"))
+                        {
+                            await roleData.AddUserToAdminRole(role, user);
                         }
                         else
                         {
@@ -2362,7 +2696,7 @@ namespace Commander
 
     class EnterpriseRoleOptions : EnterpriseGenericOptions
     {
-        [Option("node", Required = false, HelpText = "Node Name or ID. \"add\"")]
+        [Option("node", Required = false, HelpText = "Node Name or ID. \"add\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\"")]
         public string Node { get; set; }
 
         [Option('n', "new-user", Required = false, Default = false, HelpText = "New users automatically get this role assigned. \"add\", \"update\"")]
@@ -2374,13 +2708,22 @@ namespace Commander
         [Option("new-role-name", Required = false, HelpText = "New role display name. \"update\"")]
         public string NewRoleName { get; set; }
 
-        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\"")]
+        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"managed-node-add\", \"managed-node-update\"")]
+        public bool Cascade { get; set; }
+
+        [Option("privileges", Required = false, Separator = ',', HelpText = "Comma-separated list of privileges. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS")]
+        public IEnumerable<string> Privileges { get; set; }
+
+        [Option("enforcements", Required = false, Separator = ';', HelpText = "Semicolon or comma-separated list of enforcements: KEY=value; KEY2=value2 or KEY=value,KEY2=value2 (values can contain commas). For remove operations, use KEY only (no value). Possible parameters are provided at https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#changing-role-enforcements-and-privileges")]
+        public IEnumerable<string> Enforcement { get; set; }
+
+        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\", \"add-enforcements\", \"update-enforcements\", \"remove-enforcements\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Role Name or ID")]
         public string Role { get; set; }
 
-        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\": list of User Emails, Team Names, User IDs, or Team UIDs. ")]
+        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\", \"add-users-to-admin-role\" : list of User Emails, Team Names, User IDs, or Team UIDs. ")]
         public IEnumerable<string> Parameters { get; set; }
     }
 
