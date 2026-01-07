@@ -56,19 +56,19 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Number of records
         /// </summary>
-        public int RecordsTransfered { get; internal set; }
+        public int RecordsTransferred { get; internal set; }
         /// <summary>
         /// Number of shared folders
         /// </summary>
-        public int SharedFoldersTransfered { get; internal set; }
+        public int SharedFoldersTransferred { get; internal set; }
         /// <summary>
         /// Number of teams
         /// </summary>
-        public int TeamsTransfered { get; internal set; }
+        public int TeamsTransferred { get; internal set; }
         /// <summary>
         /// Number of user folders
         /// </summary>
-        public int UserFoldersTransfered { get; internal set; }
+        public int UserFoldersTransferred { get; internal set; }
 
         /// <summary>
         /// Number of corrupted records
