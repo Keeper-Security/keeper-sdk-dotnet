@@ -213,8 +213,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "user_folder_keys", EmitDefaultValue = false)]
         public TransferAndDeleteUserFolderKey[] UserFolderKeys { get; set; }
+        
 
-        [DataMember(Name = "corrupted_record_keys", EmitDefaultValue = false)]
+        [DataMember(Name = "corrupted_record_keys")]
         public PreAccountTransferRecordKey[] CorruptedRecordKeys { get; set; }
         [DataMember(Name = "corrupted_shared_folder_keys")]
         public PreAccountTransferSharedFolderKey[] CorruptedSharedFolderKeys { get; set; }
@@ -403,6 +404,7 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "ecc_private_key")]
         public string EccPrivateKey { get; set; }
+        
     }
 
     [DataContract]
@@ -490,8 +492,8 @@ namespace KeeperSecurity.Commands
         {
         }
 
-        [DataMember(Name = "value", EmitDefaultValue = false)]
-        public object Value { get; set; }
+        [DataMember(Name = "value")]
+        public string Value { get; set; }
     }
 
     [DataContract]
@@ -501,8 +503,8 @@ namespace KeeperSecurity.Commands
         {
         }
 
-        [DataMember(Name = "value", EmitDefaultValue = false)]
-        public object Value { get; set; }
+        [DataMember(Name = "value")]
+        public string Value { get; set; }
     }
 
     [DataContract]
@@ -541,18 +543,11 @@ namespace KeeperSecurity.Commands
         public RoleUserAddCommand() : base("role_user_add")
         {
         }
-
         [DataMember(Name = "tree_key", EmitDefaultValue = false)]
         public string TreeKey { get; set; }
 
         [DataMember(Name = "role_admin_key", EmitDefaultValue = false)]
         public string RoleAdminKey { get; set; }
-
-        [DataMember(Name = "tree_key_type", EmitDefaultValue = false)]
-        public string TreeKeyType { get; set; }
-
-        [DataMember(Name = "role_admin_key_type", EmitDefaultValue = false)]
-        public string RoleAdminKeyType { get; set; }
     }
 
     [DataContract]
@@ -727,148 +722,6 @@ namespace KeeperSecurity.Commands
         public long AccountShareExpiration { get; set; }
     }
 
-
-    [DataContract]
-    public class RoleManagedNodeTreeKey
-    {
-        [DataMember(Name = "enterprise_user_id")]
-        public long EnterpriseUserId { get; set; }
-
-        [DataMember(Name = "tree_key")]
-        public string TreeKey { get; set; }
-
-        [DataMember(Name = "tree_key_type", EmitDefaultValue = false)]
-        public string TreeKeyType { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNode : AuthenticatedCommand
-    {
-        public RoleManagedNode(string command) : base(command)
-        {
-        }
-
-        [DataMember(Name = "role_id")]
-        public long RoleId { get; set; }
-
-        [DataMember(Name = "managed_node_id")]
-        public long ManagedNodeId { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNodeAddCommand : RoleManagedNode
-    {
-        public RoleManagedNodeAddCommand() : base("role_managed_node_add")
-        {
-        }
-
-        [DataMember(Name = "cascade_node_management")]
-        public bool CascadeNodeManagement { get; set; }
-
-        [DataMember(Name = "tree_keys", EmitDefaultValue = false)]
-        public RoleManagedNodeTreeKey[] TreeKeys { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNodeUpdateCommand : RoleManagedNode
-    {
-        public RoleManagedNodeUpdateCommand() : base("role_managed_node_update")
-        {
-        }
-
-        [DataMember(Name = "cascade_node_management")]
-        public bool CascadeNodeManagement { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNodeRemoveCommand : RoleManagedNode
-    {
-        public RoleManagedNodeRemoveCommand() : base("role_managed_node_remove")
-        {
-        }
-    }
-
-
-    [DataContract]
-    public class ManagedNodeRoleKey
-    {
-        [DataMember(Name = "enterprise_user_id")]
-        public long EnterpriseUserId { get; set; }
-
-        [DataMember(Name = "role_key")]
-        public string RoleKey { get; set; }
-
-        [DataMember(Name = "tree_key_type", EmitDefaultValue = false)]
-        public string TreeKeyType { get; set; }
-    }
-
-
-    [DataContract]
-    public class ManagedNodeMspKey
-    {
-        [DataMember(Name = "mc_enterprise_id")]
-        public int McEnterpriseId { get; set; }
-
-        [DataMember(Name = "tree_key")]
-        public string TreeKey { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNodePrivilegeAddCommand : AuthenticatedCommand
-    {
-        public RoleManagedNodePrivilegeAddCommand() : base("managed_node_privilege_add")
-        {
-        }
-
-        [DataMember(Name = "role_id")]
-        public long RoleId { get; set; }
-
-        [DataMember(Name = "managed_node_id")]
-        public long ManagedNodeId { get; set; }
-
-        [DataMember(Name = "privilege")]
-        public string Privilege { get; set; }
-
-        [DataMember(Name = "role_public_key", EmitDefaultValue = false)]
-        public string RolePublicKey { get; set; }
-
-        [DataMember(Name = "role_private_key", EmitDefaultValue = false)]
-        public string RolePrivateKey { get; set; }
-
-        [DataMember(Name = "role_key_enc_with_tree_key", EmitDefaultValue = false)]
-        public string RoleKeyEncryptedWithTreeKey { get; set; }
-
-        [DataMember(Name = "role_keys", EmitDefaultValue = false)]
-        public ManagedNodeRoleKey[] RoleKeys { get; set; }
-
-        [DataMember(Name = "msp_keys", EmitDefaultValue = false)]
-        public ManagedNodeMspKey[] MspKeys { get; set; }
-    }
-
-
-    [DataContract]
-    public class RoleManagedNodePrivilegeRemoveCommand : AuthenticatedCommand
-    {
-        public RoleManagedNodePrivilegeRemoveCommand() : base("managed_node_privilege_remove")
-        {
-        }
-
-        [DataMember(Name = "role_id")]
-        public long RoleId { get; set; }
-
-        [DataMember(Name = "managed_node_id")]
-        public long ManagedNodeId { get; set; }
-
-        [DataMember(Name = "privilege")]
-        public string Privilege { get; set; }
-    }
-
-
     [DataContract]
     public class ResendEnterpriseInviteCommand : AuthenticatedCommand
     {
@@ -879,7 +732,6 @@ namespace KeeperSecurity.Commands
         public long EnterpriseUserId { get; set; }
     }
 
-
     [DataContract]
     public class SetMasterPasswordExpireCommand : AuthenticatedCommand
     {
@@ -889,7 +741,6 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "email")]
         public string Email { get; set; }
     }
-
 
     [DataContract]
     public class TeamEnterpriseUserUpdateCommand : AuthenticatedCommand
@@ -908,9 +759,9 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    public class EnterpriseUserUpdateCommand : EnterpriseUserCommand
+    public class EnterpriseUserUpdatecommand : EnterpriseUserCommand
     {
-        public EnterpriseUserUpdateCommand() : base("enterprise_user_update")
+        public EnterpriseUserUpdatecommand() : base("enterprise_user_update")
         {
         }
         [DataMember(Name = "node_id")]
@@ -933,62 +784,5 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "invitee_locale", EmitDefaultValue = false)]
         public string InviteeLocale { get; set; }
-    }
-
-
-    [DataContract]
-    public class SetEnterpriseCustomEmailCommand : AuthenticatedCommand
-    {
-        public SetEnterpriseCustomEmailCommand(string command) : base(command)
-        {
-        }
-        [DataMember(Name = "node_id")]
-        public long NodeId { get; set; }
-    }
-
-    [DataContract]
-    public class SetEnterpriseCustomInvitationCommand : SetEnterpriseCustomEmailCommand
-    {
-        public SetEnterpriseCustomInvitationCommand() : base("set_enterprise_custom_invitation")
-        {
-        }
-        [DataMember(Name = "subject")]
-        public string Subject { get; set; }
-
-        [DataMember(Name = "header")]
-        public string Header { get; set; }
-
-        [DataMember(Name = "body")]
-        public string Body { get; set; }
-
-        [DataMember(Name = "button_label")]
-        public string ButtonLabel { get; set; }
-    }
-
-    [DataContract]
-    public class GetEnterpriseCustomInvitationCommand : SetEnterpriseCustomEmailCommand
-    {
-        public GetEnterpriseCustomInvitationCommand() : base("get_enterprise_custom_invitation")
-        {
-        }
-    }
-
-    [DataContract]
-    public class GetEnterpriseCustomInvitationResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "subject")]
-        public string Subject { get; set; }
-
-        [DataMember(Name = "header")]
-        public string Header { get; set; }
-
-        [DataMember(Name = "body")]
-        public string Body { get; set; }
-
-        [DataMember(Name = "button_label")]
-        public string ButtonLabel { get; set; }
-
-        [DataMember(Name = "logo_path", EmitDefaultValue = false)]
-        public string LogoPath { get; set; }
     }
 }
