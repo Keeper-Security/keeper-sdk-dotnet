@@ -293,6 +293,44 @@ namespace Commander
                         await enterpriseData.DeleteNode(node.Id);
                         Console.WriteLine($"Node \"{node.DisplayName}\" deleted.");
                         break;
+                    
+                    case "set-custom-invitation":
+                        if (string.IsNullOrEmpty(arguments.JsonFilePath))
+                        {
+                            Console.WriteLine("JSON file path parameter is mandatory.");
+                            return;
+                        }
+
+                        await enterpriseData.SetEnterpriseCustomInvitation(node.Id, arguments.JsonFilePath);
+                        Console.WriteLine($"Custom invitation set for node \"{node.DisplayName}\"");
+                        break;
+
+                    case "get-custom-invitation":
+                        var invitation = await enterpriseData.GetEnterpriseCustomInvitation(node.Id);
+                        Console.WriteLine($"Custom invitation for node \"{node.DisplayName}\":");
+                        Console.WriteLine($"Subject: {invitation.Subject}");
+                        Console.WriteLine($"Header: {invitation.Header}");
+                        Console.WriteLine($"Body: {invitation.Body}"); 
+                        Console.WriteLine($"Button Label: {invitation.ButtonLabel}");
+                        break;
+
+                    case "upload-custom-logo":
+                        if (string.IsNullOrEmpty(arguments.LogoType))
+                        {
+                            Console.WriteLine("Logo type parameter is mandatory.");
+                            return;
+                        }
+                        if (string.IsNullOrEmpty(arguments.LogoPath))
+                        {
+                            Console.WriteLine("Logo path parameter is mandatory.");
+                            return;
+                        }
+                        
+                        var logoResponse = await enterpriseData.UploadEnterpriseCustomLogo(node.Id, arguments.LogoType, arguments.LogoPath);
+                        Console.WriteLine($"Custom logo uploaded for node \"{node.DisplayName}\"");
+                        Console.WriteLine($"Logo status: {logoResponse.Status}");
+                        Console.WriteLine($"Logo path: {logoResponse.LogoPath}");
+                        break;
 
                     default:
                         Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
@@ -2617,10 +2655,10 @@ namespace Commander
 
     class EnterpriseNodeOptions : EnterpriseGenericOptions
     {
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete]\" <Node name or ID>")]
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]\" <Node name or ID>")]
         public string Node { get; set; }
 
-        [Option("command", Required = false, HelpText = "[tree, add, update, delete]")]
+        [Option("command", Required = false, HelpText = "[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]")]
         public string Command { get; set; }
 
         [Option("parent", Required = false, HelpText = "parent node name or ID")]
@@ -2634,6 +2672,15 @@ namespace Commander
 
         [Option("toggle-isolated", Required = false, HelpText = "toggle node isolation flag")]
         public bool RestrictVisibility { get; set; }
+
+        [Option("json-file-path", Required = false, HelpText = "Path to JSON file containing invitation template")]
+        public string JsonFilePath { get; set; }
+
+        [Option("logo-type", Required = false, HelpText = "Custom logo type")]
+        public string LogoType { get; set; }
+
+        [Option("logo-path", Required = false, HelpText = "Custom logo path")]
+        public string LogoPath { get; set; }
     }
 
     class EnterpriseUserOptions : EnterpriseGenericOptions
