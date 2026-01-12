@@ -50,7 +50,7 @@ namespace Commander.Enterprise
 
     internal static class ActionReportCommandExtensions
     {
-        public static async Task ActionReportCommand(this IEnterpriseContext context, ActionReportCommandOptions options)
+        public static async Task ActionReportCommand(this IEnterpriseContext context, ActionReportCommandOptions options, InputManager inputManager)
         {
             if (options.SyntaxHelp)
             {
@@ -91,10 +91,28 @@ namespace Commander.Enterprise
 
             void Logger(string message) => Console.WriteLine(message);
 
+            bool isDestructive = adminAction == ActionReportAdminAction.Lock || 
+                                 adminAction == ActionReportAdminAction.Delete || 
+                                 adminAction == ActionReportAdminAction.Transfer;
+            
+            if (isDestructive && !options.Force)
+            {
+                Console.WriteLine();
+                Console.Write($"Do you want to proceed with {adminAction.ToString().ToLower()} these users? (y/n): ");
+                var response = await inputManager.ReadLine();
+                response = response?.Trim().ToLower();
+                if (response != "y" && response != "yes")
+                {
+                    Console.WriteLine("Action report and action cancelled.");
+                    return;
+                }
+            }
+
             var result = await context.EnterpriseData.RunActionReport(
                 context.Enterprise.Auth,
                 reportOptions,
-                Logger);
+                Logger,
+                context.RoleManagement);
 
             if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
@@ -234,6 +252,12 @@ namespace Commander.Enterprise
                 { "status", new ColumnDefinition("Status", u => u.Status.ToString()) },
                 { "transfer_status", new ColumnDefinition("Transfer Status", u => u.TransferStatus ?? "") },
                 { "node", new ColumnDefinition("Node", u => u.NodePath ?? "") },
+                { "2fa_enabled", new ColumnDefinition("2FA Enabled", u => u.TwoFactorEnabled.ToString()) },
+                { "team_count", new ColumnDefinition("Team Count", u => u.TeamCount.ToString()) },
+                { "teams", new ColumnDefinition("Teams", u => string.Join(", ", u.Teams ?? new List<string>())) },
+                { "role_count", new ColumnDefinition("Role Count", u => u.RoleCount.ToString()) },
+                { "roles", new ColumnDefinition("Roles", u => string.Join(", ", u.Roles ?? new List<string>())) },
+                { "alias", new ColumnDefinition("Alias", u => u.Alias ?? "") },
             };
 
             var defaultColumns = new[] { "user_id", "email", "name", "status", "transfer_status", "node" };

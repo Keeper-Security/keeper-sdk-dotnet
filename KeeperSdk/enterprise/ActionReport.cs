@@ -99,6 +99,18 @@ namespace KeeperSecurity.Enterprise
         public long NodeId { get; set; }
         /// <summary>Node path</summary>
         public string NodePath { get; set; }
+        /// <summary>2FA enabled</summary>
+        public bool TwoFactorEnabled { get; set; }
+        ///<summary>TeamCount</summary>
+        public int TeamCount { get; set; }
+        ///<summary>teams</summary>
+        public List<string> Teams { get; set; }
+        ///<summary>Role count</summary>
+        public int RoleCount { get; set; }
+        ///<summary>Roles</summary>
+        public List<string> Roles { get; set; }
+        ///<summary>alias</summary>
+        public string Alias { get; set; }
     }
 
     /// <summary>
@@ -206,11 +218,17 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Runs the action report and returns users matching the criteria
         /// </summary>
+        /// <param name="enterpriseData">Enterprise data</param>
+        /// <param name="auth">Authentication context</param>
+        /// <param name="options">Report options</param>
+        /// <param name="logger">Optional logger callback</param>
+        /// <param name="roleData">Role data (required for transfer action)</param>
         public static async Task<ActionReportResult> RunActionReport(
             this EnterpriseData enterpriseData,
             IAuthentication auth,
             ActionReportOptions options,
-            Action<string> logger = null)
+            Action<string> logger = null,
+            IRoleData roleData = null)
         {
             var result = new ActionReportResult();
             
@@ -327,8 +345,82 @@ namespace KeeperSecurity.Enterprise
                 }
                 else
                 {
-                    result.ActionStatus = "not_implemented";
-                    logger?.Invoke($"Action '{options.ApplyAction}' execution requires enterprise admin API - not yet implemented in SDK");
+                    var dataManagement = enterpriseData as IEnterpriseDataManagement;
+                    if (dataManagement == null)
+                    {
+                        result.ActionStatus = "error";
+                        result.ErrorMessage = "Enterprise data management interface not available";
+                        return result;
+                    }
+
+                    EnterpriseUser targetUser = null;
+                    if (options.ApplyAction == ActionReportAdminAction.Transfer)
+                    {
+                        if (string.IsNullOrEmpty(options.TargetUser))
+                        {
+                            result.ActionStatus = "error";
+                            result.ErrorMessage = "Target user is required for transfer action";
+                            return result;
+                        }
+                        if (!enterpriseData.TryGetUserByEmail(options.TargetUser, out targetUser))
+                        {
+                            result.ActionStatus = "error";
+                            result.ErrorMessage = $"Target user '{options.TargetUser}' not found";
+                            return result;
+                        }
+                    }
+
+                    int successCount = 0;
+                    int failCount = 0;
+
+                    foreach (var reportUser in result.Users)
+                    {
+                        if (!enterpriseData.TryGetUserById(reportUser.UserId, out var enterpriseUser))
+                        {
+                            logger?.Invoke($"  [FAIL] {reportUser.Username} - user not found");
+                            failCount++;
+                            continue;
+                        }
+
+                        try
+                        {
+                            switch (options.ApplyAction)
+                            {
+                                case ActionReportAdminAction.Lock:
+                                    await dataManagement.SetUserLocked(enterpriseUser, true);
+                                    logger?.Invoke($"  [OK] {reportUser.Username} - locked");
+                                    successCount++;
+                                    break;
+
+                                case ActionReportAdminAction.Delete:
+                                    await dataManagement.DeleteUser(enterpriseUser);
+                                    logger?.Invoke($"  [OK] {reportUser.Username} - deleted");
+                                    successCount++;
+                                    break;
+
+                                case ActionReportAdminAction.Transfer:
+                                    if (roleData == null)
+                                    {
+                                        logger?.Invoke($"  [FAIL] {reportUser.Username} - role data not available");
+                                        failCount++;
+                                        continue;
+                                    }
+                                    await dataManagement.TransferUserAccount(roleData, enterpriseUser, targetUser);
+                                    logger?.Invoke($"  [OK] {reportUser.Username} - transferred to {options.TargetUser}");
+                                    successCount++;
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger?.Invoke($"  [FAIL] {reportUser.Username} - {ex.Message}");
+                            failCount++;
+                        }
+                    }
+
+                    result.AffectedCount = successCount;
+                    result.ActionStatus = failCount == 0 ? "success" : (successCount == 0 ? "failed" : "partial");
+                    logger?.Invoke($"Completed: {successCount} success, {failCount} failed");
                 }
             }
             else

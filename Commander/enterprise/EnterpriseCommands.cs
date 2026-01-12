@@ -119,7 +119,7 @@ namespace Commander
                 {
                     Order = 71,
                     Description = "Run an action based on user activity report",
-                    Action = async options => { await context.ActionReportCommand(options); },
+                    Action = async options => { await context.ActionReportCommand(options, Program.GetInputManager()); },
                 });
 
             cli.Aliases["eget"] = "enterprise-get-data";
