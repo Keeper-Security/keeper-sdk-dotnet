@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Cli;
 using Commander;
 using CommandLine;
 using KeeperSecurity.Enterprise;
@@ -24,15 +25,15 @@ namespace Commander.PEDM
 
             if (string.IsNullOrEmpty(options.Command))
             {
-                options.Command = "get";
+                options.Command = "list";
             }
 
             options.Command = options.Command.ToLowerInvariant();
 
             switch (options.Command)
             {
-                case "get":
-                    await GetCollectionLinksAsync(options);
+                case "list":
+                    ListCollectionLinks();
                     break;
 
                 case "set":
@@ -44,58 +45,45 @@ namespace Commander.PEDM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: get, set, unset");
+                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, set, unset");
                     break;
             }
         }
 
-        private async Task GetCollectionLinksAsync(PedmCollectionLinkOptions options)
+        private void ListCollectionLinks()
         {
-            if (string.IsNullOrEmpty(options.CollectionUid) && string.IsNullOrEmpty(options.LinkUid))
+            var allLinks = Plugin.CollectionLinks.GetAllLinks().ToList();
+            if (allLinks.Count == 0)
             {
-                Console.WriteLine("Either 'collection' or 'link' UID is required for 'get' command.");
-                return;
+                Console.WriteLine("No collection links found.");
             }
-
-            var links = new List<CollectionLink>();
-            
-            if (!string.IsNullOrEmpty(options.CollectionUid) && !string.IsNullOrEmpty(options.LinkUid))
+            else
             {
-                links.Add(new CollectionLink
+                var tab = new Tabulate(3);
+                tab.AddHeader("Collection UID", "Link UID", "Link Type");
+                
+                foreach (var link in allLinks.OrderBy(l => l.CollectionUid).ThenBy(l => l.LinkUid))
                 {
-                    CollectionUid = options.CollectionUid,
-                    LinkUid = options.LinkUid,
-                    LinkType = (PEDMProto.CollectionLinkType)(options.LinkType ?? 0)
-                });
-            }
-            else if (!string.IsNullOrEmpty(options.CollectionUid))
-            {
-                var collectionLinks = Plugin.GetCollectionLinks(new[] { new CollectionLink { CollectionUid = options.CollectionUid } });
-                var results = await collectionLinks;
-                foreach (var result in results)
-                {
-                    Console.WriteLine($"Collection: {result.CollectionLink.CollectionUid}");
-                    Console.WriteLine($"  Link UID: {result.CollectionLink.LinkUid}");
-                    Console.WriteLine($"  Link Type: {result.CollectionLink.LinkType}");
-                    if (result.LinkData != null && result.LinkData.Length > 0)
-                    {
-                        Console.WriteLine($"  Link Data: {System.Text.Encoding.UTF8.GetString(result.LinkData)}");
-                    }
+                    var linkTypeName = GetLinkTypeName((PEDMProto.CollectionLinkType)link.LinkType);
+                    tab.AddRow(link.CollectionUid, link.LinkUid, linkTypeName);
                 }
-                return;
+                
+                Console.WriteLine();
+                tab.Dump();
             }
+        }
 
-            var collectionLinkResults = await Plugin.GetCollectionLinks(links);
-            foreach (var result in collectionLinkResults)
+        private static string GetLinkTypeName(PEDMProto.CollectionLinkType linkType)
+        {
+            return linkType switch
             {
-                Console.WriteLine($"Collection: {result.CollectionLink.CollectionUid}");
-                Console.WriteLine($"  Link UID: {result.CollectionLink.LinkUid}");
-                Console.WriteLine($"  Link Type: {result.CollectionLink.LinkType}");
-                if (result.LinkData != null && result.LinkData.Length > 0)
-                {
-                    Console.WriteLine($"  Link Data: {System.Text.Encoding.UTF8.GetString(result.LinkData)}");
-                }
-            }
+                PEDMProto.CollectionLinkType.CltOther => "Other",
+                PEDMProto.CollectionLinkType.CltAgent => "Agent",
+                PEDMProto.CollectionLinkType.CltPolicy => "Policy",
+                PEDMProto.CollectionLinkType.CltCollection => "Collection",
+                PEDMProto.CollectionLinkType.CltDeployment => "Deployment",
+                _ => $"Type {(int)linkType}"
+            };
         }
 
         private async Task SetCollectionLinksAsync(PedmCollectionLinkOptions options)
@@ -157,7 +145,7 @@ namespace Commander.PEDM
 
     internal class PedmCollectionLinkOptions : EnterpriseGenericOptions
     {
-        [Value(0, Required = false, HelpText = "Command: get, set, unset")]
+        [Value(0, Required = false, HelpText = "Command: list, set, unset")]
         public string Command { get; set; }
 
         [Option("collection", Required = false, HelpText = "Collection UID")]

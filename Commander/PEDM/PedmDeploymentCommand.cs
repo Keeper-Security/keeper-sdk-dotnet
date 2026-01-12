@@ -37,7 +37,7 @@ namespace Commander.PEDM
                     break;
 
                 case "view":
-                    await ViewDeploymentAsync(options.DeploymentUid);
+                    await ViewDeploymentAsync(options);
                     break;
 
                 case "add":
@@ -82,18 +82,53 @@ namespace Commander.PEDM
             return Task.CompletedTask;
         }
 
-        private Task ViewDeploymentAsync(string deploymentUid)
+        private PedmDeployment ResolveDeployment(string deploymentIdentifier)
         {
-            if (string.IsNullOrEmpty(deploymentUid))
+            if (string.IsNullOrEmpty(deploymentIdentifier))
             {
-                Console.WriteLine("Deployment UID is required for 'view' command.");
+                return null;
+            }
+
+            // Try as UID first
+            var deployment = Plugin.Deployments.GetEntity(deploymentIdentifier);
+            if (deployment != null)
+            {
+                return deployment;
+            }
+
+            // Try as name (case-insensitive)
+            var lName = deploymentIdentifier.ToLowerInvariant();
+            var deployments = Plugin.Deployments.GetAll()
+                .Where(x => x.Name != null && x.Name.ToLowerInvariant() == lName)
+                .ToList();
+
+            if (deployments.Count == 0)
+            {
+                return null;
+            }
+
+            if (deployments.Count > 1)
+            {
+                Console.WriteLine($"Deployment name \"{deploymentIdentifier}\" is not unique. Use Deployment UID.");
+                return null;
+            }
+
+            return deployments[0];
+        }
+
+        private Task ViewDeploymentAsync(PedmDeploymentOptions options)
+        {
+            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (string.IsNullOrEmpty(deploymentIdentifier))
+            {
+                Console.WriteLine("Deployment UID or name is required for 'view' command.");
                 return Task.CompletedTask;
             }
 
-            var deployment = Plugin.Deployments.GetEntity(deploymentUid);
+            var deployment = ResolveDeployment(deploymentIdentifier);
             if (deployment == null)
             {
-                Console.WriteLine($"Deployment '{deploymentUid}' not found.");
+                Console.WriteLine($"Deployment '{deploymentIdentifier}' not found.");
                 return Task.CompletedTask;
             }
 
@@ -202,15 +237,23 @@ namespace Commander.PEDM
 
         private async Task UpdateDeploymentAsync(PedmDeploymentOptions options)
         {
-            if (string.IsNullOrEmpty(options.DeploymentUid))
+            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (string.IsNullOrEmpty(deploymentIdentifier))
             {
-                Console.WriteLine("Deployment UID is required for 'update' command.");
+                Console.WriteLine("Deployment UID or name is required for 'update' command.");
+                return;
+            }
+
+            var deployment = ResolveDeployment(deploymentIdentifier);
+            if (deployment == null)
+            {
+                Console.WriteLine($"Deployment '{deploymentIdentifier}' not found.");
                 return;
             }
 
             var updateDeployment = new DeploymentDataInput
             {
-                DeploymentUid = options.DeploymentUid,
+                DeploymentUid = deployment.DeploymentUid,
                 Name = options.Name,
                 Disabled = ParseBoolOption(options.Disabled),
                 SpiffeCert = options.SpiffeCert
@@ -221,7 +264,7 @@ namespace Commander.PEDM
                 updateDeployments: new[] { updateDeployment },
                 removeDeployments: null);
 
-            Console.WriteLine($"Deployment '{options.DeploymentUid}' updated.");
+            Console.WriteLine($"Deployment '{deployment.DeploymentUid}' updated.");
             if (updateStatus.Add?.Count > 0 || updateStatus.Update?.Count > 0 || updateStatus.Remove?.Count > 0)
             {
                 PrintModifyStatus(updateStatus);
@@ -232,20 +275,21 @@ namespace Commander.PEDM
 
         private async Task RemoveDeploymentAsync(PedmDeploymentOptions options)
         {
-            if (string.IsNullOrEmpty(options.DeploymentUid))
+            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (string.IsNullOrEmpty(deploymentIdentifier))
             {
-                Console.WriteLine("Deployment UID is required for 'remove' command.");
+                Console.WriteLine("Deployment UID or name is required for 'remove' command.");
                 return;
             }
 
-            var deploymentUid = options.DeploymentUid;
-
-            var deployment = Plugin.Deployments.GetEntity(deploymentUid);
+            var deployment = ResolveDeployment(deploymentIdentifier);
             if (deployment == null)
             {
-                Console.WriteLine($"Deployment \"{deploymentUid}\" does not exist");
+                Console.WriteLine($"Deployment \"{deploymentIdentifier}\" does not exist");
                 return;
             }
+
+            var deploymentUid = deployment.DeploymentUid;
 
             if (!options.Force)
             {
@@ -284,10 +328,10 @@ namespace Commander.PEDM
         [Value(0, Required = false, HelpText = "Command: list, view, add, update, remove")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "Deployment UID (for view, update, remove)")]
+        [Value(1, Required = false, HelpText = "Deployment UID or name (for view, update, remove)")]
         public string DeploymentUid { get; set; }
 
-        [Option("name", Required = false, HelpText = "Deployment name (for add, update)")]
+        [Option("name", Required = false, HelpText = "Deployment name (for add, update, view, remove)")]
         public string Name { get; set; }
 
         [Option("disabled", Required = false, HelpText = "true/false: Disable deployment (for update)")]

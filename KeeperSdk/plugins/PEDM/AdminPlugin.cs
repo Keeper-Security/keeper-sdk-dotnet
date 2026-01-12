@@ -355,6 +355,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public IEntityStorage<PedmCollection> Collections => _collections;
         public IEntityStorage<PedmApproval> Approvals => _approvals;
         public ILinkStorage<PedmDeploymentAgent> DeploymentAgents => _deploymentAgents;
+        public ILinkStorage<IPedmStorageCollectionLink> CollectionLinks => _storage.CollectionLinks;
 
         public bool NeedSync => _needSync;
 

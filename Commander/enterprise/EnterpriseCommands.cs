@@ -149,7 +149,7 @@ namespace Commander
             cli.Commands.Add("pedm-sync-down",
                 new ParseableCommand<PedmSyncDownOptions>
                 {
-                    Order = 80,
+                    Order = 90,
                     Description = "Sync PEDM data from server",
                     Action = async options => { await pedmSyncDown.ExecuteAsync(options); },
                 });
@@ -159,7 +159,7 @@ namespace Commander
             cli.Commands.Add("pedm-deployment",
                 new ParseableCommand<PedmDeploymentOptions>
                 {
-                    Order = 81,
+                    Order = 91,
                     Description = "Manage PEDM deployments",
                     Action = async options => { await pedmDeployment.ExecuteAsync(options); },
                 });
@@ -169,7 +169,7 @@ namespace Commander
             cli.Commands.Add("pedm-agent",
                 new ParseableCommand<PedmAgentOptions>
                 {
-                    Order = 82,
+                    Order = 92,
                     Description = "Manage PEDM agents",
                     Action = async options => { await pedmAgent.ExecuteAsync(options); },
                 });
@@ -178,7 +178,7 @@ namespace Commander
             cli.Commands.Add("pedm-policy",
                 new ParseableCommand<PedmPolicyOptions>
                 {
-                    Order = 83,
+                    Order = 93,
                     Description = "Manage PEDM policies",
                     Action = async options => { await pedmPolicy.ExecuteAsync(options); },
                 });
@@ -187,7 +187,7 @@ namespace Commander
             cli.Commands.Add("pedm-collection",
                 new ParseableCommand<PedmCollectionOptions>
                 {
-                    Order = 84,
+                    Order = 94,
                     Description = "Manage PEDM collections",
                     Action = async options => { await pedmCollection.ExecuteAsync(options); },
                 });
@@ -196,7 +196,7 @@ namespace Commander
             cli.Commands.Add("pedm-approval",
                 new ParseableCommand<PedmApprovalOptions>
                 {
-                    Order = 85,
+                    Order = 95,
                     Description = "Manage PEDM approvals",
                     Action = async options => { await pedmApproval.ExecuteAsync(options); },
                 });
@@ -205,7 +205,7 @@ namespace Commander
             cli.Commands.Add("pedm-collection-link",
                 new ParseableCommand<PedmCollectionLinkOptions>
                 {
-                    Order = 86,
+                    Order = 96,
                     Description = "Manage PEDM collection links",
                     Action = async options => { await pedmCollectionLink.ExecuteAsync(options); },
                 });
