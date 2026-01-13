@@ -258,15 +258,16 @@ namespace KeeperSecurity
                                     foreach (var key in dict.Keys)
                                     {
                                         var val = dict[key];
-                                        if (key is string element && val is string elementValue)
+                                        if (key is string element)
                                         {
-                                            if (!fts.SetElementValue(element, elementValue))
+                                            var elementValue = val is IDictionary d 
+                                                ? System.Text.Encoding.UTF8.GetString(Utils.JsonUtils.DumpJson(d))
+                                                : val?.ToString();
+                                            
+                                            if (!string.IsNullOrEmpty(elementValue) && !fts.SetElementValue(element, elementValue))
                                             {
-                                                if (!string.IsNullOrEmpty(elementValue))
-                                                {
-                                                    logger?.Invoke(Severity.Warning,
-                                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
-                                                }
+                                                logger?.Invoke(Severity.Warning,
+                                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
                                             }
                                         }
                                     }

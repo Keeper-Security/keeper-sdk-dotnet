@@ -198,19 +198,19 @@ namespace KeeperSecurity
                         var fieldName = field.FieldName;
                         var fieldLabel = field.FieldLabel;
 
-                        if (fieldName == "login" && field.ObjectValue != null)
+                        if (fieldName == "login" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.Login = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "password" && field.ObjectValue != null)
+                        else if (fieldName == "password" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.Password = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "url" && field.ObjectValue != null)
+                        else if (fieldName == "url" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.LoginUrl = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "oneTimeCode" && field.ObjectValue != null)
+                        else if (fieldName == "oneTimeCode" && IsValidFieldValue(field.ObjectValue))
                         {
                             customFields[TwoFactorCode] = field.ObjectValue;
                         }
@@ -220,7 +220,7 @@ namespace KeeperSecurity
                                 ? $"${fieldName}" 
                                 : $"${fieldName}:{fieldLabel}";
                             
-                            if (field.ObjectValue != null)
+                            if (IsValidFieldValue(field.ObjectValue))
                             {
                                 customFields[key] = field.ObjectValue;
                             }
@@ -238,7 +238,7 @@ namespace KeeperSecurity
                             ? $"${fieldName}" 
                             : $"${fieldName}:{fieldLabel}";
                         
-                        if (field.ObjectValue != null)
+                        if (IsValidFieldValue(field.ObjectValue))
                         {
                             customFields[key] = field.ObjectValue;
                         }
@@ -251,6 +251,17 @@ namespace KeeperSecurity
                 }
 
                 return record;
+            }
+
+            /// <summary>
+            /// Checks if field value has actual data (not empty string or empty passkey)
+            /// </summary>
+            private static bool IsValidFieldValue(object value)
+            {
+                if (value == null) return false;
+                if (value is string s) return !string.IsNullOrEmpty(s);
+                if (value is FieldTypePasskey p) return !string.IsNullOrEmpty(p.CredentialId) || p.PrivateKey != null;
+                return true;
             }
 
             /// <summary>
@@ -508,7 +519,7 @@ namespace KeeperSecurity
             {
                 var exportFile = vault.ExportVault(recordUids, includeSharedFolders, logger);
                 var jsonBytes = JsonUtils.DumpJson(exportFile, indent: true);
-                return System.Text.Encoding.UTF8.GetString(jsonBytes);
+                return System.Text.Encoding.UTF8.GetString(jsonBytes).Replace("\\/", "/");
             }
 
             /// <summary>
