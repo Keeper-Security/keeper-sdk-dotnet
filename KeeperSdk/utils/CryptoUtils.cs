@@ -721,6 +721,23 @@ namespace KeeperSecurity.Utils
 #endif
         }
 
+#if NETSTANDARD2_0_OR_GREATER
+        public static byte[] DeriveEcdhKey(EcPublicKey publicKey, EcPrivateKey privateKey)
+        {
+            var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
+            agreement.Init(privateKey);
+            var keyBytes = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
+            // Ensure key is exactly 32 bytes with leading zeros preserved
+            if (keyBytes.Length < 32)
+            {
+                var paddedKey = new byte[32];
+                Array.Copy(keyBytes, 0, paddedKey, 32 - keyBytes.Length, keyBytes.Length);
+                keyBytes = paddedKey;
+            }
+            return SHA256.Create().ComputeHash(keyBytes);
+        }
+#endif
+        
         /// <summary>
         ///     Encrypts data with EC cryptography.
         /// </summary>
@@ -733,20 +750,12 @@ namespace KeeperSecurity.Utils
             GenerateEcKey(out var ePrivateKey, out var ePublicKey);
 #if NET8_0_OR_GREATER
             var encryptionKey = ePrivateKey.DeriveKeyMaterial(publicKey);
+#elif NETSTANDARD2_0_OR_GREATER
+            var encryptionKey = DeriveEcdhKey(publicKey, ePrivateKey);
+#endif
             var pk = UnloadEcPublicKey(ePublicKey);
             var encryptedData = EncryptAesV2(data, encryptionKey);
-            var result = new byte[pk.Length + encryptedData.Length];
-            Array.Copy(pk, result, pk.Length);
-            Array.Copy(encryptedData, 0, result, pk.Length, encryptedData.Length);
-            return result;
-#elif NETSTANDARD2_0_OR_GREATER
-            var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
-            agreement.Init(ePrivateKey);
-            var key = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
-            key = SHA256.Create().ComputeHash(key);
-            var encryptedData = EncryptAesV2(data, key);
-            return UnloadEcPublicKey(ePublicKey).Concat(encryptedData).ToArray();
-#endif
+            return pk.Concat(encryptedData).ToArray();
         }
 
         /// <summary>
@@ -757,19 +766,13 @@ namespace KeeperSecurity.Utils
         /// <returns>Plain data.</returns>
         public static byte[] DecryptEc(byte[] data, EcPrivateKey privateKey)
         {
-#if NET8_0_OR_GREATER
-            var ePublicKey = LoadEcPublicKey(data);
-            var encryptionKey = privateKey.DeriveKeyMaterial(ePublicKey);
-            var encryptedData = new ReadOnlySpan<byte>(data, 65, data.Length - 65).ToArray();
-            return DecryptAesV2(encryptedData, encryptionKey);
-#elif NETSTANDARD2_0_OR_GREATER
             var ePublicKey = LoadEcPublicKey(data.Take(65).ToArray());
-            var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
-            agreement.Init(privateKey);
-            var key = agreement.CalculateAgreement(ePublicKey).ToByteArrayUnsigned();
-            key = SHA256.Create().ComputeHash(key);
-            return DecryptAesV2(data.Skip(65).ToArray(), key);
+#if NET8_0_OR_GREATER
+            var encryptionKey = privateKey.DeriveKeyMaterial(ePublicKey);
+#elif NETSTANDARD2_0_OR_GREATER
+            var encryptionKey = DeriveEcdhKey(ePublicKey, privateKey);
 #endif
+            return DecryptAesV2(data.Skip(65).ToArray(), encryptionKey);
         }
 
         internal static byte[] Base32ToBytes(string base32)
