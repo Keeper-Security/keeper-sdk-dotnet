@@ -118,7 +118,7 @@ namespace Commander
                 new ParseableCommand<Enterprise.ActionReportCommandOptions>
                 {
                     Order = 71,
-                    Description = "Run an action based on user activity report",
+                    Description = "Run an action report based on user activity",
                     Action = async options => { await context.ActionReportCommand(options, Program.GetInputManager()); },
                 });
 
