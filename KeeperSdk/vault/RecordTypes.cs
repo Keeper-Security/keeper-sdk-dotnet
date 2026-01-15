@@ -1261,13 +1261,13 @@ namespace KeeperSecurity.Vault
         /// Gets or sets Sign Count
         /// </summary>
         [DataMember(Name = "signCount", EmitDefaultValue = true)]
-        public string SignCount { get; set; }
+        public long SignCount { get; set; }
 
         /// <summary>
         /// Gets or sets Created Date
         /// </summary>
         [DataMember(Name = "createdDate", EmitDefaultValue = true)]
-        public string CreatedDate { get; set; }
+        public long CreatedDate { get; set; }
         private static readonly string[] PasskeyElements = { "privateKey", "relyingParty", "credentialId", "userId", "username", "signCount", "createdDate" };
 
         /// <exclude />
@@ -1308,13 +1308,19 @@ namespace KeeperSecurity.Vault
                 case "credentialId": CredentialId = value; return true;
                 case "userId": UserId = value; return true;
                 case "username": Username = value; return true;
-                case "signCount":
-                    SignCount = value;
+                    case "signCount":
+                    if (long.TryParse(value, out long signCount))
+                    {
+                        SignCount = signCount;
+                    }
                     return true;
-                case "createdDate":
-                    CreatedDate = value;
-                    return true;
-                default: return false;
+                    case "createdDate":
+                    if (long.TryParse(value, out long createdDate))
+                    {
+                        CreatedDate = createdDate;
+                    }
+                        return true;
+                    default: return false;
             }
         }
 
@@ -1325,8 +1331,8 @@ namespace KeeperSecurity.Vault
             CredentialId = "";
             UserId = "";
             Username = "";
-            SignCount = "";
-            CreatedDate = "";
+            SignCount = 0;
+            CreatedDate = 0;
             PrivateKey = null;
 
             if (string.IsNullOrEmpty(value))
@@ -1342,8 +1348,8 @@ namespace KeeperSecurity.Vault
                 CredentialId = passkey.CredentialId ?? "";
                 UserId = passkey.UserId ?? "";
                 Username = passkey.Username ?? "";
-                SignCount = passkey.SignCount ?? "";
-                CreatedDate = passkey.CreatedDate ?? "";
+                SignCount = passkey.SignCount;
+                CreatedDate = passkey.CreatedDate;
             }
         }
 
