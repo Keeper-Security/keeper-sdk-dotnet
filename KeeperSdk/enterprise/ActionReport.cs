@@ -1,6 +1,7 @@
 using KeeperSecurity.Authentication;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -118,15 +119,10 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public class ActionReportResult
     {
-        /// <summary>Users matching the criteria</summary>
         public List<ActionReportUser> Users { get; set; } = new List<ActionReportUser>();
-        /// <summary>Action applied</summary>
         public string ActionApplied { get; set; }
-        /// <summary>Action status</summary>
         public string ActionStatus { get; set; }
-        /// <summary>Number of users affected</summary>
         public int AffectedCount { get; set; }
-        /// <summary>Error message if any</summary>
         public string ErrorMessage { get; set; }
     }
 
@@ -221,13 +217,11 @@ namespace KeeperSecurity.Enterprise
         /// <param name="enterpriseData">Enterprise data</param>
         /// <param name="auth">Authentication context</param>
         /// <param name="options">Report options</param>
-        /// <param name="logger">Optional logger callback</param>
         /// <param name="roleData">Role data (required for transfer action)</param>
         public static async Task<ActionReportResult> RunActionReport(
             this EnterpriseData enterpriseData,
             IAuthentication auth,
             ActionReportOptions options,
-            Action<string> logger = null,
             IRoleData roleData = null)
         {
             var result = new ActionReportResult();
@@ -241,7 +235,7 @@ namespace KeeperSecurity.Enterprise
             HashSet<long> targetNodeIds = null;
             if (!string.IsNullOrEmpty(options.Node))
             {
-                targetNodeIds = GetDescendantNodeIds(enterpriseData, options.Node, logger);
+                targetNodeIds = GetDescendantNodeIds(enterpriseData, options.Node);
                 if (targetNodeIds == null)
                 {
                     result.ErrorMessage = $"Node '{options.Node}' not found";
@@ -289,7 +283,7 @@ namespace KeeperSecurity.Enterprise
 
             if (candidateUsers.Count == 0)
             {
-                logger?.Invoke("No candidate users found for the specified criteria");
+                Trace.TraceInformation("No candidate users found for the specified criteria");
                 return result;
             }
 
@@ -298,8 +292,7 @@ namespace KeeperSecurity.Enterprise
                 candidateUsers, 
                 daysSince, 
                 eventTypes, 
-                usernameField, 
-                logger);
+                usernameField);
 
             foreach (var user in noActionUsers)
             {
@@ -323,7 +316,7 @@ namespace KeeperSecurity.Enterprise
                 });
             }
 
-            logger?.Invoke($"Found {result.Users.Count} user(s) matching criteria");
+            Trace.TraceInformation($"Found {result.Users.Count} user(s) matching criteria");
 
             if (options.ApplyAction != ActionReportAdminAction.None && result.Users.Count > 0)
             {
@@ -341,7 +334,7 @@ namespace KeeperSecurity.Enterprise
                 {
                     result.ActionStatus = "dry_run";
                     result.AffectedCount = result.Users.Count;
-                    logger?.Invoke($"Dry run: Would {options.ApplyAction.ToString().ToLower()} {result.Users.Count} user(s)");
+                    Trace.TraceInformation($"Dry run: Would {options.ApplyAction.ToString().ToLower()} {result.Users.Count} user(s)");
                 }
                 else
                 {
@@ -377,7 +370,7 @@ namespace KeeperSecurity.Enterprise
                     {
                         if (!enterpriseData.TryGetUserById(reportUser.UserId, out var enterpriseUser))
                         {
-                            logger?.Invoke($"  [FAIL] {reportUser.Username} - user not found");
+                            Trace.TraceError($"  [FAIL] {reportUser.Username} - user not found");
                             failCount++;
                             continue;
                         }
@@ -388,39 +381,39 @@ namespace KeeperSecurity.Enterprise
                             {
                                 case ActionReportAdminAction.Lock:
                                     await dataManagement.SetUserLocked(enterpriseUser, true);
-                                    logger?.Invoke($"  [OK] {reportUser.Username} - locked");
+                                    Trace.TraceInformation($"  [OK] {reportUser.Username} - locked");
                                     successCount++;
                                     break;
 
                                 case ActionReportAdminAction.Delete:
                                     await dataManagement.DeleteUser(enterpriseUser);
-                                    logger?.Invoke($"  [OK] {reportUser.Username} - deleted");
+                                    Trace.TraceInformation($"  [OK] {reportUser.Username} - deleted");
                                     successCount++;
                                     break;
 
                                 case ActionReportAdminAction.Transfer:
                                     if (roleData == null)
                                     {
-                                        logger?.Invoke($"  [FAIL] {reportUser.Username} - role data not available");
+                                        Trace.TraceError($"  [FAIL] {reportUser.Username} - role data not available");
                                         failCount++;
                                         continue;
                                     }
                                     await dataManagement.TransferUserAccount(roleData, enterpriseUser, targetUser);
-                                    logger?.Invoke($"  [OK] {reportUser.Username} - transferred to {options.TargetUser}");
+                                    Trace.TraceInformation($"  [OK] {reportUser.Username} - transferred to {options.TargetUser}");
                                     successCount++;
                                     break;
                             }
                         }
                         catch (Exception ex)
                         {
-                            logger?.Invoke($"  [FAIL] {reportUser.Username} - {ex.Message}");
+                            Trace.TraceError($"  [FAIL] {reportUser.Username} - {ex.Message}");
                             failCount++;
                         }
                     }
 
                     result.AffectedCount = successCount;
                     result.ActionStatus = failCount == 0 ? "success" : (successCount == 0 ? "failed" : "partial");
-                    logger?.Invoke($"Completed: {successCount} success, {failCount} failed");
+                    Trace.TraceInformation($"Completed: {successCount} success, {failCount} failed");
                 }
             }
             else
@@ -444,7 +437,7 @@ namespace KeeperSecurity.Enterprise
             }
         }
 
-        private static HashSet<long> GetDescendantNodeIds(EnterpriseData enterpriseData, string nodeNameOrId, Action<string> logger)
+        private static HashSet<long> GetDescendantNodeIds(EnterpriseData enterpriseData, string nodeNameOrId)
         {
             EnterpriseNode targetNode = null;
 
@@ -461,7 +454,7 @@ namespace KeeperSecurity.Enterprise
 
             if (targetNode == null)
             {
-                logger?.Invoke($"Node '{nodeNameOrId}' not found");
+                Trace.TraceError($"Node '{nodeNameOrId}' not found");
                 return null;
             }
 
@@ -489,8 +482,7 @@ namespace KeeperSecurity.Enterprise
             List<EnterpriseUser> candidateUsers,
             int daysSince,
             List<string> eventTypes,
-            string usernameField,
-            Action<string> logger)
+            string usernameField)
         {
             var nowDt = DateTime.UtcNow;
             var minDt = nowDt.AddDays(-daysSince);
@@ -507,8 +499,7 @@ namespace KeeperSecurity.Enterprise
                 eventTypes, 
                 start, 
                 end, 
-                usernameField, 
-                logger);
+                usernameField);
 
             return candidateUsers.Where(u => !excluded.Contains(u.Email.ToLowerInvariant())).ToList();
         }
@@ -519,8 +510,7 @@ namespace KeeperSecurity.Enterprise
             List<string> eventTypes,
             long startTime,
             long endTime,
-            string usernameField,
-            Action<string> logger)
+            string usernameField)
         {
             var excluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             
@@ -587,7 +577,7 @@ namespace KeeperSecurity.Enterprise
                 }
                 catch (Exception ex)
                 {
-                    logger?.Invoke($"Error querying audit events: {ex.Message}");
+                    Trace.TraceError($"Error querying audit events: {ex.Message}");
                     break;
                 }
             }

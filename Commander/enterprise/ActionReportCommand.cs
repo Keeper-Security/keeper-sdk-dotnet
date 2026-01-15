@@ -89,7 +89,6 @@ namespace Commander.Enterprise
                 Force = options.Force
             };
 
-            void Logger(string message) => Console.WriteLine(message);
 
             bool isDestructive = adminAction == ActionReportAdminAction.Lock || 
                                  adminAction == ActionReportAdminAction.Delete || 
@@ -111,7 +110,6 @@ namespace Commander.Enterprise
             var result = await context.EnterpriseData.RunActionReport(
                 context.Enterprise.Auth,
                 reportOptions,
-                Logger,
                 context.RoleManagement);
 
             if (!string.IsNullOrEmpty(result.ErrorMessage))
