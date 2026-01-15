@@ -1308,19 +1308,19 @@ namespace KeeperSecurity.Vault
                 case "credentialId": CredentialId = value; return true;
                 case "userId": UserId = value; return true;
                 case "username": Username = value; return true;
-                    case "signCount":
+                case "signCount":
                     if (long.TryParse(value, out long signCount))
                     {
                         SignCount = signCount;
                     }
                     return true;
-                    case "createdDate":
+                case "createdDate":
                     if (long.TryParse(value, out long createdDate))
                     {
                         CreatedDate = createdDate;
                     }
-                        return true;
-                    default: return false;
+                    return true;
+                default: return false;
             }
         }
 
