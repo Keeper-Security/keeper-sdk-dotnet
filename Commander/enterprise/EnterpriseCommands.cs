@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -145,60 +145,12 @@ namespace Commander
                     Action = async options => { await context.RunAuditEventsReport(options); },
                 });
 
-            var pedmSyncDown = new PedmSyncDownCommand(context);
-            cli.Commands.Add("pedm-sync-down",
-                new ParseableCommand<PedmSyncDownOptions>
+            cli.Commands.Add("action-report",
+                new ParseableCommand<Enterprise.ActionReportCommandOptions>
                 {
-                    Order = 90,
-                    Description = "Sync PEDM data from server",
-                    Action = async options => { await pedmSyncDown.ExecuteAsync(options); },
-                });
-            cli.Aliases["pedm-sync"] = "pedm-sync-down";
-
-            var pedmDeployment = new PedmDeploymentCommand(context);
-            cli.Commands.Add("pedm-deployment",
-                new ParseableCommand<PedmDeploymentOptions>
-                {
-                    Order = 91,
-                    Description = "Manage PEDM deployments",
-                    Action = async options => { await pedmDeployment.ExecuteAsync(options); },
-                });
-            cli.Aliases["pedm-dep"] = "pedm-deployment";
-
-            var pedmAgent = new PedmAgentCommand(context);
-            cli.Commands.Add("pedm-agent",
-                new ParseableCommand<PedmAgentOptions>
-                {
-                    Order = 92,
-                    Description = "Manage PEDM agents",
-                    Action = async options => { await pedmAgent.ExecuteAsync(options); },
-                });
-
-            var pedmPolicy = new PedmPolicyCommand(context);
-            cli.Commands.Add("pedm-policy",
-                new ParseableCommand<PedmPolicyOptions>
-                {
-                    Order = 93,
-                    Description = "Manage PEDM policies",
-                    Action = async options => { await pedmPolicy.ExecuteAsync(options); },
-                });
-
-            var pedmCollection = new PedmCollectionCommand(context);
-            cli.Commands.Add("pedm-collection",
-                new ParseableCommand<PedmCollectionOptions>
-                {
-                    Order = 94,
-                    Description = "Manage PEDM collections",
-                    Action = async options => { await pedmCollection.ExecuteAsync(options); },
-                });
-
-            var pedmApproval = new PedmApprovalCommand(context);
-            cli.Commands.Add("pedm-approval",
-                new ParseableCommand<PedmApprovalOptions>
-                {
-                    Order = 95,
-                    Description = "Manage PEDM approvals",
-                    Action = async options => { await pedmApproval.ExecuteAsync(options); },
+                    Order = 71,
+                    Description = "Run an action report based on user activity",
+                    Action = async options => { await context.ActionReportCommand(options, Program.GetInputManager()); },
                 });
 
             cli.Aliases["eget"] = "enterprise-get-data";
