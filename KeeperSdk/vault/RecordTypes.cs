@@ -1228,7 +1228,7 @@ namespace KeeperSecurity.Vault
     /// "passkey" field type
     /// </summary>
     [DataContract]
-    public class FieldTypePasskey : FieldTypeBase
+    public class FieldTypePasskey : FieldTypeBase, IFieldTypeSerialize
     {
         [DataMember(Name = "privateKey", EmitDefaultValue = true)]
         public JsonWebKey PrivateKey { get; set; }
@@ -1268,6 +1268,97 @@ namespace KeeperSecurity.Vault
         /// </summary>
         [DataMember(Name = "createdDate", EmitDefaultValue = true)]
         public long CreatedDate { get; set; }
+        private static readonly string[] PasskeyElements = { "privateKey", "relyingParty", "credentialId", "userId", "username", "signCount", "createdDate" };
+
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => PasskeyElements;
+
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.ElementValues
+        {
+            get
+            {
+                var privateKeyJson = "";
+                if (PrivateKey != null)
+                {
+                    privateKeyJson = JsonUtils.DumpJson(PrivateKey) is byte[] bytes ? Encoding.UTF8.GetString(bytes) : "";
+                }
+                yield return privateKeyJson;
+                yield return RelyingParty;
+                yield return CredentialId;
+                yield return UserId;
+                yield return Username;
+                yield return SignCount.ToString();
+                yield return CreatedDate.ToString();
+            }
+        }
+
+        /// <exclude />
+        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        {
+            switch (element)
+            {
+                case "privateKey":
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        PrivateKey = JsonUtils.ParseJson<JsonWebKey>(Encoding.UTF8.GetBytes(value));
+                    }
+                    return true;
+                case "relyingParty": RelyingParty = value; return true;
+                case "credentialId": CredentialId = value; return true;
+                case "userId": UserId = value; return true;
+                case "username": Username = value; return true;
+                case "signCount":
+                    if (long.TryParse(value, out long signCount))
+                    {
+                        SignCount = signCount;
+                    }
+                    return true;
+                case "createdDate":
+                    if (long.TryParse(value, out long createdDate))
+                    {
+                        CreatedDate = createdDate;
+                    }
+                    return true;
+                default: return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        void IFieldTypeSerialize.SetValueAsString(string value)
+        {
+            RelyingParty = "";
+            CredentialId = "";
+            UserId = "";
+            Username = "";
+            SignCount = 0;
+            CreatedDate = 0;
+            PrivateKey = null;
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            var passkey = JsonUtils.ParseJson<FieldTypePasskey>(Encoding.UTF8.GetBytes(value));
+            if (passkey != null)
+            {
+                PrivateKey = passkey.PrivateKey;
+                RelyingParty = passkey.RelyingParty ?? "";
+                CredentialId = passkey.CredentialId ?? "";
+                UserId = passkey.UserId ?? "";
+                Username = passkey.Username ?? "";
+                SignCount = passkey.SignCount;
+                CreatedDate = passkey.CreatedDate;
+            }
+        }
+
+        /// <inheritdoc/>
+        string IFieldTypeSerialize.GetValueAsString()
+        {
+            var json = JsonUtils.DumpJson(this);
+            return json != null ? Encoding.UTF8.GetString(json) : "";
+        }
     }
 
     /// <exclude />
@@ -1342,7 +1433,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("date", typeof(long), "0", "calendar date with validation, stored as unix milliseconds"),
                 new FieldType("bankAccount", typeof(FieldTypeBankAccount), "{'accountType': '', 'routingNumber': '', 'accountNumber': '', 'otherType': ''}", "bank account information"),
                 new FieldType("privateKey", typeof(FieldTypeKeyPair), "{'publicKey': '', 'privateKey': ''}", "private and/or public keys in ASN.1 format"),
-                new FieldType("passkey", typeof(JsonWebKey), "{'privateKey': {}, 'credentialId': '', 'signCount': 0, 'userId': '', 'relyingParty': '', 'username': '', 'createdDate': 0}", "passwordless login passkey"),
+                new FieldType("passkey", typeof(FieldTypePasskey), "{'privateKey': {}, 'credentialId': '', 'signCount': 0, 'userId': '', 'relyingParty': '', 'username': '', 'createdDate': 0}", "passwordless login passkey"),
                 new FieldType("checkbox", typeof(bool), "false", "on/off checkbox"),
                 new FieldType("dropdown", typeof(string), "''", "list of text choices"),
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
@@ -1466,39 +1557,6 @@ namespace KeeperSecurity.Vault
             return false;
         }
     }
-/*
-    internal class ApiRecordType : IRecordType
-    {
-        private readonly string _uid;
-        public ApiRecordType(Records.RecordType recordType)
-        {
-            string scopeName;
-            Id = recordType.RecordTypeId;
-            switch (recordType.Scope)
-            {
-                case Records.RecordTypeScope.RtStandard:
-                    Scope = RecordTypeScope.Standard;
-                    scopeName = "standard";
-                    break;
-                case Records.RecordTypeScope.RtEnterprise:
-                    Scope = RecordTypeScope.Enterprise;
-                    scopeName = "enterprise";
-                    break;
-                default:
-                    Scope = RecordTypeScope.User;
-                    scopeName = "user";
-                    break;
-            }
-            _uid = $"{scopeName}:{Id}";
-            Content = recordType.Content;
-        }
-
-        public int Id { get; }
-        public RecordTypeScope Scope { get; }
-        public string Content { get; }
-        string IUid.Uid => _uid;
-    }
-*/
 
     [DataContract]
     internal class PasswordFieldComplexity

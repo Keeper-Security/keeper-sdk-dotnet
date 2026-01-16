@@ -2,6 +2,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -198,19 +199,19 @@ namespace KeeperSecurity
                         var fieldName = field.FieldName;
                         var fieldLabel = field.FieldLabel;
 
-                        if (fieldName == "login" && field.ObjectValue != null)
+                        if (fieldName == "login" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.Login = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "password" && field.ObjectValue != null)
+                        else if (fieldName == "password" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.Password = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "url" && field.ObjectValue != null)
+                        else if (fieldName == "url" && IsValidFieldValue(field.ObjectValue))
                         {
                             record.LoginUrl = field.ObjectValue.ToString();
                         }
-                        else if (fieldName == "oneTimeCode" && field.ObjectValue != null)
+                        else if (fieldName == "oneTimeCode" && IsValidFieldValue(field.ObjectValue))
                         {
                             customFields[TwoFactorCode] = field.ObjectValue;
                         }
@@ -220,7 +221,7 @@ namespace KeeperSecurity
                                 ? $"${fieldName}" 
                                 : $"${fieldName}:{fieldLabel}";
                             
-                            if (field.ObjectValue != null)
+                            if (IsValidFieldValue(field.ObjectValue))
                             {
                                 customFields[key] = field.ObjectValue;
                             }
@@ -238,7 +239,7 @@ namespace KeeperSecurity
                             ? $"${fieldName}" 
                             : $"${fieldName}:{fieldLabel}";
                         
-                        if (field.ObjectValue != null)
+                        if (IsValidFieldValue(field.ObjectValue))
                         {
                             customFields[key] = field.ObjectValue;
                         }
@@ -251,6 +252,17 @@ namespace KeeperSecurity
                 }
 
                 return record;
+            }
+
+            /// <summary>
+            /// Checks if field value has actual data (not empty string or empty passkey)
+            /// </summary>
+            private static bool IsValidFieldValue(object value)
+            {
+                if (value == null) return false;
+                if (value is string s) return !string.IsNullOrEmpty(s);
+                if (value is FieldTypePasskey p) return !string.IsNullOrEmpty(p.CredentialId) || p.PrivateKey != null;
+                return true;
             }
 
             /// <summary>
@@ -303,8 +315,7 @@ namespace KeeperSecurity
             public static ExportFile ExportVault(
                 this VaultOnline vault,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
                 var exportFile = new ExportFile();
                 var recordsList = new List<ExportRecord>();
@@ -479,8 +490,7 @@ namespace KeeperSecurity
                     }
                     catch (Exception ex)
                     {
-                        logger?.Invoke(Severity.Warning, 
-                            $"Failed to export record {record.Uid}: {ex.Message}");
+                        Trace.TraceWarning($"Failed to export record {record.Uid}: {ex.Message}");
                     }
                 }
 
@@ -503,12 +513,11 @@ namespace KeeperSecurity
             public static string ExportVaultToJson(
                 this VaultOnline vault,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
-                var exportFile = vault.ExportVault(recordUids, includeSharedFolders, logger);
+                var exportFile = vault.ExportVault(recordUids, includeSharedFolders);
                 var jsonBytes = JsonUtils.DumpJson(exportFile, indent: true);
-                return System.Text.Encoding.UTF8.GetString(jsonBytes);
+                return System.Text.Encoding.UTF8.GetString(jsonBytes).Replace("\\/", "/");
             }
 
             /// <summary>
@@ -518,12 +527,11 @@ namespace KeeperSecurity
                 this VaultOnline vault,
                 string filename,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
-                var json = vault.ExportVaultToJson(recordUids, includeSharedFolders, logger);
+                var json = vault.ExportVaultToJson(recordUids, includeSharedFolders);
                 System.IO.File.WriteAllText(filename, json);
-                logger?.Invoke(Severity.Information, $"Exported to {filename}");
+                Trace.TraceInformation($"Exported to {filename}");
                 return Task.CompletedTask;
             }
         }
