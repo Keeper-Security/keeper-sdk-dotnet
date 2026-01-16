@@ -13,15 +13,10 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public enum ActionReportTargetStatus
     {
-        /// <summary>Users who haven't logged in</summary>
         NoLogon,
-        /// <summary>Users who haven't added/updated records</summary>
         NoUpdate,
-        /// <summary>Users who are locked</summary>
         Locked,
-        /// <summary>Users who are invited but haven't accepted</summary>
         Invited,
-        /// <summary>Users who haven't set up recovery</summary>
         NoRecovery
     }
 
@@ -30,13 +25,9 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public enum ActionReportAdminAction
     {
-        /// <summary>No action</summary>
         None,
-        /// <summary>Lock the user account</summary>
         Lock,
-        /// <summary>Delete the user account</summary>
         Delete,
-        /// <summary>Transfer and delete the user account</summary>
         Transfer
     }
 
@@ -45,39 +36,12 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public class ActionReportOptions
     {
-        /// <summary>
-        /// Target user status to report on (default: NoLogon)
-        /// </summary>
         public ActionReportTargetStatus TargetStatus { get; set; } = ActionReportTargetStatus.NoLogon;
-
-        /// <summary>
-        /// Number of days since the event of interest (default: 30 for most, 90 for locked)
-        /// </summary>
         public int? DaysSince { get; set; }
-
-        /// <summary>
-        /// Node name or ID to filter users
-        /// </summary>
         public string Node { get; set; }
-
-        /// <summary>
-        /// Admin action to apply (default: None)
-        /// </summary>
         public ActionReportAdminAction ApplyAction { get; set; } = ActionReportAdminAction.None;
-
-        /// <summary>
-        /// Target user for transfer action
-        /// </summary>
         public string TargetUser { get; set; }
-
-        /// <summary>
-        /// Dry run mode - don't actually apply actions
-        /// </summary>
         public bool DryRun { get; set; }
-
-        /// <summary>
-        /// Force action without confirmation
-        /// </summary>
         public bool Force { get; set; }
     }
 
@@ -86,31 +50,18 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public class ActionReportUser
     {
-        /// <summary>Enterprise user ID</summary>
         public long UserId { get; set; }
-        /// <summary>User email/username</summary>
         public string Username { get; set; }
-        /// <summary>User display name</summary>
         public string DisplayName { get; set; }
-        /// <summary>User status</summary>
         public UserStatus Status { get; set; }
-        /// <summary>Transfer status</summary>
         public string TransferStatus { get; set; }
-        /// <summary>Node ID</summary>
         public long NodeId { get; set; }
-        /// <summary>Node path</summary>
         public string NodePath { get; set; }
-        /// <summary>2FA enabled</summary>
         public bool TwoFactorEnabled { get; set; }
-        ///<summary>TeamCount</summary>
         public int TeamCount { get; set; }
-        ///<summary>teams</summary>
         public List<string> Teams { get; set; }
-        ///<summary>Role count</summary>
         public int RoleCount { get; set; }
-        ///<summary>Roles</summary>
         public List<string> Roles { get; set; }
-        ///<summary>alias</summary>
         public string Alias { get; set; }
     }
 
