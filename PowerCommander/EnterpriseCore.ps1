@@ -13,8 +13,9 @@ function getEnterprise {
         $enterprise.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
         $enterprise.roleData = New-Object KeeperSecurity.Enterprise.RoleData
         $enterprise.mspData = New-Object KeeperSecurity.Enterprise.ManagedCompanyData
+        $enterprise.deviceApproval = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
 
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.roleData, $enterprise.mspData
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.roleData, $enterprise.mspData, $enterprise.deviceApproval
 
         $enterprise.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($auth, $plugins)
         $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
@@ -44,8 +45,9 @@ function getEnterprise {
         $enterpriseMc = New-Object Enterprise
         $enterpriseMc.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
         $enterpriseMc.roleData = New-Object KeeperSecurity.Enterprise.RoleData
+        $enterpriseMc.deviceApproval = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
 
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData, $enterpriseMc.deviceApproval
 
         $enterpriseMc.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
         $enterpriseMc.loader.Load().GetAwaiter().GetResult() | Out-Null

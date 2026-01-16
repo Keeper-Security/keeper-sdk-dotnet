@@ -5,6 +5,7 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
     [KeeperSecurity.Enterprise.RoleData] $roleData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
+    [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
     [hashtable] $ManagedCompanies = $null
 }
 
@@ -48,6 +49,8 @@ Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, G
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
+
+Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
 
 Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
