@@ -126,6 +126,11 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperNodeName                     |             | Return Name of current Enterprise Node
 | Get-KeeperRoleName                     |             | Get Display Name of Enterprise Role
 
+### Device Approval Cmdlets
+| Get-PendingKeeperDeviceApproval        |             | List pending device approval requests with details (email, device ID, device name, client version, IP address)
+| Approve-KeeperDevice                   |             | Approve pending device requests by device ID (partial match) or user email
+| Deny-KeeperDevice                      |             | Deny pending device requests by device ID (partial match) or user email
+
 ### BreachWatch Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
@@ -300,4 +305,47 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     or remove shares from all orphaned records
     ```
     PS > ktrash-unshare -Records "*" -Force
+    ```
+
+16. List pending device approval requests
+    ```
+    PS > Get-PendingKeeperDeviceApproval
+    ```
+    Export to CSV format
+    ```
+    PS > Get-PendingKeeperDeviceApproval -Format csv -Output devices.csv
+    ```
+    Reload and display in JSON format
+    ```
+    PS > Get-PendingKeeperDeviceApproval -Reload -Format json
+    ```
+
+17. Approve device by user email
+    ```
+    PS > Approve-KeeperDevice -Match "user@example.com"
+    ```
+    Approve device by device ID (partial match)
+    ```
+    PS > Approve-KeeperDevice -Match "a1b2c3"
+    ```
+    Approve all pending devices
+    ```
+    PS > Approve-KeeperDevice
+    ```
+    Reload and approve
+    ```
+    PS > Approve-KeeperDevice -Match "user@example.com" -Reload
+    ```
+
+18. Deny device by user email
+    ```
+    PS > Deny-KeeperDevice -Match "user@example.com"
+    ```
+    Deny device by device ID (partial match)
+    ```
+    PS > Deny-KeeperDevice -Match "a1b2c3"
+    ```
+    Deny all pending devices
+    ```
+    PS > Deny-KeeperDevice
     ```
