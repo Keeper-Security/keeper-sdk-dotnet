@@ -47,16 +47,23 @@ Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperRoleName
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam, Get-KeeperEnterpriseNode
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
-Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
+Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Resend-KeeperEnterpriseInvite, 
+Set-KeeperEnterpriseUserMasterPasswordExpire, Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
-Grant-KeeperEnterpriseRoleToTeam, Revoke-KeeperEnterpriseRoleFromTeam, New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole
+Grant-KeeperEnterpriseRoleToTeam, Revoke-KeeperEnterpriseRoleFromTeam, New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole,
+Add-KeeperEnterpriseRoleManagedNode, Update-KeeperEnterpriseRoleManagedNode, Remove-KeeperEnterpriseRoleManagedNode,
+Add-KeeperEnterpriseRolePrivilege, Remove-KeeperEnterpriseRolePrivilege,
+Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Remove-KeeperEnterpriseRoleEnforcement
+
 
 Export-ModuleMember -Function New-KeeperEnterpriseTeam, Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, 
 Remove-KeeperEnterpriseTeamMember
 
-Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode
+Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
+Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo
+
 
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
 invite-user, lock-user, unlock-user, transfer-user, delete-user

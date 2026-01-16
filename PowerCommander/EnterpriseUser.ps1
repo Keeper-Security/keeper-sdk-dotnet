@@ -198,3 +198,244 @@ function Remove-KeeperEnterpriseUser {
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
 New-Alias -Name delete-user -Value Remove-KeeperEnterpriseUser
 
+function Resend-KeeperEnterpriseInvite {
+    <#
+        .Synopsis
+        Resends enterprise invitation email to a user
+
+        .Parameter User
+        User email address
+
+        .Description
+        Resends the enterprise invitation email to a user who has not yet accepted their invitation.
+        The user must be in Inactive status (not yet accepted invitation).
+
+        .Example
+        Resend-KeeperEnterpriseInvite -User "user@example.com"
+        Resends invitation email to user@example.com
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $User
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if (-not $userObject) {
+        Write-Error "User `"$User`" not found" -ErrorAction Stop
+        return
+    }
+
+    if ($userObject.UserStatus -ne [KeeperSecurity.Enterprise.UserStatus]::Inactive) {
+        Write-Error "User has already accepted invitation. Only inactive users can have invitations resent." -ErrorAction Stop
+        return
+    }
+
+    try {
+        $enterprise.enterpriseData.ResendEnterpriseInvite($userObject).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Invite for $User resent."
+    }
+    catch {
+        Write-Error "Failed to resend invite: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Resend-KeeperEnterpriseInvite -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+
+function Set-KeeperEnterpriseUserMasterPasswordExpire {
+    <#
+        .Synopsis
+        Sets master password expiration for an enterprise user
+
+        .Parameter User
+        User email address
+
+        .Description
+        Sets the master password expiration for an active enterprise user, requiring them to change their password on next login.
+
+        .Example
+        Set-KeeperEnterpriseUserMasterPasswordExpire -User "user@example.com"
+        Sets master password expiration for user@example.com
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $User
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if (-not $userObject) {
+        Write-Error "User `"$User`" not found" -ErrorAction Stop
+        return
+    }
+
+    if ($userObject.UserStatus -ne [KeeperSecurity.Enterprise.UserStatus]::Active) {
+        Write-Error "User $User is not active" -ErrorAction Stop
+        return
+    }
+
+    try {
+        $enterprise.enterpriseData.SetMasterPasswordExpire($userObject.Email).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Master password expiration set for $User"
+    }
+    catch {
+        Write-Error "Failed to set master password expiration: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Set-KeeperEnterpriseUserMasterPasswordExpire -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
+
+function Update-KeeperEnterpriseTeamUser {
+    <#
+        .Synopsis
+        Updates a user's type in an enterprise team
+
+        .Parameter Team
+        Team name or UID
+
+        .Parameter User
+        User email address
+
+        .Parameter UserType
+        User type: 0, 1, or 2
+
+        .Description
+        Updates the user type for a user in a specific enterprise team. User type must be 0, 1, or 2.
+
+        .Example
+        Update-KeeperEnterpriseTeamUser -Team "Engineering" -User "user@example.com" -UserType 1
+        Updates the user type for user@example.com in the Engineering team
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Team,
+        [Parameter(Position = 1, Mandatory = $true)][string] $User,
+        [Parameter(Position = 2, Mandatory = $true)][int] $UserType
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    
+    if ([string]::IsNullOrWhiteSpace($Team)) {
+        Write-Error "Team name parameter is mandatory." -ErrorAction Stop
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($User)) {
+        Write-Error "User email parameter is mandatory." -ErrorAction Stop
+        return
+    }
+
+    if ($UserType -lt 0 -or $UserType -gt 2) {
+        Write-Error "User type must be 0, 1, or 2" -ErrorAction Stop
+        return
+    }
+
+    $teamObject = resolveTeam $enterprise.enterpriseData $Team
+    if (-not $teamObject) {
+        Write-Error "Team `"$Team`" not found" -ErrorAction Stop
+        return
+    }
+
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if (-not $userObject) {
+        Write-Error "User `"$User`" not found" -ErrorAction Stop
+        return
+    }
+
+    if ($userObject.UserStatus -ne [KeeperSecurity.Enterprise.UserStatus]::Active) {
+        Write-Error "User $User is not active" -ErrorAction Stop
+        return
+    }
+
+    try {
+        $enterprise.enterpriseData.TeamEnterpriseUserUpdate($teamObject, $userObject, $UserType).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Team user $User updated"
+    }
+    catch {
+        Write-Error "Failed to update team user: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseTeamUser -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseTeamUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
+
+function Update-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+        Updates enterprise user information
+
+        .Parameter User
+        User email address
+
+        .Parameter Node
+        Node name or ID (optional)
+
+        .Parameter FullName
+        User's full name (optional)
+
+        .Parameter JobTitle
+        User's job title (optional)
+
+        .Parameter InviteeLocale
+        User's locale for invitations (optional)
+
+        .Description
+        Updates enterprise user information including node assignment, full name, job title, and invitee locale.
+        If node is not specified, the user's current parent node is used.
+
+        .Example
+        Update-KeeperEnterpriseUser -User "user@example.com" -FullName "John Doe" -JobTitle "Software Engineer"
+        Updates user's full name and job title
+
+        .Example
+        Update-KeeperEnterpriseUser -User "user@example.com" -Node "Engineering" -InviteeLocale "en-US"
+        Moves user to Engineering node and sets locale
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $User,
+        [Parameter()][string] $Node,
+        [Parameter()][string] $FullName,
+        [Parameter()][string] $JobTitle,
+        [Parameter()][string] $InviteeLocale
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    
+    if ([string]::IsNullOrWhiteSpace($User)) {
+        Write-Error "User email parameter is mandatory." -ErrorAction Stop
+        return
+    }
+
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if (-not $userObject) {
+        Write-Error "User `"$User`" not found" -ErrorAction Stop
+        return
+    }
+
+    if ($userObject.UserStatus -ne [KeeperSecurity.Enterprise.UserStatus]::Active) {
+        Write-Error "User $User is not active" -ErrorAction Stop
+        return
+    }
+
+    $nodeId = $null
+    
+    if ($Node) {
+        $nodeObject = resolveSingleNode $Node
+        if ($nodeObject) {
+            $nodeId = $nodeObject.Id
+        } else {
+            Write-Warning "Node `"$Node`" not found so we are taking user's parent node"
+        }
+    }
+
+    try {
+        $updatedUser = $enterprise.enterpriseData.EnterpriseUserUpdate($userObject, $nodeId, $FullName, $JobTitle, $InviteeLocale).GetAwaiter().GetResult()
+        Write-Output "User $User updated"
+        return $updatedUser
+    }
+    catch {
+        Write-Error "Failed to update user: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
+

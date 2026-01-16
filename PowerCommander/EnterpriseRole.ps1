@@ -817,3 +817,672 @@ function Remove-KeeperEnterpriseRole {
 }
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRole -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
 New-Alias -Name kerdel -Value Remove-KeeperEnterpriseRole
+
+function Add-KeeperEnterpriseRoleManagedNode {
+    <#
+    .SYNOPSIS
+    Adds a managed node to an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Node
+    Node name or ID to add as a managed node
+
+    .PARAMETER Cascade
+    Cascade node management to subnodes
+
+    .DESCRIPTION
+    Adds a node as a managed node to an enterprise role. This allows the role to manage the specified node and optionally cascade management to subnodes.
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRoleManagedNode -Role "AdminRole" -Node "Sales"
+    Adds the Sales node as a managed node to the AdminRole
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRoleManagedNode -Role 123456789 -Node 987654321 -Cascade
+    Adds node 987654321 as a managed node to role 123456789 with cascade enabled
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string]$Node,
+        [Parameter()][switch]$Cascade
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    try {
+        $roleData.RoleManagedNodeAdd($roleObject, $targetNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+        $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
+        Write-Output "Managed node `"$nodeDisplayName`" added to role `"$($roleObject.DisplayName)`" successfully."
+    }
+    catch {
+        Write-Error -Message "Failed to add managed node: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseRoleManagedNode -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Add-KeeperRoleManagedNode -Value Add-KeeperEnterpriseRoleManagedNode
+
+function Update-KeeperEnterpriseRoleManagedNode {
+    <#
+    .SYNOPSIS
+    Updates a managed node configuration for an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Node
+    Node name or ID of the managed node to update
+
+    .PARAMETER Cascade
+    Cascade node management to subnodes
+
+    .DESCRIPTION
+    Updates the cascade setting for a managed node in an enterprise role.
+
+    .EXAMPLE
+    Update-KeeperEnterpriseRoleManagedNode -Role "AdminRole" -Node "Sales" -Cascade
+    Updates the Sales managed node in AdminRole to enable cascade
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string]$Node,
+        [Parameter()][switch]$Cascade
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    try {
+        $roleData.RoleManagedNodeUpdate($roleObject, $targetNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+        $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
+        Write-Output "Managed node `"$nodeDisplayName`" updated for role `"$($roleObject.DisplayName)`" successfully."
+    }
+    catch {
+        Write-Error -Message "Failed to update managed node: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseRoleManagedNode -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Update-KeeperRoleManagedNode -Value Update-KeeperEnterpriseRoleManagedNode
+
+function Remove-KeeperEnterpriseRoleManagedNode {
+    <#
+    .SYNOPSIS
+    Removes a managed node from an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Node
+    Node name or ID of the managed node to remove
+
+    .DESCRIPTION
+    Removes a node from the managed nodes list of an enterprise role.
+
+    .EXAMPLE
+    Remove-KeeperEnterpriseRoleManagedNode -Role "AdminRole" -Node "Sales"
+    Removes the Sales node from the managed nodes of AdminRole
+    #>
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string]$Node
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
+
+    if ($PSCmdlet.ShouldProcess("Managed node `"$nodeDisplayName`" from role `"$($roleObject.DisplayName)`"", "Remove")) {
+        try {
+            $roleData.RoleManagedNodeRemove($roleObject, $targetNode).GetAwaiter().GetResult() | Out-Null
+            Write-Output "Managed node `"$nodeDisplayName`" deleted from role `"$($roleObject.DisplayName)`" successfully."
+        }
+        catch {
+            Write-Error -Message "Failed to remove managed node: $($_.Exception.Message)" -ErrorAction Stop
+        }
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRoleManagedNode -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Remove-KeeperRoleManagedNode -Value Remove-KeeperEnterpriseRoleManagedNode
+
+function Add-KeeperEnterpriseRolePrivilege {
+    <#
+    .SYNOPSIS
+    Adds privileges to a managed node for an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Node
+    Node name or ID of the managed node
+
+    .PARAMETER Privilege
+    One or more privilege names to add. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS
+
+    .DESCRIPTION
+    Adds privileges to a managed node for an enterprise role. The node must already be a managed node for the role.
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRolePrivilege -Role "AdminRole" -Node "Sales" -Privilege "MANAGE_USERS", "MANAGE_TEAMS"
+    Adds MANAGE_USERS and MANAGE_TEAMS privileges to the Sales managed node for AdminRole
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRolePrivilege -Role 123456789 -Node "Sales" -Privilege "RUN_REPORTS"
+    Adds RUN_REPORTS privilege using role ID
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string]$Node,
+        [Parameter(Position = 2, Mandatory = $true)][string[]]$Privilege
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    # Check if node is a managed node
+    $managedNodes = $roleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $roleObject.Id -and $_.ManagedNodeId -eq $targetNode.Id }
+    if ($managedNodes.Count -eq 0) {
+        $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
+        Write-Error -Message "Role `"$($roleObject.DisplayName)`" does not have node `"$nodeDisplayName`" as a managed node. Use Add-KeeperEnterpriseRoleManagedNode first." -ErrorAction Stop
+    }
+
+    # Parse privileges
+    $privilegeList = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleManagedNodePrivilege]
+    $invalidPrivileges = @()
+
+    foreach ($priv in $Privilege) {
+        $privTrimmed = $priv.Trim()
+        if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true, [ref]$null)) {
+            $parsedPriv = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
+            $privilegeList.Add($parsedPriv)
+        }
+        else {
+            $invalidPrivileges += $privTrimmed
+        }
+    }
+
+    if ($invalidPrivileges.Count -gt 0) {
+        $validValues = [System.Enum]::GetNames([KeeperSecurity.Enterprise.RoleManagedNodePrivilege]) -join ", "
+        Write-Error -Message "Invalid privileges: $($invalidPrivileges -join ', '). Valid values: $validValues" -ErrorAction Stop
+    }
+
+    if ($privilegeList.Count -eq 0) {
+        Write-Error -Message "No valid privileges specified." -ErrorAction Stop
+    }
+
+    try {
+        $responses = $roleData.RoleManagedNodePrivilegeAddBatch($roleObject, $targetNode, $privilegeList).GetAwaiter().GetResult()
+        
+        for ($i = 0; $i -lt $responses.Count; $i++) {
+            $response = $responses[$i]
+            $privilege = $privilegeList[$i]
+            if ($response.IsSuccess) {
+                Write-Output "Command: $($response.command), Privilege: $privilege, Result: $($response.result)"
+            }
+            else {
+                Write-Output "Command: $($response.command), Privilege: $privilege, Result: $($response.result), Code: $($response.resultCode), Message: $($response.message)"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message "Failed to add privileges: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseRolePrivilege -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Add-KeeperRolePrivilege -Value Add-KeeperEnterpriseRolePrivilege
+
+function Remove-KeeperEnterpriseRolePrivilege {
+    <#
+    .SYNOPSIS
+    Removes privileges from a managed node for an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Node
+    Node name or ID of the managed node
+
+    .PARAMETER Privilege
+    One or more privilege names to remove. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS
+
+    .DESCRIPTION
+    Removes privileges from a managed node for an enterprise role.
+
+    .EXAMPLE
+    Remove-KeeperEnterpriseRolePrivilege -Role "AdminRole" -Node "Sales" -Privilege "MANAGE_USERS"
+    Removes MANAGE_USERS privilege from the Sales managed node for AdminRole
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string]$Node,
+        [Parameter(Position = 2, Mandatory = $true)][string[]]$Privilege
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    # Check if node is a managed node
+    $managedNodes = $roleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $roleObject.Id -and $_.ManagedNodeId -eq $targetNode.Id }
+    if ($managedNodes.Count -eq 0) {
+        $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
+        Write-Error -Message "Role `"$($roleObject.DisplayName)`" does not have node `"$nodeDisplayName`" as a managed node. Use Add-KeeperEnterpriseRoleManagedNode first." -ErrorAction Stop
+    }
+
+    # Parse privileges
+    $privilegeList = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleManagedNodePrivilege]
+    $invalidPrivileges = @()
+
+    foreach ($priv in $Privilege) {
+        $privTrimmed = $priv.Trim()
+        if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true, [ref]$null)) {
+            $parsedPriv = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
+            $privilegeList.Add($parsedPriv)
+        }
+        else {
+            $invalidPrivileges += $privTrimmed
+        }
+    }
+
+    if ($invalidPrivileges.Count -gt 0) {
+        $validValues = [System.Enum]::GetNames([KeeperSecurity.Enterprise.RoleManagedNodePrivilege]) -join ", "
+        Write-Error -Message "Invalid privileges: $($invalidPrivileges -join ', '). Valid values: $validValues" -ErrorAction Stop
+    }
+
+    if ($privilegeList.Count -eq 0) {
+        Write-Error -Message "No valid privileges specified." -ErrorAction Stop
+    }
+
+    try {
+        $responses = $roleData.RoleManagedNodePrivilegeRemoveBatch($roleObject, $targetNode, $privilegeList).GetAwaiter().GetResult()
+        
+        for ($i = 0; $i -lt $responses.Count; $i++) {
+            $response = $responses[$i]
+            $privilege = $privilegeList[$i]
+            if ($response.IsSuccess) {
+                Write-Output "Command: $($response.command), Privilege: $privilege, Result: $($response.result)"
+            }
+            else {
+                Write-Output "Command: $($response.command), Privilege: $privilege, Result: $($response.result), Code: $($response.resultCode), Message: $($response.message)"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message "Failed to remove privileges: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRolePrivilege -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Remove-KeeperRolePrivilege -Value Remove-KeeperEnterpriseRolePrivilege
+
+function Add-KeeperEnterpriseRoleEnforcement {
+    <#
+    .SYNOPSIS
+    Adds enforcements to an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Enforcement
+    Enforcement(s) in KEY=value format. Can be semicolon or comma separated. Multiple enforcements can be provided as an array.
+
+    .DESCRIPTION
+    Adds enforcement policies to an enterprise role. Enforcements are specified in KEY=value format.
+    Multiple enforcements can be provided separated by semicolons or commas, or as an array.
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=3600"
+    Adds a two-factor authentication duration enforcement
+
+    .EXAMPLE
+    Add-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=3600;MASTER_PASSWORD_MINIMUM_LENGTH=12"
+    Adds multiple enforcements separated by semicolons
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string[]]$Enforcement
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    if ($null -eq $Enforcement -or $Enforcement.Count -eq 0) {
+        Write-Error -Message "Enforcement parameter is required. Format: KEY=value;KEY2=value2 (semicolon or comma separated)." -ErrorAction Stop
+    }
+
+    # Parse enforcements
+    $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
+    $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
+    $invalidEnforcements = @()
+
+    foreach ($item in $Enforcement) {
+        # Split by semicolon or comma to handle multiple enforcements in one string
+        $parts = $item -split '[;,]' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        
+        foreach ($part in $parts) {
+            $trimmedPart = $part.Trim()
+            if ([string]::IsNullOrWhiteSpace($trimmedPart)) { continue }
+
+            $separatorIndex = $trimmedPart.IndexOf('=')
+            if ($separatorIndex -lt 0) {
+                $separatorIndex = $trimmedPart.IndexOf(':')
+            }
+
+            $key = $null
+            $value = $null
+
+            if ($separatorIndex -gt 0) {
+                $key = $trimmedPart.Substring(0, $separatorIndex).Trim()
+                $value = $trimmedPart.Substring($separatorIndex + 1).Trim()
+            }
+            else {
+                $key = $trimmedPart
+            }
+
+            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
+                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+                $enforcementDict[$parsedKey] = $value
+                $enforcementKeys.Add($parsedKey)
+            }
+            else {
+                $invalidEnforcements += $key
+            }
+        }
+    }
+
+    if ($invalidEnforcements.Count -gt 0) {
+        $validValues = [System.Enum]::GetNames([KeeperSecurity.Enterprise.RoleEnforcementPolicies]) -join ", "
+        Write-Error -Message "Invalid enforcements: $($invalidEnforcements -join ', '). Valid values: $validValues" -ErrorAction Stop
+    }
+
+    if ($enforcementKeys.Count -eq 0) {
+        Write-Error -Message "No valid enforcements specified." -ErrorAction Stop
+    }
+
+    try {
+        $responses = $roleData.RoleEnforcementAddBatch($roleObject, $enforcementDict).GetAwaiter().GetResult()
+        
+        for ($i = 0; $i -lt $responses.Count; $i++) {
+            $response = $responses[$i]
+            $enforcementKey = $enforcementKeys[$i]
+            if ($response.IsSuccess) {
+                $value = if ($enforcementDict.ContainsKey($enforcementKey) -and $enforcementDict[$enforcementKey]) { "=$($enforcementDict[$enforcementKey])" } else { "" }
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey$value, Result: $($response.result)"
+            }
+            else {
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey, Result: $($response.result), Code: $($response.resultCode), Message: $($response.message)"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message "Failed to add enforcements: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseRoleEnforcement -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Add-KeeperRoleEnforcement -Value Add-KeeperEnterpriseRoleEnforcement
+
+function Update-KeeperEnterpriseRoleEnforcement {
+    <#
+    .SYNOPSIS
+    Updates enforcements for an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Enforcement
+    Enforcement(s) in KEY=value format. Can be semicolon or comma separated. Multiple enforcements can be provided as an array.
+
+    .DESCRIPTION
+    Updates enforcement policies for an enterprise role. Enforcements are specified in KEY=value format.
+
+    .EXAMPLE
+    Update-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=7200"
+    Updates the two-factor authentication duration enforcement
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string[]]$Enforcement
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    if ($null -eq $Enforcement -or $Enforcement.Count -eq 0) {
+        Write-Error -Message "Enforcement parameter is required. Format: KEY=value;KEY2=value2 (semicolon or comma separated)." -ErrorAction Stop
+    }
+
+    # Parse enforcements (same logic as Add)
+    $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
+    $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
+    $invalidEnforcements = @()
+
+    foreach ($item in $Enforcement) {
+        $parts = $item -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        
+        foreach ($part in $parts) {
+            $trimmedPart = $part.Trim()
+            if ([string]::IsNullOrWhiteSpace($trimmedPart)) { continue }
+
+            $separatorIndex = $trimmedPart.IndexOf('=')
+            if ($separatorIndex -lt 0) {
+                $separatorIndex = $trimmedPart.IndexOf(':')
+            }
+
+            $key = $null
+            $value = $null
+
+            if ($separatorIndex -gt 0) {
+                $key = $trimmedPart.Substring(0, $separatorIndex).Trim()
+                $value = $trimmedPart.Substring($separatorIndex + 1).Trim()
+            }
+            else {
+                $key = $trimmedPart
+            }
+
+            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
+                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+                $enforcementDict[$parsedKey] = $value
+                $enforcementKeys.Add($parsedKey)
+            }
+            else {
+                $invalidEnforcements += $key
+            }
+        }
+    }
+
+    if ($invalidEnforcements.Count -gt 0) {
+        $validValues = [System.Enum]::GetNames([KeeperSecurity.Enterprise.RoleEnforcementPolicies]) -join ", "
+        Write-Error -Message "Invalid enforcements: $($invalidEnforcements -join ', '). Valid values: $validValues" -ErrorAction Stop
+    }
+
+    if ($enforcementKeys.Count -eq 0) {
+        Write-Error -Message "No valid enforcements specified." -ErrorAction Stop
+    }
+
+    try {
+        $responses = $roleData.RoleEnforcementUpdateBatch($roleObject, $enforcementDict).GetAwaiter().GetResult()
+        
+        for ($i = 0; $i -lt $responses.Count; $i++) {
+            $response = $responses[$i]
+            $enforcementKey = $enforcementKeys[$i]
+            if ($response.IsSuccess) {
+                $value = if ($enforcementDict.ContainsKey($enforcementKey) -and $enforcementDict[$enforcementKey]) { "=$($enforcementDict[$enforcementKey])" } else { "" }
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey$value, Result: $($response.result)"
+            }
+            else {
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey, Result: $($response.result), Code: $($response.resultCode), Message: $($response.message)"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message "Failed to update enforcements: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseRoleEnforcement -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Update-KeeperRoleEnforcement -Value Update-KeeperEnterpriseRoleEnforcement
+
+function Remove-KeeperEnterpriseRoleEnforcement {
+    <#
+    .SYNOPSIS
+    Removes enforcements from an Enterprise Role
+
+    .PARAMETER Role
+    Role Name or ID
+
+    .PARAMETER Enforcement
+    Enforcement key(s) to remove. Can be semicolon or comma separated. For remove operations, use KEY only (no value).
+
+    .DESCRIPTION
+    Removes enforcement policies from an enterprise role. Only the enforcement key is required (no value).
+
+    .EXAMPLE
+    Remove-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB"
+    Removes the TWO_FACTOR_DURATION_WEB enforcement
+
+    .EXAMPLE
+    Remove-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB;MASTER_PASSWORD_MINIMUM_LENGTH"
+    Removes multiple enforcements
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role,
+        [Parameter(Position = 1, Mandatory = $true)][string[]]$Enforcement
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+
+    $roleObject = resolveRole $roleData $Role
+    if (-not $roleObject) {
+        return
+    }
+
+    if ($null -eq $Enforcement -or $Enforcement.Count -eq 0) {
+        Write-Error -Message "Enforcement parameter is required. Format: KEY (for remove operations, use KEY only)." -ErrorAction Stop
+    }
+
+    # Parse enforcements (for remove, we only need keys)
+    $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
+    $invalidEnforcements = @()
+
+    foreach ($item in $Enforcement) {
+        $parts = $item -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        
+        foreach ($part in $parts) {
+            $trimmedPart = $part.Trim()
+            if ([string]::IsNullOrWhiteSpace($trimmedPart)) { continue }
+
+            # For remove, we only need the key (before = or : if present)
+            $separatorIndex = $trimmedPart.IndexOf('=')
+            if ($separatorIndex -lt 0) {
+                $separatorIndex = $trimmedPart.IndexOf(':')
+            }
+
+            $key = if ($separatorIndex -gt 0) { $trimmedPart.Substring(0, $separatorIndex).Trim() } else { $trimmedPart }
+
+            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
+                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+                $enforcementKeys.Add($parsedKey)
+            }
+            else {
+                $invalidEnforcements += $key
+            }
+        }
+    }
+
+    if ($invalidEnforcements.Count -gt 0) {
+        $validValues = [System.Enum]::GetNames([KeeperSecurity.Enterprise.RoleEnforcementPolicies]) -join ", "
+        Write-Error -Message "Invalid enforcements: $($invalidEnforcements -join ', '). Valid values: $validValues" -ErrorAction Stop
+    }
+
+    if ($enforcementKeys.Count -eq 0) {
+        Write-Error -Message "No valid enforcements specified." -ErrorAction Stop
+    }
+
+    try {
+        $responses = $roleData.RoleEnforcementRemoveBatch($roleObject, $enforcementKeys).GetAwaiter().GetResult()
+        
+        for ($i = 0; $i -lt $responses.Count; $i++) {
+            $response = $responses[$i]
+            $enforcementKey = $enforcementKeys[$i]
+            if ($response.IsSuccess) {
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey, Result: $($response.result)"
+            }
+            else {
+                Write-Output "Command: $($response.command), Enforcement: $enforcementKey, Result: $($response.result), Code: $($response.resultCode), Message: $($response.message)"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message "Failed to remove enforcements: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRoleEnforcement -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+New-Alias -Name Remove-KeeperRoleEnforcement -Value Remove-KeeperEnterpriseRoleEnforcement
