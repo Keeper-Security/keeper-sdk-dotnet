@@ -2,6 +2,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -314,8 +315,7 @@ namespace KeeperSecurity
             public static ExportFile ExportVault(
                 this VaultOnline vault,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
                 var exportFile = new ExportFile();
                 var recordsList = new List<ExportRecord>();
@@ -490,8 +490,7 @@ namespace KeeperSecurity
                     }
                     catch (Exception ex)
                     {
-                        logger?.Invoke(Severity.Warning, 
-                            $"Failed to export record {record.Uid}: {ex.Message}");
+                        Trace.TraceWarning($"Failed to export record {record.Uid}: {ex.Message}");
                     }
                 }
 
@@ -514,10 +513,9 @@ namespace KeeperSecurity
             public static string ExportVaultToJson(
                 this VaultOnline vault,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
-                var exportFile = vault.ExportVault(recordUids, includeSharedFolders, logger);
+                var exportFile = vault.ExportVault(recordUids, includeSharedFolders);
                 var jsonBytes = JsonUtils.DumpJson(exportFile, indent: true);
                 return System.Text.Encoding.UTF8.GetString(jsonBytes).Replace("\\/", "/");
             }
@@ -529,12 +527,11 @@ namespace KeeperSecurity
                 this VaultOnline vault,
                 string filename,
                 IEnumerable<string> recordUids = null,
-                bool includeSharedFolders = true,
-                Action<Severity, string> logger = null)
+                bool includeSharedFolders = true)
             {
-                var json = vault.ExportVaultToJson(recordUids, includeSharedFolders, logger);
+                var json = vault.ExportVaultToJson(recordUids, includeSharedFolders);
                 System.IO.File.WriteAllText(filename, json);
-                logger?.Invoke(Severity.Information, $"Exported to {filename}");
+                Trace.TraceInformation($"Exported to {filename}");
                 return Task.CompletedTask;
             }
         }

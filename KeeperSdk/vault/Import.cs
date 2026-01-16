@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -194,7 +195,7 @@ namespace KeeperSecurity
                 return Tuple.Create(fieldType, fieldLabel);
             }
 
-            static void AssignValueToField(this ITypedField field, object value, Action<Severity, string> logger)
+            static void AssignValueToField(this ITypedField field, object value)
             {
                 if (value is string str && field is ISerializeTypedField sf)
                 {
@@ -266,31 +267,30 @@ namespace KeeperSecurity
                                             
                                             if (!string.IsNullOrEmpty(elementValue) && !fts.SetElementValue(element, elementValue))
                                             {
-                                                logger?.Invoke(Severity.Warning,
+                                                Trace.TraceWarning(
                                                     $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
                                             }
                                         }
                                     }
                                 }
-                                else
-                                {
-                                    logger?.Invoke(Severity.Warning,
-                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
-                                }
+                            else
+                            {
+                                Trace.TraceWarning(
+                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
+                            }
 
                                 break;
                             }
-                            default:
-                                logger?.Invoke(Severity.Warning,
-                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": Provided value is not supported");
-                                break;
+                        default:
+                            Trace.TraceWarning(
+                                $"Field \"${field.FieldName}.{field.FieldLabel}\": Provided value is not supported");
+                            break;
                         }
                     }
                 }
             }
 
-            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields,
-                Action<Severity, string> logger)
+            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
                 typed.Uid = import.Uid;
                 typed.Title = import.Title;
@@ -355,7 +355,7 @@ namespace KeeperSecurity
                         if (!customFields.TryGetValue(key, out var value)) continue;
                         if (value != null)
                         {
-                            field.AssignValueToField(value, logger);
+                            field.AssignValueToField(value);
                         }
 
                         customFields.Remove(key);
@@ -402,12 +402,12 @@ namespace KeeperSecurity
                         try
                         {
                             var field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
-                            field.AssignValueToField(value, logger);
+                            field.AssignValueToField(value);
                             typed.Custom.Add(field);
                         }
                         catch (Exception e)
                         {
-                            logger?.Invoke(Severity.Warning, $"Create field \"{fk}\" error: {e.Message}");
+                            Trace.TraceError($"Create field \"{fk}\" error: {e.Message}");
                         }
                     }
                 }
@@ -626,15 +626,10 @@ namespace KeeperSecurity
             /// </summary>
             /// <param name="vault">Vault instance</param>
             /// <param name="import">Import object</param>
-            /// <param name="logger">Logger</param>
             /// <returns></returns>
-            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import,
-                Action<Severity, string> logger)
+            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import)
             {
-                var bo = new BatchVaultOperations(vault)
-                {
-                    BatchLogger = logger
-                };
+                var bo = new BatchVaultOperations(vault);
 
                 if (import.SharedFolders?.Length > 0)
                 {
@@ -754,7 +749,7 @@ namespace KeeperSecurity
                             }
 
                             var typedRecord = new TypedRecord(record.RecordType);
-                            record.PopulateTypedRecord(typedRecord, recordType.Fields, logger);
+                            record.PopulateTypedRecord(typedRecord, recordType.Fields);
                             keeperRecord = typedRecord;
                         }
 
