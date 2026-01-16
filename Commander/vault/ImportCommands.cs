@@ -3,7 +3,6 @@ using CommandLine;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -15,15 +14,6 @@ namespace Commander
     {
         public static async Task ImportCommand(this VaultContext context, ImportCommandOptions options)
         {
-            void Logger(Severity severity, string message)
-            {
-                if (severity == Severity.Warning || severity == Severity.Error)
-                {
-                    Console.WriteLine(message);
-                }
-                Debug.WriteLine(message);
-            }
-
             if (!File.Exists(options.FileName))
             {
                 throw new Exception($"File \"{options.FileName}\" does not exist");
@@ -36,7 +26,7 @@ namespace Commander
             jOptions.SerializationOptions &= ~ZeroDep.JsonSerializationOptions.AutoParseDateTime;
             var j = ZeroDep.Json.Deserialize<Dictionary<string, object>>(json, jOptions);
             var import = KeeperImport.LoadJsonDictionary(j);
-            var result = await context.Vault.ImportJson(import, Logger);
+            var result = await context.Vault.ImportJson(import);
             var table = new Tabulate(2)
             {
                 LeftPadding = 4
