@@ -847,7 +847,7 @@ function Add-KeeperEnterpriseRoleManagedNode {
     Param (
         [Parameter(Position = 0, Mandatory = $true)]$Role,
         [Parameter(Position = 1, Mandatory = $true)][string]$Node,
-        [Parameter()][switch]$Cascade
+        [Parameter()][bool]$Cascade = $false
     )
 
     [Enterprise]$enterprise = getEnterprise
@@ -864,7 +864,7 @@ function Add-KeeperEnterpriseRoleManagedNode {
     }
 
     try {
-        $roleData.RoleManagedNodeAdd($roleObject, $targetNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+        $roleData.RoleManagedNodeAdd($roleObject, $targetNode, ($Cascade -eq $true)).GetAwaiter().GetResult() | Out-Null
         $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
         Write-Output "Managed node `"$nodeDisplayName`" added to role `"$($roleObject.DisplayName)`" successfully."
     }
@@ -900,7 +900,7 @@ function Update-KeeperEnterpriseRoleManagedNode {
     Param (
         [Parameter(Position = 0, Mandatory = $true)]$Role,
         [Parameter(Position = 1, Mandatory = $true)][string]$Node,
-        [Parameter()][switch]$Cascade
+        [Parameter()][bool]$Cascade = $false
     )
 
     [Enterprise]$enterprise = getEnterprise
@@ -917,7 +917,7 @@ function Update-KeeperEnterpriseRoleManagedNode {
     }
 
     try {
-        $roleData.RoleManagedNodeUpdate($roleObject, $targetNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+        $roleData.RoleManagedNodeUpdate($roleObject, $targetNode, ($Cascade -eq $true)).GetAwaiter().GetResult() | Out-Null
         $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
         Write-Output "Managed node `"$nodeDisplayName`" updated for role `"$($roleObject.DisplayName)`" successfully."
     }
@@ -1025,14 +1025,12 @@ function Add-KeeperEnterpriseRolePrivilege {
         Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
     }
 
-    # Check if node is a managed node
     $managedNodes = $roleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $roleObject.Id -and $_.ManagedNodeId -eq $targetNode.Id }
     if ($managedNodes.Count -eq 0) {
         $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
         Write-Error -Message "Role `"$($roleObject.DisplayName)`" does not have node `"$nodeDisplayName`" as a managed node. Use Add-KeeperEnterpriseRoleManagedNode first." -ErrorAction Stop
     }
 
-    # Parse privileges
     $privilegeList = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleManagedNodePrivilege]
     $invalidPrivileges = @()
 
@@ -1118,14 +1116,12 @@ function Remove-KeeperEnterpriseRolePrivilege {
         Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
     }
 
-    # Check if node is a managed node
     $managedNodes = $roleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $roleObject.Id -and $_.ManagedNodeId -eq $targetNode.Id }
     if ($managedNodes.Count -eq 0) {
         $nodeDisplayName = if ([string]::IsNullOrEmpty($targetNode.DisplayName)) { $targetNode.Id.ToString() } else { $targetNode.DisplayName }
         Write-Error -Message "Role `"$($roleObject.DisplayName)`" does not have node `"$nodeDisplayName`" as a managed node. Use Add-KeeperEnterpriseRoleManagedNode first." -ErrorAction Stop
     }
 
-    # Parse privileges
     $privilegeList = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleManagedNodePrivilege]
     $invalidPrivileges = @()
 
@@ -1211,13 +1207,12 @@ function Add-KeeperEnterpriseRoleEnforcement {
         Write-Error -Message "Enforcement parameter is required. Format: KEY=value;KEY2=value2 (semicolon or comma separated)." -ErrorAction Stop
     }
 
-    # Parse enforcements
     $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
     $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
     $invalidEnforcements = @()
 
     foreach ($item in $Enforcement) {
-        # Split by semicolon or comma to handle multiple enforcements in one string
+        # since we are using the same separator for both semicolon and comma
         $parts = $item -split '[;,]' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
         
         foreach ($part in $parts) {
@@ -1318,7 +1313,6 @@ function Update-KeeperEnterpriseRoleEnforcement {
         Write-Error -Message "Enforcement parameter is required. Format: KEY=value;KEY2=value2 (semicolon or comma separated)." -ErrorAction Stop
     }
 
-    # Parse enforcements (same logic as Add)
     $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
     $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
     $invalidEnforcements = @()
@@ -1428,7 +1422,6 @@ function Remove-KeeperEnterpriseRoleEnforcement {
         Write-Error -Message "Enforcement parameter is required. Format: KEY (for remove operations, use KEY only)." -ErrorAction Stop
     }
 
-    # Parse enforcements (for remove, we only need keys)
     $enforcementKeys = New-Object System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]
     $invalidEnforcements = @()
 
@@ -1439,7 +1432,6 @@ function Remove-KeeperEnterpriseRoleEnforcement {
             $trimmedPart = $part.Trim()
             if ([string]::IsNullOrWhiteSpace($trimmedPart)) { continue }
 
-            # For remove, we only need the key (before = or : if present)
             $separatorIndex = $trimmedPart.IndexOf('=')
             if ($separatorIndex -lt 0) {
                 $separatorIndex = $trimmedPart.IndexOf(':')

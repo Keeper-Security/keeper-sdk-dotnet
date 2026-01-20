@@ -221,8 +221,23 @@ function Resend-KeeperEnterpriseInvite {
 
     [Enterprise]$enterprise = getEnterprise
     
-    $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
+    [KeeperSecurity.Enterprise.EnterpriseUser]$userObject = $null
+    
+    if ($enterprise.enterpriseData.TryGetUserByEmail($User, [ref]$userObject)) {
+        # here user is found by email
+        Write-Debug "User `"$User`" found by email"
+    }
+    elseif ($User -is [long] -or ($User -is [string] -and $User -match '^\d+$')) {
+        $userId = if ($User -is [long]) { $User } else { [long]$User }
+        if (-not $enterprise.enterpriseData.TryGetUserById($userId, [ref]$userObject)) {
+            Write-Error "User `"$User`" not found" -ErrorAction Stop
+            return
+        }
+        # here user is found by ID
+        Write-Debug "User `"$User`" found by ID"
+    }
+    else {
+        # here user is not found by email or ID
         Write-Error "User `"$User`" not found" -ErrorAction Stop
         return
     }

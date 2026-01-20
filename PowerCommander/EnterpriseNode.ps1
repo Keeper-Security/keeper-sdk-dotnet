@@ -200,10 +200,17 @@ function Set-KeeperEnterpriseNodeCustomInvitation {
     .DESCRIPTION
     Sets a custom invitation template for an enterprise node from a JSON file.
     The JSON file should contain the following properties:
-    - Subject: Email subject line
-    - Header: Header text for the invitation
-    - Body: Body text for the invitation
-    - ButtonLabel: Label for the action button
+    - "subject" : Email subject line
+    - "header" : Header text for the invitation
+    - "body" : Body text for the invitation
+    - "buttonLabel" : Label for the action button
+    -Example:
+    {
+        "subject": "You're Invited to Join",
+        "header": "Welcome to Our Portal",
+        "body": "Click the button below to create your Keeper account and start protecting your passwords.",
+        "buttonLabel": "Create Account"
+    }
 
     .EXAMPLE
     Set-KeeperEnterpriseNodeCustomInvitation -Node "Sales" -JsonFilePath "C:\invitation.json"
@@ -303,7 +310,7 @@ function Set-KeeperEnterpriseNodeCustomLogo {
     Node name or ID
 
     .PARAMETER LogoType
-    Logo type (e.g., "enterprise", "email")
+    Logo type ("vault" or "email")
 
     .PARAMETER LogoPath
     Path to the logo image file (JPEG, PNG, or GIF, max 500KB)
