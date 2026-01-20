@@ -198,7 +198,7 @@ function Remove-KeeperEnterpriseUser {
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
 New-Alias -Name delete-user -Value Remove-KeeperEnterpriseUser
 
-function Resend-KeeperEnterpriseInvite {
+function Invoke-ResendKeeperEnterpriseInvite {
     <#
         .Synopsis
         Resends enterprise invitation email to a user
@@ -211,7 +211,7 @@ function Resend-KeeperEnterpriseInvite {
         The user must be in Inactive status (not yet accepted invitation).
 
         .Example
-        Resend-KeeperEnterpriseInvite -User "user@example.com"
+        Invoke-ResendKeeperEnterpriseInvite -User "user@example.com"
         Resends invitation email to user@example.com
     #>
     [CmdletBinding()]
@@ -255,7 +255,7 @@ function Resend-KeeperEnterpriseInvite {
         Write-Error "Failed to resend invite: $($_.Exception.Message)" -ErrorAction Stop
     }
 }
-Register-ArgumentCompleter -CommandName Resend-KeeperEnterpriseInvite -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+Register-ArgumentCompleter -CommandName Invoke-ResendKeeperEnterpriseInvite -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
 
 function Set-KeeperEnterpriseUserMasterPasswordExpire {
     <#

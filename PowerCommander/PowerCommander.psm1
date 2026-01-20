@@ -48,7 +48,7 @@ Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperRoleName
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam, Get-KeeperEnterpriseNode
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
-Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Resend-KeeperEnterpriseInvite, 
+Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
 Set-KeeperEnterpriseUserMasterPasswordExpire, Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice

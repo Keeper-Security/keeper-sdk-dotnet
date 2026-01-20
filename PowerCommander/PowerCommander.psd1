@@ -80,7 +80,7 @@
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperRoleName', 'New-KeeperEnterpriseTeam',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
-        'Remove-KeeperEnterpriseUser', 'Resend-KeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
+        'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
         'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 'Remove-KeeperEnterpriseNode',
         'Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
