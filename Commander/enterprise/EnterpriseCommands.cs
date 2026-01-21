@@ -2401,7 +2401,7 @@ namespace Commander
         {
             if (options.MaxRecordDetails)
             {
-                Console.WriteLine("Warning: --max-record-details is not implemented yet.");
+                Console.WriteLine("--max-record-details feature is not yet supported.");
                 return;
             }
 
