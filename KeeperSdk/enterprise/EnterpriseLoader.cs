@@ -83,10 +83,13 @@ namespace KeeperSecurity.Enterprise
                         TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
                         break;
                     case BackupKeyType.EncryptedByPublicKey:
-                        if (encTreeKey.Length > 60)
-                        {
-                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateRsaKey);
-                        }
+                        TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateRsaKey);
+                        break;
+                    case BackupKeyType.EncryptedByDataKeyGcm:
+                        TreeKey = CryptoUtils.DecryptAesV2(encTreeKey, Auth.AuthContext.DataKey);
+                        break;
+                    case BackupKeyType.EncryptedByPublicKeyEcc:
+                        TreeKey = CryptoUtils.DecryptEc(encTreeKey, Auth.AuthContext.PrivateEcKey);
                         break;
                     default:
                         throw new Exception("cannot decrypt tree key");
