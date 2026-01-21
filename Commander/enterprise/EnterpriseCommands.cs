@@ -2309,9 +2309,8 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Warning: Invalid regex pattern '{filter.Pattern}', treating as substring");
-                    filter.Type = PatternType.Substring;
-                    filter.Pattern = workingPattern;
+                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
+                    return null;
                 }
             }
             else if (workingPattern.StartsWith("exact:", StringComparison.OrdinalIgnoreCase))
@@ -2329,9 +2328,8 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Warning: Invalid regex pattern '{filter.Pattern}', treating as substring");
-                    filter.Type = PatternType.Substring;
-                    filter.Pattern = workingPattern;
+                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
+                    return null;
                 }
             }
             else
@@ -2346,6 +2344,7 @@ namespace Commander
         private static bool MatchesPattern(Dictionary<string, object> eventData, PatternFilter filter)
         {
             if (filter == null) return true;
+            if (eventData == null) return false; 
 
             bool matches = false;
             foreach (var kvp in eventData)
