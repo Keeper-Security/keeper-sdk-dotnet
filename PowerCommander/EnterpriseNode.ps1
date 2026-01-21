@@ -186,3 +186,176 @@ function Remove-KeeperEnterpriseNode {
 }
 New-Alias -Name kend -Value Remove-KeeperEnterpriseNode
 
+function Set-KeeperEnterpriseNodeCustomInvitation {
+    <#
+    .SYNOPSIS
+    Sets a custom invitation template for an Enterprise Node
+
+    .PARAMETER Node
+    Node name or ID
+
+    .PARAMETER JsonFilePath
+    Path to JSON file containing invitation template (subject, header, body, buttonLabel)
+
+    .DESCRIPTION
+    Sets a custom invitation template for an enterprise node from a JSON file.
+    The JSON file should contain the following properties:
+    - "subject" : Email subject line
+    - "header" : Header text for the invitation
+    - "body" : Body text for the invitation
+    - "buttonLabel" : Label for the action button
+    -Example:
+    {
+        "subject": "You're Invited to Join",
+        "header": "Welcome to Our Portal",
+        "body": "Click the button below to create your Keeper account and start protecting your passwords.",
+        "buttonLabel": "Create Account"
+    }
+
+    .EXAMPLE
+    Set-KeeperEnterpriseNodeCustomInvitation -Node "Sales" -JsonFilePath "C:\invitation.json"
+    Sets custom invitation template for the Sales node
+
+    .EXAMPLE
+    Set-KeeperNodeCustomInvitation "Marketing" "C:\templates\marketing-invite.json"
+    Uses the alias to set custom invitation template
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Node,
+        [Parameter(Position = 1, Mandatory = $true)][string] $JsonFilePath
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    if (-not (Test-Path -Path $JsonFilePath -PathType Leaf)) {
+        Write-Error -Message "JSON file not found: $JsonFilePath" -ErrorAction Stop
+    }
+
+    try {
+        [KeeperSecurity.Enterprise.EnterpriseExtensions]::SetEnterpriseCustomInvitation($enterprise.enterpriseData, $targetNode.Id, $JsonFilePath).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Custom invitation set for node `"$($targetNode.DisplayName)`""
+    }
+    catch {
+        Write-Error -Message "Failed to set custom invitation for node `"$($targetNode.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+New-Alias -Name Set-KeeperNodeCustomInvitation -Value Set-KeeperEnterpriseNodeCustomInvitation
+
+function Get-KeeperEnterpriseNodeCustomInvitation {
+    <#
+    .SYNOPSIS
+    Gets the custom invitation template for an Enterprise Node
+
+    .PARAMETER Node
+    Node name or ID
+
+    .DESCRIPTION
+    Retrieves the custom invitation template configured for an enterprise node.
+    Returns an object with Subject, Header, Body, and ButtonLabel properties.
+
+    .EXAMPLE
+    Get-KeeperEnterpriseNodeCustomInvitation -Node "Sales"
+    Gets the custom invitation template for the Sales node
+
+    .EXAMPLE
+    Get-KeeperNodeCustomInvitation "Marketing"
+    Uses the alias to get custom invitation template
+
+    .EXAMPLE
+    $invitation = Get-KeeperEnterpriseNodeCustomInvitation -Node "Sales"
+    $invitation.Subject
+    Retrieves and displays the invitation subject
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Node
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    try {
+        $invitation = [KeeperSecurity.Enterprise.EnterpriseExtensions]::GetEnterpriseCustomInvitation($enterprise.enterpriseData, $targetNode.Id).GetAwaiter().GetResult()
+        
+        Write-Host "Custom invitation for node `"$($targetNode.DisplayName)`":"
+        Write-Host "Subject: $($invitation.Subject)"
+        Write-Host "Header: $($invitation.Header)"
+        Write-Host "Body: $($invitation.Body)"
+        Write-Host "Button Label: $($invitation.ButtonLabel)"
+        
+        return $invitation
+    }
+    catch {
+        Write-Error -Message "Failed to get custom invitation for node `"$($targetNode.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+New-Alias -Name Get-KeeperNodeCustomInvitation -Value Get-KeeperEnterpriseNodeCustomInvitation
+
+function Set-KeeperEnterpriseNodeCustomLogo {
+    <#
+    .SYNOPSIS
+    Uploads a custom logo for an Enterprise Node
+
+    .PARAMETER Node
+    Node name or ID
+
+    .PARAMETER LogoType
+    Logo type ("vault" or "email")
+
+    .PARAMETER LogoPath
+    Path to the logo image file (JPEG, PNG, or GIF, max 500KB)
+
+    .DESCRIPTION
+    Uploads a custom logo for an enterprise node. The logo file must be:
+    - Image format: JPEG, PNG, or GIF
+    - Maximum size: 500 KB
+    - Dimensions: Between 10x10 and 320x320 pixels
+
+    The upload process includes validation, upload to cloud storage, and verification.
+
+    .EXAMPLE
+    Set-KeeperEnterpriseNodeCustomLogo -Node "Sales" -LogoType "enterprise" -LogoPath "C:\logo.png"
+    Uploads an enterprise logo for the Sales node
+
+    .EXAMPLE
+    Set-KeeperNodeCustomLogo "Marketing" "email" "C:\email-logo.jpg"
+    Uses the alias to upload an email logo for the Marketing node
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Node,
+        [Parameter(Position = 1, Mandatory = $true)][string] $LogoType,
+        [Parameter(Position = 2, Mandatory = $true)][string] $LogoPath
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    if (-not (Test-Path -Path $LogoPath -PathType Leaf)) {
+        Write-Error -Message "Logo file not found: $LogoPath" -ErrorAction Stop
+    }
+
+    try {
+        $response = [KeeperSecurity.Enterprise.EnterpriseExtensions]::UploadEnterpriseCustomLogo($enterprise.enterpriseData, $targetNode.Id, $LogoType, $LogoPath).GetAwaiter().GetResult()
+        Write-Output "Custom logo uploaded for node `"$($targetNode.DisplayName)`""
+        return $response
+    }
+    catch {
+        Write-Error -Message "Failed to upload custom logo for node `"$($targetNode.DisplayName)`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+New-Alias -Name Set-KeeperNodeCustomLogo -Value Set-KeeperEnterpriseNodeCustomLogo
