@@ -1294,6 +1294,10 @@ function Update-KeeperEnterpriseRoleEnforcement {
     .EXAMPLE
     Update-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=7200"
     Updates the two-factor authentication duration enforcement
+
+    .EXAMPLE
+    Update-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=7200,MASTER_PASSWORD_MINIMUM_LENGTH=16"
+    Updates multiple enforcements separated by commas
     #>
     [CmdletBinding()]
     Param (
@@ -1318,7 +1322,7 @@ function Update-KeeperEnterpriseRoleEnforcement {
     $invalidEnforcements = @()
 
     foreach ($item in $Enforcement) {
-        $parts = $item -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        $parts = $item -split '[;,]' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
         
         foreach ($part in $parts) {
             $trimmedPart = $part.Trim()
@@ -1402,7 +1406,11 @@ function Remove-KeeperEnterpriseRoleEnforcement {
 
     .EXAMPLE
     Remove-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB;MASTER_PASSWORD_MINIMUM_LENGTH"
-    Removes multiple enforcements
+    Removes multiple enforcements separated by semicolons
+
+    .EXAMPLE
+    Remove-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB,MASTER_PASSWORD_MINIMUM_LENGTH"
+    Removes multiple enforcements separated by commas
     #>
     [CmdletBinding()]
     Param (
@@ -1426,7 +1434,7 @@ function Remove-KeeperEnterpriseRoleEnforcement {
     $invalidEnforcements = @()
 
     foreach ($item in $Enforcement) {
-        $parts = $item -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        $parts = $item -split '[;,]' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
         
         foreach ($part in $parts) {
             $trimmedPart = $part.Trim()
