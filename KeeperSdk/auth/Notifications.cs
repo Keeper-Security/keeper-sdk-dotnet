@@ -161,7 +161,8 @@ namespace KeeperSecurity.Authentication
                     var t = await Task.WhenAny(delayTask, connectTask);
                     if (t == delayTask)
                     {
-                        _cancellationTokenSource.Cancel();
+                        _cancellationTokenSource?.Cancel();
+                        break;
                     }
                     if (ws.State != WebSocketState.Open)
                     {
