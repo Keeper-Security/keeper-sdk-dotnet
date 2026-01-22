@@ -6,7 +6,6 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.RoleData] $roleData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
     [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
-    [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
     [hashtable] $ManagedCompanies = $null
 }
 
