@@ -1027,9 +1027,10 @@ namespace KeeperSecurity.Plugins.PEDM
             return status;
         }
 
-        public async Task<IEnumerable<CollectionLinkDataResult>> GetCollectionLinks(IEnumerable<CollectionLink> links)
+        public Task<IEnumerable<CollectionLinkDataResult>> GetCollectionLinks(IEnumerable<CollectionLink> links)
         {
-            throw new NotImplementedException("GetCollectionLinks is not yet implemented");
+            return Task.FromException<IEnumerable<CollectionLinkDataResult>>(
+                new NotImplementedException("GetCollectionLinks is not yet implemented"));
         }
 
         public async Task<ModifyStatus> SetCollectionLinks(
@@ -1131,6 +1132,121 @@ namespace KeeperSecurity.Plugins.PEDM
             if (statusRs == null)
             {
                 throw new Exception("Empty response from modify_agent");
+            }
+
+            _needSync = true;
+            return ModifyStatus.FromProto(statusRs);
+        }
+
+        public class PolicyInput
+        {
+            /// <summary>
+            /// Policy UID (base64url)
+            /// </summary>
+            public string PolicyUid { get; set; }
+
+            /// <summary>
+            /// Policy template/admin JSON (plainData)
+            /// </summary>
+            public string PlainDataJson { get; set; }
+
+            /// <summary>
+            /// Policy JSON data to encrypt (policy data)
+            /// </summary>
+            public string PolicyDataJson { get; set; }
+        }
+
+        public async Task<ModifyStatus> ModifyPolicies(
+            IEnumerable<PolicyInput> addPolicies = null,
+            IEnumerable<PolicyInput> updatePolicies = null,
+            IEnumerable<string> removePolicies = null)
+        {
+            var agentKey = AgentKey;
+            if (agentKey == null)
+            {
+                throw new InvalidOperationException("Agent key is required");
+            }
+
+            var rq = new PEDMProto.PolicyRequest();
+
+            if (addPolicies != null)
+            {
+                foreach (var ap in addPolicies)
+                {
+                    var policyUid = string.IsNullOrEmpty(ap?.PolicyUid) ? CryptoUtils.GenerateUid() : ap.PolicyUid;
+                    var plainData = Encoding.UTF8.GetBytes(ap?.PlainDataJson ?? "{}");
+                    var policyData = Encoding.UTF8.GetBytes(ap?.PolicyDataJson ?? "{}");
+
+                    var policyKey = CryptoUtils.GenerateEncryptionKey();
+                    var encryptedData = CryptoUtils.EncryptAesV2(policyData, policyKey);
+                    var encryptedKey = CryptoUtils.EncryptAesV2(policyKey, agentKey);
+
+                    rq.AddPolicy.Add(new PEDMProto.PolicyAdd
+                    {
+                        PolicyUid = ByteString.CopyFrom(policyUid.Base64UrlDecode()),
+                        PlainData = ByteString.CopyFrom(plainData),
+                        EncryptedData = ByteString.CopyFrom(encryptedData),
+                        EncryptedKey = ByteString.CopyFrom(encryptedKey),
+                    });
+                }
+            }
+
+            if (updatePolicies != null)
+            {
+                foreach (var up in updatePolicies)
+                {
+                    var policyUid = up?.PolicyUid;
+                    if (string.IsNullOrEmpty(policyUid))
+                    {
+                        throw new ArgumentException("PolicyUid is required for update");
+                    }
+
+                    var storagePolicy = _storage.Policies.GetEntity(policyUid);
+                    if (storagePolicy == null)
+                    {
+                        throw new Exception($"Update Policy: \"{policyUid}\" not found");
+                    }
+
+                    var policyKey = CryptoUtils.DecryptAesV2(storagePolicy.Key, agentKey);
+
+                    var plainDataBytes = !string.IsNullOrEmpty(up.PlainDataJson)
+                        ? Encoding.UTF8.GetBytes(up.PlainDataJson)
+                        : storagePolicy.AdminData ?? Array.Empty<byte>();
+
+                    var encryptedDataBytes = !string.IsNullOrEmpty(up.PolicyDataJson)
+                        ? CryptoUtils.EncryptAesV2(Encoding.UTF8.GetBytes(up.PolicyDataJson), policyKey)
+                        : storagePolicy.Data ?? Array.Empty<byte>();
+
+                    rq.UpdatePolicy.Add(new PEDMProto.PolicyUpdate
+                    {
+                        PolicyUid = ByteString.CopyFrom(policyUid.Base64UrlDecode()),
+                        PlainData = ByteString.CopyFrom(plainDataBytes),
+                        EncryptedData = ByteString.CopyFrom(encryptedDataBytes),
+                    });
+                }
+            }
+
+            if (removePolicies != null)
+            {
+                foreach (var policyUid in removePolicies)
+                {
+                    if (string.IsNullOrEmpty(policyUid))
+                    {
+                        continue;
+                    }
+
+                    rq.RemovePolicy.Add(ByteString.CopyFrom(policyUid.Base64UrlDecode()));
+                }
+            }
+
+            var statusRs = await _auth.ExecuteRouter<PEDMProto.PolicyRequest, PEDMProto.PedmStatusResponse>(
+                "pedm/modify_policy",
+                rq,
+                typeof(PEDMProto.PedmStatusResponse));
+
+            if (statusRs == null)
+            {
+                throw new Exception("Empty response from modify_policy");
             }
 
             _needSync = true;

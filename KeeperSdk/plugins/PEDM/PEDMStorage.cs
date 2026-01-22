@@ -91,14 +91,34 @@ namespace KeeperSecurity.Plugins.PEDM
     {
         [DataMember(Name = "numberRequiredApprovers")]
         public int NumberRequiredApprovers { get; set; }
+        
         [DataMember(Name = "isApprovalLimitOneTime")]
         public bool IsApprovalLimitOneTime { get; set; }
+        
         [DataMember(Name = "oneTimeApprovalLimit")]
         public string OneTimeApprovalLimit { get; set; } = "";
+        
         [DataMember(Name = "approvalLimitRange")]
         public ApprovalLimitRange ApprovalLimitRange { get; set; }
+        
         [DataMember(Name = "approvers")]
         public Approvers Approvers { get; set; }
+        
+        [DataMember(Name = "disabled", EmitDefaultValue = false)]
+        public bool? Disabled { get; set; }
+    }
+    
+    [DataContract]
+    public class PolicyInput
+    {
+        [DataMember(Name = "plainData")]
+        public PolicyPlainData PlainData { get; set; }
+        
+        [DataMember(Name = "data")]
+        public PolicyDataStructure Data { get; set; }
+        
+        [DataMember(Name = "policyUid", EmitDefaultValue = false)]
+        public string PolicyUid { get; set; }
     }
 
     [DataContract]
@@ -106,41 +126,58 @@ namespace KeeperSecurity.Plugins.PEDM
     {
         [DataMember(Name = "PolicyName")]
         public string PolicyName { get; set; } = "";
+        
         [DataMember(Name = "PolicyType")]
         public string PolicyType { get; set; } = "";
+        
         [DataMember(Name = "PolicyId")]
         public string PolicyId { get; set; } = "";
+        
         [DataMember(Name = "Status")]
         public string Status { get; set; } = "";
+        
         [DataMember(Name = "Actions")]
         public PolicyActions Actions { get; set; }
         [DataMember(Name = "NotificationMessage")]
         public string NotificationMessage { get; set; } = "";
+        
         [DataMember(Name = "NotificationRequiresAcknowledge")]
         public bool NotificationRequiresAcknowledge { get; set; }
+        
         [DataMember(Name = "RiskLevel")]
         public int RiskLevel { get; set; }
+        
         [DataMember(Name = "Operator")]
         public string Operator { get; set; } = "";
+        
         [DataMember(Name = "Rules")]
         public List<PolicyRule> Rules { get; set; } = new List<PolicyRule>();
+        
         [DataMember(Name = "UserCheck")]
         public List<string> UserCheck { get; set; } = new List<string>();
+        
         [DataMember(Name = "MachineCheck")]
         public List<string> MachineCheck { get; set; } = new List<string>();
+        
         [DataMember(Name = "ApplicationCheck")]
         public List<string> ApplicationCheck { get; set; } = new List<string>();
+        
         [DataMember(Name = "DayCheck")]
         public List<int> DayCheck { get; set; } = new List<int>();
+        
         [DataMember(Name = "DateCheck")]
         public List<DateRange> DateCheck { get; set; } = new List<DateRange>();
+        
         [DataMember(Name = "TimeCheck")]
         public List<TimeRange> TimeCheck { get; set; } = new List<TimeRange>();
+        
         [DataMember(Name = "CertificationCheck")]
         public List<string> CertificationCheck { get; set; } = new List<string>();
+        
         [DataMember(Name = "Extension")]
         public Dictionary<string, object> Extension { get; set; } = new Dictionary<string, object>();
-        [DataMember(Name = "plainData")]
+        
+        [DataMember(Name = "plainData", EmitDefaultValue = false)]
         public PolicyPlainData PlainData { get; set; }
     }
     public interface IPedmAdminSettings : IUid
@@ -218,7 +255,6 @@ namespace KeeperSecurity.Plugins.PEDM
         long Modified { get; set; }
     }
 
-    // Data classes with SQL attributes
     [SqlTable(Name = "pedm_admin_settings", PrimaryKey = new[] { "key" })]
     internal class PedmAdminSettingsData : IPedmAdminSettings, IEntityCopy<IPedmAdminSettings>
     {
