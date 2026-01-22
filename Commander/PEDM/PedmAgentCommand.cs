@@ -206,15 +206,49 @@ namespace Commander.PEDM
         {
             if (string.IsNullOrEmpty(agentUid))
             {
-                Console.WriteLine("Agent UID is required for 'remove' command.");
+                Console.WriteLine("Agent UID or machine name is required for 'remove' command.");
+                return;
+            }
+
+            var agent = Plugin.Agents.GetEntity(agentUid);
+            if (agent == null)
+            {
+                var matches = Plugin.Agents.GetAll()
+                    .Where(x => string.Equals(x.MachineId, agentUid, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (matches.Count > 1)
+                {
+                    Console.WriteLine($"Multiple agents match machine name \"{agentUid}\". Please specify Agent UID.");
+                    return;
+                }
+
+                agent = matches.FirstOrDefault();
+            }
+
+            if (agent == null)
+            {
+                Console.WriteLine($"Agent \"{agentUid}\" does not exist");
                 return;
             }
 
             var removeStatus = await Plugin.ModifyAgents(
                 updateAgents: null,
-                removeAgents: new[] { agentUid });
+                removeAgents: new[] { agent.AgentUid });
 
-            Console.WriteLine($"Agent '{agentUid}' removed.");
+            if (removeStatus.RemoveErrors?.Count > 0)
+            {
+                foreach (var error in removeStatus.RemoveErrors)
+                {
+                    if (!error.Success)
+                    {
+                        Console.WriteLine($"Failed to remove agent \"{error.EntityUid}\": {error.Message}");
+                    }
+                }
+                return;
+            }
+
+            Console.WriteLine($"Agent '{agent.AgentUid}' removed.");
             if (removeStatus.Add?.Count > 0 || removeStatus.Update?.Count > 0 || removeStatus.Remove?.Count > 0)
             {
                 PrintModifyStatus(removeStatus);

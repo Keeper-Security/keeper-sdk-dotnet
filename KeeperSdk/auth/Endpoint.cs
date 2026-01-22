@@ -214,9 +214,31 @@ namespace KeeperSecurity.Authentication
             return $"push.services.{Server}";
         }
 
+        private static string NormalizeServerHost(string server)
+        {
+            if (string.IsNullOrWhiteSpace(server))
+            {
+                return DefaultKeeperServer;
+            }
+
+            var s = server.Trim().Trim('"').Trim('\'');
+            if (s.IndexOf("://", StringComparison.Ordinal) < 0)
+            {
+                s = "https://" + s;
+            }
+
+            if (Uri.TryCreate(s, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.Host))
+            {
+                return uri.Host;
+            }
+
+            return server;
+        }
+
         private string GetRouterServer()
         {
-            return $"connect.{Server}";
+            var host = NormalizeServerHost(Server);
+            return $"connect.{host}";
         }
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
