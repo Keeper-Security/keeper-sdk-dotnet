@@ -398,4 +398,3 @@ function Get-KeeperEnterpriseTeams {
     $results | Format-Table -AutoSize
 }
 New-Alias -Name list-team -Value Get-KeeperEnterpriseTeams
-New-Alias -Name lt -Value Get-KeeperEnterpriseTeams

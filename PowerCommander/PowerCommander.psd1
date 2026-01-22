@@ -120,7 +120,7 @@
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs', 'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel',
-        'list-team', 'lt')
+        'list-team')
 
     # List of all modules packaged with this module
     # ModuleList = @()
