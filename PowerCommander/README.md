@@ -9,8 +9,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
 ### Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Connect-Keeper                                          | kc          | Login to Keeper server
 | Sync-Keeper                                             | ks          | Sync with Keeper server 
 | Disconnect-Keeper                                       | kq          | Logout and clear the data
@@ -49,8 +49,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperPasswordReport                                |             | Retrieves password report based on policy and strengths
 
 ### Trash Management Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias          | Description
+|---------------------------------------------------------|----------------|----------------------------
 | Get-KeeperTrashList                                     | ktrash         | List deleted records in trash
 | Get-KeeperTrashedRecordDetails                          | ktrash-get     | Get details of a deleted record
 | Restore-KeeperTrashRecords                              | ktrash-restore | Restore deleted records from trash
@@ -58,14 +58,14 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Clear-KeeperTrash                                       | ktrash-purge   | Permanently delete all records in trash
 
 ### Import/Export Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias          | Description
+|---------------------------------------------------------|----------------|----------------------------
 | Export-KeeperVault                                      | kexport        | Export vault records and shared folders to JSON file
 | Export-KeeperMembership                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
 
 ### Biometric Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Assert-KeeperBiometricCredential                        |             | Checks if a biometric credential exists for the current user
 | Register-KeeperBiometricCredential                      |             | Registers a new biometric credential (Windows Hello/WebAuthn)
 | Show-KeeperBiometricCredentials                         |             | Lists all biometric credentials registered for the current user
@@ -73,8 +73,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 
 
 ### Sharing Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Show-KeeperRecordShare                                  | kshrsh      | Show a record sharing information
 | Grant-KeeperRecordAccess                                | kshr        | Share a record with user
 | Revoke-KeeperRecordAccess                               | kushr       | Remove record share from user
@@ -87,8 +87,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperOneTimeShare                               | kotsr       | Remove One-Time Share
 
 ### Enterprise Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Sync-KeeperEnterprise                                   | ked         | Sync Keeper enterprise information
 | Get-KeeperEnterpriseNode                                | ken         | Enumerate all enterprise nodes
 | Get-KeeperEnterpriseUser                                | keu         | Enumerate all enterprise users
@@ -140,23 +140,23 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperRoleName                                      |             | Get Display Name of Enterprise Role
 
 ### Device Approval Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Get-PendingKeeperDeviceApproval                         |             | List pending device approval requests with details (email, device ID, device name, client version, IP address). Supports table, CSV, and JSON output formats
 | Approve-KeeperDevice                                    |             | Approve pending device requests by device ID (partial match) or user email. Supports -TrustedIp to filter by trusted IP addresses
 | Deny-KeeperDevice                                       |             | Deny pending device requests by device ID (partial match) or user email
 
 ### BreachWatch Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Get-KeeperBreachWatchList                               | kbw         | List passwords which are breached based on breachwatch
 | Test-PasswordAgainstBreachWatch                         | kbwp        | check a given password against breachwatch passwords
 | Set-KeeperBreachWatchRecordIgnore                       | kbwi        | Ignore a given record from breachwatch alerts
 | Get-KeeperIgnoredBreachWatchRecords                     | kbwig       | List ignored breachwatch records
 
 ### Secret Manager Cmdlets
-| Cmdlet name                                             | Alias            | Description
-|---------------------------------------------------------|------------------|----------------------------
+| Cmdlet name                                             | Alias       | Description
+|---------------------------------------------------------|-------------|----------------------------
 | Get-KeeperSecretManagerApp                              | ksm         | Enumerate all Keeper Secret Manager Applications
 | Add-KeeperSecretManagerApp                              | ksm-create  | Add a Keeper Secret Manager Application
 | Remove-KeeperSecretManagerApp                           | ksm-delete  | Delete a Keeper Secret Manager Application
