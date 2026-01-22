@@ -15,7 +15,7 @@ namespace Sample.ImportExportExamples
 
         {
             var vault = await AuthenticateAndGetVault.GetVault();
-            await KeeperExport.ExportVaultToFile(vault, filename, recordUids, includeSharedFolders, logger);
+            await KeeperExport.ExportVaultToFile(vault, filename, recordUids, includeSharedFolders);
 
 
         }

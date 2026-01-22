@@ -40,8 +40,8 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
-                var getRecords = new GetRecordsExample();
-                await getRecords.GetRecordsWithName("Google");
+                // var getRecords = new GetRecordsExample();
+                // await getRecords.GetRecordsWithName("Google");
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(name: "AddEx2", type: "bankCard", folderUid: "<folderUid_if_any>");
@@ -490,7 +490,7 @@ namespace Sample
                 // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleMembershipExample.EnterpriseRemoveRoleMembership(roleId: <roleUid_here>, userName: "<userEmail_here>");
 
                 // // Enterprise Team View Example
-                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamViewExample.EnterpriseTeamView(teamName: "<teamName_here>");
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamViewExample.EnterpriseTeamView(teamName: "Admin");
 
                 // // Enterprise Team Add Example
                 // EnterpriseTeam newTeam = new EnterpriseTeam
@@ -629,6 +629,17 @@ namespace Sample
                 // Set Enterprise Custom Logo Example
                 // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomLogoExample.SetEnterpriseCustomLogo(70411693850884, "email", "C:\\Users\\AnanthReddyMandli\\Downloads\\download.jpg");
 
+                // Action Report Example
+                // await ActionReportExamples.ActionReportExample.RunActionReport(
+                //     targetStatus: ActionReportTargetStatus.NoLogon,
+                //     daysSince: 30,
+                //     node: null
+                // );
+
+                // Audit Report Example
+                await AuditReportExamples.AuditReportExample.RunAuditReport(
+                    limit: 100
+                );
             }
             catch (Exception ex)
             {

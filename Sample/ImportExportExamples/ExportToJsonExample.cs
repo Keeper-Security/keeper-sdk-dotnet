@@ -16,7 +16,7 @@ namespace Sample.ImportExportExamples
 
         {
             var vault = await AuthenticateAndGetVault.GetVault();
-            var result = KeeperExport.ExportVaultToJson(vault, recordUids, includeSharedFolders, logger);
+            var result = KeeperExport.ExportVaultToJson(vault, recordUids, includeSharedFolders);
             Console.WriteLine(result);
 
 
