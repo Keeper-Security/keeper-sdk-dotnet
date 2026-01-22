@@ -69,7 +69,7 @@
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
-        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
+        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseDevices.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
         'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1')
 
     # Functions to export from this module
@@ -80,14 +80,20 @@
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperRoleName', 'New-KeeperEnterpriseTeam',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
-        'Remove-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
+        'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
+        'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
         'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 'Remove-KeeperEnterpriseNode',
+        'Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
+        'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
-        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
-        'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole',
+        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 'Revoke-KeeperEnterpriseRoleFromTeam', 
+        'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole','Add-KeeperEnterpriseRolePrivilege', 'Remove-KeeperEnterpriseRolePrivilege',
+        'Add-KeeperEnterpriseRoleManagedNode', 'Update-KeeperEnterpriseRoleManagedNode', 'Remove-KeeperEnterpriseRoleManagedNode',
+        'Add-KeeperEnterpriseRoleEnforcement', 'Update-KeeperEnterpriseRoleEnforcement', 'Remove-KeeperEnterpriseRoleEnforcement',
+
         #'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',

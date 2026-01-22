@@ -1267,15 +1267,6 @@ namespace Commander
     {
         public static async Task ExportCommand(this VaultContext context, ExportCommandOptions options)
         {
-            void Logger(Severity severity, string message)
-            {
-                if (severity == Severity.Warning || severity == Severity.Error)
-                {
-                    Console.WriteLine(message);
-                }
-                Debug.WriteLine(message);
-            }
-
             var filename = options.FileName;
 
             if (!filename.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -1301,8 +1292,8 @@ namespace Commander
             await context.Vault.ExportVaultToFile(
                 filename,
                 recordUids: null,
-                includeSharedFolders: !excludeSharedFolders,
-                logger: Logger);
+                includeSharedFolders: !excludeSharedFolders
+                );
 
             var fileInfo = new FileInfo(filename);
             var table = new Tabulate(2)
