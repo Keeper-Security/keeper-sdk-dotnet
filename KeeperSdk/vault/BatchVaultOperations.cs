@@ -92,6 +92,7 @@ public class BatchResult
 
     public IDictionary<string, string> FolderFailure { get; } = new Dictionary<string, string>();
     public IDictionary<string, string> RecordFailure { get; } = new Dictionary<string, string>();
+    public IDictionary<(string, string), string> MembershipFailure { get; } = new Dictionary<(string, string), string>();
 }
 
 /// <summary>
@@ -1102,8 +1103,11 @@ public class BatchVaultOperations : IBatchVaultOperations
             }
         }
 
+        if (_typedRecordsToAdd.Count > 0)
+        {
+            BatchLogger?.Invoke(Severity.Information, "Create Typed Records");
+        }
 
-        BatchLogger?.Invoke(Severity.Information, "Create Typed Records");
         while (_typedRecordsToAdd.Count > 0)
         {
             var left = 999;
@@ -1236,16 +1240,10 @@ public class BatchVaultOperations : IBatchVaultOperations
                 if (status.Status != "success")
                 {
                     var recordUid = status.RecordUid;
-                    if (toUpdate.TryGetValue(recordUid, out var r))
-                    {
-                        BatchLogger?.Invoke(Severity.Warning,
-                            $"Update record \"{r.Title}\" error: {status.Message}");
-                    }
-                    else
-                    {
-                        BatchLogger?.Invoke(Severity.Warning,
-                            $"Update record UID \"{recordUid}\" error: {status.Message}");
-                    }
+                    BatchLogger?.Invoke(Severity.Warning,
+                        toUpdate.TryGetValue(recordUid, out var r)
+                            ? $"Update record \"{r.Title}\" error: {status.Message}"
+                            : $"Update record UID \"{recordUid}\" error: {status.Message}");
 
                     result.RecordFailure[recordUid] = $"Update record UID \"{recordUid}\" error: {status.Message}";
                 }
@@ -1332,7 +1330,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                         {
                             if (rq is FolderUpdateCommand fuc)
                             {
-                                var message = $"Rename folder \"{fuc.FolderUid}\" error: {rs.message}";
+                                var message = $"Rename folder=\"{fuc.FolderUid}\": {rs.message}";
                                 BatchLogger?.Invoke(Severity.Warning, message);
                                 result.FolderFailure[fuc.FolderUid] = message;
                             }
@@ -1350,24 +1348,29 @@ public class BatchVaultOperations : IBatchVaultOperations
         {
             await _vault.SyncDown();
 
+            bool IsMemberTheSame(SharedFolderPermission permission, SharedFolderMember member)
+            {
+                if (permission.UserType != member.UserType) return false;
+                if (string.Equals(permission.Name, member.UserId, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+                return permission.Uid == member.UserId;
+            }
+
             var userEmails = new HashSet<string>();
             var teamUids = new HashSet<string>();
 
             foreach (var sharedFolderUid in _sharedFolderMembership.Keys)
             {
-                if (_vault.TryGetSharedFolder(sharedFolderUid, out var sharedFolder))
+                if (!_vault.TryGetSharedFolder(sharedFolderUid, out var sharedFolder)) continue;
+                foreach (var membership in _sharedFolderMembership[sharedFolderUid].Values)
                 {
-                    foreach (var membership in _sharedFolderMembership[sharedFolderUid].Values)
+                    if (membership.IsRemove) continue;
+                    var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => IsMemberTheSame(x, membership));
+                    if (existingUser == null)
                     {
-                        if (!membership.IsRemove)
-                        {
-                            // TODO name
-                            var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
-                            if (existingUser == null)
-                            {
-                                (membership.UserType == UserType.User ? userEmails : teamUids).Add(membership.UserId);
-                            }
-                        }
+                        (membership.UserType == UserType.User ? userEmails : teamUids).Add(membership.UserId);
                     }
                 }
             }
@@ -1386,8 +1389,7 @@ public class BatchVaultOperations : IBatchVaultOperations
             {
                 if (!_vault.TryGetSharedFolder(sharedFolderUid, out var sharedFolder))
                 {
-                    var message = $"Shared folder UID \"{sharedFolderUid}\" not found";
-                    BatchLogger?.Invoke(Severity.Warning, message);
+                    BatchLogger?.Invoke(Severity.Warning, $"Shared folder=\"{sharedFolderUid}\": not found");
                     continue;
                 }
                 var rq = new SharedFolderUpdateV3Request
@@ -1403,8 +1405,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                         continue;
                     }
 
-                    // TODO name
-                    var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
+                    var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => IsMemberTheSame(x, membership));
                     if (membership.IsRemove)
                     {
                         if (existingUser == null) continue;
@@ -1435,6 +1436,20 @@ public class BatchVaultOperations : IBatchVaultOperations
                                 {
                                     sfuu.ManageRecords = membership.Options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse;
                                 }
+                                if (membership.Options.Expiration.HasValue)
+                                {
+                                    sfuu.Expiration = membership.Options.Expiration.Value.ToUnixTimeMilliseconds();
+                                    if (sfuu.Expiration > 0)
+                                    {
+                                        if (sfuu.ManageRecords == SetBooleanValue.BooleanTrue || sfuu.ManageUsers == SetBooleanValue.BooleanTrue)
+                                        {
+                                            BatchLogger(Severity.Information,
+                                                $"Shared folder=\"{sharedFolderUid}\" User=\"{membership.UserId}\": Limited time access share can be Read-Only");
+                                            sfuu.ManageUsers = SetBooleanValue.BooleanFalse;
+                                            sfuu.ManageRecords = SetBooleanValue.BooleanFalse;
+                                        }
+                                    }
+                                }
                             }
                             if (existingUser == null)
                             {
@@ -1458,19 +1473,19 @@ public class BatchVaultOperations : IBatchVaultOperations
                                             };
                                         }
                                         else {
-                                            throw new Exception($"User \"{membership.UserId}\" public key not found");
+                                            throw new Exception($"User=\"{membership.UserId}\" public key not found");
                                         }
                                     }
                                     catch (Exception e)
                                     {
-                                        var message = $"Shared folder UID \"{sharedFolderUid}\": user {membership.UserId}: {e.Message}";
+                                        var message = $"Shared folder=\"\"{sharedFolderUid}\"\" User=\"{membership.UserId}\": {e.Message}";
                                         BatchLogger?.Invoke(Severity.Warning, message);
                                         continue;
                                     }
                                 }
                                 else
                                 {
-                                    var message = $"Shared folder UID \"{sharedFolderUid}\": user {membership.UserId}: public key is not available";
+                                    var message = $"Shared folder=\"{sharedFolderUid}\" User=\"{membership.UserId}\": public key is not available";
                                     BatchLogger?.Invoke(Severity.Warning, message);
                                     continue;
                                 }
@@ -1478,12 +1493,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                             }
                             else
                             {
-                                bool mr = (sfuu.ManageRecords == SetBooleanValue.BooleanNoChange) ? existingUser.ManageRecords : (sfuu.ManageRecords == SetBooleanValue.BooleanTrue);
-                                var mu = (sfuu.ManageUsers == SetBooleanValue.BooleanNoChange) ? existingUser.ManageUsers : (sfuu.ManageUsers == SetBooleanValue.BooleanTrue);
-                                if (mr != existingUser.ManageRecords || mu != existingUser.ManageUsers)
-                                {
-                                    rq.SharedFolderUpdateUser.Add(sfuu);
-                                }
+                                rq.SharedFolderUpdateUser.Add(sfuu);
                             }
                         }
                         else
@@ -1494,6 +1504,21 @@ public class BatchVaultOperations : IBatchVaultOperations
                                 ManageUsers = (membership.Options?.ManageUsers).HasValue ? membership.Options.ManageUsers.Value : sharedFolder.DefaultManageUsers,
                                 ManageRecords = (membership.Options?.ManageRecords).HasValue ? membership.Options.ManageRecords.Value : sharedFolder.DefaultManageRecords
                             };
+                            if (membership.Options.Expiration.HasValue)
+                            {
+                                sfut.Expiration = membership.Options.Expiration.Value.ToUnixTimeMilliseconds();
+                                if (sfut.Expiration > 0)
+                                {
+                                    if (sfut.ManageRecords || sfut.ManageUsers)
+                                    {
+                                        BatchLogger(Severity.Information,
+                                            $"Shared folder=\"{sharedFolderUid}\" Team=\"{membership.UserId}\": Limited time access share can be Read-Only");
+                                        sfut.ManageUsers = false;
+                                        sfut.ManageRecords = false;
+                                    }
+                                }
+                            }
+
                             if (existingUser == null)
                             {
                                 if (_vault.Auth.TryGetTeamKeys(membership.UserId, out var keys))
@@ -1542,14 +1567,14 @@ public class BatchVaultOperations : IBatchVaultOperations
                                     }
                                     catch (Exception e)
                                     {
-                                        var message = $"Shared folder UID \"{sharedFolderUid}\": team {membership.UserId}: {e.Message}";
+                                        var message = $"Shared folder=\"{sharedFolderUid}\" Team=\"{membership.UserId}\": {e.Message}";
                                         BatchLogger?.Invoke(Severity.Warning, message);
                                         continue;
                                     }
                                 }
                                 else
                                 {
-                                    var message = $"Shared folder UID \"{sharedFolderUid}\": user {membership.UserId}: public key is not available";
+                                    var message = $"Shared folder=\"{sharedFolderUid}\" Team=\"{membership.UserId}\": public key is not available";
                                     BatchLogger?.Invoke(Severity.Warning, message);
                                     continue;
                                 }
@@ -1557,11 +1582,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                             }
                             else
                             {
-                                if (sfut.ManageRecords != existingUser.ManageRecords || sfut.ManageUsers != existingUser.ManageUsers)
-                                {
-
-                                    rq.SharedFolderUpdateTeam.Add(sfut);
-                                }
+                                rq.SharedFolderUpdateTeam.Add(sfut);
                             }
                         }
                     }
@@ -1596,52 +1617,42 @@ public class BatchVaultOperations : IBatchVaultOperations
                     foreach (var rss in rs.SharedFoldersUpdateV3Response)
                     {
                         var sharedFolderUid = rss.SharedFolderUid.ToArray().Base64UrlEncode();
-                        foreach (var uas in rss.SharedFolderAddUserStatus)
+
+                        foreach (var (action, statuses) in new[]
+                                 {
+                                     Tuple.Create("add", rss.SharedFolderAddUserStatus),
+                                     Tuple.Create("update", rss.SharedFolderUpdateUserStatus),
+                                     Tuple.Create("remove", rss.SharedFolderRemoveUserStatus),
+                                 })
                         {
-                            if (!string.Equals(uas.Status, "success", StringComparison.InvariantCultureIgnoreCase))
+                            foreach (var us in statuses)
                             {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to add user {uas.Username}: {uas.Status}";
+                                if (string.Equals(us.Status, "success", StringComparison.InvariantCultureIgnoreCase))
+                                    continue;
+                                var message =
+                                    $"Shared folder UID \"{sharedFolderUid}\": failed to {action} user {us.Username}: {us.Status}";
                                 BatchLogger?.Invoke(Severity.Warning, message);
+                                result.MembershipFailure[(sharedFolderUid, us.Username)] = message;
                             }
                         }
-                        foreach (var uus in rss.SharedFolderUpdateUserStatus)
+
+                        foreach (var (action, statuses) in new[]
+                                 {
+                                     Tuple.Create("add", rss.SharedFolderAddTeamStatus),
+                                     Tuple.Create("update", rss.SharedFolderUpdateTeamStatus),
+                                     Tuple.Create("remove", rss.SharedFolderRemoveTeamStatus),
+                                 })
                         {
-                            if (!string.Equals(uus.Status, "success", StringComparison.InvariantCultureIgnoreCase))
+                            foreach (var status in statuses)
                             {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to update user {uus.Username}: {uus.Status}";
+                                if (string.Equals(status.Status, "success",
+                                        StringComparison.InvariantCultureIgnoreCase))
+                                    continue;
+                                var teamUid = status.TeamUid.ToByteArray().Base64UrlEncode();
+                                var message =
+                                    $"Shared folder UID \"{sharedFolderUid}\": failed to {action} user {teamUid}: {status.Status}";
                                 BatchLogger?.Invoke(Severity.Warning, message);
-                            }
-                        }
-                        foreach (var uus in rss.SharedFolderRemoveUserStatus)
-                        {
-                            if (!string.Equals(uus.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to remove user {uus.Username}: {uus.Status}";
-                                BatchLogger?.Invoke(Severity.Warning, message);
-                            }
-                        }
-                        foreach (var tas in rss.SharedFolderAddTeamStatus)
-                        {
-                            if (!string.Equals(tas.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to add team {tas.TeamUid.ToArray().Base64UrlEncode()}: {tas.Status}";
-                                BatchLogger?.Invoke(Severity.Warning, message);
-                            }
-                        }
-                        foreach (var tus in rss.SharedFolderUpdateTeamStatus)
-                        {
-                            if (!string.Equals(tus.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to update user {tus.TeamUid.ToArray().Base64UrlEncode()}: {tus.Status}";
-                                BatchLogger?.Invoke(Severity.Warning, message);
-                            }
-                        }
-                        foreach (var tas in rss.SharedFolderRemoveTeamStatus)
-                        {
-                            if (!string.Equals(tas.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                var message = $"Shared folder UID \"{sharedFolderUid}\": failed to remove team {tas.TeamUid.ToArray().Base64UrlEncode()}: {tas.Status}";
-                                BatchLogger?.Invoke(Severity.Warning, message);
+                                result.MembershipFailure[(sharedFolderUid, teamUid)] = message;
                             }
                         }
                     }
@@ -1657,7 +1668,6 @@ public class BatchVaultOperations : IBatchVaultOperations
         Reset();
         return result;
     }
-
 
     /// <inheritdoc/>
     public bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null)

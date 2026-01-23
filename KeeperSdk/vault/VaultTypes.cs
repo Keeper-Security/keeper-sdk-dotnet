@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Vault
@@ -1288,10 +1289,8 @@ namespace KeeperSecurity.Vault
                             var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x).Date;
                             return dt.ToString("yyyy-MM-dd");
                         }
-                        else
-                        {
-                            return x.ToString();
-                        }
+
+                        return x.ToString();
                     }));
                 }
                 case List<bool> lb:
@@ -1304,10 +1303,9 @@ namespace KeeperSecurity.Vault
                             Values.OfType<IFieldTypeSerialize>().Select(x => x.GetValueAsString())
                                 .Where(x => !string.IsNullOrEmpty(x)));
                     }
-                    else
-                    {
-                        throw new Exception($"Field type {typeof(T).Name} does not support serialization.");
-                    }
+
+                    Trace.WriteLine($"Field type {typeof(T).Name} does not support serialization.");
+                    return null;
             }
         }
     }
