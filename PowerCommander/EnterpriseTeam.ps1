@@ -295,10 +295,16 @@ function Get-KeeperEnterpriseTeams {
         [Parameter()][ValidateSet('company', 'team_uid', 'name')][string] $Sort = 'company'
     )
 
-    [Enterprise]$enterprise = getEnterprise
-    $showMemberInfo = $ShowMembers.IsPresent -or $ShowAllMembers.IsPresent
+    $includeManagedCompanyTeams = $All.IsPresent
+    $memberMode = if ($ShowAllMembers.IsPresent) { 'full' } elseif ($ShowMembers.IsPresent) { 'cache' } else { 'none' }
+    $showMemberInfo = $memberMode -ne 'none'
+
+    [Enterprise]$enterprise = $null
+    if ($showMemberInfo) {
+        $enterprise = getEnterprise
+    }
     $results = [System.Collections.ArrayList]::new()
-    $allTeams = @()
+    $teamByUid = @{}
 
     try {
         $request = New-Object Records.GetShareObjectsRequest
@@ -313,31 +319,45 @@ function Get-KeeperEnterpriseTeams {
             $enterpriseNames[$ent.EnterpriseId] = $ent.Enterprisename
         }
 
-        $apiTeams = @($response.ShareTeams) + @($response.ShareMCTeams)
-        $primaryEnterpriseId = if ($response.ShareTeams.Count -gt 0) { $response.ShareTeams[0].EnterpriseId } else { $null }
+        $apiTeams = @($response.ShareTeams)
+        if ($includeManagedCompanyTeams) {
+            $apiTeams += @($response.ShareMCTeams)
+        }
+        
+        $primaryEnterpriseId = $null
+        try {
+            $primaryEnterpriseId = $Script:Context.Auth.AuthContext.License.EnterpriseId
+        }
+        catch {
+            $primaryEnterpriseId = $null
+        }
+        if (($null -eq $primaryEnterpriseId -or $primaryEnterpriseId -le 0) -and $response.ShareTeams.Count -gt 0) {
+            $primaryEnterpriseId = $response.ShareTeams[0].EnterpriseId
+        }
+
+        if (-not $includeManagedCompanyTeams -and $null -ne $primaryEnterpriseId -and $primaryEnterpriseId -gt 0) {
+            $apiTeams = @($apiTeams | Where-Object { $_.EnterpriseId -eq $primaryEnterpriseId })
+        }
 
         foreach ($team in $apiTeams) {
-            if (-not $All.IsPresent -and $null -ne $primaryEnterpriseId -and $team.EnterpriseId -ne $primaryEnterpriseId) {
-                continue
-            }
+            $teamUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($team.TeamUid.ToByteArray())
+            if ($teamByUid.ContainsKey($teamUid)) { continue }
 
             $companyName = $enterpriseNames[$team.EnterpriseId]
 
-            $teamUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($team.TeamUid.ToByteArray())
-            
-            $members = @()
-            if ($showMemberInfo) {
+            $members = [System.Collections.Generic.List[string]]::new()
+            if ($showMemberInfo -and $null -ne $enterprise) {
                 foreach ($userId in $enterprise.enterpriseData.GetUsersForTeam($teamUid)) {
                     $user = $null
                     if ($enterprise.enterpriseData.TryGetUserById($userId, [ref]$user)) {
-                        $members += $user.Email
+                        $members.Add($user.Email)
                     }
                 }
             }
 
-            $allTeams += @{
-                Uid = $teamUid
-                Name = $team.Teamname
+            $teamByUid[$teamUid] = @{
+                Uid     = $teamUid
+                Name    = $team.Teamname
                 Company = $companyName
                 Members = $members
             }
@@ -348,9 +368,9 @@ function Get-KeeperEnterpriseTeams {
         return
     }
 
-    $allTeams = $allTeams | Group-Object { $_.Uid } | ForEach-Object { $_.Group[0] }
+    $allTeams = @($teamByUid.Values)
 
-    if ($ShowAllMembers.IsPresent) {
+    if ($memberMode -eq 'full') {
         $teamsNeedToFetch = @($allTeams | Where-Object { $_.Members.Count -eq 0 } | ForEach-Object { $_.Uid })
         if ($teamsNeedToFetch.Count -gt 0) {
             $fetchedMembers = Get-TeamMembersBatch -Auth $Script:Context.Auth -TeamUids $teamsNeedToFetch
