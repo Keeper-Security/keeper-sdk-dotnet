@@ -60,6 +60,11 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         IKeeperEndpoint Endpoint { get; }
 
+        /// <summary>
+        /// Enables or Disables push notifications
+        /// </summary>
+        bool UsePushNotifications { get; set; }
+
         /// <exclude/>
         IFanOut<NotificationEvent> PushNotifications { get; }
 
@@ -429,6 +434,8 @@ namespace KeeperSecurity.Authentication
                 SetKeepAliveTimer();
             }
         }
+
+        public bool UsePushNotifications { get; set; } = true;
 
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get; private set; }

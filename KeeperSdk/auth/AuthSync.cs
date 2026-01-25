@@ -303,7 +303,7 @@ namespace KeeperSecurity.Authentication.Sync
             this.StoreConfigurationIfChangedV3(_loginContext);
             SetPushNotifications(null);
 
-            if (authContext.SessionTokenRestriction == 0)
+            if (authContext.SessionTokenRestriction == 0 && UsePushNotifications)
             {
                 var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
                 var messageSessionUid = _loginContext.MessageSessionUid;
