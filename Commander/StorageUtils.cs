@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using KeeperSecurity.Configuration;
-using KeeperSecurity.Utils;
+using KeeperSecurity.Storage;
 using KeeperSecurity.Vault;
 
 namespace Commander
@@ -52,34 +52,35 @@ namespace Commander
 
     internal class SqliteCommanderStorage : ExternalLoader
     {
-        private readonly string _databaseName;
+        private readonly string _connectionString;
 
         public SqliteCommanderStorage(string configFile): base(configFile)
         {
             var path = Path.GetDirectoryName(Loader.FilePath);
             Debug.Assert(path != null);
-            _databaseName = Path.Combine(path, "keeper_db.sqlite");
+            var databaseName = Path.Combine(path, "keeper_db.sqlite");
+            _connectionString = $"Data Source={databaseName};Pooling=True;";
         }
-
-        private SqliteConnection _connection;
 
         private SqliteConnection GetSqliteConnection()
         {
-            if (_connection == null)
-            {
-                _connection = new SqliteConnection($"Data Source={_databaseName};");
-                _connection.Open();
-            }
-
-            return _connection;
+            var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            return connection;
         }
 
         public override IKeeperStorage GetKeeperStorage(string ownerUid)
         {
-            var connection = GetSqliteConnection();
-            var vaultStorage = new SqliteKeeperStorage(GetSqliteConnection, ownerUid);
-            var failedStmts = DatabaseUtils.VerifyDatabase(connection,
+            var vaultStorage = new SqlKeeperStorage(GetSqliteConnection, SqliteDialect.Instance, ownerUid);
+            using var connection = GetSqliteConnection();
+            var failedStmts = DatabaseUtils.VerifyDatabase(connection, SqliteDialect.Instance,
                 vaultStorage.GetStorages().Select(x => x.Schema).ToArray());
+
+            if (failedStmts.Any())
+            {
+                Trace.TraceError(string.Join("\n", failedStmts));
+            }
+
             return vaultStorage;
         }
     }

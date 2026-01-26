@@ -337,9 +337,9 @@ namespace KeeperSecurity.Authentication
                         case "throttled":
                             if (!string.Equals("keep_alive", endpoint, StringComparison.InvariantCultureIgnoreCase)) {
 #if DEBUG
-                                Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
+                                Debug.WriteLine("\"throttled\" sleeping for 30 seconds");
 #endif
-                                await Task.Delay(TimeSpan.FromSeconds(10));
+                                await Task.Delay(TimeSpan.FromSeconds(30));
                                 continue;
                             }
                             break;
