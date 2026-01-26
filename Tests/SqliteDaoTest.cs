@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using System.Data.SQLite;
+using System.Data.Common;
+using Microsoft.Data.Sqlite;
 using KeeperSecurity.Storage;
-using KeeperSecurity.Utils;
 using Xunit;
 
 namespace Tests;
@@ -30,11 +29,10 @@ public class SqliteDaoTest
         var entitySchema = new TableSchema(typeof(Entity), "AccountId");
         var linkSchema = new TableSchema(typeof(Link), "AccountId");
 
-        var stmts = new List<string>();
-        var failedStmt = DatabaseUtils.VerifyDatabase(GetSqliteConnection(), recordSchema, entitySchema, linkSchema);
+        var failedStmt = DatabaseUtils.VerifyDatabase(GetSqliteConnection(), SqliteDialect.Instance, recordSchema, entitySchema, linkSchema);
         Assert.Empty(failedStmt);
 
-        var recordStorage = new SqliteRecordStorage<IRecord, Record>(GetSqliteConnection, "AccountId", "AAAAAA");
+        var recordStorage = new SqlRecordStorage<IRecord, Record>(GetSqliteConnection, SqliteDialect.Instance,"AccountId", "AAAAAA");
         var r = recordStorage.Load();
         if (r == null)
         {
@@ -55,7 +53,7 @@ public class SqliteDaoTest
         Assert.Equal(231332323, r.LongValue);
         Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], r.BinaryValue);
 
-        var entityStorage = new SqliteEntityStorage<IEntity, Entity>(GetSqliteConnection, "AccountId", "AAAAAA");
+        var entityStorage = new SqlEntityStorage<IEntity, Entity>(GetSqliteConnection, SqliteDialect.Instance, "AccountId", "AAAAAA");
         var e1 = entityStorage.GetEntity("Entity1");
         if (e1 == null)
         {
@@ -93,19 +91,60 @@ public class SqliteDaoTest
                     break;
             }
         }
-        
     }
 
-    private static SQLiteConnection _connection;
-    private static SQLiteConnection GetSqliteConnection()
+    [Fact]
+    public void TestVerifyDatabaseWithDialect()
     {
-        if (_connection == null)
-        {
-            _connection = new SQLiteConnection("Data Source=:memory:;Mode=Memory;Cache=Shared");
-            _connection.Open();
-        }
+        var recordSchema = new TableSchema(typeof(Record), "AccountId");
+        var entitySchema = new TableSchema(typeof(Entity), "AccountId");
 
-        return _connection;
+        // Test with SQLite dialect (should create tables)
+        var failedStmt = DatabaseUtils.VerifyDatabase(
+            GetSqliteConnection(),
+            SqliteDialect.Instance,
+            recordSchema,
+            entitySchema);
+        Assert.Empty(failedStmt);
+
+        // Verify backward compatibility - default overload should work
+        var failedStmt2 = DatabaseUtils.VerifyDatabase(
+            GetSqliteConnection(), SqliteDialect.Instance, recordSchema, entitySchema);
+        Assert.Empty(failedStmt2);
+    }
+
+    [Fact]
+    public void TestDialectInStorage()
+    {
+        var recordSchema = new TableSchema(typeof(Record), "AccountId");
+        DatabaseUtils.VerifyDatabase(GetSqliteConnection(), SqliteDialect.Instance, recordSchema);
+
+        // Create storage with explicit dialect
+        var recordStorage = new SqlRecordStorage<IRecord, Record>(
+            GetSqliteConnection, SqliteDialect.Instance, "AccountId", "BBBBB");
+
+        var r = new Record
+        {
+            StingValue = "test-dialect",
+            BoolValue = false,
+            LongValue = 999,
+            BinaryValue = [1, 2, 3],
+        };
+        recordStorage.Store(r);
+
+        var loaded = recordStorage.Load();
+        Assert.NotNull(loaded);
+        Assert.Equal("test-dialect", loaded.StingValue);
+        Assert.False(loaded.BoolValue);
+        Assert.Equal(999, loaded.LongValue);
+    }
+
+    private static DbConnection GetSqliteConnection()
+    {
+        var connection = new SqliteConnection("Data Source=:memory:;Mode=Memory;Cache=Shared;Pooling=True;");
+        connection.Open();
+
+        return connection;
     }
 }
 
