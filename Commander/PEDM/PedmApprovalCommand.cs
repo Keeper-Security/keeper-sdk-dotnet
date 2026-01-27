@@ -117,6 +117,25 @@ namespace Commander.PEDM
                 return;
             }
 
+            var approval = Plugin.Approvals.GetEntity(approvalUid);
+            if (approval == null)
+            {
+                Console.WriteLine($"Approval '{approvalUid}' not found.");
+                return;
+            }
+
+            var currentStatus = GetApprovalStatusInt(Plugin, approvalUid);
+            if (currentStatus == 1) 
+            {
+                Console.WriteLine($"Approval '{approvalUid}' is already APPROVED. Cannot approve again.");
+                return;
+            }
+            if (currentStatus == 2)
+            {
+                Console.WriteLine($"Approval '{approvalUid}' is already DENIED. Cannot approve a denied request.");
+                return;
+            }
+
             var approvalUidBytes = approvalUid.Base64UrlDecode();
             var approveStatus = await Plugin.ModifyApprovals(
                 toApprove: new[] { approvalUidBytes },
@@ -137,6 +156,25 @@ namespace Commander.PEDM
             if (string.IsNullOrEmpty(approvalUid))
             {
                 Console.WriteLine("Approval UID is required for 'deny' command.");
+                return;
+            }
+
+            var approval = Plugin.Approvals.GetEntity(approvalUid);
+            if (approval == null)
+            {
+                Console.WriteLine($"Approval '{approvalUid}' not found.");
+                return;
+            }
+
+            var currentStatus = GetApprovalStatusInt(Plugin, approvalUid);
+            if (currentStatus == 2) 
+            {
+                Console.WriteLine($"Approval '{approvalUid}' is already DENIED. Cannot deny again.");
+                return;
+            }
+            if (currentStatus == 1) 
+            {
+                Console.WriteLine($"Approval '{approvalUid}' is already APPROVED. Cannot deny an approved request.");
                 return;
             }
 
@@ -234,6 +272,18 @@ namespace Commander.PEDM
 
         private static string GetApprovalStatus(PedmPlugin plugin, string approvalUid)
         {
+            var statusInt = GetApprovalStatusInt(plugin, approvalUid);
+            return statusInt switch
+            {
+                0 => "PENDING",
+                1 => "APPROVED",
+                2 => "DENIED",
+                _ => "UNKNOWN"
+            };
+        }
+
+        private static int GetApprovalStatusInt(PedmPlugin plugin, string approvalUid)
+        {
             try
             {
                 var storageField = typeof(PedmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -256,13 +306,7 @@ namespace Commander.PEDM
                                     var statusValue = statusProperty.GetValue(statusEntity);
                                     if (statusValue is int statusInt)
                                     {
-                                        return statusInt switch
-                                        {
-                                            0 => "PENDING",
-                                            1 => "APPROVED",
-                                            2 => "DENIED",
-                                            _ => "UNKNOWN"
-                                        };
+                                        return statusInt;
                                     }
                                 }
                             }
@@ -273,7 +317,7 @@ namespace Commander.PEDM
             catch
             {
             }
-            return "PENDING";
+            return 0; // Default to PENDING
         }
     }
 

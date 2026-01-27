@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Cli;
 using CommandLine;
 using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Utils;
+using PEDMProto = PEDM;
 
 namespace Commander.PEDM
 {
@@ -45,8 +47,12 @@ namespace Commander.PEDM
                     await RemoveAgentAsync(options.AgentUid?.FirstOrDefault());
                     break;
 
+                case "collection":
+                    ListAgentCollections(options);
+                    break;
+
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, update, remove");
+                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, update, remove, collection");
                     break;
             }
         }
@@ -256,6 +262,79 @@ namespace Commander.PEDM
 
             await Plugin.SyncDown();
         }
+
+        private void ListAgentCollections(PedmAgentOptions options)
+        {
+            var agentUid = options.AgentUid?.FirstOrDefault();
+            if (string.IsNullOrEmpty(agentUid))
+            {
+                Console.WriteLine("Agent UID is required for 'collection' command.");
+                return;
+            }
+
+            var agent = Plugin.Agents.GetEntity(agentUid);
+            if (agent == null)
+            {
+                Console.WriteLine($"Agent '{agentUid}' not found.");
+                return;
+            }
+
+            var resourceUids = Plugin.CollectionLinks.GetLinksForObject(agent.AgentUid)
+                .Where(link => link.LinkType == (int)PEDMProto.CollectionLinkType.CltAgent)
+                .Select(link => link.CollectionUid)
+                .ToList();
+
+            var collections = resourceUids
+                .Select(uid => Plugin.Collections.GetEntity(uid))
+                .Where(c => c != null)
+                .ToList();
+
+            if (options.CollectionType.HasValue)
+            {
+                collections = collections.Where(c => c.CollectionType == options.CollectionType.Value).ToList();
+            }
+
+            if (options.Verbose)
+            {
+                var tab = new Tabulate(3);
+                tab.AddHeader("Collection Type", "Collection UID", "Value");
+                foreach (var collection in collections.OrderBy(c => c.CollectionType).ThenBy(c => c.CollectionUid))
+                {
+                    var typeName = GetCollectionTypeName(collection.CollectionType);
+                    string value = "";
+                    if (collection.CollectionData != null && collection.CollectionData.Length > 0)
+                    {
+                        try
+                        {
+                            var data = JsonUtils.ParseJson<Dictionary<string, object>>(collection.CollectionData);
+                            var parts = data.Select(kvp => $"{kvp.Key}={kvp.Value}").ToList();
+                            value = string.Join(", ", parts);
+                        }
+                        catch
+                        {
+                            value = $"(binary data, {collection.CollectionData.Length} bytes)";
+                        }
+                    }
+                    tab.AddRow($"{typeName} ({collection.CollectionType})", collection.CollectionUid, value);
+                }
+                tab.Dump();
+            }
+            else
+            {
+                var tab = new Tabulate(2);
+                tab.AddHeader("Collection Type", "Count");
+                var grouped = collections.GroupBy(c => c.CollectionType)
+                    .OrderBy(g => g.Key)
+                    .ToList();
+                foreach (var group in grouped)
+                {
+                    var typeName = GetCollectionTypeName(group.Key);
+                    tab.AddRow($"{typeName} ({group.Key})", group.Count());
+                }
+                tab.Dump();
+            }
+        }
+
     }
 
     internal class PedmAgentOptions : EnterpriseGenericOptions
@@ -271,6 +350,12 @@ namespace Commander.PEDM
 
         [Option("enable", Required = false, HelpText = "Enable or disable agents: 'on' to enable, 'off' to disable (for update)")]
         public string Enable { get; set; }
+
+        [Option("type", Required = false, HelpText = "Collection type filter (for collection command)")]
+        public int? CollectionType { get; set; }
+
+        [Option("verbose", Required = false, HelpText = "Print verbose information (for collection command)")]
+        public bool Verbose { get; set; }
     }
 }
 

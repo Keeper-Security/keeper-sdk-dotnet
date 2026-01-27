@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 using Cli;
 using Commander;
@@ -53,8 +56,12 @@ namespace Commander.PEDM
                     await RemoveDeploymentAsync(options);
                     break;
 
+                case "download":
+                    await DownloadDeploymentAsync(options);
+                    break;
+
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove");
+                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove, download");
                     break;
             }
         }
@@ -321,6 +328,132 @@ namespace Commander.PEDM
 
             await Plugin.SyncDown();
         }
+
+        private async Task DownloadDeploymentAsync(PedmDeploymentOptions options)
+        {
+            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (string.IsNullOrEmpty(deploymentIdentifier))
+            {
+                Console.WriteLine("Deployment UID or name is required for 'download' command.");
+                return;
+            }
+
+            var deployment = ResolveDeployment(deploymentIdentifier);
+            if (deployment == null)
+            {
+                Console.WriteLine($"Deployment '{deploymentIdentifier}' not found.");
+                return;
+            }
+
+            if (deployment.PrivateKey == null || deployment.PrivateKey.Length == 0)
+            {
+                Console.WriteLine($"Deployment '{deployment.DeploymentUid}' does not have a private key.");
+                return;
+            }
+
+            var host = Context.Enterprise?.Auth?.Endpoint?.Server ?? "keepersecurity.com";
+            var token = $"{host}:{deployment.DeploymentUid}:{deployment.PrivateKey.Base64UrlEncode()}";
+
+            if (!string.IsNullOrEmpty(options.File))
+            {
+                File.WriteAllText(options.File, token);
+                Console.WriteLine($"Deployment token written to: {options.File}");
+                return;
+            }
+
+            if (!options.Verbose)
+            {
+                Console.WriteLine(token);
+                return;
+            }
+
+            string path = "";
+            string windows = "";
+            string macos = "";
+            string linux = "";
+
+            try
+            {
+                var hostname = host;
+                if (hostname.Contains("."))
+                {
+                    var parts = hostname.Split('.');
+                    if (parts.Length >= 2)
+                    {
+                        hostname = parts[parts.Length - 2] + "." + parts[parts.Length - 1];
+                    }
+                }
+
+                var manifestUrl = $"https://{hostname}/pam/pedm/package-manifest.json";
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        httpClient.Timeout = TimeSpan.FromSeconds(10);
+                        var response = await httpClient.GetAsync(manifestUrl);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonContent = await response.Content.ReadAsStringAsync();
+                            var manifest = JsonUtils.ParseJson<Dictionary<string, object>>(Encoding.UTF8.GetBytes(jsonContent));
+                            
+                            if (manifest != null && manifest.TryGetValue("Core", out var coreObj))
+                            {
+                                if (coreObj is List<object> coreList && coreList.Count > 0)
+                                {
+                                    var latest = coreList[0] as Dictionary<string, object>;
+                                    if (latest != null)
+                                    {
+                                        if (latest.TryGetValue("Path", out var pathObj))
+                                            path = pathObj?.ToString() ?? "";
+                                        if (latest.TryGetValue("WindowsZip", out var windowsObj))
+                                            windows = windowsObj?.ToString() ?? "";
+                                        if (latest.TryGetValue("MacOsZip", out var macosObj))
+                                            macos = macosObj?.ToString() ?? "";
+                                        if (latest.TryGetValue("LinuxZip", out var linuxObj))
+                                            linux = linuxObj?.ToString() ?? "";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine($"Failed to fetch manifest from {manifestUrl}");
+                }
+            }
+            catch
+            {
+                Console.WriteLine($"Failed to fetch manifest from {host}");
+            }
+
+            var tab = new Tabulate(2);
+            tab.AddHeader("", "");
+            tab.MaxColumnWidth = int.MaxValue;
+            
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (!string.IsNullOrEmpty(windows))
+                {
+                    tab.AddRow("Windows download URL", path + windows);
+                }
+                if (!string.IsNullOrEmpty(macos))
+                {
+                    tab.AddRow("MacOS download URL", path + macos);
+                }
+                if (!string.IsNullOrEmpty(linux))
+                {
+                    tab.AddRow("Linux download URL", path + linux);
+                }
+                if (!string.IsNullOrEmpty(windows) || !string.IsNullOrEmpty(macos) || !string.IsNullOrEmpty(linux))
+                {
+                    tab.AddRow("", "");
+                }
+            }
+            
+            tab.AddRow("Deployment Token", token);
+            tab.Dump();
+        }
     }
 
     internal class PedmDeploymentOptions : EnterpriseGenericOptions
@@ -339,6 +472,12 @@ namespace Commander.PEDM
 
         [Option("spiffe-cert", Required = false, HelpText = "SPIFFE certificate file path (.cer, .der, .pem) or base64url encoded string")]
         public string SpiffeCert { get; set; }
+
+        [Option("file", Required = false, HelpText = "File name to write deployment token (for download)")]
+        public string File { get; set; }
+
+        [Option("verbose", Required = false, HelpText = "Verbose output (for download)")]
+        public bool Verbose { get; set; }
     }
 }
 

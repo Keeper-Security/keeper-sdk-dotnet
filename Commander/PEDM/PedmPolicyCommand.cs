@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Cli;
 using CommandLine;
+using Google.Protobuf;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Plugins.PEDM;
 using KeeperSecurity.Utils;
+using PEDMProto = PEDM;
 
 namespace Commander.PEDM
 {
@@ -52,8 +54,16 @@ namespace Commander.PEDM
                     await RemovePolicyAsync(options.PolicyUid);
                     break;
 
+                case "agents":
+                    await ListPolicyAgentsAsync(options);
+                    break;
+
+                case "assign":
+                    await AssignPolicyCollectionsAsync(options);
+                    break;
+
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove");
+                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove, agents, assign");
                     break;
             }
         }
@@ -277,38 +287,6 @@ namespace Commander.PEDM
             Console.WriteLine($"  Updated: {DateTimeOffset.FromUnixTimeMilliseconds(policy.Updated):yyyy-MM-dd HH:mm:ss}");
         }
 
-        private PedmPolicy ResolvePolicy(string identifier)
-        {
-            if (string.IsNullOrEmpty(identifier))
-            {
-                return null;
-            }
-
-            var policy = Plugin.Policies.GetEntity(identifier);
-            if (policy != null)
-            {
-                return policy;
-            }
-
-            var matches = Plugin.Policies.GetAll()
-                .Select(p => new { Policy = p, Info = ParsePolicyData(p, Plugin) })
-                .Where(x => !string.IsNullOrEmpty(x.Info.Name) &&
-                            string.Equals(x.Info.Name, identifier, StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Policy)
-                .ToList();
-
-            if (matches.Count == 1)
-            {
-                return matches[0];
-            }
-
-            if (matches.Count > 1)
-            {
-                Console.WriteLine($"Multiple policies match name \"{identifier}\". Please specify Policy UID.");
-            }
-
-            return null;
-        }
 
         private static string ReadJsonText(string json, string filePath)
         {
@@ -469,122 +447,215 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private static (string Name, string Type, List<string> Controls, string Users, string Machines, string Applications, string Collections) ParsePolicyData(PedmPolicy policy, PedmPlugin plugin)
+        private async Task ListPolicyAgentsAsync(PedmPolicyOptions options)
         {
-            string name = "";
-            string type = "";
-            var controls = new List<string>();
-            string users = "";
-            string machines = "";
-            string applications = "";
-            string collections = "";
-
-            var data = policy.Data;
-            if (data == null)
+            var policyIdentifiers = options.PolicyUid;
+            if (string.IsNullOrEmpty(policyIdentifiers))
             {
-                return (name, type, controls, users, machines, applications, collections);
+                Console.WriteLine("Policy UID or name is required for 'agents' command.");
+                return;
             }
 
-            name = data.PolicyName ?? "";
+            var policyUids = new List<string>();
+            var identifiers = policyIdentifiers.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
             
-            type = data.PolicyType ?? "";
-            
-            if (data.Actions?.OnSuccess?.Controls != null)
+            foreach (var identifier in identifiers)
             {
-                foreach (var control in data.Actions.OnSuccess.Controls)
+                var policy = ResolvePolicy(identifier);
+                if (policy == null)
                 {
-                    var controlStr = control?.ToUpperInvariant();
-                    if (!string.IsNullOrEmpty(controlStr))
-                    {
-                        // Map control names to display format
-                        if (controlStr == "APPROVAL" || controlStr.Contains("APPROVAL"))
-                            controls.Add("APPROVAL");
-                        else if (controlStr == "JUSTIFY" || controlStr.Contains("JUSTIFY"))
-                            controls.Add("JUSTIFY");
-                        else if (controlStr == "MFA" || controlStr.Contains("MFA"))
-                            controls.Add("MFA");
-                        else
-                            controls.Add(controlStr);
-                    }
+                    Console.WriteLine($"Policy '{identifier}' not found.");
+                    continue;
                 }
+                policyUids.Add(policy.PolicyUid);
             }
-            
-            if (data.UserCheck != null && data.UserCheck.Count > 0)
+
+            if (policyUids.Count == 0)
             {
-                users = string.Join(", ", data.UserCheck);
+                return;
             }
-            
-            if (data.MachineCheck != null && data.MachineCheck.Count > 0)
+
+            var auth = Context.Enterprise?.Auth;
+            if (auth == null)
             {
-                machines = string.Join(", ", data.MachineCheck);
+                Console.WriteLine("Authentication context is not available.");
+                return;
             }
-            
-            if (data.ApplicationCheck != null && data.ApplicationCheck.Count > 0)
-            {
-                applications = string.Join(", ", data.ApplicationCheck);
-            }
-            
+
             try
             {
-                var storageField = typeof(PedmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (storageField != null)
+                var rq = new PEDMProto.PolicyAgentRequest();
+                foreach (var policyUid in policyUids)
                 {
-                    var storage = storageField.GetValue(plugin);
-                    var collectionLinksProperty = storage?.GetType().GetProperty("CollectionLinks");
-                    if (collectionLinksProperty != null)
+                    rq.PolicyUid.Add(ByteString.CopyFrom(policyUid.Base64UrlDecode()));
+                }
+                rq.SummaryOnly = false;
+
+                var rs = await auth.ExecuteRouter<PEDMProto.PolicyAgentResponse>("pedm/get_policy_agents", rq);
+                if (rs != null)
+                {
+                    var tab = new Tabulate(4);
+                    tab.AddHeader("Key", "UID", "Name", "Status");
+
+                    foreach (var policyUid in policyUids)
                     {
-                        var collectionLinksStorage = collectionLinksProperty.GetValue(storage);
-                        var getLinksForObjectMethod = collectionLinksStorage?.GetType().GetMethod("GetLinksForObject", new[] { typeof(string) });
-                        if (getLinksForObjectMethod != null)
+                        var policy = Plugin.Policies.GetEntity(policyUid);
+                        if (policy != null)
                         {
-                            var policyLinks = getLinksForObjectMethod.Invoke(collectionLinksStorage, new object[] { policy.PolicyUid }) as System.Collections.IEnumerable;
-                            if (policyLinks != null)
+                            var policyInfo = ParsePolicyData(policy, Plugin);
+                            string status = policy.Disabled ? "off" : (policy.Data?.Status ?? "on");
+                            tab.AddRow("Policy", policyUid, policyInfo.Name, status);
+                        }
+                    }
+
+                    var activeAgentUids = new HashSet<string>();
+                    foreach (var agentUidBytes in rs.AgentUid)
+                    {
+                        activeAgentUids.Add(agentUidBytes.ToByteArray().Base64UrlEncode());
+                    }
+
+                    foreach (var agentUid in activeAgentUids)
+                    {
+                        var agent = Plugin.Agents.GetEntity(agentUid);
+                        string machineName = "";
+                        string status = "";
+                        if (agent != null)
+                        {
+                            machineName = agent.MachineId ?? "";
+                            status = agent.Disabled ? "off" : "on";
+                        }
+                        tab.AddRow("Agent", agentUid, machineName, status);
+                    }
+
+                    tab.Dump();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting policy agents: {ex.Message}");
+            }
+        }
+
+        private async Task AssignPolicyCollectionsAsync(PedmPolicyOptions options)
+        {
+            var policyIdentifiers = options.PolicyUid;
+            if (string.IsNullOrEmpty(policyIdentifiers))
+            {
+                Console.WriteLine("Policy UID or name is required for 'assign' command.");
+                return;
+            }
+
+            var identifiers = policyIdentifiers.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var policies = new List<PedmPolicy>();
+            
+            foreach (var identifier in identifiers)
+            {
+                var policy = ResolvePolicy(identifier);
+                if (policy == null)
+                {
+                    Console.WriteLine($"Policy '{identifier}' not found.");
+                    continue;
+                }
+                policies.Add(policy);
+            }
+
+            if (policies.Count == 0)
+            {
+                return;
+            }
+
+            var collectionUids = new List<byte[]>();
+            if (options.CollectionUids != null && options.CollectionUids.Count > 0)
+            {
+                foreach (var collUid in options.CollectionUids)
+                {
+                    if (collUid == "*" || collUid == "all")
+                    {
+                        // Get all agents collection UID
+                        var allAgentsField = typeof(PedmPlugin).GetField("_allAgents", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (allAgentsField != null)
+                        {
+                            var allAgentsBytes = allAgentsField.GetValue(Plugin) as byte[];
+                            if (allAgentsBytes != null)
                             {
-                                var collectionUids = new List<string>();
-                                
-                                var allAgentsField = typeof(PedmPlugin).GetField("_allAgents", BindingFlags.NonPublic | BindingFlags.Instance);
-                                string allAgents = null;
-                                if (allAgentsField != null)
-                                {
-                                    var allAgentsBytes = allAgentsField.GetValue(plugin) as byte[];
-                                    if (allAgentsBytes != null)
-                                    {
-                                        allAgents = allAgentsBytes.Base64UrlEncode();
-                                    }
-                                }
-                                
-                                foreach (var link in policyLinks)
-                                {
-                                    var collectionUidProperty = link.GetType().GetProperty("CollectionUid");
-                                    if (collectionUidProperty != null)
-                                    {
-                                        var collectionUid = collectionUidProperty.GetValue(link)?.ToString();
-                                        if (!string.IsNullOrEmpty(collectionUid))
-                                        {
-                                            if (allAgents != null && collectionUid == allAgents)
-                                            {
-                                                collectionUids.Add("*");
-                                            }
-                                            else
-                                            {
-                                                collectionUids.Add(collectionUid);
-                                            }
-                                        }
-                                    }
-                                }
-                                collectionUids.Sort();
-                                collections = string.Join(", ", collectionUids);
+                                collectionUids.Add(allAgentsBytes);
                             }
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var collUidBytes = collUid.Base64UrlDecode();
+                            if (collUidBytes.Length == 16)
+                            {
+                                collectionUids.Add(collUidBytes);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Invalid collection UID: {collUid}. Skipped.");
+                            }
+                        }
+                        catch
+                        {
+                            Console.WriteLine($"Invalid collection UID: {collUid}. Skipped.");
                         }
                     }
                 }
             }
-            catch
+
+            if (collectionUids.Count == 0)
             {
+                Console.WriteLine("No collections to assign.");
+                return;
             }
 
-            return (name, type, controls, users, machines, applications, collections);
+            var setLinks = new List<CollectionLink>();
+            foreach (var policy in policies)
+            {
+                foreach (var collUidBytes in collectionUids)
+                {
+                    setLinks.Add(new CollectionLink
+                    {
+                        CollectionUid = collUidBytes.Base64UrlEncode(),
+                        LinkUid = policy.PolicyUid,
+                        LinkType = PEDMProto.CollectionLinkType.CltPolicy
+                    });
+                }
+            }
+
+            var status = await Plugin.SetCollectionLinks(setLinks: setLinks, unsetLinks: null);
+            
+            if (status.AddErrors?.Count > 0)
+            {
+                foreach (var error in status.AddErrors)
+                {
+                    if (!error.Success)
+                    {
+                        Console.WriteLine($"Failed to add to policy: {error.Message}");
+                    }
+                }
+            }
+
+            if (status.RemoveErrors?.Count > 0)
+            {
+                foreach (var error in status.RemoveErrors)
+                {
+                    if (!error.Success)
+                    {
+                        Console.WriteLine($"Failed to remove from policy: {error.Message}");
+                    }
+                }
+            }
+
+            if (status.Add?.Count > 0 || status.Update?.Count > 0 || status.Remove?.Count > 0)
+            {
+                PrintModifyStatus(status);
+            }
+
+            await Plugin.SyncDown();
         }
+
     }
 
     internal class PedmPolicyOptions : EnterpriseGenericOptions
@@ -609,6 +680,9 @@ namespace Commander.PEDM
 
         [Option("data-file", Required = false, HelpText = "Path to file containing policy JSON data to encrypt")]
         public string PolicyDataFile { get; set; }
+
+        [Option("collection", Required = false, HelpText = "Collection UID(s) to assign to policy (for assign command). Use '*' or 'all' for all agents.")]
+        public IList<string> CollectionUids { get; set; }
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -199,15 +199,6 @@ namespace Commander
                     Order = 95,
                     Description = "Manage PEDM approvals",
                     Action = async options => { await pedmApproval.ExecuteAsync(options); },
-                });
-
-            var pedmCollectionLink = new PedmCollectionLinkCommand(context);
-            cli.Commands.Add("pedm-collection-link",
-                new ParseableCommand<PedmCollectionLinkOptions>
-                {
-                    Order = 96,
-                    Description = "Manage PEDM collection links",
-                    Action = async options => { await pedmCollectionLink.ExecuteAsync(options); },
                 });
 
             cli.Aliases["eget"] = "enterprise-get-data";
