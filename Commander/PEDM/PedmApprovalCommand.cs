@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -184,12 +185,51 @@ namespace Commander.PEDM
 
             try
             {
-                return Encoding.UTF8.GetString(fieldData);
+                var text = Encoding.UTF8.GetString(fieldData);
+                
+                if (IsValidText(text))
+                {
+                    try
+                    {
+                        var json = JsonUtils.ParseJson<Dictionary<string, object>>(fieldData);
+                        if (json != null && json.Count > 0)
+                        {
+                            var parts = json.Select(kvp => $"{kvp.Key}: {kvp.Value}").Take(3);
+                            var result = string.Join(", ", parts);
+                            if (json.Count > 3)
+                                result += "...";
+                            return result;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                    
+                    if (text.Length > 50)
+                        return text.Substring(0, 47) + "...";
+                    return text;
+                }
             }
             catch
             {
-                return "(binary data)";
             }
+
+            return $"(encrypted, {fieldData.Length} bytes)";
+        }
+
+        private static bool IsValidText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            int nonPrintableCount = 0;
+            foreach (var ch in text)
+            {
+                if (char.IsControl(ch) && ch != '\n' && ch != '\r' && ch != '\t')
+                    nonPrintableCount++;
+            }
+
+            return (nonPrintableCount * 100.0 / text.Length) < 10;
         }
 
         private static string GetApprovalStatus(PedmPlugin plugin, string approvalUid)

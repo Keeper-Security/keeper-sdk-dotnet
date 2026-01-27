@@ -768,14 +768,67 @@ namespace KeeperSecurity.Plugins.PEDM
 
         private PedmApproval LoadApproval(IPedmStorageApproval storageApproval)
         {
+            byte[] accountInfo = null;
+            byte[] applicationInfo = null;
+            byte[] justification = null;
+            
+            var agentKey = AgentKey;
+            if (agentKey != null)
+            {
+                if (storageApproval.AccountInfo != null && storageApproval.AccountInfo.Length > 0)
+                {
+                    try
+                    {
+                        accountInfo = CryptoUtils.DecryptAesV2(storageApproval.AccountInfo, agentKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Approval \"{storageApproval.ApprovalUid}\" account_info decryption error: {ex.Message}");
+                        accountInfo = storageApproval.AccountInfo;
+                    }
+                }
+                
+                if (storageApproval.ApplicationInfo != null && storageApproval.ApplicationInfo.Length > 0)
+                {
+                    try
+                    {
+                        applicationInfo = CryptoUtils.DecryptAesV2(storageApproval.ApplicationInfo, agentKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Approval \"{storageApproval.ApprovalUid}\" application_info decryption error: {ex.Message}");
+                        applicationInfo = storageApproval.ApplicationInfo;
+                    }
+                }
+                
+                if (storageApproval.Justification != null && storageApproval.Justification.Length > 0)
+                {
+                    try
+                    {
+                        justification = CryptoUtils.DecryptAesV2(storageApproval.Justification, agentKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Approval \"{storageApproval.ApprovalUid}\" justification decryption error: {ex.Message}");
+                        justification = storageApproval.Justification;
+                    }
+                }
+            }
+            else
+            {
+                accountInfo = storageApproval.AccountInfo;
+                applicationInfo = storageApproval.ApplicationInfo;
+                justification = storageApproval.Justification;
+            }
+            
             return new PedmApproval
             {
                 ApprovalUid = storageApproval.ApprovalUid,
                 ApprovalType = storageApproval.ApprovalType,
                 AgentUid = storageApproval.AgentUid,
-                AccountInfo = storageApproval.AccountInfo,
-                ApplicationInfo = storageApproval.ApplicationInfo,
-                Justification = storageApproval.Justification,
+                AccountInfo = accountInfo ?? Array.Empty<byte>(),
+                ApplicationInfo = applicationInfo ?? Array.Empty<byte>(),
+                Justification = justification ?? Array.Empty<byte>(),
                 ExpireIn = storageApproval.ExpireIn,
                 Created = storageApproval.Created
             };
