@@ -371,19 +371,19 @@ namespace Commander.PEDM
             string windows = "";
             string macos = "";
             string linux = "";
+            
+            var hostname = host;
+            if (hostname.Contains("."))
+            {
+                var parts = hostname.Split('.');
+                if (parts.Length >= 2)
+                {
+                    hostname = parts[parts.Length - 2] + "." + parts[parts.Length - 1];
+                }
+            }
 
             try
             {
-                var hostname = host;
-                if (hostname.Contains("."))
-                {
-                    var parts = hostname.Split('.');
-                    if (parts.Length >= 2)
-                    {
-                        hostname = parts[parts.Length - 2] + "." + parts[parts.Length - 1];
-                    }
-                }
-
                 var manifestUrl = $"https://{hostname}/pam/pedm/package-manifest.json";
                 try
                 {
@@ -433,17 +433,31 @@ namespace Commander.PEDM
             
             if (!string.IsNullOrEmpty(path))
             {
+                var baseUrl = $"https://{hostname}";
+                if (!path.StartsWith("/"))
+                {
+                    baseUrl += "/";
+                }
+                
+                if (!path.EndsWith("/") && !string.IsNullOrEmpty(path))
+                {
+                    path += "/";
+                }
+                
                 if (!string.IsNullOrEmpty(windows))
                 {
-                    tab.AddRow("Windows download URL", path + windows);
+                    var windowsUrl = baseUrl + path + windows;
+                    tab.AddRow("Windows download URL", windowsUrl);
                 }
                 if (!string.IsNullOrEmpty(macos))
                 {
-                    tab.AddRow("MacOS download URL", path + macos);
+                    var macosUrl = baseUrl + path + macos;
+                    tab.AddRow("MacOS download URL", macosUrl);
                 }
                 if (!string.IsNullOrEmpty(linux))
                 {
-                    tab.AddRow("Linux download URL", path + linux);
+                    var linuxUrl = baseUrl + path + linux;
+                    tab.AddRow("Linux download URL", linuxUrl);
                 }
                 if (!string.IsNullOrEmpty(windows) || !string.IsNullOrEmpty(macos) || !string.IsNullOrEmpty(linux))
                 {
