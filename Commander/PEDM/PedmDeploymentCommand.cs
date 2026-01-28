@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Cli;
-using Commander;
 using CommandLine;
-using KeeperSecurity.Enterprise;
 using KeeperSecurity.Plugins.PEDM;
 using KeeperSecurity.Utils;
 
@@ -394,25 +393,17 @@ namespace Commander.PEDM
                         if (response.IsSuccessStatusCode)
                         {
                             var jsonContent = await response.Content.ReadAsStringAsync();
-                            var manifest = JsonUtils.ParseJson<Dictionary<string, object>>(Encoding.UTF8.GetBytes(jsonContent));
+                            var manifest = JsonUtils.ParseJson<PackageManifest>(Encoding.UTF8.GetBytes(jsonContent));
                             
-                            if (manifest != null && manifest.TryGetValue("Core", out var coreObj))
+                            if (manifest?.Core != null && manifest.Core.Count > 0)
                             {
-                                if (coreObj is List<object> coreList && coreList.Count > 0)
-                                {
-                                    var latest = coreList[0] as Dictionary<string, object>;
-                                    if (latest != null)
-                                    {
-                                        if (latest.TryGetValue("Path", out var pathObj))
-                                            path = pathObj?.ToString() ?? "";
-                                        if (latest.TryGetValue("WindowsZip", out var windowsObj))
-                                            windows = windowsObj?.ToString() ?? "";
-                                        if (latest.TryGetValue("MacOsZip", out var macosObj))
-                                            macos = macosObj?.ToString() ?? "";
-                                        if (latest.TryGetValue("LinuxZip", out var linuxObj))
-                                            linux = linuxObj?.ToString() ?? "";
-                                    }
-                                }
+                                var selected = manifest.Core.FirstOrDefault(x => x.Version == "Latest") 
+                                    ?? manifest.Core[0];
+                                
+                                path = selected.Path ?? "";
+                                windows = selected.WindowsZip ?? "";
+                                macos = selected.MacOsZip ?? "";
+                                linux = selected.LinuxZip ?? "";
                             }
                         }
                     }
@@ -433,30 +424,24 @@ namespace Commander.PEDM
             
             if (!string.IsNullOrEmpty(path))
             {
-                var baseUrl = $"https://{hostname}";
-                if (!path.StartsWith("/"))
-                {
-                    baseUrl += "/";
-                }
-                
-                if (!path.EndsWith("/") && !string.IsNullOrEmpty(path))
+                if (!path.EndsWith("/"))
                 {
                     path += "/";
                 }
                 
                 if (!string.IsNullOrEmpty(windows))
                 {
-                    var windowsUrl = baseUrl + path + windows;
+                    var windowsUrl = path + windows;
                     tab.AddRow("Windows download URL", windowsUrl);
                 }
                 if (!string.IsNullOrEmpty(macos))
                 {
-                    var macosUrl = baseUrl + path + macos;
+                    var macosUrl = path + macos;
                     tab.AddRow("MacOS download URL", macosUrl);
                 }
                 if (!string.IsNullOrEmpty(linux))
                 {
-                    var linuxUrl = baseUrl + path + linux;
+                    var linuxUrl = path + linux;
                     tab.AddRow("Linux download URL", linuxUrl);
                 }
                 if (!string.IsNullOrEmpty(windows) || !string.IsNullOrEmpty(macos) || !string.IsNullOrEmpty(linux))
@@ -492,6 +477,60 @@ namespace Commander.PEDM
 
         [Option("verbose", Required = false, HelpText = "Verbose output (for download)")]
         public bool Verbose { get; set; }
+    }
+
+    // Manifest structure classes
+    [DataContract]
+    internal class PackageManifest
+    {
+        [DataMember(Name = "Core")]
+        public List<CorePackage> Core { get; set; }
+    }
+
+    [DataContract]
+    internal class CorePackage
+    {
+        [DataMember(Name = "Version")]
+        public string Version { get; set; }
+
+        [DataMember(Name = "Path")]
+        public string Path { get; set; }
+
+        [DataMember(Name = "WindowsFileName")]
+        public string WindowsFileName { get; set; }
+
+        [DataMember(Name = "MacOsFileName")]
+        public string MacOsFileName { get; set; }
+
+        [DataMember(Name = "UbuntuLinuxFileName")]
+        public string UbuntuLinuxFileName { get; set; }
+
+        [DataMember(Name = "RockyLinuxFileName")]
+        public string RockyLinuxFileName { get; set; }
+
+        [DataMember(Name = "WindowsZip")]
+        public string WindowsZip { get; set; }
+
+        [DataMember(Name = "MacOsZip")]
+        public string MacOsZip { get; set; }
+
+        [DataMember(Name = "LinuxZip")]
+        public string LinuxZip { get; set; }
+
+        [DataMember(Name = "WindowsCmdLine")]
+        public string WindowsCmdLine { get; set; }
+
+        [DataMember(Name = "MacOsCmdLine")]
+        public string MacOsCmdLine { get; set; }
+
+        [DataMember(Name = "UbuntuLinuxCmdLine")]
+        public string UbuntuLinuxCmdLine { get; set; }
+
+        [DataMember(Name = "RockyLinuxCmdLine")]
+        public string RockyLinuxCmdLine { get; set; }
+
+        [DataMember(Name = "lastDeployCommit")]
+        public string LastDeployCommit { get; set; }
     }
 }
 
