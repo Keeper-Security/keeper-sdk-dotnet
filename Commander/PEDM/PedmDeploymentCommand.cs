@@ -353,7 +353,7 @@ namespace Commander.PEDM
             var host = Context.Enterprise?.Auth?.Endpoint?.Server ?? "keepersecurity.com";
             var token = $"{host}:{deployment.DeploymentUid}:{deployment.PrivateKey.Base64UrlEncode()}";
 
-            if (!string.IsNullOrEmpty(options.File))
+            if (!string.IsNullOrEmpty(options.File) && !options.Verbose)
             {
                 File.WriteAllText(options.File, token);
                 Console.WriteLine($"Deployment token written to: {options.File}");
@@ -421,36 +421,50 @@ namespace Commander.PEDM
             var tab = new Tabulate(2);
             tab.AddHeader("", "");
             tab.MaxColumnWidth = int.MaxValue;
-            
+
+            var fileLines = new List<string>();
+
             if (!string.IsNullOrEmpty(path))
             {
                 if (!path.EndsWith("/"))
                 {
                     path += "/";
                 }
-                
+
                 if (!string.IsNullOrEmpty(windows))
                 {
                     var windowsUrl = path + windows;
                     tab.AddRow("Windows download URL", windowsUrl);
+                    fileLines.Add($"Windows download URL\t{windowsUrl}");
                 }
                 if (!string.IsNullOrEmpty(macos))
                 {
                     var macosUrl = path + macos;
                     tab.AddRow("MacOS download URL", macosUrl);
+                    fileLines.Add($"MacOS download URL\t{macosUrl}");
                 }
                 if (!string.IsNullOrEmpty(linux))
                 {
                     var linuxUrl = path + linux;
                     tab.AddRow("Linux download URL", linuxUrl);
+                    fileLines.Add($"Linux download URL\t{linuxUrl}");
                 }
                 if (!string.IsNullOrEmpty(windows) || !string.IsNullOrEmpty(macos) || !string.IsNullOrEmpty(linux))
                 {
                     tab.AddRow("", "");
+                    fileLines.Add("");
                 }
             }
-            
+
             tab.AddRow("Deployment Token", token);
+            fileLines.Add($"Deployment Token\t{token}");
+
+            if (!string.IsNullOrEmpty(options.File))
+            {
+                File.WriteAllText(options.File, string.Join(Environment.NewLine, fileLines));
+                Console.WriteLine($"Deployment token and download URLs written to: {options.File}");
+            }
+
             tab.Dump();
         }
     }
