@@ -521,7 +521,7 @@ namespace Commander
                     Description = "Find duplicate records in vault",
                     Action = context.FindDuplicatesCommand
                 });
-            
+                
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
@@ -552,7 +552,7 @@ namespace Commander
                     Description = "Load shared folder membership from JSON file into Keeper",
                     Action = context.ApplyMembershipCommand
                 });
-                   
+            
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)

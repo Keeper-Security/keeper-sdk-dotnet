@@ -724,14 +724,11 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"2fa_validate\": {request}");
 #endif
-           
             var rs = await auth.Endpoint.ExecuteRest("authentication/2fa_validate",
                 new ApiRequestPayload
                 {
                     Payload = request.ToByteString(),
                 });
-            
-            
             var response = TwoFactorValidateResponse.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST Response: endpoint \"2fa_validate\": {response}");
