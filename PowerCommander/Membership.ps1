@@ -249,7 +249,7 @@ function Export-KeeperMembership {
     }
     catch {
         Write-Error "Failed to download membership: $_"
-        throw
+        return
     }
 }
 New-Alias -Name kdwnmbs -Value Export-KeeperMembership
@@ -302,8 +302,8 @@ function Import-KeeperMembership {
 
     $fileInfo = Get-Item -LiteralPath $fullPath
     if ($fileInfo.Length -gt $MaxFileSizeBytes) {
-        $maxMB = $MaxFileSizeBytes / (1024 * 1024)
-        $sizeMB = $fileInfo.Length / (1024 * 1024)
+        $maxMB = [math]::Round($MaxFileSizeBytes / (1024 * 1024), 2)
+        $sizeMB = [math]::Round($fileInfo.Length / (1024 * 1024), 2)
         Write-Error "File size ($sizeMB MB) exceeds maximum allowed size ($maxMB MB)"
         return
     }
@@ -321,15 +321,17 @@ function Import-KeeperMembership {
     $sharedFolderCount = if ($importFile.SharedFolders) { $importFile.SharedFolders.Length } else { 0 }
     Write-Host "Processing $sharedFolderCount shared folder(s)..."
 
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $vault = getVault
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
 
     $applyOptions = New-Object KeeperSecurity.Vault.ApplyMembershipOptions
     $applyOptions.FullSync = $FullSync.IsPresent
 
     try {
-        $summaryTask = [KeeperSecurity.Vault.KeeperApplyMembership]::ApplyMembership($vault, $importFile, $applyOptions)
-        $summaryTask.Wait()
-        $summary = $summaryTask.Result
+        $summary = [KeeperSecurity.Vault.KeeperApplyMembership]::ApplyMembership($vault, $importFile, $applyOptions).GetAwaiter().GetResult()
 
         Write-Host ""
         if ($summary.TeamsAdded -gt 0)   { Write-Host "$($summary.TeamsAdded) team(s) added to shared folders" }
@@ -348,7 +350,7 @@ function Import-KeeperMembership {
     }
     catch {
         Write-Error "Error applying membership: $_"
-        throw
+        return
     }
 }
 New-Alias -Name kapplymbs -Value Import-KeeperMembership
