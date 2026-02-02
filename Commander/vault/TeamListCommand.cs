@@ -163,10 +163,14 @@ namespace Commander
             List<TeamListItem> teams,
             Action<Severity, string> logger)
         {
-            const int BatchSize = 20;
-            
+            const int BatchSize = 10;
+            const int DelayMsBetweenBatches = 400;
+
             for (int i = 0; i < teams.Count; i += BatchSize)
             {
+                if (i > 0)
+                    await Task.Delay(DelayMsBetweenBatches);
+
                 var batch = teams.Skip(i).Take(BatchSize).ToList();
                 var fetchTasks = batch.Select(async team =>
                 {
