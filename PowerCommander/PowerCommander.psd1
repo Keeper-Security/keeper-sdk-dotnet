@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.7'
+    ModuleVersion        = '1.0.8'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -26,7 +26,7 @@
     CompanyName          = 'Keeper Security Inc.'
 
     # Copyright statement for this module
-    Copyright            = '(c) 2025 Keeper Security Inc. All rights reserved.'
+    Copyright            = '(c) 2026 Keeper Security Inc. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description          = 'PowerShell Commander'
@@ -135,7 +135,16 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = @('Biometric login')
+            ReleaseNotes = @(
+                'Trash management commands (Get-KeeperTrashList, Restore-KeeperTrashRecords, Remove-TrashedKeeperRecordShares, Clear-KeeperTrash)',
+                'Export vault and membership commands (Export-KeeperVault, Export-KeeperMembership)',
+                'Device approval support (Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice)',
+                'Enterprise Role creation and deletion (New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole)',
+                'Enterprise Role management (Add-KeeperEnterpriseRoleManagedNode, Add-KeeperEnterpriseRolePrivilege, Add-KeeperEnterpriseRoleEnforcement)',
+                'Enterprise Node management (New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode)',
+                'Custom invitation and logo support for Enterprise Nodes',
+                'Updated .NET SDK'
+            )
         }
     }
 
