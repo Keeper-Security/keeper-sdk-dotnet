@@ -2316,6 +2316,16 @@ namespace Commander
                         };
                     }
                 }
+                else if (TryParseUtcDate(text, out var exactDt))
+                {
+                    return new CreatedFilter
+                    {
+                        Min = exactDt,
+                        Max = exactDt + 1,
+                        ExcludeMin = false,
+                        ExcludeMax = true,
+                    };
+                }
             }
 
 
@@ -2324,8 +2334,140 @@ namespace Commander
 
         private static string ParameterPattern = @"\${(\w+)}";
 
+        private enum PatternType
+        {
+            Substring,
+            Regex,
+            Exact
+        }
+
+        private class PatternFilter
+        {
+            public PatternType Type { get; set; }
+            public string Pattern { get; set; }
+            public bool IsNegated { get; set; }
+            public Regex CompiledRegex { get; set; }
+        }
+
+        private static PatternFilter ParsePattern(string pattern, bool useRegex = false)
+        {
+            if (string.IsNullOrEmpty(pattern))
+                return null;
+
+            var filter = new PatternFilter();
+            var workingPattern = pattern;
+
+            if (workingPattern.StartsWith("not:", StringComparison.OrdinalIgnoreCase))
+            {
+                filter.IsNegated = true;
+                workingPattern = workingPattern.Substring(4);
+            }
+
+            if (workingPattern.StartsWith("regex:", StringComparison.OrdinalIgnoreCase))
+            {
+                filter.Type = PatternType.Regex;
+                filter.Pattern = workingPattern.Substring(6);
+                try
+                {
+                    filter.CompiledRegex = new Regex(filter.Pattern, RegexOptions.IgnoreCase);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
+                    return null;
+                }
+            }
+            else if (workingPattern.StartsWith("exact:", StringComparison.OrdinalIgnoreCase))
+            {
+                filter.Type = PatternType.Exact;
+                filter.Pattern = workingPattern.Substring(6);
+            }
+            else if (useRegex)
+            {
+                filter.Type = PatternType.Regex;
+                filter.Pattern = workingPattern;
+                try
+                {
+                    filter.CompiledRegex = new Regex(filter.Pattern, RegexOptions.IgnoreCase);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
+                    return null;
+                }
+            }
+            else
+            {
+                filter.Type = PatternType.Substring;
+                filter.Pattern = workingPattern;
+            }
+
+            return filter;
+        }
+
+        private static bool MatchesPattern(Dictionary<string, object> eventData, PatternFilter filter)
+        {
+            if (filter == null) return true;
+            if (eventData == null) return false; 
+
+            bool matches = false;
+            foreach (var kvp in eventData)
+            {
+                var value = kvp.Value?.ToString() ?? "";
+                
+                switch (filter.Type)
+                {
+                    case PatternType.Regex:
+                        if (filter.CompiledRegex != null && filter.CompiledRegex.IsMatch(value))
+                        {
+                            matches = true;
+                        }
+                        break;
+                    
+                    case PatternType.Exact:
+                        if (value.Equals(filter.Pattern, StringComparison.OrdinalIgnoreCase))
+                        {
+                            matches = true;
+                        }
+                        break;
+                    
+                    case PatternType.Substring:
+                        if (value.IndexOf(filter.Pattern, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            matches = true;
+                        }
+                        break;
+                }
+
+                if (matches) break;
+            }
+
+            return filter.IsNegated ? !matches : matches;
+        }
+
+        private static bool ApplyFilters(Dictionary<string, object> eventData, List<PatternFilter> filters, bool matchAll)
+        {
+            if (filters == null || !filters.Any())
+                return true;
+
+            if (matchAll)
+            {
+                return filters.All(f => MatchesPattern(eventData, f));
+            }
+            else
+            {
+                return filters.Any(f => MatchesPattern(eventData, f));
+            }
+        }
+
         internal static async Task RunAuditEventsReport(this IEnterpriseContext context, AuditReportOptions options)
         {
+            if (options.MaxRecordDetails)
+            {
+                Console.WriteLine("--max-record-details feature is not yet supported.");
+                return;
+            }
+
             if (context.AuditEvents == null)
             {
                 var auditEvents = await context.Enterprise.Auth.GetAvailableEvents();
@@ -2370,6 +2512,37 @@ namespace Commander
                 filter.SharedFolderUid = options.SharedFolderUid.ToArray();
             }
 
+            if (options.NodeId != null && options.NodeId.Any())
+            {
+                var nodeIds = new List<long>();
+                foreach (var nodeIdOrName in options.NodeId)
+                {
+                    try
+                    {
+                        var node = context.EnterpriseData.ResolveNodeName(nodeIdOrName);
+                        nodeIds.Add(node.Id);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Warning: {e.Message}");
+                    }
+                }
+                if (nodeIds.Any())
+                {
+                    filter.NodeId = nodeIds.Distinct().ToArray();
+                }
+                else
+                {
+                    Console.WriteLine("Error: No valid node IDs found. Report will not be filtered by node.");
+                    return;
+                }
+            }
+
+            if (options.IpAddress != null && options.IpAddress.Any())
+            {
+                filter.IpAddress = options.IpAddress.ToArray();
+            }
+
             var rq = new GetAuditEventReportsCommand
             {
                 Filter = filter,
@@ -2397,16 +2570,105 @@ namespace Commander
                 rq.Columns = options.Columns.ToArray();
             }
 
+            if (options.ReportType == "dim")
+            {
+                var dimColumns = (options.Columns != null && options.Columns.Any()) 
+                    ? options.Columns.ToArray() 
+                    : new[] { "audit_event_type" };
+                var dimRq = new GetAuditEventDimensionsCommand
+                {
+                    Columns = dimColumns
+                };
+                var dimRs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventDimensionsCommand, GetAuditEventDimensionsResponse>(dimRq);
+
+                bool hasData = false;
+                int limit = options.Limit > 0 ? options.Limit : int.MaxValue;
+
+                void DisplayDimension<T>(T[] data, string title, string[] headers, Func<T, object[]> rowSelector)
+                {
+                    if (data != null && data.Length > 0)
+                    {
+                        hasData = true;
+                        var items = data.Take(limit).ToArray();
+                        Console.WriteLine($"\n=== {title} ({items.Length} of {data.Length}) ===");
+                        var tab = new Tabulate(headers.Length) { DumpRowNo = true };
+                        tab.AddHeader(headers);
+                        foreach (var item in items)
+                        {
+                            tab.AddRow(rowSelector(item));
+                        }
+                        tab.Dump();
+                    }
+                }
+
+                DisplayDimension(
+                    dimRs.Dimensions?.AuditEventTypes,
+                    "Audit Event Types",
+                    new[] { "ID", "Name", "Category", "Critical" },
+                    evt => new object[] { evt.Id, evt.Name, evt.Category, evt.Critical ? "Yes" : "" }
+                );
+                DisplayDimension(
+                    dimRs.Dimensions?.KeeperVersions,
+                    "Keeper Versions",
+                    new[] { "Version ID", "Type ID", "Type Name", "Category" },
+                    ver => new object[] { ver.VersionId, ver.TypeId, ver.TypeName, ver.TypeCategory }
+                );
+                DisplayDimension(
+                    dimRs.Dimensions?.IpAddresses,
+                    "IP Addresses",
+                    new[] { "IP Address", "City", "Region", "Country", "Country Name" },
+                    ip => new object[] { ip.IpAddress, ip.City, ip.Region, ip.Country, ip.CountryName }
+                );
+                DisplayDimension(dimRs.Dimensions?.GeoLocation,
+                    "Geo Location",
+                    new[] { "geo_location", "city", "region", "country_code", "ip_count" },
+                    item => new object[] { item.GeoLocation, item.City, item.Region, item.CountryCode, item.IpCount}
+                );
+                DisplayDimension(dimRs.Dimensions?.Usernames, "Usernames", new[] { "Username" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.NodeIds, "Node IDs", new[] { "Node ID" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.ToUsername, "ToUsernames", new[] { "To Username" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.FromUsername, "FromUsernames", new[] { "From Username" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.Channel, "Channels", new[] { "channel" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.RecordUid, "Record IDs", new[] { "Record ID" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.SharedFolderUid, "Shared Folder IDs", new[] { "Shared Folder ID" }, item => new object[] { item });
+                DisplayDimension(dimRs.Dimensions?.TeamUid, "Team IDs", new[] { "Team Id" }, item => new object[] { item });
+
+                if (!hasData)
+                {
+                    Console.WriteLine("No dimension data returned.");
+                }
+                return;
+            }
+
             var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
 
-            Tabulate tab;
+            List<PatternFilter> patternFilters = null;
+            if (options.FilterPatterns != null && options.FilterPatterns.Any())
+            {
+                patternFilters = new List<PatternFilter>();
+                foreach (var pattern in options.FilterPatterns)
+                {
+                    var patternFilter = ParsePattern(pattern, options.UseRegex);
+                    if (patternFilter != null)
+                    {
+                        patternFilters.Add(patternFilter);
+                    }
+                }
+            }
+
+            var filteredEvents = rs.Events;
+            if (patternFilters != null && patternFilters.Any())
+            {
+                filteredEvents = rs.Events.Where(evt => ApplyFilters(evt, patternFilters, options.MatchAll)).ToList();
+            }
+
+            var headers = new List<string>();
+            var rows = new List<object[]>();
 
             if (rq.ReportType == "raw")
             {
-                tab = new Tabulate(4) { DumpRowNo = true };
-                tab.AddHeader("Created", "Username", "Event", "Message");
-                tab.MaxColumnWidth = 100;
-                foreach (var evt in rs.Events)
+                headers.AddRange(new[] { "Created", "Username", "Event", "Message" });
+                foreach (var evt in filteredEvents)
                 {
                     if (!evt.TryGetValue("audit_event_type", out var v)) continue;
                     var eventName = v.ToString();
@@ -2442,16 +2704,15 @@ namespace Commander
                     {
                         username = v.ToString();
                     }
-                    tab.AddRow(created, username, eventName, message);
+                    rows.Add(new object[] { created, username, eventName, message });
                 }
             }
             else
             {
                 var columns = options.Aggregate.Concat(options.Columns).ToArray();
-                tab = new Tabulate(columns.Length) { DumpRowNo = true };
-                tab.AddHeader(columns);
-                tab.MaxColumnWidth = 100;
-                foreach (var evt in rs.Events)
+
+                headers.AddRange(columns);
+                foreach (var evt in filteredEvents)
                 {
                     var values = columns.Select(x => {
                         object value = null;
@@ -2467,10 +2728,56 @@ namespace Commander
                         }
                         return value;
                     }).ToArray();
-                    tab.AddRow(values);
+                    rows.Add(values);
                 }
             }
-            tab.Dump();
+
+            var format = (options.Format ?? "table").ToLowerInvariant();
+            switch (format)
+            {
+                case "json":
+                    var jsonData = rows.Select(row => 
+                    {
+                        var dict = new Dictionary<string, object>();
+                        for (int i = 0; i < headers.Count && i < row.Length; i++)
+                        {
+                            dict[headers[i]] = row[i];
+                        }
+                        return dict;
+                    }).ToList();
+                    var jsonBytes = JsonUtils.DumpJson(jsonData, true);
+                    Console.WriteLine(System.Text.Encoding.UTF8.GetString(jsonBytes));
+                    break;
+                    
+                case "csv":
+                    string EscapeCsv(object val)
+                    {
+                        var s = val?.ToString() ?? "";
+                        if (s.Contains(",") || s.Contains("\"") || s.Contains("\n") || s.Contains("\r"))
+                        {
+                            return "\"" + s.Replace("\"", "\"\"") + "\"";
+                        }
+                        return s;
+                    }
+                    
+                    Console.WriteLine(string.Join(",", headers.Select(EscapeCsv)));
+                    foreach (var row in rows)
+                    {
+                        Console.WriteLine(string.Join(",", row.Select(EscapeCsv)));
+                    }
+                    break;
+                    
+                case "table":
+                default:
+                    var tab = new Tabulate(headers.Count) { DumpRowNo = true, MaxColumnWidth = 100 };
+                    tab.AddHeader(headers.ToArray());
+                    foreach (var row in rows)
+                    {
+                        tab.AddRow(row);
+                    }
+                    tab.Dump();
+                    break;
+            }
         }
 
         private static bool TryResolveCopyTargetNodeId(EnterpriseData enterpriseData, string nodeInput, out long nodeId, out string errorMessage)
@@ -3643,6 +3950,9 @@ namespace Commander
 
     class AuditReportOptions 
     {
+        [Value(0, Required = false, HelpText = "Filter patterns. Supports: regex:<pattern>, exact:<text>, not:<pattern>, not:regex:<pattern>, not:exact:<text>")]
+        public IEnumerable<string> FilterPatterns { get; set; }
+        
         [Option("limit", Required = false, Default = 100, HelpText = "maximum number of returned events")]
         public int Limit { get; set; }
 
@@ -3667,6 +3977,12 @@ namespace Commander
         [Option("shared-folder-uid", Required = false, Default = null, HelpText = "shared folder UID")]
         public IEnumerable<string> SharedFolderUid { get; set; }
 
+        [Option("node-id", Required = false, Default = null, HelpText = "node name or ID (enterprise events only)")]
+        public IEnumerable<string> NodeId { get; set; }
+
+        [Option("ip-address", Required = false, Default = null, HelpText = "filter by IP address")]
+        public IEnumerable<string> IpAddress { get; set; }
+
         [Option("report-type", Required = false, Default = "raw", HelpText = "report type")]
         public string ReportType { get; set; }
 
@@ -3675,6 +3991,18 @@ namespace Commander
 
         [Option("columns", Required = false, HelpText = "report columns")]
         public IEnumerable<string> Columns { get; set; }
+
+        [Option("match-all", Required = false, Default = false, HelpText = "Use AND logic (all patterns must match). Default is OR logic.")]
+        public bool MatchAll { get; set; }
+
+        [Option("regex", Required = false, Default = false, HelpText = "use regular expressions as row filter")]
+        public bool UseRegex { get; set; }
+        
+        [Option("format", Required = false, Default = "table", HelpText = "format of the output: table, csv, json")]
+        public string Format { get; set; }
+
+        [Option("max-record-details", Required = false, Default = false, HelpText = "allow retrieval of additional record-detail data if not found in local cache")]
+        public bool MaxRecordDetails { get; set; }
     }
 
     class EnterpriseUsersOptions : EnterpriseGenericOptions
