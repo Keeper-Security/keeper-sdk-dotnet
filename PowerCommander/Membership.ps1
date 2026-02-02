@@ -29,6 +29,9 @@ function Export-KeeperMembership {
 	.Parameter SubFolderHandling
 	Shared sub-folder handling: 'ignore' or 'flatten'
 
+	.Parameter Source
+	Membership source: keeper, lastpass, thycotic. Currently only keeper is supported.
+
 	.Description
 	Downloads shared folder and team membership information from your Keeper vault.
 	This is useful for migration, backup, or analysis of access permissions.
@@ -85,8 +88,18 @@ function Export-KeeperMembership {
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('ignore', 'flatten')]
-        [string] $SubFolderHandling
+        [string] $SubFolderHandling,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('keeper', 'lastpass', 'thycotic')]
+        [string] $Source = 'keeper'
     )
+
+    if ([string]::IsNullOrWhiteSpace($Source)) { $Source = 'keeper' }
+    $sourceLower = $Source.ToLower()
+    if ($sourceLower -ne 'keeper') {
+        throw "Membership download source '$Source' is not supported. Valid values: keeper, lastpass, thycotic. Currently only keeper is implemented."
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
@@ -253,7 +266,7 @@ function Import-KeeperMembership {
 	Update and remove membership to match the file; otherwise only add/update
 
 	.Description
-	Reads shared folder membership from a JSON file (produced by Export-KeeperMembership/ smae formtat as what is exported by Export-KeeperMembership)
+	Reads shared folder membership from a JSON file (produced by Export-KeeperMembership/ same format as what is exported by Export-KeeperMembership)
 	and applies it to the vault. Use -FullSync to also remove users/teams that are not in the file.
 
 	.Example
