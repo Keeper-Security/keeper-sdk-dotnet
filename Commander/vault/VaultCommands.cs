@@ -10,9 +10,6 @@ using CommandLine;
 using KeeperSecurity.BreachWatch;
 using System.IO;
 
-using System.Diagnostics;
-using System.IO;
-
 
 namespace Commander
 {
@@ -524,6 +521,7 @@ namespace Commander
                     Description = "Find duplicate records in vault",
                     Action = context.FindDuplicatesCommand
                 });
+            
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
@@ -546,6 +544,7 @@ namespace Commander
                     Description = "Display teams",
                     Action = context.TeamListCommand
                 });
+            
             cli.Commands.Add("apply-membership",
                 new ParseableCommand<ApplyMembershipCommandOptions>
                 {
@@ -553,6 +552,7 @@ namespace Commander
                     Description = "Load shared folder membership from JSON file into Keeper",
                     Action = context.ApplyMembershipCommand
                 });
+                   
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)
