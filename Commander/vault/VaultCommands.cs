@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using CommandLine;
 using KeeperSecurity.BreachWatch;
+using System.Diagnostics;
 using System.IO;
 
 
