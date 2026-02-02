@@ -279,6 +279,7 @@ namespace KeeperSecurity.Enterprise
                 sdk.UserStatus = UserStatus.Inactive;
             }
             sdk.AccountShareExpiration = keeper.AccountShareExpiration;
+            sdk.TransferAcceptanceStatus = (TransferAcceptanceStatus)keeper.TransferAcceptanceStatus;
             var enterprise = GetEnterprise?.Invoke();
             if (enterprise != null && enterprise.TreeKey != null)
             {

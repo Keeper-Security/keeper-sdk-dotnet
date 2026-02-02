@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using CommandLine;
 using KeeperSecurity.BreachWatch;
+using System.IO;
+
 using System.Diagnostics;
 using System.IO;
 
@@ -523,6 +525,30 @@ namespace Commander
                     Action = context.FindDuplicatesCommand
                 });
 
+            cli.Commands.Add("export",
+                new ParseableCommand<ExportCommandOptions>
+                {
+                    Order = 34,
+                    Description = "Export vault data from Keeper to a local file",
+                    Action = context.ExportCommand
+                });
+
+            cli.Commands.Add("download-membership",
+                new ParseableCommand<DownloadMembershipCommandOptions>
+                {
+                    Order = 35,
+                    Description = "Download shared folder membership to a JSON file",
+                    Action = context.DownloadMembershipCommand
+                });
+
+            cli.Commands.Add("find-duplicates",
+                new ParseableCommand<FindDuplicatesCommandOptions>
+                {
+                    Order = 34,
+                    Description = "Find duplicate records in vault",
+                    Action = context.FindDuplicatesCommand
+                });
+
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
@@ -546,6 +572,29 @@ namespace Commander
                     Action = context.TeamListCommand
                 });
 
+            cli.Commands.Add("file-report",
+                new ParseableCommand<FileReportCommandOptions>
+                {
+                    Order = 38,
+                    Description = "List records with file attachments",
+                    Action = context.FileReportCommand
+                });
+
+            cli.Commands.Add("list-team",
+                new ParseableCommand<TeamListCommandOptions>
+                {
+                    Order = 37,
+                    Description = "Display teams",
+                    Action = context.TeamListCommand
+                });
+            
+            cli.Commands.Add("apply-membership",
+                new ParseableCommand<ApplyMembershipCommandOptions>
+                {
+                    Order = 44,
+                    Description = "Load shared folder membership from JSON file into Keeper",
+                    Action = context.ApplyMembershipCommand
+                });
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)
@@ -1260,15 +1309,6 @@ namespace Commander
     {
         public static async Task ExportCommand(this VaultContext context, ExportCommandOptions options)
         {
-            void Logger(Severity severity, string message)
-            {
-                if (severity == Severity.Warning || severity == Severity.Error)
-                {
-                    Console.WriteLine(message);
-                }
-                Debug.WriteLine(message);
-            }
-
             var filename = options.FileName;
 
             if (!filename.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -1294,8 +1334,8 @@ namespace Commander
             await context.Vault.ExportVaultToFile(
                 filename,
                 recordUids: null,
-                includeSharedFolders: !excludeSharedFolders,
-                logger: Logger);
+                includeSharedFolders: !excludeSharedFolders
+                );
 
             var fileInfo = new FileInfo(filename);
             var table = new Tabulate(2)

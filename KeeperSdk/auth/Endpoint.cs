@@ -174,7 +174,7 @@ namespace KeeperSecurity.Authentication
     {
         private const string DefaultDeviceName = ".NET Keeper API";
         private const string DefaultKeeperServer = "keepersecurity.com";
-        private const string DefaultClientVersion = "c17.1.9";
+        private const string DefaultClientVersion = "c17.2.0";
 
         private readonly IConfigurationStorage _storage;
         private readonly HttpClient _httpClient;
@@ -308,9 +308,9 @@ namespace KeeperSecurity.Authentication
                         case "throttled":
                             if (!string.Equals("keep_alive", endpoint, StringComparison.InvariantCultureIgnoreCase)) {
 #if DEBUG
-                                Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
+                                Debug.WriteLine("\"throttled\" sleeping for 30 seconds");
 #endif
-                                await Task.Delay(TimeSpan.FromSeconds(10));
+                                await Task.Delay(TimeSpan.FromSeconds(30));
                                 continue;
                             }
                             break;
@@ -430,7 +430,7 @@ namespace KeeperSecurity.Authentication
             {
                 >= 1 and <= 6 when KeeperSettings.KeeperRsaPublicKeys.TryGetValue(keyId, value: out var key) =>
                     CryptoUtils.EncryptRsa(data, key),
-                >= 7 and <= 17 when KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var publicKey) =>
+                >= 7 and <= 18 when KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var publicKey) =>
                     CryptoUtils.EncryptEc(data, publicKey),
                 _ => throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(),
                     "Server Key Id is invalid")
@@ -488,6 +488,7 @@ namespace KeeperSecurity.Authentication
                 new KeyValuePair<int, EcPublicKey>(15, CryptoUtils.LoadEcPublicKey(KeeperKey15.Base64UrlDecode())),
                 new KeyValuePair<int, EcPublicKey>(16, CryptoUtils.LoadEcPublicKey(KeeperKey16.Base64UrlDecode())),
                 new KeyValuePair<int, EcPublicKey>(17, CryptoUtils.LoadEcPublicKey(KeeperKey17.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(18, CryptoUtils.LoadEcPublicKey(KeeperKey18.Base64UrlDecode())),
             };
             KeeperEcPublicKeys = new ConcurrentDictionary<int, EcPublicKey>(ecList);
         }
@@ -570,6 +571,7 @@ namespace KeeperSecurity.Authentication
         const string KeeperKey15 = "BDKyWBvLbyZ-jMueORl3JwJnnEpCiZdN7yUvT0vOyjwpPBCDf6zfL4RWzvSkhAAFnwOni_1tQSl8dfXHbXqXsQ8";
         const string KeeperKey16 = "BDXyZZnrl0tc2jdC5I61JjwkjK2kr7uet9tZjt8StTiJTAQQmnVOYBgbtP08PWDbecxnHghx3kJ8QXq1XE68y8c";
         const string KeeperKey17 = "BFX68cb97m9_sweGdOVavFM3j5ot6gveg6xT4BtGahfGhKib-zdZyO9pwvv1cBda9ahkSzo1BQ4NVXp9qRyqVGU";
+        const string KeeperKey18 = "BNhngQqTT1bPKxGuB6FhbPTAeNVFl8PKGGSGo5W06xWIReutm6ix6JPivqnbvkydY-1uDQTr-5e6t70G01Bb5JA";
 
     }
 }

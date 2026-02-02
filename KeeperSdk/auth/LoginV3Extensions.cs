@@ -34,6 +34,7 @@ namespace KeeperSecurity.Authentication
     {
         internal static void EnsurePushNotification(this IAuth auth, LoginContext v3)
         {
+            if (!auth.UsePushNotifications) return;
             if (auth.PushNotifications != null) return;
 
             var pushNotifications = new KeeperPushNotifications(auth.Endpoint.WebProxy);

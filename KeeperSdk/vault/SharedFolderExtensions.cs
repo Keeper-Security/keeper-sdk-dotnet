@@ -27,7 +27,7 @@ namespace KeeperSecurity.Vault
 
             };
             var existingPermission = sharedFolder.UsersPermissions
-                .FirstOrDefault(x => x.UserType == UserType.User && (string.Equals(x.Name, userId, StringComparison.InvariantCultureIgnoreCase) || x.Uid == userId));
+                .FirstOrDefault(x => x.UserType == userType && (string.Equals(x.Name, userId, StringComparison.InvariantCultureIgnoreCase) || x.Uid == userId));
             if (userType == UserType.User)
             {
                 if (TryGetUsername(userId, out var u))
@@ -91,8 +91,12 @@ namespace KeeperSecurity.Vault
                             EncryptedKey = ByteString.CopyFrom(encryptedKey),
                             EncryptedKeyType = keyType
                         };
+                        request.SharedFolderAddUser.Add(sfuu);
                     }
-                    request.SharedFolderAddUser.Add(sfuu);
+                    else
+                    {
+                        throw new VaultException($"Cannot retrieve user's \"{userId}\" public key for sharing.");
+                    }
                 }
             }
             else
@@ -160,7 +164,7 @@ namespace KeeperSecurity.Vault
             }
 
             var perm = this.ResolveSharedFolderAccessPath(Auth.Username, sharedFolderUid, true);
-            if (perm != null && perm.UserType == UserType.Team)
+            if (perm is { UserType: UserType.Team })
             {
                 request.FromTeamUid = ByteString.CopyFrom(perm.Uid.Base64UrlDecode());
             }

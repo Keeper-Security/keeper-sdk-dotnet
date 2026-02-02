@@ -60,6 +60,11 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         IKeeperEndpoint Endpoint { get; }
 
+        /// <summary>
+        /// Enables or Disables push notifications
+        /// </summary>
+        bool UsePushNotifications { get; set; }
+
         /// <exclude/>
         IFanOut<NotificationEvent> PushNotifications { get; }
 
@@ -430,6 +435,8 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        public bool UsePushNotifications { get; set; } = true;
+
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get; private set; }
 
@@ -685,7 +692,7 @@ namespace KeeperSecurity.Authentication
             }
 
             var isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin;
-            if (keys.EncryptedPrivateKey != null)
+            if (!string.IsNullOrEmpty(keys.EncryptedPrivateKey))
             {
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
@@ -693,7 +700,7 @@ namespace KeeperSecurity.Authentication
                 authContext.PrivateRsaKey = CryptoUtils.LoadRsaPrivateKey(privateKeyData);
             }
 
-            if (keys.EncryptedEcPrivateKey != null)
+            if (!string.IsNullOrEmpty(keys.EncryptedEcPrivateKey))
             {
                 var privateKeyData =
                     CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
