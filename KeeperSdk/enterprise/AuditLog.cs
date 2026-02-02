@@ -19,10 +19,10 @@ namespace KeeperSecurity
             }
 
             [DataMember(Name = "scope")]
-            public string Scope { get; private set; } = "enterprise";
+            public string Scope { get; set; } = "enterprise";
 
             [DataMember(Name = "columns")]
-            public string[] Columns { get; private set; } = { "audit_event_type" };
+            public string[] Columns { get; set; } = { "audit_event_type" };
         }
 
         [DataContract]
@@ -45,12 +45,97 @@ namespace KeeperSecurity
         }
 
         [DataContract]
+        public class KeeperVersionType
+        {
+            [DataMember(Name = "version_id", EmitDefaultValue = false)]
+            public int VersionId { get; set; }
+
+            [DataMember(Name = "type_id", EmitDefaultValue = false)]
+            public int TypeId { get; set; }
+
+            [DataMember(Name = "type_name", EmitDefaultValue = false)]
+            public string TypeName { get; set; }
+
+            [DataMember(Name = "type_category", EmitDefaultValue = false)]
+            public string TypeCategory { get; set; }
+        }
+
+        [DataContract]
+        public class IpAddressType
+        {
+            [DataMember(Name = "ip_address", EmitDefaultValue = false)]
+            public string IpAddress { get; set; }
+
+            [DataMember(Name = "city", EmitDefaultValue = false)]
+            public string City { get; set; }
+
+            [DataMember(Name = "region", EmitDefaultValue = false)]
+            public string Region { get; set; }
+
+            [DataMember(Name = "country", EmitDefaultValue = false)]
+            public string Country { get; set; }
+
+            [DataMember(Name = "country_name", EmitDefaultValue = false)]
+            public string CountryName { get; set; }
+        }
+
+        [DataContract]
+        public class GeoLocationType
+        {
+            [DataMember(Name = "geo_location", EmitDefaultValue = false)]
+            public string GeoLocation { get; set; }
+
+            [DataMember(Name = "city", EmitDefaultValue = false)]
+            public string City { get; set; }
+
+            [DataMember(Name = "region", EmitDefaultValue = false)]
+            public string Region { get; set; }
+
+            [DataMember(Name = "country_code", EmitDefaultValue = false)]
+            public string CountryCode { get; set; }
+
+            [DataMember(Name = "ip_count", EmitDefaultValue = false)]
+            public int IpCount { get; set; }
+        }
+
+        [DataContract]
         public class ReportDimensions
         {
-
             [DataMember(Name = "audit_event_type")]
             public AuditEventType[] AuditEventTypes { get; set; }
 
+            [DataMember(Name = "keeper_version")]
+            public KeeperVersionType[] KeeperVersions { get; set; }
+
+            [DataMember(Name = "ip_address")]
+            public IpAddressType[] IpAddresses { get; set; }
+            
+            [DataMember(Name = "username")]
+            public string[] Usernames { get; set; }
+
+            [DataMember(Name = "node_id")]
+            public long[] NodeIds { get; set;}
+            
+            [DataMember(Name = "to_username")]
+            public string[] ToUsername { get; set; }
+
+            [DataMember(Name = "from_username")]
+            public string[] FromUsername { get; set; }
+
+            [DataMember(Name = "channel")]
+            public string[] Channel { get; set; }
+
+            [DataMember(Name = "record_uid")]
+            public string[] RecordUid { get; set; }
+
+            [DataMember(Name = "shared_folder_uid")]
+            public string[] SharedFolderUid { get; set; }
+
+            [DataMember(Name = "team_uid")]
+            public string[] TeamUid { get; set; }
+
+            [DataMember(Name = "geo_location")]
+            public GeoLocationType[] GeoLocation { get; set; }
         }
 
         [DataContract]
@@ -138,6 +223,18 @@ namespace KeeperSecurity
                 /// </summary>
                 [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
                 public string[] SharedFolderUid { get; set; }
+
+                /// <summary>
+                /// Node IDs (enterprise events only)
+                /// </summary>
+                [DataMember(Name = "node_id", EmitDefaultValue = false)]
+                public long[] NodeId { get; set; }
+
+                /// <summary>
+                /// IP Address
+                /// </summary>
+                [DataMember(Name = "ip_address", EmitDefaultValue = false)]
+                public string[] IpAddress { get; set; }
 
                 /// <summary>
                 /// Event Time
