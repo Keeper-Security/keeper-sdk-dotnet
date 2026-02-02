@@ -524,31 +524,6 @@ namespace Commander
                     Description = "Find duplicate records in vault",
                     Action = context.FindDuplicatesCommand
                 });
-
-            cli.Commands.Add("export",
-                new ParseableCommand<ExportCommandOptions>
-                {
-                    Order = 34,
-                    Description = "Export vault data from Keeper to a local file",
-                    Action = context.ExportCommand
-                });
-
-            cli.Commands.Add("download-membership",
-                new ParseableCommand<DownloadMembershipCommandOptions>
-                {
-                    Order = 35,
-                    Description = "Download shared folder membership to a JSON file",
-                    Action = context.DownloadMembershipCommand
-                });
-
-            cli.Commands.Add("find-duplicates",
-                new ParseableCommand<FindDuplicatesCommandOptions>
-                {
-                    Order = 34,
-                    Description = "Find duplicate records in vault",
-                    Action = context.FindDuplicatesCommand
-                });
-
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
@@ -571,23 +546,6 @@ namespace Commander
                     Description = "Display teams",
                     Action = context.TeamListCommand
                 });
-
-            cli.Commands.Add("file-report",
-                new ParseableCommand<FileReportCommandOptions>
-                {
-                    Order = 38,
-                    Description = "List records with file attachments",
-                    Action = context.FileReportCommand
-                });
-
-            cli.Commands.Add("list-team",
-                new ParseableCommand<TeamListCommandOptions>
-                {
-                    Order = 37,
-                    Description = "Display teams",
-                    Action = context.TeamListCommand
-                });
-            
             cli.Commands.Add("apply-membership",
                 new ParseableCommand<ApplyMembershipCommandOptions>
                 {
