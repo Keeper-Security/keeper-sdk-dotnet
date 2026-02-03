@@ -204,8 +204,18 @@ function Remove-KeeperEnterpriseTeamMember {
 }
 
 function Get-TeamMembersBatch {
+    <#
+    .SYNOPSIS
+    Fetches team members in batches from the API.
+    
+    .DESCRIPTION
+    Internal helper function that retrieves team member emails for multiple teams
+    using parallel API calls in configurable batch sizes.
+    #>
+    [CmdletBinding()]
+    [OutputType([hashtable])]
     param (
-        [Parameter(Mandatory)]$Auth,
+        [Parameter(Mandatory)][KeeperSecurity.Authentication.IAuthentication]$Auth,
         [Parameter(Mandatory)][array]$TeamUids,
         [int]$BatchSize = 20
     )
@@ -214,7 +224,7 @@ function Get-TeamMembersBatch {
     $results = @{}
     
     for ($i = 0; $i -lt $TeamUids.Count; $i += $BatchSize) {
-        $batch = $TeamUids[$i..([Math]::Min($i + $BatchSize, $TeamUids.Count) - 1)]
+        $batch = $TeamUids[$i..([Math]::Min($i + $BatchSize - 1, $TeamUids.Count - 1))]
         $tasks = @{}
         
         foreach ($uid in $batch) {
@@ -230,7 +240,7 @@ function Get-TeamMembersBatch {
             }
             catch {
                 Write-Warning "Failed to create request for team $uid : $($_.Exception.Message)"
-                $results[$uid] = @()
+                $results[$uid] = [System.Collections.Generic.List[string]]::new()
             }
         }
         
@@ -240,20 +250,22 @@ function Get-TeamMembersBatch {
             [System.Threading.Tasks.Task]::WhenAll($tasks.Values).GetAwaiter().GetResult() | Out-Null
         }
         catch {
-            Write-Warning "Batch API call failed: $($_.Exception.Message)"
+            Write-Warning "Some team member requests failed: $($_.Exception.Message)"
         }
         
         foreach ($uid in $tasks.Keys) {
             $task = $tasks[$uid]
             if ($task.IsCompletedSuccessfully) {
-                $emails = @()
-                foreach ($u in $task.Result.EnterpriseUser) {
-                    $emails += $u.Email
+                $emails = [System.Collections.Generic.List[string]]::new()
+                if ($task.Result.EnterpriseUser) {
+                    foreach ($u in $task.Result.EnterpriseUser) {
+                        $emails.Add($u.Email)
+                    }
                 }
                 $results[$uid] = $emails
             }
             else {
-                $results[$uid] = @()
+                $results[$uid] = [System.Collections.Generic.List[string]]::new()
             }
         }
     }
@@ -282,10 +294,13 @@ function Get-KeeperEnterpriseTeams {
         Sort teams by column: company, team_uid, name (default: company)
 
         .EXAMPLE
-        Get-KeeperEnterpriseTeams                    # Default sort by company
-        Get-KeeperEnterpriseTeams -Sort name or team_uid        # Sort by team name
-        Get-KeeperEnterpriseTeams -v -vv    # Sort by team UID and show all members
-        Get-KeeperEnterpriseTeams -v -a              # All teams with members
+        Get-KeeperEnterpriseTeams                         # Default sort by company
+        Get-KeeperEnterpriseTeams -Sort name              # Sort by team name
+        Get-KeeperEnterpriseTeams -Sort team_uid          # Sort by team UID
+        Get-KeeperEnterpriseTeams -v                      # Show members from cache (fast)
+        Get-KeeperEnterpriseTeams -vv                     # Show all members (fetches from server if needed)
+        Get-KeeperEnterpriseTeams -a                      # Include teams outside primary organization (MSP admin)
+        Get-KeeperEnterpriseTeams -vv -a                  # All teams (including managed companies) with complete member list
     #>
     [CmdletBinding()]
     param (
@@ -295,13 +310,27 @@ function Get-KeeperEnterpriseTeams {
         [Parameter()][ValidateSet('company', 'team_uid', 'name')][string] $Sort = 'company'
     )
 
+    if (-not $Script:Context.Auth) {
+        Write-Error "Not connected. Please run Connect-Keeper first." -ErrorAction Stop
+    }
+
     $includeManagedCompanyTeams = $All.IsPresent
     $memberMode = if ($ShowAllMembers.IsPresent) { 'full' } elseif ($ShowMembers.IsPresent) { 'cache' } else { 'none' }
     $showMemberInfo = $memberMode -ne 'none'
 
     [Enterprise]$enterprise = $null
     if ($showMemberInfo) {
-        $enterprise = getEnterprise
+        try {
+            $enterprise = getEnterprise
+        }
+        catch {
+            Write-Warning "Could not load enterprise data for member info: $($_.Exception.Message)"
+            $enterprise = $null
+        }
+        if (-not $enterprise -or -not $enterprise.enterpriseData) {
+            Write-Warning "Member information will not be displayed."
+            $showMemberInfo = $false
+        }
     }
     $results = [System.Collections.ArrayList]::new()
     $teamByUid = @{}
@@ -314,13 +343,20 @@ function Get-KeeperEnterpriseTeams {
             [Records.GetShareObjectsResponse]
         ).GetAwaiter().GetResult()
 
-        $enterpriseNames = @{}
-        foreach ($ent in $response.ShareEnterpriseNames) {
-            $enterpriseNames[$ent.EnterpriseId] = $ent.Enterprisename
+        if (-not $response) {
+            Write-Warning "Empty response from API"
+            return
         }
 
-        $apiTeams = @($response.ShareTeams)
-        if ($includeManagedCompanyTeams) {
+        $enterpriseNames = @{}
+        if ($response.ShareEnterpriseNames) {
+            foreach ($ent in $response.ShareEnterpriseNames) {
+                $enterpriseNames[$ent.EnterpriseId] = $ent.Enterprisename
+            }
+        }
+
+        $apiTeams = if ($response.ShareTeams) { @($response.ShareTeams) } else { @() }
+        if ($includeManagedCompanyTeams -and $response.ShareMCTeams) {
             $apiTeams += @($response.ShareMCTeams)
         }
         
@@ -331,7 +367,9 @@ function Get-KeeperEnterpriseTeams {
         catch {
             $primaryEnterpriseId = $null
         }
-        if (($null -eq $primaryEnterpriseId -or $primaryEnterpriseId -le 0) -and $response.ShareTeams.Count -gt 0) {
+        $hasNoValidEnterpriseId = ($null -eq $primaryEnterpriseId -or $primaryEnterpriseId -le 0)
+        $hasShareTeams = ($response.ShareTeams -and $response.ShareTeams.Count -gt 0)
+        if ($hasNoValidEnterpriseId -and $hasShareTeams) {
             $primaryEnterpriseId = $response.ShareTeams[0].EnterpriseId
         }
 
@@ -346,7 +384,7 @@ function Get-KeeperEnterpriseTeams {
             $companyName = $enterpriseNames[$team.EnterpriseId]
 
             $members = [System.Collections.Generic.List[string]]::new()
-            if ($showMemberInfo -and $null -ne $enterprise) {
+            if ($showMemberInfo) {
                 foreach ($userId in $enterprise.enterpriseData.GetUsersForTeam($teamUid)) {
                     $user = $null
                     if ($enterprise.enterpriseData.TryGetUserById($userId, [ref]$user)) {
@@ -370,23 +408,25 @@ function Get-KeeperEnterpriseTeams {
 
     $allTeams = @($teamByUid.Values)
 
-    if ($memberMode -eq 'full') {
+    if ($memberMode -eq 'full' -and $showMemberInfo) {
         $teamsNeedToFetch = @($allTeams | Where-Object { $_.Members.Count -eq 0 } | ForEach-Object { $_.Uid })
         if ($teamsNeedToFetch.Count -gt 0) {
             $fetchedMembers = Get-TeamMembersBatch -Auth $Script:Context.Auth -TeamUids $teamsNeedToFetch
             
-            foreach ($team in $allTeams) {
-                if ($team.Members.Count -eq 0 -and $fetchedMembers.ContainsKey($team.Uid)) {
-                    $team.Members = $fetchedMembers[$team.Uid]
+            if ($fetchedMembers) {
+                foreach ($team in $allTeams) {
+                    if ($team.Members.Count -eq 0 -and $fetchedMembers.ContainsKey($team.Uid)) {
+                        $team.Members = $fetchedMembers[$team.Uid]
+                    }
                 }
             }
         }
     }
 
     $allTeams = @(switch ($Sort) {
-        'team_uid' { $allTeams | Sort-Object { ($_.Uid ?? '').ToLower() } }
-        'name'     { $allTeams | Sort-Object { ($_.Name ?? '').ToLower() } }
-        default    { $allTeams | Sort-Object { ($_.Company ?? '').ToLower() }, { ($_.Name ?? '').ToLower() } }
+        'team_uid' { $allTeams | Sort-Object { if ($_.Uid) { $_.Uid.ToLower() } else { '' } } }
+        'name'     { $allTeams | Sort-Object { if ($_.Name) { $_.Name.ToLower() } else { '' } } }
+        default    { $allTeams | Sort-Object { if ($_.Company) { $_.Company.ToLower() } else { '' } }, { if ($_.Name) { $_.Name.ToLower() } else { '' } } }
     })
 
     $index = 0
@@ -403,9 +443,11 @@ function Get-KeeperEnterpriseTeams {
         }
         [void]$results.Add([PSCustomObject]$props)
 
-        for ($i = 1; $i -lt $team.Members.Count; $i++) {
-            $memberRow = [ordered]@{ '#' = ''; 'Company' = ''; 'Team UID' = ''; 'Name' = ''; 'Member' = $team.Members[$i] }
-            [void]$results.Add([PSCustomObject]$memberRow)
+        if ($showMemberInfo) {
+            for ($i = 1; $i -lt $team.Members.Count; $i++) {
+                $memberRow = [ordered]@{ '#' = ''; 'Company' = ''; 'Team UID' = ''; 'Name' = ''; 'Member' = $team.Members[$i] }
+                [void]$results.Add([PSCustomObject]$memberRow)
+            }
         }
     }
 
