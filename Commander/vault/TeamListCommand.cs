@@ -122,15 +122,16 @@ namespace Commander
                     enterpriseNames[enterprise.EnterpriseId] = enterprise.Enterprisename;
                 }
 
-                long? currentEnterpriseId = null;
                 var allTeams = new List<global::Records.ShareTeam>();
                 allTeams.AddRange(response.ShareTeams);
                 allTeams.AddRange(response.ShareMCTeams);
 
+                long? primaryEnterpriseId = response.ShareTeams.FirstOrDefault()?.EnterpriseId;
+
                 foreach (var team in allTeams)
                 {
-                    if (!options.ShowAllTeams && currentEnterpriseId.HasValue && 
-                        team.EnterpriseId != currentEnterpriseId.Value)
+                    if (!options.ShowAllTeams && primaryEnterpriseId.HasValue && 
+                        team.EnterpriseId != primaryEnterpriseId.Value)
                     {
                         continue;
                     }
@@ -151,7 +152,6 @@ namespace Commander
             }
             catch (Exception ex)
             {
-                // If API call fails, return empty list
                 Debug.WriteLine($"Failed to fetch teams from shared folders API: {ex.Message}");
             }
 
@@ -164,9 +164,13 @@ namespace Commander
             Action<Severity, string> logger)
         {
             const int BatchSize = 10;
-            
+            const int DelayMsBetweenBatches = 400;
+
             for (int i = 0; i < teams.Count; i += BatchSize)
             {
+                if (i > 0)
+                    await Task.Delay(DelayMsBetweenBatches);
+
                 var batch = teams.Skip(i).Take(BatchSize).ToList();
                 var fetchTasks = batch.Select(async team =>
                 {
@@ -275,15 +279,15 @@ namespace Commander
         private static void DisplayTeams(List<TeamListItem> teams, TeamListCommandOptions options)
         {
             var showMembers = options.Verbose || options.VeryVerbose;
-            var columnCount = showMembers ? 4 : 3;
+            var columnCount = showMembers ? 5 : 4;
 
             var table = new Tabulate(columnCount)
             {
-                DumpRowNo = true,
+                DumpRowNo = false,
                 LeftPadding = 4
             };
 
-            var headers = new[] { "Company", "Team UID", "Name" };
+            var headers = new[] { "#", "Company", "Team UID", "Name" };
             if (showMembers)
             {
                 headers = headers.Concat(new[] { "Members" }).ToArray();
@@ -291,17 +295,24 @@ namespace Commander
 
             table.AddHeader(headers);
 
+            var index = 1;
             foreach (var team in teams)
             {
-                var members = showMembers && team.Members != null && team.Members.Count > 0
-                    ? string.Join("\n", team.Members)
-                    : "";
+                var members = showMembers && team.Members != null ? team.Members : new List<string>();
+                var firstMember = members.Count > 0 ? members[0] : "";
 
                 var row = showMembers
-                    ? new object[] { team.Company ?? "", team.TeamUid ?? "", team.Name ?? "", members }
-                    : new object[] { team.Company ?? "", team.TeamUid ?? "", team.Name ?? "" };
+                    ? new object[] { index.ToString(), team.Company ?? "", team.TeamUid ?? "", team.Name ?? "", firstMember }
+                    : new object[] { index.ToString(), team.Company ?? "", team.TeamUid ?? "", team.Name ?? "" };
 
                 table.AddRow(row);
+
+                for (int i = 1; i < members.Count; i++)
+                {
+                    table.AddRow(new object[] { "", "", "", "", members[i] });
+                }
+
+                index++;
             }
 
             table.Dump();
