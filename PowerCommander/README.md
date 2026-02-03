@@ -62,6 +62,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 |---------------------------------------------------------|------------------|----------------------------
 | Export-KeeperVault                                      | kexport        | Export vault records and shared folders to JSON file
 | Export-KeeperMembership                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
+| Import-KeeperMembership                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
 
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description
