@@ -146,12 +146,13 @@ function Copy-FileToKeeperRecord {
     )
 
     $keeperRecord = Get-KeeperRecord $Record
-    if ($keeperRecord.Length -ne 1) {
+    if ($null -eq $keeperRecord) {
         $keeperRecord = Get-KeeperRecord -Filter $Record
     }
-    if ($keeperRecord.Length -ne 1) {
+    if ($null -eq $keeperRecord -or (@($keeperRecord).Count -ne 1)) {
         Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
     }
+    $keeperRecord = @($keeperRecord)[0]
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     $path = Resolve-Path $Filename -ErrorAction Stop
