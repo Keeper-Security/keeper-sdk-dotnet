@@ -63,9 +63,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 ### Import/Export Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
-| [Export-KeeperVault]()                                      | kexport          | Export vault records and shared folders to JSON file
-| [Export-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-2)                                 | kdwnmbs          | Download shared folder and team membership data to JSON file
-| [Import-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-3)                                 | kapplymbs        | Load shared folder membership from JSON file into Keeper
+| Export-KeeperVault                                      | kexport        | Export vault records and shared folders to JSON file
+| Export-KeeperMembership                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
+| Import-KeeperMembership                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
 
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description

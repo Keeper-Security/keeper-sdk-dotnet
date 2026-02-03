@@ -290,7 +290,6 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `import` | | Import records from JSON file |
-| `export` | | Export vault records and shared folders to JSON file |
 | `download-membership` | | Export shared folder/team membership to JSON |
 | `apply-membership` | | Load shared folder membership from JSON file |
 
