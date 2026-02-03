@@ -70,7 +70,7 @@ function Copy-KeeperToClipboard {
 	Variable name when Output is set to Variable
 
 	.Parameter Revision
-	Use specific record revision from history (1 = oldest/V.1, 2 = V.2, etc.). Default uses current version.
+	Use specific record revision from history (1 = previous, 2 = two versions ago, etc.). Default uses current version.
     #>
 
     [CmdletBinding()]
@@ -158,7 +158,7 @@ function Copy-KeeperToClipboard {
                 }
                 
                 if ($Username -and $match.Count -gt 0) {
-                    $match = @($match | Where-Object { (Get-KeeperRecordFieldValue -Record $_ -FieldName 'Login') -ieq $Username })
+                    $match = @($match | Where-Object { (Get-RecordField $_ 'Login') -ieq $Username })
                 }
                 
                 if ($match.Count -eq 1) {
@@ -169,7 +169,7 @@ function Copy-KeeperToClipboard {
                     Write-Host ("{0,-30} {1,-30} {2}" -f "Title", "Login", "UID") -ForegroundColor Cyan
                     Write-Host ("{0,-30} {1,-30} {2}" -f "-----", "-----", "---") -ForegroundColor Gray
                     foreach ($m in $match) {
-                        Write-Host ("{0,-30} {1,-30} {2}" -f $m.Title, (Get-KeeperRecordFieldValue -Record $m -FieldName 'Login'), $m.Uid)
+                        Write-Host ("{0,-30} {1,-30} {2}" -f $m.Title, (Get-RecordField $m 'Login'), $m.Uid)
                     }
                     return $null
                 }
@@ -181,13 +181,11 @@ function Copy-KeeperToClipboard {
                 if ($Revision -gt 0) {
                     try {
                         $history = $vault.GetRecordHistory($rec.Uid).GetAwaiter().GetResult()
-                        $maxRevision = $history.Length - 1
-                        if ($null -eq $history -or $Revision -gt $maxRevision) {
-                            Write-Error "Invalid revision: $Revision (record has $maxRevision historical revisions, valid range: 1-$maxRevision)"
+                        if ($null -eq $history -or $Revision -ge $history.Length) {
+                            Write-Error "Invalid revision: $Revision (record has $($history.Length - 1) historical revisions, valid range: 1-$($history.Length - 1))"
                             return
                         }
-                        $arrayIndex = $history.Length - $Revision
-                        $rec = $history[$arrayIndex].KeeperRecord
+                        $rec = $history[$Revision].KeeperRecord
                     } catch {
                         Write-Error "Failed to get record history: $_"
                         return
@@ -203,12 +201,12 @@ function Copy-KeeperToClipboard {
                 }
                 elseif ($Login) {
                     $itemName = "Login"
-                    $value = Get-KeeperRecordFieldValue -Record $rec -FieldName 'Login'
+                    $value = Get-RecordField $rec 'Login'
                 }
                 elseif ($Totp) {
                     $itemName = "TOTP"
                     $totpUrl = if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) { $rec.Totp }
-                               elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) { Get-KeeperRecordFieldValue -Record $rec -FieldName 'oneTimeCode' }
+                               elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) { Get-RecordField $rec 'oneTimeCode' }
                                else { $null }
                     if ($totpUrl) {
                         try {
@@ -220,7 +218,7 @@ function Copy-KeeperToClipboard {
                     }
                 }
                 else {
-                    $value = Get-KeeperRecordFieldValue -Record $rec -FieldName $Field
+                    $value = Get-RecordField $rec $Field
                 }
 
                 if (-not [string]::IsNullOrWhiteSpace($value)) {
