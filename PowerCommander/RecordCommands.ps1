@@ -221,7 +221,7 @@ function Copy-KeeperToClipboard {
                     $value = Get-RecordField $rec $Field
                 }
 
-                if ($value) {
+                if (-not [string]::IsNullOrWhiteSpace($value)) {
                     switch ($Output) {
                         'Stdout' {
                             $value
