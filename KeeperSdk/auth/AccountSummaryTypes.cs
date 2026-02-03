@@ -91,6 +91,11 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public long BytesUsed { get; set; }
 
+        /// <summary>
+        /// Enterprise ID associated with this account license (0 if not applicable).
+        /// </summary>
+        public int EnterpriseId { get; internal set; }
+
         internal static AccountLicense LoadFromProtobuf(AccountSummary.License license)
         {
             return new AccountLicense
@@ -105,6 +110,7 @@ namespace KeeperSecurity.Authentication
                 SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration,
                 BytesTotal = license.BytesTotal,
                 BytesUsed = license.BytesUsed,
+                EnterpriseId = license.EnterpriseId,
             };
         }
     }
