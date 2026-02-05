@@ -75,7 +75,7 @@ Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
-Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess,
+Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, Revoke-KeeperSharesWithUser,
 Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam, Move-KeeperRecordOwnership,
 New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg

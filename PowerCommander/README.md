@@ -79,6 +79,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Show-KeeperRecordShare                                  | kshrsh      | Show a record sharing information
 | Grant-KeeperRecordAccess                                | kshr        | Share a record with user
 | Revoke-KeeperRecordAccess                               | kushr       | Remove record share from user
+| Revoke-KeeperSharesWithUser                             | kcancelshare| Cancel all record shares with a user
 | Move-KeeperRecordOwnership                              | ktr         | Transfer record ownership to user
 | Grant-KeeperSharedFolderAccess                          | kshf        | Add a user or team to a shared folder
 | Revoke-KeeperSharedFolderAccess                         | kushf       | Remove a user or team from a shared folder
