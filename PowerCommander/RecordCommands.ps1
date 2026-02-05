@@ -1855,12 +1855,12 @@ function Find-KeeperDuplicateRecords {
     }
 
     if ($Quiet -and $DryRun) {
-        Write-Warning "-Quiet is only valid with -DryRun flag. Ignoring -Quiet."
+        Write-Warning "-Quiet is only valid with -Force flag. Ignoring -Quiet."
         $Quiet = $false
     }
 
     if ($Scope -eq 'enterprise') {
-        throw "Enterprise scope is not yet implemented. Use -Scope vault"
+        throw "Enterprise Scope is not yet supported in Powershell. Use -Scope vault"
     }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = $null
@@ -1868,10 +1868,10 @@ function Find-KeeperDuplicateRecords {
         $vault = getVault
     }
     catch {
-        Write-Error "Not connected to Keeper. Please run Connect-Keeper first." -ErrorAction Stop
+        Write-Error "Failed to get vault. Please ensure you are connected." -ErrorAction Stop
     }
     if (-not $vault) {
-        Write-Error "Failed to get vault. Please ensure you are connected." -ErrorAction Stop
+        Write-Error "Not connected to Keeper. Please run Connect-Keeper first." -ErrorAction Stop
     }
 
     $useDefault = -not $Title -and -not $Login -and -not $Password -and -not $Url -and -not $Full
@@ -2067,7 +2067,7 @@ function Find-KeeperDuplicateRecords {
             return
         }
 
-        if ($DryRun -and -not $Quiet) {
+        if ($DryRun) {
             Write-Host "DRY RUN MODE: No records will be removed" -ForegroundColor Yellow
             Write-Host ""
         }
@@ -2088,7 +2088,7 @@ function Find-KeeperDuplicateRecords {
         }
 
         if ($DryRun) {
-            if (-not $Quiet) { Write-Host "DRY RUN: No records were removed." -ForegroundColor Yellow }
+            Write-Host "DRY RUN: No records were removed." -ForegroundColor Yellow
             return
         }
 
@@ -2141,10 +2141,8 @@ function Find-KeeperDuplicateRecords {
         return
     }
 
-    if (-not $Quiet) {
-        Write-Host "Duplicates Found:"
-        Write-Host ""
-    }
+    Write-Host "Duplicates Found:"
+    Write-Host ""
 
     $results = [System.Collections.Generic.List[PSCustomObject]]::new()
     $groupNum = 1
@@ -2197,35 +2195,18 @@ function Find-KeeperDuplicateRecords {
         switch ($Format) {
             'csv' {
                 $outputData | Export-Csv -Path $Output -NoTypeInformation -Force
-                if (-not $Quiet) { Write-Host "Results exported to: $Output" -ForegroundColor Green }
+                Write-Host "Results exported to: $Output" -ForegroundColor Green 
             }
             'json' {
                 $outputData | ConvertTo-Json -Depth 10 | Out-File -FilePath $Output -Force
-                if (-not $Quiet) { Write-Host "Results exported to: $Output" -ForegroundColor Green }
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
             }
             default {
                 $outputData | Format-Table -AutoSize | Out-String | Out-File -FilePath $Output -Force
-                if (-not $Quiet) { Write-Host "Results exported to: $Output" -ForegroundColor Green }
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
             }
         }
     }
-    elseif (-not $Quiet) {
-        switch ($Format) {
-            'csv' {
-                $outputData | ConvertTo-Csv -NoTypeInformation
-            }
-            'json' {
-                $outputData | ConvertTo-Json -Depth 10
-            }
-            default {
-                $outputData | Format-Table -AutoSize
-                Write-Host ""
-                Write-Host "Total: $($groupNum - 1) duplicate groups, $($outputData.Count) records"
-            }
-        }
-        return
-    }
-    
     return $outputData
 }
 
