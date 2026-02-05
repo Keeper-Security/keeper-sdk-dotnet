@@ -268,6 +268,15 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `password-report` | | Generate comprehensive password security report |
 | `breachwatch` | | BreachWatch security monitoring commands |
 
+### Import/Export & Membership
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `import` | | Import records from JSON file |
+| `download-membership` | | Export shared folder/team membership to JSON |
+| `apply-membership` | | Load shared folder membership from JSON file |
+
+
 ### Other Commands
 
 | Command | Alias | Description |

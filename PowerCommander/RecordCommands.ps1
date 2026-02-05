@@ -43,23 +43,47 @@ New-Alias -Name kr -Value Get-KeeperRecord
 function Copy-KeeperToClipboard {
     <#
 	.Synopsis
-	Copy record password to clipboard or output
+	Copy record field or password to clipboard or output
 
 	.Parameter Record
-	Record UID or any object containing property Uid
+	Record UID, title, or any object containing property Uid
 
 	.Parameter Field
-	Record field to copy to clipboard. Record password is default.
+	Record field to copy. Supports: Login, Password, URL, Notes, or any custom field name. Default is Password.
 
 	.Parameter Output
-	Password output destination. Clipboard is default. Use "Stdout" for scripting
-#>
+	Output destination: Clipboard (default), Stdout, StdoutHidden, Variable
+
+	.Parameter Username
+	Match login name to help select the correct record when multiple records have the same title
+
+	.Parameter Login
+	Copy login field instead of password
+
+	.Parameter Totp
+	Copy TOTP code instead of password
+
+	.Parameter CopyUid
+	Copy record UID instead of password
+
+	.Parameter Name
+	Variable name when Output is set to Variable
+
+	.Parameter Revision
+	Use specific record revision from history (1 = previous, 2 = two versions ago, etc.). Default uses current version.
+    #>
 
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Record,
-        [string] [ValidateSet('Login' , 'Password', 'URL')] $Field = 'Password',
-        [string] [ValidateSet('Clipboard' , 'Stdout')] $Output = 'Clipboard'
+        [string] $Field = 'Password',
+        [string] [ValidateSet('Clipboard', 'Stdout', 'StdoutHidden', 'Variable')] $Output = 'Clipboard',
+        [string] $Username,
+        [Alias('l')][switch] $Login,
+        [Alias('t')][switch] $Totp,
+        [switch] $CopyUid,
+        [string] $Name,
+        [Alias('r')][int] $Revision = -1
     )
     Process {
         if ($Record -is [Array]) {
@@ -80,63 +104,166 @@ function Copy-KeeperToClipboard {
             $uid = $Record.Uid
         }
 
+        function Get-RecordField($r, $fieldName) {
+            if ($fieldName -ieq 'notes') {
+                if ($r -is [KeeperSecurity.Vault.PasswordRecord]) { return $r.Notes }
+                if ($r -is [KeeperSecurity.Vault.TypedRecord]) { return $r.Notes }
+                return ""
+            }
+
+            if ($r -is [KeeperSecurity.Vault.PasswordRecord]) {
+                switch -Regex ($fieldName) {
+                    '^login$' { return $r.Login }
+                    '^password$' { return $r.Password }
+                    '^url$' { return $r.Link }
+                    default {
+                        $cf = $r.Custom | Where-Object { $_.Name -ieq $fieldName } | Select-Object -First 1
+                        if ($cf) { return $cf.Value }
+                        return ""
+                    }
+                }
+            }
+            if ($r -is [KeeperSecurity.Vault.TypedRecord]) {
+                $type = switch -Regex ($fieldName) {
+                    '^login$' { 'login' }
+                    '^password$' { 'password' }
+                    '^url$' { 'url' }
+                    default { $fieldName }
+                }
+                $f = $r.Fields | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1
+                if (-not $f) { 
+                    $f = $r.Custom | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1 
+                }
+                if ($f) {
+                    $val = $f.ObjectValue
+                    if ($val -is [System.Collections.IEnumerable] -and $val -isnot [string]) {
+                        return ($val | ForEach-Object { $_.ToString() }) -join ", "
+                    }
+                    return $val
+                }
+            }
+            return ""
+        }
+
         $found = $false
         if ($uid) {
             [KeeperSecurity.Vault.KeeperRecord] $rec = $null
             if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-                $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
-                if ($entries.Uid) {
-                    $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
+                $allRecords = @($vault.KeeperRecords)
+                
+                $match = @($allRecords | Where-Object { $_.Title -ieq $uid })
+
+                if ($match.Count -eq 0) {
+                    $match = @($allRecords | Where-Object { $_.Title -like "*$uid*" })
+                }
+                
+                if ($Username -and $match.Count -gt 0) {
+                    $match = @($match | Where-Object { (Get-RecordField $_ 'Login') -ieq $Username })
+                }
+                
+                if ($match.Count -eq 1) {
+                    $rec = $match[0]
+                }
+                elseif ($match.Count -gt 1) {
+                    Write-Warning "Multiple records found for '$uid'. Use -Username or UID."
+                    Write-Host ("{0,-30} {1,-30} {2}" -f "Title", "Login", "UID") -ForegroundColor Cyan
+                    Write-Host ("{0,-30} {1,-30} {2}" -f "-----", "-----", "---") -ForegroundColor Gray
+                    foreach ($m in $match) {
+                        Write-Host ("{0,-30} {1,-30} {2}" -f $m.Title, (Get-RecordField $m 'Login'), $m.Uid)
+                    }
+                    return $null
                 }
             }
             if ($rec) {
                 $found = $true
-                $value = ''
-
-                if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) {
-                    switch ($Field) {
-                        'Login' { $value = $rec.Login }
-                        'Password' { $value = $rec.Password }
-                        'URL' { $value = $rec.Link }
+                $originalUid = $rec.Uid
+                
+                if ($Revision -gt 0) {
+                    try {
+                        $history = $vault.GetRecordHistory($rec.Uid).GetAwaiter().GetResult()
+                        if ($null -eq $history -or $Revision -ge $history.Length) {
+                            Write-Error "Invalid revision: $Revision (record has $($history.Length - 1) historical revisions, valid range: 1-$($history.Length - 1))"
+                            return
+                        }
+                        $rec = $history[$Revision].KeeperRecord
+                    } catch {
+                        Write-Error "Failed to get record history: $_"
+                        return
                     }
                 }
-                elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) {
-                    $fieldType = ''
-                    switch ($Field) {
-                        'Login' { $fieldType = 'login' }
-                        'Password' { $fieldType = 'password' }
-                        'URL' { $fieldType = 'url' }
-                    }
-                    if ($fieldType) {
-                        $recordField = $rec.Fields | Where-Object FieldName -eq $fieldType | Select-Object -First 1
-                        if (-not $recordField) {
-                            $recordField = $rec.Custom | Where-Object FieldName -eq $fieldType | Select-Object -First 1
-                        }
-                        if ($recordField) {
-                            $value = $recordField.ObjectValue
-                        }
-                    }
+                
+                $itemName = $Field
+                $value = $null
+                
+                if ($CopyUid) {
+                    $itemName = "UID"
+                    $value = $originalUid
                 }
-
-                if ($value) {
-                    if ($Output -eq 'Stdout') {
-                        $value
-                    }
-                    else {
-                        if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
-                            powershell -sta "Set-Clipboard -Value '$value'"
+                elseif ($Login) {
+                    $itemName = "Login"
+                    $value = Get-RecordField $rec 'Login'
+                }
+                elseif ($Totp) {
+                    $itemName = "TOTP"
+                    $totpUrl = if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) { $rec.Totp }
+                               elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) { Get-RecordField $rec 'oneTimeCode' }
+                               else { $null }
+                    if ($totpUrl) {
+                        try {
+                            $totpResult = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totpUrl)
+                            if ($totpResult) { $value = $totpResult.Item1 }
+                        } catch {
+                            Write-Warning "Failed to generate TOTP code: $_"
                         }
-                        else {
-                            Set-Clipboard -Value $value
-                        }
-                        Write-Output "Copied to clipboard: $Field for $($rec.Title)"
-                    }
-                    if ($Field -eq 'Password') {
-                        $vault.AuditLogRecordCopyPassword($rec.Uid)
                     }
                 }
                 else {
-                    Write-Output "Record $($rec.Title) has no $Field"
+                    $value = Get-RecordField $rec $Field
+                }
+
+                if (-not [string]::IsNullOrWhiteSpace($value)) {
+                    switch ($Output) {
+                        'Stdout' {
+                            $value
+                        }
+                        'StdoutHidden' {
+                            $origFg = [Console]::ForegroundColor
+                            $origBg = [Console]::BackgroundColor
+                            try {
+                                [Console]::ForegroundColor = [ConsoleColor]::Red
+                                [Console]::BackgroundColor = [ConsoleColor]::Red
+                                Write-Host $value
+                            } finally {
+                                [Console]::ForegroundColor = $origFg
+                                [Console]::BackgroundColor = $origBg
+                            }
+                        }
+                        'Variable' {
+                            if (-not $Name) {
+                                Write-Error "-Name parameter is required when Output is set to 'Variable'"
+                                return
+                            }
+                            [Environment]::SetEnvironmentVariable($Name, $value)
+                            Write-Output "$itemName is set to variable `"$Name`""
+                        }
+                        default {
+                            if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
+                                $escapedValue = $value -replace "'", "''"
+                                powershell -sta -Command "Set-Clipboard -Value '$escapedValue'"
+                            }
+                            else {
+                                Set-Clipboard -Value $value
+                            }
+                            Write-Output "Copied to clipboard: $itemName for $($rec.Title)"
+                        }
+                    }
+                    
+                    if ($itemName -eq 'Password') {
+                        try { $vault.AuditLogRecordCopyPassword($originalUid) } catch { }
+                    }
+                }
+                else {
+                    Write-Output "Record $($rec.Title) has no $itemName"
                 }
             }
         }
@@ -146,6 +273,7 @@ function Copy-KeeperToClipboard {
     }
 }
 New-Alias -Name kcc -Value Copy-KeeperToClipboard
+New-Alias -Name find-password -Value Copy-KeeperToClipboard
 
 function Get-KeeperPasswordVisible {
     <#
