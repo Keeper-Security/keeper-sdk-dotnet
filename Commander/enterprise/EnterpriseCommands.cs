@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1299,6 +1299,112 @@ namespace Commander
             }
             var role = roles[0];
 
+            if (string.CompareOrdinal(arguments.Command, "copy") == 0)
+            {
+                if (string.IsNullOrWhiteSpace(arguments.Node))
+                {
+                    Console.WriteLine("copy requires --node (target node name or ID).");
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(arguments.NewRoleName))
+                {
+                    Console.WriteLine("copy requires --new-role-name (name for the new role).");
+                    return;
+                }
+                long nodeId = 0;
+                if (long.TryParse(arguments.Node, out nodeId))
+                {
+                    if (!enterpriseData.TryGetNode(nodeId, out _))
+                        nodeId = 0;
+                }
+                if (nodeId == 0)
+                {
+                    var nodes = enterpriseData.Nodes
+                        .Where(x => string.Equals(x.DisplayName, arguments.Node, StringComparison.InvariantCultureIgnoreCase))
+                        .ToArray();
+                    if (nodes.Length == 1)
+                        nodeId = nodes[0].Id;
+                    else if (nodes.Length == 0)
+                    {
+                        Console.WriteLine($"Node \"{arguments.Node}\" not found.");
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Multiple nodes named \"{arguments.Node}\". Use Node ID.");
+                        return;
+                    }
+                }
+                try
+                {
+                    var newRole = await roleData.CreateRole(arguments.NewRoleName.Trim(), nodeId, role.NewUserInherit);
+                    if (newRole == null)
+                    {
+                        Console.WriteLine("Failed to create role.");
+                        return;
+                    }
+                    if (newRole.VisibleBelow != role.VisibleBelow)
+                        newRole = await roleData.UpdateRole(newRole, visibleBelow: role.VisibleBelow);
+                    var sourceEnforcements = roleData.GetEnforcementsForRole(role.Id).ToArray();
+                    if (sourceEnforcements.Length > 0)
+                    {
+                        var enforcementDict = new Dictionary<RoleEnforcementPolicies, string>();
+                        foreach (var re in sourceEnforcements)
+                        {
+                            var enforcementTypeStr = re.EnforcementType;
+                            if (string.IsNullOrEmpty(enforcementTypeStr)) continue;
+                            var normalized = enforcementTypeStr.Replace("_", "");
+                            if (Enum.TryParse(normalized, true, out RoleEnforcementPolicies policy))
+                                enforcementDict[policy] = re.Value ?? "";
+                        }
+                        if (enforcementDict.Count > 0)
+                        {
+                            await roleData.RoleEnforcementAddBatch(newRole, enforcementDict);
+                        }
+                    }
+                    var sourceUserIds = roleData.GetUsersForRole(role.Id).ToArray();
+                    var usersCopied = 0;
+                    foreach (var userId in sourceUserIds)
+                    {
+                        if (!enterpriseData.TryGetUserById(userId, out var user)) continue;
+                        try
+                        {
+                            await roleData.AddUserToRole(newRole, user);
+                            usersCopied++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Could not add user \"{user.Email}\" to new role: {ex.Message}");
+                        }
+                    }
+                    var sourceTeamUids = roleData.GetTeamsForRole(role.Id).ToArray();
+                    var teamsCopied = 0;
+                    foreach (var teamUid in sourceTeamUids)
+                    {
+                        if (!enterpriseData.TryGetTeam(teamUid, out var team)) continue;
+                        try
+                        {
+                            await roleData.AddTeamToRole(newRole, team);
+                            teamsCopied++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Could not add team \"{team.Name}\" to new role: {ex.Message}");
+                        }
+                    }
+                    var msg = $"Role \"{arguments.NewRoleName}\" created with enforcements from \"{role.DisplayName}\"";
+                    if (usersCopied > 0 || teamsCopied > 0)
+                        msg += $" ({usersCopied} user(s), {teamsCopied} team(s) copied)";
+                    msg += ".";
+                    Console.WriteLine(msg);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Copy role failed: {ex.Message}");
+                }
+                return;
+            }
+
             if (string.CompareOrdinal(arguments.Command, "view") == 0)
             {
                 var tab = new Tabulate(2)
@@ -1697,7 +1803,7 @@ namespace Commander
                 return;
             }
 
-            Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\"");
+            Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"update\", \"copy\", \"membership\", \"add-members\", \"remove-members\"");
         }
 
         public static async Task EnterpriseTeamCommand(this IEnterpriseContext context, EnterpriseTeamOptions arguments)
@@ -2916,13 +3022,13 @@ namespace Commander
         [Option("enforcements", Required = false, Separator = ';', HelpText = "Semicolon or comma-separated list of enforcements: KEY=value; KEY2=value2 or KEY=value,KEY2=value2 (values can contain commas). For remove operations, use KEY only (no value). Possible parameters are provided at https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#changing-role-enforcements-and-privileges")]
         public IEnumerable<string> Enforcement { get; set; }
 
-        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"add-members\", \"remove-members\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\", \"add-enforcements\", \"update-enforcements\", \"remove-enforcements\"")]
+        [Value(0, Required = false, HelpText = "command: \"list\", \"view\", \"add\", \"delete\", \"update\", \"copy\", \"membership\", \"add-members\", \"remove-members\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\", \"add-enforcements\", \"update-enforcements\", \"remove-enforcements\"")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "Role Name or ID")]
+        [Value(1, Required = false, HelpText = "Role Name or ID (source role for \"copy\")")]
         public string Role { get; set; }
 
-        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\", \"add-users-to-admin-role\" : list of User Emails, Team Names, User IDs, or Team UIDs. ")]
+        [Value(2, Required = false, HelpText = "Command parameters:\n\"add-members\", \"remove-members\", \"add-users-to-admin-role\": list of User Emails, Team Names, User IDs, or Team UIDs.\n\"copy\": use --node and --new-role-name.\n\"membership\": additional Role Name(s) or ID(s).")]
         public IEnumerable<string> Parameters { get; set; }
     }
 
