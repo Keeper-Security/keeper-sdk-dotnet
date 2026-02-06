@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,7 +57,7 @@ namespace Commander
                 {
                     Order = 61,
                     Description = "Manage Enterprise Nodes",
-                    Action = async options => { await context.EnterpriseData.EnterpriseNodeCommand(options); },
+                    Action = async options => { await context.EnterpriseNodeCommand(options); },
                 });
 
             cli.Commands.Add("enterprise-user",
@@ -201,8 +201,9 @@ namespace Commander
             }
         }
 
-        public static async Task EnterpriseNodeCommand(this EnterpriseData enterpriseData, EnterpriseNodeOptions arguments)
+        public static async Task EnterpriseNodeCommand(this IEnterpriseContext context, EnterpriseNodeOptions arguments)
         {
+            var enterpriseData = context.EnterpriseData;
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "tree";
 
             if (arguments.Force)
@@ -211,6 +212,29 @@ namespace Commander
             }
 
             if (enterpriseData.RootNode == null) throw new Exception("Enterprise data: cannot get root node");
+
+            if (string.Equals(arguments.Command, "wipe-out", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(arguments.Node))
+                {
+                    Console.WriteLine("wipe-out requires node name or ID.");
+                    return;
+                }
+                var wipeNode = enterpriseData.ResolveNodeName(arguments.Node);
+                if (wipeNode.Id == enterpriseData.RootNode.Id)
+                {
+                    Console.WriteLine("Cannot wipe out root node.");
+                    return;
+                }
+                Console.WriteLine("This action cannot be undone.");
+                Console.Write("Do you want to proceed with deletion? (Yes/No) : ");
+                var answer = (await Program.GetInputManager().ReadLine())?.Trim() ?? "";
+                if (string.Compare(answer, "y", StringComparison.InvariantCultureIgnoreCase) == 0) answer = "yes";
+                if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0)
+                    return;
+                await EnterpriseNodeWipeOut(context, wipeNode);
+                return;
+            }
 
             EnterpriseNode parentNode = null;
             if (!string.IsNullOrEmpty(arguments.Parent))
@@ -340,13 +364,146 @@ namespace Commander
                         break;
 
                     default:
-                        Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
+                        Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\", \"wipe-out\", \"set-custom-invitation\", \"get-custom-invitation\", \"upload-custom-logo\"");
                         break;
                 }
             }
             await enterpriseData.Enterprise.Load();
         }
 
+        private static async Task EnterpriseNodeWipeOut(IEnterpriseContext context, EnterpriseNode node)
+        {
+            var enterpriseData = context.EnterpriseData;
+            var roleData = context.RoleManagement;
+            var subNodes = new List<long> { node.Id };
+            var pos = 0;
+            while (pos < subNodes.Count)
+            {
+                var childIds = enterpriseData.Nodes
+                    .Where(n => n.ParentNodeId == subNodes[pos])
+                    .Select(n => n.Id)
+                    .ToList();
+                subNodes.AddRange(childIds);
+                pos++;
+            }
+            var nodeSet = new HashSet<long>(subNodes);
+            var roles = roleData.Roles.Where(r => nodeSet.Contains(r.ParentNodeId)).ToList();
+            var userIds = new HashSet<long>(enterpriseData.Users
+                .Where(u => nodeSet.Contains(u.ParentNodeId))
+                .Select(u => u.Id));
+            var roleIds = new HashSet<long>(roles.Select(r => r.Id));
+
+            foreach (var r in roles)
+            {
+                foreach (var userId in roleData.GetUsersForRole(r.Id).ToList())
+                {
+                    if (!enterpriseData.TryGetUserById(userId, out var u)) continue;
+                    try
+                    {
+                        await roleData.RemoveUserFromRole(r, u);
+                        await enterpriseData.Enterprise.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: could not remove user {u.Email} from role {r.DisplayName}: {ex.Message}");
+                    }
+                }
+            }
+
+            foreach (var link in roleData.GetManagedNodes().ToList())
+            {
+                if (!nodeSet.Contains(link.ManagedNodeId) && !roleIds.Contains(link.RoleId)) continue;
+                if (!roleData.TryGetRole(link.RoleId, out var mRole) || !enterpriseData.TryGetNode(link.ManagedNodeId, out var mNode))
+                    continue;
+                try
+                {
+                    await roleData.RoleManagedNodeRemove(mRole, mNode);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not remove managed node {link.ManagedNodeId} from role {mRole.DisplayName}: {ex.Message}");
+                }
+            }
+
+            foreach (var r in roles)
+            {
+                try
+                {
+                    await roleData.DeleteRole(r);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not delete role {r.DisplayName}: {ex.Message}");
+                }
+            }
+
+            foreach (var userId in userIds)
+            {
+                if (!enterpriseData.TryGetUserById(userId, out var user)) continue;
+                try
+                {
+                    await enterpriseData.DeleteUser(user);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not delete user {user.Email}: {ex.Message}");
+                }
+            }
+
+            var queuedTeamsInNode = context.QueuedTeamManagement.QueuedTeams
+                .Where(qt => nodeSet.Contains(qt.ParentNodeId))
+                .Select(qt => qt.Uid)
+                .ToList();
+            foreach (var uid in queuedTeamsInNode)
+            {
+                try
+                {
+                    await enterpriseData.DeleteTeam(uid);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not delete queued team {uid}: {ex.Message}");
+                }
+            }
+
+            var teamsInNode = enterpriseData.Teams
+                .Where(t => nodeSet.Contains(t.ParentNodeId))
+                .Select(t => t.Uid)
+                .ToList();
+            foreach (var uid in teamsInNode)
+            {
+                try
+                {
+                    await enterpriseData.DeleteTeam(uid);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not delete team {uid}: {ex.Message}");
+                }
+            }
+
+            subNodes.RemoveAt(0);
+            subNodes.Reverse();
+            foreach (var nodeId in subNodes)
+            {
+                try
+                {
+                    await enterpriseData.DeleteNode(nodeId);
+                    await enterpriseData.Enterprise.Load();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: could not delete node {nodeId}: {ex.Message}");
+                }
+            }
+
+            Console.WriteLine($"Node \"{node.DisplayName}\" and its content have been wiped out.");
+        }
         public static async Task EnterpriseUserCommand(this IEnterpriseContext context, EnterpriseUserOptions arguments)
         {
             if (string.IsNullOrEmpty(arguments.Command))
@@ -435,7 +592,8 @@ namespace Commander
                     Console.WriteLine($"User \"{arguments.User}\" not found");
                     return;
                 }
-                try {
+                try
+                {
                     await context.EnterpriseData.ResendEnterpriseInvite(user);
                     Console.WriteLine($"Invite for {arguments.User} resent.");
                     return;
@@ -455,7 +613,8 @@ namespace Commander
                     context.EnterpriseData.TryGetUserById(userId, out singleUser);
                 }
             }
-            if (singleUser == null) {
+            if (singleUser == null)
+            {
                 context.EnterpriseData.TryGetUserByEmail(arguments.User, out singleUser);
             }
             if (singleUser == null)
@@ -498,7 +657,8 @@ namespace Commander
 
                 tab.Dump();
             }
-            else if (arguments.Command == "alias-add" || arguments.Command == "alias-remove") {
+            else if (arguments.Command == "alias-add" || arguments.Command == "alias-remove")
+            {
                 if (string.IsNullOrEmpty(arguments.Alias))
                 {
                     Console.WriteLine("User alias parameter is mandatory.");
@@ -509,13 +669,15 @@ namespace Commander
                     var aliasExists = context.UserAliasData.GetAliasesForUser(singleUser.Id).Where(x => x == arguments.Alias).Any();
                     if (aliasExists)
                     {
-                        var rq = new EnterpriseUserAliasRequest { 
+                        var rq = new EnterpriseUserAliasRequest
+                        {
                             EnterpriseUserId = singleUser.Id,
                             Alias = arguments.Alias
                         };
                         await context.Enterprise.Auth.ExecuteAuthRest("enterprise/enterprise_user_set_primary_alias", rq);
                     }
-                    else {
+                    else
+                    {
                         var rq = new EnterpriseUserAddAliasRequestV2();
                         rq.EnterpriseUserAddAliasRequest.Add(new EnterpriseUserAddAliasRequest
                         {
@@ -614,7 +776,8 @@ namespace Commander
             }
             else if (arguments.Command == "delete")
             {
-                if (!arguments.Confirm) {
+                if (!arguments.Confirm)
+                {
                     Console.WriteLine("Deleting a user will also delete any records owned and shared by this user.\n" +
                         "Before you delete this user, we strongly recommend you lock their account\n" +
                         "and transfer any important records to other user.\nThis action cannot be undone.\n");
@@ -632,7 +795,7 @@ namespace Commander
 
                 Console.WriteLine($"User {singleUser.Email} deleted");
             }
-            else if(arguments.Command == "set-master-password-expire")
+            else if (arguments.Command == "set-master-password-expire")
             {
                 var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
                 if (user == null)
@@ -647,7 +810,8 @@ namespace Commander
                     return;
                 }
 
-                try{
+                try
+                {
                     await context.EnterpriseData.SetMasterPasswordExpire(user.Email);
                     Console.WriteLine($"Master password expiration set for {arguments.User}");
                     return;
@@ -657,15 +821,15 @@ namespace Commander
                     Console.WriteLine($"Failed set master password expiration: {ex.Message}");
                 }
             }
-            else if(arguments.Command == "team-user-update")
+            else if (arguments.Command == "team-user-update")
             {
-                if(string.IsNullOrEmpty(arguments.Team))
+                if (string.IsNullOrEmpty(arguments.Team))
                 {
                     Console.WriteLine("Team name parameter is mandatory.");
                     return;
                 }
 
-                if(string.IsNullOrEmpty(arguments.User))
+                if (string.IsNullOrEmpty(arguments.User))
                 {
                     Console.WriteLine("User email parameter is mandatory.");
                     return;
@@ -675,26 +839,26 @@ namespace Commander
                     .Where(x => string.Equals(x.Name, arguments.Team, StringComparison.InvariantCultureIgnoreCase))
                     .ToArray();
 
-                if(teams.Length == 0)
+                if (teams.Length == 0)
                 {
                     Console.WriteLine($"Team \"{arguments.Team}\" not found");
                     return;
                 }
 
-                if(teams.Length > 1)
+                if (teams.Length > 1)
                 {
                     Console.WriteLine($"Multiple teams found with name \"{arguments.Team}\". Please use team UID.");
                     return;
                 }
 
                 var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
-                if(user == null)
+                if (user == null)
                 {
                     Console.WriteLine($"User \"{arguments.User}\" not found");
                     return;
                 }
 
-                if(user.UserStatus != UserStatus.Active)
+                if (user.UserStatus != UserStatus.Active)
                 {
                     Console.WriteLine($"User {arguments.User} is not active");
                     return;
@@ -711,34 +875,35 @@ namespace Commander
                 }
             }
 
-            else if(arguments.Command == "user-update")
+            else if (arguments.Command == "user-update")
             {
-                if(string.IsNullOrEmpty(arguments.User))
+                if (string.IsNullOrEmpty(arguments.User))
                 {
                     Console.WriteLine("User email parameter is mandatory.");
                     return;
                 }
-                
+
                 var user = context.EnterpriseData.Users.FirstOrDefault(x => string.Equals(x.Email, arguments.User, StringComparison.InvariantCultureIgnoreCase));
-                if(user == null)
+                if (user == null)
                 {
                     Console.WriteLine($"User \"{arguments.User}\" not found");
                     return;
                 }
 
-                if(user.UserStatus != UserStatus.Active)
+                if (user.UserStatus != UserStatus.Active)
                 {
                     Console.WriteLine($"User {arguments.User} is not active");
                     return;
                 }
 
                 var node = context.EnterpriseData.Nodes.FirstOrDefault(x => string.Equals(x.DisplayName, arguments.Node, StringComparison.InvariantCultureIgnoreCase));
-                if(node == null)
+                if (node == null)
                 {
-                    Console.WriteLine($"Node \"{arguments.Node}\" not found so we are taking users parent node"); 
+                    Console.WriteLine($"Node \"{arguments.Node}\" not found so we are taking users parent node");
                 }
 
-                try{
+                try
+                {
                     await context.EnterpriseData.EnterpriseUserUpdate(user, node?.Id, arguments.FullName, arguments.JobTitle, arguments.InviteeLocale);
                     Console.WriteLine($"User {arguments.User} updated");
                 }
@@ -2798,10 +2963,10 @@ namespace Commander
 
     class EnterpriseNodeOptions : EnterpriseGenericOptions
     {
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]\" <Node name or ID>")]
+        [Value(0, Required = false, HelpText = "enterprise-node command: \"--command=[tree, add, update, delete, wipe-out, set-custom-invitation, get-custom-invitation, upload-custom-logo]\" <Node name or ID>")]
         public string Node { get; set; }
 
-        [Option("command", Required = false, HelpText = "[tree, add, update, delete, set-custom-invitation, get-custom-invitation, upload-custom-logo]")]
+        [Option("command", Required = false, HelpText = "[tree, add, update, delete, wipe-out, set-custom-invitation, get-custom-invitation, upload-custom-logo]")]
         public string Command { get; set; }
 
         [Option("parent", Required = false, HelpText = "parent node name or ID")]

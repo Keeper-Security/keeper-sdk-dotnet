@@ -100,6 +100,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | New-KeeperEnterpriseNode                                | kena        | Create Node
 | Edit-KeeperEnterpriseNode                               | kenu        | Update Node (rename, move, or enable node isolation)
 | Remove-KeeperEnterpriseNode                             | kend        | Delete Enterprise Node
+| Invoke-KeeperEnterpriseNodeWipeOut                      | kenwipe     | Wipe out node and all its content (users, roles, teams, subnodes)
 | Set-KeeperEnterpriseNodeCustomInvitation                |             | Set custom invitation email template for an Enterprise Node
 | Get-KeeperEnterpriseNodeCustomInvitation                |             | Get custom invitation email template for an Enterprise Node
 | Set-KeeperEnterpriseNodeCustomLogo                      |             | Upload custom logo for an Enterprise Node
@@ -400,22 +401,35 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > Add-KeeperEnterpriseRoleEnforcement -Role "AdminRole" -Enforcement "TWO_FACTOR_DURATION_WEB=3600"
     ```
 
-25. Set custom invitation template for enterprise node
+25. Wipe out enterprise node (remove all users, roles, teams, subnodes under the node)
+    ```
+    PS > Invoke-KeeperEnterpriseNodeWipeOut -Node "Sales"
+    ```
+    or using alias (prompts for confirmation)
+    ```
+    PS > kenwipe -Node "Sales"
+    ```
+    Skip confirmation
+    ```
+    PS > Invoke-KeeperEnterpriseNodeWipeOut -Node "Sales" -Force
+    ```
+
+26. Set custom invitation template for enterprise node
     ```
     PS > Set-KeeperEnterpriseNodeCustomInvitation -Node "Sales" -JsonFilePath "C:\invitation.json"
     ```
 
-26. Get custom invitation template for enterprise node
+27. Get custom invitation template for enterprise node
     ```
     PS > Get-KeeperEnterpriseNodeCustomInvitation -Node "Sales"
     ```
 
-27. Set custom logo for enterprise node
+28. Set custom logo for enterprise node
     ```
     PS > Set-KeeperEnterpriseNodeCustomLogo -Node "Sales" -LogoFilePath "C:\logo.png"
     ```
 
-28. Permanently delete all records in trash
+29. Permanently delete all records in trash
     ```
     PS > Clear-KeeperTrash
     ```

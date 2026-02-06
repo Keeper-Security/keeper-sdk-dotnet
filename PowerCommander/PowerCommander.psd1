@@ -82,7 +82,7 @@
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
         'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
-        'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 'Remove-KeeperEnterpriseNode',
+        'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut',
         'Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
         'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
@@ -115,7 +115,7 @@
 
     # Aliases to export from this module
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder',
-        'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'msp-license', 
+        'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 

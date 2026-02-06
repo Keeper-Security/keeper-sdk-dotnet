@@ -65,7 +65,8 @@ Export-ModuleMember -Function New-KeeperEnterpriseTeam, Get-KeeperEnterpriseTeam
 Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
-Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo
+Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo,
+Invoke-KeeperEnterpriseNodeWipeOut
 
 
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
