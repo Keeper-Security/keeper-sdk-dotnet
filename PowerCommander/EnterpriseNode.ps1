@@ -425,7 +425,8 @@ function Invoke-KeeperEnterpriseNodeWipeOut {
     $roles = @($roleData.Roles | Where-Object { $nodeSet.Contains($_.ParentNodeId) })
     $userIds = @($enterpriseData.Users | Where-Object { $nodeSet.Contains($_.ParentNodeId) } | ForEach-Object { $_.Id })
     $roleIdArray = @($roles | ForEach-Object { $_.Id })
-    $roleIds = [System.Collections.Generic.HashSet[long]]::new($roleIdArray)
+    $roleIds = [System.Collections.Generic.HashSet[long]]::new()
+    foreach ($id in $roleIdArray) { [void]$roleIds.Add($id) }
 
     foreach ($r in $roles) {
         foreach ($userId in @($roleData.GetUsersForRole($r.Id))) {
