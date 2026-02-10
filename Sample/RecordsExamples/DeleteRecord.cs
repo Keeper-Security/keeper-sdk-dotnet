@@ -8,9 +8,6 @@ using KeeperSecurity.Configuration;
 using KeeperSecurity.Vault;
 using System.Collections.Generic;
 
-
-
-
 namespace Sample.RecordsExamples
 {
     class DeleteRecordExample
@@ -18,6 +15,12 @@ namespace Sample.RecordsExamples
         public static async Task DeleteRecord(string recordUid)
         {
             var vault = await AuthenticateAndGetVault.GetVault();
+            if (vault == null)
+            {
+                Console.WriteLine("Vault reference is null.");
+                return;
+            }
+
             await DeleteRecordSimple(
                 vault,
                 recordUid
@@ -46,19 +49,25 @@ namespace Sample.RecordsExamples
                 return;
             }
 
-            // Find folder (including root folder)
             var folders = Enumerable.Repeat(vault.RootFolder, 1)
                 .Concat(vault.Folders)
-                .Where(f => f.Records.Contains(recordUid))
+                .Where(f => f.Records != null && f.Records.Contains(recordUid))
                 .ToArray();
 
             if (folders.Length == 0)
             {
-                // Fallback to root folder if not found anywhere
-                folders = new[] { vault.RootFolder };
+                Console.WriteLine($"Record '{recordUid}' not found in any folder. Using empty folder UID.");
+                await vault.DeleteRecords(new[]
+                {
+                    new RecordPath { FolderUid = "", RecordUid = recordUid }
+                });
+                Console.WriteLine($"Record '{recordUid}' deleted successfully.");
+                return;
             }
 
-            var folder = folders[0];
+            var folder = folders.FirstOrDefault(f => string.IsNullOrEmpty(f.FolderUid))
+                ?? folders.FirstOrDefault(f => f.FolderType == FolderType.UserFolder)
+                ?? folders[0];
 
 
             await vault.DeleteRecords(new[]

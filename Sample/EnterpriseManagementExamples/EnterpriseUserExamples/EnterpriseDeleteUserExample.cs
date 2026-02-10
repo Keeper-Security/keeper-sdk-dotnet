@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Authentication;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
@@ -10,6 +11,21 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
         public static async Task DeleteUser(string email)
         {
             var vault = await AuthenticateAndGetVault.GetVault();
+
+            if (vault == null)
+            {
+                Console.WriteLine("Authentication failed. Vault is null.");
+                return;
+            }
+            if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+            {
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                Console.WriteLine("Email is required.");
+                return;
+            }
 
             var enterpriseData = new EnterpriseData();
             var enterpriseLoader = new EnterpriseLoader(

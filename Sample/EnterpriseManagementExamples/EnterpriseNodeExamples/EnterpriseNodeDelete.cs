@@ -3,16 +3,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class EnterpriseNodeDelete
     {
-        public static async Task DeleteNode(string nodeIdentifier)
+        public static async Task DeleteNode(string nodeNameOrId)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(nodeNameOrId))
+                {
+                    Console.WriteLine("Node name or ID is required.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
@@ -22,7 +37,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 
                 EnterpriseNode node = null;
 
-                if (long.TryParse(nodeIdentifier, out var nodeId))
+                if (long.TryParse(nodeNameOrId, out var nodeId))
                 {
                     enterpriseData.TryGetNode(nodeId, out node);
                 }
@@ -30,7 +45,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                 if (node == null)
                 {
                     var nodes = enterpriseData.Nodes
-                        .Where(x => string.Equals(x.DisplayName, nodeIdentifier, StringComparison.InvariantCultureIgnoreCase))
+                        .Where(x => string.Equals(x.DisplayName, nodeNameOrId, StringComparison.InvariantCultureIgnoreCase))
                         .ToArray();
 
                     if (nodes.Length == 1)
@@ -39,19 +54,18 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                     }
                     else if (nodes.Length > 1)
                     {
-                        Console.WriteLine($"Multiple nodes found with name '{nodeIdentifier}'. Please use node ID instead:");
+                        Console.WriteLine($"Multiple nodes found with name '{nodeNameOrId}'. Please use node ID instead:");
                         foreach (var n in nodes)
                         {
                             Console.WriteLine($"  - {n.DisplayName} (ID: {n.Id})");
                         }
                         return;
                     }
-                }
-
-                if (node == null)
-                {
-                    Console.WriteLine($"Node '{nodeIdentifier}' not found.");
-                    return;
+                    else
+                    {
+                        Console.WriteLine($"No node found with name '{nodeNameOrId}'.");
+                        return;
+                    }
                 }
 
                 await enterpriseData.DeleteNode(node.Id);

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
@@ -13,14 +14,27 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
 
-                // Load enterprise data
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    Console.WriteLine("Email is required.");
+                    return;
+                }
+
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
                     vault.Auth,
                     new EnterpriseDataPlugin[] { enterpriseData });
                 await enterpriseLoader.Load();
 
-                // Get user by email using TryGetUserByEmail
                 if (!enterpriseData.TryGetUserByEmail(email, out var user))
                 {
                     Console.WriteLine($"User '{email}' not found in enterprise.");
@@ -35,7 +49,6 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                 Console.WriteLine($"Node ID:      {user.ParentNodeId}");
                 Console.WriteLine($"Locked:       {(user.UserStatus == UserStatus.Locked ? "Yes" : "No")}");
 
-                // Get teams for user using GetTeamsForUser
                 var teamUids = enterpriseData.GetTeamsForUser(user.Id);
 
                 if (teamUids != null && teamUids.Length > 0)
@@ -43,10 +56,10 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                     Console.WriteLine($"\nTeams ({teamUids.Length}):");
                     foreach (var teamUid in teamUids)
                     {
-                        // Get team details using TryGetTeam
                         if (enterpriseData.TryGetTeam(teamUid, out var team))
                         {
-                            Console.WriteLine($"  - {team.Name} (UID: {team.Uid})");
+                            Console.WriteLine($"  Team Name: {team.Name}");
+                            Console.WriteLine($"  Team UID: {team.Uid}");
                             Console.WriteLine($"      Restrict Edit:  {team.RestrictEdit}");
                             Console.WriteLine($"      Restrict Share: {team.RestrictSharing}");
                             Console.WriteLine($"      Restrict View:  {team.RestrictView}");

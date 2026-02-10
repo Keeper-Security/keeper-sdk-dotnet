@@ -12,6 +12,11 @@ namespace Sample.SecretManagerExamples
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
 
                 await vault.DeleteSecretManagerClient(
                         applicationId,

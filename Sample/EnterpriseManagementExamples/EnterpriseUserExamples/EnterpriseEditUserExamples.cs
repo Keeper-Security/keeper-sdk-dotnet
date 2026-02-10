@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
+using Sample.Helpers;
 
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
-    // Inherits from QueuedTeamData (same approach as QueuedTeamDataManagement)
     public class EnterpriseEditUserExamples : QueuedTeamData
     {
         private EnterpriseData _enterpriseData;
@@ -18,11 +18,21 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
 
                 _enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
                     vault.Auth,
-                    new EnterpriseDataPlugin[] { _enterpriseData, this });  // "this" registers ourselves as plugin
+                    new EnterpriseDataPlugin[] { _enterpriseData, this });
                 await enterpriseLoader.Load();
 
                 int successCount = 0;
@@ -39,7 +49,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                     {
                         var team = _enterpriseData.Teams
                             .FirstOrDefault(x => string.CompareOrdinal(x.Uid, teamUid) == 0);
-                        var queuedTeam = QueuedTeams  // Now we can use QueuedTeams directly (inherited)
+                        var queuedTeam = QueuedTeams
                             .FirstOrDefault(x => string.CompareOrdinal(x.Uid, teamUid) == 0);
 
                         if (team == null && queuedTeam == null)
@@ -77,7 +87,6 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
             }
         }
 
-        // Now uses Enterprise.Auth (same as QueuedTeamDataManagement)
         private async Task QueueUserToTeam(long enterpriseUserId, string teamUid)
         {
             var rq = new TeamQueueUserCommand
@@ -86,8 +95,8 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                 EnterpriseUserId = enterpriseUserId
             };
 
-            await Enterprise.Auth.ExecuteAuthCommand(rq);  // Using Enterprise.Auth now!
-            await Enterprise.Load();                        // Using Enterprise.Load now!
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();                   
         }
 
 
@@ -96,6 +105,16 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
 
                 _enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(

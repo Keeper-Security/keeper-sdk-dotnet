@@ -3,16 +3,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class EnterpriseNodeView
     {
-        public static async Task ViewNode(string nodeIdentifier)
+        public static async Task ViewNode(string nodeNameOrId)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(nodeNameOrId))
+                {
+                    Console.WriteLine("Node name or ID is required.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
@@ -21,18 +36,14 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                 await enterpriseLoader.Load();
 
                 EnterpriseNode node = null;
-
-                // Try to parse as node ID first
-                if (long.TryParse(nodeIdentifier, out var nodeId))
+                if (long.TryParse(nodeNameOrId, out var nodeId))
                 {
                     enterpriseData.TryGetNode(nodeId, out node);
                 }
-
-                // If not found by ID, search by name
                 if (node == null)
                 {
                     var nodes = enterpriseData.Nodes
-                        .Where(x => string.Equals(x.DisplayName, nodeIdentifier, StringComparison.InvariantCultureIgnoreCase))
+                        .Where(x => string.Equals(x.DisplayName, nodeNameOrId, StringComparison.InvariantCultureIgnoreCase))
                         .ToArray();
 
                     if (nodes.Length == 1)
@@ -41,19 +52,18 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                     }
                     else if (nodes.Length > 1)
                     {
-                        Console.WriteLine($"Multiple nodes found with name '{nodeIdentifier}'. Please use node ID instead:");
+                        Console.WriteLine($"Multiple nodes found with name '{nodeNameOrId}'. Please use node ID instead:");
                         foreach (var n in nodes)
                         {
                             Console.WriteLine($"  - {n.DisplayName} (ID: {n.Id})");
                         }
                         return;
                     }
-                }
-
-                if (node == null)
-                {
-                    Console.WriteLine($"Node '{nodeIdentifier}' not found in enterprise.");
-                    return;
+                    else
+                    {
+                        Console.WriteLine($"Node '{nodeNameOrId}' not found.");
+                        return;
+                    }
                 }
 
                 Console.WriteLine("======== Enterprise Node Details ========");
@@ -82,7 +92,6 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                     Console.WriteLine("\nSubnodes: None");
                 }
 
-                // Show users in this node
                 var usersInNode = enterpriseData.Users
                     .Where(u => u.ParentNodeId == node.Id)
                     .ToArray();

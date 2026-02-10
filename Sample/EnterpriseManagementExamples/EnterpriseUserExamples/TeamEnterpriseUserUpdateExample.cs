@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
@@ -12,6 +13,31 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(teamUid))
+                {
+                    Console.WriteLine("Team UID is required.");
+                        return;
+                }
+                if (string.IsNullOrWhiteSpace(userEmail))
+                {
+                    Console.WriteLine("User email is required.");
+                    return;
+                }
+                if (userType < 0 || userType > 2)
+                {
+                    Console.WriteLine("User type must be 0, 1, or 2.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(

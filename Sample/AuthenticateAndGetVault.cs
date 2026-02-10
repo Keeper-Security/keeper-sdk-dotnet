@@ -29,16 +29,6 @@ namespace Sample
     /// </summary>
     public class AuthenticateAndGetVault
     {
-        /// <summary>
-        /// Runs the basic authentication example
-        /// </summary>
-        public static async Task ShowFolders()
-        {
-            var vault = await GetVault();
-            var folders = vault.Folders.Count();
-            Console.WriteLine($"Folders: {folders}");
-        }
-
         public static async Task<VaultOnline> GetVault()
         {
             // Keeper SDK needs a storage to save configuration parameters 

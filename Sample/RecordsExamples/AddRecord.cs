@@ -3,25 +3,22 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 
-
-
 namespace Sample.RecordsExamples
 {
-    class AddRecordExample
+    public static class AddRecordExample
     {
         public static async Task AddRecord(string name, string type, string folderUid)
         {
             var vault = await AuthenticateAndGetVault.GetVault();
-            var CreatedRecord = await CreateRecordSimple(vault, name, type, folderUid);
-            if (CreatedRecord == null)
+            var createdRecord = await CreateRecordSimple(vault, name, type, folderUid);
+
+            if (createdRecord == null)
             {
                 Console.WriteLine("Record creation failed.");
                 return;
             }
-            else
-            {
-                Console.WriteLine($"Record Created: {CreatedRecord.Uid}");
-            }
+
+            Console.WriteLine($"Record Created: {createdRecord.Uid}");
         }
 
         private static async Task<KeeperRecord> CreateRecordSimple(
@@ -66,32 +63,30 @@ namespace Sample.RecordsExamples
             }
             else
             {
-                var rt1 = vault.RecordTypes.FirstOrDefault(x => x.Name.Equals(recordType, StringComparison.OrdinalIgnoreCase));
+                var recordTypeDefinition = vault.RecordTypes
+                    .FirstOrDefault(x => x.Name.Equals(recordType, StringComparison.OrdinalIgnoreCase));
 
-                // foreach (var rt in vault.RecordTypes)
-                // {
-                //     Console.WriteLine(rt.Name);
-                // }
-
-                if (rt1 == null)
+                if (recordTypeDefinition == null)
                 {
                     Console.WriteLine($"Record type '{recordType}' not found.");
                     return null;
                 }
 
-                var typed = new TypedRecord(rt1.Name)
+                var typed = new TypedRecord(recordTypeDefinition.Name)
                 {
                     Title = title
                 };
 
-                // Add all fields
-                foreach (var fieldDef in rt1.Fields)
+                foreach (var fieldDef in recordTypeDefinition.Fields)
                 {
                     try
                     {
                         typed.Fields.Add(fieldDef.CreateTypedField());
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Failed to create field '{fieldDef.FieldName}': {ex.Message}");
+                    }
                 }
 
                 record = typed;
@@ -99,9 +94,7 @@ namespace Sample.RecordsExamples
 
             try
             {
-                var created = await vault.CreateRecord(record, folderUid);
-                return created;
-
+                return await vault.CreateRecord(record, folderUid);
             }
             catch (Exception ex)
             {

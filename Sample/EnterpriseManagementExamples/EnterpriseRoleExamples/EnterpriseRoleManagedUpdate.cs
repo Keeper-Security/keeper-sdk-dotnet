@@ -3,16 +3,37 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using System.Collections.Generic;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class RoleManagedNodeUpdateExample
     {
-        public static async Task RoleManagedNodeUpdate(string roleName, long nodeId, bool cascadeNodeManagement)
+        public static async Task RoleManagedNodeUpdate(string roleNameOrId, string nodeNameOrId, bool cascadeNodeManagement)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if(string.IsNullOrWhiteSpace(roleNameOrId))
+                {
+                    Console.WriteLine("Role name or ID is null or empty.");
+                    return;
+                }
+                if(string.IsNullOrWhiteSpace(nodeNameOrId))
+                {   
+                    Console.WriteLine("Node name or ID is null or empty.");
+                    return;
+                }
+
                 var enterpriseData = new EnterpriseData();
                 var roleData = new RoleData { EnterpriseData = enterpriseData };
                 var enterpriseLoader = new EnterpriseLoader(
@@ -20,24 +41,51 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
                     new EnterpriseDataPlugin[] { enterpriseData, roleData });
                 await enterpriseLoader.Load();
 
-                // Get the role by name
-                var role = roleData.Roles.FirstOrDefault(r => r.DisplayName == roleName);
-                if (role == null)
+                EnterpriseRole role = null;
+                if (long.TryParse(roleNameOrId, out var roleId))
                 {
-                    Console.WriteLine("Role not found");
-                    return;
+                    roleData.TryGetRole(roleId, out role);
                 }
-
-                // Get the node to manage
-                if (!enterpriseData.TryGetNode(nodeId, out var node))
+                if(role == null)
                 {
-                    Console.WriteLine("Node not found");
-                    return;
+                    var matchingRoles = roleData.Roles.Where(r => r.DisplayName == roleNameOrId).ToList();
+                    if(matchingRoles.Count == 1)
+                    {
+                        role = matchingRoles[0];
+                    }
+                    else if(matchingRoles.Count > 1)
+                    {
+                        Console.WriteLine($"Multiple roles found with name or ID '{roleNameOrId}'. Please use role ID instead.");
+                        foreach(var r in matchingRoles)
+                        {
+                            Console.WriteLine($"Role Id: {r.Id}, Role Name: {r.DisplayName}");
+                        }
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Role with name or ID '{roleNameOrId}' not found.");
+                        return;
+                    }
                 }
                 
-                // update managed node to role
+                EnterpriseNode node = null;
+                if (long.TryParse(nodeNameOrId, out var nodeId))
+                {
+                    enterpriseData.TryGetNode(nodeId, out node);
+                }
+                if(node == null)
+                {
+                    node = enterpriseData.Nodes.FirstOrDefault(n => n.DisplayName == nodeNameOrId);
+                    if(node == null)
+                    {
+                        Console.WriteLine($"Node with name or ID '{nodeNameOrId}' not found.");
+                        return;
+                    }
+                }
+                
                 await roleData.RoleManagedNodeUpdate(role, node, cascadeNodeManagement);
-                Console.WriteLine($"Managed node update to role: {role.Id}");
+                Console.WriteLine($"Managed node update for role: {role.Id}");
             }
             catch (Exception ex)
             {

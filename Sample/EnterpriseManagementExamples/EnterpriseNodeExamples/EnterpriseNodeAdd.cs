@@ -3,16 +3,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class EnterpriseNodeAdd
     {
-        public static async Task AddNode(string nodeName, string parentNodeIdentifier = null)
+        public static async Task AddNode(string nodeName, string parentNodeNameOrId = null)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(nodeName))
+                {
+                    Console.WriteLine("Node name is required.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
@@ -21,19 +36,16 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                 await enterpriseLoader.Load();
 
                 EnterpriseNode parentNode = null;
-
-                if (!string.IsNullOrEmpty(parentNodeIdentifier))
+                if (!string.IsNullOrEmpty(parentNodeNameOrId))
                 {
-                    // Try to parse as node ID first
-                    if (long.TryParse(parentNodeIdentifier, out var parentNodeId))
+                    if (long.TryParse(parentNodeNameOrId, out var parentNodeId))
                     {
                         enterpriseData.TryGetNode(parentNodeId, out parentNode);
                     }
-
                     if (parentNode == null)
                     {
                         var nodes = enterpriseData.Nodes
-                            .Where(x => string.Equals(x.DisplayName, parentNodeIdentifier, StringComparison.InvariantCultureIgnoreCase))
+                            .Where(x => string.Equals(x.DisplayName, parentNodeNameOrId, StringComparison.InvariantCultureIgnoreCase))
                             .ToArray();
 
                         if (nodes.Length == 1)
@@ -42,19 +54,18 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                         }
                         else if (nodes.Length > 1)
                         {
-                            Console.WriteLine($"Multiple nodes found with name '{parentNodeIdentifier}'. Please use node ID instead:");
+                            Console.WriteLine($"Multiple nodes found with name '{parentNodeNameOrId}'. Please use node ID instead:");
                             foreach (var n in nodes)
                             {
                                 Console.WriteLine($"  - {n.DisplayName} (ID: {n.Id})");
                             }
                             return;
                         }
-                    }
-
-                    if (parentNode == null)
-                    {
-                        Console.WriteLine($"Parent node '{parentNodeIdentifier}' not found.");
-                        return;
+                        else
+                        {
+                            Console.WriteLine($"Parent node '{parentNodeNameOrId}' not found.");
+                            return;
+                        }   
                     }
                 }
 

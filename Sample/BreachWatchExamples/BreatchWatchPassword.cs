@@ -1,9 +1,9 @@
 using System;
-using System.Threading.Tasks;
-using KeeperSecurity.Vault;
 using System.Collections.Generic;
 using System.Threading;
-using Cli;
+using System.Threading.Tasks;
+using KeeperSecurity.BreachWatch;
+using KeeperSecurity.Vault;
 using BWService = KeeperSecurity.BreachWatch.BreachWatch;
 
 namespace Sample.BreachWatchExamples
@@ -17,11 +17,20 @@ namespace Sample.BreachWatchExamples
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
 
-                // Initialize BreachWatch with the vault's auth context
+                if (!vault.Auth.IsBreachWatchEnabled())
+                {
+                    Console.WriteLine("BreachWatch is not enabled for this account.");
+                    return;
+                }
+
                 await BWService.InitializeBreachWatch(vault.Auth);
 
-                // Scan passwords
                 var results = await BWService.ScanPasswordsAsync(passwordEntries, cancellationToken);
 
                 if (results == null || results.Count == 0)
@@ -36,7 +45,7 @@ namespace Sample.BreachWatchExamples
                     var masked = password.Length > 2
                         ? password[0] + new string('*', password.Length - 2) + password[^1]
                         : "***";
-                    var breachStatus = status.BreachDetected ? "⚠ BREACHED" : "✓ Safe";
+                    var breachStatus = status.BreachDetected ? "BREACHED" : "SAFE";
                     Console.WriteLine($"  {masked}: {breachStatus}");
                 }
                 Console.WriteLine("====================================================");

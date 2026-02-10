@@ -7,13 +7,22 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
+using Sample.Helpers;
 
 namespace Sample.AuditReportExamples
 {
+    /// <summary>
+    /// Provides example for running enterprise audit reports.
+    /// </summary>
     public static class AuditReportExample
     {
         private static readonly Regex ParameterRegex = new Regex(@"\${(\w+)}", RegexOptions.Compiled);
 
+        /// <summary>
+        /// Runs an audit report to retrieve recent audit events.
+        /// Requires enterprise admin privileges.
+        /// </summary>
+        /// <param name="limit">Maximum number of events to retrieve (default: 100, max: 1000).</param>
         public static async Task RunAuditReport(int? limit = null)
         {
             var rowLimit = limit ?? 100;
@@ -24,6 +33,11 @@ namespace Sample.AuditReportExamples
                 if (vault == null)
                 {
                     Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
                     return;
                 }
 
@@ -46,6 +60,15 @@ namespace Sample.AuditReportExamples
 
                 var rs = await vault.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
                 var rows = rs?.Events ?? new List<Dictionary<string, object>>();
+
+                if (rows.Count == 0)
+                {
+                    Console.WriteLine("No audit events found.");
+                    return;
+                }
+
+                Console.WriteLine($"======== Audit Report ({rows.Count} events) ========");
+                Console.WriteLine();
 
                 var tab = new Tabulate(4) { DumpRowNo = true, MaxColumnWidth = 100 };
                 tab.AddHeader("Created", "Username", "Event", "Message");
@@ -106,5 +129,3 @@ namespace Sample.AuditReportExamples
         }
     }
 }
-
-

@@ -2,16 +2,27 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
-    public static class EnterpriseUserAction
+    public static class EnterpriseUserLockUnlockExample
     {
-        public static async Task UserAction(string email, bool locked)
+        public static async Task LockUnlockUser(string email, bool locked)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
@@ -19,14 +30,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                     new EnterpriseDataPlugin[] { enterpriseData });
                 await enterpriseLoader.Load();
 
-                // Get user by email
                 if (!enterpriseData.TryGetUserByEmail(email, out var user))
                 {
                     Console.WriteLine($"User '{email}' not found in enterprise.");
                     return;
                 }
 
-                // Lock or unlock the user
                 var updatedUser = await enterpriseData.SetUserLocked(user, locked);
 
                 var action = locked ? "locked" : "unlocked";
@@ -39,3 +48,11 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
         }
     }
 }
+
+
+
+
+
+
+
+

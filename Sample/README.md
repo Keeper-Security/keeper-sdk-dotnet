@@ -152,7 +152,7 @@ Comprehensive enterprise administration examples (requires enterprise admin role
 * **EnterpriseUserExamples/EnterpriseAddUserExample.cs** - Invite users to enterprise
 * **EnterpriseUserExamples/EnterpriseEditUserExamples.cs** - Edit user properties, add/remove from teams
 * **EnterpriseUserExamples/EnterpriseDeleteUserExample.cs** - Delete users
-* **EnterpriseUserExamples/EnterpriseUserAction.cs** - Lock/unlock user accounts
+* **EnterpriseUserExamples/EnterpriseUserLockUnlockExample.cs** - Lock/unlock user accounts
 
 **Node Management:**
 * **EnterpriseNodeExamples/EnterpriseNodeView.cs** - View node details

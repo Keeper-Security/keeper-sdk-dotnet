@@ -9,12 +9,15 @@ namespace Sample.AttachmentsExamples
     {
         public static async Task UploadAttachment(string recordUid, string filePath, string thumbnailPath = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-            var record = vault.GetRecord(recordUid);
-
-            if (record == null)
+            if (string.IsNullOrWhiteSpace(recordUid))
             {
-                Console.WriteLine($"Record with UID '{recordUid}' not found.");
+                Console.WriteLine("Record UID is required.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                Console.WriteLine("File path is required.");
                 return;
             }
 
@@ -24,7 +27,21 @@ namespace Sample.AttachmentsExamples
                 return;
             }
 
-            IThumbnailUploadTask thumbnail = null;
+            var vault = await AuthenticateAndGetVault.GetVault();
+            if (vault == null)
+            {
+                Console.WriteLine("Authentication failed. Vault is null.");
+                return;
+            }
+
+            var record = vault.GetRecord(recordUid);
+            if (record == null)
+            {
+                Console.WriteLine($"Record with UID '{recordUid}' not found.");
+                return;
+            }
+
+            ThumbnailUploadTask thumbnail = null;
             if (!string.IsNullOrEmpty(thumbnailPath))
             {
                 if (!File.Exists(thumbnailPath))
@@ -33,7 +50,6 @@ namespace Sample.AttachmentsExamples
                 }
                 else
                 {
-                    Console.WriteLine($"Uploading thumbnail from '{thumbnailPath}'.");
                     thumbnail = new ThumbnailUploadTask(thumbnailPath);
                 }
             }
@@ -52,43 +68,27 @@ namespace Sample.AttachmentsExamples
             finally
             {
                 uploadTask.Dispose();
+                thumbnail?.Dispose();
             }
         }
 
-
-
         public class ThumbnailUploadTask : IThumbnailUploadTask
         {
-            public string MimeType { get; private set; }
-            public Stream Stream { get; private set; }
-            public int Size { get; private set; }
+            public string MimeType { get; }
+            public Stream Stream { get; }
+            public int Size { get; }
 
-            public ThumbnailUploadTask(string imagePath)
+            public ThumbnailUploadTask(string thumbnailPath)
             {
-                if (!File.Exists(imagePath))
-                {
-                    throw new FileNotFoundException($"Thumbnail file not found: {imagePath}");
-                }
+                if (!File.Exists(thumbnailPath))
+                    throw new FileNotFoundException($"Thumbnail file not found: {thumbnailPath}");
 
-                try
-                {
-                    MimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(imagePath));
-                }
-                catch {/*Mime is calculated from the extension*/}
-
-                Stream = File.Open(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-                // Set thumbnail size (20x20 pixels)
-                // Note: In a production app, you might want to read actual image dimensions
-                // using a cross-platform image library like SixLabors.ImageSharp
-                Size = 20;
-
+                MimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(thumbnailPath));
+                Stream = File.Open(thumbnailPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                Size = (int)Stream.Length;
             }
-            public void Dispose()
-            {
-                Stream?.Dispose();
-                Console.WriteLine("Thumbnail stream disposed.");
-            }
+
+            public void Dispose() => Stream?.Dispose();
         }
     }
 }

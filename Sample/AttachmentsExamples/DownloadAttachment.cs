@@ -21,9 +21,14 @@ namespace Sample.AttachmentsExamples
             string attachmentIdentifier,
             string destinationPath)
         {
-            if (vault == null || record == null)
+            if (vault == null)
             {
-                Console.WriteLine("Vault or record is null.");
+                Console.WriteLine("Authentication failed. Vault is null.");
+                return;
+            }
+            if (record == null)
+            {
+                Console.WriteLine("Record not found.");
                 return;
             }
 
@@ -47,9 +52,8 @@ namespace Sample.AttachmentsExamples
                 _ => "downloaded_file"
             };
 
-            string destinationFolder = Path.GetDirectoryName(destinationPath);
-            string finalPath = Path.Combine(destinationFolder, originalFileName);
-            Directory.CreateDirectory(destinationFolder);
+            string finalPath = Path.Combine(destinationPath, originalFileName);
+            Directory.CreateDirectory(destinationPath);
 
             using (var fs = new FileStream(finalPath, FileMode.Create, FileAccess.Write))
             {
@@ -69,9 +73,7 @@ namespace Sample.AttachmentsExamples
                 }
             }
 
-            Console.WriteLine($"Attachment '{attachment.Name}' downloaded successfully to '{finalPath}'.");
+            Console.WriteLine($"Attachment '{originalFileName}' downloaded successfully to '{finalPath}'.");
         }
-
-
     }
 }

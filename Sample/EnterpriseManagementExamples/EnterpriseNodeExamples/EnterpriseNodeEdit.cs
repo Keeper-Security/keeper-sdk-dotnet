@@ -3,16 +3,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class EnterpriseNodeEdit
     {
-        public static async Task EditNode(string nodeIdentifier, string newName = null, string newParentNodeIdentifier = null)
+        public static async Task EditNode(string nodeNameOrId, string newName = null, string newParentNodeIdentifier = null)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(nodeNameOrId))
+                {
+                    Console.WriteLine("Node name or ID is required.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var enterpriseLoader = new EnterpriseLoader(
@@ -20,18 +35,15 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                     new EnterpriseDataPlugin[] { enterpriseData });
                 await enterpriseLoader.Load();
 
-                // Find the node to edit
                 EnterpriseNode node = null;
-
-                if (long.TryParse(nodeIdentifier, out var nodeId))
+                if (long.TryParse(nodeNameOrId, out var nodeId))
                 {
                     enterpriseData.TryGetNode(nodeId, out node);
                 }
-
                 if (node == null)
                 {
                     var nodes = enterpriseData.Nodes
-                        .Where(x => string.Equals(x.DisplayName, nodeIdentifier, StringComparison.InvariantCultureIgnoreCase))
+                        .Where(x => string.Equals(x.DisplayName, nodeNameOrId, StringComparison.InvariantCultureIgnoreCase))
                         .ToArray();
 
                     if (nodes.Length == 1)
@@ -40,29 +52,26 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                     }
                     else if (nodes.Length > 1)
                     {
-                        Console.WriteLine($"Multiple nodes found with name '{nodeIdentifier}'. Please use node ID instead:");
+                        Console.WriteLine($"Multiple nodes found with name '{nodeNameOrId}'. Please use node ID instead:");
                         foreach (var n in nodes)
                         {
                             Console.WriteLine($"  - {n.DisplayName} (ID: {n.Id})");
                         }
                         return;
                     }
+                    else
+                    {
+                        Console.WriteLine($"Node '{nodeNameOrId}' not found.");
+                        return;
+                    }
                 }
 
-                if (node == null)
-                {
-                    Console.WriteLine($"Node '{nodeIdentifier}' not found.");
-                    return;
-                }
-
-                // Update the node name if provided
                 var oldName = node.DisplayName;
                 if (!string.IsNullOrEmpty(newName))
                 {
                     node.DisplayName = newName;
                 }
 
-                // Find the new parent node (if provided)
                 EnterpriseNode parentNode = null;
 
                 if (!string.IsNullOrEmpty(newParentNodeIdentifier))
@@ -91,12 +100,11 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
                             }
                             return;
                         }
-                    }
-
-                    if (parentNode == null)
-                    {
-                        Console.WriteLine($"Parent node '{newParentNodeIdentifier}' not found.");
-                        return;
+                        else
+                        {
+                            Console.WriteLine($"Parent node '{newParentNodeIdentifier}' not found.");
+                            return;
+                        }
                     }
                 }
 

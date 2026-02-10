@@ -1,24 +1,34 @@
 using System;
 using System.Linq;
-using KeeperSecurity.BreachWatch;
 using System.Threading.Tasks;
+using KeeperSecurity.BreachWatch;
 using Tokens;
-
 
 namespace Sample.BreachWatchExamples
 {
     public static class BreachWatchListExample
     {
         public static async Task BreachWatchList()
-
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+
+                if (!vault.Auth.IsBreachWatchEnabled())
+                {
+                    Console.WriteLine("BreachWatch is not enabled for this account.");
+                    return;
+                }
+
                 var records = vault.BreachWatchRecords()
-                .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
-                .Where(x => !BreachWatchIgnore.IsRecordIgnored(vault, x.RecordUid))
-                .ToList();
+                    .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
+                    .Where(x => !BreachWatchIgnore.IsRecordIgnored(vault, x.RecordUid))
+                    .ToList();
 
                 if (!records.Any())
                 {

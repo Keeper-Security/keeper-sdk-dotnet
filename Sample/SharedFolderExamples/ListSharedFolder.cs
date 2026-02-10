@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using KeeperSecurity.Commands;
 using KeeperSecurity.Vault;
 
 namespace Sample.SharedFolderExamples
@@ -9,15 +9,32 @@ namespace Sample.SharedFolderExamples
     {
         public static async Task ListAllSharedFolders()
         {
-            var Vault = await AuthenticateAndGetVault.GetVault();
-            var sharedFolders = Vault.SharedFolders;
-            Console.WriteLine("{0,-30}  {1,-46}", "Record UID", "Record Title");
-            Console.WriteLine(new string('-', 30) + "  " + new string('-', 46));
-            foreach (var folder in sharedFolders)
+            var vault = await AuthenticateAndGetVault.GetVault();
+            if (vault == null)
             {
-                Console.WriteLine("{0,-30}  {1,-46}", folder.Name, folder.Uid);
+                Console.WriteLine("Authentication failed. Vault is null.");
+                return;
             }
 
+            var sharedFolders = vault.SharedFolders.ToList();
+
+            if (sharedFolders.Count == 0)
+            {
+                Console.WriteLine("No shared folders found.");
+                return;
+            }
+
+            Console.WriteLine("{0,-4}  {1,-40}  {2,-30}", "#", "Folder UID", "Folder Name");
+            Console.WriteLine(new string('-', 80));
+
+            int index = 1;
+            foreach (var folder in sharedFolders)
+            {
+                Console.WriteLine("{0,-4}  {1,-40}  {2,-30}", index, folder.Uid, folder.Name);
+                index++;
+            }
+
+            Console.WriteLine($"\nTotal: {sharedFolders.Count} shared folder(s)");
         }
     }
 }

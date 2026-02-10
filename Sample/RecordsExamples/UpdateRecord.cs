@@ -65,7 +65,7 @@ namespace Sample.RecordsExamples
                     }
 
                     typed.TypeName = rt.Name;
-                    Console.WriteLine($"Record type changed → {rt.Name}");
+                    Console.WriteLine($"Record type changed to {rt.Name}");
                 }
                 else
                 {

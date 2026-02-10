@@ -3,16 +3,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Cli;
+using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class EnterpriseRoleView
     {
-        public static async Task ViewRole(string roleIdentifier)
+        public static async Task ViewRole(string roleNameOrId)
         {
             try
             {
                 var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Authentication failed. Vault is null.");
+                    return;
+                }
+                if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
+                {
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(roleNameOrId))
+                {
+                    Console.WriteLine("Role name or ID is null or empty.");
+                    return;
+                }
 
                 var enterpriseData = new EnterpriseData();
                 var roleData = new RoleData();
@@ -22,37 +37,31 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
                 await enterpriseLoader.Load();
 
                 EnterpriseRole role = null;
-
-                if (long.TryParse(roleIdentifier, out var roleId))
+                if (long.TryParse(roleNameOrId, out var roleId))
                 {
                     roleData.TryGetRole(roleId, out role);
                 }
-
-                if (role == null)
+                if(role == null)
                 {
-                    var roles = roleData.Roles
-                        .Where(x => string.Equals(x.DisplayName, roleIdentifier, StringComparison.InvariantCultureIgnoreCase))
-                        .ToArray();
-
-                    if (roles.Length == 1)
+                    var matchingRoles = roleData.Roles.Where(r => r.DisplayName == roleNameOrId).ToList();
+                    if(matchingRoles.Count == 1)
                     {
-                        role = roles[0];
+                        role = matchingRoles[0];
                     }
-                    else if (roles.Length > 1)
+                    else if(matchingRoles.Count > 1)
                     {
-                        Console.WriteLine($"Multiple roles found with name '{roleIdentifier}'. Please use role ID instead:");
-                        foreach (var r in roles)
+                        Console.WriteLine($"Multiple roles found with name or ID '{roleNameOrId}'. Please use role ID instead.");
+                        foreach(var r in matchingRoles)
                         {
-                            Console.WriteLine($"  - {r.DisplayName} (ID: {r.Id})");
+                            Console.WriteLine($"Role Id: {r.Id}, Role Name: {r.DisplayName}");
                         }
                         return;
                     }
-                }
-
-                if (role == null)
-                {
-                    Console.WriteLine($"Role '{roleIdentifier}' not found.");
-                    return;
+                    else
+                    {
+                        Console.WriteLine($"Role with name or ID '{roleNameOrId}' not found.");
+                        return;
+                    }
                 }
 
                 Console.WriteLine("======== Enterprise Role Details ========");
