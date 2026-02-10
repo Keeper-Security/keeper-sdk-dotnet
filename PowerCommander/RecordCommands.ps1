@@ -828,7 +828,7 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $fields['password'] = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
+            $fields['password'] = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
         }
 
         foreach ($fieldName in $fields.Keys) {
@@ -1419,7 +1419,7 @@ function Export-KeeperRecordTypes {
 
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        $vault.SyncDown() | Out-Null
+        $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
         if ($null -eq $Source){
             $Source = 'keeper'
         }
