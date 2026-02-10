@@ -1778,7 +1778,10 @@ function Get-TypedFieldValue {
         [string]$FieldName
     )
 
-    $field = $Record.Fields | Where-Object { $_.FieldName -eq $FieldName } | Select-Object -First 1
+    $field = $Record.Fields | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    if (-not $field) {
+        $field = $Record.Custom | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    }
     if (-not $field -or -not $field.ObjectValue) { return $null }
 
     $value = $field.ObjectValue
