@@ -36,7 +36,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
                     new EnterpriseDataPlugin[] { enterpriseData, roleData });
                 await enterpriseLoader.Load();
 
-                               EnterpriseRole role = null;
+                EnterpriseRole role = null;
                 if (long.TryParse(roleNameOrId, out var roleId))
                 {
                     roleData.TryGetRole(roleId, out role);

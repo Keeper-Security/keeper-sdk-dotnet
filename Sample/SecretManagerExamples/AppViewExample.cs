@@ -28,7 +28,8 @@ namespace Sample.SecretManagerExamples
                 return;
             }
 
-            if (record is not ApplicationRecord application)
+            var application = record as ApplicationRecord;
+            if (application == null)
             {
                 Console.WriteLine($"Record '{applicationUid}' is not an Application record. Type: {record.GetType().Name}");
                 return;

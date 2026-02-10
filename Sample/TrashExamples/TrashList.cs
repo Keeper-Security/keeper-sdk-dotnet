@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace Sample.TrashExamples
@@ -24,8 +26,8 @@ namespace Sample.TrashExamples
                 return;
             }
 
-            var deletedRecords = TrashManagement.GetDeletedRecords().ToList();
-            var orphanedRecords = TrashManagement.GetOrphanedRecords().ToList();
+            var deletedRecords = TrashManagement.GetDeletedRecords().Values.ToList();
+            var orphanedRecords = TrashManagement.GetOrphanedRecords().Values.ToList();
             var sharedFolders = TrashManagement.GetSharedFolders();
 
             Console.WriteLine("======== Trash Contents ========\n");
@@ -35,7 +37,8 @@ namespace Sample.TrashExamples
                 Console.WriteLine($"-- Deleted Records ({deletedRecords.Count}) --");
                 foreach (var record in deletedRecords)
                 {
-                    Console.WriteLine($"  UID: {record.UID,-30} Title: {record.Title}");
+                    var title = GetRecordTitle(record);
+                    Console.WriteLine($"  UID: {record.RecordUid,-30} Title: {title}");
                 }
                 Console.WriteLine();
             }
@@ -45,23 +48,62 @@ namespace Sample.TrashExamples
                 Console.WriteLine($"-- Orphaned Records ({orphanedRecords.Count}) --");
                 foreach (var record in orphanedRecords)
                 {
-                    Console.WriteLine($"  UID: {record.UID,-30} Title: {record.Title}");
+                    var title = GetRecordTitle(record);
+                    Console.WriteLine($"  UID: {record.RecordUid,-30} Title: {title}");
                 }
                 Console.WriteLine();
             }
 
             if (sharedFolders?.Folders != null && sharedFolders.Folders.Any())
             {
-                Console.WriteLine($"-- Shared Folders ({sharedFolders.Folders.Count()}) --");
-                foreach (var folder in sharedFolders.Folders)
+                Console.WriteLine($"-- Shared Folders ({sharedFolders.Folders.Count}) --");
+                foreach (var folder in sharedFolders.Folders.Values)
                 {
-                    Console.WriteLine($"  UID: {folder.UID,-30} Name: {folder.Name}");
+                    var name = GetFolderName(folder);
+                    Console.WriteLine($"  UID: {folder.SharedFolderUidString,-30} Name: {name}");
                 }
                 Console.WriteLine();
             }
 
             Console.WriteLine("================================");
-            Console.WriteLine($"Total: {deletedRecords.Count} deleted, {orphanedRecords.Count} orphaned, {sharedFolders?.Folders?.Count() ?? 0} shared folders");
+            Console.WriteLine($"Total: {deletedRecords.Count} deleted, {orphanedRecords.Count} orphaned, {sharedFolders?.Folders?.Count ?? 0} shared folders");
+        }
+
+        private static string GetRecordTitle(DeletedRecord record)
+        {
+            if (record?.DataUnencrypted == null || record.DataUnencrypted.Length == 0)
+            {
+                return "";
+            }
+
+            try
+            {
+                var data = JsonUtils.ParseJson<Dictionary<string, object>>(record.DataUnencrypted);
+                if (data != null && data.TryGetValue("title", out var titleObj))
+                {
+                    return titleObj?.ToString() ?? "";
+                }
+            }
+            catch { }
+
+            return "";
+        }
+        
+        private static string GetFolderName(DeletedSharedFolder folder)
+        {
+            if (folder?.DataUnEncrypted == null || folder.DataUnEncrypted.Length == 0)
+            {
+                return folder?.SharedFolderUidString ?? "";
+            }
+
+            try
+            {
+                var folderData = JsonUtils.ParseJson<FolderData>(folder.DataUnEncrypted);
+                return folderData?.name ?? folder.SharedFolderUidString ?? "";
+            }
+            catch { }
+
+            return folder?.SharedFolderUidString ?? "";
         }
     }
 }
