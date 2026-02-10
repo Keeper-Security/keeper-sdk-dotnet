@@ -33,7 +33,7 @@ namespace Sample.LoginExamples
                 }
 
                 var auth = new AuthSync(configurationStorage);
-                auth.Endpoint.Server = "qa.keepersecurity.com";
+              
 
                 await auth.Login(username, password);
 
