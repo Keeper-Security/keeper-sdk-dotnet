@@ -109,23 +109,24 @@ namespace SsoCloud {
             "Iy5Tc29DbG91ZC5Tc29DbG91ZE1pZ3JhdGlvblVzZXJJbmZvImAKGVNzb0Ns",
             "b3VkTWlncmF0aW9uVXNlckluZm8SDgoGdXNlcklkGAEgASgNEg0KBWVtYWls",
             "GAIgASgJEhAKCGZ1bGxOYW1lGAMgASgJEhIKCmlzTWlncmF0ZWQYBCABKAgq",
-            "HQoQQXV0aFByb3RvY29sVHlwZRIJCgVTQU1MMhAAKoACCghEYXRhVHlwZRIH",
-            "CgNBTlkQABILCgdCT09MRUFOEAESCwoHSU5URUdFUhACEgoKBlNUUklORxAD",
-            "EgkKBUJZVEVTEAQSBwoDVVJMEAUSLgoqY29tX2tlZXBlcnNlY3VyaXR5X3By",
-            "b3RvX1Nzb0Nsb3VkX0RhdGFUeXBlEAYSNgoyY29tX2tlZXBlcnNlY3VyaXR5",
-            "X3Byb3RvX1Nzb0Nsb3VkX0F1dGhQcm90b2NvbFR5cGUQBxIwCixjb21fa2Vl",
-            "cGVyc2VjdXJpdHlfcHJvdG9fU3NvQ2xvdWRfU3NvSWRwVHlwZRAIEggKBExP",
-            "TkcQCRINCglUSU1FU1RBTVAQCipSChxTc29DbG91ZFNldHRpbmdPcGVyYXRp",
-            "b25UeXBlEgcKA1NFVBAAEgcKA0dFVBABEgoKBkRFTEVURRACEhQKEFJFU0VU",
-            "X1RPX0RFRkFVTFQQAyrQAgoKU3NvSWRwVHlwZRINCglYWF9VTlVTRUQQABIL",
-            "CgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09HTEUQAxIICgRPS1RBEAQSCAoE",
-            "QURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9HSU4QBxIHCgNBV1MQCBIMCghD",
-            "RU5UUklGWRAJEgcKA0RVTxAKEgcKA0lCTRALEg0KCUpVTVBDTE9VRBAMEggK",
-            "BFBJTkcQDRILCgdQSU5HT05FEA4SBwoDUlNBEA8SDgoKU0VDVVJFQVVUSBAQ",
-            "EgoKBlRIQUxFUxAREgkKBUFVVEgwEBISCgoGQkVZT05EEBMSCAoESFlQUhAU",
-            "EgoKBlBVUkVJRBAVEgcKA1NETxAWEgkKBVRSQUlUEBcSDAoIVFJBTlNNSVQQ",
-            "GBILCgdUUlVTT05BEBkSDAoIVkVSSURJVU0QGhIHCgNDQVMQG0IkChhjb20u",
-            "a2VlcGVyc2VjdXJpdHkucHJvdG9CCFNzb0Nsb3VkYgZwcm90bzM="));
+            "JgoQQXV0aFByb3RvY29sVHlwZRIJCgVTQU1MMhAAEgcKA0pXVBABKoACCghE",
+            "YXRhVHlwZRIHCgNBTlkQABILCgdCT09MRUFOEAESCwoHSU5URUdFUhACEgoK",
+            "BlNUUklORxADEgkKBUJZVEVTEAQSBwoDVVJMEAUSLgoqY29tX2tlZXBlcnNl",
+            "Y3VyaXR5X3Byb3RvX1Nzb0Nsb3VkX0RhdGFUeXBlEAYSNgoyY29tX2tlZXBl",
+            "cnNlY3VyaXR5X3Byb3RvX1Nzb0Nsb3VkX0F1dGhQcm90b2NvbFR5cGUQBxIw",
+            "Cixjb21fa2VlcGVyc2VjdXJpdHlfcHJvdG9fU3NvQ2xvdWRfU3NvSWRwVHlw",
+            "ZRAIEggKBExPTkcQCRINCglUSU1FU1RBTVAQCipSChxTc29DbG91ZFNldHRp",
+            "bmdPcGVyYXRpb25UeXBlEgcKA1NFVBAAEgcKA0dFVBABEgoKBkRFTEVURRAC",
+            "EhQKEFJFU0VUX1RPX0RFRkFVTFQQAyrQAgoKU3NvSWRwVHlwZRINCglYWF9V",
+            "TlVTRUQQABILCgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09HTEUQAxIICgRP",
+            "S1RBEAQSCAoEQURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9HSU4QBxIHCgNB",
+            "V1MQCBIMCghDRU5UUklGWRAJEgcKA0RVTxAKEgcKA0lCTRALEg0KCUpVTVBD",
+            "TE9VRBAMEggKBFBJTkcQDRILCgdQSU5HT05FEA4SBwoDUlNBEA8SDgoKU0VD",
+            "VVJFQVVUSBAQEgoKBlRIQUxFUxAREgkKBUFVVEgwEBISCgoGQkVZT05EEBMS",
+            "CAoESFlQUhAUEgoKBlBVUkVJRBAVEgcKA1NETxAWEgkKBVRSQUlUEBcSDAoI",
+            "VFJBTlNNSVQQGBILCgdUUlVTT05BEBkSDAoIVkVSSURJVU0QGhIHCgNDQVMQ",
+            "G0IkChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCFNzb0Nsb3VkYgZwcm90",
+            "bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -166,9 +167,13 @@ namespace SsoCloud {
   /// </summary>
   public enum AuthProtocolType {
     /// <summary>
-    /// We will support more authentication protocols later
+    /// SAML2 Authentication
     /// </summary>
     [pbr::OriginalName("SAML2")] Saml2 = 0,
+    /// <summary>
+    /// JWT Authentication
+    /// </summary>
+    [pbr::OriginalName("JWT")] Jwt = 1,
   }
 
   /// <summary>

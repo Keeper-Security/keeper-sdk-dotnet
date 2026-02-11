@@ -63,25 +63,31 @@ namespace NotificationCenter {
             "RHMYBCADKAMiXgoYTm90aWZpY2F0aW9uc1NlbmRSZXF1ZXN0EkIKDW5vdGlm",
             "aWNhdGlvbnMYASADKAsyKy5Ob3RpZmljYXRpb25DZW50ZXIuTm90aWZpY2F0",
             "aW9uU2VuZFJlcXVlc3QiLAoXTm90aWZpY2F0aW9uU3luY1JlcXVlc3QSEQoJ",
-            "c3luY1BvaW50GAEgASgDKp8BChROb3RpZmljYXRpb25DYXRlZ29yeRISCg5O",
-            "Q19VTlNQRUNJRklFRBAAEg4KCk5DX0FDQ09VTlQQARIOCgpOQ19TSEFSSU5H",
-            "EAISEQoNTkNfRU5URVJQUklTRRADEg8KC05DX1NFQ1VSSVRZEAQSDgoKTkNf",
-            "UkVRVUVTVBAFEg0KCU5DX1NZU1RFTRAGEhAKDE5DX1BST01PVElPThAHKuAC",
-            "ChBOb3RpZmljYXRpb25UeXBlEhIKDk5UX1VOU1BFQ0lGSUVEEAASDAoITlRf",
-            "QUxFUlQQARIWChJOVF9ERVZJQ0VfQVBQUk9WQUwQAhIaChZOVF9NQVNURVJf",
-            "UEFTU19VUERBVEVEEAMSFQoRTlRfU0hBUkVfQVBQUk9WQUwQBBIeChpOVF9T",
-            "SEFSRV9BUFBST1ZBTF9BUFBST1ZFRBAFEg0KCU5UX1NIQVJFRBAGEhIKDk5U",
-            "X1RSQU5TRkVSUkVEEAcSHAoYTlRfTElDRU5TRV9MSU1JVF9SRUFDSEVEEAgS",
-            "FwoTTlRfQVBQUk9WQUxfUkVRVUVTVBAJEhgKFE5UX0FQUFJPVkVEX1JFU1BP",
-            "TlNFEAoSFgoSTlRfREVOSUVEX1JFU1BPTlNFEAsSFQoRTlRfMkZBX0NPTkZJ",
-            "R1VSRUQQDBIcChhOVF9TSEFSRV9BUFBST1ZBTF9ERU5JRUQQDSpZChZOb3Rp",
-            "ZmljYXRpb25SZWFkU3RhdHVzEhMKD05SU19VTlNQRUNJRklFRBAAEgwKCE5S",
-            "U19MQVNUEAESDAoITlJTX1JFQUQQAhIOCgpOUlNfVU5SRUFEEAMqhgEKGk5v",
-            "dGlmaWNhdGlvbkFwcHJvdmFsU3RhdHVzEhMKD05BU19VTlNQRUNJRklFRBAA",
-            "EhAKDE5BU19BUFBST1ZFRBABEg4KCk5BU19ERU5JRUQQAhIcChhOQVNfTE9T",
-            "VF9BUFBST1ZBTF9SSUdIVFMQAxITCg9OQVNfTE9TVF9BQ0NFU1MQBEIuChhj",
-            "b20ua2VlcGVyc2VjdXJpdHkucHJvdG9CEk5vdGlmaWNhdGlvbkNlbnRlcmIG",
-            "cHJvdG8z"));
+            "c3luY1BvaW50GAEgASgDImUKKE5vdGlmaWNhdGlvbnNBcHByb3ZhbFN0YXR1",
+            "c1VwZGF0ZVJlcXVlc3QSOQoHdXBkYXRlcxgBIAMoCzIoLk5vdGlmaWNhdGlv",
+            "bkNlbnRlci5BcHByb3ZhbFN0YXR1c1VwZGF0ZSqfAQoUTm90aWZpY2F0aW9u",
+            "Q2F0ZWdvcnkSEgoOTkNfVU5TUEVDSUZJRUQQABIOCgpOQ19BQ0NPVU5UEAES",
+            "DgoKTkNfU0hBUklORxACEhEKDU5DX0VOVEVSUFJJU0UQAxIPCgtOQ19TRUNV",
+            "UklUWRAEEg4KCk5DX1JFUVVFU1QQBRINCglOQ19TWVNURU0QBhIQCgxOQ19Q",
+            "Uk9NT1RJT04QByqeBAoQTm90aWZpY2F0aW9uVHlwZRISCg5OVF9VTlNQRUNJ",
+            "RklFRBAAEgwKCE5UX0FMRVJUEAESFgoSTlRfREVWSUNFX0FQUFJPVkFMEAIS",
+            "GgoWTlRfTUFTVEVSX1BBU1NfVVBEQVRFRBADEhUKEU5UX1NIQVJFX0FQUFJP",
+            "VkFMEAQSHgoaTlRfU0hBUkVfQVBQUk9WQUxfQVBQUk9WRUQQBRINCglOVF9T",
+            "SEFSRUQQBhISCg5OVF9UUkFOU0ZFUlJFRBAHEhwKGE5UX0xJQ0VOU0VfTElN",
+            "SVRfUkVBQ0hFRBAIEhcKE05UX0FQUFJPVkFMX1JFUVVFU1QQCRIYChROVF9B",
+            "UFBST1ZFRF9SRVNQT05TRRAKEhYKEk5UX0RFTklFRF9SRVNQT05TRRALEhUK",
+            "EU5UXzJGQV9DT05GSUdVUkVEEAwSHAoYTlRfU0hBUkVfQVBQUk9WQUxfREVO",
+            "SUVEEA0SHwobTlRfREVWSUNFX0FQUFJPVkFMX0FQUFJPVkVEEA4SHQoZTlRf",
+            "REVWSUNFX0FQUFJPVkFMX0RFTklFRBAPEhYKEk5UX0FDQ09VTlRfQ1JFQVRF",
+            "RBAQEhIKDk5UXzJGQV9FTkFCTEVEEBESEwoPTlRfMkZBX0RJU0FCTEVEEBIS",
+            "HAoYTlRfU0VDVVJJVFlfS0VZU19FTkFCTEVEEBMSHQoZTlRfU0VDVVJJVFlf",
+            "S0VZU19ESVNBQkxFRBAUKlkKFk5vdGlmaWNhdGlvblJlYWRTdGF0dXMSEwoP",
+            "TlJTX1VOU1BFQ0lGSUVEEAASDAoITlJTX0xBU1QQARIMCghOUlNfUkVBRBAC",
+            "Eg4KCk5SU19VTlJFQUQQAyqGAQoaTm90aWZpY2F0aW9uQXBwcm92YWxTdGF0",
+            "dXMSEwoPTkFTX1VOU1BFQ0lGSUVEEAASEAoMTkFTX0FQUFJPVkVEEAESDgoK",
+            "TkFTX0RFTklFRBACEhwKGE5BU19MT1NUX0FQUFJPVkFMX1JJR0hUUxADEhMK",
+            "D05BU19MT1NUX0FDQ0VTUxAEQi4KGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90",
+            "b0ISTm90aWZpY2F0aW9uQ2VudGVyYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::GraphSync.GraphSyncReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::NotificationCenter.NotificationCategory), typeof(global::NotificationCenter.NotificationType), typeof(global::NotificationCenter.NotificationReadStatus), typeof(global::NotificationCenter.NotificationApprovalStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -96,7 +102,8 @@ namespace NotificationCenter {
             new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.ProcessMarkReadEventsRequest), global::NotificationCenter.ProcessMarkReadEventsRequest.Parser, new[]{ "ReadStatusUpdate" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.NotificationSendRequest), global::NotificationCenter.NotificationSendRequest.Parser, new[]{ "Recipients", "Notification", "ClientTypeIDs", "DeviceIDs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.NotificationsSendRequest), global::NotificationCenter.NotificationsSendRequest.Parser, new[]{ "Notifications" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.NotificationSyncRequest), global::NotificationCenter.NotificationSyncRequest.Parser, new[]{ "SyncPoint" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.NotificationSyncRequest), global::NotificationCenter.NotificationSyncRequest.Parser, new[]{ "SyncPoint" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::NotificationCenter.NotificationsApprovalStatusUpdateRequest), global::NotificationCenter.NotificationsApprovalStatusUpdateRequest.Parser, new[]{ "Updates" }, null, null, null, null)
           }));
     }
     #endregion
@@ -129,6 +136,13 @@ namespace NotificationCenter {
     [pbr::OriginalName("NT_DENIED_RESPONSE")] NtDeniedResponse = 11,
     [pbr::OriginalName("NT_2FA_CONFIGURED")] Nt2FaConfigured = 12,
     [pbr::OriginalName("NT_SHARE_APPROVAL_DENIED")] NtShareApprovalDenied = 13,
+    [pbr::OriginalName("NT_DEVICE_APPROVAL_APPROVED")] NtDeviceApprovalApproved = 14,
+    [pbr::OriginalName("NT_DEVICE_APPROVAL_DENIED")] NtDeviceApprovalDenied = 15,
+    [pbr::OriginalName("NT_ACCOUNT_CREATED")] NtAccountCreated = 16,
+    [pbr::OriginalName("NT_2FA_ENABLED")] Nt2FaEnabled = 17,
+    [pbr::OriginalName("NT_2FA_DISABLED")] Nt2FaDisabled = 18,
+    [pbr::OriginalName("NT_SECURITY_KEYS_ENABLED")] NtSecurityKeysEnabled = 19,
+    [pbr::OriginalName("NT_SECURITY_KEYS_DISABLED")] NtSecurityKeysDisabled = 20,
   }
 
   public enum NotificationReadStatus {
@@ -3439,6 +3453,193 @@ namespace NotificationCenter {
             break;
           case 8: {
             SyncPoint = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class NotificationsApprovalStatusUpdateRequest : pb::IMessage<NotificationsApprovalStatusUpdateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NotificationsApprovalStatusUpdateRequest> _parser = new pb::MessageParser<NotificationsApprovalStatusUpdateRequest>(() => new NotificationsApprovalStatusUpdateRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NotificationsApprovalStatusUpdateRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::NotificationCenter.NotificationCenterReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NotificationsApprovalStatusUpdateRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NotificationsApprovalStatusUpdateRequest(NotificationsApprovalStatusUpdateRequest other) : this() {
+      updates_ = other.updates_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NotificationsApprovalStatusUpdateRequest Clone() {
+      return new NotificationsApprovalStatusUpdateRequest(this);
+    }
+
+    /// <summary>Field number for the "updates" field.</summary>
+    public const int UpdatesFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::NotificationCenter.ApprovalStatusUpdate> _repeated_updates_codec
+        = pb::FieldCodec.ForMessage(10, global::NotificationCenter.ApprovalStatusUpdate.Parser);
+    private readonly pbc::RepeatedField<global::NotificationCenter.ApprovalStatusUpdate> updates_ = new pbc::RepeatedField<global::NotificationCenter.ApprovalStatusUpdate>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::NotificationCenter.ApprovalStatusUpdate> Updates {
+      get { return updates_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NotificationsApprovalStatusUpdateRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NotificationsApprovalStatusUpdateRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!updates_.Equals(other.updates_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= updates_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      updates_.WriteTo(output, _repeated_updates_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      updates_.WriteTo(ref output, _repeated_updates_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += updates_.CalculateSize(_repeated_updates_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NotificationsApprovalStatusUpdateRequest other) {
+      if (other == null) {
+        return;
+      }
+      updates_.Add(other.updates_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            updates_.AddEntriesFrom(input, _repeated_updates_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            updates_.AddEntriesFrom(ref input, _repeated_updates_codec);
             break;
           }
         }
