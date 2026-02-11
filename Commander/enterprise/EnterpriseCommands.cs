@@ -19,6 +19,9 @@ using KeeperSecurity.Enterprise.AuditLogCommands;
 using KeeperSecurity.Utils;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
+using EnterpriseUser = KeeperSecurity.Enterprise.EnterpriseUser;
+using EnterpriseTeam = KeeperSecurity.Enterprise.EnterpriseTeam;
+using EnterpriseRole = KeeperSecurity.Enterprise.EnterpriseRole;
 
 namespace Commander
 {
@@ -2520,26 +2523,11 @@ namespace Commander
 
             if (verbose)
             {
-                if (users.Length > 0)
-                    sections.Add(() => PrintEntitySection(childIndent, "User(s)", users.Select(u => $"{u.Email} ({u.Id})").ToArray(), subNodes.Length == 0 && teams.Length == 0 && roles.Length == 0));
-                if (teams.Length > 0)
-                    sections.Add(() => PrintEntitySection(childIndent, "Team(s)", teams.Select(t => $"{t.Name} ({t.Uid})").ToArray(), subNodes.Length == 0 && roles.Length == 0));
-                if (roles.Length > 0)
-                    sections.Add(() => PrintEntitySection(childIndent, "Role(s)", roles.Select(r => $"{r.DisplayName} ({r.Id})").ToArray(), subNodes.Length == 0));
+                AddVerboseEntitySections(sections, childIndent, users, teams, roles, subNodes.Length);
             }
             else
             {
-                var counts = new List<string>();
-                if (users.Length > 0) counts.Add($"{users.Length} user(s)");
-                if (teams.Length > 0) counts.Add($"{teams.Length} team(s)");
-                if (roles.Length > 0) counts.Add($"{roles.Length} role(s)");
-
-                for (int i = 0; i < counts.Count; i++)
-                {
-                    var isLastCount = i == counts.Count - 1 && subNodes.Length == 0;
-                    var countPrefix = isLastCount ? "└── " : "├── ";
-                    Console.WriteLine($"{childIndent}{countPrefix}{counts[i]}");
-                }
+                PrintNodeCountLines(childIndent, users.Length, teams.Length, roles.Length, subNodes.Length);
             }
 
             foreach (var section in sections) section();
@@ -2547,6 +2535,33 @@ namespace Commander
             for (int i = 0; i < subNodes.Length; i++)
             {
                 DisplayEnterpriseTreeNode(context, subNodes[i], childIndent, verbose, i == subNodes.Length - 1, false);
+            }
+        }
+
+        private static void AddVerboseEntitySections(List<Action> sections, string childIndent,
+            EnterpriseUser[] users, EnterpriseTeam[] teams, EnterpriseRole[] roles, int subNodeCount)
+        {
+            var noSubNodes = subNodeCount == 0;
+            if (users.Length > 0)
+                sections.Add(() => PrintEntitySection(childIndent, "User(s)", users.Select(u => $"{u.Email} ({u.Id})").ToArray(), noSubNodes && teams.Length == 0 && roles.Length == 0));
+            if (teams.Length > 0)
+                sections.Add(() => PrintEntitySection(childIndent, "Team(s)", teams.Select(t => $"{t.Name} ({t.Uid})").ToArray(), noSubNodes && roles.Length == 0));
+            if (roles.Length > 0)
+                sections.Add(() => PrintEntitySection(childIndent, "Role(s)", roles.Select(r => $"{r.DisplayName} ({r.Id})").ToArray(), noSubNodes));
+        }
+
+        private static void PrintNodeCountLines(string childIndent, int userCount, int teamCount, int roleCount, int subNodeCount)
+        {
+            var counts = new List<string>();
+            if (userCount > 0) counts.Add($"{userCount} user(s)");
+            if (teamCount > 0) counts.Add($"{teamCount} team(s)");
+            if (roleCount > 0) counts.Add($"{roleCount} role(s)");
+
+            for (int i = 0; i < counts.Count; i++)
+            {
+                var isLastCount = i == counts.Count - 1 && subNodeCount == 0;
+                var countPrefix = isLastCount ? "└── " : "├── ";
+                Console.WriteLine($"{childIndent}{countPrefix}{counts[i]}");
             }
         }
 
