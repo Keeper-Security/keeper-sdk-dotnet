@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1311,29 +1311,10 @@ namespace Commander
                     Console.WriteLine("copy requires --new-role-name (name for the new role).");
                     return;
                 }
-                long nodeId = 0;
-                if (long.TryParse(arguments.Node, out nodeId))
+                if (!TryResolveCopyTargetNodeId(enterpriseData, arguments.Node, out var nodeId, out var nodeError))
                 {
-                    if (!enterpriseData.TryGetNode(nodeId, out _))
-                        nodeId = 0;
-                }
-                if (nodeId == 0)
-                {
-                    var nodes = enterpriseData.Nodes
-                        .Where(x => string.Equals(x.DisplayName, arguments.Node, StringComparison.InvariantCultureIgnoreCase))
-                        .ToArray();
-                    if (nodes.Length == 1)
-                        nodeId = nodes[0].Id;
-                    else if (nodes.Length == 0)
-                    {
-                        Console.WriteLine($"Node \"{arguments.Node}\" not found.");
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Multiple nodes named \"{arguments.Node}\". Use Node ID.");
-                        return;
-                    }
+                    Console.WriteLine(nodeError);
+                    return;
                 }
                 try
                 {
@@ -1344,54 +1325,12 @@ namespace Commander
                         return;
                     }
                     if (newRole.VisibleBelow != role.VisibleBelow)
+                    {
                         newRole = await roleData.UpdateRole(newRole, visibleBelow: role.VisibleBelow);
-                    var sourceEnforcements = roleData.GetEnforcementsForRole(role.Id).ToArray();
-                    if (sourceEnforcements.Length > 0)
-                    {
-                        var enforcementDict = new Dictionary<RoleEnforcementPolicies, string>();
-                        foreach (var re in sourceEnforcements)
-                        {
-                            var enforcementTypeStr = re.EnforcementType;
-                            if (string.IsNullOrEmpty(enforcementTypeStr)) continue;
-                            var normalized = enforcementTypeStr.Replace("_", "");
-                            if (Enum.TryParse(normalized, true, out RoleEnforcementPolicies policy))
-                                enforcementDict[policy] = re.Value ?? "";
-                        }
-                        if (enforcementDict.Count > 0)
-                        {
-                            await roleData.RoleEnforcementAddBatch(newRole, enforcementDict);
-                        }
                     }
-                    var sourceUserIds = roleData.GetUsersForRole(role.Id).ToArray();
-                    var usersCopied = 0;
-                    foreach (var userId in sourceUserIds)
-                    {
-                        if (!enterpriseData.TryGetUserById(userId, out var user)) continue;
-                        try
-                        {
-                            await roleData.AddUserToRole(newRole, user);
-                            usersCopied++;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Could not add user \"{user.Email}\" to new role: {ex.Message}");
-                        }
-                    }
-                    var sourceTeamUids = roleData.GetTeamsForRole(role.Id).ToArray();
-                    var teamsCopied = 0;
-                    foreach (var teamUid in sourceTeamUids)
-                    {
-                        if (!enterpriseData.TryGetTeam(teamUid, out var team)) continue;
-                        try
-                        {
-                            await roleData.AddTeamToRole(newRole, team);
-                            teamsCopied++;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Could not add team \"{team.Name}\" to new role: {ex.Message}");
-                        }
-                    }
+                    await CopyRoleEnforcementsToRole(roleData, role, newRole);
+                    var usersCopied = await CopyRoleUsersToRole(roleData, enterpriseData, role, newRole);
+                    var teamsCopied = await CopyRoleTeamsToRole(roleData, enterpriseData, role, newRole);
                     var msg = $"Role \"{arguments.NewRoleName}\" created with enforcements from \"{role.DisplayName}\"";
                     if (usersCopied > 0 || teamsCopied > 0)
                         msg += $" ({usersCopied} user(s), {teamsCopied} team(s) copied)";
@@ -2520,6 +2459,86 @@ namespace Commander
                 }
             }
             tab.Dump();
+        }
+
+        private static bool TryResolveCopyTargetNodeId(EnterpriseData enterpriseData, string nodeInput, out long nodeId, out string errorMessage)
+        {
+            errorMessage = null;
+            nodeId = 0;
+            if (long.TryParse(nodeInput, out var parsedId) && enterpriseData.TryGetNode(parsedId, out _))
+            {
+                nodeId = parsedId;
+                return true;
+            }
+            var nodes = enterpriseData.Nodes
+                .Where(x => string.Equals(x.DisplayName, nodeInput, StringComparison.InvariantCultureIgnoreCase))
+                .ToArray();
+            if (nodes.Length == 0)
+            {
+                errorMessage = $"Node \"{nodeInput}\" not found.";
+                return false;
+            }
+            if (nodes.Length > 1)
+            {
+                errorMessage = $"Multiple nodes named \"{nodeInput}\". Use Node ID.";
+                return false;
+            }
+            nodeId = nodes[0].Id;
+            return true;
+        }
+
+        private static async Task CopyRoleEnforcementsToRole(RoleData roleData, EnterpriseRole sourceRole, EnterpriseRole newRole)
+        {
+            var sourceEnforcements = roleData.GetEnforcementsForRole(sourceRole.Id).ToArray();
+            if (sourceEnforcements.Length == 0) return;
+            var enforcementDict = new Dictionary<RoleEnforcementPolicies, string>();
+            foreach (var re in sourceEnforcements)
+            {
+                if (string.IsNullOrEmpty(re.EnforcementType)) continue;
+                var normalized = re.EnforcementType.Replace("_", "");
+                if (Enum.TryParse(normalized, true, out RoleEnforcementPolicies policy))
+                    enforcementDict[policy] = re.Value ?? "";
+            }
+            if (enforcementDict.Count == 0) return;
+            await roleData.RoleEnforcementAddBatch(newRole, enforcementDict);
+        }
+
+        private static async Task<int> CopyRoleUsersToRole(RoleData roleData, EnterpriseData enterpriseData, EnterpriseRole sourceRole, EnterpriseRole newRole)
+        {
+            var count = 0;
+            foreach (var userId in roleData.GetUsersForRole(sourceRole.Id))
+            {
+                if (!enterpriseData.TryGetUserById(userId, out var user)) continue;
+                try
+                {
+                    await roleData.AddUserToRole(newRole, user);
+                    count++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not add user \"{user.Email}\" to new role: {ex.Message}");
+                }
+            }
+            return count;
+        }
+
+        private static async Task<int> CopyRoleTeamsToRole(RoleData roleData, EnterpriseData enterpriseData, EnterpriseRole sourceRole, EnterpriseRole newRole)
+        {
+            var count = 0;
+            foreach (var teamUid in roleData.GetTeamsForRole(sourceRole.Id))
+            {
+                if (!enterpriseData.TryGetTeam(teamUid, out var team)) continue;
+                try
+                {
+                    await roleData.AddTeamToRole(newRole, team);
+                    count++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not add team \"{team.Name}\" to new role: {ex.Message}");
+                }
+            }
+            return count;
         }
     }
 
