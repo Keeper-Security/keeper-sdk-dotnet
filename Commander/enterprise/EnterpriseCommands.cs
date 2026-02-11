@@ -2427,8 +2427,6 @@ namespace Commander
 
         public static async Task EnterpriseInfoCommand(this IEnterpriseContext context, EnterpriseInfoOptions options)
         {
-            ClearNodePathCache();
-
             if (options.Force)
             {
                 await context.Enterprise.Load();
@@ -2590,7 +2588,6 @@ namespace Commander
                 { "role_count", n => context.RoleManagement.Roles.Count(r => r.ParentNodeId == n.Id) },
                 { "roles", n => GetNodeRoleNames(context, n.Id) },
                 { "isolated", n => n.RestrictVisibility },
- 
             };
 
             var defaultColumns = new[] { "node_id", "name", "parent_node", "parent_node_id", "user_count", "team_count", "role_count" };
@@ -2814,30 +2811,10 @@ namespace Commander
             }
         }
 
-        private static string GetParentNodeName(EnterpriseData enterpriseData, EnterpriseNode node)
-        {
-            if (node.ParentNodeId == 0) return "Root";
-            return enterpriseData.TryGetNode(node.ParentNodeId, out var parent) ? parent.DisplayName ?? "" : "";
-        }
-
-        private static string GetNodeName(EnterpriseData enterpriseData, long nodeId)
-        {
-            return enterpriseData.TryGetNode(nodeId, out var node) ? node.DisplayName ?? "" : "";
-        }
-
-        [ThreadStatic]
-        private static Dictionary<long, string> _nodePathCache;
-
         private static string GetNodePath(EnterpriseData enterpriseData, long nodeId)
         {
             if (nodeId == 0) return "";
             
-            _nodePathCache ??= new Dictionary<long, string>();
-            if (_nodePathCache.TryGetValue(nodeId, out var cachedPath))
-            {
-                return cachedPath;
-            }
-
             var path = new List<string>();
             var currentId = nodeId;
             
@@ -2848,14 +2825,7 @@ namespace Commander
             }
             
             path.Reverse();
-            var result = string.Join("\\", path);
-            _nodePathCache[nodeId] = result;
-            return result;
-        }
-
-        private static void ClearNodePathCache()
-        {
-            _nodePathCache?.Clear();
+            return string.Join("\\", path);
         }
 
         private static string JoinNames<T>(IEnumerable<T> items, Func<T, string> nameSelector)
