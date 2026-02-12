@@ -2435,9 +2435,9 @@ namespace Commander
                 await context.Enterprise.Load();
             }
 
-            if (context.EnterpriseData.RootNode == null)
+            if (context.EnterpriseData == null)
             {
-                Console.WriteLine("Enterprise data: cannot get root node");
+                Console.WriteLine("Enterprise data is not available. Please run '--force' flag to load the data.");
                 return;
             }
 
