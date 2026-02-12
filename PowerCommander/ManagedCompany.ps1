@@ -51,48 +51,223 @@ New-Alias -Name switch-to-msp -Value Switch-KeeperMSP
 
 function Get-KeeperManagedCompany {
     <#
-        .Synopsis
-    	Get a list of managed companies
-    	.Parameter Filter
-	    Managed Company ID or Name (optional filter)
+    .SYNOPSIS
+    MSP info and managed company list: restriction, pricing, or MC list.
+    .DESCRIPTION
+    One command for all MSP info: -Restriction (permits), -Pricing (BI pricing), or MC list (default). Use -Detailed for MC list with sorted names, display labels, and addon:seats. Supports -Format and -Output.
+    .PARAMETER Restriction
+    Display MSP restriction information (allowed products, add-ons, max file plan, unlimited licenses).
+    .PARAMETER Pricing
+    Display pricing information (BI subscription/mc_pricing).
+    .PARAMETER Filter
+    Managed Company ID or Name (optional partial filter; ignored when -ManagedCompany or -Restriction or -Pricing is used).
+    .PARAMETER Detailed
+    Detailed MC list: company_id, company_name, node, node_name, plan, storage, addons, allocated, active; sorted by name; addon:seats.
+    .PARAMETER ManagedCompany
+    Filter to a single managed company by exact name or ID (exact match). Use with -Detailed.
+    .PARAMETER Format
+    Output format: table (default), json, csv.
+    .PARAMETER Output
+    If supplied, write output to this file path.
+    .EXAMPLE
+    Get-KeeperManagedCompany
+    Get-KeeperManagedCompany -Detailed
+    Get-KeeperManagedCompany -Restriction
+    Get-KeeperManagedCompany -Pricing -Format json -Output pricing.json
+    Get-KeeperManagedCompany -Detailed -ManagedCompany "Acme"
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $false)][string] $Filter
+        [Parameter()][Alias('r')][switch] $Restriction,
+        [Parameter()][Alias('p')][switch] $Pricing,
+        [Parameter(Mandatory = $false)][string] $Filter,
+        [Parameter()][Alias('v')][switch] $Detailed,
+        [Parameter()][Alias('mc')][string] $ManagedCompany,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output
     )
 
     [Enterprise]$enterprise = getMspEnterprise
+    $ed = $enterprise.enterpriseData
+
+    if ($Restriction) {
+        $permits = $ed.EnterpriseLicense.MspPermits
+        if (-not $permits) {
+            Write-Information 'MSP has no restrictions'
+            return
+        }
+        $allProducts = @{ 'business' = 'Business'; 'businessplus' = 'Business Plus'; 'enterprise' = 'Enterprise'; 'enterprise_plus' = 'Enterprise Plus' }
+        $allAddons = $script:MspAddonDisplayNames.Clone()
+        foreach ($k in $allAddons.Keys) { $allAddons[$k.ToLower()] = $allAddons[$k] }
+        $allFilePlans = @{ '100gb' = '100GB'; '1tb' = '1TB'; '10tb' = '10TB' }
+        $rows = [System.Collections.ArrayList]::new()
+        [void]$rows.Add([PSCustomObject]@{ 'Permit Name' = 'Allow Unlimited Licenses'; 'Value' = $permits.AllowUnlimitedLicenses })
+        $allowedProducts = @($permits.AllowedMcProducts | ForEach-Object { $p = $_.ToLower(); $d = $allProducts[$p]; if ($d) { "$_ ($d)" } else { $_ } })
+        [void]$rows.Add([PSCustomObject]@{ 'Permit Name' = 'Allowed Products'; 'Value' = ($allowedProducts -join ', ') })
+        $allowedAddons = @($permits.AllowedAddOns | ForEach-Object { $a = $_.ToLower(); $d = $allAddons[$a]; if ($d) { "$_ ($d)" } else { $_ } })
+        [void]$rows.Add([PSCustomObject]@{ 'Permit Name' = 'Allowed Add-Ons'; 'Value' = ($allowedAddons -join ', ') })
+        $maxFp = $permits.MaxFilePlanType
+        $fpD = $allFilePlans[[string]$maxFp.ToLower()]
+        [void]$rows.Add([PSCustomObject]@{ 'Permit Name' = 'Max File Storage plan'; 'Value' = $(if ($fpD) { $fpD } else { $maxFp }) })
+        $result = @($rows)
+        if ($Output) {
+            if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 3) -Encoding utf8 }
+            elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+            else { $result | Format-Table | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8 }
+        } else {
+            if ($Format -eq 'table') { $result | Format-Table | Out-String -Width 8192 } else { $result }
+        }
+        return
+    }
+
+    if ($Pricing) {
+        $auth = [KeeperSecurity.Authentication.IAuthentication]$Script:Context.Auth
+        $urlMap = [KeeperSecurity.Authentication.AuthExtensions]::GetBiUrl($auth, 'mapping/addons')
+        $rqMap = New-Object BI.MappingAddonsRequest
+        $rsMap = $auth.ExecuteAuthRest($urlMap, $rqMap, [BI.MappingAddonsResponse]).GetAwaiter().GetResult()
+        $addonNameById = @{}
+        foreach ($a in $rsMap.Addons) { $addonNameById[$a.Id] = $a.Name }
+        $filePlanNameById = @{ 4 = '100GB'; 7 = '1TB'; 8 = '10TB' }
+        foreach ($fp in $rsMap.FilePlans) { $filePlanNameById[$fp.Id] = $fp.Name }
+        $url = [KeeperSecurity.Authentication.AuthExtensions]::GetBiUrl($auth, 'subscription/mc_pricing')
+        $rq = New-Object BI.SubscriptionMcPricingRequest
+        $rs = $auth.ExecuteAuthRest($url, $rq, [BI.SubscriptionMcPricingResponse]).GetAwaiter().GetResult()
+        $currencySymbol = @{ [int][BI.Currency]::Usd = '$'; [int][BI.Currency]::Eur = [char]0x20AC; [int][BI.Currency]::Gbp = [char]0x00A3; [int][BI.Currency]::Jpy = [char]0x00A5 }
+        $unitLabel = @{ 0 = ''; 1 = 'month'; 2 = 'user/month' }
+        $rows = [System.Collections.ArrayList]::new()
+        foreach ($p in $rs.BasePlans) {
+            $sym = $currencySymbol[[int]$p.Cost.Currency]; if (-not $sym) { $sym = '' }
+            $unit = $unitLabel[[int]$p.Cost.AmountPer]; if (-not $unit) { $unit = 'month' }
+            $name = $script:MspPlanNames[[int]$p.Id]; if (-not $name) { $name = "Plan$($p.Id)" }
+            [void]$rows.Add([PSCustomObject]@{ Category = 'Product'; Name = $name; Code = $p.Id; Price = "$sym$($p.Cost.Amount)/$unit" })
+        }
+        foreach ($p in $rs.Addons) {
+            $sym = $currencySymbol[[int]$p.Cost.Currency]; if (-not $sym) { $sym = '' }
+            $unit = $unitLabel[[int]$p.Cost.AmountPer]; if (-not $unit) { $unit = 'month' }
+            $name = $addonNameById[$p.Id]; if (-not $name) { $name = "Addon$($p.Id)" }
+            [void]$rows.Add([PSCustomObject]@{ Category = 'Addon'; Name = $name; Code = $p.Id; Price = "$sym$($p.Cost.Amount)/$unit" })
+        }
+        foreach ($p in $rs.FilePlans) {
+            $sym = $currencySymbol[[int]$p.Cost.Currency]; if (-not $sym) { $sym = '' }
+            $unit = $unitLabel[[int]$p.Cost.AmountPer]; if (-not $unit) { $unit = 'month' }
+            $name = $filePlanNameById[$p.Id]; if (-not $name) { $name = "FilePlan$($p.Id)" }
+            [void]$rows.Add([PSCustomObject]@{ Category = 'File Plan'; Name = $name; Code = $p.Id; Price = "$sym$($p.Cost.Amount)/$unit" })
+        }
+        $result = @($rows)
+        if ($Output) {
+            if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 3) -Encoding utf8 }
+            elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+            else { $result | Format-Table | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8 }
+        } else {
+            if ($Format -eq 'table') { $result | Format-Table | Out-String -Width 8192 } else { $result }
+        }
+        return
+    }
+
     $list = $enterprise.mspData.ManagedCompanies
-    if ($Filter) {
+    if (-not $list -or $list.Count -eq 0) {
+        if ($Detailed) { Write-Information 'No Managed Companies' }
+        return @()
+    }
+
+    if ($ManagedCompany) {
+        $mcInput = $ManagedCompany.Trim()
+        $isId = $false
+        try { [long]::Parse($mcInput) | Out-Null; $isId = $true } catch { }
+        $filtered = if ($isId) {
+            @($list) | Where-Object { $_.EnterpriseId -eq [long]$mcInput }
+        } else {
+            @($list) | Where-Object { $_.EnterpriseName -and ($_.EnterpriseName.Trim().ToLower() -eq $mcInput.ToLower()) }
+        }
+        if (-not $filtered -or $filtered.Count -eq 0) {
+            Write-Error "Managed Company `"$ManagedCompany`" not found" -ErrorAction Stop
+        }
+        $list = @($filtered)
+    } elseif ($Filter) {
         $filterStr = $Filter.Trim()
         $list = @($list) | Where-Object {
             $_.EnterpriseId.ToString() -eq $filterStr -or
             ($_.EnterpriseName -and ($_.EnterpriseName -like '*' + $filterStr + '*'))
         }
     }
-    $list | ForEach-Object {
-        $mc = $_
-        $addonsStr = ''
-        if ($mc.AddOns -and $mc.AddOns.Count -gt 0) {
-            $addonsStr = ($mc.AddOns | ForEach-Object { $_.Name }) -join ', '
+
+    if ($Detailed) {
+        $list = @($list | Sort-Object { $_.EnterpriseName })
+        $planDisplay = @{ 'business' = 'Business'; 'businessplus' = 'Business Plus'; 'enterprise' = 'Enterprise'; 'enterprise_plus' = 'Enterprise Plus' }
+        $filePlanMap = @{ '100gb' = '100GB'; '1tb' = '1TB'; '10tb' = '10TB'; 'storage_100gb' = '100GB'; 'storage_1tb' = '1TB'; 'storage_10tb' = '10TB' }
+        $result = [System.Collections.ArrayList]::new()
+        foreach ($mc in $list) {
+            $nodeId = if ($mc.ParentNodeId -le 0) { $ed.RootNode.Id } else { $mc.ParentNodeId }
+            $nodePath = Get-MspNodePath -EnterpriseData $ed -NodeId $nodeId -OmitRoot $true
+            if ([string]::IsNullOrEmpty($nodePath)) { $nodePath = $nodeId.ToString() }
+            $nodeName = $nodePath
+            $filePlan = $mc.FilePlanType
+            if ($filePlan) { $fp = $filePlanMap[[string]$filePlan.ToLower()]; if ($fp) { $filePlan = $fp } }
+            $addonList = [System.Collections.Generic.List[string]]::new()
+            if ($mc.AddOns) {
+                foreach ($ao in $mc.AddOns) {
+                    $an = $ao.Name
+                    if ($ao.Seats -and [int]$ao.Seats -gt 0) {
+                        $s = $ao.Seats; if ($s -eq 2147483647) { $s = -1 }
+                        $addonList.Add("${an}:$s")
+                    } else {
+                        $addonList.Add($an)
+                    }
+                }
+            }
+            $addonsOut = $addonList -join ', '
+            $plan = $mc.ProductId
+            if ($plan) { $pd = $planDisplay[[string]$plan.ToLower()]; if ($pd) { $plan = $pd } }
+            $seats = $mc.NumberOfSeats
+            if ($seats -gt 2000000) { $seats = $null }
+            $row = [ordered]@{
+                company_id   = $mc.EnterpriseId
+                company_name = $mc.EnterpriseName
+                node         = $nodePath
+                node_name    = $nodeName
+                plan         = $plan
+                storage      = $filePlan
+                addons       = $addonsOut
+                allocated    = $seats
+                active       = $mc.NumberOfUsers
+            }
+            [void]$result.Add([PSCustomObject]$row)
         }
-        $nodeName = $mc.ParentNodeId
-        $node = $enterprise.enterpriseData.Nodes | Where-Object { $_.Id -eq $mc.ParentNodeId } | Select-Object -First 1
-        if ($node) {
-            $nodeName = if ([string]::IsNullOrEmpty($node.DisplayName)) { $node.Id.ToString() } else { $node.DisplayName }
-        }
-        [PSCustomObject]@{
-            EnterpriseId   = $mc.EnterpriseId
-            EnterpriseName = $mc.EnterpriseName
-            ProductId      = $mc.ProductId
-            NumberOfSeats  = $mc.NumberOfSeats
-            NumberOfUsers  = $mc.NumberOfUsers
-            FilePlanType   = $mc.FilePlanType
-            IsExpired      = $mc.IsExpired
-            ParentNodeId   = $mc.ParentNodeId
-            NodeName       = $nodeName
-            Addons         = $addonsStr
-        }
+        $result = @($result)
+    } else {
+        $result = @($list | ForEach-Object {
+            $mc = $_
+            $addonsStr = ''
+            if ($mc.AddOns -and $mc.AddOns.Count -gt 0) {
+                $addonsStr = ($mc.AddOns | ForEach-Object { $_.Name }) -join ', '
+            }
+            $nodeName = $mc.ParentNodeId
+            $node = $ed.Nodes | Where-Object { $_.Id -eq $mc.ParentNodeId } | Select-Object -First 1
+            if ($node) {
+                $nodeName = if ([string]::IsNullOrEmpty($node.DisplayName)) { $node.Id.ToString() } else { $node.DisplayName }
+            }
+            [PSCustomObject]@{
+                EnterpriseId   = $mc.EnterpriseId
+                EnterpriseName = $mc.EnterpriseName
+                ProductId      = $mc.ProductId
+                NumberOfSeats  = $mc.NumberOfSeats
+                NumberOfUsers  = $mc.NumberOfUsers
+                FilePlanType   = $mc.FilePlanType
+                IsExpired      = $mc.IsExpired
+                ParentNodeId   = $mc.ParentNodeId
+                NodeName       = $nodeName
+                Addons         = $addonsStr
+            }
+        })
+    }
+
+    if ($result.Count -eq 0) { return @() }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 4) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $result | Format-Table | Out-String -Width 8192 } else { $result }
     }
 }
 New-Alias -Name kmc -Value Get-KeeperManagedCompany
@@ -219,49 +394,56 @@ New-Alias -Name krmc -Value Remove-KeeperManagedCompany
 
 function Edit-KeeperManagedCompany {
     <#
-        .Synopsis
-    	Removes Managed Company
-    	.Parameter Name
-	    Managed Company New Name
-    	.Parameter PlanId
-	    Managed Company Plan
-    	.Parameter MaximumSeats
-	    Maximum Number of Seats
-        .Parameter Storage
-        Storage Plan
-        .Parameter Addons
-        Addons
-        .Parameter Node
-        Node Name or ID
-    	.Parameter Id
-	    Managed Company Name or Id
+    .SYNOPSIS
+    Update a Managed Company.
+    .DESCRIPTION
+    Modify MC name, plan, seats, storage, node, or addons. Use -AddAddon / -RemoveAddon to add/remove individual addons, or -Addons to set the full addon list. -MaximumSeats -1 = unlimited.
+    .PARAMETER Id
+    Managed Company name or ID (required).
+    .PARAMETER Name
+    New managed company name.
+    .PARAMETER PlanId
+    License plan: business, businessPlus, enterprise, enterprisePlus.
+    .PARAMETER MaximumSeats
+    Max licenses; use -1 for unlimited.
+    .PARAMETER Storage
+    File storage plan: 100GB, 1TB, 10TB.
+    .PARAMETER Node
+    Node name or ID to move the MC to.
+    .PARAMETER Addons
+    Full addon list (replaces existing). Each item: AddonName or AddonName:Seats (e.g. connection_manager:5).
+    .PARAMETER AddAddon
+    Add (or update) addon(s); can repeat. Format: AddonName or AddonName:Seats.
+    .PARAMETER RemoveAddon
+    Remove addon(s); can repeat.
+    .EXAMPLE
+    Edit-KeeperManagedCompany -Id "Acme" -Name "Acme Corp" -MaximumSeats 100
+    Edit-KeeperManagedCompany -Id 3862 -AddAddon "connection_manager:5" -RemoveAddon "secrets_manager"
     #>
     [CmdletBinding()]
     Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Id,
         [Parameter(Mandatory = $false)][string] $Name,
         [Parameter(Mandatory = $false)][ValidateSet('business', 'businessPlus', 'enterprise', 'enterprisePlus')][string] $PlanId,
-        [Parameter(Mandatory = $false)][int] $MaximumSeats,
+        [Parameter(Mandatory = $false)][int] $MaximumSeats = [int]::MinValue,
         [Parameter(Mandatory = $false)][ValidateSet('100GB', '1TB', '10TB')][string] $Storage,
-        [Parameter(Mandatory = $false)][string[]] $Addons,
         [Parameter(Mandatory = $false)][string] $Node,
-        [Parameter(Position = 0, Mandatory = $true)][string] $Id
+        [Parameter(Mandatory = $false)][string[]] $Addons,
+        [Parameter(Mandatory = $false)][string[]] $AddAddon,
+        [Parameter(Mandatory = $false)][string[]] $RemoveAddon
     )
 
     [Enterprise]$enterprise = getMspEnterprise
     $mc = findManagedCompany $Id
     if (-not $mc) {
-        Write-Error -Message "Managed Company ${Id} not found" -ErrorAction Stop
+        Write-Error -Message "Managed Company `"$Id`" not found" -ErrorAction Stop
     }
 
     $options = New-Object KeeperSecurity.Enterprise.ManagedCompanyOptions
-    if ($Name) {
-        $options.Name = $Name
-    }
-    if ($PlanId) {
-        $options.ProductId = $PlanId
-    }
-    if ($MaximumSeats) {
-        $options.NumberOfSeats = $MaximumSeats
+    if ($Name) { $options.Name = $Name }
+    if ($PlanId) { $options.ProductId = $PlanId }
+    if ($MaximumSeats -ne [int]::MinValue) {
+        $options.NumberOfSeats = if ($MaximumSeats -eq -1) { 2147483647 } else { $MaximumSeats }
     }
     if ($Storage) {
         switch ($Storage.Trim().ToUpper()) {
@@ -270,53 +452,124 @@ function Edit-KeeperManagedCompany {
             '10TB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan10TB }
         }
     }
-    if ($Addons) {
-        $aons = @()
-        foreach ($addon in $Addons) {
-            $names = $addon -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-            foreach ($name in $names) {
-                $parts = $name -split ':'
-                $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
-                $addonOption.Addon = $parts[0].Trim()
-                if ($parts.Length -gt 1) {
-                    $addonOption.NumberOfSeats = $parts[1].Trim() -as [int]
-                }
-                $aons += $addonOption
-            }
-        }
-        $options.Addons = $aons
-    }
     if ($Node) {
         $n = findEnterpriseNode $Node
-        if ($n) {
-            $options.NodeId = $n.Id
-        }
-        else {
-            Write-Error -Message "Node ${Node} not found" -ErrorAction Stop
-        }
+        if ($n) { $options.NodeId = $n.Id }
+        else { Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop }
     }
+
+    $addonsToSend = $null
+    if ($Addons) {
+        $addonsToSend = [System.Collections.ArrayList]::new()
+        foreach ($addon in $Addons) {
+            foreach ($item in ($addon -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+                $parts = $item -split ':', 2
+                $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
+                $addonOption.Addon = $parts[0].Trim().ToLower()
+                if ($parts.Length -gt 1 -and $parts[1]) {
+                    $s = $parts[1].Trim()
+                    $addonOption.NumberOfSeats = if ($s -eq '-1') { 2147483647 } else { [int]$s }
+                }
+                [void]$addonsToSend.Add($addonOption)
+            }
+        }
+    } elseif ($AddAddon -or $RemoveAddon) {
+        $addonDict = [System.Collections.Generic.Dictionary[string, object]]::new([StringComparer]::OrdinalIgnoreCase)
+        if ($mc.AddOns) {
+            foreach ($ao in $mc.AddOns) {
+                if (-not $ao.IsEnabled) { continue }
+                $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
+                $addonOption.Addon = $ao.Name
+                if ($ao.Seats -gt 0) { $addonOption.NumberOfSeats = if ($ao.Seats -eq 2147483647) { 2147483647 } else { $ao.Seats } }
+                $addonDict[$ao.Name] = $addonOption
+            }
+        }
+        foreach ($ra in @($RemoveAddon)) {
+            foreach ($a in ($ra -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+                $addonDict.Remove($a) | Out-Null
+            }
+        }
+        foreach ($aa in @($AddAddon)) {
+            foreach ($item in ($aa -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+                $parts = $item -split ':', 2
+                $addonName = $parts[0].Trim().ToLower()
+                $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
+                $addonOption.Addon = $addonName
+                if ($parts.Length -gt 1 -and $parts[1]) {
+                    $s = $parts[1].Trim()
+                    $addonOption.NumberOfSeats = if ($s -eq '-1') { 2147483647 } else { [int]$s }
+                }
+                $addonDict[$addonName] = $addonOption
+            }
+        }
+        $addonsToSend = [System.Collections.ArrayList]::new()
+        foreach ($v in $addonDict.Values) { [void]$addonsToSend.Add($v) }
+    }
+    if ($addonsToSend -and $addonsToSend.Count -gt 0) {
+        $options.Addons = @($addonsToSend)
+    }
+
     $enterprise.mspData.UpdateManagedCompany($mc.EnterpriseId, $options).GetAwaiter().GetResult()
 }
 New-Alias -Name kemc -Value Edit-KeeperManagedCompany
 Register-ArgumentCompleter -CommandName Edit-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
 
-# Plan id -> display name (aligned with Python Commander constants.MSP_PLANS)
+# Plan id -> display name
 $script:MspPlanNames = @{
     1 = 'business'; 2 = 'businessPlus'; 10 = 'enterprise'; 11 = 'enterprisePlus'
+}
+
+
+# File plan type -> display name
+$script:MspFilePlanNames = @{
+    '100gb' = '100GB'; '1tb' = '1TB'; '10tb' = '10TB'
+}
+
+# Addon code -> short display name
+$script:MspAddonDisplayNames = @{
+    'keeper_endpoint_privilege_manager' = 'KEPM'
+    'remote_browser_isolation' = 'Remote Browser Isolation'
+    'connection_manager' = 'Connection Manager'
+    'enterprise_breach_watch' = 'Breach Watch'
+    'compliance_report' = 'Compliance Report'
+    'enterprise_audit_and_reporting' = 'Audit & Reporting'
+    'msp_service_and_support' = 'MSP Service & Support'
+    'secrets_manager' = 'Secrets Manager'
+    'chat' = 'Chat'
+}
+
+function Script:Get-MspNodePath {
+    param([object]$EnterpriseData, [long]$NodeId, [bool]$OmitRoot = $false)
+    $parts = [System.Collections.Generic.List[string]]::new()
+    $n = $null
+    if (-not $EnterpriseData.TryGetNode($NodeId, [ref]$n)) {
+        return ''
+    }
+    while ($n) {
+        $name = if ($n.ParentNodeId -le 0) { $EnterpriseData.RootNode.DisplayName } else { $n.DisplayName }
+        if ([string]::IsNullOrEmpty($name)) { $name = $n.Id.ToString() }
+        $parts.Insert(0, $name)
+        if ($n.ParentNodeId -le 0) { break }
+        $next = $null
+        if (-not $EnterpriseData.TryGetNode($n.ParentNodeId, [ref]$next)) { break }
+        $n = $next
+    }
+    if ($OmitRoot -and $parts.Count -gt 1) { $parts.RemoveAt(0) }
+    $parts -join ' / '
 }
 
 function Get-MspBillingReport {
     <#
     .Synopsis
-    Generate MSP Consumption Billing Statement (aligned with Python Commander msp-billing-report).
+    Generate MSP Consumption Billing Statement.
     .Parameter Month
     Report month as 1-12 (numeric) or YYYY-MM (e.g. 2022-02). If omitted, previous calendar month is used.
     .Parameter Year
     Report year (e.g. 2022). Used when Month is numeric only.
     .Parameter ShowDate
-    Breakdown report by date (-d).
+    Breakdown report by date.
     .Parameter ShowCompany
-    Breakdown report by managed company (-c).
+    Breakdown report by managed company.
     .Parameter Format
     Output format: table (default), json, or csv.
     .Parameter Output
@@ -589,12 +842,12 @@ function Get-MspBillingReport {
     switch ($Format) {
         'json' { $out = @{ title = $title; rows = $table } | ConvertTo-Json -Depth 5 }
         'csv' { $out = $table | ConvertTo-Csv -NoTypeInformation }
-        'table' { $out = $table | Format-Table -AutoSize }
+        'table' { $out = $table | Format-Table | Out-String -Width 8192 }
     }
 
     if ($Output) {
         if ($Format -eq 'table') {
-            $tableStr = $table | Format-Table -AutoSize | Out-String
+            $tableStr = $table | Format-Table | Out-String -Width 8192
             Set-Content -Path $Output -Value ($title + "`n`n" + $tableStr) -Encoding utf8
         } else {
             Set-Content -Path $Output -Value $out -Encoding utf8
