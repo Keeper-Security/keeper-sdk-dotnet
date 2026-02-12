@@ -2587,7 +2587,12 @@ namespace Commander
 
             if (options.Limit.HasValue)
             {
+                var totalCount = nodes.Count;
                 nodes = nodes.Take(options.Limit.Value).ToList();
+                if (totalCount > options.Limit.Value)
+                {
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} nodes (limit applied)");
+                }
             }
 
             var allColumns = new Dictionary<string, Func<EnterpriseNode, object>>(StringComparer.OrdinalIgnoreCase)
@@ -2621,7 +2626,12 @@ namespace Commander
 
             if (options.Limit.HasValue)
             {
+                var totalCount = users.Count;
                 users = users.Take(options.Limit.Value).ToList();
+                if (totalCount > options.Limit.Value)
+                {
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} users (limit applied)");
+                }
             }
 
             var allColumns = new Dictionary<string, Func<KeeperSecurity.Enterprise.EnterpriseUser, object>>(StringComparer.OrdinalIgnoreCase)
@@ -2658,7 +2668,12 @@ namespace Commander
 
             if (options.Limit.HasValue)
             {
+                var totalCount = teams.Count;
                 teams = teams.Take(options.Limit.Value).ToList();
+                if (totalCount > options.Limit.Value)
+                {
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} teams (limit applied)");
+                }
             }
 
             var allColumns = new Dictionary<string, Func<EnterpriseTeam, object>>(StringComparer.OrdinalIgnoreCase)
@@ -2691,7 +2706,12 @@ namespace Commander
 
             if (options.Limit.HasValue)
             {
+                var totalCount = roles.Count;
                 roles = roles.Take(options.Limit.Value).ToList();
+                if (totalCount > options.Limit.Value)
+                {
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} roles (limit applied)");
+                }
             }
 
             var allColumns = new Dictionary<string, Func<EnterpriseRole, object>>(StringComparer.OrdinalIgnoreCase)
@@ -2901,10 +2921,10 @@ namespace Commander
         private static string GetTeamRestrictions(EnterpriseTeam team)
         {
             var restrictions = new List<string>(3);
-            if (team.RestrictView) restrictions.Add("R");
-            if (team.RestrictEdit) restrictions.Add("W");
-            if (team.RestrictSharing) restrictions.Add("S");
-            return string.Join("", restrictions);
+            if (team.RestrictView) restrictions.Add("RestrictView");
+            if (team.RestrictEdit) restrictions.Add("RestrictEdit");
+            if (team.RestrictSharing) restrictions.Add("RestrictSharing");
+            return string.Join(", ", restrictions);
         }
 
         private static string GetTeamUserNames(IEnterpriseContext context, string teamUid)
