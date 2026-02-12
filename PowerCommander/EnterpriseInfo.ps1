@@ -1,3 +1,25 @@
+function Script:Get-EnterpriseNodeAndDescendantIds {
+    param([object]$enterpriseData, [long]$rootId)
+    if ($rootId -le 0) { return $null }
+    $subnodes = @{}
+    foreach ($n in $enterpriseData.Nodes) {
+        $id = $n.Id
+        if ($n.ParentNodeId -gt 0) {
+            if (-not $subnodes[$n.ParentNodeId]) { $subnodes[$n.ParentNodeId] = [System.Collections.Generic.List[long]]::new() }
+            $subnodes[$n.ParentNodeId].Add($id) | Out-Null
+        }
+    }
+    $set = [System.Collections.Generic.HashSet[long]]::new()
+    $queue = [System.Collections.Generic.Queue[long]]::new()
+    $queue.Enqueue($rootId) | Out-Null
+    while ($queue.Count -gt 0) {
+        $nid = $queue.Dequeue()
+        [void]$set.Add($nid)
+        if ($subnodes[$nid]) { foreach ($c in $subnodes[$nid]) { $queue.Enqueue($c) | Out-Null } }
+    }
+    return $set
+}
+
 function Get-KeeperEnterpriseInfoTree {
     <#
     .SYNOPSIS
@@ -8,14 +30,20 @@ function Get-KeeperEnterpriseInfoTree {
     Limit output to this node and its descendants (node name or ID).
     .PARAMETER Detailed
     Include node IDs and list individual users/roles/teams by name.
+    .PARAMETER Format
+    Output format: table (default), json, csv. Table outputs the tree text.
+    .PARAMETER Output
+    If supplied, write output to this file path.
     .EXAMPLE
     Get-KeeperEnterpriseInfoTree
-    Get-KeeperEnterpriseInfoTree -Node "Sales" -Detailed
+    Get-KeeperEnterpriseInfoTree -Node "Sales" -Detailed -Format table -Output tree.txt
     #>
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Node,
-        [Parameter()][switch] $Detailed
+        [Parameter()][switch] $Detailed,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output
     )
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
@@ -110,7 +138,18 @@ function Get-KeeperEnterpriseInfoTree {
         }
     }
     writeTreeNode -nodeId $rootId -prefix "" -isLastSibling $true
-    $lines -join "`n"
+    $text = $lines -join "`n"
+    $out = $null
+    switch ($Format) {
+        'json' { $out = @{ tree = @($lines) } | ConvertTo-Json -Depth 3 }
+        'csv'  { $out = $text }
+        default { $out = $text }
+    }
+    if ($Output) {
+        Set-Content -Path $Output -Value $out -Encoding utf8
+    } else {
+        $out
+    }
 }
 
 function Get-KeeperEnterpriseInfoNode {
@@ -123,17 +162,29 @@ function Get-KeeperEnterpriseInfoNode {
     Optional search pattern to filter nodes.
     .PARAMETER Columns
     Comma-separated columns: parent_node, user_count, users, team_count, teams, role_count, roles, provisioning. Default: parent_node, user_count, team_count, role_count.
+    .PARAMETER Node
+    Filter by node name or ID: only nodes that are this node or its descendants.
+    .PARAMETER Format
+    Output format: table (default), json, csv.
     .PARAMETER Output
-    Output format: Normal (default), Table, or Json.
+    If supplied, write output to this file path.
+    .PARAMETER Offset
+    Number of rows to skip (for pagination). Default 0.
+    .PARAMETER Limit
+    Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
     .EXAMPLE
     Get-KeeperEnterpriseInfoNode
-    Get-KeeperEnterpriseInfoNode -Columns "parent_node,user_count,users" -Pattern "Sales" -Output Json
+    Get-KeeperEnterpriseInfoNode -Columns "parent_node,user_count,users" -Pattern "Sales" -Node "Sales" -Format json -Output nodes.json -Offset 0 -Limit 50
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0)][string] $Pattern,
         [Parameter()][string] $Columns,
-        [Parameter()][ValidateSet('Table','Json','Normal')][string] $Output = 'Normal'
+        [Parameter()][string] $Node,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][int] $Offset = 0,
+        [Parameter()][int] $Limit = 0
     )
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
@@ -156,6 +207,12 @@ function Get-KeeperEnterpriseInfoNode {
         if (-not $roleList[$r.ParentNodeId]) { $roleList[$r.ParentNodeId] = [System.Collections.Generic.List[string]]::new() }
         $roleList[$r.ParentNodeId].Add($r.DisplayName) | Out-Null
     }
+    $nodeFilterIds = $null
+    if ($Node) {
+        $resolved = resolveSingleNode $Node
+        if (-not $resolved) { Write-Error "Node '$Node' not found"; return }
+        $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
+    }
     $colSet = @('parent_node', 'user_count', 'team_count', 'role_count')
     if ($Columns) {
         $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(parent_node|user_count|users|team_count|teams|role_count|roles|provisioning)$' })
@@ -164,6 +221,7 @@ function Get-KeeperEnterpriseInfoNode {
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($n in ($ed.Nodes | Sort-Object { $_.DisplayName })) {
+        if ($nodeFilterIds -and -not $nodeFilterIds.Contains($n.Id)) { continue }
         $row = [ordered]@{ NodeId = $n.Id; Name = $n.DisplayName }
         foreach ($c in $colSet) {
             switch ($c) {
@@ -183,10 +241,16 @@ function Get-KeeperEnterpriseInfoNode {
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
-    switch ($Output) {
-        'Json'   { $out | ConvertTo-Json -Depth 5 }
-        'Table'  { if ($PSCmdlet.MyInvocation.PipelineLength -eq 1) { $out | Format-Table -AutoSize } else { $out } }
-        'Normal' { $out }
+    $result = @($out | Sort-Object { $_.Name })
+    if ($Offset -gt 0) { $result = @($result | Select-Object -Skip $Offset) }
+    if ($Limit -gt 0) { $result = @($result | Select-Object -First $Limit) }
+    if ($Format -eq 'table') { $disp = $result | Format-Table -AutoSize } else { $disp = $result }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $disp } else { $disp }
     }
 }
 
@@ -200,17 +264,29 @@ function Get-KeeperEnterpriseInfoUser {
     Optional search pattern to filter users.
     .PARAMETER Columns
     Comma-separated columns: name, status, transfer_status, node, role_count, roles, team_count, teams, queued_team_count, queued_teams, alias, 2fa_enabled. Default: name, status, transfer_status, node.
+    .PARAMETER Node
+    Filter by node name or ID: only users in this node or its descendants.
+    .PARAMETER Format
+    Output format: table (default), json, csv.
     .PARAMETER Output
-    Output format: Normal (default), Table, or Json.
+    If supplied, write output to this file path.
+    .PARAMETER Offset
+    Number of rows to skip (for pagination). Default 0.
+    .PARAMETER Limit
+    Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
     .EXAMPLE
     Get-KeeperEnterpriseInfoUser
-    Get-KeeperEnterpriseInfoUser -Columns "name,status,node,roles" -Pattern "admin" -Output Json
+    Get-KeeperEnterpriseInfoUser -Columns "name,status,node,roles" -Pattern "admin" -Node "Sales" -Format json -Output users.json -Offset 0 -Limit 100
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0)][string] $Pattern,
         [Parameter()][string] $Columns,
-        [Parameter()][ValidateSet('Table','Json','Normal')][string] $Output = 'Normal'
+        [Parameter()][string] $Node,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][int] $Offset = 0,
+        [Parameter()][int] $Limit = 0
     )
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
@@ -234,11 +310,18 @@ function Get-KeeperEnterpriseInfoUser {
         $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(name|status|transfer_status|node|role_count|roles|team_count|teams|queued_team_count|queued_teams|alias|2fa_enabled)$' })
         if ($colSet.Count -eq 0) { $colSet = @('name', 'status', 'transfer_status', 'node') }
     }
+    $nodeFilterIds = $null
+    if ($Node) {
+        $resolved = resolveSingleNode $Node
+        $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
+    }
     $statusText = { param($s) switch ($s) { 'Active' { 'Active' } 'Inactive' { 'Invited' } 'Locked' { 'Locked' } 'Blocked' { 'Blocked' } 'Disabled' { 'Disabled' } default { $s } } }
     $transferText = { param($s) switch ([int]$s) { 0 { 'Undefined' } 1 { 'Not required' } 2 { 'Pending transfer' } 3 { 'Partially accepted' } 4 { 'Transfer accepted' } default { $s } } }
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($u in ($ed.Users | Sort-Object { $_.Email })) {
+        $nid = if ($u.ParentNodeId -le 0) { $ed.RootNode.Id } else { $u.ParentNodeId }
+        if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $row = [ordered]@{ UserId = $u.Id; Email = $u.Email }
         foreach ($c in $colSet) {
             switch ($c) {
@@ -262,10 +345,15 @@ function Get-KeeperEnterpriseInfoUser {
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
-    switch ($Output) {
-        'Json'   { $out | ConvertTo-Json -Depth 5 }
-        'Table'  { if ($PSCmdlet.MyInvocation.PipelineLength -eq 1) { $out | Format-Table -AutoSize } else { $out } }
-        'Normal' { $out }
+    $result = @($out | Sort-Object { $_.Email })
+    if ($Offset -gt 0) { $result = @($result | Select-Object -Skip $Offset) }
+    if ($Limit -gt 0) { $result = @($result | Select-Object -First $Limit) }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $result | Format-Table -AutoSize } else { $result }
     }
 }
 
@@ -279,17 +367,30 @@ function Get-KeeperEnterpriseInfoTeam {
     Optional search pattern to filter teams.
     .PARAMETER Columns
     Comma-separated columns: restricts, node, user_count, users, queued_user_count, queued_users, role_count, roles. Default: restricts, node, user_count.
+    .PARAMETER Node
+    Filter by node name or ID: only teams in this node or its descendants.
+    .PARAMETER Format
+    Output format: table (default), json, csv.
     .PARAMETER Output
-    Output format: Normal (default), Table, or Json.
+    If supplied, write output to this file path.
+    .PARAMETER Offset
+    Number of rows to skip (for pagination). Default 0.
+    .PARAMETER Limit
+    Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
     .EXAMPLE
     Get-KeeperEnterpriseInfoTeam
-    Get-KeeperEnterpriseInfoTeam -Columns "restricts,node,user_count,users" -Pattern "Eng" -Output Json
+    Get-KeeperEnterpriseInfoTeam -Columns "restricts,node,user_count,users" -Pattern "Eng" -Node "Engineering" -Format json -Output teams.json -Offset 0 -Limit 50
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0)][string] $Pattern,
         [Parameter()][string] $Columns,
-        [Parameter()][ValidateSet('Table','Json','Normal')][string] $Output = 'Normal'
+        [Parameter()][string] $Node,
+        [Parameter()][switch] $ExactNode,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][int] $Offset = 0,
+        [Parameter()][int] $Limit = 0
     )
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
@@ -307,6 +408,16 @@ function Get-KeeperEnterpriseInfoTeam {
             $rr = $null; if ($rd.TryGetRole($rid, [ref]$rr)) { $roleList[$t.Uid].Add($rr.DisplayName) | Out-Null }
         }
     }
+    $nodeFilterIds = $null
+    if ($Node) {
+        $resolved = resolveSingleNode $Node
+        if ($ExactNode) {
+            $nodeFilterIds = [System.Collections.Generic.HashSet[long]]::new()
+            [void]$nodeFilterIds.Add($resolved.Id)
+        } else {
+            $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
+        }
+    }
     $colSet = @('restricts', 'node', 'user_count')
     if ($Columns) {
         $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(restricts|node|user_count|users|queued_user_count|queued_users|role_count|roles)$' })
@@ -315,6 +426,8 @@ function Get-KeeperEnterpriseInfoTeam {
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($t in ($ed.Teams | Sort-Object { $_.Name })) {
+        $nid = if ($t.ParentNodeId -eq 0) { $ed.RootNode.Id } else { $t.ParentNodeId }
+        if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $restrictParts = @()
         if ($t.RestrictView) { $restrictParts += 'Read' }
         if ($t.RestrictEdit) { $restrictParts += 'Write' }
@@ -339,10 +452,15 @@ function Get-KeeperEnterpriseInfoTeam {
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
-    switch ($Output) {
-        'Json'   { $out | ConvertTo-Json -Depth 5 }
-        'Table'  { if ($PSCmdlet.MyInvocation.PipelineLength -eq 1) { $out | Format-Table -AutoSize } else { $out } }
-        'Normal' { $out }
+    $result = @($out | Sort-Object { $_.Name })
+    if ($Offset -gt 0) { $result = @($result | Select-Object -Skip $Offset) }
+    if ($Limit -gt 0) { $result = @($result | Select-Object -First $Limit) }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $result | Format-Table -AutoSize } else { $result }
     }
 }
 
@@ -356,17 +474,30 @@ function Get-KeeperEnterpriseInfoRole {
     Optional search pattern to filter roles.
     .PARAMETER Columns
     Comma-separated columns: visible_below, default_role, admin, node, user_count, users, team_count, teams. Default: default_role, admin, node, user_count.
+    .PARAMETER Node
+    Filter by node name or ID: only roles in this node or its descendants.
+    .PARAMETER Format
+    Output format: table (default), json, csv.
     .PARAMETER Output
-    Output format: Normal (default), Table, or Json.
+    If supplied, write output to this file path.
+    .PARAMETER Offset
+    Number of rows to skip (for pagination). Default 0.
+    .PARAMETER Limit
+    Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
     .EXAMPLE
     Get-KeeperEnterpriseInfoRole
-    Get-KeeperEnterpriseInfoRole -Columns "visible_below,node,user_count,users" -Pattern "Admin" -Output Json
+    Get-KeeperEnterpriseInfoRole -Columns "visible_below,node,user_count,users" -Pattern "Admin" -Node "Sales" -Format json -Output roles.json -Offset 0 -Limit 50
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0)][string] $Pattern,
         [Parameter()][string] $Columns,
-        [Parameter()][ValidateSet('Table','Json','Normal')][string] $Output = 'Normal'
+        [Parameter()][string] $Node,
+        [Parameter()][switch] $ExactNode,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][int] $Offset = 0,
+        [Parameter()][int] $Limit = 0
     )
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
@@ -384,6 +515,16 @@ function Get-KeeperEnterpriseInfoRole {
             $tt = $null; if ($ed.TryGetTeam($tuid, [ref]$tt)) { $teamList[$r.Id].Add($tt.Name) | Out-Null }
         }
     }
+    $nodeFilterIds = $null
+    if ($Node) {
+        $resolved = resolveSingleNode $Node
+        if ($ExactNode) {
+            $nodeFilterIds = [System.Collections.Generic.HashSet[long]]::new()
+            [void]$nodeFilterIds.Add($resolved.Id)
+        } else {
+            $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
+        }
+    }
     $managedNodes = @($rd.GetManagedNodes())
     $adminRoleIds = [System.Collections.Generic.HashSet[long]]::new()
     foreach ($mn in $managedNodes) { [void]$adminRoleIds.Add($mn.RoleId) }
@@ -395,6 +536,8 @@ function Get-KeeperEnterpriseInfoRole {
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($r in ($rd.Roles | Sort-Object { $_.DisplayName })) {
+        $nid = if ($r.ParentNodeId -le 0) { $ed.RootNode.Id } else { $r.ParentNodeId }
+        if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $row = [ordered]@{ RoleId = $r.Id; Name = $r.DisplayName }
         foreach ($c in $colSet) {
             switch ($c) {
@@ -414,10 +557,15 @@ function Get-KeeperEnterpriseInfoRole {
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
-    switch ($Output) {
-        'Json'   { $out | ConvertTo-Json -Depth 5 }
-        'Table'  { if ($PSCmdlet.MyInvocation.PipelineLength -eq 1) { $out | Format-Table -AutoSize } else { $out } }
-        'Normal' { $out }
+    $result = @($out | Sort-Object { $_.Name })
+    if ($Offset -gt 0) { $result = @($result | Select-Object -Skip $Offset) }
+    if ($Limit -gt 0) { $result = @($result | Select-Object -First $Limit) }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $result | Format-Table -AutoSize } else { $result }
     }
 }
 
@@ -429,24 +577,52 @@ function Get-KeeperEnterpriseInfoManagedCompany {
     Outputs managed company information. Available when logged in as MSP.
     .PARAMETER Pattern
     Optional search pattern to filter companies.
+    .PARAMETER Node
+    Filter by node name or ID: only managed companies in this node or its descendants.
+    .PARAMETER ExactNode
+    If set, -Node filters to that node only (exclude descendants).
+    .PARAMETER Format
+    Output format: table (default), json, csv.
     .PARAMETER Output
-    Output format: Normal (default), Table, or Json.
+    If supplied, write output to this file path.
+    .PARAMETER Offset
+    Number of rows to skip (for pagination). Default 0.
+    .PARAMETER Limit
+    Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
     .EXAMPLE
     Get-KeeperEnterpriseInfoManagedCompany
-    Get-KeeperEnterpriseInfoManagedCompany -Output Json
+    Get-KeeperEnterpriseInfoManagedCompany -Format json -Output mcs.json -Offset 0 -Limit 20
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0)][string] $Pattern,
-        [Parameter()][ValidateSet('Table','Json','Normal')][string] $Output = 'Normal'
+        [Parameter()][string] $Node,
+        [Parameter()][switch] $ExactNode,
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][int] $Offset = 0,
+        [Parameter()][int] $Limit = 0
     )
     $enterprise = getMspEnterprise
+    $ed = $enterprise.enterpriseData
     $mcs = $enterprise.mspData.ManagedCompanies
     if (-not $mcs) { return @() }
+    $nodeFilterIds = $null
+    if ($Node) {
+        $resolved = resolveSingleNode $Node
+        if ($ExactNode) {
+            $nodeFilterIds = [System.Collections.Generic.HashSet[long]]::new()
+            [void]$nodeFilterIds.Add($resolved.Id)
+        } else {
+            $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
+        }
+    }
     $planName = { param($planId) switch ($planId) { 'enterprise' { 'Enterprise' } 'enterprise_plus' { 'Enterprise Plus' } 'business' { 'Business' } 'businessPlus' { 'Business Plus' } default { $planId } } }
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($mc in ($mcs | Sort-Object { $_.EnterpriseName })) {
+        $nid = if ($mc.ParentNodeId -le 0) { $ed.RootNode.Id } else { $mc.ParentNodeId }
+        if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $storage = if ($mc.FilePlanType) { $mc.FilePlanType } else { '' }
         $addons = if ($mc.AddOns) { $mc.AddOns.Count } else { 0 }
         $allocated = $mc.NumberOfSeats; if ($allocated -eq 2147483647) { $allocated = $null }
@@ -467,10 +643,15 @@ function Get-KeeperEnterpriseInfoManagedCompany {
         }
         $out.Add($row) | Out-Null
     }
-    switch ($Output) {
-        'Json'   { $out | ConvertTo-Json -Depth 5 }
-        'Table'  { if ($PSCmdlet.MyInvocation.PipelineLength -eq 1) { $out | Format-Table -AutoSize } else { $out } }
-        'Normal' { $out }
+    $result = @($out | Sort-Object { $_.CompanyName })
+    if ($Offset -gt 0) { $result = @($result | Select-Object -Skip $Offset) }
+    if ($Limit -gt 0) { $result = @($result | Select-Object -First $Limit) }
+    if ($Output) {
+        if ($Format -eq 'json') { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+        elseif ($Format -eq 'csv') { Set-Content -Path $Output -Value ($result | ConvertTo-Csv -NoTypeInformation) -Encoding utf8 }
+        else { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+    } else {
+        if ($Format -eq 'table') { $result | Format-Table -AutoSize } else { $result }
     }
 }
 

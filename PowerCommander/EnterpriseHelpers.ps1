@@ -306,7 +306,7 @@ function Get-KeeperNodePath {
         if (-not $ed.TryGetNode($current.ParentNodeId, [ref]$parent)) { break }
         $current = $parent
     }
-    if ($OmitRoot -and $parts.Count -gt 0) {
+    if ($OmitRoot -and $parts.Count -gt 1) {
         $parts.RemoveAt(0)
     }
     return ($parts -join '\')
