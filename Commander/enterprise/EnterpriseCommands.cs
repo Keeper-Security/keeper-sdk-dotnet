@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -2562,6 +2562,21 @@ namespace Commander
                 UserAliasData = new UserAliasData();
 
                 Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement, UserAliasData });
+
+                Commands.Add("switch-to-msp",
+                    new Cli.SimpleCommand
+                    {
+                        Order = 70,
+                        Description = "Switch context back to MSP",
+                        Action = _ =>
+                        {
+                            if (BackStateCommands != null)
+                                NextStateCommands = BackStateCommands;
+                            return Task.CompletedTask;
+                        },
+                    });
+                Aliases["msp"] = "switch-to-msp";
+
                 Task.Run(async () =>
                 {
                     try
@@ -2666,6 +2681,24 @@ namespace Commander
                                     Description = "Login to managed company",
                                     Action = LoginToManagedCompany,
                                 });
+                            Commands.Add("mc-convert-node",
+                                new ParseableCommand<McConvertNodeOptions>
+                                {
+                                    Order = 76,
+                                    Description = "Convert an enterprise node into a managed company",
+                                    Action = McConvertNode,
+                                });
+                            Aliases["mi"] = "mc-list";
+                            Aliases["md"] = "enterprise-get-data";
+                            Aliases["ma"] = "mc-create";
+                            Aliases["mrm"] = "mc-delete";
+                            Aliases["mu"] = "mc-update";
+                            Aliases["msp-info"] = "mc-list";
+                            Aliases["msp-down"] = "enterprise-get-data";
+                            Aliases["msp-add"] = "mc-create";
+                            Aliases["msp-remove"] = "mc-delete";
+                            Aliases["msp-update"] = "mc-update";
+                            Aliases["msp-convert-node"] = "mc-convert-node";
                         }
                     }
                     catch (Exception e)
@@ -2707,7 +2740,30 @@ namespace Commander
         {
             var mcAuth = new ManagedCompanyAuth();
             await mcAuth.LoginToManagedCompany(Enterprise, options.CompanyId);
-            NextStateCommands = new McEnterpriseContext(mcAuth);
+            var mcContext = new McEnterpriseContext(mcAuth);
+            mcContext.BackStateCommands = this;
+            NextStateCommands = mcContext;
+        }
+
+        private async Task McConvertNode(McConvertNodeOptions options)
+        {
+            var node = EnterpriseData.ResolveNodeName(options.Node);
+            if (node == null)
+            {
+                Console.WriteLine($"Node \"{options.Node}\" not found.");
+                return;
+            }
+            var companyId = options.CompanyId ?? 0;
+            try
+            {
+                var request = new NodeToManagedCompanyRequest { CompanyId = companyId };
+                await _managedCompanies.ConvertNodeToManagedCompanyAsync(request);
+                Console.WriteLine($"Node \"{node.DisplayName}\" (ID: {node.Id}) conversion requested.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Convert node failed: {ex.Message}");
+            }
         }
 
         private Task ListManagedCompanies(string _)
@@ -3149,5 +3205,14 @@ namespace Commander
 
         [Value(0, Required = true, HelpText = "Managed company name or ID")]
         public string Company { get; set; }
+    }
+
+    class McConvertNodeOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = true, HelpText = "Node name or ID to convert to managed company")]
+        public string Node { get; set; }
+
+        [Option("company-id", Required = false, HelpText = "Target managed company ID (0 = create new).")]
+        public int? CompanyId { get; set; }
     }
 }
