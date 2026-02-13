@@ -25,24 +25,21 @@ function Get-KeeperEnterpriseInfoTree {
     .SYNOPSIS
     Display a tree structure of the enterprise (nodes with users, roles, teams).
     .DESCRIPTION
-    Shows hierarchy of nodes with counts or lists of users, roles, and teams per node.
+    Outputs a tree view of the enterprise hierarchy (nodes with users, roles, and teams). Output format is always tree.
     .PARAMETER Node
     Limit output to this node and its descendants (node name or ID).
     .PARAMETER Detailed
     Include node IDs and list individual users/roles/teams by name.
-    .PARAMETER Format
-    Output format: table (default), json, csv. Table outputs the tree text.
     .PARAMETER Output
     If supplied, write output to this file path.
     .EXAMPLE
     Get-KeeperEnterpriseInfoTree
-    Get-KeeperEnterpriseInfoTree -Node "Sales" -Detailed -Format table -Output tree.txt
+    Get-KeeperEnterpriseInfoTree -Node "Sales" -Detailed -Output tree.txt
     #>
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Node,
         [Parameter()][switch] $Detailed,
-        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
         [Parameter()][string] $Output
     )
     $enterprise = getEnterprise
@@ -138,13 +135,7 @@ function Get-KeeperEnterpriseInfoTree {
         }
     }
     writeTreeNode -nodeId $rootId -prefix "" -isLastSibling $true
-    $text = $lines -join "`n"
-    $out = $null
-    switch ($Format) {
-        'json' { $out = @{ tree = @($lines) } | ConvertTo-Json -Depth 3 }
-        'csv'  { $out = $text }
-        default { $out = $text }
-    }
+    $out = $lines -join "`n"
     if ($Output) {
         Set-Content -Path $Output -Value $out -Encoding utf8
     } else {
