@@ -878,7 +878,7 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $fields['password'] = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
+            $fields['password'] = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
         }
 
         foreach ($fieldName in $fields.Keys) {
@@ -1469,7 +1469,7 @@ function Export-KeeperRecordTypes {
 
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        $vault.SyncDown() | Out-Null
+        $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
         if ($null -eq $Source){
             $Source = 'keeper'
         }
@@ -2218,4 +2218,630 @@ function Get-KeeperRecordHistory {
 New-Alias -Name krh -Value Get-KeeperRecordHistory
 
 
+function Get-RecordFields {
+    <#
+    .SYNOPSIS
+    Extract common fields from a Keeper record.
+    #>
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [KeeperSecurity.Vault.KeeperRecord]$Record
+    )
 
+    process {
+        switch ($Record.GetType().Name) {
+            'PasswordRecord' {
+                $customFields = if ($Record.Custom) {
+                    ($Record.Custom | Sort-Object Name | ForEach-Object { "$($_.Name):$($_.Value)" }) -join ";"
+                } else { "" }
+
+                return @{
+                    Login    = $Record.Login
+                    Password = $Record.Password
+                    Url      = $Record.Link
+                    Notes    = $Record.Notes
+                    Custom   = $customFields
+                }
+            }
+            'TypedRecord' {
+                $customFields = if ($Record.Custom) {
+                    ($Record.Custom | Sort-Object FieldName | ForEach-Object { 
+                        "$($_.FieldName):$(if ($_.ObjectValue) { $_.ObjectValue } else { '' })"
+                    }) -join ";"
+                } else { "" }
+
+                return @{
+                    Login    = Get-TypedFieldValue -Record $Record -FieldName "login"
+                    Password = Get-TypedFieldValue -Record $Record -FieldName "password"
+                    Url      = Get-TypedFieldValue -Record $Record -FieldName "url"
+                    Notes    = $Record.Notes
+                    Custom   = $customFields
+                }
+            }
+            default {
+                return @{ Login = $null; Password = $null; Url = $null; Notes = $null; Custom = "" }
+            }
+        }
+    }
+}
+
+function Get-TypedFieldValue {
+    <#
+    .SYNOPSIS
+    Extract a typed field value from a TypedRecord.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord]$Record,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$FieldName
+    )
+
+    $field = $Record.Fields | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    if (-not $field) {
+        $field = $Record.Custom | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    }
+    if (-not $field -or -not $field.ObjectValue) { return $null }
+
+    $value = $field.ObjectValue
+    if ($value -is [string]) { return $value }
+    if ($value -is [System.Collections.IEnumerable]) {
+        return ($value | ForEach-Object { $_.ToString() }) -join ","
+    }
+    return $value.ToString()
+}
+
+function Get-ShareHashString {
+    <#
+    .SYNOPSIS
+    Build a hash string from share permissions.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        $ShareInfo,
+        
+        [switch]$IncludePermissions
+    )
+
+    $parts = [System.Collections.ArrayList]::new()
+
+    if ($ShareInfo.UserPermissions) {
+        foreach ($user in ($ShareInfo.UserPermissions | Sort-Object Username)) {
+            if ($IncludePermissions) {
+                $permText = if ($user.CanEdit -and $user.CanShare) {
+                    "Can Edit & Share"
+                } elseif ($user.CanEdit) {
+                    "Can Edit"
+                } elseif ($user.CanShare) {
+                    "Can Share"
+                } else {
+                    "Read Only"
+                }
+                [void]$parts.Add("$($user.Username)=$permText")
+            } else {
+                [void]$parts.Add("$($user.Username)")
+            }
+        }
+    }
+
+    if ($IncludePermissions -and $ShareInfo.SharedFolderPermissions) {
+        foreach ($sf in ($ShareInfo.SharedFolderPermissions | Sort-Object SharedFolderUid)) {
+            $permText = if ($sf.CanEdit -and $sf.CanShare) {
+                "Can Edit & Share"
+            } elseif ($sf.CanEdit) {
+                "Can Edit"
+            } elseif ($sf.CanShare) {
+                "Can Share"
+            } else {
+                "Read Only"
+            }
+            [void]$parts.Add("sf:$($sf.SharedFolderUid)=$permText")
+        }
+    }
+
+    return $parts -join ";"
+}
+
+function Find-KeeperDuplicateRecords {
+    <#
+    .SYNOPSIS
+    Find duplicate records in Keeper vault.
+
+    .DESCRIPTION
+    Locates duplicate records in the vault based on one or more record fields.
+    Uses SHA256 hashing to efficiently group records with matching field values.
+
+    .PARAMETER Title
+    Match duplicates by title field.
+
+    .PARAMETER Login
+    Match duplicates by login field.
+
+    .PARAMETER Password
+    Match duplicates by password field.
+
+    .PARAMETER Url
+    Match duplicates by URL field.
+
+    .PARAMETER Shares
+    Match duplicates by share permissions.
+
+    .PARAMETER Full
+    Match duplicates by all fields (title, login, password, url, notes, custom fields, shares).
+
+    .PARAMETER Merge
+    Consolidate duplicate records by removing duplicates (keeps first record in each group).
+
+    .PARAMETER Force
+    Delete duplicates without confirmation (valid only with -Merge).
+
+    .PARAMETER DryRun
+    Simulate removing duplicates without actually removing them (valid only with -Merge).
+
+    .PARAMETER Quiet
+    Suppress screen output (valid only with -Force flag; since -Force requires -Merge, effectively requires both).
+
+    .PARAMETER IgnoreSharesOnMerge
+    Ignore share-permissions when matching duplicate records for merging.
+
+    .PARAMETER Scope
+    Define the scope of the search (vault or enterprise). Default is vault.
+    Enterprise scope available only to enterprise account administrators with compliance data-access privileges.
+
+    .PARAMETER RefreshData
+    Populate local cache with latest audit data. Valid only when used with -Scope enterprise.
+
+    .PARAMETER Format
+    Choose the format of the output (table, csv, json). Default is table.
+
+    .PARAMETER Output
+    Export search results to a file.
+
+    .OUTPUTS
+    PSCustomObject[] - Array of duplicate record information when not using -Merge.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Title
+    Find all records with duplicate titles.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Login -Password
+    Find records with matching login AND password.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full | Export-Csv duplicates.csv
+    Export duplicate records to CSV.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Merge -DryRun
+    Simulate merging duplicate records.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Merge -Force -Quiet
+    Silently remove duplicate records without confirmation.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Merge -IgnoreSharesOnMerge
+    Merge duplicates while ignoring share permissions when matching.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Format csv -Output duplicates.csv
+    Export duplicate records to a CSV file.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Login -Password -Format json
+    Find duplicates and output as JSON.
+    #>
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    param(
+        [switch]$Title,
+        [switch]$Login,
+        [switch]$Password,
+        [switch]$Url,
+        [switch]$Shares,
+        [switch]$Full,
+        [switch]$Merge,
+        [switch]$Force,
+        [switch]$DryRun,
+        [switch]$Quiet,
+        [switch]$IgnoreSharesOnMerge,
+        
+        [ValidateSet('vault', 'enterprise')]
+        [string]$Scope = 'vault',
+        
+        [switch]$RefreshData,
+        
+        [ValidateSet('table', 'csv', 'json')]
+        [string]$Format = 'table',
+        
+        [string]$Output
+    )
+
+    if ($Force -and -not $Merge) {
+        Write-Warning "-Force is only valid with -Merge. Ignoring -Force."
+        $Force = $false
+    }
+    
+    if ($DryRun -and -not $Merge) {
+        Write-Warning "-DryRun is only valid with -Merge. Ignoring -DryRun."
+        $DryRun = $false
+    }
+    
+    if ($Quiet -and -not $Force) {
+        Write-Warning "-Quiet is only valid with -Force flag. Ignoring -Quiet."
+        $Quiet = $false
+    }
+    
+    if ($RefreshData -and $Scope -ne 'enterprise') {
+        Write-Warning "-RefreshData is only valid with -Scope enterprise. Ignoring -RefreshData."
+        $RefreshData = $false
+    }
+    
+    if ($IgnoreSharesOnMerge -and -not $Merge) {
+        Write-Warning "-IgnoreSharesOnMerge is only valid with -Merge. Ignoring -IgnoreSharesOnMerge."
+        $IgnoreSharesOnMerge = $false
+    }
+
+    if ($Quiet -and $DryRun) {
+        Write-Warning "-Quiet is only valid with -Force flag. Ignoring -Quiet."
+        $Quiet = $false
+    }
+
+    if ($Scope -eq 'enterprise') {
+        throw "Enterprise Scope is not yet supported in Powershell. Use -Scope vault"
+    }
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = $null
+    try {
+        $vault = getVault
+    }
+    catch {
+        Write-Error "Failed to get vault. Please ensure you are connected." -ErrorAction Stop
+    }
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please run Connect-Keeper first." -ErrorAction Stop
+    }
+
+    $useDefault = -not $Title -and -not $Login -and -not $Password -and -not $Url -and -not $Full
+    if ($Merge) { $Full = $true }
+
+    $compareFields = if ($Full) {
+        [System.Collections.ArrayList]@("All Fields")
+    } else {
+        $fields = [System.Collections.ArrayList]::new()
+        if ($Title -or $useDefault) { [void]$fields.Add("Title") }
+        if ($Login -or $useDefault) { [void]$fields.Add("Login") }
+        if ($Password -or $useDefault) { [void]$fields.Add("Password") }
+        if ($Url) { [void]$fields.Add("URL") }
+        if ($Shares) { [void]$fields.Add("Shares") }
+        $fields
+    }
+
+    if (-not $Quiet) {
+        $compareMessage = "Find duplicated records by: $($compareFields -join ', ')"
+        if ($Merge -and $IgnoreSharesOnMerge) {
+            $compareMessage += " (ignoring shares for merge)"
+        }
+        Write-Host $compareMessage
+        Write-Host ""
+    }
+
+    $shareInfoMap = @{}
+    try {
+        $recordUidsList = [System.Collections.Generic.List[string]]::new()
+        foreach ($rec in $vault.KeeperRecords) {
+            $recordUidsList.Add($rec.Uid)
+        }
+        if ($recordUidsList.Count -gt 0) {
+            $sharesList = $vault.GetSharesForRecords($recordUidsList).GetAwaiter().GetResult()
+            foreach ($share in $sharesList) {
+                $shareInfoMap[$share.RecordUid] = $share
+            }
+        }
+    }
+    catch {
+        if (-not $Quiet) {
+            Write-Warning "Could not load share information: $($_.Exception.Message)"
+        }
+    }
+
+    $hashMap = @{}
+    $recordFieldsCache = @{}
+    $sha256 = $null
+    
+    $hashParts = [System.Collections.Generic.List[string]]::new(10)
+
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+
+        foreach ($record in $vault.KeeperRecords) {
+            if ($record.Version -notin @(2, 3)) {
+                continue
+            }
+            
+            $fields = Get-RecordFields -Record $record
+            $recordFieldsCache[$record.Uid] = $fields
+
+            $hashParts.Clear()
+            $shareInfo = $null
+
+            if ($Full) {
+                $hashParts.Add($(if ($record.Title) { $record.Title.ToLower() } else { "" }))
+                $hashParts.Add($(if ($fields.Login) { $fields.Login.ToLower() } else { "" }))
+                $hashParts.Add($(if ($fields.Password) { $fields.Password } else { "" }))
+                $hashParts.Add($(if ($fields.Url) { $fields.Url } else { "" }))
+                
+                $customs = @{}
+                
+                if ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+                    $totpField = $record.Fields | Where-Object { $_.FieldName -eq "oneTimeCode" } | Select-Object -First 1
+                    if ($totpField -and $totpField.ObjectValue) {
+                        $customs["totp"] = $totpField.ObjectValue.ToString()
+                    }
+                    
+                    if ($record.TypeName) {
+                        $customs["type:"] = $record.TypeName
+                    }
+                    
+                    if ($record.Custom) {
+                        foreach ($cf in $record.Custom) {
+                            if ($cf.FieldName -and $cf.ObjectValue) {
+                                $value = $cf.ObjectValue
+                                if ($value -is [System.Collections.IEnumerable] -and $value -isnot [string]) {
+                                    $sortedItems = @($value | ForEach-Object { $_.ToString() } | Sort-Object)
+                                    $value = $sortedItems -join "|"
+                                } else {
+                                    $value = $value.ToString()
+                                }
+                                if (-not [string]::IsNullOrWhiteSpace($value)) {
+                                    $customs[$cf.FieldName] = $value
+                                }
+                            }
+                        }
+                    }
+                }
+                elseif ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
+                    if ($record.Custom) {
+                        foreach ($cf in $record.Custom) {
+                            if ($cf.Name -and $cf.Value) {
+                                $customs[$cf.Name] = $cf.Value
+                            }
+                        }
+                    }
+                }
+                
+                $sortedKeys = $customs.Keys | Sort-Object
+                foreach ($key in $sortedKeys) {
+                    $hashParts.Add("$key=$($customs[$key])")
+                }
+                
+            }
+            else {
+                if ($Title -or $useDefault) { 
+                    $hashParts.Add($(if ($record.Title) { $record.Title.ToLower() } else { "" }))
+                }
+                if ($Login -or $useDefault) { 
+                    $hashParts.Add($(if ($fields.Login) { $fields.Login.ToLower() } else { "" }))
+                }
+                if ($Password -or $useDefault) { 
+                    $hashParts.Add($(if ($fields.Password) { $fields.Password } else { "" }))
+                }
+                if ($Url) { 
+                    $hashParts.Add($(if ($fields.Url) { $fields.Url } else { "" }))
+                }
+            }
+
+            $combined = [string]::Join("|", $hashParts)
+            if ([string]::IsNullOrWhiteSpace($combined)) { continue }
+
+            $hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($combined))
+            $hashKey = [BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
+
+            if (-not $hashMap.ContainsKey($hashKey)) { 
+                $hashMap[$hashKey] = [System.Collections.Generic.List[object]]::new()
+            }
+            $hashMap[$hashKey].Add($record)
+        }
+    }
+    finally {
+        if ($sha256) { $sha256.Dispose() }
+    }
+
+    $duplicateGroups = @($hashMap.Values | Where-Object { $_.Count -gt 1 })
+
+    $shouldPartitionByShares = ($Shares -or $Full) -and -not ($Merge -and $IgnoreSharesOnMerge)
+    
+    if ($shouldPartitionByShares -and $duplicateGroups.Count -gt 0) {
+        $newPartitions = [System.Collections.Generic.List[object]]::new()
+        
+        foreach ($group in $duplicateGroups) {
+            $shareGroups = @{}
+            foreach ($record in $group) {
+                $shareKey = if ($shareInfoMap.ContainsKey($record.Uid)) {
+                    Get-ShareHashString -ShareInfo $shareInfoMap[$record.Uid] -IncludePermissions
+                } else { "" }
+                
+                if (-not $shareGroups.ContainsKey($shareKey)) {
+                    $shareGroups[$shareKey] = [System.Collections.Generic.List[object]]::new()
+                }
+                $shareGroups[$shareKey].Add($record)
+            }
+            
+            foreach ($subGroup in $shareGroups.Values) {
+                if ($subGroup.Count -gt 1) {
+                    $newPartitions.Add($subGroup)
+                }
+            }
+        }
+        
+        $duplicateGroups = @($newPartitions)
+    }
+
+    if ($duplicateGroups.Count -eq 0) {
+        if (-not $Quiet) { Write-Host "No duplicate records found." }
+        return
+    }
+
+    if ($Merge) {
+        $recordsToRemove = [System.Collections.Generic.List[object]]::new()
+        foreach ($group in $duplicateGroups) {
+            for ($i = 1; $i -lt $group.Count; $i++) {
+                $recordsToRemove.Add($group[$i])
+            }
+        }
+
+        if ($recordsToRemove.Count -eq 0) {
+            if (-not $Quiet) { Write-Host "No duplicate records to remove." }
+            return
+        }
+
+        if ($DryRun) {
+            Write-Host "DRY RUN MODE: No records will be removed" -ForegroundColor Yellow
+            Write-Host ""
+        }
+
+        if (-not $Quiet) {
+            Write-Host "The following $($recordsToRemove.Count) duplicate record(s) will be removed:"
+            Write-Host ""
+
+            $removeList = $recordsToRemove | ForEach-Object {
+                $cachedFields = $recordFieldsCache[$_.Uid]
+                [PSCustomObject]@{
+                    Title = $_.Title
+                    UID   = $_.Uid
+                    Login = $cachedFields.Login
+                }
+            }
+            $removeList | Format-Table -AutoSize
+        }
+
+        if ($DryRun) {
+            Write-Host "DRY RUN: No records were removed." -ForegroundColor Yellow
+            return
+        }
+
+        if (-not $Force) {
+            $response = Read-Host "Do you want to proceed with removing $($recordsToRemove.Count) duplicate record(s)? (y/n)"
+            if ($response -notin @('y', 'yes')) {
+                Write-Host "Operation cancelled."
+                return
+            }
+        }
+
+        if (-not $Quiet) { Write-Host "Removing duplicate records..." }
+
+        try {
+            $recordPaths = [System.Collections.Generic.List[KeeperSecurity.Vault.RecordPath]]::new($recordsToRemove.Count)
+            foreach ($rec in $recordsToRemove) {
+                $folderUid = ""
+                if ($vault.RootFolder.Records.Contains($rec.Uid)) {
+                    $folderUid = ""
+                } else {
+                    foreach ($folder in $vault.Folders) {
+                        if ($folder.Records.Contains($rec.Uid)) {
+                            $folderUid = $folder.FolderUid
+                            break
+                        }
+                    }
+                }
+                
+                $recordPaths.Add([KeeperSecurity.Vault.RecordPath]@{
+                    RecordUid = $rec.Uid
+                    FolderUid = $folderUid
+                })
+            }
+
+            $vault.DeleteRecords($recordPaths).GetAwaiter().GetResult() | Out-Null
+
+            if (-not $Quiet) {
+                Write-Host "Successfully removed $($recordsToRemove.Count) duplicate record(s)." -ForegroundColor Green
+                Write-Host "Syncing vault..."
+            }
+
+            $vault.SyncDown($true).GetAwaiter().GetResult() | Out-Null
+
+            if (-not $Quiet) { Write-Host "Vault synced." -ForegroundColor Green }
+        }
+        catch {
+            Write-Error "Error removing duplicates: $($_.Exception.Message)"
+        }
+
+        return
+    }
+
+    Write-Host "Duplicates Found:"
+    Write-Host ""
+
+    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $groupNum = 1
+
+    foreach ($group in $duplicateGroups) {
+        $isFirst = $true
+        foreach ($record in $group) {
+            $cachedFields = $recordFieldsCache[$record.Uid]
+
+            $owner = ""
+            $sharedTo = ""
+            if ($shareInfoMap.ContainsKey($record.Uid)) {
+                $shareInfo = $shareInfoMap[$record.Uid]
+                if ($shareInfo.UserPermissions) {
+                    $sharedUsersList = [System.Collections.Generic.List[string]]::new()
+                    foreach ($perm in $shareInfo.UserPermissions) {
+                        if ($perm.Owner) {
+                            $owner = $perm.Username
+                        } else {
+                            $sharedUsersList.Add($perm.Username)
+                        }
+                    }
+                    $sharedTo = $sharedUsersList -join ", "
+                }
+            }
+            if ([string]::IsNullOrEmpty($owner) -and $record.Owner) {
+                $owner = $vault.Auth.Username
+            }
+
+            $resultObj = [ordered]@{
+                Group       = if ($isFirst) { $groupNum } else { "" }
+                Title       = $record.Title
+                Login       = $cachedFields.Login
+            }
+            if ($Url) { $resultObj.Url = $cachedFields.Url }
+            $resultObj.UID = $record.Uid
+            $resultObj.RecordOwner = $owner
+            $resultObj.SharedTo = $sharedTo
+            
+            $results.Add([PSCustomObject]$resultObj)
+
+            $isFirst = $false
+        }
+        $groupNum++
+    }
+
+    $outputData = $results.ToArray()
+
+    if ($Output) {
+        switch ($Format) {
+            'csv' {
+                $outputData | Export-Csv -Path $Output -NoTypeInformation -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green 
+            }
+            'json' {
+                $outputData | ConvertTo-Json -Depth 10 | Out-File -FilePath $Output -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            }
+            default {
+                $outputData | Format-Table -AutoSize | Out-String | Out-File -FilePath $Output -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            }
+        }
+    }
+    return $outputData
+}
+
+New-Alias -Name find-duplicates -Value Find-KeeperDuplicateRecords
