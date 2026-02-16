@@ -33,8 +33,8 @@ Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-Two
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
 Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
 New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes,
-Export-KeeperRecordTypes, Get-KeeperRecordPassword, Get-KeeperPasswordReport
-Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
+Export-KeeperRecordTypes, Get-KeeperRecordPassword, Get-KeeperPasswordReport, Find-KeeperDuplicateRecords
+Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti, find-duplicates
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
 Export-ModuleMember -Alias ksf
@@ -57,7 +57,7 @@ Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRole
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
 Grant-KeeperEnterpriseRoleToTeam, Revoke-KeeperEnterpriseRoleFromTeam, New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole,
 Add-KeeperEnterpriseRoleManagedNode, Update-KeeperEnterpriseRoleManagedNode, Remove-KeeperEnterpriseRoleManagedNode,
-Add-KeeperEnterpriseRolePrivilege, Remove-KeeperEnterpriseRolePrivilege,
+Add-KeeperEnterpriseRolePrivilege, Remove-KeeperEnterpriseRolePrivilege, Copy-KeeperEnterpriseRole,
 Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Remove-KeeperEnterpriseRoleEnforcement
 
 
@@ -75,7 +75,7 @@ Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
-Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess,
+Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, Revoke-KeeperSharesWithUser,
 Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam, Move-KeeperRecordOwnership,
 New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg
