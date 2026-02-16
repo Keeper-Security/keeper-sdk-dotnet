@@ -514,6 +514,151 @@ function Edit-KeeperManagedCompany {
 New-Alias -Name kemc -Value Edit-KeeperManagedCompany
 Register-ArgumentCompleter -CommandName Edit-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
 
+function Copy-KeeperMCRole {
+    <#
+    .SYNOPSIS
+    Copy role(s) with enforcements from MSP to one or more Managed Companies.
+    .DESCRIPTION
+    For each specified role (by name or ID), finds or creates a role with the same name in each target MC
+    and syncs enforcements from the source role (add/update to match source, remove any not in source).
+    Requires MSP account. Does not change current context (MSP or MC).
+    .PARAMETER Role
+    Source role name or ID. Can be repeated. Roles are resolved in the current MSP enterprise.
+    .PARAMETER ManagedCompany
+    Target Managed Company name or ID. Can be repeated. Each MC will receive a copy of each role's enforcements.
+    .EXAMPLE
+    Copy-KeeperMCRole -Role "Keeper Administrator" -ManagedCompany "Acme Corp", 3862
+    Copy-KeeperMCRole -Role "Auditor", "Help Desk" -ManagedCompany "Acme"
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string[]] $Role,
+        [Parameter(Mandatory = $true)][string[]] $ManagedCompany
+    )
+
+    [Enterprise]$mspEnterprise = getMspEnterprise
+    $mspRd = $mspEnterprise.roleData
+    $mspLoader = $mspEnterprise.loader
+
+    # Resolve source roles (by name or ID)
+    $sourceRoles = [System.Collections.Generic.List[object]]::new()
+    foreach ($rInput in $Role) {
+        $rInput = $rInput.Trim()
+        $matched = $null
+        $idParsed = 0L
+        if ([long]::TryParse($rInput, [ref]$idParsed)) {
+            $matched = @($mspRd.Roles | Where-Object { $_.Id -eq $idParsed })
+        }
+        if (-not $matched -or $matched.Count -eq 0) {
+            $matched = @($mspRd.Roles | Where-Object { $_.DisplayName -and ($_.DisplayName.Trim() -eq $rInput) })
+        }
+        if (-not $matched -or $matched.Count -eq 0) {
+            Write-Error "Role `"$rInput`" not found" -ErrorAction Stop
+        }
+        if ($matched.Count -gt 1) {
+            Write-Error "Multiple roles match `"$rInput`". Use Role ID." -ErrorAction Stop
+        }
+        $sourceRoles.Add($matched[0]) | Out-Null
+    }
+
+    # Build enforcement map per role (display name -> enforcements dict)
+    $enforcementByRole = @{}
+    foreach ($sr in $sourceRoles) {
+        $roleName = $sr.DisplayName
+        if ([string]::IsNullOrWhiteSpace($roleName)) {
+            Write-Warning "Skipping role with ID $($sr.Id) (no display name)"
+            continue
+        }
+        $dict = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
+        foreach ($re in $mspRd.GetEnforcementsForRole($sr.Id)) {
+            if ([string]::IsNullOrEmpty($re.EnforcementType)) { continue }
+            $norm = $re.EnforcementType -replace '_', ''
+            $parsed = [KeeperSecurity.Enterprise.RoleEnforcementPolicies]::TWO_FACTOR_BY_IP
+            if ([Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed)) {
+                $dict[$parsed] = if ($re.Value) { $re.Value } else { '' }
+            }
+        }
+        $enforcementByRole[$roleName] = @{ Role = $sr; Enforcements = $dict }
+    }
+
+    if ($enforcementByRole.Count -eq 0) {
+        Write-Warning "No roles with display name to copy."
+        return
+    }
+
+    # Resolve MCs (dedupe by EnterpriseId)
+    $seenMcIds = [System.Collections.Generic.HashSet[int]]::new()
+    $mcs = [System.Collections.Generic.List[object]]::new()
+    foreach ($mcInput in $ManagedCompany) {
+        $mc = findManagedCompany $mcInput.Trim()
+        if (-not $mc) {
+            Write-Error "Managed Company `"$mcInput`" not found" -ErrorAction Stop
+        }
+        $eid = [int]$mc.EnterpriseId
+        if ($seenMcIds.Add($eid)) {
+            $mcs.Add($mc) | Out-Null
+        }
+    }
+
+    foreach ($mc in $mcs) {
+        $authMc = New-Object KeeperSecurity.Enterprise.ManagedCompanyAuth
+        $authMc.LoginToManagedCompany($mspLoader, $mc.EnterpriseId).GetAwaiter().GetResult()
+
+        $edMc = New-Object KeeperSecurity.Enterprise.EnterpriseData
+        $rdMc = New-Object KeeperSecurity.Enterprise.RoleData
+        $daMc = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
+        $plugins = [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]]@($edMc, $rdMc, $daMc)
+        $loaderMc = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
+        $loaderMc.Load().GetAwaiter().GetResult()
+
+        $rootNodeId = $edMc.RootNode.Id
+
+        foreach ($roleName in $enforcementByRole.Keys) {
+            $srcData = $enforcementByRole[$roleName]
+            $srcRole = $srcData.Role
+            $srcEnforcements = $srcData.Enforcements
+
+            $mcRoles = @($rdMc.Roles | Where-Object { $_.DisplayName -and ($_.DisplayName.Trim() -eq $roleName) })
+            if ($mcRoles.Count -gt 1) {
+                Write-Warning "MC $($mc.EnterpriseId): Multiple roles named `"$roleName`". Skipping."
+                continue
+            }
+
+            $mcRole = $null
+            if ($mcRoles.Count -eq 0) {
+                $mcRole = $rdMc.CreateRole($roleName, $rootNodeId, $srcRole.NewUserInherit).GetAwaiter().GetResult()
+                if (-not $mcRole) {
+                    Write-Warning "MC $($mc.EnterpriseId): Failed to create role `"$roleName`"."
+                    continue
+                }
+            } else {
+                $mcRole = $mcRoles[0]
+            }
+
+            if ($srcEnforcements.Count -gt 0) {
+                $rdMc.RoleEnforcementAddBatch($mcRole, $srcEnforcements).GetAwaiter().GetResult() | Out-Null
+            }
+
+            $mcEnfs = @($rdMc.GetEnforcementsForRole($mcRole.Id))
+            $toRemove = [System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]]::new()
+            foreach ($me in $mcEnfs) {
+                if ([string]::IsNullOrEmpty($me.EnforcementType)) { continue }
+                $norm = $me.EnforcementType -replace '_', ''
+                $parsed = [KeeperSecurity.Enterprise.RoleEnforcementPolicies]::TWO_FACTOR_BY_IP
+                if ([Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed) -and -not $srcEnforcements.ContainsKey($parsed)) {
+                    $toRemove.Add($parsed) | Out-Null
+                }
+            }
+            if ($toRemove.Count -gt 0) {
+                $rdMc.RoleEnforcementRemoveBatch($mcRole, $toRemove).GetAwaiter().GetResult() | Out-Null
+            }
+        }
+
+        Write-Information "MC $($mc.EnterpriseId) ($($mc.EnterpriseName)): Roles are in sync."
+    }
+}
+New-Alias -Name msp-copy-role -Value Copy-KeeperMCRole
+
 # Plan id -> display name
 $script:MspPlanNames = @{
     1 = 'business'; 2 = 'businessPlus'; 10 = 'enterprise'; 11 = 'enterprisePlus'

@@ -119,7 +119,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Set-KeeperEnterpriseRole                                | kers        | Update Enterprise Role properties (NewUserInherit, VisibleBelow, DisplayName)
 | New-KeeperEnterpriseRole                                | keradd      | Create a new enterprise role in the Keeper Enterprise
 | Remove-KeeperEnterpriseRole                             | kerdel      | Delete an enterprise role from the Keeper Enterprise
-| Copy-KeeperEnterpriseRole                              | kercopy     | Copy an enterprise role to another node (enforcements, users, teams)
+| Copy-KeeperEnterpriseRole                               | kercopy     | Copy an enterprise role to another node (enforcements, users, teams)
 | Grant-KeeperEnterpriseRoleToUser                        | kerua       | Add a user to an Enterprise Role
 | Revoke-KeeperEnterpriseRoleFromUser                     | kerur       | Remove a user from an Enterprise Role
 | Grant-KeeperEnterpriseRoleToTeam                        | kerta       | Add a team to an Enterprise Role
@@ -138,6 +138,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | New-KeeperManagedCompany                                | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany                             | krmc        | Remove Managed Company
 | Edit-KeeperManagedCompany                               | kemc        | Edit Managed Company
+| Copy-KeeperMCRole                                       |msp-copy-role| Copy role(s) with enforcements from MSP to one or more Managed Companies.
 | Get-MspBillingReport                                    |             | Run MSP Billing Report
 | Get-KeeperNodeName                                      |             | Return Name of current Enterprise Node
 | Get-KeeperRoleName                                      |             | Get Display Name of Enterprise Role
