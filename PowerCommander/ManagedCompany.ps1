@@ -561,7 +561,7 @@ function Copy-KeeperMCRole {
         $sourceRoles.Add($matched[0]) | Out-Null
     }
 
-    # Build enforcement map per role (display name -> enforcements dict)
+    # Build enforcement map per role using shared helper
     $enforcementByRole = @{}
     foreach ($sr in $sourceRoles) {
         $roleName = $sr.DisplayName
@@ -569,15 +569,7 @@ function Copy-KeeperMCRole {
             Write-Warning "Skipping role with ID $($sr.Id) (no display name)"
             continue
         }
-        $dict = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
-        foreach ($re in $mspRd.GetEnforcementsForRole($sr.Id)) {
-            if ([string]::IsNullOrEmpty($re.EnforcementType)) { continue }
-            $norm = $re.EnforcementType -replace '_', ''
-            $parsed = [KeeperSecurity.Enterprise.RoleEnforcementPolicies]::TWO_FACTOR_BY_IP
-            if ([Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed)) {
-                $dict[$parsed] = if ($re.Value) { $re.Value } else { '' }
-            }
-        }
+        $dict = Get-RoleEnforcementDictionary -RoleData $mspRd -RoleId $sr.Id
         $enforcementByRole[$roleName] = @{ Role = $sr; Enforcements = $dict }
     }
 
@@ -602,14 +594,14 @@ function Copy-KeeperMCRole {
 
     foreach ($mc in $mcs) {
         $authMc = New-Object KeeperSecurity.Enterprise.ManagedCompanyAuth
-        $authMc.LoginToManagedCompany($mspLoader, $mc.EnterpriseId).GetAwaiter().GetResult()
+        $authMc.LoginToManagedCompany($mspLoader, $mc.EnterpriseId).GetAwaiter().GetResult() | Out-Null
 
         $edMc = New-Object KeeperSecurity.Enterprise.EnterpriseData
         $rdMc = New-Object KeeperSecurity.Enterprise.RoleData
         $daMc = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
         $plugins = [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]]@($edMc, $rdMc, $daMc)
         $loaderMc = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
-        $loaderMc.Load().GetAwaiter().GetResult()
+        $loaderMc.Load().GetAwaiter().GetResult() | Out-Null
 
         $rootNodeId = $edMc.RootNode.Id
 
@@ -635,22 +627,40 @@ function Copy-KeeperMCRole {
                 $mcRole = $mcRoles[0]
             }
 
-            if ($srcEnforcements.Count -gt 0) {
-                $rdMc.RoleEnforcementAddBatch($mcRole, $srcEnforcements).GetAwaiter().GetResult() | Out-Null
-            }
+            # MC current enforcements (policy -> value) using shared helper
+            $mcEnforcementDict = Get-RoleEnforcementDictionary -RoleData $rdMc -RoleId $mcRole.Id
 
-            $mcEnfs = @($rdMc.GetEnforcementsForRole($mcRole.Id))
+            $toAdd = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
+            $toUpdate = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
             $toRemove = [System.Collections.Generic.List[KeeperSecurity.Enterprise.RoleEnforcementPolicies]]::new()
-            foreach ($me in $mcEnfs) {
-                if ([string]::IsNullOrEmpty($me.EnforcementType)) { continue }
-                $norm = $me.EnforcementType -replace '_', ''
-                $parsed = [KeeperSecurity.Enterprise.RoleEnforcementPolicies]::TWO_FACTOR_BY_IP
-                if ([Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed) -and -not $srcEnforcements.ContainsKey($parsed)) {
-                    $toRemove.Add($parsed) | Out-Null
+
+            foreach ($srcKvp in $srcEnforcements.GetEnumerator()) {
+                $policy = $srcKvp.Key
+                $srcVal = $srcKvp.Value
+                $mcHas = $mcEnforcementDict.ContainsKey($policy)
+                if (-not $mcHas) {
+                    $toAdd[$policy] = $srcVal
+                } else {
+                    $mcVal = $mcEnforcementDict[$policy]
+                    if ([string]::Compare($srcVal, $mcVal, [StringComparison]::OrdinalIgnoreCase) -ne 0) {
+                        $toUpdate[$policy] = $srcVal
+                    }
                 }
             }
+            foreach ($mcKvp in $mcEnforcementDict.GetEnumerator()) {
+                if (-not $srcEnforcements.ContainsKey($mcKvp.Key)) {
+                    $toRemove.Add($mcKvp.Key) | Out-Null
+                }
+            }
+
             if ($toRemove.Count -gt 0) {
                 $rdMc.RoleEnforcementRemoveBatch($mcRole, $toRemove).GetAwaiter().GetResult() | Out-Null
+            }
+            if ($toAdd.Count -gt 0) {
+                $rdMc.RoleEnforcementAddBatch($mcRole, $toAdd).GetAwaiter().GetResult() | Out-Null
+            }
+            if ($toUpdate.Count -gt 0) {
+                $rdMc.RoleEnforcementUpdateBatch($mcRole, $toUpdate).GetAwaiter().GetResult() | Out-Null
             }
         }
 

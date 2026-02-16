@@ -301,3 +301,49 @@ function Get-KeeperTeamByNameOrUid {
     return $null
 }
 
+
+<#
+.SYNOPSIS
+    Parses an enforcement type string (from API or user) to RoleEnforcementPolicies enum.
+.DESCRIPTION
+    Tries the original string first, then underscore-removed, so both "REQUIRE_TWO_FACTOR" and "requiretwofactor" work.
+    Used when reading enforcements from GetEnforcementsForRole (API) or when normalizing user input.
+#>
+function ConvertTo-RoleEnforcementPolicy {
+    param([string]$EnforcementType)
+    if ([string]::IsNullOrWhiteSpace($EnforcementType)) { return $null }
+    $parsed = $null
+    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $EnforcementType.Trim(), $true, [ref]$parsed)) {
+        return $parsed
+    }
+    $norm = $EnforcementType -replace '_', ''
+    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed)) {
+        return $parsed
+    }
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Builds a dictionary of RoleEnforcementPolicies -> value from a role's enforcements.
+.PARAMETER RoleData
+    RoleData instance (from enterprise.roleData).
+.PARAMETER RoleId
+    Role ID to read enforcements for.
+#>
+function Get-RoleEnforcementDictionary {
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Enterprise.RoleData]$RoleData,
+        [Parameter(Mandatory = $true)]
+        [long]$RoleId
+    )
+    $dict = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
+    foreach ($re in $RoleData.GetEnforcementsForRole($RoleId)) {
+        $policy = ConvertTo-RoleEnforcementPolicy $re.EnforcementType
+        if ($null -ne $policy) {
+            $dict[$policy] = if ($re.Value) { $re.Value } else { '' }
+        }
+    }
+    return $dict
+}
