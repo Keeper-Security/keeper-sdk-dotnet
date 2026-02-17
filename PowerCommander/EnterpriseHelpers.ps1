@@ -273,6 +273,45 @@ function Script:Get-KeeperNodeName {
     }
 }
 
+function Get-KeeperNodePath {
+    <#
+    .SYNOPSIS
+    Get the path string for an enterprise node (e.g. "Root \ Sales \ EMEA").
+    .PARAMETER NodeId
+    Enterprise node ID.
+    .PARAMETER OmitRoot
+    If set, root node name is omitted from the path.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][long] $NodeId,
+        [Parameter()][switch] $OmitRoot
+    )
+    $enterprise = getEnterprise
+    $ed = $enterprise.enterpriseData
+    $node = $null
+    if (-not $ed.TryGetNode($NodeId, [ref]$node)) { return '' }
+    $parts = [System.Collections.Generic.List[string]]::new()
+    $current = $node
+    while ($null -ne $current) {
+        $name = $current.DisplayName
+        if ([string]::IsNullOrEmpty($name) -and $current.ParentNodeId -le 0) {
+            $name = $enterprise.loader.EnterpriseName
+        }
+        if (-not [string]::IsNullOrEmpty($name)) {
+            $parts.Insert(0, $name)
+        }
+        if ($current.ParentNodeId -le 0) { break }
+        $parent = $null
+        if (-not $ed.TryGetNode($current.ParentNodeId, [ref]$parent)) { break }
+        $current = $parent
+    }
+    if ($OmitRoot -and $parts.Count -gt 1) {
+        $parts.RemoveAt(0)
+    }
+    return ($parts -join '\')
+}
+
 function Script:Get-KeeperRoleName {
     Param (
         [long]$roleId
