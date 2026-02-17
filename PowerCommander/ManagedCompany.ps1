@@ -540,7 +540,6 @@ function Copy-KeeperMCRole {
     $mspRd = $mspEnterprise.roleData
     $mspLoader = $mspEnterprise.loader
 
-    # Resolve source roles (by name or ID)
     $sourceRoles = [System.Collections.Generic.List[object]]::new()
     foreach ($rInput in $Role) {
         $rInput = $rInput.Trim()
@@ -561,7 +560,6 @@ function Copy-KeeperMCRole {
         $sourceRoles.Add($matched[0]) | Out-Null
     }
 
-    # Build enforcement map per role using shared helper
     $enforcementByRole = @{}
     foreach ($sr in $sourceRoles) {
         $roleName = $sr.DisplayName
@@ -578,7 +576,6 @@ function Copy-KeeperMCRole {
         return
     }
 
-    # Resolve MCs (dedupe by EnterpriseId)
     $seenMcIds = [System.Collections.Generic.HashSet[int]]::new()
     $mcs = [System.Collections.Generic.List[object]]::new()
     foreach ($mcInput in $ManagedCompany) {
@@ -627,7 +624,6 @@ function Copy-KeeperMCRole {
                 $mcRole = $mcRoles[0]
             }
 
-            # MC current enforcements (policy -> value) using shared helper
             $mcEnforcementDict = Get-RoleEnforcementDictionary -RoleData $rdMc -RoleId $mcRole.Id
 
             $toAdd = [System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies, string]]::new()
@@ -669,18 +665,14 @@ function Copy-KeeperMCRole {
 }
 New-Alias -Name msp-copy-role -Value Copy-KeeperMCRole
 
-# Plan id -> display name
 $script:MspPlanNames = @{
     1 = 'business'; 2 = 'businessPlus'; 10 = 'enterprise'; 11 = 'enterprisePlus'
 }
 
-
-# File plan type -> display name
 $script:MspFilePlanNames = @{
     '100gb' = '100GB'; '1tb' = '1TB'; '10tb' = '10TB'
 }
 
-# Addon code -> short display name
 $script:MspAddonDisplayNames = @{
     'keeper_endpoint_privilege_manager' = 'KEPM'
     'remote_browser_isolation' = 'Remote Browser Isolation'
@@ -846,11 +838,11 @@ function Get-MspBillingReport {
             $merged[$mergeKey] = @{ McId = $mc; DateOrdinal = $d; QtyDays = @{} }
         }
         $qd = $merged[$mergeKey].QtyDays
-        foreach ($pid in $ds.Units.Keys) {
-            $q = $ds.Units[$pid]
-            if (-not $qd[$pid]) { $qd[$pid] = @(0, 0) }
-            $qd[$pid][0] += $q
-            $qd[$pid][1] += 1
+        foreach ($productId in $ds.Units.Keys) {
+            $q = $ds.Units[$productId]
+            if (-not $qd[$productId]) { $qd[$productId] = @(0, 0) }
+            $qd[$productId][0] += $q
+            $qd[$productId][1] += 1
         }
     }
 
