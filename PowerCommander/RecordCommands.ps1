@@ -512,8 +512,7 @@ function Get-KeeperRecordFieldValue {
     if ($null -eq $Record) { return $null }
     
     if ($FieldName -ieq 'notes') {
-        if ($Record -is [KeeperSecurity.Vault.PasswordRecord]) { return $Record.Notes }
-        if ($Record -is [KeeperSecurity.Vault.TypedRecord]) { return $Record.Notes }
+        if ($Record -is [KeeperSecurity.Vault.PasswordRecord] -or $Record -is [KeeperSecurity.Vault.TypedRecord]) { return $Record.Notes }
         return $null
     }
     
@@ -1791,7 +1790,7 @@ function Get-KeeperRecordHistory {
 	Output format: table (default), json, csv
 
 	.Parameter Output
-	File path to write output (required for csv format)
+	File path to write output to a file
 
 	.Example
 	Get-KeeperRecordHistory -Record "ABC123DEF456"
@@ -1851,13 +1850,7 @@ function Get-KeeperRecordHistory {
     )
 
     Process {
-        $VersionColWidth = 10
-        $FieldColWidth = 15
-        $ValueColWidth = 45
-        $TruncateLength = 43
-        $ShowFieldWidth = 12
-
-        try{
+        try {
             [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         }
         catch {
@@ -1913,18 +1906,12 @@ function Get-KeeperRecordHistory {
             return
         }
 
-        function TruncateValue([string]$value, [int]$maxLength) {
-            if ([string]::IsNullOrEmpty($value)) { return "" }
-            if ($value.Length -le $maxLength) { return $value }
-            return $value.Substring(0, $maxLength - 3) + "..."
-        }
-
         function WriteToFile([string[]]$lines, [string]$path) {
             $lines | Out-File -FilePath $path -Encoding UTF8
             Write-Host "Output written to $path" -ForegroundColor Green
         }
 
-        function WriteOutput($data, [string]$format, [string]$outputPath, [string[]]$tableColumns = @()) {
+        function WriteOutput($data, [string]$format, [string]$outputPath, [string[]]$tableColumns = @(), [switch]$AsList) {
             switch ($format) {
                 'json' {
                     $json = $data | ConvertTo-Json -Depth 10
@@ -1943,18 +1930,20 @@ function Get-KeeperRecordHistory {
                     }
                 }
                 default {
-                    if ($outputPath) {
-                        if ($tableColumns.Count -gt 0) {
-                            $tableContent = $data | Format-Table -Property $tableColumns | Out-String
+                    if ($AsList) {
+                        if ($outputPath) {
+                            $content = $data | Format-List | Out-String
+                            WriteToFile @($content) $outputPath
                         } else {
-                            $tableContent = $data | Format-Table | Out-String
+                            $data | Format-List
                         }
-                        WriteToFile @($tableContent) $outputPath
                     } else {
-                        if ($tableColumns.Count -gt 0) {
-                            $data | Format-Table -Property $tableColumns -AutoSize
+                        $formatParams = if ($tableColumns.Count -gt 0) { @{ Property = $tableColumns } } else { @{} }
+                        if ($outputPath) {
+                            $tableContent = $data | Format-Table @formatParams | Out-String
+                            WriteToFile @($tableContent) $outputPath
                         } else {
-                            $data | Format-Table -AutoSize
+                            $data | Format-Table @formatParams -AutoSize
                         }
                     }
                 }
@@ -2018,7 +2007,7 @@ function Get-KeeperRecordHistory {
             return $diffs
         }
 
-        switch ($Action.ToLower()) {
+        switch ($Action) {
             'list' {
                 $listData = for ($i = 0; $i -lt $history.Length; $i++) {
                     $h = $history[$i]
@@ -2028,38 +2017,23 @@ function Get-KeeperRecordHistory {
                         TimeModified = if ($h.KeeperRecord.ClientModified -ne [DateTimeOffset]::MinValue) {
                             $h.KeeperRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
                         } else { "" }
-                        RecordUid = $uid
-                        Title = $history[0].KeeperRecord.Title
                     }
                 }
 
-                if ($Format -eq 'table' -and -not $Output) {
-                    Write-Host ""
-                    Write-Host "Record History: $($history[0].KeeperRecord.Title)" -ForegroundColor Green
-                    Write-Host "UID: $uid" -ForegroundColor Gray
-                    Write-Host ""
-                }
                 WriteOutput $listData $Format $Output @('Version', 'ModifiedBy', 'TimeModified')
-                if ($Format -eq 'table' -and -not $Output) {
-                    Write-Host "Total versions: $($history.Length)" -ForegroundColor Gray
-                }
             }
 
             'show' {
-                $arrayIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
-
                 if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
                     Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
                     return
                 }
 
-                $rev = $history[$arrayIndex]
-                $histRecord = $rev.KeeperRecord
-                $baseLabel = Get-RecordVersionLabel -Index $arrayIndex -HistoryLength $history.Length
-                $versionLabel = if ($Revision -eq 0) { "$baseLabel (V.0)" } else { $baseLabel }
+                $arrayIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
+                $histRecord = $history[$arrayIndex].KeeperRecord
 
-                $showData = [System.Collections.Generic.List[PSCustomObject]]::new()
-                $addField = { param($label, $value) if (-not [string]::IsNullOrEmpty($value)) { $showData.Add([PSCustomObject]@{ Field = $label; Value = $value }) } }
+                $showData = [ordered]@{}
+                $addField = { param($label, $value) if (-not [string]::IsNullOrEmpty($value)) { $showData[$label] = $value } }
 
                 & $addField "title" $histRecord.Title
 
@@ -2084,40 +2058,20 @@ function Get-KeeperRecordHistory {
                     & $addField "notes" $histRecord.Notes
                 }
 
-                if ($rev.KeeperRecord.ClientModified -ne [DateTimeOffset]::MinValue) {
-                    & $addField "modified" $rev.KeeperRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                if ($histRecord.ClientModified -ne [DateTimeOffset]::MinValue) {
+                    & $addField "modified" $histRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
                 }
 
-                if ($Format -eq 'json') {
-                    $jsonObj = [ordered]@{ Version = $versionLabel; RecordUid = $uid }
-                    foreach ($item in $showData) { $jsonObj[$item.Field] = $item.Value }
-                    WriteOutput $jsonObj 'json' $Output
-                }
-                elseif ($Format -eq 'csv') {
-                    WriteOutput $showData 'csv' $Output
-                }
-                else {
-                    $fmt = "{0,$ShowFieldWidth}  {1}"
-                    if ($Output) {
-                        $tableOutput = $showData | ForEach-Object { $fmt -f "($($_.Field))", $_.Value }
-                        WriteToFile (@("Record Revision $versionLabel", "") + $tableOutput) $Output
-                    } else {
-                        Write-Host ""
-                        Write-Host "Record Revision $versionLabel" -ForegroundColor Green
-                        Write-Host ""
-                        foreach ($item in $showData) { Write-Host ($fmt -f "($($item.Field))", $item.Value) }
-                        Write-Host ""
-                    }
-                }
+                WriteOutput ([PSCustomObject]$showData) $Format $Output -AsList
             }
 
             'diff' {
-                $startIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
-
                 if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
                     Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
                     return
                 }
+
+                $startIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
 
                 $allDiffs = [System.Collections.Generic.List[PSCustomObject]]::new()
 
@@ -2130,47 +2084,7 @@ function Get-KeeperRecordHistory {
                     foreach ($d in $versionDiffs) { $allDiffs.Add($d) }
                 }
 
-                if ($Format -eq 'json') {
-                    $jsonObj = @{ Title = $history[0].KeeperRecord.Title; RecordUid = $uid; Diffs = $allDiffs.ToArray() }
-                    WriteOutput $jsonObj 'json' $Output
-                }
-                elseif ($Format -eq 'csv') {
-                    WriteOutput $allDiffs 'csv' $Output
-                }
-                else {
-                    $headerFormat = "{0,-$VersionColWidth} {1,-$FieldColWidth} {2,-$ValueColWidth} {3}"
-                    
-                    if ($Output) {
-                        $lines = @(
-                            "Record Diff: $($history[0].KeeperRecord.Title)",
-                            "UID: $uid",
-                            "",
-                            ($headerFormat -f "Version", "Field", "New Value", "Old Value"),
-                            ($headerFormat -f "-------", "-----", "---------", "---------")
-                        )
-                        $lastVer = ""
-                        foreach ($diff in $allDiffs) {
-                            $ver = if ($diff.Version -ne $lastVer) { $diff.Version } else { "" }
-                            $lines += ($headerFormat -f $ver, $diff.Field, (TruncateValue $diff.NewValue $TruncateLength), (TruncateValue $diff.OldValue $TruncateLength))
-                            $lastVer = $diff.Version
-                        }
-                        WriteToFile $lines $Output
-                    } else {
-                        Write-Host ""
-                        Write-Host "Record Diff: $($history[0].KeeperRecord.Title)" -ForegroundColor Green
-                        Write-Host "UID: $uid" -ForegroundColor Gray
-                        Write-Host ""
-                        Write-Host ($headerFormat -f "Version", "Field", "New Value", "Old Value") -ForegroundColor Cyan
-                        Write-Host ($headerFormat -f "-------", "-----", "---------", "---------") -ForegroundColor Gray
-                        $lastVer = ""
-                        foreach ($diff in $allDiffs) {
-                            $ver = if ($diff.Version -ne $lastVer) { $diff.Version } else { "" }
-                            Write-Host ($headerFormat -f $ver, $diff.Field, (TruncateValue $diff.NewValue $TruncateLength), (TruncateValue $diff.OldValue $TruncateLength))
-                            $lastVer = $diff.Version
-                        }
-                        Write-Host ""
-                    }
-                }
+                WriteOutput $allDiffs $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
             }
 
             'restore' {
