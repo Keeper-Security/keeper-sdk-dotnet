@@ -294,7 +294,7 @@ function Get-KeeperFileReport {
 
     .DESCRIPTION
     Generates a report of all records in the vault that have file attachments.
-    Supports both legacy PasswordRecord (v2) and modern TypedRecord (v3/v4) with fileRef fields.
+    Supports both legacy PasswordRecord (v2) and modern TypedRecord (v3) with fileRef fields.
     Optionally tests download accessibility for each attachment using HTTP Range requests.
 
     .PARAMETER TryDownload
