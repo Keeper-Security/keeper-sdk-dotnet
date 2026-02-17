@@ -286,3 +286,122 @@ function Remove-KeeperFileAttachment {
     }
 }
 New-Alias -Name krfa -Value Remove-KeeperFileAttachment
+
+function Get-KeeperFileReport {
+    <#
+    .SYNOPSIS
+    List records with file attachments.
+
+    .DESCRIPTION
+    Generates a report of all records in the vault that have file attachments.
+    Supports both legacy PasswordRecord (v2) and modern TypedRecord (v3/v4) with fileRef fields.
+    Optionally tests download accessibility for each attachment using HTTP Range requests.
+
+    .PARAMETER TryDownload
+    Try downloading every attachment you have access to. Tests accessibility by making
+    an HTTP Range request (bytes=0-1) for each file and reports OK or the HTTP status code.
+
+    .PARAMETER Format
+    Output format: table (default), csv, json.
+
+    .PARAMETER Output
+    Export report results to a file path.
+
+    .EXAMPLE
+    Get-KeeperFileReport
+    List all records with file attachments in table format.
+
+    .EXAMPLE
+    Get-KeeperFileReport -TryDownload
+    List all file attachments and verify each one is downloadable.
+
+    .EXAMPLE
+    Get-KeeperFileReport -Format csv -Output "file_report.csv"
+    Export the file attachment report to a CSV file.
+
+    .EXAMPLE
+    Get-KeeperFileReport -Format json
+    Output the file attachment report as JSON.
+
+    .EXAMPLE
+    Get-KeeperFileReport -TryDownload -Format csv -Output "downloads.csv"
+    Verify download accessibility and export results to CSV.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Alias('d')]
+        [switch] $TryDownload,
+
+        [ValidateSet('table', 'csv', 'json')]
+        [string] $Format = 'table',
+
+        [string] $Output
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Failed to connect to vault"
+        return
+    }
+
+    $options = New-Object KeeperSecurity.Vault.FileReportOptions
+    $options.TryDownload = $TryDownload.IsPresent
+
+    if ($TryDownload.IsPresent) {
+        Write-Host "Scanning vault for file attachments and verifying download accessibility..."
+    }
+    else {
+        Write-Host "Scanning vault for file attachments..."
+    }
+
+    try {
+        $report = [KeeperSecurity.Vault.KeeperFileReport]::GenerateFileReport($vault, $options, $null).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error "Failed to generate file report: $($_.Exception.Message)"
+        return
+    }
+
+    if ($report.Count -eq 0) {
+        Write-Host "No records with file attachments found."
+        return
+    }
+
+    $result = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($item in $report) {
+        $row = [ordered]@{
+            'Title'       = $item.RecordTitle ?? ''
+            'Record UID'  = $item.RecordUid ?? ''
+            'Record Type' = $item.RecordType ?? ''
+            'File ID'     = $item.FileId ?? ''
+            'File Name'   = $item.FileName ?? ''
+            'File Size'   = $item.FileSize
+        }
+        if ($TryDownload.IsPresent) {
+            $row['Downloadable'] = $item.Downloadable ?? ''
+        }
+        $result.Add([PSCustomObject]$row)
+    }
+
+    if ($Output) {
+        switch ($Format) {
+            'json' { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+            'csv'  { $result | Export-Csv -Path $Output -NoTypeInformation -Encoding utf8 }
+            default { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+        }
+        Write-Host "Report exported to $Output ($($result.Count) file(s) found)"
+    }
+    else {
+        switch ($Format) {
+            'json' { $result | ConvertTo-Json -Depth 5 }
+            'csv'  { $result | ConvertTo-Csv -NoTypeInformation }
+            default {
+                Write-Host ""
+                $result | Format-Table -AutoSize
+            }
+        }
+    }
+}
+New-Alias -Name file-report -Value Get-KeeperFileReport
