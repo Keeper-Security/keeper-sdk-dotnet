@@ -407,7 +407,7 @@ function Edit-KeeperManagedCompany {
     .PARAMETER MaximumSeats
     Max licenses; use -1 for unlimited.
     .PARAMETER Storage
-    File storage plan: 100GB, 1TB, 10TB.
+    File storage plan: 100GB, 1TB, 10TB. Cannot be lower than the plan's default (e.g. Enterprise Plus defaults to 1TB).
     .PARAMETER Node
     Node name or ID to move the MC to.
     .PARAMETER Addons
@@ -519,7 +519,7 @@ function Copy-KeeperMCRole {
     .SYNOPSIS
     Copy role(s) with enforcements from MSP to one or more Managed Companies.
     .DESCRIPTION
-    For each specified role (by name or ID), finds or creates a role with the same name in each target MC
+    Each specified role (by name or ID): finds or creates a role with the same name in each target MC
     and syncs enforcements from the source role (add/update to match source, remove any not in source).
     Requires MSP account. Does not change current context (MSP or MC).
     .PARAMETER Role
