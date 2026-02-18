@@ -3259,13 +3259,6 @@ namespace Commander
                                     Description = "Login to managed company",
                                     Action = LoginToManagedCompany,
                                 });
-                            Commands.Add("mc-convert-node",
-                                new ParseableCommand<McConvertNodeOptions>
-                                {
-                                    Order = 76,
-                                    Description = "Convert an enterprise node into a managed company",
-                                    Action = McConvertNode,
-                                });
                             Aliases["mi"] = "mc-list";
                             Aliases["md"] = "enterprise-get-data";
                             Aliases["ma"] = "mc-create";
@@ -3276,7 +3269,6 @@ namespace Commander
                             Aliases["msp-add"] = "mc-create";
                             Aliases["msp-remove"] = "mc-delete";
                             Aliases["msp-update"] = "mc-update";
-                            Aliases["msp-convert-node"] = "mc-convert-node";
                         }
                     }
                     catch (Exception e)
@@ -3321,27 +3313,6 @@ namespace Commander
             var mcContext = new McEnterpriseContext(mcAuth);
             mcContext.BackStateCommands = this;
             NextStateCommands = mcContext;
-        }
-
-        private async Task McConvertNode(McConvertNodeOptions options)
-        {
-            var node = EnterpriseData.ResolveNodeName(options.Node);
-            if (node == null)
-            {
-                Console.WriteLine($"Node \"{options.Node}\" not found.");
-                return;
-            }
-            var companyId = options.CompanyId ?? 0;
-            try
-            {
-                var request = new NodeToManagedCompanyRequest { CompanyId = companyId };
-                await _managedCompanies.ConvertNodeToManagedCompanyAsync(request);
-                Console.WriteLine($"Node \"{node.DisplayName}\" (ID: {node.Id}) conversion requested.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Convert node failed: {ex.Message}");
-            }
         }
 
         private Task ListManagedCompanies(string _)
@@ -3819,14 +3790,5 @@ namespace Commander
 
         [Option("limit", Required = false, HelpText = "Limit number of records")]
         public int? Limit { get; set; }
-    }
-
-    class McConvertNodeOptions : EnterpriseGenericOptions
-    {
-        [Value(0, Required = true, HelpText = "Node name or ID to convert to managed company")]
-        public string Node { get; set; }
-
-        [Option("company-id", Required = false, HelpText = "Target managed company ID (0 = create new).")]
-        public int? CompanyId { get; set; }
     }
 }

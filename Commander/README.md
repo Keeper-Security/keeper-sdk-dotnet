@@ -261,7 +261,6 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `mc-update` | `mu`, `msp-update` | Update managed company licenses |
 | `mc-delete` | `mrm`, `msp-remove` | Remove managed company |
 | `mc-login` | | Switch context to managed company (like switch-to-mc) |
-| `mc-convert-node` | `msp-convert-node` | Convert an enterprise node into a managed company |
 | `switch-to-msp` | `msp` | Switch context back to MSP (when in MC context) |
 | `exit` | | When in MC context, also returns to MSP |
 

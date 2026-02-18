@@ -74,11 +74,6 @@ namespace KeeperSecurity.Enterprise
         /// <param name="companyId">Managed Company ID</param>
         /// <returns></returns>
         Task RemoveManagedCompany(int companyId);
-        /// <summary>
-        /// Converts an enterprise node into a managed company. Requires MSP account.
-        /// </summary>
-        /// <param name="request">Node-to-MC request (node data, roles, users, keys re-encrypted for the MC).</param>
-        Task ConvertNodeToManagedCompanyAsync(NodeToManagedCompanyRequest request);
     }
 
     public partial class ManagedCompanyData : IMspManagement
@@ -171,13 +166,6 @@ namespace KeeperSecurity.Enterprise
             };
 
             await Enterprise.Auth.ExecuteAuthCommand(rq);
-            await Enterprise.Load();
-        }
-
-        /// <inheritdoc/>
-        public async Task ConvertNodeToManagedCompanyAsync(NodeToManagedCompanyRequest request)
-        {
-            await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request, null);
             await Enterprise.Load();
         }
     }
