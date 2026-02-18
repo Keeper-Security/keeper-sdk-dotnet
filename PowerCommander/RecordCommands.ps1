@@ -669,7 +669,23 @@ function Add-KeeperRecord {
 	Record Notes.
 
 	.Parameter GeneratePassword
-	Generate random password.
+	Generate random password. Uses default rules (Length=20, Upper=4, Lower=4, Digit=2, Special=2) when used alone.
+	Combine with -PasswordRules and -SpecialChars for custom options.
+
+	.Parameter PasswordRules
+	Custom password generation rules: Length,Upper,Lower,Digit
+	Example: -PasswordRules 20,5,5,5
+	  Length = 20 characters
+	  Upper  = minimum 5 uppercase letters
+	  Lower  = minimum 5 lowercase letters
+	  Digit  = minimum 5 digits
+
+	.Parameter SpecialChars
+	Include special characters in the generated password.
+	Format: Count,Charset (charset is optional)
+	Example: -SpecialChars 5,"!@#$"
+	  Count   = minimum 5 special characters
+	  Charset = use only "!@#$" as special characters (optional, uses default set if omitted)
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
@@ -750,6 +766,8 @@ function Add-KeeperRecord {
     [CmdletBinding(DefaultParameterSetName = 'add')]
     Param (
         [Parameter()] [switch] $GeneratePassword,
+        [Parameter()] [int[]] $PasswordRules,
+        [Parameter()] [object[]] $SpecialChars,
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
@@ -828,7 +846,46 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $fields['password'] = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
+            $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+
+            if ($PasswordRules -or $SpecialChars) {
+                if ($PasswordRules) {
+                    $genOptions.Length = if ($PasswordRules.Length -ge 1) { [Math]::Max($PasswordRules[0], 1) } else { 0 }
+                    $genOptions.Upper  = if ($PasswordRules.Length -ge 2) { [Math]::Max($PasswordRules[1], 0) } else { 0 }
+                    $genOptions.Lower  = if ($PasswordRules.Length -ge 3) { [Math]::Max($PasswordRules[2], 0) } else { 0 }
+                    $genOptions.Digit  = if ($PasswordRules.Length -ge 4) { [Math]::Max($PasswordRules[3], 0) } else { 0 }
+                }
+
+                if ($SpecialChars) {
+                    $genOptions.Special = [Math]::Max([int]$SpecialChars[0], 0)
+                    if ($SpecialChars.Length -ge 2) {
+                        $genOptions.SpecialCharacters = [string]$SpecialChars[1]
+                    }
+                }
+                else {
+                    $genOptions.Special = -1
+                }
+
+                $requiredTotal = [Math]::Max($genOptions.Upper, 0) + [Math]::Max($genOptions.Lower, 0) + [Math]::Max($genOptions.Digit, 0) + [Math]::Max($genOptions.Special, 0)
+                if ($genOptions.Length -lt $requiredTotal) {
+                    Write-Host "Length $($genOptions.Length) is less than total required ($requiredTotal). Adjusting length to $requiredTotal."
+                    $genOptions.Length = $requiredTotal
+                }
+
+                Write-Host "Generating password: Length=$($genOptions.Length), Upper=$($genOptions.Upper), Lower=$($genOptions.Lower), Digit=$($genOptions.Digit), Special=$($genOptions.Special)$(if ($genOptions.SpecialCharacters) { ', Charset=' + $genOptions.SpecialCharacters })"
+            }
+            else {
+                $genOptions.Length  = 20
+                $genOptions.Upper   = 4
+                $genOptions.Lower   = 4
+                $genOptions.Digit   = 2
+                $genOptions.Special = 2
+                Write-Host "Generating password with default rules (Length=20, Upper=4, Lower=4, Digit=2, Special=2)"
+            }
+
+            $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
+
+            $fields['password'] = $generatedPassword
         }
 
         foreach ($fieldName in $fields.Keys) {
