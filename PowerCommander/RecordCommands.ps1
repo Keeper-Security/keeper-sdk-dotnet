@@ -669,23 +669,31 @@ function Add-KeeperRecord {
 	Record Notes.
 
 	.Parameter GeneratePassword
-	Generate random password. Uses default rules (Length=20, Upper=4, Lower=4, Digit=2, Special=2) when used alone.
-	Combine with -PasswordRules and -SpecialChars for custom options.
+	Generate random password. When used alone (no -PasswordRules or -SpecialChars), uses
+	defaults: Length=20, Upper=4, Lower=4, Digit=2, Special=-1 (excluded).
+	Combine with -PasswordRules and/or -SpecialChars for custom options.
 
 	.Parameter PasswordRules
-	Custom password generation rules: Length,Upper,Lower,Digit
-	Example: -PasswordRules 20,5,5,5
-	  Length = 20 characters
-	  Upper  = minimum 5 uppercase letters
-	  Lower  = minimum 5 lowercase letters
-	  Digit  = minimum 5 digits
+	Custom password generation rules. Requires exactly 5 values: Length,Upper,Lower,Digit,Special
+	Minimum length enforced: 12. Maximum length enforced: 200.
+	Each category value controls how that character type is used:
+	  Positive N  : at least N guaranteed, more may appear as random filler
+	  Zero (0)    : no guarantee, but eligible for random filler
+	  Negative -1 : completely excluded from the password
+	Example: -PasswordRules 20,5,5,5,3
+	  Length=20, at least 5 upper, 5 lower, 5 digits, 3 specials
+	Example: -PasswordRules 20,3,3,3,0
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials filler eligible
+	Example: -PasswordRules 20,3,3,3,-1
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials excluded entirely
 
 	.Parameter SpecialChars
-	Include special characters in the generated password.
-	Format: Count,Charset (charset is optional)
-	Example: -SpecialChars 5,"!@#$"
-	  Count   = minimum 5 special characters
-	  Charset = use only "!@#$" as special characters (optional, uses default set if omitted)
+	Define custom special characters to use in the generated password.
+	Accepts a string of allowed special characters.
+	If Special count is not set or is <= 0, defaults Special to 2 when -SpecialChars is provided.
+	Example: -SpecialChars "!@#$%^&"
+	  Uses only the characters "!@#$%^&" as the special character set.
+	  If omitted, the default set is used: !@#$%()+;<>=?[]{}^.,
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
@@ -767,7 +775,7 @@ function Add-KeeperRecord {
     Param (
         [Parameter()] [switch] $GeneratePassword,
         [Parameter()] [int[]] $PasswordRules,
-        [Parameter()] [object[]] $SpecialChars,
+        [Parameter()] [string] $SpecialChars,
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
@@ -846,41 +854,35 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+            $genOptions = $null
+            $minLength = 12
+            $maxLength = 200
 
             if ($PasswordRules -or $SpecialChars) {
+                $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+
                 if ($PasswordRules) {
-                    $genOptions.Length = if ($PasswordRules.Length -ge 1) { [Math]::Max($PasswordRules[0], 1) } else { 0 }
-                    $genOptions.Upper  = if ($PasswordRules.Length -ge 2) { [Math]::Max($PasswordRules[1], 0) } else { 0 }
-                    $genOptions.Lower  = if ($PasswordRules.Length -ge 3) { [Math]::Max($PasswordRules[2], 0) } else { 0 }
-                    $genOptions.Digit  = if ($PasswordRules.Length -ge 4) { [Math]::Max($PasswordRules[3], 0) } else { 0 }
+                    if ($PasswordRules.Length -ne 5) {
+                        Write-Error "PasswordRules requires exactly 5 values: Length,Upper,Lower,Digit,Special. Got $($PasswordRules.Length)."
+                        return
+                    }
+
+                    $genOptions.Length, $genOptions.Upper, $genOptions.Lower, $genOptions.Digit, $genOptions.Special = $PasswordRules
+
+                    if ($genOptions.Length -lt $minLength) {
+                        Write-Warning "Length $($genOptions.Length) is below minimum ($minLength). Adjusting to $minLength."
+                        $genOptions.Length = $minLength
+                    }
+                    elseif ($genOptions.Length -gt $maxLength) {
+                        Write-Warning "Length $($genOptions.Length) exceeds maximum ($maxLength). Adjusting to $maxLength."
+                        $genOptions.Length = $maxLength
+                    }
                 }
 
                 if ($SpecialChars) {
-                    $genOptions.Special = [Math]::Max([int]$SpecialChars[0], 0)
-                    if ($SpecialChars.Length -ge 2) {
-                        $genOptions.SpecialCharacters = [string]$SpecialChars[1]
-                    }
+                    $genOptions.SpecialCharacters = $SpecialChars
+                    if ($genOptions.Special -le 0) { $genOptions.Special = 2 }
                 }
-                else {
-                    $genOptions.Special = -1
-                }
-
-                $requiredTotal = [Math]::Max($genOptions.Upper, 0) + [Math]::Max($genOptions.Lower, 0) + [Math]::Max($genOptions.Digit, 0) + [Math]::Max($genOptions.Special, 0)
-                if ($genOptions.Length -lt $requiredTotal) {
-                    Write-Host "Length $($genOptions.Length) is less than total required ($requiredTotal). Adjusting length to $requiredTotal."
-                    $genOptions.Length = $requiredTotal
-                }
-
-                Write-Host "Generating password: Length=$($genOptions.Length), Upper=$($genOptions.Upper), Lower=$($genOptions.Lower), Digit=$($genOptions.Digit), Special=$($genOptions.Special)$(if ($genOptions.SpecialCharacters) { ', Charset=' + $genOptions.SpecialCharacters })"
-            }
-            else {
-                $genOptions.Length  = 20
-                $genOptions.Upper   = 4
-                $genOptions.Lower   = 4
-                $genOptions.Digit   = 2
-                $genOptions.Special = 2
-                Write-Host "Generating password with default rules (Length=20, Upper=4, Lower=4, Digit=2, Special=2)"
             }
 
             $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
