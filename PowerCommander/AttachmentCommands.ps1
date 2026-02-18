@@ -329,7 +329,7 @@ function Get-KeeperFileReport {
     #>
     [CmdletBinding()]
     Param (
-        [Alias('d')]
+        [Alias('dl')]
         [switch] $TryDownload,
 
         [ValidateSet('table', 'csv', 'json')]

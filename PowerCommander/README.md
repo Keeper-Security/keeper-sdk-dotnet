@@ -41,6 +41,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperFileAttachment                             | krfa             | Remove file attachment from record
 | Copy-KeeperFileAttachmentToStream                       |                  | Download file attachement to stream
 | Copy-FileToKeeperRecord                                 |                  | Upload file attachment to a record
+| Get-KeeperFileReport                                    | file-report      | List records with file attachments and optionally verify download accessibility
 | Get-KeeperInformation                                   | kwhoami          | Print account license information
 | Get-KeeperDeviceSettings                                |                  | Print the current device settings
 | Set-KeeperDeviceSettings                                | this-device      | Modifies the current device settings
