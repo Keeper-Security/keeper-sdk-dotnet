@@ -3375,7 +3375,7 @@ namespace Commander
 
             if (arguments.Seats != null)
             {
-                options.NumberOfSeats = arguments.Seats.Value >= 0 ? arguments.Seats.Value : 2147483647;
+                options.NumberOfSeats = arguments.Seats.Value >= 0 ? arguments.Seats.Value : -1;
             }
 
             if (!string.IsNullOrEmpty(arguments.Storage))

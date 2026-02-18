@@ -12,23 +12,22 @@ function Switch-KeeperMC {
     )
 
     [Enterprise]$enterprise = getMspEnterprise
- 
-    $mc = $enterprise.mspData.ManagedCompanies | Where-Object { ($_.EnterpriseId -eq $Name) }
-    if ($mc.Length -eq 0) {
-        $mc = $enterprise.mspData.ManagedCompanies | Where-Object { ($_.EnterpriseName -like $Name + '*') }
-    }
 
-    if ($mc.Length -eq 0) {
+    $mc = @($enterprise.mspData.ManagedCompanies | Where-Object { ($_.EnterpriseId -eq $Name) })
+    if ($mc.Count -eq 0) {
+        $mc = @($enterprise.mspData.ManagedCompanies | Where-Object { ($_.EnterpriseName -like $Name + '*') })
+    }
+    if ($mc.Count -eq 0) {
         Write-Error -Message "Managed Company`"$Name`" not found" -ErrorAction Stop
     }
-    elseif ($mc.Length -gt 1) {
+    elseif ($mc.Count -gt 1) {
         Write-Error -Message "Managed Company`"$Name`" is not unique. Use Company ID." -ErrorAction Stop
     }
 
-    $Script:Context.ManagedCompanyId = $mc.EnterpriseId
+    $Script:Context.ManagedCompanyId = $mc[0].EnterpriseId
     Sync-KeeperEnterprise
 
-    Write-Host "Switched to Managed Company `"$($mc.EnterpriseName)`" (ID: $($mc.EnterpriseId))."
+    Write-Host "Switched to Managed Company `"$($mc[0].EnterpriseName)`" (ID: $($mc[0].EnterpriseId))."
 }
 New-Alias -Name switch-to-mc -Value Switch-KeeperMC
 
@@ -97,8 +96,9 @@ function Get-KeeperManagedCompany {
             return
         }
         $allProducts = @{ 'business' = 'Business'; 'businessplus' = 'Business Plus'; 'enterprise' = 'Enterprise'; 'enterprise_plus' = 'Enterprise Plus' }
-        $allAddons = $script:MspAddonDisplayNames.Clone()
-        foreach ($k in $allAddons.Keys) { $allAddons[$k.ToLower()] = $allAddons[$k] }
+        $allAddons = @{}
+        $addonKeys = @($script:MspAddonDisplayNames.Keys)
+        foreach ($k in $addonKeys) { $allAddons[$k.ToLower()] = $script:MspAddonDisplayNames[$k] }
         $allFilePlans = @{ '100gb' = '100GB'; '1tb' = '1TB'; '10tb' = '10TB' }
         $rows = [System.Collections.ArrayList]::new()
         [void]$rows.Add([PSCustomObject]@{ 'Permit Name' = 'Allow Unlimited Licenses'; 'Value' = $permits.AllowUnlimitedLicenses })
@@ -174,12 +174,12 @@ function Get-KeeperManagedCompany {
         $mcInput = $ManagedCompany.Trim()
         $isId = $false
         try { [long]::Parse($mcInput) | Out-Null; $isId = $true } catch { }
-        $filtered = if ($isId) {
+        $filtered = @(if ($isId) {
             @($list) | Where-Object { $_.EnterpriseId -eq [long]$mcInput }
         } else {
             @($list) | Where-Object { $_.EnterpriseName -and ($_.EnterpriseName.Trim().ToLower() -eq $mcInput.ToLower()) }
-        }
-        if (-not $filtered -or $filtered.Count -eq 0) {
+        })
+        if ($filtered.Count -eq 0) {
             Write-Error "Managed Company `"$ManagedCompany`" not found" -ErrorAction Stop
         }
         $list = @($filtered)
@@ -208,7 +208,7 @@ function Get-KeeperManagedCompany {
                 foreach ($ao in $mc.AddOns) {
                     $an = $ao.Name
                     if ($ao.Seats -and [int]$ao.Seats -gt 0) {
-                        $s = $ao.Seats; if ($s -eq 2147483647) { $s = -1 }
+                        $s = $ao.Seats; if ($s -eq -1 -or $s -eq [int]::MaxValue) { $s = -1 }
                         $addonList.Add("${an}:$s")
                     } else {
                         $addonList.Add($an)
@@ -219,7 +219,7 @@ function Get-KeeperManagedCompany {
             $plan = $mc.ProductId
             if ($plan) { $pd = $planDisplay[[string]$plan.ToLower()]; if ($pd) { $plan = $pd } }
             $seats = $mc.NumberOfSeats
-            if ($seats -gt 2000000) { $seats = $null }
+            if ($seats -eq -1 -or $seats -eq [int]::MaxValue -or $seats -gt 2000000) { $seats = -1 }
             $row = [ordered]@{
                 company_id   = $mc.EnterpriseId
                 company_name = $mc.EnterpriseName
@@ -299,7 +299,7 @@ function New-KeeperManagedCompany {
     	.Parameter Name
 	    Managed Company Name
     	.Parameter PlanId
-	    Managed Company Plan
+	    Managed Company Plan. ValidateSet casing (e.g. businessPlus)
     	.Parameter MaximumSeats
 	    Maximum Number of Seats
         .Parameter Storage
@@ -387,7 +387,7 @@ function Remove-KeeperManagedCompany {
 
     if ($PSCmdlet.ShouldProcess($mc.EnterpriseName, "Removing Managed Company")) {
         $enterprise.mspData.RemoveManagedCompany($mc.EnterpriseId).GetAwaiter().GetResult() | Out-Null
-        Write-Information "Removed Managed Company `"$($mc.EnterpriseName)`" ID: $($mc.EnterpriseId)"
+        Write-Host "`"$($mc.EnterpriseName)`" MSP removed successfully."
     }
 }
 New-Alias -Name krmc -Value Remove-KeeperManagedCompany
@@ -420,7 +420,7 @@ function Edit-KeeperManagedCompany {
     Edit-KeeperManagedCompany -Id "Acme" -Name "Acme Corp" -MaximumSeats 100
     Edit-KeeperManagedCompany -Id 3862 -AddAddon "connection_manager:5" -RemoveAddon "secrets_manager"
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     Param (
         [Parameter(Position = 0, Mandatory = $true)][string] $Id,
         [Parameter(Mandatory = $false)][string] $Name,
@@ -443,7 +443,7 @@ function Edit-KeeperManagedCompany {
     if ($Name) { $options.Name = $Name }
     if ($PlanId) { $options.ProductId = $PlanId }
     if ($MaximumSeats -ne [int]::MinValue) {
-        $options.NumberOfSeats = if ($MaximumSeats -eq -1) { 2147483647 } else { $MaximumSeats }
+        $options.NumberOfSeats = if ($MaximumSeats -gt 1) { $MaximumSeats } else { -1 }
     }
     if ($Storage) {
         switch ($Storage.Trim().ToUpper()) {
@@ -468,7 +468,7 @@ function Edit-KeeperManagedCompany {
                 $addonOption.Addon = $parts[0].Trim().ToLower()
                 if ($parts.Length -gt 1 -and $parts[1]) {
                     $s = $parts[1].Trim()
-                    $addonOption.NumberOfSeats = if ($s -eq '-1') { 2147483647 } else { [int]$s }
+                    $addonOption.NumberOfSeats = if ($s -eq '-1') { -1 } else { [int]$s }
                 }
                 [void]$addonsToSend.Add($addonOption)
             }
@@ -480,7 +480,7 @@ function Edit-KeeperManagedCompany {
                 if (-not $ao.IsEnabled) { continue }
                 $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
                 $addonOption.Addon = $ao.Name
-                if ($ao.Seats -gt 0) { $addonOption.NumberOfSeats = if ($ao.Seats -eq 2147483647) { 2147483647 } else { $ao.Seats } }
+                if ($ao.Seats -gt 0) { $addonOption.NumberOfSeats = if ($ao.Seats -eq -1 -or $ao.Seats -eq [int]::MaxValue) { -1 } else { $ao.Seats } }
                 $addonDict[$ao.Name] = $addonOption
             }
         }
@@ -497,7 +497,7 @@ function Edit-KeeperManagedCompany {
                 $addonOption.Addon = $addonName
                 if ($parts.Length -gt 1 -and $parts[1]) {
                     $s = $parts[1].Trim()
-                    $addonOption.NumberOfSeats = if ($s -eq '-1') { 2147483647 } else { [int]$s }
+                    $addonOption.NumberOfSeats = if ($s -eq '-1') { -1 } else { [int]$s }
                 }
                 $addonDict[$addonName] = $addonOption
             }
@@ -509,7 +509,9 @@ function Edit-KeeperManagedCompany {
         $options.Addons = @($addonsToSend)
     }
 
-    $enterprise.mspData.UpdateManagedCompany($mc.EnterpriseId, $options).GetAwaiter().GetResult()
+    if ($PSCmdlet.ShouldProcess($mc.EnterpriseName, "Updating Managed Company")) {
+        $enterprise.mspData.UpdateManagedCompany($mc.EnterpriseId, $options).GetAwaiter().GetResult()
+    }
 }
 New-Alias -Name kemc -Value Edit-KeeperManagedCompany
 Register-ArgumentCompleter -CommandName Edit-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
@@ -530,7 +532,7 @@ function Copy-KeeperMCRole {
     Copy-KeeperMCRole -Role "Keeper Administrator" -ManagedCompany "Acme Corp", 3862
     Copy-KeeperMCRole -Role "Auditor", "Help Desk" -ManagedCompany "Acme"
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     Param (
         [Parameter(Mandatory = $true)][string[]] $Role,
         [Parameter(Mandatory = $true)][string[]] $ManagedCompany
@@ -590,6 +592,8 @@ function Copy-KeeperMCRole {
     }
 
     foreach ($mc in $mcs) {
+        if (-not $PSCmdlet.ShouldProcess("$($mc.EnterpriseName) (ID: $($mc.EnterpriseId))", "Copy role(s) to Managed Company")) { continue }
+
         $authMc = New-Object KeeperSecurity.Enterprise.ManagedCompanyAuth
         $authMc.LoginToManagedCompany($mspLoader, $mc.EnterpriseId).GetAwaiter().GetResult() | Out-Null
 
@@ -724,9 +728,9 @@ function Get-MspBillingReport {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [object] $Month,
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [int] $Year = 0,
         [Parameter(Mandatory = $false)]
         [Alias('d')]
@@ -745,6 +749,18 @@ function Get-MspBillingReport {
     $apiMonth = -1
     $apiYear = -1
 
+    $monthNum = $null
+    if ($null -ne $Month) {
+        if ($Month -is [string] -and $Month -match '^(\d{4})-(\d{2})$') {
+        } elseif ($Month -is [int] -and $Month -ge 1 -and $Month -le 12) {
+            $monthNum = $Month
+        } else {
+            $tryNum = 0
+            if ([int]::TryParse([string]$Month, [ref]$tryNum) -and $tryNum -ge 1 -and $tryNum -le 12) { $monthNum = $tryNum }
+            else { $Month = $null }
+        }
+    }
+
     if ($null -ne $Month -and $Month -is [string] -and $Month -match '^(\d{4})-(\d{2})$') {
         $apiYear = [int]$Matches[1]
         $m = [int]$Matches[2]
@@ -752,11 +768,11 @@ function Get-MspBillingReport {
             Write-Error "Month in YYYY-MM must be 01-12 (got $($Matches[2]))" -ErrorAction Stop
         }
         $apiMonth = $m - 1
-    } elseif ($Year -ne 0 -or ($null -ne $Month -and [int]$Month -ne 0)) {
+    } elseif ($Year -ne 0 -or $null -ne $monthNum) {
         if ($Year -eq 0) { $Year = $dt.Year }
         $apiYear = $Year
-        if ($null -ne $Month -and [int]$Month -ge 1 -and [int]$Month -le 12) {
-            $apiMonth = [int]$Month - 1
+        if ($null -ne $monthNum -and $monthNum -ge 1 -and $monthNum -le 12) {
+            $apiMonth = $monthNum - 1
         } else {
             $apiMonth = $dt.Month - 1
             if ($apiMonth -le 0) {
@@ -1013,7 +1029,13 @@ function findManagedCompany {
         [string]$mc
     )
     $enterprise = getMspEnterprise
-    $enterprise.mspData.ManagedCompanies | Where-Object { ($_.EnterpriseId -eq $mc) -or ($_.EnterpriseName -eq $mc) } | Select-Object -First 1
+    $trimmed = $mc.Trim()
+    $id = [long]0
+    if ([long]::TryParse($trimmed, [ref]$id)) {
+        $enterprise.mspData.ManagedCompanies | Where-Object { $_.EnterpriseId -eq $id } | Select-Object -First 1
+    } else {
+        $enterprise.mspData.ManagedCompanies | Where-Object { $_.EnterpriseName -eq $trimmed } | Select-Object -First 1
+    }
 }
 
 function findEnterpriseNode {

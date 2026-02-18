@@ -616,7 +616,7 @@ function Get-KeeperEnterpriseInfoManagedCompany {
         if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $storage = if ($mc.FilePlanType) { $mc.FilePlanType } else { '' }
         $addons = if ($mc.AddOns) { $mc.AddOns.Count } else { 0 }
-        $allocated = $mc.NumberOfSeats; if ($allocated -eq 2147483647) { $allocated = $null }
+        $allocated = $mc.NumberOfSeats; if ($allocated -eq -1) { $allocated = $null }
         $nodePath = Get-KeeperNodePath -NodeId $mc.ParentNodeId -OmitRoot
         $row = [PSCustomObject]@{
             CompanyId    = $mc.EnterpriseId
