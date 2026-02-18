@@ -28,7 +28,7 @@ function Switch-KeeperMC {
     $Script:Context.ManagedCompanyId = $mc.EnterpriseId
     Sync-KeeperEnterprise
 
-    Write-Information "Switched to MC `"$($mc.EnterpriseName)`""
+    Write-Host "Switched to Managed Company `"$($mc.EnterpriseName)`" (ID: $($mc.EnterpriseId))."
 }
 New-Alias -Name switch-to-mc -Value Switch-KeeperMC
 
@@ -44,7 +44,7 @@ function Switch-KeeperMSP {
     $Script:Context.ManagedCompanyId = 0
     Sync-KeeperEnterprise
 
-    Write-Information "Switched to MSP"
+    Write-Host "Switched to MSP."
 }
 New-Alias -Name switch-to-msp -Value Switch-KeeperMSP
 

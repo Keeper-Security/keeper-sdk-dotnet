@@ -3308,11 +3308,14 @@ namespace Commander
 
         private async Task LoginToManagedCompany(ManagedCompanyLoginOptions options)
         {
+            var mc = _managedCompanies.ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == options.CompanyId);
+            var mcName = mc?.EnterpriseName ?? $"ID {options.CompanyId}";
             var mcAuth = new ManagedCompanyAuth();
             await mcAuth.LoginToManagedCompany(Enterprise, options.CompanyId);
             var mcContext = new McEnterpriseContext(mcAuth);
             mcContext.BackStateCommands = this;
             NextStateCommands = mcContext;
+            Console.WriteLine($"Switched to Managed Company \"{mcName}\" (ID: {options.CompanyId}).");
         }
 
         private Task ListManagedCompanies(string _)
