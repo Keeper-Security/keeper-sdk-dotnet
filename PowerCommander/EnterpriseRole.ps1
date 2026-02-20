@@ -1486,3 +1486,179 @@ function Remove-KeeperEnterpriseRoleEnforcement {
 }
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseRoleEnforcement -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
 New-Alias -Name Remove-KeeperRoleEnforcement -Value Remove-KeeperEnterpriseRoleEnforcement
+
+function Copy-KeeperEnterpriseRole {
+    <#
+        .SYNOPSIS
+        Copies an enterprise role to another node with enforcements, users, and teams.
+
+        .DESCRIPTION
+        Creates a new role on the target node with the same NewUserInherit and VisibleBelow as the source role,
+        copies all enforcements, and optionally copies users and teams from the source role to the new role.
+
+        .PARAMETER SourceRole
+        Role name, ID, or EnterpriseRole object to copy from.
+
+        .PARAMETER TargetNode
+        Target node name or ID where the new role will be created.
+
+        .PARAMETER NewRoleName
+        Display name for the new role.
+
+        .PARAMETER CopyUsers
+        Copy users from the source role to the new role. Default is $true.
+
+        .PARAMETER CopyTeams
+        Copy teams from the source role to the new role. Default is $true.
+
+        .PARAMETER Force
+        Reload enterprise data before running.
+
+        .EXAMPLE
+        Copy-KeeperEnterpriseRole -SourceRole "Test-App" -TargetNode "dev" -NewRoleName "second dev"
+        Creates a new role "second dev" on node "dev" with enforcements, users, and teams from "Test-App".
+
+        .EXAMPLE
+        Copy-KeeperEnterpriseRole -SourceRole "AdminRole" -TargetNode 123456789 -NewRoleName "AdminRole-Copy" -CopyUsers $false
+        Copies only enforcements and teams (no users) to the new role.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$SourceRole,
+        [Parameter(Position = 1, Mandatory = $true)][string]$TargetNode,
+        [Parameter(Position = 2, Mandatory = $true)][string]$NewRoleName,
+        [Parameter()][bool]$CopyUsers = $true,
+        [Parameter()][bool]$CopyTeams = $true,
+        [Parameter()][switch]$Force
+    )
+
+    if ($Force) {
+        Sync-KeeperEnterprise | Out-Null
+    }
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $roleData = $enterprise.roleData
+
+    $sourceRoleObject = resolveRole $roleData $SourceRole
+    if (-not $sourceRoleObject) {
+        return
+    }
+
+    $targetNodeObject = resolveSingleNode $TargetNode
+    if (-not $targetNodeObject) {
+        return
+    }
+
+    $nodeId = $targetNodeObject.Id
+    $newRoleNameTrimmed = $NewRoleName.Trim()
+    $sourceName = $sourceRoleObject.DisplayName
+
+    if ($PSCmdlet.ShouldProcess("Role `"$newRoleNameTrimmed`" on node `"$($targetNodeObject.DisplayName)`"", "Copy from `"$sourceName`"")) {
+        try {
+            $newRole = $roleData.CreateRole($newRoleNameTrimmed, $nodeId, $sourceRoleObject.NewUserInherit).GetAwaiter().GetResult()
+            if (-not $newRole) {
+                Write-Error "Failed to create role `"$newRoleNameTrimmed`"" -ErrorAction Stop
+                return
+            }
+
+            if ($newRole.VisibleBelow -ne $sourceRoleObject.VisibleBelow) {
+                try {
+                    $updated = $roleData.UpdateRole($newRole, $null, $sourceRoleObject.VisibleBelow, $null).GetAwaiter().GetResult()
+                    if ($updated) {
+                        $newRole = $updated
+                    }
+                }
+                catch {
+                    Write-Warning "Failed to set VisibleBelow for role `"$newRoleNameTrimmed`": $($_.Exception.Message)"
+                }
+            }
+
+            $sourceEnforcements = @($roleData.GetEnforcementsForRole($sourceRoleObject.Id))
+            if ($sourceEnforcements.Count -gt 0) {
+                $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
+                foreach ($re in $sourceEnforcements) {
+                    $enforcementTypeStr = $re.EnforcementType
+                    if ([string]::IsNullOrWhiteSpace($enforcementTypeStr)) { continue }
+                    $normalized = $enforcementTypeStr -replace '_', ''
+                    $parsed = $null
+                    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $normalized, $true, [ref]$parsed)) {
+                        $enforcementDict[$parsed] = if ($re.Value) { $re.Value } else { '' }
+                    }
+                }
+                if ($enforcementDict.Count -gt 0) {
+                    $roleData.RoleEnforcementAddBatch($newRole, $enforcementDict).GetAwaiter().GetResult() | Out-Null
+                }
+            }
+
+            $usersCopied = 0
+            if ($CopyUsers) {
+                $sourceUserIds = @($roleData.GetUsersForRole($sourceRoleObject.Id))
+                foreach ($userId in $sourceUserIds) {
+                    $user = $null
+                    if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        try {
+                            $roleData.AddUserToRole($newRole, $user).GetAwaiter().GetResult() | Out-Null
+                            $usersCopied++
+                        }
+                        catch {
+                            Write-Warning "Could not add user `"$($user.Email)`" to new role: $($_.Exception.Message)"
+                        }
+                    }
+                }
+            }
+
+            $teamsCopied = 0
+            if ($CopyTeams) {
+                $sourceTeamUids = @($roleData.GetTeamsForRole($sourceRoleObject.Id))
+                foreach ($teamUid in $sourceTeamUids) {
+                    $team = $null
+                    if ($enterpriseData.TryGetTeam($teamUid, [ref]$team)) {
+                        try {
+                            $roleData.AddTeamToRole($newRole, $team).GetAwaiter().GetResult() | Out-Null
+                            $teamsCopied++
+                        }
+                        catch {
+                            Write-Warning "Could not add team `"$($team.Name)`" to new role: $($_.Exception.Message)"
+                        }
+                    }
+                }
+            }
+
+            try {
+                $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+            }
+            catch {
+                Write-Warning "Failed to reload enterprise data: $($_.Exception.Message)"
+            }
+
+            $msg = "Role `"$newRoleNameTrimmed`" created with enforcements from `"$sourceName`""
+            if ($usersCopied -gt 0 -or $teamsCopied -gt 0) {
+                $msg += " ($usersCopied user(s), $teamsCopied team(s) copied)"
+            }
+            $msg += "."
+            Write-Output $msg
+        }
+        catch {
+            Write-Error "Copy role failed: $($_.Exception.Message)" -ErrorAction Stop
+        }
+    }
+}
+Register-ArgumentCompleter -CommandName Copy-KeeperEnterpriseRole -ParameterName SourceRole -ScriptBlock $Keeper_RoleNameCompleter
+Register-ArgumentCompleter -CommandName Copy-KeeperEnterpriseRole -ParameterName TargetNode -ScriptBlock {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    $result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) { return $null }
+    $to_complete = if ($wordToComplete) { $wordToComplete + '*' } else { '*' }
+    foreach ($node in $enterprise.enterpriseData.Nodes) {
+        if ($node.DisplayName -like $to_complete) {
+            $nodeName = $node.DisplayName
+            if ($nodeName -match '[\s'']') { $nodeName = $nodeName -replace '''', ''''''; $nodeName = "'${nodeName}'" }
+            $result += $nodeName
+        }
+    }
+    if ($result.Count -gt 0) { return $result }
+    return $null
+}
+New-Alias -Name kercopy -Value Copy-KeeperEnterpriseRole
