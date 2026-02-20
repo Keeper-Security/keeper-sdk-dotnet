@@ -718,7 +718,31 @@ function Add-KeeperRecord {
 	Record Notes.
 
 	.Parameter GeneratePassword
-	Generate random password.
+	Generate random password. When used alone (no -PasswordRules or -SpecialChars), uses
+	defaults: Length=20, Upper=4, Lower=4, Digit=2, Special=-1 (excluded).
+	Combine with -PasswordRules and/or -SpecialChars for custom options.
+
+	.Parameter PasswordRules
+	Custom password generation rules. Requires exactly 5 values: Length,Upper,Lower,Digit,Special
+	Minimum length enforced: 12. Maximum length enforced: 200.
+	Each category value controls how that character type is used:
+	  Positive N  : at least N guaranteed, more may appear as random filler
+	  Zero (0)    : no guarantee, but eligible for random filler
+	  Negative -1 : completely excluded from the password
+	Example: -PasswordRules 20,5,5,5,3
+	  Length=20, at least 5 upper, 5 lower, 5 digits, 3 specials
+	Example: -PasswordRules 20,3,3,3,0
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials filler eligible
+	Example: -PasswordRules 20,3,3,3,-1
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials excluded entirely
+
+	.Parameter SpecialChars
+	Define custom special characters to use in the generated password.
+	Accepts a string of allowed special characters.
+	If Special count is not set or is <= 0, defaults Special to 2 when -SpecialChars is provided.
+	Example: -SpecialChars "!@#$%^&"
+	  Uses only the characters "!@#$%^&" as the special character set.
+	  If omitted, the default set is used: !@#$%()+;<>=?[]{}^.,
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
@@ -799,6 +823,8 @@ function Add-KeeperRecord {
     [CmdletBinding(DefaultParameterSetName = 'add')]
     Param (
         [Parameter()] [switch] $GeneratePassword,
+        [Parameter()] [int[]] $PasswordRules,
+        [Parameter()] [string] $SpecialChars,
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
@@ -877,7 +903,40 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $fields['password'] = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
+            $genOptions = $null
+            $minLength = 12
+            $maxLength = 200
+
+            if ($PasswordRules -or $SpecialChars) {
+                $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+
+                if ($PasswordRules) {
+                    if ($PasswordRules.Length -ne 5) {
+                        Write-Error "PasswordRules requires exactly 5 values: Length,Upper,Lower,Digit,Special. Got $($PasswordRules.Length)."
+                        return
+                    }
+
+                    $genOptions.Length, $genOptions.Upper, $genOptions.Lower, $genOptions.Digit, $genOptions.Special = $PasswordRules
+
+                    if ($genOptions.Length -lt $minLength) {
+                        Write-Warning "Length $($genOptions.Length) is below minimum ($minLength). Adjusting to $minLength."
+                        $genOptions.Length = $minLength
+                    }
+                    elseif ($genOptions.Length -gt $maxLength) {
+                        Write-Warning "Length $($genOptions.Length) exceeds maximum ($maxLength). Adjusting to $maxLength."
+                        $genOptions.Length = $maxLength
+                    }
+                }
+
+                if ($SpecialChars) {
+                    $genOptions.SpecialCharacters = $SpecialChars
+                    if ($genOptions.Special -le 0) { $genOptions.Special = 2 }
+                }
+            }
+
+            $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
+
+            $fields['password'] = $generatedPassword
         }
 
         foreach ($fieldName in $fields.Keys) {
