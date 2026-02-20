@@ -29,6 +29,9 @@ function Export-KeeperMembership {
 	.Parameter SubFolderHandling
 	Shared sub-folder handling: 'ignore' or 'flatten'
 
+	.Parameter Source
+	Membership source: keeper, lastpass, thycotic. Currently only keeper is supported.
+
 	.Description
 	Downloads shared folder and team membership information from your Keeper vault.
 	This is useful for migration, backup, or analysis of access permissions.
@@ -85,8 +88,18 @@ function Export-KeeperMembership {
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('ignore', 'flatten')]
-        [string] $SubFolderHandling
+        [string] $SubFolderHandling,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('keeper', 'lastpass', 'thycotic')]
+        [string] $Source = 'keeper'
     )
+
+    if ([string]::IsNullOrWhiteSpace($Source)) { $Source = 'keeper' }
+    $sourceLower = $Source.ToLower()
+    if ($sourceLower -ne 'keeper') {
+        throw "Membership download source '$Source' is not supported. Valid values: keeper, lastpass, thycotic. Currently only keeper is implemented."
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
@@ -126,8 +139,7 @@ function Export-KeeperMembership {
     try {
         $downloadTask = [KeeperSecurity.Vault.KeeperMembershipDownload]::DownloadMembership(
             $vault,
-            $downloadOptions,
-            $null
+            $downloadOptions
         )
         $downloadTask.Wait()
         $exportFile = $downloadTask.Result
@@ -237,8 +249,108 @@ function Export-KeeperMembership {
     }
     catch {
         Write-Error "Failed to download membership: $_"
-        throw
+        return
     }
 }
 New-Alias -Name kdwnmbs -Value Export-KeeperMembership
 
+function Import-KeeperMembership {
+    <#
+	.Synopsis
+	Load shared folder membership from a JSON file into Keeper
+
+	.Parameter FileName
+	Input JSON filename (default: shared_folder_membership.json)
+
+	.Parameter FullSync
+	Update and remove membership to match the file; otherwise only add/update
+
+	.Description
+	Reads shared folder membership from a JSON file (produced by Export-KeeperMembership/ same format as what is exported by Export-KeeperMembership)
+	and applies it to the vault. Use -FullSync to also remove users/teams that are not in the file.
+
+	.Example
+	Import-KeeperMembership
+	Loads membership from default file "shared_folder_membership.json"
+
+	.Example
+	Import-KeeperMembership -FileName "backup.json" -FullSync
+	Loads membership from backup.json and removes any users/teams not in the file
+#>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $false, Position = 0)]
+        [string] $FileName = "shared_folder_membership.json",
+
+        [Parameter(Mandatory = $false)]
+        [switch] $FullSync
+    )
+
+    $DefaultFileName = "shared_folder_membership.json"
+    $MaxFileSizeBytes = 50 * 1024 * 1024  # 50 MB
+
+    if ([string]::IsNullOrWhiteSpace($FileName)) {
+        $FileName = $DefaultFileName
+    }
+
+    $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Write-Error "Shared folder membership file `"$fullPath`" not found"
+        return
+    }
+
+    $fileInfo = Get-Item -LiteralPath $fullPath
+    if ($fileInfo.Length -gt $MaxFileSizeBytes) {
+        $maxMB = [math]::Round($MaxFileSizeBytes / (1024 * 1024), 2)
+        $sizeMB = [math]::Round($fileInfo.Length / (1024 * 1024), 2)
+        Write-Error "File size ($sizeMB MB) exceeds maximum allowed size ($maxMB MB)"
+        return
+    }
+
+    try {
+        $jsonBytes = [System.IO.File]::ReadAllBytes($fullPath)
+        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod("ParseJson", [Type[]]@([byte[]]))
+        $importFile = $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+    }
+    catch {
+        Write-Error "Error reading membership file: $_"
+        return
+    }
+
+    $sharedFolderCount = if ($importFile.SharedFolders) { $importFile.SharedFolders.Length } else { 0 }
+    Write-Host "Processing $sharedFolderCount shared folder(s)..."
+
+    $vault = getVault
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    $applyOptions = New-Object KeeperSecurity.Vault.ApplyMembershipOptions
+    $applyOptions.FullSync = $FullSync.IsPresent
+
+    try {
+        $summary = [KeeperSecurity.Vault.KeeperApplyMembership]::ApplyMembership($vault, $importFile, $applyOptions).GetAwaiter().GetResult()
+
+        Write-Host ""
+        if ($summary.TeamsAdded -gt 0)   { Write-Host "$($summary.TeamsAdded) team(s) added to shared folders" }
+        if ($summary.UsersAdded -gt 0)  { Write-Host "$($summary.UsersAdded) user(s) added to shared folders" }
+        if ($summary.TeamsUpdated -gt 0) { Write-Host "$($summary.TeamsUpdated) team(s) updated in shared folders" }
+        if ($summary.UsersUpdated -gt 0) { Write-Host "$($summary.UsersUpdated) user(s) updated in shared folders" }
+        if ($summary.TeamsRemoved -gt 0) { Write-Host "$($summary.TeamsRemoved) team(s) removed from shared folders" }
+        if ($summary.UsersRemoved -gt 0) { Write-Host "$($summary.UsersRemoved) user(s) removed from shared folders" }
+
+        $anyChanges = ($summary.TeamsAdded + $summary.UsersAdded + $summary.TeamsUpdated + $summary.UsersUpdated + $summary.TeamsRemoved + $summary.UsersRemoved) -gt 0
+        if (-not $anyChanges) {
+            Write-Host "No changes applied. All memberships are up to date."
+        }
+        Write-Host ""
+        Write-Host "Apply membership completed successfully." -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Error applying membership: $_"
+        return
+    }
+}
+New-Alias -Name kapplymbs -Value Import-KeeperMembership
