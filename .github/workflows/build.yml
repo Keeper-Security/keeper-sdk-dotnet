@@ -104,6 +104,16 @@ jobs:
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
+      - name: Build Keeper.CLI library
+        working-directory: ./KeeperCli
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet build --configuration=Release
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\KeeperCli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperCli.dll"
+          dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+        shell: powershell
+
       - name: Build .Net Commander
         working-directory: ./Commander
         run: |
@@ -157,6 +167,8 @@ jobs:
           path: |
             Cli/bin/Release/Keeper.Cli.*.nupkg
             Cli/bin/Release/Keeper.Cli.*.snupkg
+            KeeperCli/bin/Release/KeeperCli.*.nupkg
+            KeeperCli/bin/Release/KeeperCli.*.snupkg
           retention-days: 1
 
   publish:
