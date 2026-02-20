@@ -43,23 +43,47 @@ New-Alias -Name kr -Value Get-KeeperRecord
 function Copy-KeeperToClipboard {
     <#
 	.Synopsis
-	Copy record password to clipboard or output
+	Copy record field or password to clipboard or output
 
 	.Parameter Record
-	Record UID or any object containing property Uid
+	Record UID, title, or any object containing property Uid
 
 	.Parameter Field
-	Record field to copy to clipboard. Record password is default.
+	Record field to copy. Supports: Login, Password, URL, Notes, or any custom field name. Default is Password.
 
 	.Parameter Output
-	Password output destination. Clipboard is default. Use "Stdout" for scripting
-#>
+	Output destination: Clipboard (default), Stdout, StdoutHidden, Variable
+
+	.Parameter Username
+	Match login name to help select the correct record when multiple records have the same title
+
+	.Parameter Login
+	Copy login field instead of password
+
+	.Parameter Totp
+	Copy TOTP code instead of password
+
+	.Parameter CopyUid
+	Copy record UID instead of password
+
+	.Parameter Name
+	Variable name when Output is set to Variable
+
+	.Parameter Revision
+	Use specific record revision from history (1 = oldest/V.1, 2 = V.2, etc.). Default uses current version.
+    #>
 
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Record,
-        [string] [ValidateSet('Login' , 'Password', 'URL')] $Field = 'Password',
-        [string] [ValidateSet('Clipboard' , 'Stdout')] $Output = 'Clipboard'
+        [string] $Field = 'Password',
+        [string] [ValidateSet('Clipboard', 'Stdout', 'StdoutHidden', 'Variable')] $Output = 'Clipboard',
+        [string] $Username,
+        [Alias('l')][switch] $Login,
+        [Alias('t')][switch] $Totp,
+        [switch] $CopyUid,
+        [string] $Name,
+        [Alias('r')][int] $Revision = -1
     )
     Process {
         if ($Record -is [Array]) {
@@ -84,59 +108,123 @@ function Copy-KeeperToClipboard {
         if ($uid) {
             [KeeperSecurity.Vault.KeeperRecord] $rec = $null
             if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-                $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
-                if ($entries.Uid) {
-                    $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
+                $allRecords = @($vault.KeeperRecords)
+                
+                $match = @($allRecords | Where-Object { $_.Title -ieq $uid })
+
+                if ($match.Count -eq 0) {
+                    $match = @($allRecords | Where-Object { $_.Title -like "*$uid*" })
+                }
+                
+                if ($Username -and $match.Count -gt 0) {
+                    $match = @($match | Where-Object { (Get-KeeperRecordFieldValue -Record $_ -FieldName 'Login') -ieq $Username })
+                }
+                
+                if ($match.Count -eq 1) {
+                    $rec = $match[0]
+                }
+                elseif ($match.Count -gt 1) {
+                    Write-Warning "Multiple records found for '$uid'. Use -Username or UID."
+                    Write-Host ("{0,-30} {1,-30} {2}" -f "Title", "Login", "UID") -ForegroundColor Cyan
+                    Write-Host ("{0,-30} {1,-30} {2}" -f "-----", "-----", "---") -ForegroundColor Gray
+                    foreach ($m in $match) {
+                        Write-Host ("{0,-30} {1,-30} {2}" -f $m.Title, (Get-KeeperRecordFieldValue -Record $m -FieldName 'Login'), $m.Uid)
+                    }
+                    return $null
                 }
             }
             if ($rec) {
                 $found = $true
-                $value = ''
-
-                if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) {
-                    switch ($Field) {
-                        'Login' { $value = $rec.Login }
-                        'Password' { $value = $rec.Password }
-                        'URL' { $value = $rec.Link }
+                $originalUid = $rec.Uid
+                
+                if ($Revision -gt 0) {
+                    try {
+                        $history = $vault.GetRecordHistory($rec.Uid).GetAwaiter().GetResult()
+                        $maxRevision = $history.Length - 1
+                        if ($null -eq $history -or $Revision -gt $maxRevision) {
+                            Write-Error "Invalid revision: $Revision (record has $maxRevision historical revisions, valid range: 1-$maxRevision)"
+                            return
+                        }
+                        $arrayIndex = $history.Length - $Revision
+                        $rec = $history[$arrayIndex].KeeperRecord
+                    } catch {
+                        Write-Error "Failed to get record history: $_"
+                        return
                     }
                 }
-                elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) {
-                    $fieldType = ''
-                    switch ($Field) {
-                        'Login' { $fieldType = 'login' }
-                        'Password' { $fieldType = 'password' }
-                        'URL' { $fieldType = 'url' }
-                    }
-                    if ($fieldType) {
-                        $recordField = $rec.Fields | Where-Object FieldName -eq $fieldType | Select-Object -First 1
-                        if (-not $recordField) {
-                            $recordField = $rec.Custom | Where-Object FieldName -eq $fieldType | Select-Object -First 1
-                        }
-                        if ($recordField) {
-                            $value = $recordField.ObjectValue
-                        }
-                    }
+                
+                $itemName = $Field
+                $value = $null
+                
+                if ($CopyUid) {
+                    $itemName = "UID"
+                    $value = $originalUid
                 }
-
-                if ($value) {
-                    if ($Output -eq 'Stdout') {
-                        $value
-                    }
-                    else {
-                        if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
-                            powershell -sta "Set-Clipboard -Value '$value'"
+                elseif ($Login) {
+                    $itemName = "Login"
+                    $value = Get-KeeperRecordFieldValue -Record $rec -FieldName 'Login'
+                }
+                elseif ($Totp) {
+                    $itemName = "TOTP"
+                    $totpUrl = if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) { $rec.Totp }
+                               elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) { Get-KeeperRecordFieldValue -Record $rec -FieldName 'oneTimeCode' }
+                               else { $null }
+                    if ($totpUrl) {
+                        try {
+                            $totpResult = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totpUrl)
+                            if ($totpResult) { $value = $totpResult.Item1 }
+                        } catch {
+                            Write-Warning "Failed to generate TOTP code: $_"
                         }
-                        else {
-                            Set-Clipboard -Value $value
-                        }
-                        Write-Output "Copied to clipboard: $Field for $($rec.Title)"
-                    }
-                    if ($Field -eq 'Password') {
-                        $vault.AuditLogRecordCopyPassword($rec.Uid)
                     }
                 }
                 else {
-                    Write-Output "Record $($rec.Title) has no $Field"
+                    $value = Get-KeeperRecordFieldValue -Record $rec -FieldName $Field
+                }
+
+                if (-not [string]::IsNullOrWhiteSpace($value)) {
+                    switch ($Output) {
+                        'Stdout' {
+                            $value
+                        }
+                        'StdoutHidden' {
+                            $origFg = [Console]::ForegroundColor
+                            $origBg = [Console]::BackgroundColor
+                            try {
+                                [Console]::ForegroundColor = [ConsoleColor]::Red
+                                [Console]::BackgroundColor = [ConsoleColor]::Red
+                                Write-Host $value
+                            } finally {
+                                [Console]::ForegroundColor = $origFg
+                                [Console]::BackgroundColor = $origBg
+                            }
+                        }
+                        'Variable' {
+                            if (-not $Name) {
+                                Write-Error "-Name parameter is required when Output is set to 'Variable'"
+                                return
+                            }
+                            [Environment]::SetEnvironmentVariable($Name, $value)
+                            Write-Output "$itemName is set to variable `"$Name`""
+                        }
+                        default {
+                            if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
+                                $escapedValue = $value -replace "'", "''"
+                                powershell -sta -Command "Set-Clipboard -Value '$escapedValue'"
+                            }
+                            else {
+                                Set-Clipboard -Value $value
+                            }
+                            Write-Output "Copied to clipboard: $itemName for $($rec.Title)"
+                        }
+                    }
+                    
+                    if ($itemName -eq 'Password') {
+                        try { $vault.AuditLogRecordCopyPassword($originalUid) } catch { }
+                    }
+                }
+                else {
+                    Write-Output "Record $($rec.Title) has no $itemName"
                 }
             }
         }
@@ -146,6 +234,7 @@ function Copy-KeeperToClipboard {
     }
 }
 New-Alias -Name kcc -Value Copy-KeeperToClipboard
+New-Alias -Name find-password -Value Copy-KeeperToClipboard
 
 function Get-KeeperPasswordVisible {
     <#
@@ -409,6 +498,94 @@ function Get-KeeperRecordPassword {
     }
 }
 
+# Shared helper function for extracting field values from Keeper records
+# Used by Copy-KeeperToClipboard and Get-KeeperRecordHistory
+function Get-KeeperRecordFieldValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Record,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$FieldName
+    )
+    
+    if ($null -eq $Record) { return $null }
+    
+    if ($FieldName -ieq 'notes') {
+        if ($Record -is [KeeperSecurity.Vault.PasswordRecord] -or $Record -is [KeeperSecurity.Vault.TypedRecord]) { return $Record.Notes }
+        return $null
+    }
+    
+    if ($FieldName -ieq 'title') {
+        return $Record.Title
+    }
+    
+    if ($Record -is [KeeperSecurity.Vault.PasswordRecord]) {
+        switch -Regex ($FieldName) {
+            '^login$' { return $Record.Login }
+            '^password$' { return $Record.Password }
+            '^url$' { return $Record.Link }
+            '^totp$' { return $Record.Totp }
+            default {
+                $cf = $Record.Custom | Where-Object { $_.Name -ieq $FieldName } | Select-Object -First 1
+                if ($cf) { return $cf.Value }
+                return $null
+            }
+        }
+    }
+    
+    if ($Record -is [KeeperSecurity.Vault.TypedRecord]) {
+        if ($FieldName -ieq 'type') {
+            return $Record.TypeName
+        }
+        
+        $type = switch -Regex ($FieldName) {
+            '^login$' { 'login' }
+            '^password$' { 'password' }
+            '^url$' { 'url' }
+            default { $FieldName }
+        }
+        
+        $f = $Record.Fields | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1
+        if (-not $f) { 
+            $f = $Record.Custom | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1 
+        }
+        
+        if ($f) {
+            $val = $f.ObjectValue
+            if ($val -is [System.Collections.IEnumerable] -and $val -isnot [string]) {
+                return ($val | ForEach-Object { $_.ToString() }) -join ", "
+            }
+            return $val
+        }
+    }
+    
+    return $null
+}
+
+# Helper function to get typed field values as string
+function Get-TypedFieldValueString {
+    param($Field)
+    
+    if ($null -eq $Field) { return $null }
+    try {
+        $values = [KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldValues($Field)
+        if ($values) { return (@($values) -join ", ") }
+    } catch { }
+    return $null
+}
+
+# Helper function to get version label for record history
+function Get-RecordVersionLabel {
+    param(
+        [int]$Index,
+        [int]$HistoryLength
+    )
+    
+    if ($Index -eq 0) { return "Current" }
+    return "V.$($HistoryLength - $Index)"
+}
+
 $Keeper_RecordTypeNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $result = @()
@@ -541,7 +718,31 @@ function Add-KeeperRecord {
 	Record Notes.
 
 	.Parameter GeneratePassword
-	Generate random password.
+	Generate random password. When used alone (no -PasswordRules or -SpecialChars), uses
+	defaults: Length=20, Upper=4, Lower=4, Digit=2, Special=-1 (excluded).
+	Combine with -PasswordRules and/or -SpecialChars for custom options.
+
+	.Parameter PasswordRules
+	Custom password generation rules. Requires exactly 5 values: Length,Upper,Lower,Digit,Special
+	Minimum length enforced: 12. Maximum length enforced: 200.
+	Each category value controls how that character type is used:
+	  Positive N  : at least N guaranteed, more may appear as random filler
+	  Zero (0)    : no guarantee, but eligible for random filler
+	  Negative -1 : completely excluded from the password
+	Example: -PasswordRules 20,5,5,5,3
+	  Length=20, at least 5 upper, 5 lower, 5 digits, 3 specials
+	Example: -PasswordRules 20,3,3,3,0
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials filler eligible
+	Example: -PasswordRules 20,3,3,3,-1
+	  Length=20, at least 3 upper, 3 lower, 3 digits; specials excluded entirely
+
+	.Parameter SpecialChars
+	Define custom special characters to use in the generated password.
+	Accepts a string of allowed special characters.
+	If Special count is not set or is <= 0, defaults Special to 2 when -SpecialChars is provided.
+	Example: -SpecialChars "!@#$%^&"
+	  Uses only the characters "!@#$%^&" as the special character set.
+	  If omitted, the default set is used: !@#$%()+;<>=?[]{}^.,
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
@@ -622,6 +823,8 @@ function Add-KeeperRecord {
     [CmdletBinding(DefaultParameterSetName = 'add')]
     Param (
         [Parameter()] [switch] $GeneratePassword,
+        [Parameter()] [int[]] $PasswordRules,
+        [Parameter()] [string] $SpecialChars,
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
@@ -700,7 +903,40 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $fields['password'] = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
+            $genOptions = $null
+            $minLength = 12
+            $maxLength = 200
+
+            if ($PasswordRules -or $SpecialChars) {
+                $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+
+                if ($PasswordRules) {
+                    if ($PasswordRules.Length -ne 5) {
+                        Write-Error "PasswordRules requires exactly 5 values: Length,Upper,Lower,Digit,Special. Got $($PasswordRules.Length)."
+                        return
+                    }
+
+                    $genOptions.Length, $genOptions.Upper, $genOptions.Lower, $genOptions.Digit, $genOptions.Special = $PasswordRules
+
+                    if ($genOptions.Length -lt $minLength) {
+                        Write-Warning "Length $($genOptions.Length) is below minimum ($minLength). Adjusting to $minLength."
+                        $genOptions.Length = $minLength
+                    }
+                    elseif ($genOptions.Length -gt $maxLength) {
+                        Write-Warning "Length $($genOptions.Length) exceeds maximum ($maxLength). Adjusting to $maxLength."
+                        $genOptions.Length = $maxLength
+                    }
+                }
+
+                if ($SpecialChars) {
+                    $genOptions.SpecialCharacters = $SpecialChars
+                    if ($genOptions.Special -le 0) { $genOptions.Special = 2 }
+                }
+            }
+
+            $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
+
+            $fields['password'] = $generatedPassword
         }
 
         foreach ($fieldName in $fields.Keys) {
@@ -1291,7 +1527,7 @@ function Export-KeeperRecordTypes {
 
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        $vault.SyncDown() | Out-Null
+        $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
         if ($null -eq $Source){
             $Source = 'keeper'
         }
@@ -1587,4 +1823,998 @@ function Get-KeeperPasswordReport {
     }
 }
 
+function Get-KeeperRecordHistory {
+    <#
+	.Synopsis
+	Display record version history with actions: list, show, diff, restore
 
+	.Description
+	Shows historical versions of a record and allows viewing details, comparing 
+	differences between versions, and restoring to previous versions.
+
+	.Parameter Record
+	Record UID, title. If title is used and multiple records match, a list of matching records will be shown.
+
+	.Parameter Action
+	Action to perform: list (default), show, diff, restore
+	- list: Show all revisions
+	- show: Show details of a specific revision
+	- diff: Show changes made at each revision
+	- restore: Restore to a previous revision (requires -Revision)
+
+	.Parameter Revision
+	Revision number for show/diff/restore actions (1 = oldest, higher = newer)
+
+	.Parameter Format
+	Output format: table (default), json, csv
+
+	.Parameter Output
+	File path to write output to a file
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123DEF456"
+	Lists all history versions for the record
+
+	.Example
+	Get-KeeperRecordHistory -Record "Gmail Account" -Action list
+	Lists all history versions for the record
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action show -Revision 2
+	Shows details of revision V.2
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action diff
+	Shows changes made at each revision
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action diff -Revision 3
+	Shows changes starting from revision V.3
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action restore -Revision 2
+	Restores the record to revision V.2
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action list -Format json
+	Lists all history versions in JSON format
+
+	.Example
+	Get-KeeperRecordHistory -Record "ABC123" -Action diff -Format csv -Output "diff.csv"
+	Exports diff to CSV file
+#>
+
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
+    Param (
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+        $Record,
+
+        [Parameter(Position = 1)]
+        [ValidateSet('list', 'show', 'diff', 'restore')]
+        [Alias('a')]
+        [string] $Action = 'list',
+
+        [Parameter()]
+        [Alias('r')]
+        [int] $Revision = 0,
+
+        [Parameter()]
+        [ValidateSet('table', 'json', 'csv')]
+        [Alias('f')]
+        [string] $Format = 'table',
+
+        [Parameter()]
+        [Alias('o')]
+        [string] $Output
+    )
+
+    Process {
+        try {
+            [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        }
+        catch {
+            Write-Error "Failed to connect to vault"
+            return
+        }
+
+        $uid = $null
+        if ($Record -is [string]) {
+            $uid = $Record
+            
+            [KeeperSecurity.Vault.KeeperRecord]$rec = $null
+            if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
+                $recordMatches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $Record })
+                if ($recordMatches.Count -eq 0) {
+                    $recordMatches = @($vault.KeeperRecords | Where-Object { $_.Title -like "*$Record*" })
+                }
+                
+                if ($recordMatches.Count -eq 0) {
+                    Write-Error "Record '$Record' not found"
+                    return
+                }
+                elseif ($recordMatches.Count -gt 1) {
+                    Write-Warning "Multiple records found for '$Record'. Please use UID."
+                    Write-Host ("{0,-30} {1}" -f "Title", "UID") -ForegroundColor Cyan
+                    Write-Host ("{0,-30} {1}" -f "-----", "---") -ForegroundColor Gray
+                    foreach ($m in $recordMatches) {
+                        Write-Host ("{0,-30} {1}" -f $m.Title, $m.Uid)
+                    }
+                    return
+                }
+                $uid = $recordMatches[0].Uid
+            }
+        }
+        elseif ($null -ne $Record.Uid) {
+            $uid = $Record.Uid
+        }
+        else {
+            Write-Error "Invalid record parameter. Provide a UID, title, or record object."
+            return
+        }
+
+        try {
+            $history = $vault.GetRecordHistory($uid).GetAwaiter().GetResult()
+        }
+        catch {
+            Write-Error "Failed to get record history: $_"
+            return
+        }
+
+        if ($null -eq $history -or $history.Length -eq 0) {
+            Write-Host "Record does not have history of edits."
+            return
+        }
+
+        function WriteToFile([string[]]$lines, [string]$path) {
+            $lines | Out-File -FilePath $path -Encoding UTF8
+            Write-Host "Output written to $path" -ForegroundColor Green
+        }
+
+        function WriteOutput($data, [string]$format, [string]$outputPath, [string[]]$tableColumns = @(), [switch]$AsList) {
+            switch ($format) {
+                'json' {
+                    $json = $data | ConvertTo-Json -Depth 10
+                    if ($outputPath) {
+                        WriteToFile @($json) $outputPath
+                    } else {
+                        Write-Output $json
+                    }
+                }
+                'csv' {
+                    $csvContent = $data | ConvertTo-Csv -NoTypeInformation
+                    if ($outputPath) {
+                        WriteToFile $csvContent $outputPath
+                    } else {
+                        $csvContent
+                    }
+                }
+                default {
+                    if ($AsList) {
+                        if ($outputPath) {
+                            $content = $data | Format-List | Out-String
+                            WriteToFile @($content) $outputPath
+                        } else {
+                            $data | Format-List
+                        }
+                    } else {
+                        $formatParams = if ($tableColumns.Count -gt 0) { @{ Property = $tableColumns } } else { @{} }
+                        if ($outputPath) {
+                            $tableContent = $data | Format-Table @formatParams | Out-String
+                            WriteToFile @($tableContent) $outputPath
+                        } else {
+                            $data | Format-Table @formatParams -AutoSize
+                        }
+                    }
+                }
+            }
+        }
+
+        function CompareRecordFields($currentRec, $previousRec, [string]$versionLabel) {
+            $diffs = [System.Collections.Generic.List[PSCustomObject]]::new()
+            $isFirst = $null -eq $previousRec
+            
+            $addDiff = {
+                param($label, $currentVal, $previousVal)
+                $cv = if ($null -eq $currentVal) { "" } else { $currentVal }
+                $pv = if ($null -eq $previousVal) { "" } else { $previousVal }
+                if ($isFirst) {
+                    if (-not [string]::IsNullOrEmpty($cv)) {
+                        $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = "" })
+                    }
+                } elseif ($cv -ne $pv) {
+                    $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = $pv })
+                }
+            }
+
+            if ($currentRec -is [KeeperSecurity.Vault.PasswordRecord]) {
+                foreach ($fn in @('title', 'login', 'password', 'url', 'notes', 'totp')) {
+                    $cv = Get-KeeperRecordFieldValue -Record $currentRec -FieldName $fn
+                    $pv = if (-not $isFirst) { Get-KeeperRecordFieldValue -Record $previousRec -FieldName $fn } else { $null }
+                    & $addDiff "($fn)" $cv $pv
+                }
+                if ($currentRec.Custom) {
+                    foreach ($cf in $currentRec.Custom) {
+                        $pv = $null
+                        if (-not $isFirst -and $previousRec.Custom) {
+                            $prevCf = $previousRec.Custom | Where-Object { $_.Name -eq $cf.Name } | Select-Object -First 1
+                            if ($prevCf) { $pv = $prevCf.Value }
+                        }
+                        & $addDiff "($($cf.Name))" $cf.Value $pv
+                    }
+                }
+            }
+            elseif ($currentRec -is [KeeperSecurity.Vault.TypedRecord]) {
+                & $addDiff "(title)" $currentRec.Title $(if (-not $isFirst) { $previousRec.Title } else { $null })
+                foreach ($fieldSet in @(@{ Current = $currentRec.Fields; Previous = $(if ($previousRec) { $previousRec.Fields } else { $null }) }, 
+                                        @{ Current = $currentRec.Custom; Previous = $(if ($previousRec) { $previousRec.Custom } else { $null }) })) {
+                    if ($fieldSet.Current) {
+                        foreach ($field in $fieldSet.Current) {
+                            $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
+                            $cv = Get-TypedFieldValueString -Field $field
+                            $pv = $null
+                            if (-not $isFirst -and $fieldSet.Previous) {
+                                $prevField = $fieldSet.Previous | Where-Object { $_.FieldName -eq $field.FieldName } | Select-Object -First 1
+                                if ($prevField) { $pv = Get-TypedFieldValueString -Field $prevField }
+                            }
+                            & $addDiff "($($label.ToLower()))" $cv $pv
+                        }
+                    }
+                }
+                & $addDiff "(notes)" $currentRec.Notes $(if (-not $isFirst) { $previousRec.Notes } else { $null })
+            }
+
+            return $diffs
+        }
+
+        switch ($Action) {
+            'list' {
+                $listData = for ($i = 0; $i -lt $history.Length; $i++) {
+                    $h = $history[$i]
+                    [PSCustomObject]@{
+                        Version = Get-RecordVersionLabel -Index $i -HistoryLength $history.Length
+                        ModifiedBy = $h.Username
+                        TimeModified = if ($h.KeeperRecord.ClientModified -ne [DateTimeOffset]::MinValue) {
+                            $h.KeeperRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                        } else { "" }
+                    }
+                }
+
+                WriteOutput $listData $Format $Output @('Version', 'ModifiedBy', 'TimeModified')
+            }
+
+            'show' {
+                if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
+                    Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
+                    return
+                }
+
+                $arrayIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
+                $histRecord = $history[$arrayIndex].KeeperRecord
+
+                $showData = [ordered]@{}
+                $addField = { param($label, $value) if (-not [string]::IsNullOrEmpty($value)) { $showData[$label] = $value } }
+
+                & $addField "title" $histRecord.Title
+
+                if ($histRecord -is [KeeperSecurity.Vault.PasswordRecord]) {
+                    & $addField "login" $histRecord.Login
+                    & $addField "password" $histRecord.Password
+                    & $addField "url" $histRecord.Link
+                    & $addField "notes" $histRecord.Notes
+                    & $addField "totp" $histRecord.Totp
+                    if ($histRecord.Custom) { foreach ($cf in $histRecord.Custom) { & $addField $cf.Name $cf.Value } }
+                }
+                elseif ($histRecord -is [KeeperSecurity.Vault.TypedRecord]) {
+                    & $addField "type" $histRecord.TypeName
+                    foreach ($fieldSet in @($histRecord.Fields, $histRecord.Custom)) {
+                        if ($fieldSet) {
+                            foreach ($field in $fieldSet) {
+                                $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
+                                & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field)
+                            }
+                        }
+                    }
+                    & $addField "notes" $histRecord.Notes
+                }
+
+                if ($histRecord.ClientModified -ne [DateTimeOffset]::MinValue) {
+                    & $addField "modified" $histRecord.ClientModified.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                }
+
+                WriteOutput ([PSCustomObject]$showData) $Format $Output -AsList
+            }
+
+            'diff' {
+                if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
+                    Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
+                    return
+                }
+
+                $startIndex = if ($Revision -eq 0) { 0 } else { $history.Length - $Revision }
+
+                $allDiffs = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+                for ($i = $startIndex; $i -lt $history.Length; $i++) {
+                    $currentRec = $history[$i].KeeperRecord
+                    $previousRec = if ($i -lt ($history.Length - 1)) { $history[$i + 1].KeeperRecord } else { $null }
+                    $verLabel = Get-RecordVersionLabel -Index $i -HistoryLength $history.Length
+
+                    $versionDiffs = CompareRecordFields $currentRec $previousRec $verLabel
+                    foreach ($d in $versionDiffs) { $allDiffs.Add($d) }
+                }
+
+                WriteOutput $allDiffs $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
+            }
+
+            'restore' {
+                $maxRev = $history.Length - 1
+                if ($Revision -lt 1 -or $Revision -gt $maxRev) {
+                    Write-Error "Invalid revision. Use -Revision <number> (1 to $maxRev)"
+                    return
+                }
+
+                $revToRestore = $history[$history.Length - $Revision]
+                
+                if ($PSCmdlet.ShouldProcess(
+                    "Record '$($revToRestore.KeeperRecord.Title)' (UID: $uid)",
+                    "Restore to revision V.$Revision"
+                )) {
+                    $request = New-Object Records.RecordsRevertRequest
+                    $revert = New-Object Records.RecordRevert
+                    $revert.RecordUid = [Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($uid))
+                    $revert.RevertToRevision = $revToRestore.Revision
+                    $request.Records.Add($revert)
+
+                    try {
+                        $response = $vault.Auth.ExecuteAuthRest("vault/records_revert", $request, [Records.RecordsModifyResponse]).GetAwaiter().GetResult()
+
+                        if ($response -and $response.Records.Count -gt 0) {
+                            $result = $response.Records[0]
+                            if ($result.Status -eq [Records.RecordModifyResult]::RsSuccess) {
+                                $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+                                Write-Host "`nRecord `"$($revToRestore.KeeperRecord.Title)`" revision V.$Revision has been restored`n" -ForegroundColor Green
+                            } else {
+                                Write-Error "Failed to restore record: $(if ($result.Message) { $result.Message } else { $result.Status })"
+                            }
+                        } else {
+                            Write-Error "Failed to restore record: No response from server"
+                        }
+                    }
+                    catch {
+                        Write-Error "Failed to restore record: $_"
+                    }
+                }
+            }
+        }
+    }
+}
+New-Alias -Name krh -Value Get-KeeperRecordHistory
+
+
+function Get-RecordFields {
+    <#
+    .SYNOPSIS
+    Extract common fields from a Keeper record.
+    #>
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [KeeperSecurity.Vault.KeeperRecord]$Record
+    )
+
+    process {
+        switch ($Record.GetType().Name) {
+            'PasswordRecord' {
+                $customFields = if ($Record.Custom) {
+                    ($Record.Custom | Sort-Object Name | ForEach-Object { "$($_.Name):$($_.Value)" }) -join ";"
+                } else { "" }
+
+                return @{
+                    Login    = $Record.Login
+                    Password = $Record.Password
+                    Url      = $Record.Link
+                    Notes    = $Record.Notes
+                    Custom   = $customFields
+                }
+            }
+            'TypedRecord' {
+                $customFields = if ($Record.Custom) {
+                    ($Record.Custom | Sort-Object FieldName | ForEach-Object { 
+                        "$($_.FieldName):$(if ($_.ObjectValue) { $_.ObjectValue } else { '' })"
+                    }) -join ";"
+                } else { "" }
+
+                return @{
+                    Login    = Get-TypedFieldValue -Record $Record -FieldName "login"
+                    Password = Get-TypedFieldValue -Record $Record -FieldName "password"
+                    Url      = Get-TypedFieldValue -Record $Record -FieldName "url"
+                    Notes    = $Record.Notes
+                    Custom   = $customFields
+                }
+            }
+            default {
+                return @{ Login = $null; Password = $null; Url = $null; Notes = $null; Custom = "" }
+            }
+        }
+    }
+}
+
+function Get-TypedFieldValue {
+    <#
+    .SYNOPSIS
+    Extract a typed field value from a TypedRecord.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord]$Record,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$FieldName
+    )
+
+    $field = $Record.Fields | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    if (-not $field) {
+        $field = $Record.Custom | Where-Object { $_.FieldName -ieq $FieldName -or $_.FieldLabel -ieq $FieldName } | Select-Object -First 1
+    }
+    if (-not $field -or -not $field.ObjectValue) { return $null }
+
+    $value = $field.ObjectValue
+    if ($value -is [string]) { return $value }
+    if ($value -is [System.Collections.IEnumerable]) {
+        return ($value | ForEach-Object { $_.ToString() }) -join ","
+    }
+    return $value.ToString()
+}
+
+function Get-ShareHashString {
+    <#
+    .SYNOPSIS
+    Build a hash string from share permissions.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        $ShareInfo,
+        
+        [switch]$IncludePermissions
+    )
+
+    $parts = [System.Collections.ArrayList]::new()
+
+    if ($ShareInfo.UserPermissions) {
+        foreach ($user in ($ShareInfo.UserPermissions | Sort-Object Username)) {
+            if ($IncludePermissions) {
+                $permText = if ($user.CanEdit -and $user.CanShare) {
+                    "Can Edit & Share"
+                } elseif ($user.CanEdit) {
+                    "Can Edit"
+                } elseif ($user.CanShare) {
+                    "Can Share"
+                } else {
+                    "Read Only"
+                }
+                [void]$parts.Add("$($user.Username)=$permText")
+            } else {
+                [void]$parts.Add("$($user.Username)")
+            }
+        }
+    }
+
+    if ($IncludePermissions -and $ShareInfo.SharedFolderPermissions) {
+        foreach ($sf in ($ShareInfo.SharedFolderPermissions | Sort-Object SharedFolderUid)) {
+            $permText = if ($sf.CanEdit -and $sf.CanShare) {
+                "Can Edit & Share"
+            } elseif ($sf.CanEdit) {
+                "Can Edit"
+            } elseif ($sf.CanShare) {
+                "Can Share"
+            } else {
+                "Read Only"
+            }
+            [void]$parts.Add("sf:$($sf.SharedFolderUid)=$permText")
+        }
+    }
+
+    return $parts -join ";"
+}
+
+function Find-KeeperDuplicateRecords {
+    <#
+    .SYNOPSIS
+    Find duplicate records in Keeper vault.
+
+    .DESCRIPTION
+    Locates duplicate records in the vault based on one or more record fields.
+    Uses SHA256 hashing to efficiently group records with matching field values.
+
+    .PARAMETER Title
+    Match duplicates by title field.
+
+    .PARAMETER Login
+    Match duplicates by login field.
+
+    .PARAMETER Password
+    Match duplicates by password field.
+
+    .PARAMETER Url
+    Match duplicates by URL field.
+
+    .PARAMETER Shares
+    Match duplicates by share permissions.
+
+    .PARAMETER Full
+    Match duplicates by all fields (title, login, password, url, notes, custom fields, shares).
+
+    .PARAMETER Merge
+    Consolidate duplicate records by removing duplicates (keeps first record in each group).
+
+    .PARAMETER Force
+    Delete duplicates without confirmation (valid only with -Merge).
+
+    .PARAMETER DryRun
+    Simulate removing duplicates without actually removing them (valid only with -Merge).
+
+    .PARAMETER Quiet
+    Suppress screen output (valid only with -Force flag; since -Force requires -Merge, effectively requires both).
+
+    .PARAMETER IgnoreSharesOnMerge
+    Ignore share-permissions when matching duplicate records for merging.
+
+    .PARAMETER Scope
+    Define the scope of the search (vault or enterprise). Default is vault.
+    Enterprise scope available only to enterprise account administrators with compliance data-access privileges.
+
+    .PARAMETER RefreshData
+    Populate local cache with latest audit data. Valid only when used with -Scope enterprise.
+
+    .PARAMETER Format
+    Choose the format of the output (table, csv, json). Default is table.
+
+    .PARAMETER Output
+    Export search results to a file.
+
+    .OUTPUTS
+    PSCustomObject[] - Array of duplicate record information when not using -Merge.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Title
+    Find all records with duplicate titles.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Login -Password
+    Find records with matching login AND password.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full | Export-Csv duplicates.csv
+    Export duplicate records to CSV.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Merge -DryRun
+    Simulate merging duplicate records.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Merge -Force -Quiet
+    Silently remove duplicate records without confirmation.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Merge -IgnoreSharesOnMerge
+    Merge duplicates while ignoring share permissions when matching.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Full -Format csv -Output duplicates.csv
+    Export duplicate records to a CSV file.
+
+    .EXAMPLE
+    Find-KeeperDuplicateRecords -Login -Password -Format json
+    Find duplicates and output as JSON.
+    #>
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    param(
+        [switch]$Title,
+        [switch]$Login,
+        [switch]$Password,
+        [switch]$Url,
+        [switch]$Shares,
+        [switch]$Full,
+        [switch]$Merge,
+        [switch]$Force,
+        [switch]$DryRun,
+        [switch]$Quiet,
+        [switch]$IgnoreSharesOnMerge,
+        
+        [ValidateSet('vault', 'enterprise')]
+        [string]$Scope = 'vault',
+        
+        [switch]$RefreshData,
+        
+        [ValidateSet('table', 'csv', 'json')]
+        [string]$Format = 'table',
+        
+        [string]$Output
+    )
+
+    if ($Force -and -not $Merge) {
+        Write-Warning "-Force is only valid with -Merge. Ignoring -Force."
+        $Force = $false
+    }
+    
+    if ($DryRun -and -not $Merge) {
+        Write-Warning "-DryRun is only valid with -Merge. Ignoring -DryRun."
+        $DryRun = $false
+    }
+    
+    if ($Quiet -and -not $Force) {
+        Write-Warning "-Quiet is only valid with -Force flag. Ignoring -Quiet."
+        $Quiet = $false
+    }
+    
+    if ($RefreshData -and $Scope -ne 'enterprise') {
+        Write-Warning "-RefreshData is only valid with -Scope enterprise. Ignoring -RefreshData."
+        $RefreshData = $false
+    }
+    
+    if ($IgnoreSharesOnMerge -and -not $Merge) {
+        Write-Warning "-IgnoreSharesOnMerge is only valid with -Merge. Ignoring -IgnoreSharesOnMerge."
+        $IgnoreSharesOnMerge = $false
+    }
+
+    if ($Quiet -and $DryRun) {
+        Write-Warning "-Quiet is only valid with -Force flag. Ignoring -Quiet."
+        $Quiet = $false
+    }
+
+    if ($Scope -eq 'enterprise') {
+        throw "Enterprise Scope is not yet supported in Powershell. Use -Scope vault"
+    }
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = $null
+    try {
+        $vault = getVault
+    }
+    catch {
+        Write-Error "Failed to get vault. Please ensure you are connected." -ErrorAction Stop
+    }
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please run Connect-Keeper first." -ErrorAction Stop
+    }
+
+    $useDefault = -not $Title -and -not $Login -and -not $Password -and -not $Url -and -not $Full
+    if ($Merge) { $Full = $true }
+
+    $compareFields = if ($Full) {
+        [System.Collections.ArrayList]@("All Fields")
+    } else {
+        $fields = [System.Collections.ArrayList]::new()
+        if ($Title -or $useDefault) { [void]$fields.Add("Title") }
+        if ($Login -or $useDefault) { [void]$fields.Add("Login") }
+        if ($Password -or $useDefault) { [void]$fields.Add("Password") }
+        if ($Url) { [void]$fields.Add("URL") }
+        if ($Shares) { [void]$fields.Add("Shares") }
+        $fields
+    }
+
+    if (-not $Quiet) {
+        $compareMessage = "Find duplicated records by: $($compareFields -join ', ')"
+        if ($Merge -and $IgnoreSharesOnMerge) {
+            $compareMessage += " (ignoring shares for merge)"
+        }
+        Write-Host $compareMessage
+        Write-Host ""
+    }
+
+    $shareInfoMap = @{}
+    try {
+        $recordUidsList = [System.Collections.Generic.List[string]]::new()
+        foreach ($rec in $vault.KeeperRecords) {
+            $recordUidsList.Add($rec.Uid)
+        }
+        if ($recordUidsList.Count -gt 0) {
+            $sharesList = $vault.GetSharesForRecords($recordUidsList).GetAwaiter().GetResult()
+            foreach ($share in $sharesList) {
+                $shareInfoMap[$share.RecordUid] = $share
+            }
+        }
+    }
+    catch {
+        if (-not $Quiet) {
+            Write-Warning "Could not load share information: $($_.Exception.Message)"
+        }
+    }
+
+    $hashMap = @{}
+    $recordFieldsCache = @{}
+    $sha256 = $null
+    
+    $hashParts = [System.Collections.Generic.List[string]]::new(10)
+
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+
+        foreach ($record in $vault.KeeperRecords) {
+            if ($record.Version -notin @(2, 3)) {
+                continue
+            }
+            
+            $fields = Get-RecordFields -Record $record
+            $recordFieldsCache[$record.Uid] = $fields
+
+            $hashParts.Clear()
+            $shareInfo = $null
+
+            if ($Full) {
+                $hashParts.Add($(if ($record.Title) { $record.Title.ToLower() } else { "" }))
+                $hashParts.Add($(if ($fields.Login) { $fields.Login.ToLower() } else { "" }))
+                $hashParts.Add($(if ($fields.Password) { $fields.Password } else { "" }))
+                $hashParts.Add($(if ($fields.Url) { $fields.Url } else { "" }))
+                
+                $customs = @{}
+                
+                if ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+                    $totpField = $record.Fields | Where-Object { $_.FieldName -eq "oneTimeCode" } | Select-Object -First 1
+                    if ($totpField -and $totpField.ObjectValue) {
+                        $customs["totp"] = $totpField.ObjectValue.ToString()
+                    }
+                    
+                    if ($record.TypeName) {
+                        $customs["type:"] = $record.TypeName
+                    }
+                    
+                    if ($record.Custom) {
+                        foreach ($cf in $record.Custom) {
+                            if ($cf.FieldName -and $cf.ObjectValue) {
+                                $value = $cf.ObjectValue
+                                if ($value -is [System.Collections.IEnumerable] -and $value -isnot [string]) {
+                                    $sortedItems = @($value | ForEach-Object { $_.ToString() } | Sort-Object)
+                                    $value = $sortedItems -join "|"
+                                } else {
+                                    $value = $value.ToString()
+                                }
+                                if (-not [string]::IsNullOrWhiteSpace($value)) {
+                                    $customs[$cf.FieldName] = $value
+                                }
+                            }
+                        }
+                    }
+                }
+                elseif ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
+                    if ($record.Custom) {
+                        foreach ($cf in $record.Custom) {
+                            if ($cf.Name -and $cf.Value) {
+                                $customs[$cf.Name] = $cf.Value
+                            }
+                        }
+                    }
+                }
+                
+                $sortedKeys = $customs.Keys | Sort-Object
+                foreach ($key in $sortedKeys) {
+                    $hashParts.Add("$key=$($customs[$key])")
+                }
+                
+            }
+            else {
+                if ($Title -or $useDefault) { 
+                    $hashParts.Add($(if ($record.Title) { $record.Title.ToLower() } else { "" }))
+                }
+                if ($Login -or $useDefault) { 
+                    $hashParts.Add($(if ($fields.Login) { $fields.Login.ToLower() } else { "" }))
+                }
+                if ($Password -or $useDefault) { 
+                    $hashParts.Add($(if ($fields.Password) { $fields.Password } else { "" }))
+                }
+                if ($Url) { 
+                    $hashParts.Add($(if ($fields.Url) { $fields.Url } else { "" }))
+                }
+            }
+
+            $combined = [string]::Join("|", $hashParts)
+            if ([string]::IsNullOrWhiteSpace($combined)) { continue }
+
+            $hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($combined))
+            $hashKey = [BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
+
+            if (-not $hashMap.ContainsKey($hashKey)) { 
+                $hashMap[$hashKey] = [System.Collections.Generic.List[object]]::new()
+            }
+            $hashMap[$hashKey].Add($record)
+        }
+    }
+    finally {
+        if ($sha256) { $sha256.Dispose() }
+    }
+
+    $duplicateGroups = @($hashMap.Values | Where-Object { $_.Count -gt 1 })
+
+    $shouldPartitionByShares = ($Shares -or $Full) -and -not ($Merge -and $IgnoreSharesOnMerge)
+    
+    if ($shouldPartitionByShares -and $duplicateGroups.Count -gt 0) {
+        $newPartitions = [System.Collections.Generic.List[object]]::new()
+        
+        foreach ($group in $duplicateGroups) {
+            $shareGroups = @{}
+            foreach ($record in $group) {
+                $shareKey = if ($shareInfoMap.ContainsKey($record.Uid)) {
+                    Get-ShareHashString -ShareInfo $shareInfoMap[$record.Uid] -IncludePermissions
+                } else { "" }
+                
+                if (-not $shareGroups.ContainsKey($shareKey)) {
+                    $shareGroups[$shareKey] = [System.Collections.Generic.List[object]]::new()
+                }
+                $shareGroups[$shareKey].Add($record)
+            }
+            
+            foreach ($subGroup in $shareGroups.Values) {
+                if ($subGroup.Count -gt 1) {
+                    $newPartitions.Add($subGroup)
+                }
+            }
+        }
+        
+        $duplicateGroups = @($newPartitions)
+    }
+
+    if ($duplicateGroups.Count -eq 0) {
+        if (-not $Quiet) { Write-Host "No duplicate records found." }
+        return
+    }
+
+    if ($Merge) {
+        $recordsToRemove = [System.Collections.Generic.List[object]]::new()
+        foreach ($group in $duplicateGroups) {
+            for ($i = 1; $i -lt $group.Count; $i++) {
+                $recordsToRemove.Add($group[$i])
+            }
+        }
+
+        if ($recordsToRemove.Count -eq 0) {
+            if (-not $Quiet) { Write-Host "No duplicate records to remove." }
+            return
+        }
+
+        if ($DryRun) {
+            Write-Host "DRY RUN MODE: No records will be removed" -ForegroundColor Yellow
+            Write-Host ""
+        }
+
+        if (-not $Quiet) {
+            Write-Host "The following $($recordsToRemove.Count) duplicate record(s) will be removed:"
+            Write-Host ""
+
+            $removeList = $recordsToRemove | ForEach-Object {
+                $cachedFields = $recordFieldsCache[$_.Uid]
+                [PSCustomObject]@{
+                    Title = $_.Title
+                    UID   = $_.Uid
+                    Login = $cachedFields.Login
+                }
+            }
+            $removeList | Format-Table -AutoSize
+        }
+
+        if ($DryRun) {
+            Write-Host "DRY RUN: No records were removed." -ForegroundColor Yellow
+            return
+        }
+
+        if (-not $Force) {
+            $response = Read-Host "Do you want to proceed with removing $($recordsToRemove.Count) duplicate record(s)? (y/n)"
+            if ($response -notin @('y', 'yes')) {
+                Write-Host "Operation cancelled."
+                return
+            }
+        }
+
+        if (-not $Quiet) { Write-Host "Removing duplicate records..." }
+
+        try {
+            $recordPaths = [System.Collections.Generic.List[KeeperSecurity.Vault.RecordPath]]::new($recordsToRemove.Count)
+            foreach ($rec in $recordsToRemove) {
+                $folderUid = ""
+                if ($vault.RootFolder.Records.Contains($rec.Uid)) {
+                    $folderUid = ""
+                } else {
+                    foreach ($folder in $vault.Folders) {
+                        if ($folder.Records.Contains($rec.Uid)) {
+                            $folderUid = $folder.FolderUid
+                            break
+                        }
+                    }
+                }
+                
+                $recordPaths.Add([KeeperSecurity.Vault.RecordPath]@{
+                    RecordUid = $rec.Uid
+                    FolderUid = $folderUid
+                })
+            }
+
+            $vault.DeleteRecords($recordPaths).GetAwaiter().GetResult() | Out-Null
+
+            if (-not $Quiet) {
+                Write-Host "Successfully removed $($recordsToRemove.Count) duplicate record(s)." -ForegroundColor Green
+                Write-Host "Syncing vault..."
+            }
+
+            $vault.SyncDown($true).GetAwaiter().GetResult() | Out-Null
+
+            if (-not $Quiet) { Write-Host "Vault synced." -ForegroundColor Green }
+        }
+        catch {
+            Write-Error "Error removing duplicates: $($_.Exception.Message)"
+        }
+
+        return
+    }
+
+    Write-Host "Duplicates Found:"
+    Write-Host ""
+
+    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $groupNum = 1
+
+    foreach ($group in $duplicateGroups) {
+        $isFirst = $true
+        foreach ($record in $group) {
+            $cachedFields = $recordFieldsCache[$record.Uid]
+
+            $owner = ""
+            $sharedTo = ""
+            if ($shareInfoMap.ContainsKey($record.Uid)) {
+                $shareInfo = $shareInfoMap[$record.Uid]
+                if ($shareInfo.UserPermissions) {
+                    $sharedUsersList = [System.Collections.Generic.List[string]]::new()
+                    foreach ($perm in $shareInfo.UserPermissions) {
+                        if ($perm.Owner) {
+                            $owner = $perm.Username
+                        } else {
+                            $sharedUsersList.Add($perm.Username)
+                        }
+                    }
+                    $sharedTo = $sharedUsersList -join ", "
+                }
+            }
+            if ([string]::IsNullOrEmpty($owner) -and $record.Owner) {
+                $owner = $vault.Auth.Username
+            }
+
+            $resultObj = [ordered]@{
+                Group       = if ($isFirst) { $groupNum } else { "" }
+                Title       = $record.Title
+                Login       = $cachedFields.Login
+            }
+            if ($Url) { $resultObj.Url = $cachedFields.Url }
+            $resultObj.UID = $record.Uid
+            $resultObj.RecordOwner = $owner
+            $resultObj.SharedTo = $sharedTo
+            
+            $results.Add([PSCustomObject]$resultObj)
+
+            $isFirst = $false
+        }
+        $groupNum++
+    }
+
+    $outputData = $results.ToArray()
+
+    if ($Output) {
+        switch ($Format) {
+            'csv' {
+                $outputData | Export-Csv -Path $Output -NoTypeInformation -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green 
+            }
+            'json' {
+                $outputData | ConvertTo-Json -Depth 10 | Out-File -FilePath $Output -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            }
+            default {
+                $outputData | Format-Table -AutoSize | Out-String | Out-File -FilePath $Output -Force
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            }
+        }
+    }
+    return $outputData
+}
+
+New-Alias -Name find-duplicates -Value Find-KeeperDuplicateRecords

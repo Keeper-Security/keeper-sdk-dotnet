@@ -203,3 +203,260 @@ function Remove-KeeperEnterpriseTeamMember {
     }
 }
 
+function Get-TeamMembersBatch {
+    <#
+    .SYNOPSIS
+    Fetches team members in batches from the API.
+    
+    .DESCRIPTION
+    Internal helper function that retrieves team member emails for multiple teams
+    using parallel API calls in configurable batch sizes.
+    #>
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param (
+        [Parameter(Mandatory)][KeeperSecurity.Authentication.IAuthentication]$Auth,
+        [Parameter(Mandatory)][array]$TeamUids,
+        [int]$BatchSize = 20
+    )
+    
+    if ($TeamUids.Count -eq 0) { return @{} }
+    $results = @{}
+    
+    for ($i = 0; $i -lt $TeamUids.Count; $i += $BatchSize) {
+        $batch = $TeamUids[$i..([Math]::Min($i + $BatchSize - 1, $TeamUids.Count - 1))]
+        $tasks = @{}
+        
+        foreach ($uid in $batch) {
+            try {
+                $request = New-Object Enterprise.GetTeamMemberRequest
+                $request.TeamUid = [Google.Protobuf.ByteString]::CopyFrom(
+                    [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($uid))
+                $tasks[$uid] = $Auth.ExecuteAuthRest(
+                    "vault/get_team_members",
+                    $request,
+                    [Enterprise.GetTeamMemberResponse]
+                )
+            }
+            catch {
+                Write-Warning "Failed to create request for team $uid : $($_.Exception.Message)"
+                $results[$uid] = [System.Collections.Generic.List[string]]::new()
+            }
+        }
+        
+        if ($tasks.Count -eq 0) { continue }
+        
+        try {
+            [System.Threading.Tasks.Task]::WhenAll($tasks.Values).GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Some team member requests failed: $($_.Exception.Message)"
+        }
+        
+        foreach ($uid in $tasks.Keys) {
+            $task = $tasks[$uid]
+            if ($task.IsCompletedSuccessfully) {
+                $emails = [System.Collections.Generic.List[string]]::new()
+                if ($task.Result.EnterpriseUser) {
+                    foreach ($u in $task.Result.EnterpriseUser) {
+                        $emails.Add($u.Email)
+                    }
+                }
+                $results[$uid] = $emails
+            }
+            else {
+                $results[$uid] = [System.Collections.Generic.List[string]]::new()
+            }
+        }
+    }
+    
+    return $results
+}
+
+function Get-KeeperEnterpriseTeams {
+    <#
+        .SYNOPSIS
+        Lists all Keeper Enterprise teams.
+
+        .DESCRIPTION
+        Show details for all teams you have access to within your organization.
+
+        .PARAMETER ShowMembers
+        List team members from cache (fast, may be incomplete). Alias: -v
+
+        .PARAMETER ShowAllMembers
+        List team members, fetching from server if cache is empty (slower, complete). Alias: -vv
+
+        .PARAMETER All
+        Show all teams including those from managed companies (MSP admin). Alias: -a
+
+        .PARAMETER Sort
+        Sort teams by column: company, team_uid, name (default: company)
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeams                         # Default sort by company
+        Get-KeeperEnterpriseTeams -Sort name              # Sort by team name
+        Get-KeeperEnterpriseTeams -Sort team_uid          # Sort by team UID
+        Get-KeeperEnterpriseTeams -v                      # Show members from cache (fast)
+        Get-KeeperEnterpriseTeams -vv                     # Show all members (fetches from server if needed)
+        Get-KeeperEnterpriseTeams -a                      # Include teams outside primary organization (MSP admin)
+        Get-KeeperEnterpriseTeams -vv -a                  # All teams (including managed companies) with complete member list
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter()][Alias('v')][Switch] $ShowMembers,
+        [Parameter()][Alias('vv')][Switch] $ShowAllMembers,
+        [Parameter()][Alias('a')][Switch] $All,
+        [Parameter()][ValidateSet('company', 'team_uid', 'name')][string] $Sort = 'company'
+    )
+
+    if (-not $Script:Context.Auth) {
+        Write-Error "Not connected. Please run Connect-Keeper first." -ErrorAction Stop
+    }
+
+    $includeManagedCompanyTeams = $All.IsPresent
+    $memberMode = if ($ShowAllMembers.IsPresent) { 'full' } elseif ($ShowMembers.IsPresent) { 'cache' } else { 'none' }
+    $showMemberInfo = $memberMode -ne 'none'
+
+    [Enterprise]$enterprise = $null
+    if ($showMemberInfo) {
+        try {
+            $enterprise = getEnterprise
+        }
+        catch {
+            Write-Warning "Could not load enterprise data for member info: $($_.Exception.Message)"
+            $enterprise = $null
+        }
+        if (-not $enterprise -or -not $enterprise.enterpriseData) {
+            Write-Warning "Member information will not be displayed."
+            $showMemberInfo = $false
+        }
+    }
+    $results = [System.Collections.ArrayList]::new()
+    $teamByUid = @{}
+
+    try {
+        $request = New-Object Records.GetShareObjectsRequest
+        $response = $Script:Context.Auth.ExecuteAuthRest(
+            "vault/get_share_objects",
+            $request,
+            [Records.GetShareObjectsResponse]
+        ).GetAwaiter().GetResult()
+
+        if (-not $response) {
+            Write-Warning "Empty response from API"
+            return
+        }
+
+        $enterpriseNames = @{}
+        if ($response.ShareEnterpriseNames) {
+            foreach ($ent in $response.ShareEnterpriseNames) {
+                $enterpriseNames[$ent.EnterpriseId] = $ent.Enterprisename
+            }
+        }
+
+        $apiTeams = if ($response.ShareTeams) { @($response.ShareTeams) } else { @() }
+        if ($includeManagedCompanyTeams -and $response.ShareMCTeams) {
+            $apiTeams += @($response.ShareMCTeams)
+        }
+        
+        $primaryEnterpriseId = $null
+        try {
+            $primaryEnterpriseId = $Script:Context.Auth.AuthContext.License.EnterpriseId
+        }
+        catch {
+            $primaryEnterpriseId = $null
+        }
+        $hasNoValidEnterpriseId = ($null -eq $primaryEnterpriseId -or $primaryEnterpriseId -le 0)
+        $hasShareTeams = ($response.ShareTeams -and $response.ShareTeams.Count -gt 0)
+        if ($hasNoValidEnterpriseId -and $hasShareTeams) {
+            $primaryEnterpriseId = $response.ShareTeams[0].EnterpriseId
+        }
+
+        if (-not $includeManagedCompanyTeams -and $null -ne $primaryEnterpriseId -and $primaryEnterpriseId -gt 0) {
+            $apiTeams = @($apiTeams | Where-Object { $_.EnterpriseId -eq $primaryEnterpriseId })
+        }
+
+        foreach ($team in $apiTeams) {
+            $teamUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($team.TeamUid.ToByteArray())
+            if ($teamByUid.ContainsKey($teamUid)) { continue }
+
+            $companyName = $enterpriseNames[$team.EnterpriseId]
+
+            $members = [System.Collections.Generic.List[string]]::new()
+            if ($showMemberInfo) {
+                foreach ($userId in $enterprise.enterpriseData.GetUsersForTeam($teamUid)) {
+                    $user = $null
+                    if ($enterprise.enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        $members.Add($user.Email)
+                    }
+                }
+            }
+
+            $teamByUid[$teamUid] = @{
+                Uid     = $teamUid
+                Name    = $team.Teamname
+                Company = $companyName
+                Members = $members
+            }
+        }
+    }
+    catch {
+        Write-Warning "Failed to fetch teams from API: $($_.Exception.Message)"
+        return
+    }
+
+    $allTeams = @($teamByUid.Values)
+
+    if ($memberMode -eq 'full' -and $showMemberInfo) {
+        $teamsNeedToFetch = @($allTeams | Where-Object { $_.Members.Count -eq 0 } | ForEach-Object { $_.Uid })
+        if ($teamsNeedToFetch.Count -gt 0) {
+            $fetchedMembers = Get-TeamMembersBatch -Auth $Script:Context.Auth -TeamUids $teamsNeedToFetch
+            
+            if ($fetchedMembers) {
+                foreach ($team in $allTeams) {
+                    if ($team.Members.Count -eq 0 -and $fetchedMembers.ContainsKey($team.Uid)) {
+                        $team.Members = $fetchedMembers[$team.Uid]
+                    }
+                }
+            }
+        }
+    }
+
+    $allTeams = @(switch ($Sort) {
+        'team_uid' { $allTeams | Sort-Object { if ($_.Uid) { $_.Uid.ToLower() } else { '' } } }
+        'name'     { $allTeams | Sort-Object { if ($_.Name) { $_.Name.ToLower() } else { '' } } }
+        default    { $allTeams | Sort-Object { if ($_.Company) { $_.Company.ToLower() } else { '' } }, { if ($_.Name) { $_.Name.ToLower() } else { '' } } }
+    })
+
+    $index = 0
+    foreach ($team in $allTeams) {
+        $index++
+        $props = [ordered]@{
+            '#'        = $index
+            'Company'  = $team.Company
+            'Team UID' = $team.Uid
+            'Name'     = $team.Name
+        }
+        if ($showMemberInfo) {
+            $props['Member'] = if ($team.Members.Count -gt 0) { $team.Members[0] } else { '' }
+        }
+        [void]$results.Add([PSCustomObject]$props)
+
+        if ($showMemberInfo) {
+            for ($i = 1; $i -lt $team.Members.Count; $i++) {
+                $memberRow = [ordered]@{ '#' = ''; 'Company' = ''; 'Team UID' = ''; 'Name' = ''; 'Member' = $team.Members[$i] }
+                [void]$results.Add([PSCustomObject]$memberRow)
+            }
+        }
+    }
+
+    if ($results.Count -eq 0) {
+        Write-Host "No teams found."
+        return
+    }
+
+    Write-Host "`nFound $($allTeams.Count) team(s).`n"
+    $results | Format-Table -AutoSize
+}
+New-Alias -Name list-team -Value Get-KeeperEnterpriseTeams
