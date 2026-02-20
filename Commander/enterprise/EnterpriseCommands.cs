@@ -3224,51 +3224,58 @@ namespace Commander
 
                         if (!string.IsNullOrEmpty(EnterpriseData.EnterpriseLicense?.LicenseStatus) && EnterpriseData.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
-                            Commands.Add("mc-list",
+                            Commands.Add("msp-info",
                                 new Cli.SimpleCommand
                                 {
                                     Order = 72,
-                                    Description = "List managed companies",
+                                    Description = "Display MSP details",
                                     Action = ListManagedCompanies,
                                 });
-                            Commands.Add("mc-create",
-                                new ParseableCommand<ManagedCompanyCreateOptions>
+                            Commands.Add("msp-down",
+                                new Cli.SimpleCommand
                                 {
                                     Order = 73,
+                                    Description = "Refresh local MSP data from server",
+                                    Action = async _ => { await Enterprise.Load(); },
+                                });
+                            Commands.Add("msp-add",
+                                new ParseableCommand<ManagedCompanyCreateOptions>
+                                {
+                                    Order = 74,
                                     Description = "Create managed company",
                                     Action = CreateManagedCompany,
                                 });
-                            Commands.Add("mc-update",
+                            Commands.Add("msp-update",
                                 new ParseableCommand<ManagedCompanyUpdateOptions>
                                 {
-                                    Order = 74,
-                                    Description = "Updates managed company",
+                                    Order = 75,
+                                    Description = "Modify managed company licenses",
                                     Action = UpdateManagedCompany,
                                 });
-                            Commands.Add("mc-delete",
+                            Commands.Add("msp-remove",
                                 new ParseableCommand<ManagedCompanyRemoveOptions>
                                 {
-                                    Order = 75,
-                                    Description = "Removes managed company",
+                                    Order = 76,
+                                    Description = "Remove managed company",
                                     Action = RemoveManagedCompany,
                                 });
-                            Commands.Add("mc-login",
+                            Commands.Add("switch-to-mc",
                                 new ParseableCommand<ManagedCompanyLoginOptions>
                                 {
                                     Order = 79,
-                                    Description = "Login to managed company",
+                                    Description = "Switch context to managed company",
                                     Action = LoginToManagedCompany,
                                 });
-                            Aliases["mi"] = "mc-list";
-                            Aliases["md"] = "enterprise-get-data";
-                            Aliases["ma"] = "mc-create";
-                            Aliases["mrm"] = "mc-delete";
-                            Aliases["mu"] = "mc-update";
-                            Aliases["msp-info"] = "mc-list";
-                            Aliases["msp-down"] = "enterprise-get-data";
-                            Aliases["msp-add"] = "mc-create";
-                            Aliases["msp-remove"] = "mc-delete";
-                            Aliases["msp-update"] = "mc-update";
+                            Aliases["mi"] = "msp-info";
+                            Aliases["md"] = "msp-down";
+                            Aliases["ma"] = "msp-add";
+                            Aliases["mrm"] = "msp-remove";
+                            Aliases["mu"] = "msp-update";
+                            Aliases["mc-list"] = "msp-info";
+                            Aliases["mc-create"] = "msp-add";
+                            Aliases["mc-update"] = "msp-update";
+                            Aliases["mc-delete"] = "msp-remove";
+                            Aliases["mc-login"] = "switch-to-mc";
                         }
                     }
                     catch (Exception e)

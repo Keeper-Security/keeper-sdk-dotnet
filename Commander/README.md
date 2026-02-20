@@ -255,12 +255,12 @@ Work/Production> share-record "API Server" --email user@company.com --write
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `mc-list` | `mi`, `msp-info` | List managed companies (MSP details) |
-| `enterprise-get-data` | `md`, `msp-down` | Refresh local MSP/enterprise data |
-| `mc-create` | `ma`, `msp-add` | Create managed company |
-| `mc-update` | `mu`, `msp-update` | Update managed company licenses |
-| `mc-delete` | `mrm`, `msp-remove` | Remove managed company |
-| `mc-login` | | Switch context to managed company (like switch-to-mc) |
+| `msp-info` | `mi` | Display MSP details |
+| `msp-down` | `md` | Refresh local MSP data from server |
+| `msp-add` | `ma` | Create managed company |
+| `msp-update` | `mu` | Modify managed company licenses |
+| `msp-remove` | `mrm` | Remove managed company |
+| `switch-to-mc` | | Switch context to managed company |
 | `switch-to-msp` | `msp` | Switch context back to MSP (when in MC context) |
 | `exit` | | When in MC context, also returns to MSP |
 
