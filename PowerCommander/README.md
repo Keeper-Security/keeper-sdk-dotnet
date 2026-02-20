@@ -48,6 +48,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperPasswordVisible                               |                  | Show/hide secret fields setting
 | Set-KeeperPasswordVisible                               |                  | Sets whether password fields should be visible or not
 | Get-KeeperPasswordReport                                |                  | Retrieves password report based on policy and strengths
+| Find-KeeperDuplicateRecords                             | find-duplicates  | Find records with duplicate passwords or other criteria
+| Get-KeeperRecordHistory                                 | krh              | Get version history for a Keeper record
 
 ### Trash Management Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -105,6 +107,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseTeamUser                            | ketu             | Get a list of enterprise users for team
 | Add-KeeperEnterpriseTeamMember                          |                  | Add a list of enterprise users to a team
 | Remove-KeeperEnterpriseTeamMember                       |                  | Remove a list of enterprise users from a team
+| Get-KeeperEnterpriseTeams                               | list-team        | List all enterprise teams (with optional filters)
 | New-KeeperEnterpriseNode                                | kena             | Create Node
 | Edit-KeeperEnterpriseNode                               | kenu             | Update Node (rename, move, or enable node isolation)
 | Remove-KeeperEnterpriseNode                             | kend             | Delete Enterprise Node
@@ -126,6 +129,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Set-KeeperEnterpriseRole                                | kers             | Update Enterprise Role properties (NewUserInherit, VisibleBelow, DisplayName)
 | New-KeeperEnterpriseRole                                | keradd           | Create a new enterprise role in the Keeper Enterprise
 | Remove-KeeperEnterpriseRole                             | kerdel           | Delete an enterprise role from the Keeper Enterprise
+| Copy-KeeperEnterpriseRole                               | kercopy          | Copy a role (enforcements, users, teams) to another node
 | Grant-KeeperEnterpriseRoleToUser                        | kerua            | Add a user to an Enterprise Role
 | Revoke-KeeperEnterpriseRoleFromUser                     | kerur            | Remove a user from an Enterprise Role
 | Grant-KeeperEnterpriseRoleToTeam                        | kerta            | Add a team to an Enterprise Role

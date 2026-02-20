@@ -140,14 +140,15 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'Trash management commands (Get-KeeperTrashList, Restore-KeeperTrashRecords, Remove-TrashedKeeperRecordShares, Clear-KeeperTrash)',
-                'Export vault and membership commands (Export-KeeperVault, Export-KeeperMembership)',
-                'Device approval support (Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice)',
-                'Enterprise Role creation and deletion (New-KeeperEnterpriseRole, Remove-KeeperEnterpriseRole)',
-                'Enterprise Role management (Add-KeeperEnterpriseRoleManagedNode, Add-KeeperEnterpriseRolePrivilege, Add-KeeperEnterpriseRoleEnforcement)',
-                'Enterprise Node management (New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode)',
-                'Custom invitation and logo support for Enterprise Nodes',
-                'Updated .NET SDK'
+               'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
+                'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
+                'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
+                'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
+                'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
+                'Get-KeeperRecordHistory (krh) - get version history for a record',
+                'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
+                'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
+                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update'
             )
         }
     }
