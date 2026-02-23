@@ -76,7 +76,7 @@ namespace KeeperSecurity.Authentication.Sync
         }
 
         /// <summary>
-        /// Optional biometric login provider. Set by the host to enable biometric login for this auth instance.
+        /// Optional biometric login provider (<see cref="IBiometricLoginProvider"/>) set by the host to enable biometric login for this auth instance.
         /// </summary>
         public IBiometricLoginProvider BiometricLoginProvider { get; set; }
 
@@ -620,7 +620,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// <summary>
         /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/>.
         /// </summary>
-        /// <returns>Result indicating whether biometric was attempted and succeeded, or a fallback/error message.</returns>
+        /// <returns>Biometric login attempt result (<see cref="BiometricLoginAttemptResult"/>).</returns>
         public async Task<BiometricLoginAttemptResult> TryBiometricLoginAsync()
         {
             if (BiometricLoginProvider == null || string.IsNullOrEmpty(Username))
@@ -652,7 +652,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// <summary>
         /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/>.
         /// </summary>
-        /// <returns>true if login completed successfully; false if biometric was not used or failed to authenticate</returns>
+        /// <returns>true if login completed successfully; false if biometric was not used or failed to authenticate (<see cref="BiometricLoginAttemptResult"/>).</returns>
         public async Task<bool> TryLoginWithBiometricsAsync()
         {
             var result = await TryBiometricLoginAsync();
