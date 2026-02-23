@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Cli
 {
-    public static class OutputUtils
+    public static class Utils
     {
         public static void Welcome()
         {
