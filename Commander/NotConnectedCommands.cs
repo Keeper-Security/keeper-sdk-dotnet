@@ -59,7 +59,7 @@ namespace Commander
             };
 
 #if NET472_OR_GREATER
-            KeeperLoginFlow.BiometricLoginProvider = new KeeperBiometric.BiometricLoginProviderAdapter();
+            _auth.BiometricLoginProvider = new KeeperBiometric.BiometricLoginProviderAdapter();
 #endif
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
             {

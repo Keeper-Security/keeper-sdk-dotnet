@@ -18,7 +18,8 @@ namespace Cli
     public static class KeeperLoginFlow
     {
         /// <summary>
-        /// Optional biometric (passkey) login provider. Used to enable biometric login.
+        /// Optional default biometric (passkey) login provider. If set, it is assigned to <see cref="AuthSync.BiometricLoginProvider"/> when not already set.
+        /// Prefer setting <see cref="AuthSync.BiometricLoginProvider"/> on the auth instance (e.g. platform-specific in Commander).
         /// </summary>
         public static IBiometricLoginProvider BiometricLoginProvider { get; set; }
 
@@ -70,6 +71,9 @@ namespace Cli
             {
             });
 #endif
+
+            if (auth.BiometricLoginProvider == null && BiometricLoginProvider != null)
+                auth.BiometricLoginProvider = BiometricLoginProvider;
 
             await auth.Login(email, passwds.ToArray());
             if (!auth.IsCompleted) 
@@ -132,53 +136,20 @@ namespace Cli
 
             while (!auth.IsCompleted)
             {
-                if (!biometricAttempted && BiometricLoginProvider != null &&
-                    BiometricLoginProvider.IsAvailable() &&
-                    !string.IsNullOrEmpty(auth.Username) &&
-                    BiometricLoginProvider.HasCredential(auth.Username))
+                if (!biometricAttempted && auth.BiometricLoginProvider != null)
                 {
                     biometricAttempted = true;
-                    try
+                    var completed = await auth.TryLoginWithBiometricsAsync();
+                    if (completed)
                     {
-                        var bioResult = await BiometricLoginProvider.TryAuthenticateAsync(auth, auth.Username);
-
-                        if (bioResult.Success && bioResult.IsValid)
-                        {
-                            if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
-                            {
-                                await auth.ResumeLoginWithToken(Google.Protobuf.ByteString.CopyFrom(bioResult.EncryptedLoginToken));
-
-                                if (auth.IsCompleted)
-                                {
-                                    Console.WriteLine("Authentication completed successfully.");
-                                    break;
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Biometric authentication succeeded, but additional authentication steps required.");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("No login token received from biometric authentication.");
-                                Console.WriteLine("Falling back to standard authentication.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Biometric authentication failed: {bioResult.ErrorMessage ?? "Unknown error"}");
-                            Console.WriteLine("Falling back to standard authentication.");
-                        }
+                        Console.WriteLine("Authentication completed successfully.");
+                        break;
                     }
-                    catch (Exception bioEx)
-                    {
-                        Console.WriteLine($"Biometric authentication error: {bioEx.Message}");
+                    if (auth.BiometricLoginProvider != null && !string.IsNullOrEmpty(auth.Username))
                         Console.WriteLine("Falling back to standard authentication.");
-                    }
-
                     Console.WriteLine();
                 }
-                
+
                 switch (auth.Step)
                 {
                     case DeviceApprovalStep das:

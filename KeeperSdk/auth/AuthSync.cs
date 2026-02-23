@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -74,6 +74,11 @@ namespace KeeperSecurity.Authentication.Sync
             get => base.DeviceToken;
             set => base.DeviceToken = value;
         }
+
+        /// <summary>
+        /// Optional biometric login provider. Set by the host to enable biometric login for this auth instance.
+        /// </summary>
+        public IBiometricLoginProvider BiometricLoginProvider { get; set; }
 
         /// <summary>
         /// Gets a value that indicates whether login to Keeper has completed.
@@ -610,6 +615,37 @@ namespace KeeperSecurity.Authentication.Sync
         public async Task ResumeLoginWithToken(ByteString encryptedLoginToken)
         {
             Step = await this.ResumeLogin(_loginContext, StartLoginSync, encryptedLoginToken);
+        }
+
+        /// <summary>
+        /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/> (Windows Hello Passkey).
+        /// </summary>
+        /// <returns>True if login completed successfully; false if biometric was not used or failed (caller may fall back to password/other).</returns>
+        public async Task<bool> TryLoginWithBiometricsAsync()
+        {
+            if (BiometricLoginProvider == null || string.IsNullOrEmpty(Username))
+                return false;
+            if (!BiometricLoginProvider.IsAvailable() || !BiometricLoginProvider.HasCredential(Username))
+                return false;
+            if (_loginContext == null)
+                return false;
+
+            try
+            {
+                var result = await BiometricLoginProvider.TryAuthenticateAsync(this, Username).ConfigureAwait(false);
+                if (result != null && result.Success && result.IsValid &&
+                    result.EncryptedLoginToken != null && result.EncryptedLoginToken.Length > 0)
+                {
+                    await ResumeLoginWithToken(ByteString.CopyFrom(result.EncryptedLoginToken)).ConfigureAwait(false);
+                    return IsCompleted;
+                }
+            }
+            catch
+            {
+                // Fall through to return false so caller can fall back
+            }
+
+            return false;
         }
     }
 }
