@@ -27,7 +27,7 @@ namespace Commander
         private static async Task Main(string[] args)
         {
             Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
-            OutputUtils.Welcome();
+            Utils.Welcome();
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             var configFile = "";
