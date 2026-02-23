@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,11 @@ namespace Cli
 {
     public static class KeeperLoginFlow
     {
+        /// <summary>
+        /// Optional biometric (passkey) login provider. Set by the host application to enable biometric login
+        /// </summary>
+        public static IBiometricLoginProvider BiometricLoginProvider { get; set; }
+
         public static async Task LoginToKeeper(AuthSync auth, IInputManager inputManager, string username = null, string[] passwords = null)
         {
             auth.Cancel();
@@ -123,30 +128,26 @@ namespace Cli
             });
 #endif
 
-#if NET472_OR_GREATER
             var biometricAttempted = false;
-#endif
-            
+
             while (!auth.IsCompleted)
             {
-#if NET472_OR_GREATER
-                if (!biometricAttempted && 
-                    KeeperBiometric.PasskeyManager.IsAvailable() && 
+                if (!biometricAttempted && BiometricLoginProvider != null &&
+                    BiometricLoginProvider.IsAvailable() &&
                     !string.IsNullOrEmpty(auth.Username) &&
-                    KeeperBiometric.CredentialStorage.HasCredential(auth.Username))
+                    BiometricLoginProvider.HasCredential(auth.Username))
                 {
                     biometricAttempted = true;
                     try
-                    {                        
-                        var bioResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
-                            auth, auth.Username, KeeperBiometric.PasskeyManager.Purpose.Login);
-                        
+                    {
+                        var bioResult = await BiometricLoginProvider.TryAuthenticateAsync(auth, auth.Username);
+
                         if (bioResult.Success && bioResult.IsValid)
-                        {                            
+                        {
                             if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
                             {
-                                await auth.ResumeLoginWithToken(bioResult.EncryptedLoginToken);
-                                
+                                await auth.ResumeLoginWithToken(Google.Protobuf.ByteString.CopyFrom(bioResult.EncryptedLoginToken));
+
                                 if (auth.IsCompleted)
                                 {
                                     Console.WriteLine("Authentication completed successfully.");
@@ -174,10 +175,9 @@ namespace Cli
                         Console.WriteLine($"Biometric authentication error: {bioEx.Message}");
                         Console.WriteLine("Falling back to standard authentication.");
                     }
-                    
+
                     Console.WriteLine();
                 }
-#endif
                 
                 switch (auth.Step)
                 {
