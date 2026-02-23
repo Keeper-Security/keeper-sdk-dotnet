@@ -8,19 +8,19 @@ using Cli;
 using Commander;
 using CommandLine;
 using KeeperSecurity.Enterprise;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmCollectionCommand : PedmCommandBase
+    internal class EpmCollectionCommand : EpmCommandBase
     {
-        public PedmCollectionCommand(IEnterpriseContext context) : base(context)
+        public EpmCollectionCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmCollectionOptions options)
+        public async Task ExecuteAsync(EpmCollectionOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -190,7 +190,7 @@ namespace Commander.PEDM
             }
         }
         
-        private PedmCollection ResolveCollection(string identifier)
+        private EpmCollection ResolveCollection(string identifier)
         {
             if (string.IsNullOrEmpty(identifier))
             {
@@ -252,7 +252,7 @@ namespace Commander.PEDM
             return null;
         }
 
-        private async Task AddCollectionAsync(PedmCollectionOptions options)
+        private async Task AddCollectionAsync(EpmCollectionOptions options)
         {
             var collectionUid = options.CollectionUid;
             if (string.IsNullOrEmpty(collectionUid))
@@ -317,7 +317,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task UpdateCollectionAsync(PedmCollectionOptions options)
+        private async Task UpdateCollectionAsync(EpmCollectionOptions options)
         {
             if (string.IsNullOrEmpty(options.CollectionUid))
             {
@@ -437,7 +437,7 @@ namespace Commander.PEDM
         }
 
 
-        private async Task ConnectCollectionAsync(PedmCollectionOptions options)
+        private async Task ConnectCollectionAsync(EpmCollectionOptions options)
         {
             if (string.IsNullOrEmpty(options.CollectionUid))
             {
@@ -539,7 +539,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task DisconnectCollectionAsync(PedmCollectionOptions options)
+        private async Task DisconnectCollectionAsync(EpmCollectionOptions options)
         {
             if (string.IsNullOrEmpty(options.CollectionUid))
             {
@@ -620,7 +620,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task WipeOutCollectionsAsync(PedmCollectionOptions options)
+        private async Task WipeOutCollectionsAsync(EpmCollectionOptions options)
         {
             var collectionType = options.CollectionType;
             if (!collectionType.HasValue)
@@ -664,9 +664,9 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private List<PedmCollection> ResolveCollections(IList<string> identifiers)
+        private List<EpmCollection> ResolveCollections(IList<string> identifiers)
         {
-            var collections = new List<PedmCollection>();
+            var collections = new List<EpmCollection>();
             foreach (var identifier in identifiers)
             {
                 var collection = ResolveCollection(identifier);
@@ -695,7 +695,7 @@ namespace Commander.PEDM
         }
     }
 
-    internal class PedmCollectionOptions : EnterpriseGenericOptions
+    internal class EpmCollectionOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, view, add, update, remove, connect, disconnect, wipe-out")]
         public string Command { get; set; }

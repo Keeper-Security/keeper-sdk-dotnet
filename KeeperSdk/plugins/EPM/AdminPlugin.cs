@@ -12,7 +12,7 @@ using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 using Folder;
 
-namespace KeeperSecurity.Plugins.PEDM
+namespace KeeperSecurity.Plugins.EPM
 {
     public class RebuildTask
     {
@@ -87,14 +87,14 @@ namespace KeeperSecurity.Plugins.PEDM
         public IEnumerable<string> Approvals => _approvals;
     }
 
-    public interface IPedmAdmin
+    public interface IEpmAdmin
     {
         Task SyncDown(bool reload = false);
-        IEntityStorage<PedmDeployment> Deployments { get; }
-        IEntityStorage<PedmAgent> Agents { get; }
+        IEntityStorage<EpmDeployment> Deployments { get; }
+        IEntityStorage<EpmAgent> Agents { get; }
     }
 
-    public class PedmDeployment : IUid
+    public class EpmDeployment : IUid
     {
         public string DeploymentUid { get; set; }
         public bool Disabled { get; set; }
@@ -109,7 +109,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string Uid => DeploymentUid;
     }
 
-    public class PedmAgent : IUid
+    public class EpmAgent : IUid
     {
         public string AgentUid { get; set; }
         public string MachineId { get; set; }
@@ -121,7 +121,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string Uid => AgentUid;
     }
 
-    public class PedmPolicy : IUid
+    public class EpmPolicy : IUid
     {
         public string PolicyUid { get; set; }
         public byte[] PolicyKey { get; set; }
@@ -134,7 +134,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string Uid => PolicyUid;
     }
 
-    public class PedmCollection : IUid
+    public class EpmCollection : IUid
     {
         public string CollectionUid { get; set; }
         public int CollectionType { get; set; }
@@ -143,7 +143,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string Uid => CollectionUid;
     }
 
-    public class PedmApproval : IUid
+    public class EpmApproval : IUid
     {
         public string ApprovalUid { get; set; }
         public int ApprovalType { get; set; }
@@ -156,7 +156,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string Uid => ApprovalUid;
     }
 
-    public class PedmDeploymentAgent : IUidLink
+    public class EpmDeploymentAgent : IUidLink
     {
         public string DeploymentUid { get; set; }
         public string AgentUid { get; set; }
@@ -286,10 +286,10 @@ namespace KeeperSecurity.Plugins.PEDM
         public bool? Disabled { get; set; }
     }
 
-    public class PedmPlugin : IPedmAdmin
+    public class EpmPlugin : IEpmAdmin
     {
         private readonly IEnterpriseLoader _loader;
-        private readonly IPedmStorage _storage;
+        private readonly IEpmStorage _storage;
         private readonly IAuthentication _auth;
         private readonly int _enterpriseId;
         private readonly string _enterpriseUid;
@@ -298,16 +298,16 @@ namespace KeeperSecurity.Plugins.PEDM
         private byte[] _agentKey;
         private byte[] _allAgents;
 
-        private readonly InMemoryEntityStorage<PedmDeployment> _deployments = new();
-        private readonly InMemoryEntityStorage<PedmAgent> _agents = new();
-        private readonly InMemoryLinkStorage<PedmDeploymentAgent> _deploymentAgents = new();
-        private readonly InMemoryEntityStorage<PedmPolicy> _policies = new();
-        private readonly InMemoryEntityStorage<PedmCollection> _collections = new();
-        private readonly InMemoryEntityStorage<PedmApproval> _approvals = new();
+        private readonly InMemoryEntityStorage<EpmDeployment> _deployments = new();
+        private readonly InMemoryEntityStorage<EpmAgent> _agents = new();
+        private readonly InMemoryLinkStorage<EpmDeploymentAgent> _deploymentAgents = new();
+        private readonly InMemoryEntityStorage<EpmPolicy> _policies = new();
+        private readonly InMemoryEntityStorage<EpmCollection> _collections = new();
+        private readonly InMemoryEntityStorage<EpmApproval> _approvals = new();
 
         private bool _needSync = true;
 
-        public PedmPlugin(IEnterpriseLoader loader)
+        public EpmPlugin(IEnterpriseLoader loader)
         {
             if (!loader.Auth.AuthContext.IsEnterpriseAdmin)
             {
@@ -324,7 +324,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
             _enterpriseUid = enterpriseIdBytes.Base64UrlEncode();
             _deviceUid = CryptoUtils.GenerateUid();
-            _storage = new MemoryPedmStorage();
+            _storage = new MemoryEpmStorage();
 
             if (_auth.PushNotifications != null)
             {
@@ -349,13 +349,13 @@ namespace KeeperSecurity.Plugins.PEDM
             }
         }
 
-        public IEntityStorage<PedmDeployment> Deployments => _deployments;
-        public IEntityStorage<PedmAgent> Agents => _agents;
-        public IEntityStorage<PedmPolicy> Policies => _policies;
-        public IEntityStorage<PedmCollection> Collections => _collections;
-        public IEntityStorage<PedmApproval> Approvals => _approvals;
-        public ILinkStorage<PedmDeploymentAgent> DeploymentAgents => _deploymentAgents;
-        public ILinkStorage<IPedmStorageCollectionLink> CollectionLinks => _storage.CollectionLinks;
+        public IEntityStorage<EpmDeployment> Deployments => _deployments;
+        public IEntityStorage<EpmAgent> Agents => _agents;
+        public IEntityStorage<EpmPolicy> Policies => _policies;
+        public IEntityStorage<EpmCollection> Collections => _collections;
+        public IEntityStorage<EpmApproval> Approvals => _approvals;
+        public ILinkStorage<EpmDeploymentAgent> DeploymentAgents => _deploymentAgents;
+        public ILinkStorage<IEpmStorageCollectionLink> CollectionLinks => _storage.CollectionLinks;
 
         public bool NeedSync => _needSync;
 
@@ -434,7 +434,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
             if (!_needSync) return;
 
-            await _auth.SyncPedmData(_storage, _loader.TreeKey, reload);
+            await _auth.SyncEpmData(_storage, _loader.TreeKey, reload);
             _needSync = false;
 
             if (_populateData)
@@ -452,7 +452,7 @@ namespace KeeperSecurity.Plugins.PEDM
             var _ = AgentKey;
 
             _deployments.Clear();
-            var deps = new List<PedmDeployment>();
+            var deps = new List<EpmDeployment>();
             foreach (var dep in _storage.Deployments.GetAll())
             {
                 try
@@ -516,7 +516,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 }
             }
 
-            var agents = new List<PedmAgent>();
+            var agents = new List<EpmAgent>();
             var agentsToLoad = task.FullRebuild
                 ? _storage.Agents.GetAll()
                 : task.Agents != null
@@ -540,7 +540,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
             _agents.PutEntities(agents);
 
-            var policies = new List<PedmPolicy>();
+            var policies = new List<EpmPolicy>();
             var policiesToLoad = task.FullRebuild
                 ? _storage.Policies.GetAll()
                 : task.Policies != null
@@ -564,7 +564,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
             _policies.PutEntities(policies);
 
-            var collections = new List<PedmCollection>();
+            var collections = new List<EpmCollection>();
             var collectionsToLoad = task.FullRebuild
                 ? _storage.Collections.GetAll()
                 : task.Collections != null
@@ -588,7 +588,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
             _collections.PutEntities(collections);
 
-            var approvals = new List<PedmApproval>();
+            var approvals = new List<EpmApproval>();
             var approvalsToLoad = task.FullRebuild
                 ? _storage.Approvals.GetAll()
                 : task.Approvals != null
@@ -613,12 +613,12 @@ namespace KeeperSecurity.Plugins.PEDM
             _approvals.PutEntities(approvals);
 
             _deploymentAgents.Clear();
-            var deploymentAgentLinks = new List<PedmDeploymentAgent>();
+            var deploymentAgentLinks = new List<EpmDeploymentAgent>();
             foreach (var agent in _agents.GetAll())
             {
                 if (!string.IsNullOrEmpty(agent.DeploymentUid))
                 {
-                    deploymentAgentLinks.Add(new PedmDeploymentAgent
+                    deploymentAgentLinks.Add(new EpmDeploymentAgent
                     {
                         DeploymentUid = agent.DeploymentUid,
                         AgentUid = agent.AgentUid
@@ -628,7 +628,7 @@ namespace KeeperSecurity.Plugins.PEDM
             _deploymentAgents.PutLinks(deploymentAgentLinks);
         }
 
-        private PedmDeployment LoadDeployment(IPedmStorageDeployment storageDeployment, byte[] treeKey)
+        private EpmDeployment LoadDeployment(IEpmStorageDeployment storageDeployment, byte[] treeKey)
         {
             var deploymentKey = CryptoUtils.DecryptAesV2(storageDeployment.EncryptedKey, treeKey);
             var decryptedData = CryptoUtils.DecryptAesV2(storageDeployment.Data, deploymentKey);
@@ -637,7 +637,7 @@ namespace KeeperSecurity.Plugins.PEDM
             var name = data.Name;
             var dPrivateKey = data.EcPrivateKey?.ToByteArray();
 
-            return new PedmDeployment
+            return new EpmDeployment
             {
                 DeploymentUid = storageDeployment.DeploymentUid,
                 Name = name,
@@ -650,9 +650,9 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private PedmAgent LoadAgent(IPedmStorageAgent storageAgent)
+        private EpmAgent LoadAgent(IEpmStorageAgent storageAgent)
         {
-            return new PedmAgent
+            return new EpmAgent
             {
                 AgentUid = storageAgent.AgentUid,
                 MachineId = storageAgent.MachineId,
@@ -664,7 +664,7 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private PedmPolicy LoadPolicy(IPedmStoragePolicy storagePolicy)
+        private EpmPolicy LoadPolicy(IEpmStoragePolicy storagePolicy)
         {
             byte[] policyKey = null;
             if (storagePolicy.Key != null && storagePolicy.Key.Length > 0 && AgentKey != null)
@@ -728,7 +728,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 }
             }
 
-            var newPolicy = new PedmPolicy
+            var newPolicy = new EpmPolicy
             {
                 PolicyUid = storagePolicy.PolicyUid,
                 PolicyKey = policyKey,
@@ -742,7 +742,7 @@ namespace KeeperSecurity.Plugins.PEDM
             return newPolicy;
         }
 
-        private PedmCollection LoadCollection(IPedmStorageCollection storageCollection)
+        private EpmCollection LoadCollection(IEpmStorageCollection storageCollection)
         {
             byte[] collectionData = null;
             if (storageCollection.Data != null && storageCollection.Data.Length > 0 && AgentKey != null)
@@ -757,7 +757,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 }
             }
 
-            return new PedmCollection
+            return new EpmCollection
             {
                 CollectionUid = storageCollection.CollectionUid,
                 CollectionType = storageCollection.CollectionType,
@@ -766,7 +766,7 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private PedmApproval LoadApproval(IPedmStorageApproval storageApproval)
+        private EpmApproval LoadApproval(IEpmStorageApproval storageApproval)
         {
             byte[] accountInfo = null;
             byte[] applicationInfo = null;
@@ -821,7 +821,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 justification = storageApproval.Justification;
             }
             
-            return new PedmApproval
+            return new EpmApproval
             {
                 ApprovalUid = storageApproval.ApprovalUid,
                 ApprovalType = storageApproval.ApprovalType,

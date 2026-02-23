@@ -9,18 +9,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Cli;
 using CommandLine;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmDeploymentCommand : PedmCommandBase
+    internal class EpmDeploymentCommand : EpmCommandBase
     {
-        public PedmDeploymentCommand(IEnterpriseContext context) : base(context)
+        public EpmDeploymentCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmDeploymentOptions options)
+        public async Task ExecuteAsync(EpmDeploymentOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -88,7 +88,7 @@ namespace Commander.PEDM
             return Task.CompletedTask;
         }
 
-        private PedmDeployment ResolveDeployment(string deploymentIdentifier)
+        private EpmDeployment ResolveDeployment(string deploymentIdentifier)
         {
             if (string.IsNullOrEmpty(deploymentIdentifier))
             {
@@ -122,7 +122,7 @@ namespace Commander.PEDM
             return deployments[0];
         }
 
-        private Task ViewDeploymentAsync(PedmDeploymentOptions options)
+        private Task ViewDeploymentAsync(EpmDeploymentOptions options)
         {
             var deploymentIdentifier = options.DeploymentUid ?? options.Name;
             if (string.IsNullOrEmpty(deploymentIdentifier))
@@ -146,7 +146,7 @@ namespace Commander.PEDM
             return Task.CompletedTask;
         }
 
-        private async Task AddDeploymentAsync(PedmDeploymentOptions options)
+        private async Task AddDeploymentAsync(EpmDeploymentOptions options)
         {
             if (string.IsNullOrEmpty(options.Name))
             {
@@ -241,7 +241,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task UpdateDeploymentAsync(PedmDeploymentOptions options)
+        private async Task UpdateDeploymentAsync(EpmDeploymentOptions options)
         {
             var deploymentIdentifier = options.DeploymentUid ?? options.Name;
             if (string.IsNullOrEmpty(deploymentIdentifier))
@@ -279,7 +279,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task RemoveDeploymentAsync(PedmDeploymentOptions options)
+        private async Task RemoveDeploymentAsync(EpmDeploymentOptions options)
         {
             var deploymentIdentifier = options.DeploymentUid ?? options.Name;
             if (string.IsNullOrEmpty(deploymentIdentifier))
@@ -328,7 +328,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task DownloadDeploymentAsync(PedmDeploymentOptions options)
+        private async Task DownloadDeploymentAsync(EpmDeploymentOptions options)
         {
             var deploymentIdentifier = options.DeploymentUid ?? options.Name;
             if (string.IsNullOrEmpty(deploymentIdentifier))
@@ -469,7 +469,7 @@ namespace Commander.PEDM
         }
     }
 
-    internal class PedmDeploymentOptions : EnterpriseGenericOptions
+    internal class EpmDeploymentOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, view, add, update, remove")]
         public string Command { get; set; }

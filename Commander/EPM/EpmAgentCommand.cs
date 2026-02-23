@@ -4,19 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Cli;
 using CommandLine;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmAgentCommand : PedmCommandBase
+    internal class EpmAgentCommand : EpmCommandBase
     {
-        public PedmAgentCommand(IEnterpriseContext context) : base(context)
+        public EpmAgentCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmAgentOptions options)
+        public async Task ExecuteAsync(EpmAgentOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -121,7 +121,7 @@ namespace Commander.PEDM
             Console.WriteLine($"  Modified: {DateTimeOffset.FromUnixTimeMilliseconds(agentView.Modified):yyyy-MM-dd HH:mm:ss}");
         }
 
-        private async Task UpdateAgentAsync(PedmAgentOptions options)
+        private async Task UpdateAgentAsync(EpmAgentOptions options)
         {
             var agentUids = options.AgentUid?.Where(u => !string.IsNullOrEmpty(u)).ToList() ?? new List<string>();
 
@@ -263,7 +263,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private void ListAgentCollections(PedmAgentOptions options)
+        private void ListAgentCollections(EpmAgentOptions options)
         {
             var agentUid = options.AgentUid?.FirstOrDefault();
             if (string.IsNullOrEmpty(agentUid))
@@ -337,7 +337,7 @@ namespace Commander.PEDM
 
     }
 
-    internal class PedmAgentOptions : EnterpriseGenericOptions
+    internal class EpmAgentOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, view, update, remove")]
         public string Command { get; set; }

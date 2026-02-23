@@ -6,19 +6,19 @@ using Cli;
 using Commander;
 using CommandLine;
 using KeeperSecurity.Enterprise;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmCollectionLinkCommand : PedmCommandBase
+    internal class EpmCollectionLinkCommand : EpmCommandBase
     {
-        public PedmCollectionLinkCommand(IEnterpriseContext context) : base(context)
+        public EpmCollectionLinkCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmCollectionLinkOptions options)
+        public async Task ExecuteAsync(EpmCollectionLinkOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -86,7 +86,7 @@ namespace Commander.PEDM
             };
         }
 
-        private async Task SetCollectionLinksAsync(PedmCollectionLinkOptions options)
+        private async Task SetCollectionLinksAsync(EpmCollectionLinkOptions options)
         {
             if (string.IsNullOrEmpty(options.CollectionUid) || string.IsNullOrEmpty(options.LinkUid))
             {
@@ -114,7 +114,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task UnsetCollectionLinksAsync(PedmCollectionLinkOptions options)
+        private async Task UnsetCollectionLinksAsync(EpmCollectionLinkOptions options)
         {
             if (string.IsNullOrEmpty(options.CollectionUid) || string.IsNullOrEmpty(options.LinkUid))
             {
@@ -143,7 +143,7 @@ namespace Commander.PEDM
         }
     }
 
-    internal class PedmCollectionLinkOptions : EnterpriseGenericOptions
+    internal class EpmCollectionLinkOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, set, unset")]
         public string Command { get; set; }

@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
 
-namespace KeeperSecurity.Plugins.PEDM
+namespace KeeperSecurity.Plugins.EPM
 {
     [DataContract]
     public class PolicyActions
@@ -180,13 +180,13 @@ namespace KeeperSecurity.Plugins.PEDM
         [DataMember(Name = "plainData", EmitDefaultValue = false)]
         public PolicyPlainData PlainData { get; set; }
     }
-    public interface IPedmAdminSettings : IUid
+    public interface IEpmAdminSettings : IUid
     {
         string Key { get; set; }
         string Value { get; set; }
     }
 
-    public interface IPedmStorageDeployment : IUid
+    public interface IEpmStorageDeployment : IUid
     {
         string DeploymentUid { get; set; }
         byte[] EncryptedKey { get; set; }
@@ -197,7 +197,7 @@ namespace KeeperSecurity.Plugins.PEDM
         long LastUpdated { get; set; }
     }
 
-    public interface IPedmStorageAgent : IUid
+    public interface IEpmStorageAgent : IUid
     {
         string AgentUid { get; set; }
         string MachineId { get; set; }
@@ -209,7 +209,7 @@ namespace KeeperSecurity.Plugins.PEDM
         long Modified { get; set; }
     }
 
-    public interface IPedmStoragePolicy : IUid
+    public interface IEpmStoragePolicy : IUid
     {
         string PolicyUid { get; set; }
         byte[] AdminData { get; set; }
@@ -220,7 +220,7 @@ namespace KeeperSecurity.Plugins.PEDM
         long Updated { get; set; }
     }
 
-    public interface IPedmStorageCollection : IUid
+    public interface IEpmStorageCollection : IUid
     {
         string CollectionUid { get; set; }
         int CollectionType { get; set; }
@@ -228,14 +228,14 @@ namespace KeeperSecurity.Plugins.PEDM
         long Created { get; set; }
     }
 
-    public interface IPedmStorageCollectionLink : IUidLink
+    public interface IEpmStorageCollectionLink : IUidLink
     {
         string CollectionUid { get; set; }
         string LinkUid { get; set; }
         int LinkType { get; set; }
     }
 
-    public interface IPedmStorageApproval : IUid
+    public interface IEpmStorageApproval : IUid
     {
         string ApprovalUid { get; set; }
         int ApprovalType { get; set; }
@@ -247,7 +247,7 @@ namespace KeeperSecurity.Plugins.PEDM
         long Created { get; set; }
     }
 
-    public interface IPedmStorageApprovalStatus : IUid
+    public interface IEpmStorageApprovalStatus : IUid
     {
         string ApprovalUid { get; set; }
         int ApprovalStatus { get; set; }
@@ -256,7 +256,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_admin_settings", PrimaryKey = new[] { "key" })]
-    internal class PedmAdminSettingsData : IPedmAdminSettings, IEntityCopy<IPedmAdminSettings>
+    internal class EpmAdminSettingsData : IEpmAdminSettings, IEntityCopy<IEpmAdminSettings>
     {
         [SqlColumn(Name = "key")]
         public string Key { get; set; } = "";
@@ -266,7 +266,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => Key;
 
-        public void CopyFields(IPedmAdminSettings source)
+        public void CopyFields(IEpmAdminSettings source)
         {
             if (source == null) return;
             Key = source.Key;
@@ -275,7 +275,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_deployment", PrimaryKey = new[] { "deployment_uid" })]
-    internal class PedmStorageDeploymentData : IPedmStorageDeployment, IEntityCopy<IPedmStorageDeployment>
+    internal class EpmStorageDeploymentData : IEpmStorageDeployment, IEntityCopy<IEpmStorageDeployment>
     {
         [SqlColumn(Name = "deployment_uid")]
         public string DeploymentUid { get; set; } = "";
@@ -300,7 +300,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => DeploymentUid;
 
-        public void CopyFields(IPedmStorageDeployment source)
+        public void CopyFields(IEpmStorageDeployment source)
         {
             if (source == null) return;
             DeploymentUid = source.DeploymentUid;
@@ -314,7 +314,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_agent", PrimaryKey = new[] { "agent_uid" })]
-    internal class PedmStorageAgentData : IPedmStorageAgent, IEntityCopy<IPedmStorageAgent>
+    internal class EpmStorageAgentData : IEpmStorageAgent, IEntityCopy<IEpmStorageAgent>
     {
         [SqlColumn(Name = "agent_uid")]
         public string AgentUid { get; set; } = "";
@@ -342,7 +342,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => AgentUid;
 
-        public void CopyFields(IPedmStorageAgent source)
+        public void CopyFields(IEpmStorageAgent source)
         {
             if (source == null) return;
             AgentUid = source.AgentUid;
@@ -357,7 +357,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_policy", PrimaryKey = new[] { "policy_uid" })]
-    internal class PedmStoragePolicyData : IPedmStoragePolicy, IEntityCopy<IPedmStoragePolicy>
+    internal class EpmStoragePolicyData : IEpmStoragePolicy, IEntityCopy<IEpmStoragePolicy>
     {
         [SqlColumn(Name = "policy_uid")]
         public string PolicyUid { get; set; } = "";
@@ -382,7 +382,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => PolicyUid;
 
-        public void CopyFields(IPedmStoragePolicy source)
+        public void CopyFields(IEpmStoragePolicy source)
         {
             if (source == null) return;
             PolicyUid = source.PolicyUid;
@@ -396,7 +396,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_collection", PrimaryKey = new[] { "collection_uid" })]
-    internal class PedmStorageCollectionData : IPedmStorageCollection, IEntityCopy<IPedmStorageCollection>
+    internal class EpmStorageCollectionData : IEpmStorageCollection, IEntityCopy<IEpmStorageCollection>
     {
         [SqlColumn(Name = "collection_uid")]
         public string CollectionUid { get; set; } = "";
@@ -412,7 +412,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => CollectionUid;
 
-        public void CopyFields(IPedmStorageCollection source)
+        public void CopyFields(IEpmStorageCollection source)
         {
             if (source == null) return;
             CollectionUid = source.CollectionUid;
@@ -423,7 +423,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_collection_link", PrimaryKey = new[] { "collection_uid", "link_uid" }, Index1 = new[] { "link_uid" })]
-    internal class PedmStorageCollectionLinkData : IPedmStorageCollectionLink, IEntityCopy<IPedmStorageCollectionLink>
+    internal class EpmStorageCollectionLinkData : IEpmStorageCollectionLink, IEntityCopy<IEpmStorageCollectionLink>
     {
         [SqlColumn(Name = "collection_uid")]
         public string CollectionUid { get; set; } = "";
@@ -437,7 +437,7 @@ namespace KeeperSecurity.Plugins.PEDM
         public string SubjectUid => CollectionUid;
         public string ObjectUid => LinkUid;
 
-        public void CopyFields(IPedmStorageCollectionLink source)
+        public void CopyFields(IEpmStorageCollectionLink source)
         {
             if (source == null) return;
             CollectionUid = source.CollectionUid;
@@ -447,7 +447,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_approval", PrimaryKey = new[] { "approval_uid" })]
-    internal class PedmStorageApprovalData : IPedmStorageApproval, IEntityCopy<IPedmStorageApproval>
+    internal class EpmStorageApprovalData : IEpmStorageApproval, IEntityCopy<IEpmStorageApproval>
     {
         [SqlColumn(Name = "approval_uid")]
         public string ApprovalUid { get; set; } = "";
@@ -475,7 +475,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => ApprovalUid;
 
-        public void CopyFields(IPedmStorageApproval source)
+        public void CopyFields(IEpmStorageApproval source)
         {
             if (source == null) return;
             ApprovalUid = source.ApprovalUid;
@@ -490,7 +490,7 @@ namespace KeeperSecurity.Plugins.PEDM
     }
 
     [SqlTable(Name = "pedm_storage_approval_status", PrimaryKey = new[] { "approval_uid" })]
-    internal class PedmStorageApprovalStatusData : IPedmStorageApprovalStatus, IEntityCopy<IPedmStorageApprovalStatus>
+    internal class EpmStorageApprovalStatusData : IEpmStorageApprovalStatus, IEntityCopy<IEpmStorageApprovalStatus>
     {
         [SqlColumn(Name = "approval_uid")]
         public string ApprovalUid { get; set; } = "";
@@ -506,7 +506,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
         public string Uid => ApprovalUid;
 
-        public void CopyFields(IPedmStorageApprovalStatus source)
+        public void CopyFields(IEpmStorageApprovalStatus source)
         {
             if (source == null) return;
             ApprovalUid = source.ApprovalUid;
@@ -516,38 +516,38 @@ namespace KeeperSecurity.Plugins.PEDM
         }
     }
 
-    public interface IPedmStorage
+    public interface IEpmStorage
     {
-        IEntityStorage<IPedmAdminSettings> Settings { get; }
-        IEntityStorage<IPedmStorageDeployment> Deployments { get; }
-        IEntityStorage<IPedmStorageAgent> Agents { get; }
-        IEntityStorage<IPedmStoragePolicy> Policies { get; }
-        IEntityStorage<IPedmStorageCollection> Collections { get; }
-        ILinkStorage<IPedmStorageCollectionLink> CollectionLinks { get; }
-        IEntityStorage<IPedmStorageApproval> Approvals { get; }
-        IEntityStorage<IPedmStorageApprovalStatus> ApprovalStatus { get; }
+        IEntityStorage<IEpmAdminSettings> Settings { get; }
+        IEntityStorage<IEpmStorageDeployment> Deployments { get; }
+        IEntityStorage<IEpmStorageAgent> Agents { get; }
+        IEntityStorage<IEpmStoragePolicy> Policies { get; }
+        IEntityStorage<IEpmStorageCollection> Collections { get; }
+        ILinkStorage<IEpmStorageCollectionLink> CollectionLinks { get; }
+        IEntityStorage<IEpmStorageApproval> Approvals { get; }
+        IEntityStorage<IEpmStorageApprovalStatus> ApprovalStatus { get; }
         void Reset();
     }
 
-    public class MemoryPedmStorage : IPedmStorage
+    public class MemoryEpmStorage : IEpmStorage
     {
-        private readonly InMemoryEntityStorage<IPedmAdminSettings> _settings = new();
-        private readonly InMemoryEntityStorage<IPedmStorageDeployment> _deployments = new();
-        private readonly InMemoryEntityStorage<IPedmStorageAgent> _agents = new();
-        private readonly InMemoryEntityStorage<IPedmStoragePolicy> _policies = new();
-        private readonly InMemoryEntityStorage<IPedmStorageCollection> _collections = new();
-        private readonly InMemoryLinkStorage<IPedmStorageCollectionLink> _collectionLinks = new();
-        private readonly InMemoryEntityStorage<IPedmStorageApproval> _approvals = new();
-        private readonly InMemoryEntityStorage<IPedmStorageApprovalStatus> _approvalStatus = new();
+        private readonly InMemoryEntityStorage<IEpmAdminSettings> _settings = new();
+        private readonly InMemoryEntityStorage<IEpmStorageDeployment> _deployments = new();
+        private readonly InMemoryEntityStorage<IEpmStorageAgent> _agents = new();
+        private readonly InMemoryEntityStorage<IEpmStoragePolicy> _policies = new();
+        private readonly InMemoryEntityStorage<IEpmStorageCollection> _collections = new();
+        private readonly InMemoryLinkStorage<IEpmStorageCollectionLink> _collectionLinks = new();
+        private readonly InMemoryEntityStorage<IEpmStorageApproval> _approvals = new();
+        private readonly InMemoryEntityStorage<IEpmStorageApprovalStatus> _approvalStatus = new();
 
-        public IEntityStorage<IPedmAdminSettings> Settings => _settings;
-        public IEntityStorage<IPedmStorageDeployment> Deployments => _deployments;
-        public IEntityStorage<IPedmStorageAgent> Agents => _agents;
-        public IEntityStorage<IPedmStoragePolicy> Policies => _policies;
-        public IEntityStorage<IPedmStorageCollection> Collections => _collections;
-        public ILinkStorage<IPedmStorageCollectionLink> CollectionLinks => _collectionLinks;
-        public IEntityStorage<IPedmStorageApproval> Approvals => _approvals;
-        public IEntityStorage<IPedmStorageApprovalStatus> ApprovalStatus => _approvalStatus;
+        public IEntityStorage<IEpmAdminSettings> Settings => _settings;
+        public IEntityStorage<IEpmStorageDeployment> Deployments => _deployments;
+        public IEntityStorage<IEpmStorageAgent> Agents => _agents;
+        public IEntityStorage<IEpmStoragePolicy> Policies => _policies;
+        public IEntityStorage<IEpmStorageCollection> Collections => _collections;
+        public ILinkStorage<IEpmStorageCollectionLink> CollectionLinks => _collectionLinks;
+        public IEntityStorage<IEpmStorageApproval> Approvals => _approvals;
+        public IEntityStorage<IEpmStorageApprovalStatus> ApprovalStatus => _approvalStatus;
 
         public void Reset()
         {
@@ -562,40 +562,41 @@ namespace KeeperSecurity.Plugins.PEDM
         }
     }
 
-    public class SqlitePedmStorage : IPedmStorage
+    public class SqliteEpmStorage : IEpmStorage
     {
         private readonly Func<IDbConnection> _getConnection;
         private readonly int _enterpriseId;
         private readonly string _ownerColumn = "enterprise_id";
 
-        private readonly SqliteEntityStorage<IPedmAdminSettings, PedmAdminSettingsData> _settings;
-        private readonly SqliteEntityStorage<IPedmStorageDeployment, PedmStorageDeploymentData> _deployments;
-        private readonly SqliteEntityStorage<IPedmStorageAgent, PedmStorageAgentData> _agents;
-        private readonly SqliteEntityStorage<IPedmStoragePolicy, PedmStoragePolicyData> _policies;
-        private readonly SqliteEntityStorage<IPedmStorageCollection, PedmStorageCollectionData> _collections;
-        private readonly SqliteLinkStorage<IPedmStorageCollectionLink, PedmStorageCollectionLinkData> _collectionLinks;
-        private readonly SqliteEntityStorage<IPedmStorageApproval, PedmStorageApprovalData> _approvals;
-        private readonly SqliteEntityStorage<IPedmStorageApprovalStatus, PedmStorageApprovalStatusData> _approvalStatus;
+        private readonly SqlEntityStorage<IEpmAdminSettings, EpmAdminSettingsData> _settings;
+        private readonly SqlEntityStorage<IEpmStorageDeployment, EpmStorageDeploymentData> _deployments;
+        private readonly SqlEntityStorage<IEpmStorageAgent, EpmStorageAgentData> _agents;
+        private readonly SqlEntityStorage<IEpmStoragePolicy, EpmStoragePolicyData> _policies;
+        private readonly SqlEntityStorage<IEpmStorageCollection, EpmStorageCollectionData> _collections;
+        private readonly SqlLinkStorage<IEpmStorageCollectionLink, EpmStorageCollectionLinkData> _collectionLinks;
+        private readonly SqlEntityStorage<IEpmStorageApproval, EpmStorageApprovalData> _approvals;
+        private readonly SqlEntityStorage<IEpmStorageApprovalStatus, EpmStorageApprovalStatusData> _approvalStatus;
 
-        public SqlitePedmStorage(Func<IDbConnection> getConnection, int enterpriseId)
+        public SqliteEpmStorage(Func<IDbConnection> getConnection, int enterpriseId)
         {
             _getConnection = getConnection;
             _enterpriseId = enterpriseId;
 
-            var settingSchema = new TableSchema(typeof(PedmAdminSettingsData), _ownerColumn);
-            var deploymentSchema = new TableSchema(typeof(PedmStorageDeploymentData), _ownerColumn);
-            var agentSchema = new TableSchema(typeof(PedmStorageAgentData), _ownerColumn);
-            var policySchema = new TableSchema(typeof(PedmStoragePolicyData), _ownerColumn);
-            var collectionSchema = new TableSchema(typeof(PedmStorageCollectionData), _ownerColumn);
-            var collectionLinkSchema = new TableSchema(typeof(PedmStorageCollectionLinkData), _ownerColumn);
-            var approvalSchema = new TableSchema(typeof(PedmStorageApprovalData), _ownerColumn);
-            var approvalStatusSchema = new TableSchema(typeof(PedmStorageApprovalStatusData), _ownerColumn);
+            var settingSchema = new TableSchema(typeof(EpmAdminSettingsData), _ownerColumn);
+            var deploymentSchema = new TableSchema(typeof(EpmStorageDeploymentData), _ownerColumn);
+            var agentSchema = new TableSchema(typeof(EpmStorageAgentData), _ownerColumn);
+            var policySchema = new TableSchema(typeof(EpmStoragePolicyData), _ownerColumn);
+            var collectionSchema = new TableSchema(typeof(EpmStorageCollectionData), _ownerColumn);
+            var collectionLinkSchema = new TableSchema(typeof(EpmStorageCollectionLinkData), _ownerColumn);
+            var approvalSchema = new TableSchema(typeof(EpmStorageApprovalData), _ownerColumn);
+            var approvalStatusSchema = new TableSchema(typeof(EpmStorageApprovalStatusData), _ownerColumn);
 
             var connection = _getConnection();
             if (connection is DbConnection dbConnection)
             {
                 DatabaseUtils.VerifyDatabase(
                     dbConnection,
+                    SqliteDialect.Instance,
                     settingSchema, deploymentSchema, agentSchema, policySchema,
                     collectionSchema, collectionLinkSchema, approvalSchema, approvalStatusSchema);
             }
@@ -604,32 +605,32 @@ namespace KeeperSecurity.Plugins.PEDM
                 throw new InvalidOperationException("Connection must be a DbConnection");
             }
 
-            _settings = new SqliteEntityStorage<IPedmAdminSettings, PedmAdminSettingsData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _deployments = new SqliteEntityStorage<IPedmStorageDeployment, PedmStorageDeploymentData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _agents = new SqliteEntityStorage<IPedmStorageAgent, PedmStorageAgentData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _policies = new SqliteEntityStorage<IPedmStoragePolicy, PedmStoragePolicyData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _collections = new SqliteEntityStorage<IPedmStorageCollection, PedmStorageCollectionData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _collectionLinks = new SqliteLinkStorage<IPedmStorageCollectionLink, PedmStorageCollectionLinkData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _approvals = new SqliteEntityStorage<IPedmStorageApproval, PedmStorageApprovalData>(
-                _getConnection, _ownerColumn, _enterpriseId);
-            _approvalStatus = new SqliteEntityStorage<IPedmStorageApprovalStatus, PedmStorageApprovalStatusData>(
-                _getConnection, _ownerColumn, _enterpriseId);
+            _settings = new SqlEntityStorage<IEpmAdminSettings, EpmAdminSettingsData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _deployments = new SqlEntityStorage<IEpmStorageDeployment, EpmStorageDeploymentData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _agents = new SqlEntityStorage<IEpmStorageAgent, EpmStorageAgentData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _policies = new SqlEntityStorage<IEpmStoragePolicy, EpmStoragePolicyData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _collections = new SqlEntityStorage<IEpmStorageCollection, EpmStorageCollectionData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _collectionLinks = new SqlLinkStorage<IEpmStorageCollectionLink, EpmStorageCollectionLinkData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _approvals = new SqlEntityStorage<IEpmStorageApproval, EpmStorageApprovalData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
+            _approvalStatus = new SqlEntityStorage<IEpmStorageApprovalStatus, EpmStorageApprovalStatusData>(
+                _getConnection, SqliteDialect.Instance, _ownerColumn, _enterpriseId);
         }
 
-        public IEntityStorage<IPedmAdminSettings> Settings => _settings;
-        public IEntityStorage<IPedmStorageDeployment> Deployments => _deployments;
-        public IEntityStorage<IPedmStorageAgent> Agents => _agents;
-        public IEntityStorage<IPedmStoragePolicy> Policies => _policies;
-        public IEntityStorage<IPedmStorageCollection> Collections => _collections;
-        public ILinkStorage<IPedmStorageCollectionLink> CollectionLinks => _collectionLinks;
-        public IEntityStorage<IPedmStorageApproval> Approvals => _approvals;
-        public IEntityStorage<IPedmStorageApprovalStatus> ApprovalStatus => _approvalStatus;
+        public IEntityStorage<IEpmAdminSettings> Settings => _settings;
+        public IEntityStorage<IEpmStorageDeployment> Deployments => _deployments;
+        public IEntityStorage<IEpmStorageAgent> Agents => _agents;
+        public IEntityStorage<IEpmStoragePolicy> Policies => _policies;
+        public IEntityStorage<IEpmStorageCollection> Collections => _collections;
+        public ILinkStorage<IEpmStorageCollectionLink> CollectionLinks => _collectionLinks;
+        public IEntityStorage<IEpmStorageApproval> Approvals => _approvals;
+        public IEntityStorage<IEpmStorageApprovalStatus> ApprovalStatus => _approvalStatus;
 
         public void Reset()
         {

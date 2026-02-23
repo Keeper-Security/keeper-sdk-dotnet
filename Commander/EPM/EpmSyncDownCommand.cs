@@ -4,26 +4,26 @@ using Commander;
 using CommandLine;
 using KeeperSecurity.Enterprise;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmSyncDownCommand : PedmCommandBase
+    internal class EpmSyncDownCommand : EpmCommandBase
     {
-        public PedmSyncDownCommand(IEnterpriseContext context) : base(context)
+        public EpmSyncDownCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmSyncDownOptions options)
+        public async Task ExecuteAsync(EpmSyncDownOptions options)
         {
             if (!await EnsurePluginAsync(syncIfNeeded: false))
                 return;
 
-            Console.WriteLine(options.Reload ? "Performing full sync..." : "Syncing PEDM data...");
+            Console.WriteLine(options.Reload ? "Performing full sync..." : "Syncing EPM data...");
             await Plugin.SyncDown(options.Reload);
-            Console.WriteLine("PEDM sync completed.");
+            Console.WriteLine("EPM sync completed.");
         }
     }
 
-    internal class PedmSyncDownOptions : EnterpriseGenericOptions
+    internal class EpmSyncDownOptions : EnterpriseGenericOptions
     {
         [Option('r', "reload", Required = false, Default = false, HelpText = "Perform full sync instead of incremental")]
         public bool Reload { get; set; }

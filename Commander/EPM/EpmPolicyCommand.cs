@@ -7,19 +7,19 @@ using Cli;
 using CommandLine;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmPolicyCommand : PedmCommandBase
+    internal class EpmPolicyCommand : EpmCommandBase
     {
-        public PedmPolicyCommand(IEnterpriseContext context) : base(context)
+        public EpmPolicyCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmPolicyOptions options)
+        public async Task ExecuteAsync(EpmPolicyOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -303,7 +303,7 @@ namespace Commander.PEDM
             return null;
         }
 
-        private async Task AddPolicyAsync(PedmPolicyOptions options)
+        private async Task AddPolicyAsync(EpmPolicyOptions options)
         {
             var plainJson = ReadJsonText(options.PlainDataJson, options.PlainDataFile);
             var policyJson = ReadJsonText(options.PolicyDataJson, options.PolicyDataFile);
@@ -317,7 +317,7 @@ namespace Commander.PEDM
             var addStatus = await Plugin.ModifyPolicies(
                 addPolicies: new[]
                 {
-                    new PedmPlugin.PolicyInput
+                    new EpmPlugin.PolicyInput
                     {
                         PolicyUid = options.NewPolicyUid,
                         PlainDataJson = plainJson,
@@ -348,7 +348,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task UpdatePolicyAsync(PedmPolicyOptions options)
+        private async Task UpdatePolicyAsync(EpmPolicyOptions options)
         {
             if (string.IsNullOrEmpty(options.PolicyUid))
             {
@@ -376,7 +376,7 @@ namespace Commander.PEDM
                 addPolicies: null,
                 updatePolicies: new[]
                 {
-                    new PedmPlugin.PolicyInput
+                    new EpmPlugin.PolicyInput
                     {
                         PolicyUid = policy.PolicyUid,
                         PlainDataJson = plainJson,
@@ -447,7 +447,7 @@ namespace Commander.PEDM
             await Plugin.SyncDown();
         }
 
-        private async Task ListPolicyAgentsAsync(PedmPolicyOptions options)
+        private async Task ListPolicyAgentsAsync(EpmPolicyOptions options)
         {
             var policyIdentifiers = options.PolicyUid;
             if (string.IsNullOrEmpty(policyIdentifiers))
@@ -536,7 +536,7 @@ namespace Commander.PEDM
             }
         }
 
-        private async Task AssignPolicyCollectionsAsync(PedmPolicyOptions options)
+        private async Task AssignPolicyCollectionsAsync(EpmPolicyOptions options)
         {
             var policyIdentifiers = options.PolicyUid;
             if (string.IsNullOrEmpty(policyIdentifiers))
@@ -546,7 +546,7 @@ namespace Commander.PEDM
             }
 
             var identifiers = policyIdentifiers.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            var policies = new List<PedmPolicy>();
+            var policies = new List<EpmPolicy>();
             
             foreach (var identifier in identifiers)
             {
@@ -572,7 +572,7 @@ namespace Commander.PEDM
                     if (collUid == "*" || collUid == "all")
                     {
                         // Get all agents collection UID
-                        var allAgentsField = typeof(PedmPlugin).GetField("_allAgents", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        var allAgentsField = typeof(EpmPlugin).GetField("_allAgents", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                         if (allAgentsField != null)
                         {
                             var allAgentsBytes = allAgentsField.GetValue(Plugin) as byte[];
@@ -658,7 +658,7 @@ namespace Commander.PEDM
 
     }
 
-    internal class PedmPolicyOptions : EnterpriseGenericOptions
+    internal class EpmPolicyOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, view, add, update, remove")]
         public string Command { get; set; }

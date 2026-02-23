@@ -4,9 +4,9 @@ using Google.Protobuf;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace KeeperSecurity.Plugins.PEDM
+namespace KeeperSecurity.Plugins.EPM
 {
-    public class PedmUpdatePolicy
+    public class EpmUpdatePolicy
     {
         public string PolicyUid { get; set; }
         public Dictionary<string, object> AdminData { get; set; }
@@ -35,20 +35,20 @@ namespace KeeperSecurity.Plugins.PEDM
         public byte[] LinkData { get; set; }
     }
 
-    public interface IPedmStatus
+    public interface IEpmStatus
     {
         bool Success { get; }
         string Message { get; }
     }
 
-    public class EntityStatus : IPedmStatus
+    public class EntityStatus : IEpmStatus
     {
         public string EntityUid { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
     }
 
-    public class LinkStatus : IPedmStatus
+    public class LinkStatus : IEpmStatus
     {
         public string SubjectUid { get; set; }
         public string ObjectUid { get; set; }
@@ -61,9 +61,9 @@ namespace KeeperSecurity.Plugins.PEDM
         public Dictionary<string, object> Data { get; set; }
     }
 
-    public static class PedmStatusParser
+    public static class EpmStatusParser
     {
-        public static IPedmStatus ParsePedmStatus(PEDMProto.PedmStatus status)
+        public static IEpmStatus ParseEpmStatus(PEDMProto.PedmStatus status)
         {
             if (status.Key.Count == 1)
             {

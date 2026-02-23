@@ -6,18 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Cli;
 using CommandLine;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal class PedmApprovalCommand : PedmCommandBase
+    internal class EpmApprovalCommand : EpmCommandBase
     {
-        public PedmApprovalCommand(IEnterpriseContext context) : base(context)
+        public EpmApprovalCommand(IEnterpriseContext context) : base(context)
         {
         }
 
-        public async Task ExecuteAsync(PedmApprovalOptions options)
+        public async Task ExecuteAsync(EpmApprovalOptions options)
         {
             if (!await EnsurePluginAsync())
                 return;
@@ -270,7 +270,7 @@ namespace Commander.PEDM
             return (nonPrintableCount * 100.0 / text.Length) < 10;
         }
 
-        private static string GetApprovalStatus(PedmPlugin plugin, string approvalUid)
+        private static string GetApprovalStatus(EpmPlugin plugin, string approvalUid)
         {
             var statusInt = GetApprovalStatusInt(plugin, approvalUid);
             return statusInt switch
@@ -282,11 +282,11 @@ namespace Commander.PEDM
             };
         }
 
-        private static int GetApprovalStatusInt(PedmPlugin plugin, string approvalUid)
+        private static int GetApprovalStatusInt(EpmPlugin plugin, string approvalUid)
         {
             try
             {
-                var storageField = typeof(PedmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
+                var storageField = typeof(EpmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (storageField != null)
                 {
                     var storage = storageField.GetValue(plugin);
@@ -321,7 +321,7 @@ namespace Commander.PEDM
         }
     }
 
-    internal class PedmApprovalOptions : EnterpriseGenericOptions
+    internal class EpmApprovalOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, view, approve, deny, remove")]
         public string Command { get; set; }

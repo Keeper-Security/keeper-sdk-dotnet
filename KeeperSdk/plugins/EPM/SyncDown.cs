@@ -9,20 +9,20 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace KeeperSecurity.Plugins.PEDM
+namespace KeeperSecurity.Plugins.EPM
 {
     /// <exclude/>
-    public static class PedmSyncExtensions
+    public static class EpmSyncExtensions
     {
         /// <summary>
-        /// Syncs PEDM data from the server.
+        /// Syncs EPM data from the server.
         /// </summary>
         /// <param name="auth">Authentication context with session token.</param>
-        /// <param name="storage">PEDM storage to store synced data.</param>
+        /// <param name="storage">EPM storage to store synced data.</param>
         /// <param name="treeKey">Enterprise tree key for decrypting deployment keys. If null, keys will be stored encrypted.</param>
         /// <param name="fullSync">Force full sync by clearing continuation token.</param>
         /// <returns>Task that completes when sync is done.</returns>
-        public static async Task SyncPedmData(this IAuthentication auth, IPedmStorage storage, byte[] treeKey = null, bool fullSync = false)
+        public static async Task SyncEpmData(this IAuthentication auth, IEpmStorage storage, byte[] treeKey = null, bool fullSync = false)
         {
             byte[] continuationToken = null;
             var tokenSetting = storage.Settings.GetEntity("PEDM_SYNC_TOKEN");
@@ -55,7 +55,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 
                 if (response == null)
                 {
-                    throw new Exception("Empty response from PEDM sync");
+                    throw new Exception("Empty response from EPM sync");
                 }
                 if (response.ResetCache)
                 {
@@ -73,7 +73,7 @@ namespace KeeperSecurity.Plugins.PEDM
 
             if (tokenSetting == null)
             {
-                tokenSetting = new PedmAdminSettingsData
+                tokenSetting = new EpmAdminSettingsData
                 {
                     Key = "PEDM_SYNC_TOKEN",
                     Value = ""
@@ -92,7 +92,7 @@ namespace KeeperSecurity.Plugins.PEDM
             storage.Settings.PutEntities(new[] { tokenSetting });
         }
 
-        private static void ProcessRemovedItems(IPedmStorage storage, PEDMProto.GetPedmDataResponse response)
+        private static void ProcessRemovedItems(IEpmStorage storage, PEDMProto.GetPedmDataResponse response)
         {
             if (response.RemovedDeployments.Count > 0)
             {
@@ -142,7 +142,7 @@ namespace KeeperSecurity.Plugins.PEDM
             if (response.RemovedCollectionLink.Count > 0)
             {
                 var removedLinks = response.RemovedCollectionLink
-                    .Select(x => new PedmStorageCollectionLinkData
+                    .Select(x => new EpmStorageCollectionLinkData
                     {
                         CollectionUid = x.CollectionUid.ToByteArray().Base64UrlEncode(),
                         LinkUid = x.LinkUid.ToByteArray().Base64UrlEncode(),
@@ -162,7 +162,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
         }
 
-        private static void CleanupCollectionLinksForAgents(IPedmStorage storage, string[] agentUids)
+        private static void CleanupCollectionLinksForAgents(IEpmStorage storage, string[] agentUids)
         {
             var allLinks = storage.CollectionLinks.GetAllLinks().ToList();
             var linksToRemove = allLinks
@@ -174,7 +174,7 @@ namespace KeeperSecurity.Plugins.PEDM
             }
         }
 
-        private static Task ProcessAddedItems(IPedmStorage storage, PEDMProto.GetPedmDataResponse response, byte[] treeKey)
+        private static Task ProcessAddedItems(IEpmStorage storage, PEDMProto.GetPedmDataResponse response, byte[] treeKey)
         {
             if (response.Deployments.Count > 0)
             {
@@ -224,11 +224,11 @@ namespace KeeperSecurity.Plugins.PEDM
             return Task.CompletedTask;
         }
 
-        private static IPedmStorageDeployment ToStorageDeployment(PEDMProto.DeploymentNode node)
+        private static IEpmStorageDeployment ToStorageDeployment(PEDMProto.DeploymentNode node)
         {
             byte[] encryptedKey = node.AesKey?.ToByteArray() ?? Array.Empty<byte>();
 
-            return new PedmStorageDeploymentData
+            return new EpmStorageDeploymentData
             {
                 DeploymentUid = node.DeploymentUid.ToByteArray().Base64UrlEncode(),
                 EncryptedKey = encryptedKey,
@@ -240,9 +240,9 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private static IPedmStorageAgent ToStorageAgent(PEDMProto.AgentNode node)
+        private static IEpmStorageAgent ToStorageAgent(PEDMProto.AgentNode node)
         {
-            return new PedmStorageAgentData
+            return new EpmStorageAgentData
             {
                 AgentUid = node.AgentUid.ToByteArray().Base64UrlEncode(),
                 MachineId = node.MachineId,
@@ -290,7 +290,7 @@ namespace KeeperSecurity.Plugins.PEDM
             return false;
         }
 
-        private static IPedmStoragePolicy ToStoragePolicy(PEDMProto.PolicyNode node)
+        private static IEpmStoragePolicy ToStoragePolicy(PEDMProto.PolicyNode node)
         {
             bool disabled = false;
             byte[] adminDataBytes = node.PlainData?.ToByteArray() ?? Array.Empty<byte>();
@@ -307,7 +307,7 @@ namespace KeeperSecurity.Plugins.PEDM
                 }
             }
 
-            var policy = new PedmStoragePolicyData
+            var policy = new EpmStoragePolicyData
             {
                 PolicyUid = node.PolicyUid.ToByteArray().Base64UrlEncode(),
                 AdminData = adminDataBytes,
@@ -320,9 +320,9 @@ namespace KeeperSecurity.Plugins.PEDM
             return policy;
         }
 
-        private static IPedmStorageCollection ToStorageCollection(PEDMProto.CollectionNode node)
+        private static IEpmStorageCollection ToStorageCollection(PEDMProto.CollectionNode node)
         {
-            return new PedmStorageCollectionData
+            return new EpmStorageCollectionData
             {
                 CollectionUid = node.CollectionUid.ToByteArray().Base64UrlEncode(),
                 CollectionType = node.CollectionType,
@@ -331,9 +331,9 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private static IPedmStorageCollectionLink ToStorageCollectionLink(PEDMProto.CollectionLink node)
+        private static IEpmStorageCollectionLink ToStorageCollectionLink(PEDMProto.CollectionLink node)
         {
-            return new PedmStorageCollectionLinkData
+            return new EpmStorageCollectionLinkData
             {
                 CollectionUid = node.CollectionUid.ToByteArray().Base64UrlEncode(),
                 LinkUid = node.LinkUid.ToByteArray().Base64UrlEncode(),
@@ -341,9 +341,9 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private static IPedmStorageApproval ToStorageApproval(PEDMProto.ApprovalNode node)
+        private static IEpmStorageApproval ToStorageApproval(PEDMProto.ApprovalNode node)
         {
-            return new PedmStorageApprovalData
+            return new EpmStorageApprovalData
             {
                 ApprovalUid = node.ApprovalUid.ToByteArray().Base64UrlEncode(),
                 ApprovalType = node.ApprovalType,
@@ -356,9 +356,9 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private static IPedmStorageApprovalStatus ToStorageApprovalStatus(PEDMProto.ApprovalStatusNode node)
+        private static IEpmStorageApprovalStatus ToStorageApprovalStatus(PEDMProto.ApprovalStatusNode node)
         {
-            return new PedmStorageApprovalStatusData
+            return new EpmStorageApprovalStatusData
             {
                 ApprovalUid = node.ApprovalUid.ToByteArray().Base64UrlEncode(),
                 ApprovalStatus = (int)node.ApprovalStatus,
@@ -367,7 +367,7 @@ namespace KeeperSecurity.Plugins.PEDM
             };
         }
 
-        private static void ProcessApprovalTimeouts(IPedmStorage storage)
+        private static void ProcessApprovalTimeouts(IEpmStorage storage)
         {
             var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var allApprovals = storage.Approvals.GetAll().ToList();

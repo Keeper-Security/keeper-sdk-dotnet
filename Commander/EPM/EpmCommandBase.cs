@@ -5,34 +5,34 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Commander;
 using KeeperSecurity.Enterprise;
-using KeeperSecurity.Plugins.PEDM;
+using KeeperSecurity.Plugins.EPM;
 using KeeperSecurity.Utils;
 using PEDMProto = PEDM;
 
-namespace Commander.PEDM
+namespace Commander.EPM
 {
-    internal abstract class PedmCommandBase
+    internal abstract class EpmCommandBase
     {
         protected IEnterpriseContext Context { get; }
-        protected PedmPlugin Plugin { get; private set; }
+        protected EpmPlugin Plugin { get; private set; }
 
-        protected PedmCommandBase(IEnterpriseContext context)
+        protected EpmCommandBase(IEnterpriseContext context)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         protected async Task<bool> EnsurePluginAsync(bool syncIfNeeded = true)
         {
-            Plugin = Context.GetPedmPlugin() as PedmPlugin;
+            Plugin = Context.GetEpmPlugin() as EpmPlugin;
             if (Plugin == null)
             {
-                Console.WriteLine("PEDM plugin is not available. Enterprise admin access is required.");
+                Console.WriteLine("EPM plugin is not available. Enterprise admin access is required.");
                 return false;
             }
 
             if (syncIfNeeded && Plugin.NeedSync)
             {
-                Console.WriteLine("Syncing PEDM data...");
+                Console.WriteLine("Syncing EPM data...");
                 await Plugin.SyncDown();
             }
 
@@ -85,7 +85,7 @@ namespace Commander.PEDM
             };
         }
 
-        protected PedmPolicy ResolvePolicy(string identifier)
+        protected EpmPolicy ResolvePolicy(string identifier)
         {
             if (string.IsNullOrEmpty(identifier))
             {
@@ -118,7 +118,7 @@ namespace Commander.PEDM
             return null;
         }
 
-        protected static (string Name, string Type, List<string> Controls, string Users, string Machines, string Applications, string Collections) ParsePolicyData(PedmPolicy policy, PedmPlugin plugin)
+        protected static (string Name, string Type, List<string> Controls, string Users, string Machines, string Applications, string Collections) ParsePolicyData(EpmPolicy policy, EpmPlugin plugin)
         {
             string name = "";
             string type = "";
@@ -175,7 +175,7 @@ namespace Commander.PEDM
             
             try
             {
-                var storageField = typeof(PedmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
+                var storageField = typeof(EpmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (storageField != null)
                 {
                     var storage = storageField.GetValue(plugin);
@@ -191,7 +191,7 @@ namespace Commander.PEDM
                             {
                                 var collectionUids = new List<string>();
                                 
-                                var allAgentsField = typeof(PedmPlugin).GetField("_allAgents", BindingFlags.NonPublic | BindingFlags.Instance);
+                                var allAgentsField = typeof(EpmPlugin).GetField("_allAgents", BindingFlags.NonPublic | BindingFlags.Instance);
                                 string allAgents = null;
                                 if (allAgentsField != null)
                                 {
