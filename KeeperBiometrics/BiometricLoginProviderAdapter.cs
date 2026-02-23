@@ -6,7 +6,6 @@ namespace KeeperBiometric
 {
     /// <summary>
     /// Implements <see cref="IBiometricLoginProvider"/> using Windows Hello passkeys.
-    /// Use this when referencing KeeperBiometrics and set <see cref="KeeperLoginFlow.BiometricLoginProvider"/> to enable biometric login in KeeperCli.
     /// </summary>
     public sealed class BiometricLoginProviderAdapter : IBiometricLoginProvider
     {

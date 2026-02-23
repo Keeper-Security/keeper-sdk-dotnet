@@ -492,7 +492,6 @@ namespace KeeperBiometric
                             pExtensions = IntPtr.Zero
                         },
                         dwAuthenticatorAttachment = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM,
-                        // Use PREFERRED so Windows shows its default Hello UI (face, fingerprint, or PIN) instead of forcing one method.
                         dwUserVerificationRequirement = options.UserVerification == "required"
                             ? NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED
                             : NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED,
@@ -1345,7 +1344,7 @@ namespace KeeperBiometric
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM = 1;
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM = 2;
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM_U2F_V2 = 3;
-        
+
         internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_ANY = 0;
         internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED = 1;
         internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED = 2;

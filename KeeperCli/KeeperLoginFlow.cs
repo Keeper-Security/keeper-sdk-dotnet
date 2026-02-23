@@ -18,7 +18,7 @@ namespace Cli
     public static class KeeperLoginFlow
     {
         /// <summary>
-        /// Optional biometric (passkey) login provider. Set by the host application to enable biometric login
+        /// Optional biometric (passkey) login provider. Used to enable biometric login.
         /// </summary>
         public static IBiometricLoginProvider BiometricLoginProvider { get; set; }
 
