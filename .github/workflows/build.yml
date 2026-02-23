@@ -83,6 +83,9 @@ jobs:
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\KeeperSdk.dll"
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+          $cert = Get-Item "Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}"
+          $sha256 = $cert.GetCertHashString("SHA256") 
+          dotnet nuget sign --certificate-fingerprint $sha256 --timestamper http://timestamp.digicert.com "bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg"
         shell: powershell      
 
       - name: Store SDK Nuget artifacts
@@ -101,16 +104,6 @@ jobs:
           dotnet build --configuration=Release
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
-          dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
-        shell: powershell
-
-      - name: Build Keeper.CLI library
-        working-directory: ./KeeperCli
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet build --configuration=Release
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\KeeperCli.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperCli.dll"
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
@@ -167,8 +160,6 @@ jobs:
           path: |
             Cli/bin/Release/Keeper.Cli.*.nupkg
             Cli/bin/Release/Keeper.Cli.*.snupkg
-            KeeperCli/bin/Release/KeeperCli.*.nupkg
-            KeeperCli/bin/Release/KeeperCli.*.snupkg
           retention-days: 1
 
   publish:
