@@ -18,8 +18,7 @@ namespace Cli
     public static class KeeperLoginFlow
     {
         /// <summary>
-        /// Optional default biometric (passkey) login provider. If set, it is assigned to <see cref="AuthSync.BiometricLoginProvider"/> when not already set.
-        /// Prefer setting <see cref="AuthSync.BiometricLoginProvider"/> on the auth instance (e.g. platform-specific in Commander).
+        /// Optional default biometric login provider.
         /// </summary>
         public static IBiometricLoginProvider BiometricLoginProvider { get; set; }
 

@@ -618,9 +618,9 @@ namespace KeeperSecurity.Authentication.Sync
         }
 
         /// <summary>
-        /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/> (Windows Hello Passkey).
+        /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/>.
         /// </summary>
-        /// <returns>True if login completed successfully; false if biometric was not used or failed (caller may fall back to password/other).</returns>
+        /// <returns>true if login completed successfully; false if biometric was not used or failed to authenticate</returns>
         public async Task<bool> TryLoginWithBiometricsAsync()
         {
             if (BiometricLoginProvider == null || string.IsNullOrEmpty(Username))
@@ -639,13 +639,12 @@ namespace KeeperSecurity.Authentication.Sync
                     await ResumeLoginWithToken(ByteString.CopyFrom(result.EncryptedLoginToken)).ConfigureAwait(false);
                     return IsCompleted;
                 }
+                return false;
             }
             catch
             {
-                // Fall through to return false so caller can fall back
+                return false;
             }
-
-            return false;
         }
     }
 }
