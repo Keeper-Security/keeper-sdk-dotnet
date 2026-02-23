@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Authentication;
@@ -57,6 +57,10 @@ namespace Commander
             {
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.2.0" }
             };
+
+#if NET472_OR_GREATER
+            _auth.BiometricLoginProvider = new KeeperBiometric.BiometricLoginProviderAdapter();
+#endif
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
             {
                 Order = 9,
