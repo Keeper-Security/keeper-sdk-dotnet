@@ -18,7 +18,7 @@ namespace KeeperBiometric
         /// <inheritdoc />
         public async Task<IBiometricLoginResult> TryAuthenticateAsync(IAuthEndpoint auth, string username)
         {
-            var result = await PasskeyManager.AuthenticatePasskeyAsync(auth, username, PasskeyManager.Purpose.Login).ConfigureAwait(false);
+            var result = await PasskeyManager.AuthenticatePasskeyAsync(auth, username, PasskeyManager.Purpose.Login);
             return new ResultAdapter(result);
         }
 

@@ -39,4 +39,23 @@ namespace KeeperSecurity.Authentication
         /// <returns>Result with EncryptedLoginToken on success; otherwise Success/IsValid may be false with an ErrorMessage set.</returns>
         Task<IBiometricLoginResult> TryAuthenticateAsync(IAuthEndpoint auth, string username);
     }
+
+    /// <summary>
+    /// biometric login entry point Result(<see cref="AuthSync.TryBiometricLoginAsync"/>).
+    /// </summary>
+    public readonly struct BiometricLoginAttemptResult
+    {
+        public bool Success { get; }
+        public string ErrorMessage { get; }
+
+        internal BiometricLoginAttemptResult(bool success, string errorMessage = null)
+        {
+            Success = success;
+            ErrorMessage = string.IsNullOrEmpty(errorMessage) ? "Authentication failed" : errorMessage;
+        }
+
+        public static BiometricLoginAttemptResult Completed => new(true);
+        public static BiometricLoginAttemptResult NotAttempted => new(false);
+        public static BiometricLoginAttemptResult Failed(string errorMessage) => new(false, errorMessage);
+    }
 }

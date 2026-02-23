@@ -620,31 +620,43 @@ namespace KeeperSecurity.Authentication.Sync
         /// <summary>
         /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/>.
         /// </summary>
-        /// <returns>true if login completed successfully; false if biometric was not used or failed to authenticate</returns>
-        public async Task<bool> TryLoginWithBiometricsAsync()
+        /// <returns>Result indicating whether biometric was attempted and succeeded, or a fallback/error message.</returns>
+        public async Task<BiometricLoginAttemptResult> TryBiometricLoginAsync()
         {
             if (BiometricLoginProvider == null || string.IsNullOrEmpty(Username))
-                return false;
-            if (!BiometricLoginProvider.IsAvailable() || !BiometricLoginProvider.HasCredential(Username))
-                return false;
+                return BiometricLoginAttemptResult.NotAttempted;
+            if (!BiometricLoginProvider.IsAvailable())
+                return BiometricLoginAttemptResult.NotAttempted;
+            if (!BiometricLoginProvider.HasCredential(Username))
+                return BiometricLoginAttemptResult.NotAttempted;
             if (_loginContext == null)
-                return false;
+                return BiometricLoginAttemptResult.NotAttempted;
 
             try
             {
-                var result = await BiometricLoginProvider.TryAuthenticateAsync(this, Username).ConfigureAwait(false);
+                var result = await BiometricLoginProvider.TryAuthenticateAsync(this, Username);
                 if (result != null && result.Success && result.IsValid &&
                     result.EncryptedLoginToken != null && result.EncryptedLoginToken.Length > 0)
                 {
-                    await ResumeLoginWithToken(ByteString.CopyFrom(result.EncryptedLoginToken)).ConfigureAwait(false);
-                    return IsCompleted;
+                    await ResumeLoginWithToken(ByteString.CopyFrom(result.EncryptedLoginToken));
+                    return BiometricLoginAttemptResult.Completed;
                 }
-                return false;
+                return BiometricLoginAttemptResult.Failed(result?.ErrorMessage);
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return BiometricLoginAttemptResult.Failed(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Attempts to complete login using the configured <see cref="BiometricLoginProvider"/>.
+        /// </summary>
+        /// <returns>true if login completed successfully; false if biometric was not used or failed to authenticate</returns>
+        public async Task<bool> TryLoginWithBiometricsAsync()
+        {
+            var result = await TryBiometricLoginAsync();
+            return result.Success;
         }
     }
 }
