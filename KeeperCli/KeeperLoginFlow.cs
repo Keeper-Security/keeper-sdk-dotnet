@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,11 @@ namespace Cli
 {
     public static class KeeperLoginFlow
     {
+        /// <summary>
+        /// Optional default biometric login provider.
+        /// </summary>
+        public static IBiometricLoginProvider BiometricLoginProvider { get; set; }
+
         public static async Task LoginToKeeper(AuthSync auth, IInputManager inputManager, string username = null, string[] passwords = null)
         {
             auth.Cancel();
@@ -65,6 +70,9 @@ namespace Cli
             {
             });
 #endif
+
+            if (auth.BiometricLoginProvider == null && BiometricLoginProvider != null)
+                auth.BiometricLoginProvider = BiometricLoginProvider;
 
             await auth.Login(email, passwds.ToArray());
             if (!auth.IsCompleted) 
@@ -123,62 +131,24 @@ namespace Cli
             });
 #endif
 
-#if NET472_OR_GREATER
             var biometricAttempted = false;
-#endif
-            
+
             while (!auth.IsCompleted)
             {
-#if NET472_OR_GREATER
-                if (!biometricAttempted && 
-                    KeeperBiometric.PasskeyManager.IsAvailable() && 
-                    !string.IsNullOrEmpty(auth.Username) &&
-                    KeeperBiometric.CredentialStorage.HasCredential(auth.Username))
+                if (!biometricAttempted && auth.BiometricLoginProvider != null)
                 {
                     biometricAttempted = true;
-                    try
-                    {                        
-                        var bioResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
-                            auth, auth.Username, KeeperBiometric.PasskeyManager.Purpose.Login);
-                        
-                        if (bioResult.Success && bioResult.IsValid)
-                        {                            
-                            if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
-                            {
-                                await auth.ResumeLoginWithToken(bioResult.EncryptedLoginToken);
-                                
-                                if (auth.IsCompleted)
-                                {
-                                    Console.WriteLine("Authentication completed successfully.");
-                                    break;
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Biometric authentication succeeded, but additional authentication steps required.");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("No login token received from biometric authentication.");
-                                Console.WriteLine("Falling back to standard authentication.");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Biometric authentication failed: {bioResult.ErrorMessage ?? "Unknown error"}");
-                            Console.WriteLine("Falling back to standard authentication.");
-                        }
-                    }
-                    catch (Exception bioEx)
+                    var completed = await auth.TryLoginWithBiometricsAsync();
+                    if (completed)
                     {
-                        Console.WriteLine($"Biometric authentication error: {bioEx.Message}");
-                        Console.WriteLine("Falling back to standard authentication.");
+                        Console.WriteLine("Authentication completed successfully.");
+                        break;
                     }
-                    
+                    if (auth.BiometricLoginProvider != null && !string.IsNullOrEmpty(auth.Username))
+                        Console.WriteLine("Falling back to standard authentication.");
                     Console.WriteLine();
                 }
-#endif
-                
+
                 switch (auth.Step)
                 {
                     case DeviceApprovalStep das:
