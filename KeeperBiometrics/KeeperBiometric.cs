@@ -492,7 +492,10 @@ namespace KeeperBiometric
                             pExtensions = IntPtr.Zero
                         },
                         dwAuthenticatorAttachment = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM,
-                        dwUserVerificationRequirement = options.UserVerification == "required" ? 1u : 0u,
+                        // Use PREFERRED so Windows shows its default Hello UI (face, fingerprint, or PIN) instead of forcing one method.
+                        dwUserVerificationRequirement = options.UserVerification == "required"
+                            ? NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED
+                            : NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED,
                         dwFlags = 0,
                         pwszU2fAppId = IntPtr.Zero,
                         pbU2fAppId = IntPtr.Zero,
@@ -716,7 +719,9 @@ namespace KeeperBiometric
                             ? NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM 
                             : NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_ANY,
                         bRequireResidentKey = options.ResidentKeyRequirement == "required",
-                        dwUserVerificationRequirement = options.UserVerification == "required" ? 1u : 0u,
+                        dwUserVerificationRequirement = options.UserVerification == "required"
+                            ? NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED
+                            : NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED,
                         dwAttestationConveyancePreference = options.AttestationConveyancePreference == "direct" ? 1u : 0u,
                         dwFlags = 0,
                         pwszCancellationId = null,
@@ -1340,6 +1345,11 @@ namespace KeeperBiometric
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM = 1;
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM = 2;
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM_U2F_V2 = 3;
+        
+        internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_ANY = 0;
+        internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED = 1;
+        internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED = 2;
+        internal const uint WEBAUTHN_USER_VERIFICATION_REQUIREMENT_DISCOURAGED = 3;
 
         internal enum HRESULT : uint
         {
