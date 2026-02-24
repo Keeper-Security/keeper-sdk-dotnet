@@ -253,6 +253,19 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `extend-account-share-expiration` | | Extend account share expiration |
 | `audit-report` | | Run audit trail reports |
 
+### MSP Commands (MSP accounts only)
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `msp-info` | `mi` | Display MSP details |
+| `msp-down` | `md` | Refresh local MSP data from server |
+| `msp-add` | `ma` | Create managed company |
+| `msp-update` | `mu` | Modify managed company licenses |
+| `msp-remove` | `mrm` | Remove managed company |
+| `switch-to-mc` | | Switch context to managed company |
+| `switch-to-msp` | `msp` | Switch context back to MSP (when in MC context) |
+| `exit` | | When in MC context, also returns to MSP |
+
 ### Record Type Management
 
 | Command | Alias | Description |

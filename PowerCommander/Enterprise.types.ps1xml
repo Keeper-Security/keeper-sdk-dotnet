@@ -79,8 +79,8 @@
                 <GetScriptBlock>
                     Switch ($this.FilePlanType) {
                     "STORAGE_100GB" {"100GB"}
-                    "STORAGE_1000GB" {"1TB"}
-                    "STORAGE_10000GB" {"10TB"}
+                    "STORAGE_1TB" {"1TB"}
+                    "STORAGE_10TB" {"10TB"}
                     Default {$this.FilePlanType}
                     }
                 </GetScriptBlock>

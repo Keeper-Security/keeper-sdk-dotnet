@@ -3612,6 +3612,21 @@ namespace Commander
                 UserAliasData = new UserAliasData();
 
                 Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement, UserAliasData });
+
+                Commands.Add("switch-to-msp",
+                    new Cli.SimpleCommand
+                    {
+                        Order = 70,
+                        Description = "Switch context back to MSP",
+                        Action = _ =>
+                        {
+                            if (BackStateCommands != null)
+                                NextStateCommands = BackStateCommands;
+                            return Task.CompletedTask;
+                        },
+                    });
+                Aliases["msp"] = "switch-to-msp";
+
                 Task.Run(async () =>
                 {
                     try
@@ -3681,41 +3696,58 @@ namespace Commander
 
                         if (!string.IsNullOrEmpty(EnterpriseData.EnterpriseLicense?.LicenseStatus) && EnterpriseData.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
-                            Commands.Add("mc-list",
+                            Commands.Add("msp-info",
                                 new Cli.SimpleCommand
                                 {
                                     Order = 72,
-                                    Description = "List managed companies",
+                                    Description = "Display MSP details",
                                     Action = ListManagedCompanies,
                                 });
-                            Commands.Add("mc-create",
-                                new ParseableCommand<ManagedCompanyCreateOptions>
+                            Commands.Add("msp-down",
+                                new Cli.SimpleCommand
                                 {
                                     Order = 73,
+                                    Description = "Refresh local MSP data from server",
+                                    Action = async _ => { await Enterprise.Load(); },
+                                });
+                            Commands.Add("msp-add",
+                                new ParseableCommand<ManagedCompanyCreateOptions>
+                                {
+                                    Order = 74,
                                     Description = "Create managed company",
                                     Action = CreateManagedCompany,
                                 });
-                            Commands.Add("mc-update",
+                            Commands.Add("msp-update",
                                 new ParseableCommand<ManagedCompanyUpdateOptions>
                                 {
-                                    Order = 74,
-                                    Description = "Updates managed company",
+                                    Order = 75,
+                                    Description = "Modify managed company licenses",
                                     Action = UpdateManagedCompany,
                                 });
-                            Commands.Add("mc-delete",
+                            Commands.Add("msp-remove",
                                 new ParseableCommand<ManagedCompanyRemoveOptions>
                                 {
-                                    Order = 75,
-                                    Description = "Removes managed company",
+                                    Order = 76,
+                                    Description = "Remove managed company",
                                     Action = RemoveManagedCompany,
                                 });
-                            Commands.Add("mc-login",
+                            Commands.Add("switch-to-mc",
                                 new ParseableCommand<ManagedCompanyLoginOptions>
                                 {
                                     Order = 79,
-                                    Description = "Login to managed company",
+                                    Description = "Switch context to managed company",
                                     Action = LoginToManagedCompany,
                                 });
+                            Aliases["mi"] = "msp-info";
+                            Aliases["md"] = "msp-down";
+                            Aliases["ma"] = "msp-add";
+                            Aliases["mrm"] = "msp-remove";
+                            Aliases["mu"] = "msp-update";
+                            Aliases["mc-list"] = "msp-info";
+                            Aliases["mc-create"] = "msp-add";
+                            Aliases["mc-update"] = "msp-update";
+                            Aliases["mc-delete"] = "msp-remove";
+                            Aliases["mc-login"] = "switch-to-mc";
                         }
                     }
                     catch (Exception e)
@@ -3755,9 +3787,14 @@ namespace Commander
 
         private async Task LoginToManagedCompany(ManagedCompanyLoginOptions options)
         {
+            var mc = _managedCompanies.ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == options.CompanyId);
+            var mcName = mc?.EnterpriseName ?? $"ID {options.CompanyId}";
             var mcAuth = new ManagedCompanyAuth();
             await mcAuth.LoginToManagedCompany(Enterprise, options.CompanyId);
-            NextStateCommands = new McEnterpriseContext(mcAuth);
+            var mcContext = new McEnterpriseContext(mcAuth);
+            mcContext.BackStateCommands = this;
+            NextStateCommands = mcContext;
+            Console.WriteLine($"Switched to Managed Company \"{mcName}\" (ID: {options.CompanyId}).");
         }
 
         private Task ListManagedCompanies(string _)
@@ -3817,7 +3854,7 @@ namespace Commander
 
             if (arguments.Seats != null)
             {
-                options.NumberOfSeats = arguments.Seats.Value >= 0 ? arguments.Seats.Value : 2147483647;
+                options.NumberOfSeats = arguments.Seats.Value >= 0 ? arguments.Seats.Value : -1;
             }
 
             if (!string.IsNullOrEmpty(arguments.Storage))

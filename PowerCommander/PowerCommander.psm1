@@ -76,7 +76,7 @@ Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kera
 keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team, list-team
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
-Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
+Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, Revoke-KeeperSharesWithUser,

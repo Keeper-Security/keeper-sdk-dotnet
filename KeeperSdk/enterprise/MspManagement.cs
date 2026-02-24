@@ -1,4 +1,5 @@
-﻿using KeeperSecurity.Commands;
+using Enterprise;
+using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
@@ -74,7 +75,6 @@ namespace KeeperSecurity.Enterprise
         /// <returns></returns>
         Task RemoveManagedCompany(int companyId);
     }
-
 
     public partial class ManagedCompanyData : IMspManagement
     {
