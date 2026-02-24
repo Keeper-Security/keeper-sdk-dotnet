@@ -27,18 +27,15 @@ namespace Sample
     /// - Device approval
     /// - Vault synchronization
     /// </summary>
-    public class BasicAuthExample
+    public class AuthenticateAndGetVault
     {
-        /// <summary>
-        /// Runs the basic authentication example
-        /// </summary>
-        public static async Task Run()
+        public static async Task<VaultOnline> GetVault()
         {
             // Keeper SDK needs a storage to save configuration parameters 
             // such as: last login name, device token, etc
-            var configurationStorage = new JsonConfigurationStorage("basic-config.json");
+            var configurationStorage = new JsonConfigurationStorage("config.json");
             var configuration = configurationStorage.Get();
-            
+
             var prompt = "Enter Email Address: ";
             if (!string.IsNullOrEmpty(configuration.LastLogin))
             {
@@ -52,46 +49,34 @@ namespace Sample
                 if (string.IsNullOrEmpty(configuration.LastLogin))
                 {
                     Console.WriteLine("Bye.");
-                    return;
+                    return null;
                 }
 
                 username = configuration.LastLogin;
             }
 
-            // Use SimpleInputManager for handling console input
             var inputManager = new SimpleInputManager();
 
-            // Login to Keeper using AuthSync
-            Console.WriteLine("Logging in...");
             var authFlow = new AuthSync(configurationStorage);
             await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
 
-            // Check for authentication errors
             if (authFlow.Step is ErrorStep es)
             {
                 Console.WriteLine($"Authentication error: {es.Message}");
-                return;
+                return null;
             }
-            
+
             if (!authFlow.IsAuthenticated())
             {
                 Console.WriteLine("Authentication failed.");
-                return;
+                return null;
             }
 
-            // Sync vault
-            var vault = new VaultOnline(authFlow);
-            Console.WriteLine("Retrieving records...");
-            await vault.SyncDown();
+            await authFlow.SetSessionParameter("persistent_login", "1");
 
-            Console.WriteLine($"\nHello {username}!");
-            Console.WriteLine($"Your vault has {vault.RecordCount} records.");
-            
-            // Display some basic vault statistics
-            var folders = vault.Folders.Count();
-            var sharedFolders = vault.SharedFolders.Count();
-            Console.WriteLine($"Folders: {folders}");
-            Console.WriteLine($"Shared Folders: {sharedFolders}");
+            var vault = new VaultOnline(authFlow);
+            await vault.SyncDown();
+            return vault;
         }
     }
 }

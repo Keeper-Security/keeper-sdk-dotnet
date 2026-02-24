@@ -4,6 +4,7 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseLoader] $loader
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
     [KeeperSecurity.Enterprise.RoleData] $roleData
+    [KeeperSecurity.Enterprise.QueuedTeamData] $queuedTeamData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
     [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
     [hashtable] $ManagedCompanies = $null
@@ -67,14 +68,15 @@ Export-ModuleMember -Function New-KeeperEnterpriseTeam, Get-KeeperEnterpriseTeam
 Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
-Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo
+Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo,
+Invoke-KeeperEnterpriseNodeWipeOut
 
 
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
 keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
-Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
+Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, Revoke-KeeperSharesWithUser,
