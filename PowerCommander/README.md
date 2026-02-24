@@ -107,6 +107,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseTeamUser                            | ketu             | Get a list of enterprise users for team
 | Add-KeeperEnterpriseTeamMember                          |                  | Add a list of enterprise users to a team
 | Remove-KeeperEnterpriseTeamMember                       |                  | Remove a list of enterprise users from a team
+| Update-KeeperEnterpriseTeamUser                        |                  | Update a user's type (e.g. manager) in an enterprise team
 | Get-KeeperEnterpriseTeams                               | list-team        | List all enterprise teams (with optional filters)
 | New-KeeperEnterpriseNode                                | kena             | Create Node
 | Edit-KeeperEnterpriseNode                               | kenu             | Update Node (rename, move, or enable node isolation)
@@ -121,6 +122,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Unlock-KeeperEnterpriseUser                             | unlock-user      | Unlock Enterprise User
 | Move-KeeperEnterpriseUser                               |transfer-user     | Transfer user account to another user
 | Remove-KeeperEnterpriseUser                             | delete-user      | Delete Enterprise User
+| Update-KeeperEnterpriseUser                             |                  | Update enterprise user information (e.g. node, display name)
 | Set-KeeperEnterpriseUserMasterPasswordExpire            |                  | Expire master password for enterprise user
 | Get-KeeperEnterpriseRole                                | ker              | Enumerate all enterprise roles
 | Get-KeeperEnterpriseRoleUsers                           | keru             | Get a list of enterprise users for role
