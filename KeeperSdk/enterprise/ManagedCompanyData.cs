@@ -163,8 +163,8 @@ namespace KeeperSecurity.Enterprise
         public const string EnterprisePlusLicense = "enterprisePlus";
 
         public const string StoragePlan100GB = "STORAGE_100GB";
-        public const string StoragePlan1TB = "STORAGE_1000GB";
-        public const string StoragePlan10TB = "STORAGE_10000GB";
+        public const string StoragePlan1TB = "STORAGE_1TB";
+        public const string StoragePlan10TB = "STORAGE_10TB";
 
         public const string AddonBreachWatch = "enterprise_breach_watch";
         public const string AddonComplianceReport = "compliance_report";
