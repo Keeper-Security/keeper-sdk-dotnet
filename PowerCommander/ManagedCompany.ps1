@@ -208,7 +208,7 @@ function Get-KeeperManagedCompany {
                 foreach ($ao in $mc.AddOns) {
                     $an = $ao.Name
                     if ($ao.Seats -and [int]$ao.Seats -gt 0) {
-                        $s = $ao.Seats; if ($s -eq -1 -or $s -eq [int]::MaxValue) { $s = -1 }
+                        $s = $ao.Seats; if ($s -eq -1 -or $s -ge $script:McUnlimitedSeatsValue) { $s = -1 }
                         $addonList.Add("${an}:$s")
                     } else {
                         $addonList.Add($an)
@@ -219,7 +219,7 @@ function Get-KeeperManagedCompany {
             $plan = $mc.ProductId
             if ($plan) { $pd = $planDisplay[[string]$plan.ToLower()]; if ($pd) { $plan = $pd } }
             $seats = $mc.NumberOfSeats
-            if ($seats -eq -1 -or $seats -eq [int]::MaxValue -or $seats -gt 2000000) { $seats = -1 }
+            if ($seats -eq -1 -or $seats -ge $script:McUnlimitedSeatsValue) { $seats = -1 }
             $row = [ordered]@{
                 company_id   = $mc.EnterpriseId
                 company_name = $mc.EnterpriseName
@@ -480,7 +480,7 @@ function Edit-KeeperManagedCompany {
                 if (-not $ao.IsEnabled) { continue }
                 $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
                 $addonOption.Addon = $ao.Name
-                if ($ao.Seats -gt 0) { $addonOption.NumberOfSeats = if ($ao.Seats -eq -1 -or $ao.Seats -eq [int]::MaxValue) { -1 } else { $ao.Seats } }
+                if ($ao.Seats -gt 0) { $addonOption.NumberOfSeats = if ($ao.Seats -eq -1 -or $ao.Seats -ge $script:McUnlimitedSeatsValue) { -1 } else { $ao.Seats } }
                 $addonDict[$ao.Name] = $addonOption
             }
         }
@@ -583,7 +583,8 @@ function Copy-KeeperMCRole {
     foreach ($mcInput in $ManagedCompany) {
         $mc = findManagedCompany $mcInput.Trim()
         if (-not $mc) {
-            Write-Error "Managed Company `"$mcInput`" not found" -ErrorAction Stop
+            Write-Warning "Managed Company `"$mcInput`" not found; skipping."
+            continue
         }
         $eid = [int]$mc.EnterpriseId
         if ($seenMcIds.Add($eid)) {
@@ -668,6 +669,8 @@ function Copy-KeeperMCRole {
     }
 }
 New-Alias -Name msp-copy-role -Value Copy-KeeperMCRole
+
+$script:McUnlimitedSeatsValue = [int]::MaxValue
 
 $script:MspPlanNames = @{
     1 = 'business'; 2 = 'businessPlus'; 10 = 'enterprise'; 11 = 'enterprisePlus'
@@ -871,8 +874,8 @@ function Get-MspBillingReport {
     $getCountId = {
         param([long]$productKey)
         if ($productKey -gt 0 -and $productKey -lt 100) { return [int]$productKey }
-        if ($productKey -gt 100 -and $productKey -lt 10000) { return [int]($productKey / 100) }
-        if ($productKey -gt 10000) { return [int]($productKey / 10000) }
+        if ($productKey -ge 100 -and $productKey -lt 10000) { return [int]($productKey / 100) }
+        if ($productKey -ge 10000) { return [int]($productKey / 10000) }
         return 0
     }
     $getProductName = {
@@ -883,12 +886,12 @@ function Get-MspBillingReport {
             if ($name) { return $name }
             return "Plan #$cid"
         }
-        if ($productKey -gt 100 -and $productKey -lt 10000) {
+        if ($productKey -ge 100 -and $productKey -lt 10000) {
             $name = $filePlanMap[$cid]
             if ($name) { return $name }
             return "Storage #$cid"
         }
-        if ($productKey -gt 10000) {
+        if ($productKey -ge 10000) {
             $name = $addonById[$cid]
             if ($name) { return $name }
             return "Addon #$cid"
