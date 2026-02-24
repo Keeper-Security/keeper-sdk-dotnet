@@ -242,14 +242,29 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `enterprise-get-data` | `eget` | Retrieve enterprise data |
-| `enterprise-node` | `en` | Manage enterprise organizational nodes |
+| `enterprise-info` | `ei` | Get enterprise information (tree, node, user, team, role, managed company) |
+| `enterprise-node` | `en` | Manage enterprise organizational nodes (tree, add, update, delete, wipe-out, etc.) |
 | `enterprise-user` | `eu` | Manage enterprise users |
 | `enterprise-team` | `et` | Manage enterprise teams |
-| `enterprise-role` | `er` | Manage enterprise roles |
+| `list-team` | | List enterprise teams with optional filters |
+| `enterprise-role` | `er` | Manage enterprise roles (list, view, add, delete, update, copy, membership, etc.) |
 | `enterprise-device` | `ed` | Manage user devices |
 | `transfer-user` | | Transfer user account ownership |
 | `extend-account-share-expiration` | | Extend account share expiration |
 | `audit-report` | | Run audit trail reports |
+
+### MSP Commands (MSP accounts only)
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `msp-info` | `mi` | Display MSP details |
+| `msp-down` | `md` | Refresh local MSP data from server |
+| `msp-add` | `ma` | Create managed company |
+| `msp-update` | `mu` | Modify managed company licenses |
+| `msp-remove` | `mrm` | Remove managed company |
+| `switch-to-mc` | | Switch context to managed company |
+| `switch-to-msp` | `msp` | Switch context back to MSP (when in MC context) |
+| `exit` | | When in MC context, also returns to MSP |
 
 ### Record Type Management
 
@@ -266,6 +281,8 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `password-report` | | Generate comprehensive password security report |
+| `file-report` | | List records with file attachments, verify download accessibility |
+| `find-duplicates` | | Find records with duplicate passwords or criteria |
 | `breachwatch` | | BreachWatch security monitoring commands |
 
 ### Import/Export & Membership
@@ -273,6 +290,7 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `import` | | Import records from JSON file |
+| `export` | | Export vault records and shared folders to JSON file |
 | `download-membership` | | Export shared folder/team membership to JSON |
 | `apply-membership` | | Load shared folder membership from JSON file |
 
@@ -283,7 +301,6 @@ Work/Production> share-record "API Server" --email user@company.com --write
 |---------|-------|-------------|
 | `ksm` | | Keeper Secrets Manager commands |
 | `one-time-share` | | Manage one-time secure shares |
-| `import` | | Import records from JSON file |
 | `clear` | `c` | Clear the screen |
 | `help` | `?` | Display help information |
 | `quit` | `q` | Exit Commander |
