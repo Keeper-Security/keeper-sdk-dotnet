@@ -338,6 +338,45 @@ function Revoke-KeeperRecordAccess {
 }
 New-Alias -Name kushr -Value Revoke-KeeperRecordAccess
 
+function Revoke-KeeperSharesWithUser {
+    <#
+        .SYNOPSIS
+        Cancels all record shares with a user.
+
+        .DESCRIPTION
+        Removes all record shares between the current account and the specified user.
+        This is equivalent to the share-record cancel action in the Commander CLI.
+
+        .PARAMETER User
+        Email address of the user with whom to cancel all shares.
+
+        .EXAMPLE
+        Revoke-KeeperSharesWithUser -User "user@example.com"
+        Cancels all record shares with user@example.com (after confirmation).
+
+        .EXAMPLE
+        Revoke-KeeperSharesWithUser -User "user@example.com" -Confirm:$false
+        Cancels all record shares without prompting for confirmation.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param (
+        [Parameter(Mandatory = $true)]$User
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($PSCmdlet.ShouldProcess("all record shares with user `"$User`"", "Cancel")) {
+        try {
+            $vault.CancelSharesWithUser($User).GetAwaiter().GetResult() | Out-Null
+            Write-Output "All record shares with user `"$User`" have been cancelled."
+        }
+        catch {
+            Write-Error -Message "Failed to cancel shares with user `"$User`": $($_.Exception.Message)" -ErrorAction Stop
+        }
+    }
+}
+New-Alias -Name kcancelshare -Value Revoke-KeeperSharesWithUser
+
 function Grant-KeeperSharedFolderAccess {
     <#
         .Synopsis

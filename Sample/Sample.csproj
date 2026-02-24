@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cli\Cli.csproj" />
-    <ProjectReference Include="..\KeeperCli\KeeperCli.csproj" />
     <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
