@@ -366,8 +366,8 @@ function Invoke-KeeperEnterpriseNodeWipeOut {
     Wipes out all content under an enterprise node.
 
     .DESCRIPTION
-    Removes all users, roles, teams, and subnodes under the specified node. The target node itself is left empty.
-    This action cannot be undone. Equivalent to enterprise-node wipe-out in Commander.
+    Removes all users, roles, teams (provisioned and queued), and subnodes under the specified node. The target node itself is left empty.
+    This action cannot be undone.
 
     .PARAMETER Node
     Node name or ID to wipe out.
@@ -476,6 +476,17 @@ function Invoke-KeeperEnterpriseNodeWipeOut {
         }
         catch {
             Write-Warning "Could not delete user $($user.Email): $($_.Exception.Message)"
+        }
+    }
+
+    $queuedTeamsInNode = @($enterprise.queuedTeamData.QueuedTeams | Where-Object { $nodeSet.Contains($_.ParentNodeId) } | ForEach-Object { $_.Uid })
+    foreach ($uid in $queuedTeamsInNode) {
+        try {
+            $enterpriseData.DeleteTeam($uid).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete queued team $uid : $($_.Exception.Message)"
         }
     }
 
