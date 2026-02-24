@@ -1574,9 +1574,21 @@ function Copy-KeeperEnterpriseRole {
                 }
             }
 
-            $enforcementDict = Get-RoleEnforcementDictionary -RoleData $roleData -RoleId $sourceRoleObject.Id
-            if ($enforcementDict.Count -gt 0) {
-                $roleData.RoleEnforcementAddBatch($newRole, $enforcementDict).GetAwaiter().GetResult() | Out-Null
+            $sourceEnforcements = @($roleData.GetEnforcementsForRole($sourceRoleObject.Id))
+            if ($sourceEnforcements.Count -gt 0) {
+                $enforcementDict = New-Object 'System.Collections.Generic.Dictionary[KeeperSecurity.Enterprise.RoleEnforcementPolicies,string]'
+                foreach ($re in $sourceEnforcements) {
+                    $enforcementTypeStr = $re.EnforcementType
+                    if ([string]::IsNullOrWhiteSpace($enforcementTypeStr)) { continue }
+                    $normalized = $enforcementTypeStr -replace '_', ''
+                    $parsed = $null
+                    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $normalized, $true, [ref]$parsed)) {
+                        $enforcementDict[$parsed] = if ($re.Value) { $re.Value } else { '' }
+                    }
+                }
+                if ($enforcementDict.Count -gt 0) {
+                    $roleData.RoleEnforcementAddBatch($newRole, $enforcementDict).GetAwaiter().GetResult() | Out-Null
+                }
             }
 
             $usersCopied = 0

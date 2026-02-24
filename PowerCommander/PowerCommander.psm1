@@ -33,8 +33,8 @@ Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-Two
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
 Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
 New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes,
-Export-KeeperRecordTypes, Get-KeeperRecordPassword, Get-KeeperPasswordReport, Find-KeeperDuplicateRecords
-Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti, find-duplicates
+Export-KeeperRecordTypes, Get-KeeperRecordPassword, Get-KeeperPasswordReport, Find-KeeperDuplicateRecords, Get-KeeperRecordHistory
+Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti, find-duplicates, krh
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
 Export-ModuleMember -Alias ksf
@@ -87,8 +87,9 @@ Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-Ke
 Grant-KeeperAppAccess, Revoke-KeeperAppAccess
 Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
-Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, Remove-KeeperFileAttachment
-Export-ModuleMember -Alias kda, krfa
+Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, Remove-KeeperFileAttachment,
+Get-KeeperFileReport
+Export-ModuleMember -Alias kda, krfa, file-report
 
 Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
 Get-KeeperIgnoredBreachWatchRecords

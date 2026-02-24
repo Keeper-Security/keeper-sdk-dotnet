@@ -183,18 +183,18 @@ function Get-KeeperEnterpriseInfoNode {
     $userCount = @{}; $teamCount = @{}; $roleCount = @{}
     $userList = @{}; $teamList = @{}; $roleList = @{}
     foreach ($u in $ed.Users) {
-        $cur = $userCount[$u.ParentNodeId]; if ($null -eq $cur) { $cur = 0 }; $userCount[$u.ParentNodeId] = $cur + 1
+        $userCount[$u.ParentNodeId] = ($userCount[$u.ParentNodeId] ?? 0) + 1
         if (-not $userList[$u.ParentNodeId]) { $userList[$u.ParentNodeId] = [System.Collections.Generic.List[string]]::new() }
         $userList[$u.ParentNodeId].Add($u.Email) | Out-Null
     }
     foreach ($t in $ed.Teams) {
         $nid = if ($t.ParentNodeId -eq 0) { $ed.RootNode.Id } else { $t.ParentNodeId }
-        $cur = $teamCount[$nid]; if ($null -eq $cur) { $cur = 0 }; $teamCount[$nid] = $cur + 1
+        $teamCount[$nid] = ($teamCount[$nid] ?? 0) + 1
         if (-not $teamList[$nid]) { $teamList[$nid] = [System.Collections.Generic.List[string]]::new() }
         $teamList[$nid].Add($t.Name) | Out-Null
     }
     foreach ($r in $rd.Roles) {
-        $cur = $roleCount[$r.ParentNodeId]; if ($null -eq $cur) { $cur = 0 }; $roleCount[$r.ParentNodeId] = $cur + 1
+        $roleCount[$r.ParentNodeId] = ($roleCount[$r.ParentNodeId] ?? 0) + 1
         if (-not $roleList[$r.ParentNodeId]) { $roleList[$r.ParentNodeId] = [System.Collections.Generic.List[string]]::new() }
         $roleList[$r.ParentNodeId].Add($r.DisplayName) | Out-Null
     }
@@ -217,11 +217,11 @@ function Get-KeeperEnterpriseInfoNode {
         foreach ($c in $colSet) {
             switch ($c) {
                 'parent_node'   { $row['ParentNode'] = if ($n.ParentNodeId -le 0) { '' } else { Get-KeeperNodePath -NodeId $n.ParentNodeId } }
-                'user_count'    { $v = $userCount[$n.Id]; $row['UserCount'] = if ($null -eq $v) { 0 } else { $v } }
+                'user_count'    { $row['UserCount'] = $userCount[$n.Id] ?? 0 }
                 'users'         { $row['Users'] = ($userList[$n.Id] | Sort-Object) -join ', ' }
-                'team_count'    { $v = $teamCount[$n.Id]; $row['TeamCount'] = if ($null -eq $v) { 0 } else { $v } }
+                'team_count'    { $row['TeamCount'] = $teamCount[$n.Id] ?? 0 }
                 'teams'         { $row['Teams'] = ($teamList[$n.Id] | Sort-Object) -join ', ' }
-                'role_count'   { $v = $roleCount[$n.Id]; $row['RoleCount'] = if ($null -eq $v) { 0 } else { $v } }
+                'role_count'   { $row['RoleCount'] = $roleCount[$n.Id] ?? 0 }
                 'roles'         { $row['Roles'] = ($roleList[$n.Id] | Sort-Object) -join ', ' }
                 'provisioning'  { $parts = @(); if ($n.BridgeId -gt 0) { $parts += 'Bridge' }; if ($n.ScimId -gt 0) { $parts += 'SCIM' }; if ($n.SsoServiceProviderIds -and $n.SsoServiceProviderIds.Length -gt 0) { $parts += 'SSO' }; $row['Provisioning'] = ($parts -join ', ') }
             }
@@ -320,9 +320,9 @@ function Get-KeeperEnterpriseInfoUser {
                 'status'           { $row['Status'] = & $statusText $u.UserStatus }
                 'transfer_status'  { $row['TransferStatus'] = & $transferText $u.TransferAcceptanceStatus }
                 'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot }
-                'role_count'       { $ru = $roleUsers[$u.Id]; $row['RoleCount'] = if ($null -eq $ru) { 0 } else { $ru.Count } }
+                'role_count'       { $row['RoleCount'] = ($roleUsers[$u.Id]?.Count ?? 0) }
                 'roles'            { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
-                'team_count'       { $tu = $teamUsers[$u.Id]; $row['TeamCount'] = if ($null -eq $tu) { 0 } else { $tu.Count } }
+                'team_count'       { $row['TeamCount'] = ($teamUsers[$u.Id]?.Count ?? 0) }
                 'teams'            { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
                 'queued_team_count' { $row['QueuedTeamCount'] = 0 }
                 'queued_teams'      { $row['QueuedTeams'] = '' }
@@ -429,11 +429,11 @@ function Get-KeeperEnterpriseInfoTeam {
             switch ($c) {
                 'restricts'        { $row['Restricts'] = $restricts }
                 'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $t.ParentNodeId -OmitRoot }
-                'user_count'       { $v = $userCount[$t.Uid]; $row['UserCount'] = if ($null -eq $v) { 0 } else { $v } }
+                'user_count'       { $row['UserCount'] = $userCount[$t.Uid] ?? 0 }
                 'users'            { $row['Users'] = ($userList[$t.Uid] -join ', ') }
                 'queued_user_count'{ $row['QueuedUserCount'] = 0 }
                 'queued_users'     { $row['QueuedUsers'] = '' }
-                'role_count'       { $rl = $roleList[$t.Uid]; $row['RoleCount'] = if ($null -eq $rl) { 0 } else { $rl.Count } }
+                'role_count'       { $row['RoleCount'] = ($roleList[$t.Uid]?.Count ?? 0) }
                 'roles'            { $row['Roles'] = (($roleList[$t.Uid] | Sort-Object) -join ', ') }
             }
         }
@@ -536,9 +536,9 @@ function Get-KeeperEnterpriseInfoRole {
                 'default_role'   { $row['DefaultRole'] = $r.NewUserInherit }
                 'admin'         { $row['Admin'] = $adminRoleIds.Contains($r.Id) }
                 'node'          { $row['Node'] = Get-KeeperNodePath -NodeId $r.ParentNodeId -OmitRoot }
-                'user_count'    { $v = $userCount[$r.Id]; $row['UserCount'] = if ($null -eq $v) { 0 } else { $v } }
+                'user_count'    { $row['UserCount'] = $userCount[$r.Id] ?? 0 }
                 'users'         { $row['Users'] = ($userList[$r.Id] -join ', ') }
-                'team_count'    { $tl = $teamList[$r.Id]; $row['TeamCount'] = if ($null -eq $tl) { 0 } else { $tl.Count } }
+                'team_count'    { $row['TeamCount'] = $teamList[$r.Id]?.Count ?? 0 }
                 'teams'         { $row['Teams'] = (($teamList[$r.Id] | Sort-Object) -join ', ') }
             }
         }
@@ -616,7 +616,7 @@ function Get-KeeperEnterpriseInfoManagedCompany {
         if ($nodeFilterIds -and -not $nodeFilterIds.Contains($nid)) { continue }
         $storage = if ($mc.FilePlanType) { $mc.FilePlanType } else { '' }
         $addons = if ($mc.AddOns) { $mc.AddOns.Count } else { 0 }
-        $allocated = $mc.NumberOfSeats; if ($allocated -eq -1) { $allocated = $null }
+        $allocated = $mc.NumberOfSeats; if ($allocated -eq 2147483647) { $allocated = $null }
         $nodePath = Get-KeeperNodePath -NodeId $mc.ParentNodeId -OmitRoot
         $row = [PSCustomObject]@{
             CompanyId    = $mc.EnterpriseId
