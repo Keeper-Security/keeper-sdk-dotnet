@@ -104,7 +104,7 @@
         'Test-PasswordAgainstBreachWatch','Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
         'Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential',
         'Get-KeeperTrashList', 'Restore-KeeperTrashRecords', 'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash',
-        'Export-KeeperVault', 'Export-KeeperMembership', 'Get-KeeperEnterpriseTeams','Import-KeeperMembership','Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
+        'Export-KeeperVault', 'Export-KeeperMembership', 'Get-KeeperEnterpriseTeams', 'Import-KeeperMembership', 'Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory'
         #'Test-Keeper',
     )
@@ -124,7 +124,7 @@
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel',
-        'list-team', 'kercopy','list-team', 'find-duplicates', 'keitree',
+        'list-team', 'kercopy', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh')
 
     # List of all modules packaged with this module
@@ -150,6 +150,7 @@
                 'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
                 'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
                 'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
+                'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
                 'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
                 'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
                 'Get-KeeperRecordHistory (krh) - get version history for a record',

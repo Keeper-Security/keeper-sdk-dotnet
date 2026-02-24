@@ -123,9 +123,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Unlock-KeeperEnterpriseUser                             | unlock-user      | Unlock Enterprise User
 | Move-KeeperEnterpriseUser                               |transfer-user     | Transfer user account to another user
 | Remove-KeeperEnterpriseUser                             | delete-user      | Delete Enterprise User
-| Update-KeeperEnterpriseUser                             |                  | Update enterprise user information (e.g. node, display name)
-| Set-KeeperEnterpriseUserMasterPasswordExpire            |                  | Expire master password for enterprise user
 | Update-KeeperEnterpriseUser                             |                  | Update enterprise user (node, full name, job title, locale)
+| Set-KeeperEnterpriseUserMasterPasswordExpire            |                  | Expire master password for enterprise user
 | Get-KeeperEnterpriseRole                                | ker              | Enumerate all enterprise roles
 | Get-KeeperEnterpriseRoleUsers                           | keru             | Get a list of enterprise users for role
 | Get-KeeperEnterpriseRoleTeams                           | kert             | Get a list of enterprise teams for role 
