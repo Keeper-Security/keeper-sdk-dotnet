@@ -372,15 +372,15 @@ function Get-KeeperFileReport {
     $result = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($item in $report) {
         $row = [ordered]@{
-            'Title'       = $item.RecordTitle ?? ''
-            'Record UID'  = $item.RecordUid ?? ''
-            'Record Type' = $item.RecordType ?? ''
-            'File ID'     = $item.FileId ?? ''
-            'File Name'   = $item.FileName ?? ''
+            'Title'       = (if ($null -ne $item.RecordTitle) { $item.RecordTitle } else { '' })
+            'Record UID'  = (if ($null -ne $item.RecordUid) { $item.RecordUid } else { '' })
+            'Record Type' = (if ($null -ne $item.RecordType) { $item.RecordType } else { '' })
+            'File ID'     = (if ($null -ne $item.FileId) { $item.FileId } else { '' })
+            'File Name'   = (if ($null -ne $item.FileName) { $item.FileName } else { '' })
             'File Size'   = $item.FileSize
         }
         if ($TryDownload.IsPresent) {
-            $row['Downloadable'] = $item.Downloadable ?? ''
+            $row['Downloadable'] = (if ($null -ne $item.Downloadable) { $item.Downloadable } else { '' })
         }
         $result.Add([PSCustomObject]$row)
     }

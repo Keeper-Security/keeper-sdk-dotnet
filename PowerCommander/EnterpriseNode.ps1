@@ -359,3 +359,160 @@ function Set-KeeperEnterpriseNodeCustomLogo {
     }
 }
 New-Alias -Name Set-KeeperNodeCustomLogo -Value Set-KeeperEnterpriseNodeCustomLogo
+
+function Invoke-KeeperEnterpriseNodeWipeOut {
+    <#
+    .SYNOPSIS
+    Wipes out all content under an enterprise node.
+
+    .DESCRIPTION
+    Removes all users, roles, teams (provisioned and queued), and subnodes under the specified node. The target node itself is left empty.
+    This action cannot be undone.
+
+    .PARAMETER Node
+    Node name or ID to wipe out.
+
+    .PARAMETER Force
+    Skip confirmation prompt.
+
+    .EXAMPLE
+    Invoke-KeeperEnterpriseNodeWipeOut -Node "Sales"
+    Wipes out the Sales node and all its content (after confirmation).
+
+    .EXAMPLE
+    Invoke-KeeperEnterpriseNodeWipeOut -Node 123456789 -Force
+    Wipes out the node by ID without prompting.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string]$Node,
+        [Parameter()][switch]$Force
+    )
+
+    $enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $roleData = $enterprise.roleData
+
+    $targetNode = resolveSingleNode $Node
+    if (-not $targetNode) {
+        Write-Error -Message "Node `"$Node`" not found" -ErrorAction Stop
+    }
+
+    if ($targetNode.Id -eq $enterpriseData.RootNode.Id) {
+        Write-Error -Message "Cannot wipe out root node" -ErrorAction Stop
+    }
+
+    $nodeName = $targetNode.DisplayName
+    if (-not $Force -and -not $PSCmdlet.ShouldProcess("Node `"$nodeName`" and all its content", "Wipe out")) {
+        Write-Output "Wipe-out cancelled."
+        return
+    }
+
+    if (-not $Force) {
+        Write-Warning "This action cannot be undone."
+    }
+
+    $subNodes = [System.Collections.Generic.List[long]]::new()
+    $subNodes.Add($targetNode.Id) | Out-Null
+    $pos = 0
+    while ($pos -lt $subNodes.Count) {
+        $childIds = $enterpriseData.Nodes | Where-Object { $_.ParentNodeId -eq $subNodes[$pos] } | ForEach-Object { $_.Id }
+        foreach ($id in $childIds) { $subNodes.Add($id) | Out-Null }
+        $pos++
+    }
+    $nodeSet = [System.Collections.Generic.HashSet[long]]::new($subNodes)
+
+    $roles = @($roleData.Roles | Where-Object { $nodeSet.Contains($_.ParentNodeId) })
+    $userIds = @($enterpriseData.Users | Where-Object { $nodeSet.Contains($_.ParentNodeId) } | ForEach-Object { $_.Id })
+    $roleIdArray = @($roles | ForEach-Object { $_.Id })
+    $roleIds = [System.Collections.Generic.HashSet[long]]::new()
+    foreach ($id in $roleIdArray) { [void]$roleIds.Add($id) }
+
+    foreach ($r in $roles) {
+        foreach ($userId in @($roleData.GetUsersForRole($r.Id))) {
+            $u = $null
+            if ($enterpriseData.TryGetUserById($userId, [ref]$u)) {
+                try {
+                    $roleData.RemoveUserFromRole($r, $u).GetAwaiter().GetResult() | Out-Null
+                    $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+                }
+                catch {
+                    Write-Warning "Could not remove user $($u.Email) from role $($r.DisplayName): $($_.Exception.Message)"
+                }
+            }
+        }
+    }
+
+    foreach ($link in @($roleData.GetManagedNodes())) {
+        if (-not $nodeSet.Contains($link.ManagedNodeId) -and -not $roleIds.Contains($link.RoleId)) { continue }
+        $mRole = $null
+        $mNode = $null
+        if (-not $roleData.TryGetRole($link.RoleId, [ref]$mRole) -or -not $enterpriseData.TryGetNode($link.ManagedNodeId, [ref]$mNode)) { continue }
+        try {
+            $roleData.RoleManagedNodeRemove($mRole, $mNode).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not remove managed node $($link.ManagedNodeId) from role $($mRole.DisplayName): $($_.Exception.Message)"
+        }
+    }
+
+    foreach ($r in $roles) {
+        try {
+            $roleData.DeleteRole($r).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete role $($r.DisplayName): $($_.Exception.Message)"
+        }
+    }
+
+    foreach ($userId in $userIds) {
+        $user = $null
+        if (-not $enterpriseData.TryGetUserById($userId, [ref]$user)) { continue }
+        try {
+            $enterpriseData.DeleteUser($user).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete user $($user.Email): $($_.Exception.Message)"
+        }
+    }
+
+    $queuedTeamsInNode = @($enterprise.queuedTeamData.QueuedTeams | Where-Object { $nodeSet.Contains($_.ParentNodeId) } | ForEach-Object { $_.Uid })
+    foreach ($uid in $queuedTeamsInNode) {
+        try {
+            $enterpriseData.DeleteTeam($uid).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete queued team $uid : $($_.Exception.Message)"
+        }
+    }
+
+    $teamsInNode = @($enterpriseData.Teams | Where-Object { $nodeSet.Contains($_.ParentNodeId) } | ForEach-Object { $_.Uid })
+    foreach ($uid in $teamsInNode) {
+        try {
+            $enterpriseData.DeleteTeam($uid).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete team $uid : $($_.Exception.Message)"
+        }
+    }
+
+    $subNodes.RemoveAt(0) | Out-Null
+    $subNodes.Reverse()
+    foreach ($nodeId in $subNodes) {
+        try {
+            [KeeperSecurity.Enterprise.EnterpriseExtensions]::DeleteNode($enterpriseData, $nodeId).GetAwaiter().GetResult() | Out-Null
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Warning "Could not delete node $nodeId : $($_.Exception.Message)"
+        }
+    }
+
+    Write-Output "Node `"$nodeName`" and its content have been wiped out."
+}
+New-Alias -Name kenwipe -Value Invoke-KeeperEnterpriseNodeWipeOut

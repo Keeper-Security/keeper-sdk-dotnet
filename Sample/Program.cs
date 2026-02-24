@@ -22,250 +22,634 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
+using KeeperSecurity.Utils;
+using Sample.RecordsExamples;
+using Sample.AttachmentsExamples;
+using Enterprise;
+using System.Collections.Generic;
+using System.Text.Json;
+
+
 
 namespace Sample
 {
     internal static class Program
     {
         private static async Task Main()
-        {   
+        {
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
-
-            // Keeper SDK needs a storage to save configuration
-            // such as: last login name, device token, etc
-            var configurationStorage = new JsonConfigurationStorage("config.json");
-            var configuration = configurationStorage.Get();
-            var prompt = "Enter Email Address: ";
-            if (!string.IsNullOrEmpty(configuration.LastLogin))
-            {
-                Console.WriteLine($"Default Email Address: {configuration.LastLogin}");
-            }
-
-            Console.Write(prompt);
-            var username = Console.ReadLine();
-            if (string.IsNullOrEmpty(username))
-            {
-                if (string.IsNullOrEmpty(configuration.LastLogin))
-                {
-                    Console.WriteLine("Bye.");
-                    return;
-                }
-
-                username = configuration.LastLogin;
-            }
-
-            var inputManager = new SimpleInputManager();
-
-            // Login to Keeper
-            Console.WriteLine("Logging in...");
-            var authFlow = new AuthSync(configurationStorage);
-            await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
-
-            if (authFlow.Step is ErrorStep es)
-            {
-                Console.WriteLine(es.Message);
-                return;
-            }
-            if (!authFlow.IsAuthenticated()) return;
-
-            var auth = authFlow;
-
-            var vault = new VaultOnline(auth);
-            Console.WriteLine("Retrieving records...");
-            await vault.SyncDown();
-
-            Console.WriteLine($"Hello {username}!");
-            Console.WriteLine($"Vault has {vault.RecordCount} records.");
-
-            // Find record with title "Google"
-            var search = vault
-                .KeeperRecords
-                .Where(x => x.Version == 2 || x.Version == 3)
-                .FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-            // Create a record if it does not exist.
-            if (search == null)
-            {
-                var loginRecord = new TypedRecordFacade<LoginRecordType>();
-                loginRecord.Fields.Login = "<Account Name>";
-                loginRecord.Fields.Password = "<Account Password>";
-                loginRecord.Fields.Url = "https://google.com";
-
-                var typed = loginRecord.TypedRecord;
-                typed.Title = "Google";
-                typed.Notes = "Stores google credentials";
-
-                search = typed;
-                search = await vault.CreateRecord(search);
-            }
-
-            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid) ?? new NonSharedData3();
-            nsd3.Data1 = "1";
-            nsd3.Data3 = "3";
-            await vault.StoreNonSharedData(search.Uid, nsd3);
-
-            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid) ?? new NonSharedData2();
-            nsd2.Data2 = "2";
-            await vault.StoreNonSharedData(search.Uid, nsd2);
-
-            // Update record
-            if (search is PasswordRecord password)
-            {
-                var cf = password.GetCustomField("Security Token");
-                var tokenValue = cf?.Value ?? "1";
-                password.SetCustomField("Security Token", tokenValue + "1");
-            }
-            else if (search is TypedRecord typed) 
-            {
-                var recordField = new RecordTypeField("text", "Security Token");
-                if (!typed.FindTypedField(recordField, out var rf)) {
-
-                    rf = recordField.CreateTypedField();
-                    typed.Custom.Add(rf);
-                }
-                var tokenValue = rf.ObjectValue == null ? "1" : rf.ObjectValue.ToString();
-                rf.ObjectValue = tokenValue + 1;
-            }
-            search = await vault.UpdateRecord(search);
-
-
-            var attachment = vault.RecordAttachments(search)
-                .FirstOrDefault(x => string.Compare(x.Title, "google", StringComparison.InvariantCultureIgnoreCase) == 0);
-
-            if (attachment == null)
-            {
-                // Upload local file "google.txt". 
-                // var uploadTask = new FileAttachmentUploadTask("google.txt")
-                var fileContent = Encoding.UTF8.GetBytes("Google");
-                using (var stream = new MemoryStream(fileContent))
-                {
-                    var uploadTask = new AttachmentUploadTask(stream)
-                    {
-                        Title = "Google",
-                        Name = "google.txt",
-                        MimeType = "text/plain"
-                    };
-                    await vault.UploadAttachment(search, uploadTask);
-                }
-            }
-            else
-            {
-                // Download attachment into the stream
-                // The stream could be a local file "google.txt"
-                // using (var stream = File.OpenWrite("google.txt"))
-                using (var stream = new MemoryStream())
-                {
-                    await vault.DownloadAttachment(search, attachment.Id, stream);
-                }
-
-                await vault.DeleteAttachment(search, attachment.Id);
-            }
-
-            // Find shared folder with name "Google".
-            var sharedFolder = vault.SharedFolders
-                .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-            
             try
             {
-                if (sharedFolder == null)
-                {
-                    // Create shared folder.
-                    var folder = await vault.CreateFolder("Google",
-                        null,
-                        new SharedFolderOptions
-                        {
-                            ManageRecords = true,
-                            ManageUsers = false,
-                            CanEdit = false,
-                            CanShare = false,
-                        });
-                    vault.TryGetSharedFolder(folder.FolderUid, out sharedFolder);
-                }
+                // var getRecords = new GetRecordsExample();
+                // await getRecords.GetRecordsWithName("Google");
 
-                if (sharedFolder != null)
-                {
-                    // Add user to shared folder.
-                    try
-                    {
-                        await vault.PutUserToSharedFolder(sharedFolder.Uid,
-                            "user@google.com",
-                            UserType.User,
-                            new SharedFolderUserOptions
-                            {
-                                ManageRecords = false,
-                                ManageUsers = false,
-                            });
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
-                    }
+                // // Add Record Example
+                // await AddRecordExample.AddRecord(name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");
 
-                    // Add record to shared folder.
-                    await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);
-                }
-                else
-                {
-                    Console.WriteLine("Shared folder could not be created or accessed.");
-                }
+                // // Update Record Example
+                // await UpdateRecordExample.UpdateRecord(
+                //     recordUid: "<recordUid_here>",
+                //     newTitle: "UpdatedAddEx2",
+                //     newRecordType: "serverCredentials"
+                // );
+
+                // // Delete Record Example
+                // await DeleteRecordExample.DeleteRecord(recordUid: "<recordUid_here>");
+
+                // // List Records Example
+                // await ListRecordExample.ListAllRecords();
+
+                // // Get Record Details Example
+                // var getRecord = new GetRecordExample();
+                // await getRecord.GetRecordDetails(recordUid: "<recordUid_here>");
+
+                // // Get Record History Example
+                // var getRecordHistory = new GetRecordHistoryExample();
+                // await getRecordHistory.GetRecordHistory1(recordUid: "<recordUid_here>");
+
+                // // Upload Attachment Example
+                // await UploadAttachmentExample.UploadAttachment(
+                //     recordUid: "<recordUid_here>",
+                //     filePath: "<file_path_here>",
+                //     thumbnailPath: "<thumbnail_path_here>"
+                // );
+
+                // // Download Attachment Example
+                // await DownloadAttachmentExample.DownloadAttachment(
+                //     recordUid: "<recordUid_here>",
+                //     attachmentIdentifier: "<attachment id or name or title>",
+                //     destinationPath: "<destination file path here>"
+                // );
+
+                // // Remove Attachment Example
+                // await RemoveAttachmentExample.RemoveAttachment(
+                //     recordUid: "<recordUid_here>",
+                //     attachmentId: "<attachment_id_or_name_or_title>"
+                // );
+
+                // // List Folders Example
+                // await FoldersExample.ListFolderExample.ListFolder();
+
+                // // Move Folder Example
+                // await FoldersExample.MoveFolderExample.MoveExistingFolder(
+                //     folderUid: "<folderUid_here>",
+                //     newParentFolderUid: "<newParentFolderUid_here>",
+                //     link: false
+                // );
+
+                // // Remove Folder Example
+                // await FoldersExample.RemoveFolderExample.RemoveFolder(
+                //     folderUid: "<folderUid_here>"
+                // );
+
+                // // Create Shared Folder Example
+                // var options = new SharedFolderOptions
+                // {
+                //     ManageRecords = true,
+                //     ManageUsers = false,
+                //     CanShare = true
+                // };
+
+                // await FoldersExample.CreateFolder.CreateNewFolder(
+                //     folderName: "NewFolderFromSDK",
+                //     parentFolderUid: "<parentFolderUid_if_any>",
+                //     sharedFolderOptions: options
+                // );
+
+                // // List Shared Folders Example
+                // await SharedFolderExamples.ListSharedFolder.ListAllSharedFolders();
+
+
+                // // Change Record Permissions of a Shared Folder Example
+                // var permissions = new SharedFolderRecordOptions
+                // {
+                //     CanEdit = true,
+                //     CanShare = true,
+                //     Expiration = DateTimeOffset.Now.AddMinutes(5)
+
+                // };
+
+                // await SharedFolderExamples.SharedFolderPermissions.ManageSharedFolderPermissions1(
+                //     sharedFolderUid: "<sharedFolderUid_here>",
+                //     recordUid: "<recordUid_here>",
+                //     permissionsOptions: permissions
+                // );
+
+                // // Share Shared Folder to User Example
+                // var userOptions = new SharedFolderUserOptions
+                // {
+                //     ManageRecords = true,
+                //     ManageUsers = true,
+                //     Expiration = DateTimeOffset.Now.AddMinutes(10)
+                // };
+
+                // await SharedFolderToUserExamples.ShareFolderToUser.ShareFolderWithUser(
+                //     sharedFolderUid: "<sharedFolderUid_here>",
+                //     userId: "<userEmail_here>",
+                //     userType: UserType.User,
+                //     options: userOptions
+                // );
+
+                // // One-Time Share Record Example
+                // await OneTimeShareExamples.OneTimeShare.ShareRecordOneTime(
+                //     recordUid: "<recordUid_here>",
+                //     expireIn: TimeSpan.FromMinutes(2),
+                //     shareName: "<shareName_here>"
+                // );
+
+                // // List One-Time Shares for a Record Example
+                // await OneTimeShareListExamples.OneTimeShareList.GetOneTimeShareList(
+                //     recordUid: "<recordUid_here>"
+                // );
+
+                // // One-Time Share Remove
+                // await RemoveOneTimeShareExamples.RemoveOneTimeShare.RemoveOneTimeShareRecord(
+                //        recordUid: "<recordUid_here>",
+                //         clientIds: new[] { "<clientId_here>" }
+                //    );
+
+                // // Share Record to User Example
+                // var shareOptions = new SharedFolderRecordOptions
+                // {
+                //     CanEdit = true,
+                //     CanShare = true,
+                //     Expiration = DateTimeOffset.Now.AddMinutes(10)
+                // };
+
+                // await ShareRecordExamples.ShareRecordToUser.ShareRecordToUserWithPermissions(
+                //     recordUid: "<recordUid_here>",
+                //     username: "<userEmail_here>",
+                //     options: shareOptions
+                // );
+
+                // // Remove User From Specified Record Example
+                // await ShareRecordExamples.RevokeShareRecordToUser.RemoveShareRecordToUser(
+                //     recordUid: "<recordUid_here>",
+                //     username: "<userEmail_here>"
+                // );
+
+                // // Remove User from All Shares Example
+                // await ShareRecordExamples.RevokeAllSharesToUser.RemoveAllSharesToUser(
+                //     username: "<userEmail_here>"
+                // );
+
+                // // Transfer Ownership Example
+                // await TransferOwnershipExamples.TransferOwnership.TransferRecordToUser(
+                //     recordUid: "<recordUid_here>",
+                //     username: "<userEmail_here>"
+                // );
+
+                // // All RecordType Example
+                // await RecordTypeExamples.RecordTypeInfoExample.RecordTypeInfo();
+
+                // // Specified Record Type Info Example
+                // await RecordTypeExamples.RecordTypeInfoExample.RecordTypeInfo(
+                // recordTypeName: "<recordTypeName_here>"
+                // );
+
+                // // Create RecordType Example
+                // var recordTypeData = "{\"$id\":\"SDKEX1\",\"description\":\"My SDK record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}";
+                // await RecordTypeExamples.CreateRecordTypeExample.CreateRecordType(
+                // recordTypeData: recordTypeData
+                // );
+
+                // // Update RecordType Example
+                // var updateRecordTypeData = "{\"$id\":\"SDKEX0\",\"description\":\"My SDK First record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}";
+                // await RecordTypeExamples.UpdateRecordTypeExample.UpdateRecordType(
+                //     recordTypeId: "<recordTypeId_here>",
+                //     recordTypeData: updateRecordTypeData
+                // );
+
+                // // Delete RecordType Example
+                // await RecordTypeExamples.DeleteRecordTypeExample.DeleteRecordType(
+                // recordTypeId: "<recordTypeId_here>"
+                // );
+
+                // Import Example
+                // string filename = @"C:\Users\ananthreddy.mandli_m\Desktop\Keeper\Commander_.Net\keeper-sdk-dotnet\Sample\ImportExportExamples\Test.json";
+                // var json = File.ReadAllText(filename);
+                // var result = await ImportExportExamples.ImportExample.Import(json);
+
+                // // Export to Json Example
+                // IEnumerable<string> recordUids = new List<string>
+                //     {
+                //         "<recordUId_here>",
+                //         "<recordUId_here>"
+                //     };
+                // await ImportExportExamples.ExportToJsonExample.ExportToJson(
+                //     recordUids: recordUids,
+                //     includeSharedFolders: true,
+                //     logger: null
+                //   );
+
+                // // Export to File Example
+                // IEnumerable<string> recordUids1 = new List<string>
+                //     {
+                //          "<recordUId_here>",
+                //          "<recordUId_here>"
+                //     };
+                // await ImportExportExamples.ExportToFileExample.ExportToFile(
+                //     filename: "<filePath_here>",
+                //     recordUids: recordUids1,
+                //     includeSharedFolders: true,
+                //     logger: null
+                //   );
+
+                // // DownloadMembership To FileObject Example
+                // var options1 = new DownloadMembershipOptions
+                // {
+                //     FoldersOnly = true,
+                //     ForceManageUsers = true,
+                //     ForceManageRecords = true,
+                //     SubFolderHandling = "flatten"   // or "ignore"
+                // };
+
+                // await ImportExportExamples.DownloadMembershipToFileObjectExample.DownloadMembershipToFileObject(
+                //     options1,
+                //     logger: null
+                // );
+
+                // // DownloadMembership To Json Example 
+                // var options2 = new DownloadMembershipOptions
+                // {
+                //     FoldersOnly = true,
+                //     ForceManageUsers = true,
+                //     ForceManageRecords = true,
+                //     SubFolderHandling = "flatten"   // or "ignore"
+                // };
+
+                // await ImportExportExamples.DownloadMembershipToJsonExample.DownloadToJson(
+                //     options2,
+                //     logger: null
+                // );
+
+                // // DownloadMembership To File Example 
+                // var options3 = new DownloadMembershipOptions
+                // {
+                //     FoldersOnly = true,
+                //     ForceManageUsers = true,
+                //     ForceManageRecords = true,
+                //     SubFolderHandling = "flatten"   // or "ignore"
+                // };
+
+                // await ImportExportExamples.DownloadMembershipToFileExample.DownloadToFile(
+                //     filename: "<filePath_here>",
+                //     options3,
+                //     logger: null
+                // );
+
+                // // Merge DownloadMembership Example 
+                // var options4 = new DownloadMembershipOptions
+                // {
+                //     FoldersOnly = true,
+                //     ForceManageUsers = true,
+                //     ForceManageRecords = true,
+                //     SubFolderHandling = "flatten"   // or "ignore"
+                // };
+
+                // await ImportExportExamples.DownloadMembershipToMergeExample.MergeDownloadMembershipFile(
+                //     filename: "<filePath_here>",
+                //     options4,
+                //     logger: null
+                // );
+
+                // // Load Record Type Example ---- issue not able to pass the input.
+                // string jsonPath = @"C:\Users\AnanthReddyMandli\Documents\keeper-sdk-dotnet\keeper-sdk-dotnet\Sample\ImportExportExamples\RecordType.json";
+                // string loadRecordTypeData = File.ReadAllText(jsonPath);
+                // await ImportExportExamples.LoadRecordTypeExample.LoadRecordType(
+                //     recordTypeData: loadRecordTypeData
+                // );
+
+                // // App Llist Example
+                // await SecretManagerExamples.AppListExample.AppList();
+
+                // // App Create Example
+                // await SecretManagerExamples.AppCreateExample.AppCreate(
+                //     applicationName: "<appName_here>"
+                // );
+
+                // // App View Example
+                // await SecretManagerExamples.AppViewExample.AppView(
+                //     applicationUid: "<appUid_here>"
+                // );
+
+                // // App Delete Example
+                // await SecretManagerExamples.AppDeleteExample.AppDelete(
+                //      applicationUid: "<appUid_here>"
+                //    );
+
+                // // App Share Example
+                // var userShareOptions = new SharedFolderUserOptions
+                // {
+                //     ManageRecords = true,
+                //     ManageUsers = true,
+                //     Expiration = DateTimeOffset.Now.AddMinutes(10)
+                // };
+
+                // await SecretManagerExamples.AppShareExample.AddUserToSharedFolder(
+                //     sharedFolderUid: "<shareFolderUid_here>",
+                //     userId: "<userEmail_here>",
+                //     userType: UserType.User,
+                //     options: userShareOptions
+                // );
+
+                // var recordShareOptions = new SharedFolderRecordOptions
+                // {
+                //     CanEdit = true,
+                //     CanShare = true,
+                //     Expiration = DateTimeOffset.Now.AddMinutes(10)
+                // };
+
+                // await SecretManagerExamples.AppShareExample.ShareRecordToUser(
+                //     recordUid: "<recordUid_here>",
+                //     username: "<userEmail_here>",
+                //     options: recordShareOptions
+                // );
+
+                // // App Un Share Example
+                // await SecretManagerExamples.AppUnShareExample.RemoveUserToSharedFolder(
+                //     sharedFolderUid: "<recordUid_here>",
+                //     userId: "<userEmail_here>",
+                //     userType: UserType.User
+                // );
+
+                // await SecretManagerExamples.AppUnShareExample.RevokeShareToUser(
+                //     recordUid: "<recordUid_here>",
+                //     username: "<userEmail_here>"
+                // );
+
+                // // Add Client Example
+                // await SecretManagerExamples.AddClientExample.AddClient(
+                //     applicationId: "<appUid_here>",
+                //     unlockIp: true,
+                //     firstAccessExpireInMinutes: 10,
+                //     accessExpiresInMinutes: 60,
+                //     name: "Test Client Added 2"
+                // );
+
+                // // Remove Client Example
+                // await SecretManagerExamples.RemoveClientExample.RemoveClient(
+                //     applicationId: "<appUid_here>",
+                //     deviceId: "<deviceId_here>"
+                // );
+
+                // // Share Folder or Record to App
+                // await SecretManagerExamples.SecretManagerShareExample.SecretManagerShare(
+                //     applicationId: "<appUid_here>",
+                //     sharedFolderOrRecordUid: "<shareFolder_or_recordUId_here>",
+                //     canEdit: true
+                // );
+
+                // // BreachWatch List Example
+                // await BreachWatchExamples.BreachWatchListExample.BreachWatchList();
+
+                // // BreachScan and Store Example
+                // await BreachWatchExamples.BreachWatchScanExample.BreachWatchScan(
+                //     recordUids: "<recordUid_here>",
+                //     recordKey: "<recordKey_here>".Base64UrlDecode(),
+                //     password: "<password_here>"
+                // );
+
+                // // BreachWatch Password Scan Example
+                // var passwords = new List<(string Password, byte[] Euid)>
+                // {
+                //     ("123", null),
+                //     ("MPass!", null),
+                //     ("admin", null)
+                // };
+
+                // await Sample.BreachWatchExamples.BreachWatchPasswordExample.BreachWatchPassword(passwords);
+
+                // // BreachWatch Ignore Example
+                // await BreachWatchExamples.BreachWatchIgnoreExample.IgnoreRecord(recordUid: "<recordUid_here>");
+
+                // await BreachWatchExamples.BreachWatchIgnoreExample.CheckIfIgnored(recordUid: "<recordUid_here>");
+
+                // // Enterprise Get Data Example
+                // await EnterpriseManagementExamples.EnterpriseDownExample.EnterpriseGetData();
+
+                // // Enterprise User View Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserViewExample.ViewUser(email: "<userEmail_here>");
+
+                // Enterprise Add User Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseAddUserExample.InviteUser(email: "<userEmail_here>", fullName: "<fullName_here>", nodeNameOrId: "<nodeNameOrId_here>");
+                // // Create instance
+                // var examples = new EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseEditUserExamples();
+
+                // // Call methods
+                // await examples.AddUsersToTeams(
+                //     new[] { "<userEmail_here>" },
+                //     new[] { "<teamUid_here>" }
+                // );
+
+                // await examples.RemoveUsersFromTeams(
+                //     new[] { "<userEmail_here>" },
+                //     new[] { "<teamUid_here>" }
+                // );
+
+                // // Enterprise Delete User Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseDeleteUserExample.DeleteUser(email: "<userEmail_here>");
+
+                // // Enterprise User Lock/Unlock Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserLockUnlockExample.LockUnlockUser(email: "<userEmail_here>", locked: true);
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserLockUnlockExample.LockUnlockUser(email: "<userEmail_here>", locked: false);
+
+                // // Enterprise Node View Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.EnterpriseNodeView.ViewNode(nodeNameOrId: "<nodeNameOrId_here>");
+
+                // // Enterprise Node Add Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.EnterpriseNodeAdd.AddNode(nodeName: "<nodeName_here>", parentNodeNameOrId: "<parentNodeNameOrId_here>");
+
+                // // Enterprise Node Edit Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.EnterpriseNodeEdit.EditNode(nodeNameOrId: "<nodeNameOrId_here>", newName: "<newNodeName_here>", newParentNodeIdentifier: "<newParentNodeIdentifier_here>");
+
+                // // Enterprise Node Delete Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.EnterpriseNodeDelete.DeleteNode(nodeNameOrId: "<nodeNameOrId_here>");
+
+                // // Enterprise Role View Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleView.ViewRole(roleNameOrId: "<roleNameOrId_here>");
+
+                // // Enterprise Role Add Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleAdd.AddRole(roleName: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>", newUserInherit: true);
+
+                // // Enterprise Role Update Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleUpdateExample.EnterpriseUpdateRole(roleNameOrId: "Test12", newUserInherit: false, visibleBelow: true, displayName: "UTest12");
+
+                // // Enterprise Role Delete Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleDeleteExample.EnterpriseDeleteRole(roleNameOrId: "70411693853162");
+
+                // // Enterprise Role Admin Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleAdminExample.EnterpriseAddAdmin(roleNameOrId: "", userName: "<userEmail_here>");
+
+                // // Enterprise Role Membership Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleMembershipExample.EnterpriseRemoveRoleMembership(roleId: <roleUid_here>, userName: "<userEmail_here>");
+
+                // // Enterprise Team View Example
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamViewExample.EnterpriseTeamView(teamNameOrId: "<teamNameOrId_here>");
+
+                // // Enterprise Team Add Example
+                // EnterpriseTeam newTeam = new EnterpriseTeam
+                // {
+                //     Name = "<teamName_here>",
+                //     RestrictEdit = false,
+                //     RestrictSharing = true,
+                //     RestrictView = false,
+                // };
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamAddExample.EnterpriseTeamAdd(newTeam: newTeam);
+
+                // // Enterprise Team Update Example
+                // EnterpriseTeam updateTeam = new EnterpriseTeam
+                // {
+                //     Name = "<teamName_here>",
+                //     RestrictEdit = true,
+                //     RestrictSharing = true,
+                //     RestrictView = false,
+                // };
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamUpdateExample.EnterpriseTeamUpdate(updateTeam: updateTeam);
+
+                // // Enterprise Team Delete Example
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamDeleteExample.EnterpriseTeamDelete(teamNameOrId: "<teamName_here>");
+
+                // // Enterprise Team Membership Examples
+                // // Add Users to Teams Example
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamMembershipExample.AddUsersToTeams(
+                //     new[] { "<userEmail_here>", "user_email_here" },
+                //     new[] { "<teamUid_here>" }
+                // );
+
+                // // Remove Users from Teams Example
+                //     await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamMembershipExample.RemoveUsersFromTeams(
+                //         new[] { "<userEmail_here>", "user_email_here" },
+                //         new[] { "<teamUid_here>" }
+                //    );
+
+                // // Enterprise List Teams Example
+                // await EnterpriseManagementExamples.EnterpriseTeamExamples.EnterpriseTeamsListExample.EnterpriseTeamsList();
+
+                // // Enterprise Role Team Management Example
+                // // Add Team to Role Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleTeamManagementExample.AddTeamToRoleExample(roleNameOrId: "<roleNameOrId_here>", teamNameOrId: "<teamNameOrId_here>");
+
+                // // Remove Team to Role Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.EnterpriseRoleTeamManagementExample.RemoveTeamFromRoleExample(roleNameOrId: "<roleNameOrId_here>", teamNameOrid: "<teamNameOrId_here>");
+
+                // // Trash List Example
+                // await TrashExamples.TrashList.TrashListAsync();
+
+                // // Trash Restore Example
+                // await TrashExamples.TrashRestore.TrashRestoreAsync(new List<string> { "<recordUid_here>" });
+
+                // Login Example
+                // await LoginExamples.LoginExample.LoginAsync();
+                // await LoginExamples.LogoutExample.LogoutAsync();
+                // await LoginExamples.WhoamiExample.WhoamiAsync();
+
+                // // Enterprise Role Managed Node Management Example
+                // // Add Managed Node to Role Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeAddExample.RoleManagedNodeAdd(roleNameOrId: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>", cascadeNodeManagement: true);
+
+                // // Update Managed Node to Role Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeUpdateExample.RoleManagedNodeUpdate(roleNameOrId: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>", cascadeNodeManagement: false);
+
+                // Remove Managed Node from Role Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodeRemoveExample.RoleManagedNodeRemove(roleNameOrId: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>");
+
+                // Add Privilege to Managed Node Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeAddExample.RoleManagedNodePrivilegeAdd(roleNameOrId: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>", privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
+
+                // Remove Privilege from Managed Node Example
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleManagedNodePrivilegeRemoveExample.RoleManagedNodePrivilegeRemove(roleNameOrId: "<roleNameOrId_here>", nodeNameOrId: "<nodeNameOrId_here>", privileges: new List<RoleManagedNodePrivilege> { RoleManagedNodePrivilege.MANAGE_USER, RoleManagedNodePrivilege.TRANSFER_ACCOUNT });
+
+                // Add Enforcement to Role Example
+                // JSON value for TWO_FACTOR_BY_IP - IPs in this range don't require 2FA
+                // var enforcements = new Dictionary<RoleEnforcementPolicies, string> {
+                //     { RoleEnforcementPolicies.RESTRICT_FILE_UPLOAD, "true" },
+                //     { RoleEnforcementPolicies.RESTRICT_IP_ADDRESSES, "1.1.1.1" },
+                //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LENGTH, "10"},
+                //     { RoleEnforcementPolicies.RESTRICT_OFFLINE_ACCESS, "true"},
+                //     { RoleEnforcementPolicies.RESTRICT_DOMAIN_ACCESS, "192.168.1.100/app123"},
+                //     { RoleEnforcementPolicies.GENERATED_PASSWORD_COMPLEXITY, "google.com|12|4|1|3|1"},
+                //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LOWER, "5"},
+                //     { RoleEnforcementPolicies.REQUIRE_TWO_FACTOR, "true"},
+                //     { RoleEnforcementPolicies.RESTRICT_SHARING_RECORD_ATTACHMENTS, "true"},
+                //     { RoleEnforcementPolicies.LOGOUT_TIMER_DESKTOP, "100"},
+                //     { RoleEnforcementPolicies.RESTRICT_IMPORT, "true"},
+                // };
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementAddExample.RoleEnforcementAdd(roleNameOrId: "<roleNameOrId_here>", enforcements: enforcements);
+
+                // Remove Enforcement to Role Example
+                // var enforcements = new List<RoleEnforcementPolicies> {
+                //     { RoleEnforcementPolicies.RESTRICT_FILE_UPLOAD},
+                //     { RoleEnforcementPolicies.RESTRICT_IP_ADDRESSES},
+                //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LENGTH},
+                //     { RoleEnforcementPolicies.RESTRICT_OFFLINE_ACCESS},
+                //     { RoleEnforcementPolicies.RESTRICT_DOMAIN_ACCESS},
+                //     { RoleEnforcementPolicies.GENERATED_PASSWORD_COMPLEXITY},
+                //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LOWER},
+                //     { RoleEnforcementPolicies.REQUIRE_TWO_FACTOR},
+                //     { RoleEnforcementPolicies.RESTRICT_SHARING_RECORD_ATTACHMENTS},
+                //     { RoleEnforcementPolicies.LOGOUT_TIMER_DESKTOP},
+                //     { RoleEnforcementPolicies.RESTRICT_IMPORT},
+                // };
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementRemoveExample.RoleEnforcementRemove(roleNameOrId: "<roleNameOrId_here>", enforcement: enforcements);
+
+                // Update Enforcement to Role Example  ---- Dont Update Boolean Values you will get an error
+
+                // var enforcements = new Dictionary<RoleEnforcementPolicies, string>
+                // {
+                //     { RoleEnforcementPolicies.RESTRICT_FILE_UPLOAD, "true" },
+                //     { RoleEnforcementPolicies.RESTRICT_IP_ADDRESSES, "1.1.1.1-2.1.1.1" },
+                //     { RoleEnforcementPolicies.MASTER_PASSWORD_MINIMUM_LENGTH, "15"}
+                // };
+                // await EnterpriseManagementExamples.EnterpriseRoleExamples.RoleEnforcementUpdateExample.RoleEnforcementUpdate(roleNameOrId: "<roleNameOrId_here>", enforcements: enforcements);
+
+                // Resend Enterprise Invite Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.ResendEnterpriseInviteExample.ResendEnterpriseInvite("<userEmail_here>");
+
+                // Set Master Password Expire Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.SetMasterPasswordExpireExample.SetMasterPasswordExpire("<userEmail_here>");
+
+                // Update Enterprise Team User Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.TeamEnterpriseUserUpdateExample.TeamEnterpriseUserUpdate("<teamUid_here>", "<userEmail_here>", 0);
+
+                // Update Enterprise User Example
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserUpdateExample.EnterpriseUserUpdate("<userEmail_here>", "<nodeNameOrId_here>", "<fullName_here>", "<jobTitle_here>", "<language_here>");
+
+                // Set Enterprise Custom Invitation Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomInvitationExample.SetEnterpriseCustomInvitation("<nodeNameOrId_here>", "<Path_to_jsonFile>");
+
+                // Get Enterprise Custom Invitation Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.GetEnterpriseCustomInvitationExample.GetEnterpriseCustomInvitation("<nodeNameOrId_here>");
+
+                // Set Enterprise Custom Logo Example
+                // await EnterpriseManagementExamples.EnterpriseNodeExamples.SetEnterpriseCustomLogoExample.SetEnterpriseCustomLogo("<nodeNameOrId_here>", "email", "<file_path_here>");
+
+                // Action Report Example
+                // await ActionReportExamples.ActionReportExample.RunActionReport(
+                //     targetStatus: ActionReportTargetStatus.NoLogon,
+                //     daysSince: 30,
+                //     node: null
+                // );
+
+                // Audit Report Example
+                // await AuditReportExamples.AuditReportExample.RunAuditReport(
+                //     limit: 100
+                // );
+
+                // // Clipboard Copy Example
+                // await RecordsExamples.ClipboardCopyExample.CopyToClipboard("<recordUid_here>", "<secret_key_here>");
+
+               // Find Duplicates Example
+                // await RecordsExamples.FindDuplicatesExample.FindDuplicates(
+                //     byTitle: true,
+                //     byLogin: true,
+                //     byPassword: true
+                // );
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Shared folder operations error: {e.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
-
-            if (auth.AuthContext.IsEnterpriseAdmin)
-            {
-                // Load enterprise data.
-                var enterprise = new EnterpriseData();
-                var enterpriseLoader = new EnterpriseLoader(auth, new[] { enterprise });
-                await enterpriseLoader.Load();
-
-                // Find team with name "Google".
-                var team = enterprise.Teams
-                    .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-                if (team == null)
-                {
-                    // Create team.
-                    team = await enterprise.CreateTeam(new EnterpriseTeam
-                    {
-                        Name = "Google",
-                        RestrictEdit = false,
-                        RestrictSharing = true,
-                        RestrictView = false,
-                    });
-                }
-
-                if (team != null)
-                {
-                    // Add users to the "Google" team.
-                    await enterprise.AddUsersToTeams(
-                        new[] {"username@company.com", "username1@company.com"},
-                        new[] {team.Uid},
-                        Console.WriteLine);
-                }
-            }
-
-            Console.WriteLine("Press any key to quit");
-            Console.ReadKey();
         }
     }
-
-    public class NonSharedData1 : RecordNonSharedData
-    {
-        [DataMember(Name = "data1")]
-        public string Data1 { get; set; }
-    }
-
-    public class NonSharedData2 : RecordNonSharedData
-    {
-        [DataMember(Name = "data2")]
-        public string Data2 { get; set; }
-    }
-
-    public class NonSharedData3 : NonSharedData1
-    {
-        [DataMember(Name = "data3")]
-        public string Data3 { get; set; }
-    }
-
 }
