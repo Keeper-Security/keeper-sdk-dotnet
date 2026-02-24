@@ -80,7 +80,7 @@ function Get-KeeperEnterpriseUser {
     #>
     [CmdletBinding()]
 
-    [Enterprise]$enterprise = getEnterprise
+    $enterprise = getEnterprise
     return $enterprise.enterpriseData.Users
 }
 New-Alias -Name keu -Value Get-KeeperEnterpriseUser
@@ -92,7 +92,7 @@ function Get-KeeperEnterpriseTeam {
     #>
     [CmdletBinding()]
 
-    [Enterprise]$enterprise = getEnterprise
+    $enterprise = getEnterprise
     return $enterprise.enterpriseData.Teams
 }
 New-Alias -Name ket -Value Get-KeeperEnterpriseTeam
@@ -104,7 +104,7 @@ function Get-KeeperEnterpriseNode {
     #>
     [CmdletBinding()]
 
-    [Enterprise]$enterprise = getEnterprise
+    $enterprise = getEnterprise
     return $enterprise.enterpriseData.Nodes
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode

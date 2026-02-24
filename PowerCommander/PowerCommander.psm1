@@ -4,6 +4,7 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseLoader] $loader
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
     [KeeperSecurity.Enterprise.RoleData] $roleData
+    [KeeperSecurity.Enterprise.QueuedTeamData] $queuedTeamData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
     [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
     [hashtable] $ManagedCompanies = $null
