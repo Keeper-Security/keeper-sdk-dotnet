@@ -1235,8 +1235,8 @@ function Add-KeeperEnterpriseRoleEnforcement {
                 $key = $trimmedPart
             }
 
-            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
-                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+            $parsedKey = ConvertTo-RoleEnforcementPolicy $key
+            if ($null -ne $parsedKey) {
                 $enforcementDict[$parsedKey] = $value
                 $enforcementKeys.Add($parsedKey)
             }
@@ -1344,8 +1344,8 @@ function Update-KeeperEnterpriseRoleEnforcement {
                 $key = $trimmedPart
             }
 
-            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
-                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+            $parsedKey = ConvertTo-RoleEnforcementPolicy $key
+            if ($null -ne $parsedKey) {
                 $enforcementDict[$parsedKey] = $value
                 $enforcementKeys.Add($parsedKey)
             }
@@ -1447,8 +1447,8 @@ function Remove-KeeperEnterpriseRoleEnforcement {
 
             $key = if ($separatorIndex -gt 0) { $trimmedPart.Substring(0, $separatorIndex).Trim() } else { $trimmedPart }
 
-            if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true, [ref]$null)) {
-                $parsedKey = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
+            $parsedKey = ConvertTo-RoleEnforcementPolicy $key
+            if ($null -ne $parsedKey) {
                 $enforcementKeys.Add($parsedKey)
             }
             else {

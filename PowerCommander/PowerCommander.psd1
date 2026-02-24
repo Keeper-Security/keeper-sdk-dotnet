@@ -88,7 +88,7 @@
         'Remove-KeeperEnterpriseNode','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
         'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
-        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
+        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
         'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 'Revoke-KeeperEnterpriseRoleFromTeam', 
@@ -119,12 +119,12 @@
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
         'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'msp-license', 'switch-to-mc', 'switch-to-msp', 
-        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 
+        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf','kcancelshare',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh')
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'msp-copy-role', 'file-report', 'krh')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -140,7 +140,13 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-               'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
+                'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
+                'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
+                'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
+                'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
+                'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
+                'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
+                'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
                 'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
                 'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
                 'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',

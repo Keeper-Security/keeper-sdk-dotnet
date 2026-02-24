@@ -107,6 +107,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseTeamUser                            | ketu             | Get a list of enterprise users for team
 | Add-KeeperEnterpriseTeamMember                          |                  | Add a list of enterprise users to a team
 | Remove-KeeperEnterpriseTeamMember                       |                  | Remove a list of enterprise users from a team
+| Update-KeeperEnterpriseTeamUser                        |                  | Update a user's type (e.g. manager) in an enterprise team
 | Get-KeeperEnterpriseTeams                               | list-team        | List all enterprise teams (with optional filters)
 | New-KeeperEnterpriseNode                                | kena             | Create Node
 | Edit-KeeperEnterpriseNode                               | kenu             | Update Node (rename, move, or enable node isolation)
@@ -121,6 +122,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Unlock-KeeperEnterpriseUser                             | unlock-user      | Unlock Enterprise User
 | Move-KeeperEnterpriseUser                               |transfer-user     | Transfer user account to another user
 | Remove-KeeperEnterpriseUser                             | delete-user      | Delete Enterprise User
+| Update-KeeperEnterpriseUser                             |                  | Update enterprise user information (e.g. node, display name)
 | Set-KeeperEnterpriseUserMasterPasswordExpire            |                  | Expire master password for enterprise user
 | Get-KeeperEnterpriseRole                                | ker              | Enumerate all enterprise roles
 | Get-KeeperEnterpriseRoleUsers                           | keru             | Get a list of enterprise users for role
@@ -142,13 +144,14 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Add-KeeperEnterpriseRoleEnforcement                     |                  | Add enforcement policies to an Enterprise Role
 | Update-KeeperEnterpriseRoleEnforcement                  |                  | Update enforcement policies for an Enterprise Role
 | Remove-KeeperEnterpriseRoleEnforcement                  |                  | Remove enforcement policies from an Enterprise Role
-| Switch-KeeperMC                                         |switch-to-mc      | Switch to Managed Company 
-| Switch-KeeperMSP                                        |switch-to-msp     | Switch back to MSP
-| Get-KeeperManagedCompany                                | kmc              | Enumerate all enterprise managed companies
-| New-KeeperManagedCompany                                | kamc             | Create Managed Company
-| Remove-KeeperManagedCompany                             | krmc             | Remove Managed Company
-| Edit-KeeperManagedCompany                               | kemc             | Edit Managed Company
-| Get-MspBillingReport                                    |                  | Run MSP Billing Report
+| Switch-KeeperMC                                         | switch-to-mc     | Switch to Managed Company (by name or ID)
+| Switch-KeeperMSP                                        | switch-to-msp    | Switch back to MSP
+| Get-KeeperManagedCompany                                | kmc              | MSP info: list managed companies (default), or -Restriction (permits), or -Pricing (BI). Use -Detailed for full MC list; -ManagedCompany to filter; -Format / -Output for table, json, csv
+| New-KeeperManagedCompany                                | kamc             | Create Managed Company (-Name, -PlanId, -MaximumSeats; optional -Storage, -Addons, -Node)
+| Remove-KeeperManagedCompany                             | krmc             | Remove Managed Company (by name or ID; -Force to skip confirmation)
+| Edit-KeeperManagedCompany                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
+| Copy-KeeperMCRole                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
+| Get-MspBillingReport                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
 | Get-KeeperNodeName                                      |                  | Return Name of current Enterprise Node
 | Get-KeeperRoleName                                      |                  | Get Display Name of Enterprise Role
 
