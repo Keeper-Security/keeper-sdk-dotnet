@@ -104,6 +104,47 @@ function Copy-KeeperToClipboard {
             $uid = $Record.Uid
         }
 
+        function Get-RecordField($r, $fieldName) {
+            if ($fieldName -ieq 'notes') {
+                if ($r -is [KeeperSecurity.Vault.PasswordRecord]) { return $r.Notes }
+                if ($r -is [KeeperSecurity.Vault.TypedRecord]) { return $r.Notes }
+                return ""
+            }
+
+            if ($r -is [KeeperSecurity.Vault.PasswordRecord]) {
+                switch -Regex ($fieldName) {
+                    '^login$' { return $r.Login }
+                    '^password$' { return $r.Password }
+                    '^url$' { return $r.Link }
+                    default {
+                        $cf = $r.Custom | Where-Object { $_.Name -ieq $fieldName } | Select-Object -First 1
+                        if ($cf) { return $cf.Value }
+                        return ""
+                    }
+                }
+            }
+            if ($r -is [KeeperSecurity.Vault.TypedRecord]) {
+                $type = switch -Regex ($fieldName) {
+                    '^login$' { 'login' }
+                    '^password$' { 'password' }
+                    '^url$' { 'url' }
+                    default { $fieldName }
+                }
+                $f = $r.Fields | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1
+                if (-not $f) { 
+                    $f = $r.Custom | Where-Object { $_.FieldName -ieq $type -or $_.FieldLabel -ieq $type } | Select-Object -First 1 
+                }
+                if ($f) {
+                    $val = $f.ObjectValue
+                    if ($val -is [System.Collections.IEnumerable] -and $val -isnot [string]) {
+                        return ($val | ForEach-Object { $_.ToString() }) -join ", "
+                    }
+                    return $val
+                }
+            }
+            return ""
+        }
+
         $found = $false
         if ($uid) {
             [KeeperSecurity.Vault.KeeperRecord] $rec = $null
