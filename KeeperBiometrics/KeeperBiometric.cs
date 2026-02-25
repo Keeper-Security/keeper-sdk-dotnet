@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using PeterO.Cbor;
 using Newtonsoft.Json;
 
-namespace KeeperBiometric
+namespace KeeperBiometrics
 {
     /// <summary>
     /// Lightweight, self-contained Windows Hello WebAuthn implementation for PowerShell

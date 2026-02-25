@@ -2,7 +2,7 @@
 using System;
 using Microsoft.Win32;
 
-namespace KeeperBiometric
+namespace KeeperBiometrics
 {
     /// <summary>
     /// Manages credential storage in Windows Registry for persistent credential ID tracking

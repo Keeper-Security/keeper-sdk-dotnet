@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyName>KeeperBiometric</AssemblyName>
     <AssemblyTitle>Keeper Biometric Integration</AssemblyTitle>
     <AssemblyDescription>Lightweight biometric WebAuthn implementation for Keeper PowerShell</AssemblyDescription>
     <AssemblyCompany>Keeper Security</AssemblyCompany>
@@ -15,6 +14,10 @@
     <IncludeSymbols>false</IncludeSymbols>
     <DebugType>portable</DebugType>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <PackageId>Keeper.Biometrics</PackageId>
+    <Authors>Keeper Security Inc.</Authors>
+    <RepositoryUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,11 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cli\Cli.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="README.md" />
-    <None Include="PowerShellIntegration.ps1" />
   </ItemGroup>
 
 </Project>
