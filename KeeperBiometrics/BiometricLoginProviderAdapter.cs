@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 
-namespace KeeperBiometric
+namespace KeeperBiometrics
 {
     /// <summary>
     /// Implements <see cref="IBiometricLoginProvider"/> using Windows Hello passkeys.

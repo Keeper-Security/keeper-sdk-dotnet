@@ -8,6 +8,11 @@ on:
         type: boolean
         required: false
         default: false
+      biometrics:
+        description: Build Biometrics package
+        type: boolean
+        required: false
+        default: false
   
 jobs:
   build:
@@ -107,6 +112,15 @@ jobs:
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
+      - name: Build Biometrics library
+        working-directory: ./KeeperBiometrics
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet build --configuration=Release
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\KeeperBiometrics.dll"
+          dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+        shell: powershell
+
       - name: Build .Net Commander
         working-directory: ./Commander
         run: |
@@ -152,7 +166,7 @@ jobs:
           path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
-      - name: Store artifacts
+      - name: Store Cli artifacts
         if: ${{ inputs.cli }}
         uses: actions/upload-artifact@v4
         with:
@@ -160,6 +174,16 @@ jobs:
           path: |
             Cli/bin/Release/Keeper.Cli.*.nupkg
             Cli/bin/Release/Keeper.Cli.*.snupkg
+          retention-days: 1
+
+      - name: Store Biometrics artifacts
+        if: ${{ inputs.biometrics }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeeperBiometrics
+          path: |
+            KeeperBiometrics/bin/Release/Keeper.Biometrics.*.nupkg
+            KeeperBiometrics/bin/Release/Keeper.Biometrics.*.snupkg
           retention-days: 1
 
   publish:

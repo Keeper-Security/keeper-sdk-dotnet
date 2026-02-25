@@ -11,7 +11,7 @@ using KeeperSecurity.Utils;
 using Newtonsoft.Json;
 using KeeperSecurity.Vault;
 
-namespace KeeperBiometric
+namespace KeeperBiometrics
 {
     /// <summary>
     /// High-level manager for Windows Hello passkey operations with Keeper
