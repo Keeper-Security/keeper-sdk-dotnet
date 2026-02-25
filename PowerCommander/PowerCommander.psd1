@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.8'
+    ModuleVersion        = '1.1.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -53,7 +53,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometric.dll')
+    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometrics.dll')
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
