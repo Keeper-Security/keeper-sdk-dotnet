@@ -1167,7 +1167,7 @@ namespace Commander
         private async Task BiometricCommand(BiometricOptions options)
         {
 #if NET472_OR_GREATER
-            if (!KeeperBiometric.PasskeyManager.IsAvailable())
+            if (!KeeperBiometrics.PasskeyManager.IsAvailable())
             {
                 Console.WriteLine("Windows Hello is not available on this system.");
                 Console.WriteLine("Please ensure Windows Hello is set up in Windows Settings.");
@@ -1180,7 +1180,7 @@ namespace Commander
                     Console.WriteLine("Registering Windows Hello biometric credential...");
                     try
                     {
-                        var regResult = await KeeperBiometric.PasskeyManager.RegisterPasskeyAsync(
+                        var regResult = await KeeperBiometrics.PasskeyManager.RegisterPasskeyAsync(
                             _auth, 
                             options.FriendlyName, 
                             options.Force);
@@ -1210,7 +1210,7 @@ namespace Commander
                     Console.WriteLine("Listing Windows Hello biometric credentials...\n");
                     try
                     {
-                        var credentials = await KeeperBiometric.PasskeyManager.ListPasskeysAsync(_auth, options.IncludeDisabled);
+                        var credentials = await KeeperBiometrics.PasskeyManager.ListPasskeysAsync(_auth, options.IncludeDisabled);
                         
                         if (credentials.Count == 0)
                         {
@@ -1275,7 +1275,7 @@ namespace Commander
                     
                     try
                     {
-                        var removed = await KeeperBiometric.PasskeyManager.RemovePasskeyAsync(_auth, removeUsername);
+                        var removed = await KeeperBiometrics.PasskeyManager.RemovePasskeyAsync(_auth, removeUsername);
                         
                         if (removed)
                         {
@@ -1311,7 +1311,7 @@ namespace Commander
                     Console.WriteLine($"Verifying Windows Hello authentication for '{verifyUsername}' (purpose: {purpose})...");
                     try
                     {
-                        var authResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
+                        var authResult = await KeeperBiometrics.PasskeyManager.AuthenticatePasskeyAsync(
                             _auth, 
                             verifyUsername, 
                             purpose);
