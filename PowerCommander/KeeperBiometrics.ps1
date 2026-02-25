@@ -1,7 +1,7 @@
 $KeeperBiometricAvailable = $false
 if ($IsWindows -or ($PSVersionTable.Platform -eq 'Win32NT') -or ($env:OS -like '*Windows*')) {
     try {
-        $null = [KeeperBiometric.PasskeyManager]
+        $null = [KeeperBiometrics.PasskeyManager]
         $KeeperBiometricAvailable = $true
     }
     catch {
@@ -35,7 +35,7 @@ function Test-AssemblyAvailable {
     }
     
     if (-not $Quiet -and ($IsWindows -or ($PSVersionTable.Platform -eq 'Win32NT') -or ($env:OS -like '*Windows*'))) {
-        Write-Warning "KeeperBiometric assembly not available. Please build the project first."
+        Write-Warning "KeeperBiometrics assembly not available. Please build the project first."
     }
     
     return $false
@@ -148,7 +148,7 @@ function Assert-KeeperBiometricCredential {
                 Success = $false
                 IsValid = $false
                 EncryptedLoginToken = $null
-                ErrorMessage = "KeeperBiometric assembly not available"
+                ErrorMessage = "KeeperBiometrics assembly not available"
                 ErrorType = "AssemblyNotFound"
             }
         }
@@ -181,7 +181,7 @@ function Assert-KeeperBiometricCredential {
             $Username = $auth.Username
         }
         
-        $task = [KeeperBiometric.PasskeyManager]::AuthenticatePasskeyAsync($auth, $Username, $Purpose)
+        $task = [KeeperBiometrics.PasskeyManager]::AuthenticatePasskeyAsync($auth, $Username, $Purpose)
         $result = $task.GetAwaiter().GetResult()
         
         if ($result.Success) {
@@ -244,7 +244,7 @@ function Get-KeeperAvailableBiometricCredentials {
     )
     
     if (-not (Test-AssemblyAvailable)) {
-        throw "KeeperBiometric assembly not available. Please build the project first."
+        throw "KeeperBiometrics assembly not available. Please build the project first."
     }
     
     try {
@@ -262,7 +262,7 @@ function Get-KeeperAvailableBiometricCredentials {
         
         $auth = $vault.Auth
         
-        $task = [KeeperBiometric.PasskeyManager]::ListPasskeysAsync($auth, $IncludeDisabled.IsPresent)
+        $task = [KeeperBiometrics.PasskeyManager]::ListPasskeysAsync($auth, $IncludeDisabled.IsPresent)
         $passkeyList = $task.GetAwaiter().GetResult()
         
         $credentials = @()
@@ -282,8 +282,8 @@ function Get-KeeperAvailableBiometricCredentials {
         return $credentials
     }
     catch {
-        Write-Error "Failed to get available biometric credentials: $($_.Exception.Message)"
-        throw "Error getting available biometric credentials: $($_.Exception.Message)"
+        Write-Error "Failed to get available biometrics credentials: $($_.Exception.Message)"
+        throw "Error getting available biometrics credentials: $($_.Exception.Message)"
     }
 }
 
@@ -381,7 +381,7 @@ function Unregister-KeeperBiometricCredential {
         if ($PassThru) {
             return @{
                 Success = $false
-                ErrorMessage = "KeeperBiometric assembly not available"
+                ErrorMessage = "KeeperBiometrics assembly not available"
                 ErrorType = "AssemblyNotFound"
             }
         }
@@ -406,11 +406,11 @@ function Unregister-KeeperBiometricCredential {
             $Username = $auth.Username
         }
         
-        $credentialId = [KeeperBiometric.CredentialStorage]::GetCredentialId($Username)
+        $credentialId = [KeeperBiometrics.CredentialStorage]::GetCredentialId($Username)
         if (-not $credentialId) {
             $result = @{
                 Success = $true
-                Message = "Biometric authentication is not registered for user: $Username"
+                Message = "Biometrics authentication is not registered for user: $Username"
             }
             if ($PassThru) {
                 return $result
@@ -419,7 +419,7 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        if (-not $PSCmdlet.ShouldProcess($Username, "Remove biometric authentication")) {
+        if (-not $PSCmdlet.ShouldProcess($Username, "Remove biometrics authentication")) {
             $result = @{
                 Success = $false
                 Message = "Operation cancelled by user"
@@ -430,20 +430,20 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        $task = [KeeperBiometric.PasskeyManager]::RemovePasskeyAsync($auth, $Username)
+        $task = [KeeperBiometrics.PasskeyManager]::RemovePasskeyAsync($auth, $Username)
         $success = $task.GetAwaiter().GetResult()
         
         $result = if ($success) {
-            Write-Host "Successfully unregistered biometric credentials for user: $Username" -ForegroundColor Green
+            Write-Host "Successfully unregistered biometrics credentials for user: $Username" -ForegroundColor Green
             @{
                 Success = $true
-                Message = "Biometric credentials unregistered successfully"
+                Message = "Biometrics credentials unregistered successfully"
                 Username = $Username
             }
         } else {
             @{
                 Success = $false
-                Message = "Failed to unregister biometric credentials"
+                Message = "Failed to unregister biometrics credentials"
                 Username = $Username
             }
         }
@@ -453,7 +453,7 @@ function Unregister-KeeperBiometricCredential {
         }
     }
     catch {
-        Write-Error "Failed to unregister biometric credentials: $($_.Exception.Message)"
+        Write-Error "Failed to unregister biometrics credentials: $($_.Exception.Message)"
         $errorResult = @{
             Success = $false
             ErrorMessage = $_.Exception.Message
@@ -500,7 +500,7 @@ function Show-KeeperBiometricCredentials {
         $credentials = Get-KeeperAvailableBiometricCredentials -Vault $Vault -IncludeDisabled:$IncludeDisabled
         
         if (-not $credentials -or $credentials.Count -eq 0) {
-            Write-Host "No biometric authentication methods found." -ForegroundColor Yellow
+            Write-Host "No biometrics authentication methods found." -ForegroundColor Yellow
             return
         }
     
@@ -541,8 +541,8 @@ function Show-KeeperBiometricCredentials {
         }
     }
     catch {
-        Write-Error "Failed to display biometric credentials: $($_.Exception.Message)"
-        throw "Error displaying biometric credentials: $($_.Exception.Message)"
+        Write-Error "Failed to display biometrics credentials: $($_.Exception.Message)"
+        throw "Error displaying biometrics credentials: $($_.Exception.Message)"
     }
 }
 
@@ -608,7 +608,7 @@ function Register-KeeperBiometricCredential {
     }
     
     try {
-        Write-Host "Biometric Credential Creation for Keeper" -ForegroundColor Yellow
+        Write-Host "Biometrics Credential Creation for Keeper" -ForegroundColor Yellow
         
         if (-not $Vault) {
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
@@ -624,13 +624,13 @@ function Register-KeeperBiometricCredential {
         
         $auth = $vault.Auth
         
-        $task = [KeeperBiometric.PasskeyManager]::RegisterPasskeyAsync($auth, $FriendlyName, $Force.IsPresent)
+        $task = [KeeperBiometrics.PasskeyManager]::RegisterPasskeyAsync($auth, $FriendlyName, $Force.IsPresent)
         $result = $task.GetAwaiter().GetResult()
         
         if ($result.Success) {
             Write-Host "Credential created successfully" -ForegroundColor Green
-            Write-Host "Success! Biometric authentication has been registered." -ForegroundColor Green
-            Write-Host "Please register your device using the `"Set-KeeperDeviceSettings -Register`" command to set biometric authentication as your default login method." -ForegroundColor Yellow
+            Write-Host "Success! Biometrics authentication has been registered." -ForegroundColor Green
+            Write-Host "Please register your device using the `"Set-KeeperDeviceSettings -Register`" command to set biometrics authentication as your default login method." -ForegroundColor Yellow
         } else {
             Write-Warning "Registration failed: $($result.ErrorMessage)"
         }
@@ -669,7 +669,7 @@ function Get-WindowsHelloCredentialId {
     )
     
     try {
-        return [KeeperBiometric.CredentialStorage]::GetCredentialId($Username)
+        return [KeeperBiometrics.CredentialStorage]::GetCredentialId($Username)
     }
     catch {
         return $null
@@ -684,7 +684,7 @@ function Test-WindowsHelloBiometricPreviouslyUsed {
     )
     
     try {
-        $credId = [KeeperBiometric.CredentialStorage]::GetCredentialId($Username)
+        $credId = [KeeperBiometrics.CredentialStorage]::GetCredentialId($Username)
         return (-not [string]::IsNullOrEmpty($credId))
     }
     catch {
