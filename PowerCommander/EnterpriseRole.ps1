@@ -3,13 +3,62 @@ function Get-KeeperEnterpriseRole {
         .SYNOPSIS
     	Get a list of enterprise roles
 
-        .PARAMETER Role
-        Role Name or ID
+        .PARAMETER Name
+        Role Name or ID (exact match)
+
+        .PARAMETER Format
+        Output format: table (default), json
+
+        .PARAMETER Output
+        Path to resulting output file (ignored for "table" format)
     #>
     [CmdletBinding()]
+    Param (
+        [Parameter()][string] $Name,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Parameter()][string] $Output
+    )
 
-    [Enterprise]$enterprise = getEnterprise
-    return $enterprise.roleData.Roles
+    try {
+        [Enterprise]$enterprise = getEnterprise
+    }
+    catch {
+        Write-Error -Message "Failed to get enterprise data: $_" -ErrorAction Stop
+        return
+    }
+
+    $roles = $enterprise.roleData.Roles
+    if (-not $roles) {
+        Write-Warning "No enterprise roles found."
+        return @()
+    }
+
+    if ($Name) {
+        $roles = $roles | Where-Object { ($_.DisplayName -eq $Name) -or ($_.Id.ToString() -eq $Name) }
+    }
+
+    $result = @($roles)
+    if ($result.Count -eq 0 -and $Name) {
+        Write-Host "No matching enterprise roles found." -ForegroundColor Yellow
+        return @()
+    }
+
+    if ($Format -eq 'json') {
+        $json = $result | ConvertTo-Json -Depth 5
+        if ($Output) {
+            Set-Content -Path $Output -Value $json -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $json
+        }
+    } else {
+        if ($Output) {
+            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $result
+        }
+    }
 }
 New-Alias -Name ker -Value Get-KeeperEnterpriseRole
 
