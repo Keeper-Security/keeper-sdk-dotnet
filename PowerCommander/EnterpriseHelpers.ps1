@@ -178,9 +178,9 @@ function resolveSingleNode {
     Param ($node)
 
     if ($node) {
-        $nodes = Get-KeeperEnterpriseNode | Where-Object { $_.Id -eq $node }
+        $nodes = Get-EnterpriseNode | Where-Object { $_.Id -eq $node }
         if ($nodes.Length -eq 0) {
-            $nodes = Get-KeeperEnterpriseNode | Where-Object { $_.DisplayName -like $node + '*' }
+            $nodes = Get-EnterpriseNode | Where-Object { $_.DisplayName -like $node + '*' }
         }
         if ($nodes.Length -eq 0) {
             Write-Error -Message "Node `"$node`" not found" -ErrorAction Stop
@@ -205,7 +205,7 @@ function resolveRole {
         }
     }
     elseif ($role -is [string]) {
-        $roles = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $role -or $_.DisplayName -ieq $role }
+        $roles = Get-EnterpriseRole | Where-Object { $_.Id -eq $role -or $_.DisplayName -ieq $role }
         if ($roles.Length -eq 1) {
             if ($roleData.TryGetRole($roles[0].Id, [ref]$r)) {
                 return $r

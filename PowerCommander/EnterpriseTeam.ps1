@@ -60,7 +60,7 @@ function Get-KeeperEnterpriseTeamUser {
     $uid = $null
 
     if ($Team -is [String]) {
-        $uids = Get-KeeperEnterpriseTeam | Where-Object { $_.Uid -ceq $Team -or $_.Name -ieq $Team } | Select-Object -Property Uid
+        $uids = Get-EnterpriseTeam | Where-Object { $_.Uid -ceq $Team -or $_.Name -ieq $Team } | Select-Object -Property Uid
         if ($uids.Length -gt 1) {
             Write-Error -Message "Team name `"$Team`" is not unique. Use Team UID" -ErrorAction Stop
         }

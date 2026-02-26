@@ -73,7 +73,7 @@ function Sync-KeeperEnterprise {
 }
 New-Alias -Name ked -Value Sync-KeeperEnterprise
 
-function Get-KeeperEnterpriseUser {
+function Get-EnterpriseUser {
     <#
         .Synopsis
     	Get a list of enterprise users
@@ -83,9 +83,55 @@ function Get-KeeperEnterpriseUser {
     $enterprise = getEnterprise
     return $enterprise.enterpriseData.Users
 }
+
+function Get-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+    	Get a list of enterprise users
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $Email,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Parameter()][string] $Output
+    )
+
+    $users = Get-EnterpriseUser
+    if (-not $users) {
+        Write-Warning "No enterprise users found."
+        return @()
+    }
+
+    if ($Email) {
+        $users = $users | Where-Object { ($_.Email -eq $Email) -or ($_.Id.ToString() -eq $Email) }
+    }
+
+    $result = @($users)
+    if ($result.Count -eq 0 -and $Email) {
+        Write-Host "No matching enterprise users found." -ForegroundColor Yellow
+        return @()
+    }
+
+    if ($Format -eq 'json') {
+        $json = $result | ConvertTo-Json -Depth 5
+        if ($Output) {
+            Set-Content -Path $Output -Value $json -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $json
+        }
+    } else {
+        if ($Output) {
+            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $result
+        }
+    }
+}
 New-Alias -Name keu -Value Get-KeeperEnterpriseUser
 
-function Get-KeeperEnterpriseTeam {
+function Get-EnterpriseTeam {
     <#
         .Synopsis
     	Get a list of enterprise teams
@@ -95,9 +141,55 @@ function Get-KeeperEnterpriseTeam {
     $enterprise = getEnterprise
     return $enterprise.enterpriseData.Teams
 }
+
+function Get-KeeperEnterpriseTeam {
+    <#
+        .Synopsis
+    	Get a list of enterprise teams
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $Name,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Parameter()][string] $Output
+    )
+
+    $teams = Get-EnterpriseTeam
+    if (-not $teams) {
+        Write-Warning "No enterprise teams found."
+        return @()
+    }
+
+    if ($Name) {
+        $teams = $teams | Where-Object { ($_.Name -eq $Name) -or ($_.Uid -eq $Name) }
+    }
+
+    $result = @($teams)
+    if ($result.Count -eq 0 -and $Name) {
+        Write-Host "No matching enterprise teams found." -ForegroundColor Yellow
+        return @()
+    }
+
+    if ($Format -eq 'json') {
+        $json = $result | ConvertTo-Json -Depth 5
+        if ($Output) {
+            Set-Content -Path $Output -Value $json -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $json
+        }
+    } else {
+        if ($Output) {
+            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $result
+        }
+    }
+}
 New-Alias -Name ket -Value Get-KeeperEnterpriseTeam
 
-function Get-KeeperEnterpriseNode {
+function Get-EnterpriseNode {
     <#
         .Synopsis
     	Get a list of enterprise nodes
@@ -106,6 +198,52 @@ function Get-KeeperEnterpriseNode {
 
     $enterprise = getEnterprise
     return $enterprise.enterpriseData.Nodes
+}
+
+function Get-KeeperEnterpriseNode {
+    <#
+        .Synopsis
+    	Get a list of enterprise nodes
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $Name,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Parameter()][string] $Output
+    )
+
+    $nodes = Get-EnterpriseNode
+    if (-not $nodes) {
+        Write-Warning "No enterprise nodes found."
+        return @()
+    }
+
+    if ($Name) {
+        $nodes = $nodes | Where-Object { ($_.DisplayName -eq $Name) -or ($_.Id.ToString() -eq $Name) }
+    }
+
+    $result = @($nodes)
+    if ($result.Count -eq 0 -and $Name) {
+        Write-Host "No matching enterprise nodes found." -ForegroundColor Yellow
+        return @()
+    }
+
+    if ($Format -eq 'json') {
+        $json = $result | ConvertTo-Json -Depth 5
+        if ($Output) {
+            Set-Content -Path $Output -Value $json -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $json
+        }
+    } else {
+        if ($Output) {
+            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $result
+        }
+    }
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode
 
