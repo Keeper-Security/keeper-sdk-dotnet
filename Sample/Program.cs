@@ -1,4 +1,4 @@
-﻿//  _  __
+//  _  __
 // | |/ /___ ___ _ __  ___ _ _ ®
 // | ' </ -_) -_) '_ \/ -_) '_|
 // |_|\_\___\___| .__/\___|_|
@@ -644,6 +644,54 @@ namespace Sample
                 //     byTitle: true,
                 //     byLogin: true,
                 //     byPassword: true
+                // );
+
+                // // MSP - List Managed Companies Example
+                // await MspExamples.MspListManagedCompaniesExample.ListManagedCompanies();
+
+                // // MSP - Create Managed Company Example
+                // await MspExamples.MspCreateManagedCompanyExample.CreateManagedCompany(
+                //     companyName: "Test13 Company",
+                //     planId: "business",   // business, businessPlus, enterprise, enterprisePlus
+                //     maxSeats: 10,
+                //     nodeNameOrId: "",  // optional: node name or ID, defaults to root
+                //     storagePlan: "STORAGE_100GB",  // STORAGE_100GB, STORAGE_1TB, STORAGE_10TB
+                //     addons: new KeeperSecurity.Enterprise.ManagedCompanyAddonOptions[]
+                //     {
+                //         new KeeperSecurity.Enterprise.ManagedCompanyAddonOptions { Addon = "enterprise_breach_watch" },
+                //         new KeeperSecurity.Enterprise.ManagedCompanyAddonOptions { Addon = "connection_manager", NumberOfSeats = 5 }
+                //     }
+                // );
+
+                // MSP - Update Managed Company Example
+                // await MspExamples.MspUpdateManagedCompanyExample.UpdateManagedCompany(
+                //     companyId: 317995,   // <companyId_here>
+                //     newName: "Test13 Company Updated",
+                //     newPlanId: "businessPlus",
+                //     newMaxSeats: 50,
+                //     newStoragePlan: "STORAGE_1TB"
+                // );
+
+                // // MSP - Remove Managed Company Example
+                // await MspExamples.MspRemoveManagedCompanyExample.RemoveManagedCompany(
+                //     companyId: 317995   // <companyId_here>
+                // );
+
+                // MSP - Switch To Managed Company Example
+                // await MspExamples.MspSwitchToManagedCompanyExample.SwitchToManagedCompany(
+                //     companyId: 282670   // <companyId_here>
+                // );
+
+                // // MSP - Copy Role To Managed Companies Example
+                // await MspExamples.MspCopyRoleToManagedCompanyExample.CopyRoleToManagedCompanies(
+                //     sourceRoleName: "Test Dev",
+                //     targetCompanyIds: new[] { 282670 }   // <companyId_here>
+                // );
+
+                // // MSP - Billing Report Example
+                // await MspExamples.MspBillingReportExample.GetBillingReport(
+                //     month: 1,    // optional: 1-12, defaults to previous month
+                //     year: 2026   // optional: defaults to current year
                 // );
             }
             catch (Exception ex)
