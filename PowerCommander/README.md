@@ -121,7 +121,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | New-KeeperEnterpriseTeam                                | keta             | Create Team
 | Lock-KeeperEnterpriseUser                               | lock-user        | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser                             | unlock-user      | Unlock Enterprise User
-| Move-KeeperEnterpriseUser                               |transfer-user     | Transfer user account to another user
+| Move-KeeperEnterpriseUser                               |transfer-user     | Transfer user vault to another user (-FromUser, -TargetUser; -Force to skip confirmation)
 | Remove-KeeperEnterpriseUser                             | delete-user      | Delete Enterprise User
 | Update-KeeperEnterpriseUser                             |                  | Update enterprise user (node, full name, job title, locale)
 | Set-KeeperEnterpriseUserMasterPasswordExpire            |                  | Expire master password for enterprise user

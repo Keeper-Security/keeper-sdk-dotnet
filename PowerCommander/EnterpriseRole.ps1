@@ -32,18 +32,17 @@ function Get-KeeperEnterpriseRoleUsers {
     $roleId = $null
 
     if ($Role -is [String]) {
-        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id
+        $ids = @(Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id)
         if ($ids.Length -gt 1) {
             Write-Error -Message "Role name `"$Role`" is not unique. Use Role ID" -ErrorAction Stop
         }
-
-        if ($null -ne $ids.Id) {
-            $roleId = $ids.Id
+        if ($ids.Length -eq 1 -and $null -ne $ids[0].Id) {
+            $roleId = $ids[0].Id
         }
     }
     elseif ($Role -is [long]) {
-        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -First 1
-        if ($ids.Length -eq 1) {
+        $ids = @(Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -Property Id -First 1)
+        if ($ids.Length -eq 1 -and $null -ne $ids[0].Id) {
             $roleId = $ids[0].Id
         }
     }
@@ -56,7 +55,7 @@ function Get-KeeperEnterpriseRoleUsers {
             foreach ($userId in $roleData.GetUsersForRole($erole.Id)) {
                 $user = $null
                 if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
-                    $user
+                    Write-Output $user
                 }
             }
         }
@@ -90,18 +89,17 @@ function Get-KeeperEnterpriseRoleTeams {
     $roleId = $null
 
     if ($Role -is [String]) {
-        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id
+        $ids = @(Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id)
         if ($ids.Length -gt 1) {
             Write-Error -Message "Role name `"$Role`" is not unique. Use Role ID" -ErrorAction Stop
         }
-
-        if ($null -ne $ids.Id) {
-            $roleId = $ids.Id
+        if ($ids.Length -eq 1 -and $null -ne $ids[0].Id) {
+            $roleId = $ids[0].Id
         }
     }
     elseif ($Role -is [long]) {
-        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -First 1
-        if ($ids.Length -eq 1) {
+        $ids = @(Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -Property Id -First 1)
+        if ($ids.Length -eq 1 -and $null -ne $ids[0].Id) {
             $roleId = $ids[0].Id
         }
     }
@@ -114,7 +112,7 @@ function Get-KeeperEnterpriseRoleTeams {
             foreach ($teamUid in $roleData.GetTeamsForRole($erole.Id)) {
                 $team = $null
                 if ($enterpriseData.TryGetTeam($teamUid, [ref]$team)) {
-                    $team
+                    Write-Output $team
                 }
             }
         }
@@ -1035,13 +1033,13 @@ function Add-KeeperEnterpriseRolePrivilege {
     $invalidPrivileges = @()
 
     foreach ($priv in $Privilege) {
-        $privTrimmed = $priv.Trim()
-        if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true, [ref]$null)) {
-            $parsedPriv = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
+        $privTrimmed = ($priv.Trim() -replace '\s+', '_').ToUpperInvariant()
+        try {
+            $parsedPriv = [Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
             $privilegeList.Add($parsedPriv)
         }
-        else {
-            $invalidPrivileges += $privTrimmed
+        catch {
+            $invalidPrivileges += $priv.Trim()
         }
     }
 
@@ -1126,13 +1124,13 @@ function Remove-KeeperEnterpriseRolePrivilege {
     $invalidPrivileges = @()
 
     foreach ($priv in $Privilege) {
-        $privTrimmed = $priv.Trim()
-        if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true, [ref]$null)) {
-            $parsedPriv = [System.Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
+        $privTrimmed = ($priv.Trim() -replace '\s+', '_').ToUpperInvariant()
+        try {
+            $parsedPriv = [Enum]::Parse([KeeperSecurity.Enterprise.RoleManagedNodePrivilege], $privTrimmed, $true)
             $privilegeList.Add($parsedPriv)
         }
-        else {
-            $invalidPrivileges += $privTrimmed
+        catch {
+            $invalidPrivileges += $priv.Trim()
         }
     }
 
