@@ -29,9 +29,13 @@ function Get-KeeperEnterpriseRole {
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Name,
+        [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
         [Parameter()][string] $Output
     )
+
+    if ($Name) { $Name = $Name.Trim() }
+    if ($Filter) { $Filter = $Filter.Trim() }
 
     $roles = Get-EnterpriseRole
     if (-not $roles) {
@@ -43,8 +47,16 @@ function Get-KeeperEnterpriseRole {
         $roles = $roles | Where-Object { ($_.DisplayName -eq $Name) -or ($_.Id.ToString() -eq $Name) }
     }
 
+    if ($Filter) {
+        $filterLower = $Filter.ToLower()
+        $roles = $roles | Where-Object {
+            $text = ($_.PSObject.Properties.Value | ForEach-Object { "$_" }) -join ' '
+            $text -match [regex]::Escape($filterLower)
+        }
+    }
+
     $result = @($roles)
-    if ($result.Count -eq 0 -and $Name) {
+    if ($result.Count -eq 0 -and ($Name -or $Filter)) {
         Write-Host "No matching enterprise roles found." -ForegroundColor Yellow
         return @()
     }
@@ -58,12 +70,7 @@ function Get-KeeperEnterpriseRole {
             return $json
         }
     } else {
-        if ($Output) {
-            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
-            Write-Host "Results exported to: $Output" -ForegroundColor Green
-        } else {
-            return $result
-        }
+        return $result
     }
 }
 New-Alias -Name ker -Value Get-KeeperEnterpriseRole

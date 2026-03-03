@@ -92,9 +92,13 @@ function Get-KeeperEnterpriseUser {
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Email,
+        [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
         [Parameter()][string] $Output
     )
+
+    if ($Email) { $Email = $Email.Trim() }
+    if ($Filter) { $Filter = $Filter.Trim() }
 
     $users = Get-EnterpriseUser
     if (-not $users) {
@@ -106,8 +110,16 @@ function Get-KeeperEnterpriseUser {
         $users = $users | Where-Object { ($_.Email -eq $Email) -or ($_.Id.ToString() -eq $Email) }
     }
 
+    if ($Filter) {
+        $filterLower = $Filter.ToLower()
+        $users = $users | Where-Object {
+            $text = ($_.PSObject.Properties.Value | ForEach-Object { "$_" }) -join ' '
+            $text -match [regex]::Escape($filterLower)
+        }
+    }
+
     $result = @($users)
-    if ($result.Count -eq 0 -and $Email) {
+    if ($result.Count -eq 0 -and ($Email -or $Filter)) {
         Write-Host "No matching enterprise users found." -ForegroundColor Yellow
         return @()
     }
@@ -121,12 +133,7 @@ function Get-KeeperEnterpriseUser {
             return $json
         }
     } else {
-        if ($Output) {
-            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
-            Write-Host "Results exported to: $Output" -ForegroundColor Green
-        } else {
-            return $result
-        }
+        return $result
     }
 }
 New-Alias -Name keu -Value Get-KeeperEnterpriseUser
@@ -150,9 +157,13 @@ function Get-KeeperEnterpriseTeam {
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Name,
+        [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
         [Parameter()][string] $Output
     )
+
+    if ($Name) { $Name = $Name.Trim() }
+    if ($Filter) { $Filter = $Filter.Trim() }
 
     $teams = Get-EnterpriseTeam
     if (-not $teams) {
@@ -164,8 +175,16 @@ function Get-KeeperEnterpriseTeam {
         $teams = $teams | Where-Object { ($_.Name -eq $Name) -or ($_.Uid -eq $Name) }
     }
 
+    if ($Filter) {
+        $filterLower = $Filter.ToLower()
+        $teams = $teams | Where-Object {
+            $text = ($_.PSObject.Properties.Value | ForEach-Object { "$_" }) -join ' '
+            $text -match [regex]::Escape($filterLower)
+        }
+    }
+
     $result = @($teams)
-    if ($result.Count -eq 0 -and $Name) {
+    if ($result.Count -eq 0 -and ($Name -or $Filter)) {
         Write-Host "No matching enterprise teams found." -ForegroundColor Yellow
         return @()
     }
@@ -179,12 +198,7 @@ function Get-KeeperEnterpriseTeam {
             return $json
         }
     } else {
-        if ($Output) {
-            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
-            Write-Host "Results exported to: $Output" -ForegroundColor Green
-        } else {
-            return $result
-        }
+        return $result
     }
 }
 New-Alias -Name ket -Value Get-KeeperEnterpriseTeam
@@ -208,9 +222,13 @@ function Get-KeeperEnterpriseNode {
     [CmdletBinding()]
     Param (
         [Parameter()][string] $Name,
+        [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
         [Parameter()][string] $Output
     )
+
+    if ($Name) { $Name = $Name.Trim() }
+    if ($Filter) { $Filter = $Filter.Trim() }
 
     $nodes = Get-EnterpriseNode
     if (-not $nodes) {
@@ -222,8 +240,16 @@ function Get-KeeperEnterpriseNode {
         $nodes = $nodes | Where-Object { ($_.DisplayName -eq $Name) -or ($_.Id.ToString() -eq $Name) }
     }
 
+    if ($Filter) {
+        $filterLower = $Filter.ToLower()
+        $nodes = $nodes | Where-Object {
+            $text = ($_.PSObject.Properties.Value | ForEach-Object { "$_" }) -join ' '
+            $text -match [regex]::Escape($filterLower)
+        }
+    }
+
     $result = @($nodes)
-    if ($result.Count -eq 0 -and $Name) {
+    if ($result.Count -eq 0 -and ($Name -or $Filter)) {
         Write-Host "No matching enterprise nodes found." -ForegroundColor Yellow
         return @()
     }
@@ -237,12 +263,7 @@ function Get-KeeperEnterpriseNode {
             return $json
         }
     } else {
-        if ($Output) {
-            $result | Format-Table -AutoSize | Out-String -Width 8192 | Set-Content -Path $Output -Encoding utf8
-            Write-Host "Results exported to: $Output" -ForegroundColor Green
-        } else {
-            return $result
-        }
+        return $result
     }
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode
