@@ -40,6 +40,14 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
+                // Authenticate once from Main - all examples share this vault
+                var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Could not authenticate. Exiting.");
+                    return;
+                }
+
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName("Google");
 
@@ -632,9 +640,13 @@ namespace Sample
                 // );
 
                 // Audit Report Example
-                // await AuditReportExamples.AuditReportExample.RunAuditReport(
-                //     limit: 100
-                // );
+                await AuditReportExamples.AuditReportExample.RunAuditReport(vault,
+                    limit: 1
+                );
+
+                await AuditReportExamples.AuditReportExample.RunAuditReport(vault,
+                    limit: 1
+                );
 
                 // // Clipboard Copy Example
                 // await RecordsExamples.ClipboardCopyExample.CopyToClipboard("<recordUid_here>", "<secret_key_here>");
