@@ -18,13 +18,32 @@ function Get-KeeperEnterpriseRole {
     	Get a list of enterprise roles
 
         .PARAMETER Name
-        Role Name or ID (exact match)
+        Role Name or ID (exact match). Returns the single matching role.
+
+        .PARAMETER Filter
+        Search filter applied across all role properties (case-insensitive regex match).
 
         .PARAMETER Format
-        Output format: table (default), json
+        Output format: table (default) or json.
 
         .PARAMETER Output
-        Path to resulting output file (ignored for "table" format)
+        File path to export results when Format is 'json'. Ignored for 'table' format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole
+        Lists all enterprise roles in table format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Name "AdminRole"
+        Returns the enterprise role named "AdminRole".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Filter "manager"
+        Returns all enterprise roles whose properties match "manager".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Format json -Output "roles.json"
+        Exports all enterprise roles to a JSON file.
     #>
     [CmdletBinding()]
     Param (

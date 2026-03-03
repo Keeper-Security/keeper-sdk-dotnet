@@ -86,8 +86,36 @@ function Get-EnterpriseUser {
 
 function Get-KeeperEnterpriseUser {
     <#
-        .Synopsis
+        .SYNOPSIS
     	Get a list of enterprise users
+
+        .PARAMETER Email
+        User email address or user ID (exact match). Returns the single matching user.
+
+        .PARAMETER Filter
+        Search filter applied across all user properties (case-insensitive regex match).
+
+        .PARAMETER Format
+        Output format: table (default) or json.
+
+        .PARAMETER Output
+        File path to export results when Format is 'json'. Ignored for 'table' format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUser
+        Lists all enterprise users in table format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUser -Email "user@example.com"
+        Returns the enterprise user with the specified email address.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUser -Filter "admin"
+        Returns all enterprise users whose properties match "admin".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUser -Format json -Output "users.json"
+        Exports all enterprise users to a JSON file.
     #>
     [CmdletBinding()]
     Param (
@@ -151,8 +179,36 @@ function Get-EnterpriseTeam {
 
 function Get-KeeperEnterpriseTeam {
     <#
-        .Synopsis
+        .SYNOPSIS
     	Get a list of enterprise teams
+
+        .PARAMETER Name
+        Team name or Team UID (exact match). Returns the single matching team.
+
+        .PARAMETER Filter
+        Search filter applied across all team properties (case-insensitive regex match).
+
+        .PARAMETER Format
+        Output format: table (default) or json.
+
+        .PARAMETER Output
+        File path to export results when Format is 'json'. Ignored for 'table' format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeam
+        Lists all enterprise teams in table format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeam -Name "Engineering"
+        Returns the enterprise team named "Engineering".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeam -Filter "dev"
+        Returns all enterprise teams whose properties match "dev".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeam -Format json -Output "teams.json"
+        Exports all enterprise teams to a JSON file.
     #>
     [CmdletBinding()]
     Param (
@@ -216,8 +272,36 @@ function Get-EnterpriseNode {
 
 function Get-KeeperEnterpriseNode {
     <#
-        .Synopsis
+        .SYNOPSIS
     	Get a list of enterprise nodes
+
+        .PARAMETER Name
+        Node display name or node ID (exact match). Returns the single matching node.
+
+        .PARAMETER Filter
+        Search filter applied across all node properties (case-insensitive regex match).
+
+        .PARAMETER Format
+        Output format: table (default) or json.
+
+        .PARAMETER Output
+        File path to export results when Format is 'json'. Ignored for 'table' format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseNode
+        Lists all enterprise nodes in table format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseNode -Name "Sales"
+        Returns the enterprise node named "Sales".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseNode -Filter "marketing"
+        Returns all enterprise nodes whose properties match "marketing".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseNode -Format json -Output "nodes.json"
+        Exports all enterprise nodes to a JSON file.
     #>
     [CmdletBinding()]
     Param (
