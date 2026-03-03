@@ -7,14 +7,15 @@ namespace Sample.ImportExportExamples
 {
     public static class ExportToFileExample
     {
-        public static async Task ExportToFile(
+        public static async Task ExportToFile(VaultOnline vault,
             string filename,
             IEnumerable<string> recordUids = null,
             bool includeSharedFolders = true,
             Action<Severity, string> logger = null)
 
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             await KeeperExport.ExportVaultToFile(vault, filename, recordUids, includeSharedFolders);
 
 

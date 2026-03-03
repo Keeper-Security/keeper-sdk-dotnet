@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
+using KeeperSecurity.Vault;
 using Sample.Helpers;
 
 namespace Sample.ActionReportExamples
@@ -18,19 +19,15 @@ namespace Sample.ActionReportExamples
         /// <param name="targetStatus">The target user status to filter by (default: NoLogon).</param>
         /// <param name="daysSince">Number of days since last activity (optional).</param>
         /// <param name="node">Filter by specific node name (optional).</param>
-        public static async Task RunActionReport(
+        public static async Task RunActionReport(VaultOnline vault = null,
             ActionReportTargetStatus targetStatus = ActionReportTargetStatus.NoLogon,
             int? daysSince = null,
             string node = null)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

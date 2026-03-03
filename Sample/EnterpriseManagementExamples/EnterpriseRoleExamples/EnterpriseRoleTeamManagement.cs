@@ -1,24 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class EnterpriseRoleTeamManagementExample
     {
-        public static async Task AddTeamToRoleExample(string roleNameOrId, string teamNameOrId)
+        public static async Task AddTeamToRoleExample(VaultOnline vault, string roleNameOrId, string teamNameOrId)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;
@@ -93,16 +89,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
             }
         }
 
-        public static async Task RemoveTeamFromRoleExample(string roleNameOrId, string teamNameOrid)
+        public static async Task RemoveTeamFromRoleExample(VaultOnline vault, string roleNameOrId, string teamNameOrid)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+                if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

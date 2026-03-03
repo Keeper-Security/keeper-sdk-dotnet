@@ -1,9 +1,9 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -19,16 +19,12 @@ namespace Sample.MspExamples
         /// </summary>
         /// <param name="sourceRoleName">The display name of the role in the MSP enterprise to copy.</param>
         /// <param name="targetCompanyIds">Array of Managed Company Enterprise IDs to copy the role into.</param>
-        public static async Task CopyRoleToManagedCompanies(string sourceRoleName, int[] targetCompanyIds)
+        public static async Task CopyRoleToManagedCompanies(VaultOnline vault, string sourceRoleName, int[] targetCompanyIds)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

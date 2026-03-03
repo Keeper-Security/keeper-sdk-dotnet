@@ -1,8 +1,8 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -20,7 +20,7 @@ namespace Sample.MspExamples
         /// <param name="newMaxSeats">Optional new maximum seats. Use -1 for unlimited.</param>
         /// <param name="newStoragePlan">Optional new storage plan: "STORAGE_100GB", "STORAGE_1TB", or "STORAGE_10TB".</param>
         /// <param name="addons">Optional full replacement add-on list. Pass null to keep existing add-ons unchanged.</param>
-        public static async Task UpdateManagedCompany(
+        public static async Task UpdateManagedCompany(VaultOnline vault, 
             int companyId,
             string newName = null,
             string newPlanId = null,
@@ -30,12 +30,8 @@ namespace Sample.MspExamples
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

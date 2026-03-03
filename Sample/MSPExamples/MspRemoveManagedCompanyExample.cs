@@ -1,8 +1,8 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -13,16 +13,12 @@ namespace Sample.MspExamples
         /// Removes a managed company from the MSP enterprise.
         /// </summary>
         /// <param name="companyId">Managed Company Enterprise ID to remove.</param>
-        public static async Task RemoveManagedCompany(int companyId)
+        public static async Task RemoveManagedCompany(VaultOnline vault, int companyId)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
+using KeeperSecurity.Vault;
 using System;
 
 namespace Sample.SecretManagerExamples
 {
     public static class AddClientExample
     {
-        public static async Task AddClient(
+        public static async Task AddClient(VaultOnline vault, 
             string applicationId,
             bool unlockIp,
             int firstAccessExpireInMinutes,
@@ -14,12 +15,8 @@ namespace Sample.SecretManagerExamples
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 var response = await vault.AddSecretManagerClient(
                     applicationId,

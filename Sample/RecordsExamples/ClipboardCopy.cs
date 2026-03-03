@@ -8,9 +8,10 @@ namespace Sample.RecordsExamples
 {
     public static class ClipboardCopyExample
     {
-        public static async Task CopyToClipboard(string recordUid, string fieldName = "password")
+        public static async Task CopyToClipboard(VaultOnline vault, string recordUid, string fieldName = "password")
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             if (vault == null)
             {
                 Console.WriteLine("Failed to authenticate.");

@@ -8,11 +8,12 @@ namespace Sample.TrashExamples
 {
     public static class TrashRestore
     {
-        public static async Task TrashRestoreAsync(List<string> records)
+        public static async Task TrashRestoreAsync(VaultOnline vault, List<string> records)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
                 await TrashManagement.RestoreTrashRecords(vault, records.ToList());
                 Console.WriteLine($"Successfully restored {records.Count} records");
             }

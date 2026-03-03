@@ -1,24 +1,19 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class EnterpriseUserLockUnlockExample
     {
-        public static async Task LockUnlockUser(string email, bool locked)
+        public static async Task LockUnlockUser(VaultOnline vault, string email, bool locked)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

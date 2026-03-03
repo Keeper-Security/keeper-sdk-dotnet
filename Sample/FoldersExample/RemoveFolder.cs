@@ -1,16 +1,15 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
-using System.Drawing;
 
 namespace Sample.FoldersExample
 {
     public static class RemoveFolderExample
     {
-        public static async Task RemoveFolder(string folderUid)
+        public static async Task RemoveFolder(VaultOnline vault, string folderUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var folder = vault.GetFolder(folderUid);
 
             if (folder == null)

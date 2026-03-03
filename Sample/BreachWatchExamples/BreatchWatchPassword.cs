@@ -10,18 +10,14 @@ namespace Sample.BreachWatchExamples
 {
     public static class BreachWatchPasswordExample
     {
-        public static async Task BreachWatchPassword(
-            IEnumerable<(string Password, byte[] Euid)> passwordEntries,
+        public static async Task BreachWatchPassword(VaultOnline vault = null,
+            IEnumerable<(string Password, byte[] Euid)> passwordEntries = null,
             CancellationToken cancellationToken = default)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!vault.Auth.IsBreachWatchEnabled())
                 {

@@ -7,9 +7,10 @@ namespace Sample.FoldersExample
 {
     public static class ListFolderExample
     {
-        public static async Task ListFolder()
+        public static async Task ListFolder(VaultOnline vault = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             ListFolderSimple(vault);
 
         }

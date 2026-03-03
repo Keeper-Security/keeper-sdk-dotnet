@@ -23,10 +23,13 @@ namespace Sample.AuditReportExamples
         /// Runs an audit report to retrieve recent audit events.
         /// Requires enterprise admin privileges.
         /// </summary>
-        /// <param name="vault">Authenticated vault instance from Main.</param>
+        /// <param name="vault">Authenticated vault instance from Main; if null, authenticates and gets vault.</param>
         /// <param name="limit">Maximum number of events to retrieve (default: 100, max: 1000).</param>
         public static async Task RunAuditReport(VaultOnline vault, int? limit = null)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
+
             var rowLimit = limit ?? 100;
 
             try

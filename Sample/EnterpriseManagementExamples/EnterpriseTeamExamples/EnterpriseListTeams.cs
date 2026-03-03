@@ -1,24 +1,19 @@
 using System;
-using System.Linq;
+using KeeperSecurity.Vault;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseTeamExamples
 {
     public static class EnterpriseTeamsListExample
     {
-        public static async Task EnterpriseTeamsList()
+        public static async Task EnterpriseTeamsList(VaultOnline vault = null)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

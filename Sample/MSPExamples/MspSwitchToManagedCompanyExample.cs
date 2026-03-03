@@ -1,8 +1,8 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -15,16 +15,12 @@ namespace Sample.MspExamples
         /// (users, roles, teams, nodes) as if you were its admin.
         /// </summary>
         /// <param name="companyId">Managed Company Enterprise ID to switch to.</param>
-        public static async Task SwitchToManagedCompany(int companyId)
+        public static async Task SwitchToManagedCompany(VaultOnline vault, int companyId)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

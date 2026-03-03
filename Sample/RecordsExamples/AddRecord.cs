@@ -7,9 +7,10 @@ namespace Sample.RecordsExamples
 {
     public static class AddRecordExample
     {
-        public static async Task AddRecord(string name, string type, string folderUid)
+        public static async Task AddRecord(VaultOnline vault, string name, string type, string folderUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var createdRecord = await CreateRecordSimple(vault, name, type, folderUid);
 
             if (createdRecord == null)

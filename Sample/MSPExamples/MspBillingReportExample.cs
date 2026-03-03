@@ -1,10 +1,10 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BI;
 using KeeperSecurity.Authentication;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -34,16 +34,12 @@ namespace Sample.MspExamples
         /// </summary>
         /// <param name="month">Report month (1-12). Defaults to previous calendar month if null.</param>
         /// <param name="year">Report year (e.g. 2025). Defaults to current year if null.</param>
-        public static async Task GetBillingReport(int? month = null, int? year = null)
+        public static async Task GetBillingReport(VaultOnline vault, int? month = null, int? year = null)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

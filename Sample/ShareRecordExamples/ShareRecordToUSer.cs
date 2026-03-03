@@ -6,9 +6,10 @@ namespace Sample.ShareRecordExamples
 {
     public static class ShareRecordToUser
     {
-        public static async Task ShareRecordToUserWithPermissions(string recordUid, string username, IRecordShareOptions options)
+        public static async Task ShareRecordToUserWithPermissions(VaultOnline vault, string recordUid, string username, IRecordShareOptions options)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await ShareRecordToUserWithPermissionsSimple(vault, recordUid, username, options);
             if (result)
             {

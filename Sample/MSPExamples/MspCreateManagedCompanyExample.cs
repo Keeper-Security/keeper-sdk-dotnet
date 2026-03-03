@@ -1,8 +1,8 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.MspExamples
@@ -18,7 +18,7 @@ namespace Sample.MspExamples
         /// <param name="nodeNameOrId">Optional node name or ID to place the MC under. Defaults to root node.</param>
         /// <param name="storagePlan">Optional storage plan: "STORAGE_100GB", "STORAGE_1TB", or "STORAGE_10TB".</param>
         /// <param name="addons">Optional array of add-on configurations.</param>
-        public static async Task CreateManagedCompany(
+        public static async Task CreateManagedCompany(VaultOnline vault, 
             string companyName,
             string planId,
             int maxSeats,
@@ -28,12 +28,8 @@ namespace Sample.MspExamples
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
