@@ -232,7 +232,7 @@ function Get-KeeperAuditReport {
         $auth = $enterprise.loader.Auth
     }
     catch {
-        Write-Error "Failed to retrieve audit report: $($_.Exception.Message)" -ErrorAction Stop
+        Write-Error "Failed to load enterprise context: $($_.Exception.Message)" -ErrorAction Stop
     }
 
     if ($Limit -le 0) {
@@ -279,12 +279,6 @@ function Get-KeeperAuditReport {
         if ($workingPattern.StartsWith('regex:', [System.StringComparison]::OrdinalIgnoreCase)) {
             $filter.Type = 'Regex'
             $filter.Pattern = $workingPattern.Substring(6)
-            try {
-                $filter.CompiledRegex = [regex]::new($filter.Pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-            } catch {
-                Write-Host "Error: Invalid regex pattern '$($filter.Pattern)', skipping this filter"
-                return $null
-            }
         }
         elseif ($workingPattern.StartsWith('exact:', [System.StringComparison]::OrdinalIgnoreCase)) {
             $filter.Type = 'Exact'
@@ -293,16 +287,19 @@ function Get-KeeperAuditReport {
         elseif ($useRegex) {
             $filter.Type = 'Regex'
             $filter.Pattern = $workingPattern
+        }
+        else {
+            $filter.Type = 'Substring'
+            $filter.Pattern = $workingPattern
+        }
+
+        if ($filter.Type -eq 'Regex') {
             try {
                 $filter.CompiledRegex = [regex]::new($filter.Pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
             } catch {
                 Write-Host "Error: Invalid regex pattern '$($filter.Pattern)', skipping this filter"
                 return $null
             }
-        }
-        else {
-            $filter.Type = 'Substring'
-            $filter.Pattern = $workingPattern
         }
 
         return $filter
@@ -323,7 +320,7 @@ function Get-KeeperAuditReport {
                     }
                 }
                 'Exact' {
-                    if ($value.Equals($filter.Pattern, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    if ([string]::Equals($value, $filter.Pattern, [System.StringComparison]::OrdinalIgnoreCase)) {
                         $matched = $true
                     }
                 }
@@ -373,7 +370,7 @@ function Get-KeeperAuditReport {
 
     if ($Created) {
         $predefinedFilters = @('today','yesterday','last_7_days','last_30_days','month_to_date','last_month','year_to_date','last_year')
-        $createdLower = $Created.ToLowerInvariant()
+        $createdLower = $Created.Trim().ToLowerInvariant()
 
         if ($createdLower -in $predefinedFilters) {
             $filter.Created = $createdLower
@@ -580,7 +577,7 @@ function Get-KeeperAuditReport {
     $allEvents = $rs.Events
 
     function getEventValue([System.Collections.Generic.Dictionary[string,object]] $evt, [string] $key) {
-        if ($evt.ContainsKey($key) -and $null -ne $evt[$key]) { return $evt[$key].ToString() }
+        if ($evt -is [System.Collections.IDictionary] -and $evt.ContainsKey($key) -and $null -ne $evt[$key]) { return $evt[$key].ToString() }
         return ''
     }
 
