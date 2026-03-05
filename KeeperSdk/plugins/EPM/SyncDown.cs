@@ -21,8 +21,9 @@ namespace KeeperSecurity.Plugins.EPM
         /// <param name="storage">EPM storage to store synced data.</param>
         /// <param name="treeKey">Enterprise tree key for decrypting deployment keys. If null, keys will be stored encrypted.</param>
         /// <param name="fullSync">Force full sync by clearing continuation token.</param>
+        /// <param name="onExpiredApprovalsToDeny">Optional. When provided, expired approvals are denied on the server. Called with the list of expired approval UIDs.</param>
         /// <returns>Task that completes when sync is done.</returns>
-        public static async Task SyncEpmData(this IAuthentication auth, IEpmStorage storage, byte[] treeKey = null, bool fullSync = false)
+        public static async Task SyncEpmData(this IAuthentication auth, IEpmStorage storage, byte[] treeKey = null, bool fullSync = false, Func<IReadOnlyList<string>, Task> onExpiredApprovalsToDeny = null)
         {
             byte[] continuationToken = null;
             var tokenSetting = storage.Settings.GetEntity("PEDM_SYNC_TOKEN");
@@ -66,7 +67,11 @@ namespace KeeperSecurity.Plugins.EPM
 
                 ProcessRemovedItems(storage, response);
                 await ProcessAddedItems(storage, response, treeKey);
-                ProcessApprovalTimeouts(storage);
+                var expiredUids = ProcessApprovalTimeouts(storage);
+                if (expiredUids.Count > 0 && onExpiredApprovalsToDeny != null)
+                {
+                    await onExpiredApprovalsToDeny(expiredUids);
+                }
 
                 done = !response.HasMore;
             }
@@ -367,7 +372,7 @@ namespace KeeperSecurity.Plugins.EPM
             };
         }
 
-        private static void ProcessApprovalTimeouts(IEpmStorage storage)
+        private static List<string> ProcessApprovalTimeouts(IEpmStorage storage)
         {
             var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var allApprovals = storage.Approvals.GetAll().ToList();
@@ -405,6 +410,8 @@ namespace KeeperSecurity.Plugins.EPM
                 storage.Approvals.DeleteUids(approvalsToDeny);
                 storage.ApprovalStatus.DeleteUids(approvalsToDeny);
             }
+
+            return approvalsToDeny;
         }
     }
 }

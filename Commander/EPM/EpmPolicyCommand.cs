@@ -571,14 +571,16 @@ namespace Commander.EPM
                 {
                     if (collUid == "*" || collUid == "all")
                     {
-                        // Get all agents collection UID
-                        var allAgentsField = typeof(EpmPlugin).GetField("_allAgents", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                        if (allAgentsField != null)
+                        var allAgentsUid = Plugin.AllAgentsCollectionUid;
+                        if (!string.IsNullOrEmpty(allAgentsUid))
                         {
-                            var allAgentsBytes = allAgentsField.GetValue(Plugin) as byte[];
-                            if (allAgentsBytes != null)
+                            try
                             {
-                                collectionUids.Add(allAgentsBytes);
+                                collectionUids.Add(allAgentsUid.Base64UrlDecode());
+                            }
+                            catch
+                            {
+                                Console.WriteLine($"Invalid all-agents collection UID. Skipped.");
                             }
                         }
                     }

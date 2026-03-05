@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Commander;
 using KeeperSecurity.Enterprise;
@@ -175,58 +174,19 @@ namespace Commander.EPM
             
             try
             {
-                var storageField = typeof(EpmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (storageField != null)
+                var allAgentsUid = plugin.AllAgentsCollectionUid;
+                var policyLinks = plugin.GetCollectionLinksForObject(policy.PolicyUid);
+                var collectionUids = new List<string>();
+                foreach (var link in policyLinks)
                 {
-                    var storage = storageField.GetValue(plugin);
-                    var collectionLinksProperty = storage?.GetType().GetProperty("CollectionLinks");
-                    if (collectionLinksProperty != null)
+                    var collectionUid = link.CollectionUid;
+                    if (!string.IsNullOrEmpty(collectionUid))
                     {
-                        var collectionLinksStorage = collectionLinksProperty.GetValue(storage);
-                        var getLinksForObjectMethod = collectionLinksStorage?.GetType().GetMethod("GetLinksForObject", new[] { typeof(string) });
-                        if (getLinksForObjectMethod != null)
-                        {
-                            var policyLinks = getLinksForObjectMethod.Invoke(collectionLinksStorage, new object[] { policy.PolicyUid }) as System.Collections.IEnumerable;
-                            if (policyLinks != null)
-                            {
-                                var collectionUids = new List<string>();
-                                
-                                var allAgentsField = typeof(EpmPlugin).GetField("_allAgents", BindingFlags.NonPublic | BindingFlags.Instance);
-                                string allAgents = null;
-                                if (allAgentsField != null)
-                                {
-                                    var allAgentsBytes = allAgentsField.GetValue(plugin) as byte[];
-                                    if (allAgentsBytes != null)
-                                    {
-                                        allAgents = allAgentsBytes.Base64UrlEncode();
-                                    }
-                                }
-                                
-                                foreach (var link in policyLinks)
-                                {
-                                    var collectionUidProperty = link.GetType().GetProperty("CollectionUid");
-                                    if (collectionUidProperty != null)
-                                    {
-                                        var collectionUid = collectionUidProperty.GetValue(link)?.ToString();
-                                        if (!string.IsNullOrEmpty(collectionUid))
-                                        {
-                                            if (allAgents != null && collectionUid == allAgents)
-                                            {
-                                                collectionUids.Add("*");
-                                            }
-                                            else
-                                            {
-                                                collectionUids.Add(collectionUid);
-                                            }
-                                        }
-                                    }
-                                }
-                                collectionUids.Sort();
-                                collections = string.Join(", ", collectionUids);
-                            }
-                        }
+                        collectionUids.Add(allAgentsUid != null && collectionUid == allAgentsUid ? "*" : collectionUid);
                     }
                 }
+                collectionUids.Sort();
+                collections = string.Join(", ", collectionUids);
             }
             catch
             {

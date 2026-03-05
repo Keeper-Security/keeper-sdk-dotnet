@@ -92,6 +92,9 @@ namespace KeeperSecurity.Plugins.EPM
         Task SyncDown(bool reload = false);
         IEntityStorage<EpmDeployment> Deployments { get; }
         IEntityStorage<EpmAgent> Agents { get; }
+        string AllAgentsCollectionUid { get; }
+        IEnumerable<(string CollectionUid, string LinkUid, int LinkType)> GetCollectionLinksForObject(string objectUid);
+        int? GetApprovalStatus(string approvalUid);
     }
 
     public class EpmDeployment : IUid
@@ -316,7 +319,7 @@ namespace KeeperSecurity.Plugins.EPM
 
             _loader = loader;
             _auth = loader.Auth;
-            _enterpriseId = 0;
+            _enterpriseId = _auth.AuthContext?.License?.EnterpriseId ?? 0;
             var enterpriseIdBytes = BitConverter.GetBytes(_enterpriseId);
             if (BitConverter.IsLittleEndian)
             {
@@ -358,6 +361,27 @@ namespace KeeperSecurity.Plugins.EPM
         public ILinkStorage<IEpmStorageCollectionLink> CollectionLinks => _storage.CollectionLinks;
 
         public bool NeedSync => _needSync;
+
+        /// <inheritdoc />
+        public string AllAgentsCollectionUid => AllAgents.Base64UrlEncode();
+
+        /// <inheritdoc />
+        public IEnumerable<(string CollectionUid, string LinkUid, int LinkType)> GetCollectionLinksForObject(string objectUid)
+        {
+            if (string.IsNullOrEmpty(objectUid)) yield break;
+            foreach (var link in _storage.CollectionLinks.GetLinksForObject(objectUid))
+            {
+                yield return (link.CollectionUid, link.LinkUid, link.LinkType);
+            }
+        }
+
+        /// <inheritdoc />
+        public int? GetApprovalStatus(string approvalUid)
+        {
+            if (string.IsNullOrEmpty(approvalUid)) return null;
+            var status = _storage.ApprovalStatus.GetEntity(approvalUid);
+            return status?.ApprovalStatus;
+        }
 
         public byte[] AgentKey
         {
@@ -434,7 +458,13 @@ namespace KeeperSecurity.Plugins.EPM
 
             if (!_needSync) return;
 
-            await _auth.SyncEpmData(_storage, _loader.TreeKey, reload);
+            await _auth.SyncEpmData(_storage, _loader.TreeKey, reload, onExpiredApprovalsToDeny: async (expiredUids) =>
+            {
+                if (expiredUids != null && expiredUids.Count > 0)
+                {
+                    await ModifyApprovals(toDenyUids: expiredUids);
+                }
+            });
             _needSync = false;
 
             if (_populateData)
@@ -1080,11 +1110,6 @@ namespace KeeperSecurity.Plugins.EPM
             return status;
         }
 
-        public Task<IEnumerable<CollectionLinkDataResult>> GetCollectionLinks(IEnumerable<CollectionLink> links)
-        {
-            return Task.FromException<IEnumerable<CollectionLinkDataResult>>(
-                new NotImplementedException("GetCollectionLinks is not yet implemented"));
-        }
 
         public async Task<ModifyStatus> SetCollectionLinks(
             IEnumerable<CollectionLink> setLinks = null,
@@ -1304,6 +1329,17 @@ namespace KeeperSecurity.Plugins.EPM
 
             _needSync = true;
             return ModifyStatus.FromProto(statusRs);
+        }
+
+        public Task<ModifyStatus> ModifyApprovals(
+            IEnumerable<string> toApproveUids = null,
+            IEnumerable<string> toDenyUids = null,
+            IEnumerable<string> toRemoveUids = null)
+        {
+            var toApprove = toApproveUids != null ? toApproveUids.Select(uid => uid.Base64UrlDecode()).ToList() : null;
+            var toDeny = toDenyUids != null ? toDenyUids.Select(uid => uid.Base64UrlDecode()).ToList() : null;
+            var toRemove = toRemoveUids != null ? toRemoveUids.Select(uid => uid.Base64UrlDecode()).ToList() : null;
+            return ModifyApprovals(toApprove, toDeny, toRemove);
         }
 
         public async Task<ModifyStatus> ModifyApprovals(

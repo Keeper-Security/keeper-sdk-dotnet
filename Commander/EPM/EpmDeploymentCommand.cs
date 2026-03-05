@@ -353,19 +353,6 @@ namespace Commander.EPM
             var host = Context.Enterprise?.Auth?.Endpoint?.Server ?? "keepersecurity.com";
             var token = $"{host}:{deployment.DeploymentUid}:{deployment.PrivateKey.Base64UrlEncode()}";
 
-            if (!string.IsNullOrEmpty(options.File) && !options.Verbose)
-            {
-                File.WriteAllText(options.File, token);
-                Console.WriteLine($"Deployment token written to: {options.File}");
-                return;
-            }
-
-            if (!options.Verbose)
-            {
-                Console.WriteLine(token);
-                return;
-            }
-
             string path = "";
             string windows = "";
             string macos = "";

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Cli;
@@ -74,7 +73,7 @@ namespace Commander.EPM
                     var accountInfo = ParseApprovalField(appr.AccountInfo);
                     var applicationInfo = ParseApprovalField(appr.ApplicationInfo);
                     var justification = ParseApprovalField(appr.Justification);
-                    var status = GetApprovalStatus(Plugin, appr.ApprovalUid);
+                    var status = GetApprovalStatus((IEpmAdmin)Plugin, appr.ApprovalUid);
                     var expireIn = appr.ExpireIn > 0 ? $"{appr.ExpireIn}s" : "";
                     var created = DateTimeOffset.FromUnixTimeMilliseconds(appr.Created).ToString("yyyy-MM-dd HH:mm:ss");
                     tab.AddRow(appr.ApprovalUid, appr.ApprovalType.ToString(), status, appr.AgentUid ?? "", accountInfo, applicationInfo, justification, expireIn, created);
@@ -100,7 +99,7 @@ namespace Commander.EPM
 
             Console.WriteLine($"Approval: {approvalUid}");
             Console.WriteLine($"  Type: {approval.ApprovalType}");
-            Console.WriteLine($"  Status: {GetApprovalStatus(Plugin, approvalUid)}");
+            Console.WriteLine($"  Status: {GetApprovalStatus((IEpmAdmin)Plugin, approvalUid)}");
             Console.WriteLine($"  Agent UID: {approval.AgentUid ?? ""}");
             Console.WriteLine($"  Account Info: {ParseApprovalField(approval.AccountInfo)}");
             Console.WriteLine($"  Application Info: {ParseApprovalField(approval.ApplicationInfo)}");
@@ -124,7 +123,7 @@ namespace Commander.EPM
                 return;
             }
 
-            var currentStatus = GetApprovalStatusInt(Plugin, approvalUid);
+            var currentStatus = GetApprovalStatusInt((IEpmAdmin)Plugin, approvalUid);
             if (currentStatus == 1) 
             {
                 Console.WriteLine($"Approval '{approvalUid}' is already APPROVED. Cannot approve again.");
@@ -136,11 +135,10 @@ namespace Commander.EPM
                 return;
             }
 
-            var approvalUidBytes = approvalUid.Base64UrlDecode();
             var approveStatus = await Plugin.ModifyApprovals(
-                toApprove: new[] { approvalUidBytes },
-                toDeny: null,
-                toRemove: null);
+                toApproveUids: new[] { approvalUid },
+                toDenyUids: null,
+                toRemoveUids: null);
 
             Console.WriteLine($"Approval '{approvalUid}' approved.");
             if (approveStatus.Add?.Count > 0 || approveStatus.Update?.Count > 0 || approveStatus.Remove?.Count > 0)
@@ -166,7 +164,7 @@ namespace Commander.EPM
                 return;
             }
 
-            var currentStatus = GetApprovalStatusInt(Plugin, approvalUid);
+            var currentStatus = GetApprovalStatusInt((IEpmAdmin)Plugin, approvalUid);
             if (currentStatus == 2) 
             {
                 Console.WriteLine($"Approval '{approvalUid}' is already DENIED. Cannot deny again.");
@@ -178,11 +176,10 @@ namespace Commander.EPM
                 return;
             }
 
-            var approvalUidBytes = approvalUid.Base64UrlDecode();
             var denyStatus = await Plugin.ModifyApprovals(
-                toApprove: null,
-                toDeny: new[] { approvalUidBytes },
-                toRemove: null);
+                toApproveUids: null,
+                toDenyUids: new[] { approvalUid },
+                toRemoveUids: null);
 
             Console.WriteLine($"Approval '{approvalUid}' denied.");
             if (denyStatus.Add?.Count > 0 || denyStatus.Update?.Count > 0 || denyStatus.Remove?.Count > 0)
@@ -201,11 +198,10 @@ namespace Commander.EPM
                 return;
             }
 
-            var approvalUidBytes = approvalUid.Base64UrlDecode();
             var removeStatus = await Plugin.ModifyApprovals(
-                toApprove: null,
-                toDeny: null,
-                toRemove: new[] { approvalUidBytes });
+                toApproveUids: null,
+                toDenyUids: null,
+                toRemoveUids: new[] { approvalUid });
 
             Console.WriteLine($"Approval '{approvalUid}' removed.");
             if (removeStatus.Add?.Count > 0 || removeStatus.Update?.Count > 0 || removeStatus.Remove?.Count > 0)
@@ -270,7 +266,7 @@ namespace Commander.EPM
             return (nonPrintableCount * 100.0 / text.Length) < 10;
         }
 
-        private static string GetApprovalStatus(EpmPlugin plugin, string approvalUid)
+        private static string GetApprovalStatus(IEpmAdmin plugin, string approvalUid)
         {
             var statusInt = GetApprovalStatusInt(plugin, approvalUid);
             return statusInt switch
@@ -282,42 +278,9 @@ namespace Commander.EPM
             };
         }
 
-        private static int GetApprovalStatusInt(EpmPlugin plugin, string approvalUid)
+        private static int GetApprovalStatusInt(IEpmAdmin plugin, string approvalUid)
         {
-            try
-            {
-                var storageField = typeof(EpmPlugin).GetField("_storage", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (storageField != null)
-                {
-                    var storage = storageField.GetValue(plugin);
-                    var approvalStatusProperty = storage?.GetType().GetProperty("ApprovalStatus");
-                    if (approvalStatusProperty != null)
-                    {
-                        var approvalStatusStorage = approvalStatusProperty.GetValue(storage);
-                        var getEntityMethod = approvalStatusStorage?.GetType().GetMethod("GetEntity", new[] { typeof(string) });
-                        if (getEntityMethod != null)
-                        {
-                            var statusEntity = getEntityMethod.Invoke(approvalStatusStorage, new object[] { approvalUid });
-                            if (statusEntity != null)
-                            {
-                                var statusProperty = statusEntity.GetType().GetProperty("ApprovalStatus");
-                                if (statusProperty != null)
-                                {
-                                    var statusValue = statusProperty.GetValue(statusEntity);
-                                    if (statusValue is int statusInt)
-                                    {
-                                        return statusInt;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-            }
-            return 0; // Default to PENDING
+            return plugin?.GetApprovalStatus(approvalUid) ?? 0; // 0 = PENDING when unknown
         }
     }
 
