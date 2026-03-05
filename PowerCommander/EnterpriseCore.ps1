@@ -453,7 +453,7 @@ function Get-KeeperAuditReport {
         if ($ipProp) {
             $ipProp.SetValue($filter, [string[]]$IpAddress)
         } else {
-            Write-Warning "IpAddress filter is not supported by the loaded KeeperSdk version."
+            Write-Warning "Failed to apply IpAddress filter."
         }
     }
 
@@ -463,9 +463,28 @@ function Get-KeeperAuditReport {
             $resolvedNodeIds = [System.Collections.Generic.List[long]]::new()
             foreach ($n in $NodeId) {
                 try {
-                    $node = $enterprise.enterpriseData.ResolveNodeName($n)
-                    if (-not $resolvedNodeIds.Contains($node.Id)) {
-                        $resolvedNodeIds.Add($node.Id)
+                    $resolved = $null
+                    if ($n -match '^\d+$') {
+                        $nodeIdLong = [long]$n
+                        $outNode = $null
+                        if ($enterprise.enterpriseData.TryGetNode($nodeIdLong, [ref]$outNode)) {
+                            $resolved = $outNode
+                        }
+                    }
+                    if ($null -eq $resolved) {
+                        $nodeMatches = @($enterprise.enterpriseData.Nodes | Where-Object {
+                            [string]::Equals($_.DisplayName, $n, [System.StringComparison]::OrdinalIgnoreCase)
+                        })
+                        if ($nodeMatches.Count -eq 1) {
+                            $resolved = $nodeMatches[0]
+                        } elseif ($nodeMatches.Count -gt 1) {
+                            throw [System.Exception]::new("There are $($nodeMatches.Count) nodes with name `"$n`". Use Node ID instead of Node name.")
+                        } else {
+                            throw [System.Exception]::new("Node `"$n`" is not found.")
+                        }
+                    }
+                    if (-not $resolvedNodeIds.Contains($resolved.Id)) {
+                        $resolvedNodeIds.Add($resolved.Id)
                     }
                 } catch {
                     Write-Warning "Could not resolve node '$n': $($_.Exception.Message)"
@@ -477,7 +496,7 @@ function Get-KeeperAuditReport {
                 Write-Error "No valid node IDs found." -ErrorAction Stop
             }
         } else {
-            Write-Warning "NodeId filter is not supported by the loaded KeeperSdk version."
+            Write-Warning "Failed to apply NodeId filter."
         }
     }
 
@@ -589,8 +608,9 @@ function Get-KeeperAuditReport {
             if ($null -ne $pf) { $patternFilters.Add($pf) }
         }
         if ($patternFilters.Count -eq 0) {
-            Write-Error "No valid filter patterns were provided." -ErrorAction Stop
+            Write-Warning "No valid filter patterns were provided. Showing unfiltered results."
         }
+        else {
         $filteredEvents = [System.Collections.Generic.List[System.Collections.Generic.Dictionary[string,object]]]::new()
         foreach ($evt in $allEvents) {
             if (ApplyFilters $evt $patternFilters $MatchAll.IsPresent) {
@@ -600,6 +620,7 @@ function Get-KeeperAuditReport {
         if ($filteredEvents.Count -eq 0) {
             Write-Host "No events matched the filter pattern(s)."
             return
+        }
         }
     }
 
