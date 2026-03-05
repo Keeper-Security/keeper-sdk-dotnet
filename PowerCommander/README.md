@@ -151,7 +151,6 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [New-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-2)                                | kamc             | Create Managed Company (-Name, -PlanId, -MaximumSeats; optional -Storage, -Addons, -Node)
 | [Remove-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-4)                             | krmc             | Remove Managed Company (by name or ID; -Force to skip confirmation)
 | [Edit-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-3)                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
-| [Get-KeeperAuditReport]()                             | kar              | Run an enterprise audit trail report (raw/span/day/week/month/hour/dim; -Limit, -Created, -EventType, -Username, -Format table/csv/json)
 | [Copy-KeeperMCRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-6)                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | [Get-MspBillingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-8)                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
 | [Get-KeeperNodeName]()                                      |                  | Return Name of current Enterprise Node
@@ -459,7 +458,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > Clear-KeeperTrash -Force
     ```
 
-29. Copy enterprise role to another node
+30. Copy enterprise role to another node
     ```
     PS > Copy-KeeperEnterpriseRole -SourceRole "Test-App" -TargetNode "dev" -NewRoleName "second dev"
     ```
@@ -472,7 +471,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > Copy-KeeperEnterpriseRole -SourceRole "AdminRole" -TargetNode 123456789 -NewRoleName "AdminRole-Copy" -CopyUsers $false
     ```
 
-30. Run an audit trail report
+31. Run an audit trail report
     ```
     PS > Get-KeeperAuditReport
     ```
