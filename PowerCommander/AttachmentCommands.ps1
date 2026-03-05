@@ -100,31 +100,87 @@ New-Alias -Name kda -Value Copy-KeeperFileAttachment
 function Copy-KeeperFileAttachmentToStream {
     <#
     .Synopsis
-    Get Attachment as stream
+    Downloads an attachment to a stream or file path.
 
-    .Record
-    Keeper Record Uid
+    .Description
+    Use -Path to download to a file (e.g. -Path "C:\Downloads\file.png").
+    Use -Stream to write to an existing Stream object for advanced scenarios.
 
-    .AttachmentName
-    Attachment Name
+    .Parameter Record
+    Keeper record UID or title.
 
-    .Stream
-    Attachment will be written to this stream
+    .Parameter Name
+    Attachment file name or ID. Omit if the record has only one attachment.
+
+    .Parameter Path
+    File path to save the attachment. Creates the directory if needed.
+
+    .Parameter Stream
+    A System.IO.Stream to write the attachment data to.
+
+    .Example
+    Copy-KeeperFileAttachmentToStream -Record "ABxzAJFeEd_pRAFbcqGCJA" -Name "download.png" -Path "C:\Downloads\file.png"
+
+    .Example
+    $ms = [System.IO.MemoryStream]::new()                                       
+    Copy-KeeperFileAttachmentToStream -Record <Record ID> -Stream $ms
+    $ms.Position = 0
+    $reader = [System.IO.StreamReader]::new($ms)
+    $reader.ReadToEnd()
+    $reader.Dispose()
+    $ms.Dispose()
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Path')]
     Param (
         [Parameter(Mandatory = $true)][string] $Record,
-        [Parameter()][string] $AttachmentName,
-        [Parameter(Position = 0, Mandatory = $true)][System.IO.Stream] $Stream
+        [Parameter()][string] $Name,
+        [Parameter(ParameterSetName = 'Path', Mandatory = $true, Position = 0)][string] $Path,
+        [Parameter(ParameterSetName = 'Stream', Mandatory = $true)][System.IO.Stream] $Stream
     )
 
     $keeperRecord = Get-KeeperRecord $Record
-    if ($keeperRecord.Length -ne 1) {
+    if ($null -eq $keeperRecord -or (@($keeperRecord).Count -ne 1)) {
         Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
     }
+    $keeperRecord = @($keeperRecord)[0]
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $vault.DownloadAttachment($keeperRecord, $AttachmentName, $Stream).GetAwaiter().GetResult() | Out-Null
+    $attachments = @($vault.RecordAttachments($keeperRecord))
+    if ($attachments.Count -eq 0) {
+        Write-Error "Record has no attachments" -ErrorAction Stop
+    }
+
+    [KeeperSecurity.Vault.IAttachment]$atta = $null
+    if ($Name) {
+        $atta = $attachments | Where-Object { $_.Name -eq $Name -or $_.Title -eq $Name -or $_.Id -eq $Name } | Select-Object -First 1
+        if (-not $atta) {
+            Write-Error "Attachment `"$Name`" not found on record" -ErrorAction Stop
+        }
+    } else {
+        $atta = $attachments[0]
+    }
+
+    $streamToUse = $Stream
+    $ownsStream = $false
+    if ($PSCmdlet.ParameterSetName -eq 'Path') {
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+        $dir = [System.IO.Path]::GetDirectoryName($fullPath)
+        if (-not [string]::IsNullOrEmpty($dir) -and -not (Test-Path -LiteralPath $dir -PathType Container)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+        $streamToUse = [System.IO.File]::Create($fullPath)
+        $ownsStream = $true
+    }
+
+    try {
+        $vault.DownloadAttachment($keeperRecord, $atta.Id, $streamToUse).GetAwaiter().GetResult() | Out-Null
+    }
+    finally {
+        if ($ownsStream) {
+            $streamToUse.Dispose()
+        }
+    }
 }
 
 function Copy-FileToKeeperRecord {
@@ -371,16 +427,21 @@ function Get-KeeperFileReport {
 
     $result = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($item in $report) {
+        $title = $item.RecordTitle; if ($null -eq $title) { $title = '' }
+        $recUid = $item.RecordUid; if ($null -eq $recUid) { $recUid = '' }
+        $recType = $item.RecordType; if ($null -eq $recType) { $recType = '' }
+        $fileId = $item.FileId; if ($null -eq $fileId) { $fileId = '' }
+        $fileName = $item.FileName; if ($null -eq $fileName) { $fileName = '' }
         $row = [ordered]@{
-            'Title'       = (if ($null -ne $item.RecordTitle) { $item.RecordTitle } else { '' })
-            'Record UID'  = (if ($null -ne $item.RecordUid) { $item.RecordUid } else { '' })
-            'Record Type' = (if ($null -ne $item.RecordType) { $item.RecordType } else { '' })
-            'File ID'     = (if ($null -ne $item.FileId) { $item.FileId } else { '' })
-            'File Name'   = (if ($null -ne $item.FileName) { $item.FileName } else { '' })
+            'Title'       = $title
+            'Record UID'  = $recUid
+            'Record Type' = $recType
+            'File ID'     = $fileId
+            'File Name'   = $fileName
             'File Size'   = $item.FileSize
         }
         if ($TryDownload.IsPresent) {
-            $row['Downloadable'] = (if ($null -ne $item.Downloadable) { $item.Downloadable } else { '' })
+            $dl = $item.Downloadable; if ($null -eq $dl) { $dl = '' }; $row['Downloadable'] = $dl
         }
         $result.Add([PSCustomObject]$row)
     }

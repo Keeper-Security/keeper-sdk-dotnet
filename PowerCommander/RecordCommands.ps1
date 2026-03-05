@@ -291,6 +291,17 @@ function Get-KeeperPasswordVisible {
 }
 
 function Set-KeeperPasswordVisible {
+    <#
+    .SYNOPSIS
+    Sets whether password and secret fields are visible in Get-KeeperRecord output.
+
+    .PARAMETER Visible
+    When specified, passwords are shown. When omitted, passwords are masked.
+
+    .EXAMPLE
+    Set-KeeperPasswordVisible -Visible
+    Enables password visibility for subsequent Get-KeeperRecord commands.
+    #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     Param ([switch] $Visible)
