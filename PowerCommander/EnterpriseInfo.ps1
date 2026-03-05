@@ -183,18 +183,18 @@ function Get-KeeperEnterpriseInfoNode {
     $userCount = @{}; $teamCount = @{}; $roleCount = @{}
     $userList = @{}; $teamList = @{}; $roleList = @{}
     foreach ($u in $ed.Users) {
-        $userCount[$u.ParentNodeId] = ((if ($null -ne $userCount[$u.ParentNodeId]) { $userCount[$u.ParentNodeId] } else { 0 }) + 1)
+        $prev = $userCount[$u.ParentNodeId]; if ($null -eq $prev) { $prev = 0 }; $userCount[$u.ParentNodeId] = $prev + 1
         if (-not $userList[$u.ParentNodeId]) { $userList[$u.ParentNodeId] = [System.Collections.Generic.List[string]]::new() }
         $userList[$u.ParentNodeId].Add($u.Email) | Out-Null
     }
     foreach ($t in $ed.Teams) {
         $nid = if ($t.ParentNodeId -eq 0) { $ed.RootNode.Id } else { $t.ParentNodeId }
-        $teamCount[$nid] = ((if ($null -ne $teamCount[$nid]) { $teamCount[$nid] } else { 0 }) + 1)
+        $prev = $teamCount[$nid]; if ($null -eq $prev) { $prev = 0 }; $teamCount[$nid] = $prev + 1
         if (-not $teamList[$nid]) { $teamList[$nid] = [System.Collections.Generic.List[string]]::new() }
         $teamList[$nid].Add($t.Name) | Out-Null
     }
     foreach ($r in $rd.Roles) {
-        $roleCount[$r.ParentNodeId] = ((if ($null -ne $roleCount[$r.ParentNodeId]) { $roleCount[$r.ParentNodeId] } else { 0 }) + 1)
+        $prev = $roleCount[$r.ParentNodeId]; if ($null -eq $prev) { $prev = 0 }; $roleCount[$r.ParentNodeId] = $prev + 1
         if (-not $roleList[$r.ParentNodeId]) { $roleList[$r.ParentNodeId] = [System.Collections.Generic.List[string]]::new() }
         $roleList[$r.ParentNodeId].Add($r.DisplayName) | Out-Null
     }
@@ -217,11 +217,11 @@ function Get-KeeperEnterpriseInfoNode {
         foreach ($c in $colSet) {
             switch ($c) {
                 'parent_node'   { $row['ParentNode'] = if ($n.ParentNodeId -le 0) { '' } else { Get-KeeperNodePath -NodeId $n.ParentNodeId } }
-                'user_count'    { $row['UserCount'] = (if ($null -ne $userCount[$n.Id]) { $userCount[$n.Id] } else { 0 }) }
+                'user_count'    { $row['UserCount'] = $userCount[$n.Id]; if ($null -eq $row['UserCount']) { $row['UserCount'] = 0 } }
                 'users'         { $row['Users'] = ($userList[$n.Id] | Sort-Object) -join ', ' }
-                'team_count'    { $row['TeamCount'] = (if ($null -ne $teamCount[$n.Id]) { $teamCount[$n.Id] } else { 0 }) }
+                'team_count'    { $row['TeamCount'] = $teamCount[$n.Id]; if ($null -eq $row['TeamCount']) { $row['TeamCount'] = 0 } }
                 'teams'         { $row['Teams'] = ($teamList[$n.Id] | Sort-Object) -join ', ' }
-                'role_count'   { $row['RoleCount'] = (if ($null -ne $roleCount[$n.Id]) { $roleCount[$n.Id] } else { 0 }) }
+                'role_count'   { $row['RoleCount'] = $roleCount[$n.Id]; if ($null -eq $row['RoleCount']) { $row['RoleCount'] = 0 } }
                 'roles'         { $row['Roles'] = ($roleList[$n.Id] | Sort-Object) -join ', ' }
                 'provisioning'  { $parts = @(); if ($n.BridgeId -gt 0) { $parts += 'Bridge' }; if ($n.ScimId -gt 0) { $parts += 'SCIM' }; if ($n.SsoServiceProviderIds -and $n.SsoServiceProviderIds.Length -gt 0) { $parts += 'SSO' }; $row['Provisioning'] = ($parts -join ', ') }
             }
@@ -320,9 +320,9 @@ function Get-KeeperEnterpriseInfoUser {
                 'status'           { $row['Status'] = & $statusText $u.UserStatus }
                 'transfer_status'  { $row['TransferStatus'] = & $transferText $u.TransferAcceptanceStatus }
                 'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot }
-                'role_count'       { $row['RoleCount'] = (if ($null -ne $roleUsers[$u.Id]) { $roleUsers[$u.Id].Count } else { 0 }) }
+                'role_count'       { $arr = $roleUsers[$u.Id]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
                 'roles'            { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
-                'team_count'       { $row['TeamCount'] = (if ($null -ne $teamUsers[$u.Id]) { $teamUsers[$u.Id].Count } else { 0 }) }
+                'team_count'       { $arr = $teamUsers[$u.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'            { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
                 'queued_team_count' { $row['QueuedTeamCount'] = 0 }
                 'queued_teams'      { $row['QueuedTeams'] = '' }
@@ -429,11 +429,11 @@ function Get-KeeperEnterpriseInfoTeam {
             switch ($c) {
                 'restricts'        { $row['Restricts'] = $restricts }
                 'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $t.ParentNodeId -OmitRoot }
-                'user_count'       { $row['UserCount'] = (if ($null -ne $userCount[$t.Uid]) { $userCount[$t.Uid] } else { 0 }) }
+                'user_count'       { $row['UserCount'] = $userCount[$t.Uid]; if ($null -eq $row['UserCount']) { $row['UserCount'] = 0 } }
                 'users'            { $row['Users'] = ($userList[$t.Uid] -join ', ') }
                 'queued_user_count'{ $row['QueuedUserCount'] = 0 }
                 'queued_users'     { $row['QueuedUsers'] = '' }
-                'role_count'       { $row['RoleCount'] = (if ($null -ne $roleList[$t.Uid]) { $roleList[$t.Uid].Count } else { 0 }) }
+                'role_count'       { $arr = $roleList[$t.Uid]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
                 'roles'            { $row['Roles'] = (($roleList[$t.Uid] | Sort-Object) -join ', ') }
             }
         }
@@ -536,9 +536,9 @@ function Get-KeeperEnterpriseInfoRole {
                 'default_role'   { $row['DefaultRole'] = $r.NewUserInherit }
                 'admin'         { $row['Admin'] = $adminRoleIds.Contains($r.Id) }
                 'node'          { $row['Node'] = Get-KeeperNodePath -NodeId $r.ParentNodeId -OmitRoot }
-                'user_count'    { $row['UserCount'] = (if ($null -ne $userCount[$r.Id]) { $userCount[$r.Id] } else { 0 }) }
+                'user_count'    { $row['UserCount'] = $userCount[$r.Id]; if ($null -eq $row['UserCount']) { $row['UserCount'] = 0 } }
                 'users'         { $row['Users'] = ($userList[$r.Id] -join ', ') }
-                'team_count'    { $row['TeamCount'] = (if ($null -ne $teamList[$r.Id]) { $teamList[$r.Id].Count } else { 0 }) }
+                'team_count'    { $arr = $teamList[$r.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'         { $row['Teams'] = (($teamList[$r.Id] | Sort-Object) -join ', ') }
             }
         }

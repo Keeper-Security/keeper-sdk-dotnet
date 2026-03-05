@@ -105,13 +105,29 @@ New-Alias -Name unlock-user -Value Unlock-KeeperEnterpriseUser
 function Move-KeeperEnterpriseUser {
     <#
         .Synopsis
-    	Transfers enterprise user account to another user
+        Transfers an enterprise user's vault (records, shared folders, teams) to another user
 
         .Parameter FromUser
-	    email or user ID to transfer vault from user
+        Email or enterprise user ID of the source user whose vault will be transferred
 
         .Parameter TargetUser
-	    email or user ID to transfer vault to user
+        Email or enterprise user ID of the destination user who will receive the vault
+
+        .Parameter Force
+        Skip confirmation prompt in non-interactive sessions
+
+        .Description
+        Transfers all records, shared folders, and team memberships from one enterprise user to another.
+        The source user's vault contents are merged into the target user's vault. Use -Force to skip
+        confirmation in automated scripts.
+
+        .Example
+        Move-KeeperEnterpriseUser -FromUser "departing@company.com" -TargetUser "replacement@company.com"
+        Transfers the departing user's vault to the replacement user (prompts for confirmation)
+
+        .Example
+        transfer-user "departing@company.com" "replacement@company.com" -Force
+        Transfers vault without confirmation prompt
     #>
     [CmdletBinding()]
     Param (
@@ -312,14 +328,18 @@ function Update-KeeperEnterpriseTeamUser {
         User email address
 
         .Parameter UserType
-        User type: 0, 1, or 2
+        User type: 0, 1, or 2. 0 = User (normal member), 1 = Administrator (can manage team, sees shared folders), 2 = Administrator Only (can manage team but does not see shared folders)
 
         .Description
-        Updates the user type for a user in a specific enterprise team. User type must be 0, 1, or 2.
+        Updates the user type for a user in a specific enterprise team. UserType must be 0, 1, or 2.
 
         .Example
         Update-KeeperEnterpriseTeamUser -Team "Engineering" -User "user@example.com" -UserType 1
-        Updates the user type for user@example.com in the Engineering team
+        Makes user@example.com an Administrator in the Engineering team
+
+        .Example
+        Update-KeeperEnterpriseTeamUser -Team "Engineering" -User "user@example.com" -UserType 0
+        Makes user@example.com a normal User in the Engineering team
     #>
     [CmdletBinding()]
     Param (
