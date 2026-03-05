@@ -151,6 +151,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | New-KeeperManagedCompany                                | kamc             | Create Managed Company (-Name, -PlanId, -MaximumSeats; optional -Storage, -Addons, -Node)
 | Remove-KeeperManagedCompany                             | krmc             | Remove Managed Company (by name or ID; -Force to skip confirmation)
 | Edit-KeeperManagedCompany                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
+| Get-KeeperAuditReport                                   | kar              | Run an enterprise audit trail report
 | Copy-KeeperMCRole                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | Get-MspBillingReport                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
 | Get-KeeperNodeName                                      |                  | Return Name of current Enterprise Node
@@ -470,3 +471,13 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     PS > Copy-KeeperEnterpriseRole -SourceRole "AdminRole" -TargetNode 123456789 -NewRoleName "AdminRole-Copy" -CopyUsers $false
     ```
+
+30. Run an audit trail report
+    ```
+    PS > Get-KeeperAuditReport
+    ```
+    or using the alias
+    ```
+    PS > kar
+    ```
+    Returns the last 100 raw audit events (Created, Username, Event, Message).
