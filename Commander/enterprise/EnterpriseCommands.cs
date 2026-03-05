@@ -211,15 +211,6 @@ namespace Commander
                     Action = async options => { await epmApproval.ExecuteAsync(options); },
                 });
 
-            var epmCollectionLink = new EpmCollectionLinkCommand(context);
-            cli.Commands.Add("epm-collection-link",
-                new ParseableCommand<EpmCollectionLinkOptions>
-                {
-                    Order = 86,
-                    Description = "Manage EPM collection links",
-                    Action = async options => { await epmCollectionLink.ExecuteAsync(options); },
-                });
-
             cli.Aliases["eget"] = "enterprise-get-data";
             cli.Aliases["en"] = "enterprise-node";
             cli.Aliases["eu"] = "enterprise-user";

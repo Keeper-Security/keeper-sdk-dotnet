@@ -311,8 +311,8 @@ namespace KeeperSecurity.Plugins.EPM
             {
                 PolicyUid = node.PolicyUid.ToByteArray().Base64UrlEncode(),
                 AdminData = adminDataBytes,
-                Data = node.EncryptedData.ToByteArray(),
-                Key = node.EncryptedKey.ToByteArray(),
+                Data = node.EncryptedData?.ToByteArray() ?? Array.Empty<byte>(),
+                Key = node.EncryptedKey?.ToByteArray() ?? Array.Empty<byte>(),
                 Disabled = disabled,
                 Created = node.Created,
                 Updated = node.Modified
