@@ -48,7 +48,8 @@ Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperNodePath, Get-Keeper
 
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam, Get-KeeperEnterpriseNode,
 Get-KeeperEnterpriseInfoTree, Get-KeeperEnterpriseInfoNode, Get-KeeperEnterpriseInfoUser,
-Get-KeeperEnterpriseInfoTeam, Get-KeeperEnterpriseInfoRole, Get-KeeperEnterpriseInfoManagedCompany
+Get-KeeperEnterpriseInfoTeam, Get-KeeperEnterpriseInfoRole, Get-KeeperEnterpriseInfoManagedCompany,
+Get-KeeperAuditReport
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
@@ -73,7 +74,7 @@ Invoke-KeeperEnterpriseNodeWipeOut
 
 
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
-keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team
+keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team, kar
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
