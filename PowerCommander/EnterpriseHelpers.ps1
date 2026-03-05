@@ -351,15 +351,19 @@ function Get-KeeperTeamByNameOrUid {
 function ConvertTo-RoleEnforcementPolicy {
     param([string]$EnforcementType)
     if ([string]::IsNullOrWhiteSpace($EnforcementType)) { return $null }
-    $parsed = $null
-    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $EnforcementType.Trim(), $true, [ref]$parsed)) {
-        return $parsed
+    $key = $EnforcementType.Trim()
+    try {
+        return [Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $key, $true)
     }
-    $norm = $EnforcementType -replace '_', ''
-    if ([System.Enum]::TryParse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true, [ref]$parsed)) {
-        return $parsed
+    catch {
+        $norm = $key -replace '_', ''
+        try {
+            return [Enum]::Parse([KeeperSecurity.Enterprise.RoleEnforcementPolicies], $norm, $true)
+        }
+        catch {
+            return $null
+        }
     }
-    return $null
 }
 
 <#
