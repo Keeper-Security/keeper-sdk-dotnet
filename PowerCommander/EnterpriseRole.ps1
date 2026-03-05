@@ -1,4 +1,4 @@
-function Get-KeeperEnterpriseRole {
+function Get-EnterpriseRole {
     <#
         .SYNOPSIS
     	Get a list of enterprise roles
@@ -10,6 +10,87 @@ function Get-KeeperEnterpriseRole {
 
     [Enterprise]$enterprise = getEnterprise
     return $enterprise.roleData.Roles
+}
+
+function Get-KeeperEnterpriseRole {
+    <#
+        .SYNOPSIS
+    	Get a list of enterprise roles
+
+        .PARAMETER Name
+        Role Name or ID (exact match). Returns the single matching role.
+
+        .PARAMETER Filter
+        Search filter applied across all role properties (case-insensitive regex match).
+
+        .PARAMETER Format
+        Output format: table (default) or json.
+
+        .PARAMETER Output
+        File path to export results when Format is 'json'. Ignored for 'table' format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole
+        Lists all enterprise roles in table format.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Name "AdminRole"
+        Returns the enterprise role named "AdminRole".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Filter "manager"
+        Returns all enterprise roles whose properties match "manager".
+
+        .EXAMPLE
+        Get-KeeperEnterpriseRole -Format json -Output "roles.json"
+        Exports all enterprise roles to a JSON file.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $Name,
+        [Parameter()][string] $Filter,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Parameter()][string] $Output
+    )
+
+    if ($Name) { $Name = $Name.Trim() }
+    if ($Filter) { $Filter = $Filter.Trim() }
+
+    $roles = Get-EnterpriseRole
+    if (-not $roles) {
+        Write-Warning "No enterprise roles found."
+        return @()
+    }
+
+    if ($Name) {
+        $roles = $roles | Where-Object { ($_.DisplayName -eq $Name) -or ($_.Id.ToString() -eq $Name) }
+    }
+
+    if ($Filter) {
+        $filterLower = $Filter.ToLower()
+        $roles = $roles | Where-Object {
+            $text = ($_.PSObject.Properties.Value | ForEach-Object { "$_" }) -join ' '
+            $text -match [regex]::Escape($filterLower)
+        }
+    }
+
+    $result = @($roles)
+    if ($result.Count -eq 0 -and ($Name -or $Filter)) {
+        Write-Host "No matching enterprise roles found." -ForegroundColor Yellow
+        return @()
+    }
+
+    if ($Format -eq 'json') {
+        $json = $result | ConvertTo-Json -Depth 5
+        if ($Output) {
+            Set-Content -Path $Output -Value $json -Encoding utf8
+            Write-Host "Results exported to: $Output" -ForegroundColor Green
+        } else {
+            return $json
+        }
+    } else {
+        return $result
+    }
 }
 New-Alias -Name ker -Value Get-KeeperEnterpriseRole
 
@@ -145,16 +226,16 @@ function Get-KeeperEnterpriseAdminRole {
     $roles = $null
 
     if ($Pattern -is [String]) {
-        $roles = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Pattern -or $_.DisplayName -match $Pattern } 
+        $roles = Get-EnterpriseRole | Where-Object { $_.Id -eq $Pattern -or $_.DisplayName -match $Pattern } 
     }
     elseif ($Pattern -is [long]) {
-        $roles = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Pattern } 
+        $roles = Get-EnterpriseRole | Where-Object { $_.Id -eq $Pattern } 
     }
     elseif ($null -ne $Pattern.Id) {
         $roles = $Pattern
     }
     else {
-        $roles = Get-KeeperEnterpriseRole
+        $roles = Get-EnterpriseRole
     }
     if ($null -ne $roles -and $roles.Length -gt 0 ) {
         $roles = $roles | Sort-Object -Property DisplayName
@@ -201,7 +282,7 @@ function Set-KeeperEnterpriseRole {
         Removes the role with ID 123456789 as the default role for new users
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Set-KeeperEnterpriseRole -NewUserInherit $true
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Set-KeeperEnterpriseRole -NewUserInherit $true
         Sets the role using pipeline input
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
@@ -278,7 +359,7 @@ function Grant-KeeperEnterpriseRoleToUser {
         Adds the user to the role
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToUser -User "user@example.com"
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToUser -User "user@example.com"
         Adds the user using pipeline input for the role
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
@@ -336,7 +417,7 @@ function Revoke-KeeperEnterpriseRoleFromUser {
         Removes the user from the role
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromUser -User "user@example.com"
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromUser -User "user@example.com"
         Removes the user using pipeline input for the role
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
@@ -398,7 +479,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
         Adds the team using Team UID
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToTeam -Team "Engineering"
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToTeam -Team "Engineering"
         Adds the team using pipeline input for the role
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
@@ -460,7 +541,7 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes the team using Team UID
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering"
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering"
         Removes the team using pipeline input for the role
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
@@ -600,7 +681,7 @@ function New-KeeperEnterpriseRole {
         Write-Warning "Duplicate role names detected in input. Only unique names will be processed."
     }
     $Role = $uniqueRoles
-    $allRoles = Get-KeeperEnterpriseRole
+    $allRoles = Get-EnterpriseRole
 
     if ($Enforcement -and $Enforcement.Count -gt 0) {
         foreach ($enf in $Enforcement) {
@@ -778,7 +859,7 @@ function Remove-KeeperEnterpriseRole {
         Deletes the role named "MyRole" without prompting for confirmation
 
         .EXAMPLE
-        Get-KeeperEnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Remove-KeeperEnterpriseRole
+        Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Remove-KeeperEnterpriseRole
         Deletes a role using pipeline input
     #>
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
