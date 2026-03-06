@@ -22,17 +22,14 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmDeploymentOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync())
                 return;
 
-            if (string.IsNullOrEmpty(options.Command))
-            {
-                options.Command = "list";
-            }
+            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
 
-            options.Command = options.Command.ToLowerInvariant();
-
-            switch (options.Command)
+            switch (command)
             {
                 case "list":
                     await ListDeploymentsAsync();
@@ -60,7 +57,7 @@ namespace Commander.EPM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove, download");
+                    Console.WriteLine($"Unsupported command '{command}'. Available commands: list, view, add, update, remove, download");
                     break;
             }
         }
@@ -90,20 +87,21 @@ namespace Commander.EPM
 
         private EpmDeployment ResolveDeployment(string deploymentIdentifier)
         {
-            if (string.IsNullOrEmpty(deploymentIdentifier))
+            var id = deploymentIdentifier?.Trim();
+            if (string.IsNullOrEmpty(id))
             {
                 return null;
             }
 
             // Try as UID first
-            var deployment = Plugin.Deployments.GetEntity(deploymentIdentifier);
+            var deployment = Plugin.Deployments.GetEntity(id);
             if (deployment != null)
             {
                 return deployment;
             }
 
             // Try as name (case-insensitive)
-            var lName = deploymentIdentifier.ToLowerInvariant();
+            var lName = id.ToLowerInvariant();
             var deployments = Plugin.Deployments.GetAll()
                 .Where(x => x.Name != null && x.Name.ToLowerInvariant() == lName)
                 .ToList();
@@ -115,7 +113,7 @@ namespace Commander.EPM
 
             if (deployments.Count > 1)
             {
-                Console.WriteLine($"Deployment name \"{deploymentIdentifier}\" is not unique. Use Deployment UID.");
+                Console.WriteLine($"Deployment name \"{id}\" is not unique. Use Deployment UID.");
                 return null;
             }
 
@@ -124,7 +122,10 @@ namespace Commander.EPM
 
         private Task ViewDeploymentAsync(EpmDeploymentOptions options)
         {
-            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (options == null)
+                return Task.CompletedTask;
+
+            var deploymentIdentifier = (options.DeploymentUid ?? options.Name)?.Trim();
             if (string.IsNullOrEmpty(deploymentIdentifier))
             {
                 Console.WriteLine("Deployment UID or name is required for 'view' command.");
@@ -148,7 +149,11 @@ namespace Commander.EPM
 
         private async Task AddDeploymentAsync(EpmDeploymentOptions options)
         {
-            if (string.IsNullOrEmpty(options.Name))
+            if (options == null)
+                return;
+
+            var nameValue = options.Name?.Trim();
+            if (string.IsNullOrEmpty(nameValue))
             {
                 Console.WriteLine("Deployment name is required for 'add' command.");
                 return;
@@ -156,18 +161,19 @@ namespace Commander.EPM
 
             if (!options.Force)
             {
-                var lName = options.Name.ToLowerInvariant();
+                var lName = nameValue.ToLowerInvariant();
                 var hasName = Plugin.Deployments.GetAll()
-                    .Any(x => x.Name.ToLowerInvariant() == lName);
+                    .Any(x => x.Name != null && x.Name.ToLowerInvariant() == lName);
                 if (hasName)
                 {
-                    Console.WriteLine($"Deployment \"{options.Name}\" already exists.");
+                    Console.WriteLine($"Deployment \"{nameValue}\" already exists.");
                     return;
                 }
             }
 
             string spiffeCertBase64 = null;
-            if (!string.IsNullOrEmpty(options.SpiffeCert))
+            var spiffeValue = options.SpiffeCert?.Trim();
+            if (!string.IsNullOrEmpty(spiffeValue))
             {
                 var spiffePath = options.SpiffeCert;
                 if (File.Exists(spiffePath))
@@ -202,13 +208,13 @@ namespace Commander.EPM
                 }
                 else
                 {
-                    spiffeCertBase64 = options.SpiffeCert;
+                    spiffeCertBase64 = spiffeValue;
                 }
             }
 
             var addDeployment = new DeploymentDataInput
             {
-                Name = options.Name,
+                Name = nameValue,
                 SpiffeCert = spiffeCertBase64
             };
 
@@ -226,7 +232,7 @@ namespace Commander.EPM
 
             if (addStatus.Add?.Count > 0)
             {
-                Console.WriteLine($"Deployment '{options.Name}' added.");
+                Console.WriteLine($"Deployment '{nameValue}' added.");
             }
             else
             {
@@ -243,7 +249,10 @@ namespace Commander.EPM
 
         private async Task UpdateDeploymentAsync(EpmDeploymentOptions options)
         {
-            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (options == null)
+                return;
+
+            var deploymentIdentifier = (options.DeploymentUid ?? options.Name)?.Trim();
             if (string.IsNullOrEmpty(deploymentIdentifier))
             {
                 Console.WriteLine("Deployment UID or name is required for 'update' command.");
@@ -260,7 +269,7 @@ namespace Commander.EPM
             var updateDeployment = new DeploymentDataInput
             {
                 DeploymentUid = deployment.DeploymentUid,
-                Name = options.Name,
+                Name = options.Name?.Trim() ?? deployment.Name,
                 Disabled = ParseBoolOption(options.Disabled),
                 SpiffeCert = options.SpiffeCert
             };
@@ -281,7 +290,10 @@ namespace Commander.EPM
 
         private async Task RemoveDeploymentAsync(EpmDeploymentOptions options)
         {
-            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (options == null)
+                return;
+
+            var deploymentIdentifier = (options.DeploymentUid ?? options.Name)?.Trim();
             if (string.IsNullOrEmpty(deploymentIdentifier))
             {
                 Console.WriteLine("Deployment UID or name is required for 'remove' command.");
@@ -330,7 +342,10 @@ namespace Commander.EPM
 
         private async Task DownloadDeploymentAsync(EpmDeploymentOptions options)
         {
-            var deploymentIdentifier = options.DeploymentUid ?? options.Name;
+            if (options == null)
+                return;
+
+            var deploymentIdentifier = (options.DeploymentUid ?? options.Name)?.Trim();
             if (string.IsNullOrEmpty(deploymentIdentifier))
             {
                 Console.WriteLine("Deployment UID or name is required for 'download' command.");
@@ -395,12 +410,12 @@ namespace Commander.EPM
                         }
                     }
                 }
-                catch
+                catch (Exception)
                 {
                     Console.WriteLine($"Failed to fetch manifest from {manifestUrl}");
                 }
             }
-            catch
+            catch (Exception)
             {
                 Console.WriteLine($"Failed to fetch manifest from {host}");
             }

@@ -22,17 +22,14 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmCollectionOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync())
                 return;
 
-            if (string.IsNullOrEmpty(options.Command))
-            {
-                options.Command = "list";
-            }
+            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
 
-            options.Command = options.Command.ToLowerInvariant();
-
-            switch (options.Command)
+            switch (command)
             {
                 case "list":
                     ListCollections(options.CollectionType);
@@ -68,7 +65,7 @@ namespace Commander.EPM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove, connect, disconnect, wipe-out");
+                    Console.WriteLine($"Unsupported command '{command}'. Available commands: list, view, add, update, remove, connect, disconnect, wipe-out");
                     break;
             }
         }
@@ -113,7 +110,7 @@ namespace Commander.EPM
                                 name = nameObj?.ToString() ?? "";
                             }
                         }
-                        catch
+                        catch (Exception)
                         {
                             Console.WriteLine($"Error parsing collection data: {coll.CollectionData}");
                         }
@@ -126,16 +123,17 @@ namespace Commander.EPM
 
         private void ViewCollection(string identifier)
         {
-            if (string.IsNullOrEmpty(identifier))
+            var uid = identifier?.Trim();
+            if (string.IsNullOrEmpty(uid))
             {
                 Console.WriteLine("Collection UID or name is required for 'view' command.");
                 return;
             }
 
-            var collection = ResolveCollection(identifier);
+            var collection = ResolveCollection(uid);
             if (collection == null)
             {
-                Console.WriteLine($"Collection '{identifier}' not found.");
+                Console.WriteLine($"Collection '{uid}' not found.");
                 return;
             }
 
@@ -175,14 +173,14 @@ namespace Commander.EPM
                         }
                     }
                 }
-                catch
+                catch (Exception)
                 {
                     try
                     {
                         var dataJson = Encoding.UTF8.GetString(collection.CollectionData);
                         Console.WriteLine($"  Data: {dataJson}");
                     }
-                    catch
+                    catch (Exception)
                     {
                         Console.WriteLine($"  Data: (binary data, {collection.CollectionData.Length} bytes)");
                     }
@@ -192,12 +190,13 @@ namespace Commander.EPM
         
         private EpmCollection ResolveCollection(string identifier)
         {
-            if (string.IsNullOrEmpty(identifier))
+            var id = identifier?.Trim();
+            if (string.IsNullOrEmpty(id))
             {
                 return null;
             }
 
-            var collection = Plugin.Collections.GetEntity(identifier);
+            var collection = Plugin.Collections.GetEntity(id);
             if (collection != null)
             {
                 return collection;
@@ -213,10 +212,10 @@ namespace Commander.EPM
                         var data = JsonUtils.ParseJson<Dictionary<string, object>>(c.CollectionData);
                         if (data.TryGetValue("Name", out var nameObj))
                         {
-                            return string.Equals(nameObj?.ToString(), identifier, StringComparison.OrdinalIgnoreCase);
+                            return string.Equals(nameObj?.ToString(), id, StringComparison.OrdinalIgnoreCase);
                         }
                     }
-                    catch
+                    catch (Exception)
                     {
                         // Ignore parsing errors
                     }
@@ -231,7 +230,7 @@ namespace Commander.EPM
 
             if (matches.Count > 1)
             {
-                Console.WriteLine($"Multiple collections match name \"{identifier}\". Please specify Collection UID.");
+                Console.WriteLine($"Multiple collections match name \"{id}\". Please specify Collection UID.");
             }
 
             return null;
@@ -254,7 +253,10 @@ namespace Commander.EPM
 
         private async Task AddCollectionAsync(EpmCollectionOptions options)
         {
-            var collectionUid = options.CollectionUid;
+            if (options == null)
+                return;
+
+            var collectionUid = options.CollectionUid?.Trim();
             if (string.IsNullOrEmpty(collectionUid))
             {
                 collectionUid = CryptoUtils.GenerateUid();
@@ -319,7 +321,11 @@ namespace Commander.EPM
 
         private async Task UpdateCollectionAsync(EpmCollectionOptions options)
         {
-            if (string.IsNullOrEmpty(options.CollectionUid))
+            if (options == null)
+                return;
+
+            var collectionUidValue = options.CollectionUid?.Trim();
+            if (string.IsNullOrEmpty(collectionUidValue))
             {
                 Console.WriteLine("Collection UID or name is required for 'update' command.");
                 return;
@@ -327,10 +333,10 @@ namespace Commander.EPM
 
             await Plugin.SyncDown();
 
-            var collection = ResolveCollection(options.CollectionUid);
+            var collection = ResolveCollection(collectionUidValue);
             if (collection == null)
             {
-                Console.WriteLine($"Collection \"{options.CollectionUid}\" does not exist locally. Please ensure it exists and try again.");
+                Console.WriteLine($"Collection \"{collectionUidValue}\" does not exist locally. Please ensure it exists and try again.");
                 return;
             }
 
@@ -397,16 +403,17 @@ namespace Commander.EPM
 
         private async Task RemoveCollectionAsync(string identifier)
         {
-            if (string.IsNullOrEmpty(identifier))
+            var uid = identifier?.Trim();
+            if (string.IsNullOrEmpty(uid))
             {
                 Console.WriteLine("Collection UID or name is required for 'remove' command.");
                 return;
             }
 
-            var collection = ResolveCollection(identifier);
+            var collection = ResolveCollection(uid);
             if (collection == null)
             {
-                Console.WriteLine($"Collection \"{identifier}\" does not exist");
+                Console.WriteLine($"Collection \"{uid}\" does not exist");
                 return;
             }
 
@@ -439,13 +446,18 @@ namespace Commander.EPM
 
         private async Task ConnectCollectionAsync(EpmCollectionOptions options)
         {
-            if (string.IsNullOrEmpty(options.CollectionUid))
+            if (options == null)
+                return;
+
+            var collectionUidValue = options.CollectionUid?.Trim();
+            if (string.IsNullOrEmpty(collectionUidValue))
             {
                 Console.WriteLine("Collection UID or name is required for 'connect' command.");
                 return;
             }
 
-            if (string.IsNullOrEmpty(options.LinkType))
+            var linkTypeValue = options.LinkType?.Trim();
+            if (string.IsNullOrEmpty(linkTypeValue))
             {
                 Console.WriteLine("--link-type is required for 'connect' command. Options: agent, policy, collection");
                 return;
@@ -457,17 +469,17 @@ namespace Commander.EPM
                 return;
             }
 
-            var collection = ResolveCollection(options.CollectionUid);
+            var collection = ResolveCollection(collectionUidValue);
             if (collection == null)
             {
-                Console.WriteLine($"Collection '{options.CollectionUid}' not found.");
+                Console.WriteLine($"Collection '{collectionUidValue}' not found.");
                 return;
             }
 
-            var linkType = ParseLinkType(options.LinkType);
+            var linkType = ParseLinkType(linkTypeValue);
             if (linkType == null)
             {
-                Console.WriteLine($"Invalid link type: {options.LinkType}. Options: agent, policy, collection");
+                Console.WriteLine($"Invalid link type: {linkTypeValue}. Options: agent, policy, collection");
                 return;
             }
 
@@ -541,7 +553,11 @@ namespace Commander.EPM
 
         private async Task DisconnectCollectionAsync(EpmCollectionOptions options)
         {
-            if (string.IsNullOrEmpty(options.CollectionUid))
+            if (options == null)
+                return;
+
+            var collectionUidValue = options.CollectionUid?.Trim();
+            if (string.IsNullOrEmpty(collectionUidValue))
             {
                 Console.WriteLine("Collection UID or name is required for 'disconnect' command.");
                 return;
@@ -553,15 +569,15 @@ namespace Commander.EPM
                 return;
             }
 
-            var collection = ResolveCollection(options.CollectionUid);
+            var collection = ResolveCollection(collectionUidValue);
             if (collection == null)
             {
-                Console.WriteLine($"Collection '{options.CollectionUid}' not found.");
+                Console.WriteLine($"Collection '{collectionUidValue}' not found.");
                 return;
             }
 
             var existingLinks = Plugin.CollectionLinks.GetLinksForSubject(collection.CollectionUid).ToList();
-            var toUnlink = new HashSet<string>(options.LinkUids, StringComparer.OrdinalIgnoreCase);
+            var toUnlink = new HashSet<string>(options.LinkUids.Select(x => x?.Trim()).Where(x => !string.IsNullOrEmpty(x)), StringComparer.OrdinalIgnoreCase);
 
             var unsetLinks = new List<CollectionLink>();
             foreach (var link in existingLinks)
@@ -580,7 +596,7 @@ namespace Commander.EPM
 
             if (toUnlink.Count > 0)
             {
-                Console.WriteLine($"{toUnlink.Count} link(s) cannot be removed from collection: {options.CollectionUid}");
+                Console.WriteLine($"{toUnlink.Count} link(s) cannot be removed from collection: {collectionUidValue}");
             }
 
             if (unsetLinks.Count == 0)
@@ -622,6 +638,9 @@ namespace Commander.EPM
 
         private async Task WipeOutCollectionsAsync(EpmCollectionOptions options)
         {
+            if (options == null)
+                return;
+
             var collectionType = options.CollectionType;
             if (!collectionType.HasValue)
             {
@@ -681,10 +700,11 @@ namespace Commander.EPM
 
         private PEDMProto.CollectionLinkType? ParseLinkType(string linkType)
         {
-            if (string.IsNullOrEmpty(linkType))
+            var value = linkType?.Trim();
+            if (string.IsNullOrEmpty(value))
                 return null;
 
-            var lower = linkType.ToLowerInvariant();
+            var lower = value.ToLowerInvariant();
             return lower switch
             {
                 "agent" => PEDMProto.CollectionLinkType.CltAgent,

@@ -14,6 +14,8 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmSyncDownOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync(syncIfNeeded: false))
                 return;
 

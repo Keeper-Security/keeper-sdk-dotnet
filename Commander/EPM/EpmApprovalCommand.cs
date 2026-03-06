@@ -232,7 +232,7 @@ namespace Commander.EPM
                             return result;
                         }
                     }
-                    catch
+                    catch (Exception)
                     {
                     }
                     
@@ -241,7 +241,7 @@ namespace Commander.EPM
                     return text;
                 }
             }
-            catch
+            catch (Exception)
             {
             }
 

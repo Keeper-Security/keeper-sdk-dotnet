@@ -21,17 +21,14 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmPolicyOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync())
                 return;
 
-            if (string.IsNullOrEmpty(options.Command))
-            {
-                options.Command = "list";
-            }
+            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
 
-            options.Command = options.Command.ToLowerInvariant();
-
-            switch (options.Command)
+            switch (command)
             {
                 case "list":
                     ListPolicies();
@@ -63,7 +60,7 @@ namespace Commander.EPM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, add, update, remove, agents, assign");
+                    Console.WriteLine($"Unsupported command '{command}'. Available commands: list, view, add, update, remove, agents, assign");
                     break;
             }
         }
@@ -109,7 +106,7 @@ namespace Commander.EPM
                                 status = "on";
                             }
                         }
-                        catch
+                        catch (Exception)
                         {
                             status = "on";
                         }
@@ -128,25 +125,26 @@ namespace Commander.EPM
 
         private void ViewPolicy(string policyUid)
         {
-            if (string.IsNullOrEmpty(policyUid))
+            var uid = policyUid?.Trim();
+            if (string.IsNullOrEmpty(uid))
             {
                 Console.WriteLine("Policy UID or name is required for 'view' command.");
                 return;
             }
 
-            var policy = Plugin.Policies.GetEntity(policyUid);
+            var policy = Plugin.Policies.GetEntity(uid);
             if (policy == null)
             {
                 var matches = Plugin.Policies.GetAll()
                     .Select(p => new { Policy = p, Info = ParsePolicyData(p, Plugin) })
                     .Where(x => !string.IsNullOrEmpty(x.Info.Name) &&
-                                string.Equals(x.Info.Name, policyUid, StringComparison.OrdinalIgnoreCase))
+                                string.Equals(x.Info.Name, uid, StringComparison.OrdinalIgnoreCase))
                     .Select(x => x.Policy)
                     .ToList();
 
                 if (matches.Count > 1)
                 {
-                    Console.WriteLine($"Multiple policies match name \"{policyUid}\". Please specify Policy UID.");
+                    Console.WriteLine($"Multiple policies match name \"{uid}\". Please specify Policy UID.");
                     return;
                 }
 
@@ -155,7 +153,7 @@ namespace Commander.EPM
 
             if (policy == null)
             {
-                Console.WriteLine($"Policy '{policyUid}' not found.");
+                Console.WriteLine($"Policy '{uid}' not found.");
                 return;
             }
 
@@ -305,6 +303,9 @@ namespace Commander.EPM
 
         private async Task AddPolicyAsync(EpmPolicyOptions options)
         {
+            if (options == null)
+                return;
+
             var plainJson = ReadJsonText(options.PlainDataJson, options.PlainDataFile);
             var policyJson = ReadJsonText(options.PolicyDataJson, options.PolicyDataFile);
 
@@ -350,16 +351,20 @@ namespace Commander.EPM
 
         private async Task UpdatePolicyAsync(EpmPolicyOptions options)
         {
-            if (string.IsNullOrEmpty(options.PolicyUid))
+            if (options == null)
+                return;
+
+            var policyUidValue = options.PolicyUid?.Trim();
+            if (string.IsNullOrEmpty(policyUidValue))
             {
                 Console.WriteLine("Policy UID or name is required for 'update' command.");
                 return;
             }
 
-            var policy = ResolvePolicy(options.PolicyUid);
+            var policy = ResolvePolicy(policyUidValue);
             if (policy == null)
             {
-                Console.WriteLine($"Policy \"{options.PolicyUid}\" does not exist");
+                Console.WriteLine($"Policy \"{policyUidValue}\" does not exist");
                 return;
             }
 
@@ -408,16 +413,17 @@ namespace Commander.EPM
 
         private async Task RemovePolicyAsync(string identifier)
         {
-            if (string.IsNullOrEmpty(identifier))
+            var uid = identifier?.Trim();
+            if (string.IsNullOrEmpty(uid))
             {
                 Console.WriteLine("Policy UID or name is required for 'remove' command.");
                 return;
             }
 
-            var policy = ResolvePolicy(identifier);
+            var policy = ResolvePolicy(uid);
             if (policy == null)
             {
-                Console.WriteLine($"Policy \"{identifier}\" does not exist");
+                Console.WriteLine($"Policy \"{uid}\" does not exist");
                 return;
             }
 
@@ -449,7 +455,10 @@ namespace Commander.EPM
 
         private async Task ListPolicyAgentsAsync(EpmPolicyOptions options)
         {
-            var policyIdentifiers = options.PolicyUid;
+            if (options == null)
+                return;
+
+            var policyIdentifiers = options.PolicyUid?.Trim();
             if (string.IsNullOrEmpty(policyIdentifiers))
             {
                 Console.WriteLine("Policy UID or name is required for 'agents' command.");
@@ -538,7 +547,10 @@ namespace Commander.EPM
 
         private async Task AssignPolicyCollectionsAsync(EpmPolicyOptions options)
         {
-            var policyIdentifiers = options.PolicyUid;
+            if (options == null)
+                return;
+
+            var policyIdentifiers = options.PolicyUid?.Trim();
             if (string.IsNullOrEmpty(policyIdentifiers))
             {
                 Console.WriteLine("Policy UID or name is required for 'assign' command.");
@@ -578,7 +590,7 @@ namespace Commander.EPM
                             {
                                 collectionUids.Add(allAgentsUid.Base64UrlDecode());
                             }
-                            catch
+                            catch (Exception)
                             {
                                 Console.WriteLine($"Invalid all-agents collection UID. Skipped.");
                             }
@@ -598,7 +610,7 @@ namespace Commander.EPM
                                 Console.WriteLine($"Invalid collection UID: {collUid}. Skipped.");
                             }
                         }
-                        catch
+                        catch (Exception)
                         {
                             Console.WriteLine($"Invalid collection UID: {collUid}. Skipped.");
                         }

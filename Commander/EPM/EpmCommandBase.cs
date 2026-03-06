@@ -40,13 +40,14 @@ namespace Commander.EPM
 
         protected static bool? ParseBoolOption(string value)
         {
-            if (string.IsNullOrEmpty(value))
+            var v = value?.Trim();
+            if (string.IsNullOrEmpty(v))
                 return null;
 
-            if (bool.TryParse(value, out var result))
+            if (bool.TryParse(v, out var result))
                 return result;
 
-            var lower = value.ToLowerInvariant();
+            var lower = v.ToLowerInvariant();
             if (lower == "true" || lower == "1" || lower == "yes" || lower == "on")
                 return true;
             if (lower == "false" || lower == "0" || lower == "no" || lower == "off")
