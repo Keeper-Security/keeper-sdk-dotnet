@@ -1,4 +1,4 @@
-﻿//  _  __
+//  _  __
 // | |/ /___ ___ _ __  ___ _ _ ®
 // | ' </ -_) -_) '_ \/ -_) '_|
 // |_|\_\___\___| .__/\___|_|
@@ -27,7 +27,6 @@ using Sample.RecordsExamples;
 using Sample.AttachmentsExamples;
 using Enterprise;
 using System.Collections.Generic;
-using System.Text.Json;
 
 
 
@@ -41,7 +40,8 @@ namespace Sample
             try
             {
                 // Authenticate once from Main - all examples share this vault
-                var vault = await AuthenticateAndGetVault.GetVault();
+                var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
+                // var vault = await AuthenticateAndGetVault.GetVault();
                 if (vault == null)
                 {
                     Console.WriteLine("Could not authenticate. Exiting.");

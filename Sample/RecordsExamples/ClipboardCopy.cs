@@ -118,6 +118,19 @@ namespace Sample.RecordsExamples
 
         private static Process CreateClipboardProcess()
         {
+#if NET472_OR_GREATER
+            return new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell",
+                    Arguments = "-NoProfile -Command \"$input | Set-Clipboard\"",
+                    RedirectStandardInput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+#else
             if (OperatingSystem.IsWindows())
             {
                 return new Process
@@ -160,6 +173,7 @@ namespace Sample.RecordsExamples
                 };
             }
             return null;
+#endif
         }
     }
 }

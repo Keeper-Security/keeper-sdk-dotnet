@@ -32,6 +32,13 @@ namespace Sample
     ///   1. First run  → full login (password or SSO), registers device, enables persistent_login
     ///   2. Next runs  → session resume via clone_code (no password)
     ///   3. Within run → cached vault returned to all callers
+    ///
+    /// YubiKey / Security Key (FIDO2/WebAuthn) login:
+    ///   Handled automatically by <see cref="KeeperLoginFlow.LoginToKeeper"/>. When the server
+    ///   returns a TwoFactorStep with a security key channel, the user types "key" at the 2FA prompt.
+    ///   On .NET Framework 4.7.2+ (net472), WindowsAuthSyncCallback implements IAuthSecurityKeyUI
+    ///   which triggers the native Windows WebAuthn dialog ("Touch your security key"). The user
+    ///   touches the YubiKey and authentication completes. No additional code is needed here.
     /// </remarks>
     public static class AuthenticateAndGetVault
     {
@@ -98,7 +105,7 @@ namespace Sample
             return string.IsNullOrEmpty(input) ? null : input;
         }
 
-        public static async Task<VaultOnline> GetVault()
+        public static async Task<VaultOnline> GetVault(bool? enablePersistentLogin = null)
         {
             var configurationStorage = new JsonConfigurationStorage("config.json");
             var configuration = configurationStorage.Get();
@@ -118,7 +125,6 @@ namespace Sample
             var authFlow = new AuthSync(configurationStorage);
             // Biometric login is not used in this sample (per requirement).
             authFlow.BiometricLoginProvider = null;
-
             authFlow.ResumeSession = true;
 
             // Single login path like Commander: LoginToKeeper handles password, device approval, 2FA, and SSO (server redirects to SSO and shows SSO Login URL)
@@ -162,8 +168,14 @@ namespace Sample
                 return null;
             }
 
-            // 3. Persistent login (like Python enable_persistent_login)
-            await SetupPersistentLogin(authFlow);
+            if (enablePersistentLogin == true)
+            {
+                await SetupPersistentLogin(authFlow);
+            }
+            else if (enablePersistentLogin == false)
+            {
+                await DisablePersistentLogin(authFlow);
+            }
 
             _cachedVault = new VaultOnline(authFlow);
             await _cachedVault.SyncDown();
@@ -213,6 +225,23 @@ namespace Sample
             catch (Exception ex)
             {
                 Console.WriteLine($"Could not setup persistent login: {ex.Message}");
+            }
+        }
+
+        private static async Task DisablePersistentLogin(AuthSync auth)
+        {
+            try
+            {
+                var accountSummary = await auth.LoadAccountSummary();
+                if (accountSummary.Settings.PersistentLogin)
+                {
+                    await auth.SetSessionParameter("persistent_login", "0");
+                    Console.WriteLine("Persistent login disabled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not disable persistent login: {ex.Message}");
             }
         }
     }

@@ -39,7 +39,7 @@ namespace Sample.BreachWatchExamples
                 foreach (var (password, status) in results)
                 {
                     var masked = password.Length > 2
-                        ? password[0] + new string('*', password.Length - 2) + password[^1]
+                        ? password[0] + new string('*', password.Length - 2) + password[password.Length - 1]
                         : "***";
                     var breachStatus = status.BreachDetected ? "BREACHED" : "SAFE";
                     Console.WriteLine($"  {masked}: {breachStatus}");
