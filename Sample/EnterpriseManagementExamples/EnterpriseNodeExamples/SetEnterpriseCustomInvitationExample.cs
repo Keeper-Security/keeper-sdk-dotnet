@@ -1,24 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseNodeExamples
 {
     public static class SetEnterpriseCustomInvitationExample
     {
-        public static async Task SetEnterpriseCustomInvitation(string nodeNameOrId, string jsonFilePath)
+        public static async Task SetEnterpriseCustomInvitation(VaultOnline vault, string nodeNameOrId, string jsonFilePath)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

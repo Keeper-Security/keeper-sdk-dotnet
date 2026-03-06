@@ -6,9 +6,10 @@ namespace Sample.ShareRecordExamples
 {
     public static class RevokeAllSharesToUser
     {
-        public static async Task RemoveAllSharesToUser(string username)
+        public static async Task RemoveAllSharesToUser(VaultOnline vault, string username)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await RemoveAllSharesToUserSimple(vault, username);
             if (result)
             {

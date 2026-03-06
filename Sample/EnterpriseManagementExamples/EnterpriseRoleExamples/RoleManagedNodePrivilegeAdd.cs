@@ -1,4 +1,5 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
@@ -9,16 +10,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class RoleManagedNodePrivilegeAddExample
     {
-public static async Task RoleManagedNodePrivilegeAdd(string roleNameOrId, string nodeNameOrId, List<RoleManagedNodePrivilege> privileges)
+public static async Task RoleManagedNodePrivilegeAdd(VaultOnline vault, string roleNameOrId, string nodeNameOrId, List<RoleManagedNodePrivilege> privileges)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

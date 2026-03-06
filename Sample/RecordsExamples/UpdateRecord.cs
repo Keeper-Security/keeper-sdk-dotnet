@@ -2,17 +2,15 @@ using KeeperSecurity.Vault;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-
-
 
 namespace Sample.RecordsExamples
 {
     public static class UpdateRecordExample
     {
-        public static async Task UpdateRecord(string recordUid, string newTitle, string newRecordType)
+        public static async Task UpdateRecord(VaultOnline vault, string recordUid, string newTitle, string newRecordType)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             await UpdateRecordSimple(
                 vault,

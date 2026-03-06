@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 
@@ -7,9 +6,10 @@ namespace Sample.RecordTypeExamples
 {
     public static class DeleteRecordTypeExample
     {
-        public static async Task DeleteRecordType(string recordTypeId)
+        public static async Task DeleteRecordType(VaultOnline vault, string recordTypeId)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var deletedRecord = await vault.DeleteRecordTypeAsync(recordTypeId);
 

@@ -10,15 +10,10 @@ namespace Sample.AttachmentsExamples
     /// </summary>
     public static class RemoveAttachmentExample
     {
-        public static async Task RemoveAttachment(string recordUid, string attachmentId)
+        public static async Task RemoveAttachment(VaultOnline vault, string recordUid, string attachmentId)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-            
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var record = vault.GetRecord(recordUid);
             

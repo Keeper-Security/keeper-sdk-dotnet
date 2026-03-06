@@ -7,9 +7,10 @@ namespace Sample.OneTimeShareExamples
 {
     public static class OneTimeShare
     {
-        public static async Task ShareRecordOneTime(string recordUid, TimeSpan expireIn, string shareName = null)
+        public static async Task ShareRecordOneTime(VaultOnline vault, string recordUid, TimeSpan expireIn, string shareName = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await ShareRecordOneTimeSimple(vault, recordUid, expireIn, shareName);
             Console.WriteLine("One-Time Share URL:");
             Console.WriteLine(result);
