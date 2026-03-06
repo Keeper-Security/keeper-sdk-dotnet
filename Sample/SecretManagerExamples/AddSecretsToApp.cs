@@ -1,23 +1,20 @@
 using System.Threading.Tasks;
+using KeeperSecurity.Vault;
 using System;
 
 namespace Sample.SecretManagerExamples
 {
     public static class SecretManagerShareExample
     {
-        public static async Task SecretManagerShare(
+        public static async Task SecretManagerShare(VaultOnline vault, 
             string applicationId,
             string sharedFolderOrRecordUid,
             bool canEdit)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 await vault.ShareToSecretManagerApplication(
                         applicationId,

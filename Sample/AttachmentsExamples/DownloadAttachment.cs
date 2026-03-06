@@ -8,9 +8,10 @@ namespace Sample.AttachmentsExamples
 {
     public static class DownloadAttachmentExample
     {
-        public static async Task DownloadAttachment(string recordUid, string attachmentIdentifier, string destinationPath)
+        public static async Task DownloadAttachment(VaultOnline vault, string recordUid, string attachmentIdentifier, string destinationPath)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var record = vault.GetRecord(recordUid);
             await DownloadAttachment(vault, record, attachmentIdentifier, destinationPath);
         }

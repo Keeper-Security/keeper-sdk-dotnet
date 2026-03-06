@@ -2,22 +2,19 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.BreachWatch;
+using KeeperSecurity.Vault;
 using Tokens;
 
 namespace Sample.BreachWatchExamples
 {
     public static class BreachWatchListExample
     {
-        public static async Task BreachWatchList()
+        public static async Task BreachWatchList(VaultOnline vault = null)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!vault.Auth.IsBreachWatchEnabled())
                 {

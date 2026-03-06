@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 
@@ -6,12 +5,13 @@ namespace Sample.ImportExportExamples
 {
     public static class DownloadMembershipToFileExample
     {
-        public static async Task DownloadToFile(
+        public static async Task DownloadToFile(VaultOnline vault,
             string filename,
             DownloadMembershipOptions options = null)
 
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             await KeeperMembershipDownload.DownloadMembershipToFile(
                 vault,
                 filename,

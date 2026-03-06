@@ -7,11 +7,12 @@ namespace Sample.ImportExportExamples
 {
     public static class DownloadMembershipToFileObjectExample
     {
-        public static async Task DownloadMembershipToFileObject(
+        public static async Task DownloadMembershipToFileObject(VaultOnline vault = null,
            DownloadMembershipOptions options = null)
 
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var exportFile = await KeeperMembershipDownload.DownloadMembership(
                 vault,
                 options);

@@ -1,4 +1,5 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using Sample.Helpers;
@@ -7,16 +8,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseTeamExamples
 {
     public static class EnterpriseTeamMembershipExample
     {
-        public static async Task AddUsersToTeams(string[] emails, string[] teamUids, Action<string> warnings = null)
+        public static async Task AddUsersToTeams(VaultOnline vault, string[] emails, string[] teamUids, Action<string> warnings = null)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;
@@ -46,16 +43,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseTeamExamples
             }
         }
 
-        public static async Task RemoveUsersFromTeams(string[] emails, string[] teamUids, Action<string> warnings = null)
+        public static async Task RemoveUsersFromTeams(VaultOnline vault, string[] emails, string[] teamUids, Action<string> warnings = null)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+                if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

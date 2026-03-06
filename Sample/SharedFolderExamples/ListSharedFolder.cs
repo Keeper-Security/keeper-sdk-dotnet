@@ -7,14 +7,10 @@ namespace Sample.SharedFolderExamples
 {
     public static class ListSharedFolder
     {
-        public static async Task ListAllSharedFolders()
+        public static async Task ListAllSharedFolders(VaultOnline vault = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var sharedFolders = vault.SharedFolders.ToList();
 

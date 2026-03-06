@@ -9,9 +9,10 @@ namespace Sample.TrashExamples
 {
     public static class TrashList
     {
-        public static async Task TrashListAsync()
+        public static async Task TrashListAsync(VaultOnline vault = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             if (vault == null)
             {
                 Console.WriteLine("Authentication failed. Vault is null.");

@@ -1,4 +1,5 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
@@ -9,16 +10,12 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class RoleEnforcementRemoveExample
     {
-        public static async Task RoleEnforcementRemove(string roleNameOrId, List<RoleEnforcementPolicies> enforcement)
+        public static async Task RoleEnforcementRemove(VaultOnline vault, string roleNameOrId, List<RoleEnforcementPolicies> enforcement)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

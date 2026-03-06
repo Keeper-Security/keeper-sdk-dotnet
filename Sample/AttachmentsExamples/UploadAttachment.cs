@@ -7,7 +7,7 @@ namespace Sample.AttachmentsExamples
 {
     public static class UploadAttachmentExample
     {
-        public static async Task UploadAttachment(string recordUid, string filePath, string thumbnailPath = null)
+        public static async Task UploadAttachment(VaultOnline vault, string recordUid, string filePath, string thumbnailPath = null)
         {
             if (string.IsNullOrWhiteSpace(recordUid))
             {
@@ -27,12 +27,8 @@ namespace Sample.AttachmentsExamples
                 return;
             }
 
-            var vault = await AuthenticateAndGetVault.GetVault();
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var record = vault.GetRecord(recordUid);
             if (record == null)

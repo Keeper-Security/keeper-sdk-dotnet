@@ -11,12 +11,12 @@ namespace Sample.RecordsExamples
 {
     public static class FindDuplicatesExample
     {
-        public static async Task FindDuplicates(
+        public static async Task FindDuplicates(VaultOnline vault = null,
             bool byTitle = true,
             bool byLogin = true,
             bool byPassword = true)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
             if (vault == null)
             {
                 Console.WriteLine("Failed to authenticate.");
