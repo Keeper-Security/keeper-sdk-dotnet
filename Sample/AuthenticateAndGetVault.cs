@@ -22,23 +22,18 @@ using KeeperSecurity.Vault;
 namespace Sample
 {
     /// <summary>
-    /// Authenticate and load vault. Behaves like Commander: prompt for username only; the server
-    /// determines whether the account uses password, device approval, 2FA, or SSO. For SSO accounts
-    /// the same flow shows the SSO Login URL and token step. Supports server selection and persistent login.
-    /// Biometric login is intentionally not used in this sample.
+    /// Authenticate and load vault. Prompts for username only; the server determines whether the account
+    /// uses password, device approval, 2FA, or SSO. For SSO accounts the flow shows the SSO Login URL and token step.
+    /// Supports server selection and persistent login. Biometric login is not used.
     /// </summary>
     /// <remarks>
-    /// Persistent login pattern (same as Commander / PowerCommander):
+    /// Persistent login:
     ///   1. First run  → full login (password or SSO), registers device, enables persistent_login
-    ///   2. Next runs  → session resume via clone_code (no password)
+    ///   2. Next runs → session resume via clone_code (no password)
     ///   3. Within run → cached vault returned to all callers
     ///
-    /// YubiKey / Security Key (FIDO2/WebAuthn) login:
-    ///   Handled automatically by <see cref="KeeperLoginFlow.LoginToKeeper"/>. When the server
-    ///   returns a TwoFactorStep with a security key channel, the user types "key" at the 2FA prompt.
-    ///   On .NET Framework 4.7.2+ (net472), WindowsAuthSyncCallback implements IAuthSecurityKeyUI
-    ///   which triggers the native Windows WebAuthn dialog ("Touch your security key"). The user
-    ///   touches the YubiKey and authentication completes. No additional code is needed here.
+    /// YubiKey / Security Key (FIDO2/WebAuthn): When the server returns 2FA with a security key channel,
+    /// type "key" at the 2FA prompt. On Windows (net472), the native WebAuthn dialog appears; touch the key to complete.
     /// </remarks>
     public static class AuthenticateAndGetVault
     {
@@ -69,7 +64,6 @@ namespace Sample
 
         /// <summary>
         /// Ensures a Keeper server is selected. If configuration has no LastServer, prompts for region and persists choice.
-        /// Mirrors Python login.py _ensure_server().
         /// </summary>
         private static async Task EnsureServerAsync(IConfigurationStorage storage, IInputManager inputManager)
         {
@@ -93,7 +87,7 @@ namespace Sample
         }
 
         /// <summary>
-        /// Prompts for username (email). Same as Commander: one username prompt; SSO is determined by the server.
+        /// Prompts for username (email). SSO is determined by the server based on the account.
         /// </summary>
         private static async Task<string> PromptUsernameAsync(IInputManager inputManager, string lastLogin)
         {
@@ -111,10 +105,10 @@ namespace Sample
             var configuration = configurationStorage.Get();
             var inputManager = new SimpleInputManager();
 
-            // 1. Server selection (like Python ensure_server)
+            // 1. Server selection
             await EnsureServerAsync(configurationStorage, inputManager);
 
-            // 2. Username (same as Commander: SSO is determined by server; if account is SSO, LoginFlow shows SSO Login URL)
+            // 2. Username; if account is SSO, login flow shows SSO Login URL
             var username = await PromptUsernameAsync(inputManager, configuration.LastLogin);
             if (string.IsNullOrEmpty(username))
             {
@@ -123,11 +117,11 @@ namespace Sample
             }
 
             var authFlow = new AuthSync(configurationStorage);
-            // Biometric login is not used in this sample (per requirement).
+            // Biometric login is not used in this sample.
             authFlow.BiometricLoginProvider = null;
             authFlow.ResumeSession = true;
 
-            // Single login path like Commander: LoginToKeeper handles password, device approval, 2FA, and SSO (server redirects to SSO and shows SSO Login URL)
+            // Single login path: LoginToKeeper handles password, device approval, 2FA, and SSO
             try
             {
                 await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
@@ -183,8 +177,7 @@ namespace Sample
         }
 
         /// <summary>
-        /// Mirrors Commander's "this-device persistent_login on" + "this-device register" flow
-        /// (and Python enable_persistent_login): register data key for device, enable persistent_login setting.
+        /// Registers the device for persistent login and enables the persistent_login setting when allowed.
         /// </summary>
         private static async Task SetupPersistentLogin(AuthSync auth)
         {
