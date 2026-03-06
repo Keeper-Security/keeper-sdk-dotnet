@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using KeeperSecurity.Authentication;
 using KeeperSecurity.BreachWatch;
 using KeeperSecurity.Vault;
 
@@ -8,11 +7,12 @@ namespace Sample.LoginExamples
 {
     public static class WhoamiExample
     {
-        public static async Task WhoamiAsync()
+        public static async Task WhoamiAsync(VaultOnline vault = null)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
                 var auth = vault.Auth;
                 var license = auth.AuthContext.License;
 

@@ -1,25 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class EnterpriseUserUpdateExample
     {
-        public static async Task EnterpriseUserUpdate(string email, string nodeNameOrId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
+        public static async Task EnterpriseUserUpdate(VaultOnline vault, string email, string nodeNameOrId = null, string fullName = null, string jobTitle = null, string inviteeLocale = null)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

@@ -85,7 +85,7 @@ namespace Cli
             }
         }
 
-        public static async Task LoginToSsoProvider(AuthSync auth, InputManager inputManager, string providerName = null)
+        public static async Task LoginToSsoProvider(AuthSync auth, IInputManager inputManager, string providerName = null)
         {
             auth.Cancel();
             var provider = providerName;

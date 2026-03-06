@@ -4,10 +4,27 @@
 function Show-KeeperRecordShare {
     <#
         .Synopsis
-        Shows a record sharing information
+        Displays sharing information for one or more records (who the record is shared with and permissions).
 
-    	.Parameter Record
-	    Record UID or any object containing property Uid
+        .Description
+        Displays sharing information for one or more records (who the record is shared with and permissions).
+
+        Alias: kshrsh
+
+        .Parameter Records
+        Record UID(s) or objects with a Uid property (Required, accepts pipeline)
+
+        .Example
+        Show-KeeperRecordShare -Records "record-uid"
+        Display sharing info for a single record by UID
+
+        .Example
+        kshrsh "record-uid"
+        Display sharing info using the alias
+
+        .Example
+        Get-KeeperChildItem -Filter "myrecord" | Show-KeeperRecordShare
+        Pipe search results to display their sharing info
     #>
 
     [CmdletBinding()]
@@ -16,8 +33,7 @@ function Show-KeeperRecordShare {
     )
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        [string[]]$recordUids = @()
-
+        $recordMap = [System.Collections.Generic.Dictionary[string, string]]::new()
     }
     Process {
         foreach ($r in $Records) {
@@ -37,7 +53,7 @@ function Show-KeeperRecordShare {
                     }
                 }
                 if ($rec) {
-                    $recordUids += $rec.Uid
+                    $recordMap[$rec.Uid] = $rec.Title
                 } else {
                     Write-Error -Message "Cannot find a Keeper record: $r" -ErrorAction SilentlyContinue
                 }
@@ -46,7 +62,48 @@ function Show-KeeperRecordShare {
     }
 
     End {
-        $vault.GetSharesForRecords($recordUids).GetAwaiter().GetResult()
+        if ($recordMap.Count -eq 0) { return }
+
+        try {
+            $shares = $vault.GetSharesForRecords($recordMap.Keys).GetAwaiter().GetResult()
+        }
+        catch {
+            Write-Error "Failed to retrieve sharing information: $_"
+            return
+        }
+
+        foreach ($shareInfo in $shares) {
+            $title = if ($recordMap.ContainsKey($shareInfo.RecordUid)) { $recordMap[$shareInfo.RecordUid] } else { $shareInfo.RecordUid }
+
+            Write-Host ""
+            Write-Host "Record UID:  $($shareInfo.RecordUid)"
+            Write-Host "Title:       $title"
+
+            if ($shareInfo.UserPermissions -and $shareInfo.UserPermissions.Length -gt 0) {
+                Write-Host ""
+                Write-Host "User Shares:"
+                foreach ($up in $shareInfo.UserPermissions) {
+                    $status = $up.ShareStatus
+                    if ($up.Expiration) {
+                        $status += " (Expires: $($up.Expiration.Value.LocalDateTime.ToString('g')))"
+                    }
+                    Write-Host "  $($up.Username): $status"
+                }
+            }
+
+            if ($shareInfo.SharedFolderPermissions -and $shareInfo.SharedFolderPermissions.Length -gt 0) {
+                Write-Host ""
+                Write-Host "Shared Folders:"
+                foreach ($sfp in $shareInfo.SharedFolderPermissions) {
+                    $status = $sfp.ShareStatus
+                    $name = if ($sfp.SharedFolderName) { $sfp.SharedFolderName } else { $sfp.SharedFolderUid }
+                    if ($sfp.Expiration) {
+                        $status += " (Expires: $($sfp.Expiration.Value.LocalDateTime.ToString('g')))"
+                    }
+                    Write-Host "  ${name}: $status"
+                }
+            }
+        }
     }
 }
 New-Alias -Name kshrsh -Value Show-KeeperRecordShare

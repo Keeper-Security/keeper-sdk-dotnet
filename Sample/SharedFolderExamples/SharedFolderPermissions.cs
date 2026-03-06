@@ -6,11 +6,12 @@ namespace Sample.SharedFolderExamples
 {
     public static class SharedFolderPermissions
     {
-        public static async Task ManageSharedFolderPermissions1(string sharedFolderUid,
+        public static async Task ManageSharedFolderPermissions1(VaultOnline vault, string sharedFolderUid,
             string recordUid,
             IRecordShareOptions permissionsOptions)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await ManageSharedFolderPermissionsSimple(
                 vault,
                 sharedFolderUid,

@@ -6,11 +6,12 @@ namespace Sample.ImportExportExamples
 {
     public static class DownloadMembershipToJsonExample
     {
-        public static async Task DownloadToJson(
+        public static async Task DownloadToJson(VaultOnline vault = null,
             DownloadMembershipOptions options = null)
 
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var exportFile = await KeeperMembershipDownload.DownloadMembershipToJson(
                 vault,
                 options);
