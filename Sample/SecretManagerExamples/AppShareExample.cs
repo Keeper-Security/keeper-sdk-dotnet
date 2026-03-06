@@ -6,22 +6,17 @@ namespace Sample.SecretManagerExamples
 {
     public static class AppShareExample
     {
-        private static VaultOnline vault;
-
-        public static async Task AddUserToSharedFolder(
+        public static async Task AddUserToSharedFolder(VaultOnline vault, 
             string sharedFolderUid,
             string userId,
             UserType userType,
             IUserShareOptions options
         )
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                if (vault == null)
-                {
-                    vault = await AuthenticateAndGetVault.GetVault();
-                }
-
                 await vault.PutUserToSharedFolder(sharedFolderUid, userId, userType, options);
 
                 Console.WriteLine("User successfully added to the shared folder.");
@@ -32,19 +27,16 @@ namespace Sample.SecretManagerExamples
             }
         }
 
-        public static async Task ShareRecordToUser(
+        public static async Task ShareRecordToUser(VaultOnline vault,
             string recordUid,
             string username,
             IRecordShareOptions options
         )
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                if (vault == null)
-                {
-                    vault = await AuthenticateAndGetVault.GetVault();
-                }
-
                 await vault.ShareRecordWithUser(recordUid, username, options);
 
                 Console.WriteLine("Record successfully shared with the user.");

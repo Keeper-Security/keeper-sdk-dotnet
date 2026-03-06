@@ -7,9 +7,10 @@ namespace Sample.RecordTypeExamples
 {
     public static class RecordTypeInfoExample
     {
-        public static async Task RecordTypeInfo(string recordTypeName = null)
+        public static async Task RecordTypeInfo(VaultOnline vault, string recordTypeName = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             // If no specific record type passed, print all in table format
             if (recordTypeName == null)

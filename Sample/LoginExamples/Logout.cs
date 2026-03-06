@@ -6,16 +6,16 @@ namespace Sample.LoginExamples
 {
     public static class LogoutExample
     {
-        public static async Task LogoutAsync()
+        public static async Task LogoutAsync(VaultOnline vault = null)
         {
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null)
+            {
+                Console.WriteLine("Not logged in.");
+                return;
+            }
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Not logged in.");
-                    return;
-                }
 
                 Console.WriteLine("Logging out...");
                 await vault.Auth.Logout();

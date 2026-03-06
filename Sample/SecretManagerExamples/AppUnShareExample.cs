@@ -6,9 +6,7 @@ namespace Sample.SecretManagerExamples
 {
     public static class AppUnShareExample
     {
-        private static VaultOnline vault;
-
-        public static async Task RemoveUserToSharedFolder(
+        public static async Task RemoveUserToSharedFolder(VaultOnline vault, 
             string sharedFolderUid,
             string userId,
             UserType userType
@@ -18,7 +16,8 @@ namespace Sample.SecretManagerExamples
             {
                 if (vault == null)
                 {
-                    vault = await AuthenticateAndGetVault.GetVault();
+                    vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+                if (vault == null) return;
                 }
 
                 await vault.RemoveUserFromSharedFolder(sharedFolderUid, userId, userType);
@@ -31,17 +30,15 @@ namespace Sample.SecretManagerExamples
             }
         }
 
-        public static async Task RevokeShareToUser(
+        public static async Task RevokeShareToUser(VaultOnline vault,
             string recordUid,
             string username
         )
         {
             try
             {
-                if (vault == null)
-                {
-                    vault = await AuthenticateAndGetVault.GetVault();
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+                if (vault == null) return;
 
                 await vault.RevokeShareFromUser(recordUid, username);
 

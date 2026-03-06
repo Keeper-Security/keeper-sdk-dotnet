@@ -1,24 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class EnterpriseRoleAdd
     {
-        public static async Task AddRole(string roleName, string nodeNameOrId, bool newUserInherit = false)
+        public static async Task AddRole(VaultOnline vault, string roleName, string nodeNameOrId, bool newUserInherit = false)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

@@ -1,19 +1,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Cli;
-using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Configuration;
 using KeeperSecurity.Vault;
 
 namespace Sample.RecordsExamples
 {
     public class ListRecordExample
     {
-        public static async Task ListAllRecords()
+        public static async Task ListAllRecords(VaultOnline vault = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var records = vault.KeeperRecords;
 
             Console.WriteLine($"Total Records: {records.Count()}");

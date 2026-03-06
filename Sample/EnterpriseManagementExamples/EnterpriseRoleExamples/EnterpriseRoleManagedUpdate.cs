@@ -1,24 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using System.Collections.Generic;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class RoleManagedNodeUpdateExample
     {
-        public static async Task RoleManagedNodeUpdate(string roleNameOrId, string nodeNameOrId, bool cascadeNodeManagement)
+        public static async Task RoleManagedNodeUpdate(VaultOnline vault, string roleNameOrId, string nodeNameOrId, bool cascadeNodeManagement)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

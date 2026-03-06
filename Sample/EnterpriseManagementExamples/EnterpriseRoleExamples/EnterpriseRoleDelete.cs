@@ -1,24 +1,20 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class EnterpriseRoleDeleteExample
     {
-        public static async Task EnterpriseDeleteRole(string roleNameOrId)
+        public static async Task EnterpriseDeleteRole(VaultOnline vault, string roleNameOrId)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {

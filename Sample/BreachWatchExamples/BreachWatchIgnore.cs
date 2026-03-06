@@ -1,4 +1,5 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Threading.Tasks;
 using KeeperSecurity.BreachWatch;
 using BWIgnore = KeeperSecurity.BreachWatch.BreachWatchIgnore;
@@ -7,22 +8,18 @@ namespace Sample.BreachWatchExamples
 {
     public static class BreachWatchIgnoreExample
     {
-        public static async Task IgnoreRecord(string recordUid)
+        public static async Task IgnoreRecord(VaultOnline vault, string recordUid)
         {
+            if (string.IsNullOrWhiteSpace(recordUid))
+            {
+                Console.WriteLine("Record UID is required.");
+                return;
+            }
+
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                if (string.IsNullOrWhiteSpace(recordUid))
-                {
-                    Console.WriteLine("Record UID is required.");
-                    return;
-                }
-
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!vault.Auth.IsBreachWatchEnabled())
                 {
@@ -39,22 +36,18 @@ namespace Sample.BreachWatchExamples
             }
         }
 
-        public static async Task CheckIfIgnored(string recordUid)
+        public static async Task CheckIfIgnored(VaultOnline vault, string recordUid)
         {
+            if (string.IsNullOrWhiteSpace(recordUid))
+            {
+                Console.WriteLine("Record UID is required.");
+                return;
+            }
+
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                if (string.IsNullOrWhiteSpace(recordUid))
-                {
-                    Console.WriteLine("Record UID is required.");
-                    return;
-                }
-
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!vault.Auth.IsBreachWatchEnabled())
                 {

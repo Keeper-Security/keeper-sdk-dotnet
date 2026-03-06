@@ -31,9 +31,10 @@ namespace Sample.RecordTypeExamples
         //     ]
         // }";
 
-        public static async Task UpdateRecordType(string recordTypeId, string recordTypeData)
+        public static async Task UpdateRecordType(VaultOnline vault, string recordTypeId, string recordTypeData)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var updatedRecordTypeId = await vault.UpdateRecordTypeAsync(recordTypeId, recordTypeData);
 

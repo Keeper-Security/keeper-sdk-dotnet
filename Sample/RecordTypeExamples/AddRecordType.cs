@@ -29,9 +29,10 @@ namespace Sample.RecordTypeExamples
         //     ]
         // }";
 
-        public static async Task CreateRecordType(string recordTypeData)
+        public static async Task CreateRecordType(VaultOnline vault, string recordTypeData)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var createdRecordTypeId = await vault.AddRecordType(recordTypeData);
 

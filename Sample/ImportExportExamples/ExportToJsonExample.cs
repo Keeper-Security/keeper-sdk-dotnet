@@ -1,21 +1,20 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 using System.Collections.Generic;
-using KeeperSecurity.Commands;
 
 namespace Sample.ImportExportExamples
 {
     public static class ExportToJsonExample
     {
-        public static async Task ExportToJson(
+        public static async Task ExportToJson(VaultOnline vault = null,
             IEnumerable<string> recordUids = null,
             bool includeSharedFolders = true,
             Action<Severity, string> logger = null)
 
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = KeeperExport.ExportVaultToJson(vault, recordUids, includeSharedFolders);
             Console.WriteLine(result);
 

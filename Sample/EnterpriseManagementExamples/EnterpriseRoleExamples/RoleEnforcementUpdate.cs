@@ -1,25 +1,21 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
 using System.Collections.Generic;
-using Cli;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseRoleExamples
 {
     public static class RoleEnforcementUpdateExample
     {
-        public static async Task RoleEnforcementUpdate(string roleNameOrId, IDictionary<RoleEnforcementPolicies, string> enforcements)
+        public static async Task RoleEnforcementUpdate(VaultOnline vault, string roleNameOrId, IDictionary<RoleEnforcementPolicies, string> enforcements)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
                 if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
                 {
                     return;

@@ -1,22 +1,19 @@
 using System.Threading.Tasks;
+using KeeperSecurity.Vault;
 using System;
 
 namespace Sample.SecretManagerExamples
 {
     public static class RemoveClientExample
     {
-        public static async Task RemoveClient(
+        public static async Task RemoveClient(VaultOnline vault, 
             string applicationId,
             string deviceId)
         {
             try
             {
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
+                vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
                 await vault.DeleteSecretManagerClient(
                         applicationId,

@@ -6,14 +6,10 @@ namespace Sample.SecretManagerExamples
 {
     public static class AppViewExample
     {
-        public static async Task AppView(string applicationUid)
+        public static async Task AppView(VaultOnline vault, string applicationUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             if (string.IsNullOrEmpty(applicationUid))
             {

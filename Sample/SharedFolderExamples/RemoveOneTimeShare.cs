@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 using System.Collections.Generic;
@@ -8,9 +7,10 @@ namespace Sample.RemoveOneTimeShareExamples
 {
     public static class RemoveOneTimeShare
     {
-        public static async Task RemoveOneTimeShareRecord(string recordUid, IEnumerable<string> clientIds)
+        public static async Task RemoveOneTimeShareRecord(VaultOnline vault, string recordUid, IEnumerable<string> clientIds)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await RemoveOneTimeShareSimple(vault, recordUid, clientIds);
             if (result)
             {
