@@ -18,17 +18,14 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmApprovalOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync())
                 return;
 
-            if (string.IsNullOrEmpty(options.Command))
-            {
-                options.Command = "list";
-            }
+            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
 
-            options.Command = options.Command.ToLowerInvariant();
-
-            switch (options.Command)
+            switch (command)
             {
                 case "list":
                     ListApprovals();
@@ -52,7 +49,7 @@ namespace Commander.EPM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, approve, deny, remove");
+                    Console.WriteLine($"Unsupported command '{command}'. Available commands: list, view, approve, deny, remove");
                     break;
             }
         }

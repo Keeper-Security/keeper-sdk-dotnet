@@ -18,17 +18,14 @@ namespace Commander.EPM
 
         public async Task ExecuteAsync(EpmAgentOptions options)
         {
+            if (options == null)
+                return;
             if (!await EnsurePluginAsync())
                 return;
 
-            if (string.IsNullOrEmpty(options.Command))
-            {
-                options.Command = "list";
-            }
+            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
 
-            options.Command = options.Command.ToLowerInvariant();
-
-            switch (options.Command)
+            switch (command)
             {
                 case "list":
                     ListAgents();
@@ -52,7 +49,7 @@ namespace Commander.EPM
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported command '{options.Command}'. Available commands: list, view, update, remove, collection");
+                    Console.WriteLine($"Unsupported command '{command}'. Available commands: list, view, update, remove, collection");
                     break;
             }
         }
@@ -102,7 +99,13 @@ namespace Commander.EPM
                 return;
             }
 
-            var agentUid = agentUids[0];
+            var agentUid = agentUids[0]?.Trim();
+            if (string.IsNullOrEmpty(agentUid))
+            {
+                Console.WriteLine("Agent UID is required for 'view' command.");
+                return;
+            }
+
             var agentView = Plugin.Agents.GetEntity(agentUid);
             if (agentView == null)
             {
@@ -144,9 +147,10 @@ namespace Commander.EPM
             }
 
             bool? disabled = null;
-            if (!string.IsNullOrEmpty(options.Enable))
+            var enableValue = options.Enable?.Trim();
+            if (!string.IsNullOrEmpty(enableValue))
             {
-                var enableLower = options.Enable.ToLowerInvariant();
+                var enableLower = enableValue.ToLowerInvariant();
                 if (enableLower == "on")
                 {
                     disabled = false;
@@ -210,22 +214,25 @@ namespace Commander.EPM
 
         private async Task RemoveAgentAsync(string agentUid)
         {
-            if (string.IsNullOrEmpty(agentUid))
+            var uid = agentUid?.Trim();
+            if (string.IsNullOrEmpty(uid))
             {
                 Console.WriteLine("Agent UID or machine name is required for 'remove' command.");
                 return;
             }
 
-            var agent = Plugin.Agents.GetEntity(agentUid);
+            try
+            {
+            var agent = Plugin.Agents.GetEntity(uid);
             if (agent == null)
             {
                 var matches = Plugin.Agents.GetAll()
-                    .Where(x => string.Equals(x.MachineId, agentUid, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => string.Equals(x.MachineId, uid, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 if (matches.Count > 1)
                 {
-                    Console.WriteLine($"Multiple agents match machine name \"{agentUid}\". Please specify Agent UID.");
+                    Console.WriteLine($"Multiple agents match machine name \"{uid}\". Please specify Agent UID.");
                     return;
                 }
 
@@ -234,7 +241,7 @@ namespace Commander.EPM
 
             if (agent == null)
             {
-                Console.WriteLine($"Agent \"{agentUid}\" does not exist");
+                Console.WriteLine($"Agent \"{uid}\" does not exist");
                 return;
             }
 
@@ -261,10 +268,18 @@ namespace Commander.EPM
             }
 
             await Plugin.SyncDown();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error removing agent: {ex.Message}");
+            }
         }
 
         private void ListAgentCollections(EpmAgentOptions options)
         {
+            if (options == null)
+                return;
+
             var agentUid = options.AgentUid?.FirstOrDefault();
             if (string.IsNullOrEmpty(agentUid))
             {
@@ -310,7 +325,7 @@ namespace Commander.EPM
                             var parts = data.Select(kvp => $"{kvp.Key}={kvp.Value}").ToList();
                             value = string.Join(", ", parts);
                         }
-                        catch
+                        catch (Exception)
                         {
                             value = $"(binary data, {collection.CollectionData.Length} bytes)";
                         }
