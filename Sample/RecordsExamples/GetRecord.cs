@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 
@@ -7,9 +6,10 @@ namespace Sample.RecordsExamples
 {
     class GetRecordExample
     {
-        public async Task GetRecordDetails(string recordUid)
+        public async Task GetRecordDetails(VaultOnline vault, string recordUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var found = vault.TryGetKeeperRecord(recordUid, out var record);
 
             if (!found || record == null)

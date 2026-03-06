@@ -8,9 +8,10 @@ namespace Sample.RecordsExamples
 {
     public static class ClipboardCopyExample
     {
-        public static async Task CopyToClipboard(string recordUid, string fieldName = "password")
+        public static async Task CopyToClipboard(VaultOnline vault, string recordUid, string fieldName = "password")
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             if (vault == null)
             {
                 Console.WriteLine("Failed to authenticate.");
@@ -117,6 +118,19 @@ namespace Sample.RecordsExamples
 
         private static Process CreateClipboardProcess()
         {
+#if NET472_OR_GREATER
+            return new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell",
+                    Arguments = "-NoProfile -Command \"$input | Set-Clipboard\"",
+                    RedirectStandardInput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+#else
             if (OperatingSystem.IsWindows())
             {
                 return new Process
@@ -159,6 +173,7 @@ namespace Sample.RecordsExamples
                 };
             }
             return null;
+#endif
         }
     }
 }

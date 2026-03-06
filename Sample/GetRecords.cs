@@ -1,19 +1,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Cli;
-using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Configuration;
 using KeeperSecurity.Vault;
 
 namespace Sample
 {
     class GetRecordsExample
     {
-        public async Task GetRecordsWithName(string name)
+        public async Task GetRecordsWithName(VaultOnline vault, string name)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var requiredRecord = GetRecordFromVaultWithNameAsync(vault, name);
             Console.WriteLine($"records found : {requiredRecord}");
         }

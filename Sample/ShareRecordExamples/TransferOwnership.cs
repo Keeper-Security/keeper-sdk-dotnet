@@ -6,9 +6,10 @@ namespace Sample.TransferOwnershipExamples
 {
     public static class TransferOwnership
     {
-        public static async Task TransferRecordToUser(string recordUid, string username)
+        public static async Task TransferRecordToUser(VaultOnline vault, string recordUid, string username)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await TransferRecordToUserSimple(vault, recordUid, username);
             if (result)
             {

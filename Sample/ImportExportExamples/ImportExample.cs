@@ -13,9 +13,10 @@ namespace Sample.ImportExportExamples
         /// </summary>
         /// <param name="jsonContent">The raw JSON string content to import</param>
         /// <returns>BatchResult with import statistics</returns>
-        public static async Task<BatchResult> Import(string jsonContent)
+        public static async Task<BatchResult> Import(VaultOnline vault, string jsonContent)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return null;
             var jOptions = new ZeroDep.JsonOptions
             {
                 DateTimeStyles = DateTimeStyles.None,

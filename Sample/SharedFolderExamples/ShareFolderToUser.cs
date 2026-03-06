@@ -6,12 +6,13 @@ namespace Sample.SharedFolderToUserExamples
 {
     public static class ShareFolderToUser
     {
-        public static async Task ShareFolderWithUser(string sharedFolderUid,
+        public static async Task ShareFolderWithUser(VaultOnline vault, string sharedFolderUid,
             string userId,
             UserType userType,
             IUserShareOptions options)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var result = await ShareFolderToUserSimple(
                 vault,
                 sharedFolderUid,
