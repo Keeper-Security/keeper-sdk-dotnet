@@ -17,7 +17,7 @@ function Script:Get-EnterpriseNodeAndDescendantIds {
         [void]$set.Add($nid)
         if ($subnodes[$nid]) { foreach ($c in $subnodes[$nid]) { $queue.Enqueue($c) | Out-Null } }
     }
-    return $set
+    return ,$set
 }
 
 function Get-KeeperEnterpriseInfoTree {
