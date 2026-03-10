@@ -34,6 +34,9 @@ function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel
     if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA) {
         return 'dna'
     }
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::SecurityKey) {
+        return 'security_key'
+    }
     return ''
 }
 
@@ -226,6 +229,9 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         elseif ($text -eq 'dna') {
             $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA
         }
+        elseif ($text -eq 'security_key') {
+            $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::SecurityKey
+        }
         else {
             Write-Output 'Unsupported 2FA channel:', $text
             $result = $false
@@ -273,12 +279,27 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             }
         }
         else {
+            # Accept plain channel names (e.g., "security_key") as shorthand for "channel=<name>"
+            if ($action -in @('authenticator', 'sms', 'duo', 'rsa', 'dna', 'security_key')) {
+                [KeeperSecurity.Authentication.TwoFactorChannel]$parsedChannel = $auth.step.DefaultChannel
+                if (tryTextToTwoFactorChannel($action) ([ref]$parsedChannel)) {
+                    $auth.step.DefaultChannel = $parsedChannel
+                    return
+                }
+            }
+
             foreach ($cha in $auth.step.Channels) {
                 $pushes = $auth.step.GetChannelPushActions($cha)
                 if ($null -ne $pushes) {
                     foreach ($push in $pushes) {
                         if ($action -eq [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)) {
-                            $auth.step.SendPush($push).GetAwaiter().GetResult() | Out-Null
+                            try {
+                                $auth.step.SendPush($push).GetAwaiter().GetResult() | Out-Null
+                            }
+                            catch {
+                                $pushText = [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)
+                                Write-Error "2FA push '$pushText' failed: $($_.Exception.Message)"
+                            }
                             return
                         }
                     }
@@ -387,6 +408,12 @@ function Connect-Keeper {
     Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n"
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
+    try {
+        $authFlow.UiCallback = New-Object KeeperBiometrics.SecurityKeyAuthCallback
+    }
+    catch {
+        Write-Debug "Security key UI callback initialization failed: $($_.Exception.Message)"
+    }
 
     $authFlow.ResumeSession = -not ($NewLogin.IsPresent -or $Password)
     Write-Information -MessageData "Resume Session: $($authFlow.ResumeSession)"
