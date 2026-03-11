@@ -28,7 +28,7 @@ namespace Commander.EPM
             switch (command)
             {
                 case "list":
-                    ListApprovals();
+                    ListApprovals(options);
                     break;
 
                 case "view":
@@ -54,12 +54,23 @@ namespace Commander.EPM
             }
         }
 
-        private void ListApprovals()
+        private void ListApprovals(EpmApprovalOptions options)
         {
             var approvals = Plugin.Approvals.GetAll().ToList();
+            var nowSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            if (options?.ExpiredOnly == true)
+            {
+                approvals = approvals.Where(a => IsApprovalExpired((IEpmAdmin)Plugin, a, nowSeconds)).ToList();
+            }
+            else
+            {
+                approvals = approvals.Where(a => !IsApprovalExpired((IEpmAdmin)Plugin, a, nowSeconds)).ToList();
+            }
+
             if (approvals.Count == 0)
             {
-                Console.WriteLine("No approvals found.");
+                Console.WriteLine(options?.ExpiredOnly == true ? "No expired approvals found." : "No approvals found.");
             }
             else
             {
@@ -70,13 +81,22 @@ namespace Commander.EPM
                     var accountInfo = ParseApprovalField(appr.AccountInfo);
                     var applicationInfo = ParseApprovalField(appr.ApplicationInfo);
                     var justification = ParseApprovalField(appr.Justification);
-                    var status = GetApprovalStatus((IEpmAdmin)Plugin, appr.ApprovalUid);
+                    var status = GetApprovalStatusDisplay((IEpmAdmin)Plugin, appr.ApprovalUid, appr.Created, appr.ExpireIn);
                     var expireIn = appr.ExpireIn > 0 ? $"{appr.ExpireIn}s" : "";
-                    var created = DateTimeOffset.FromUnixTimeMilliseconds(appr.Created).ToString("yyyy-MM-dd HH:mm:ss");
+                    var created = DateTimeOffset.FromUnixTimeSeconds(appr.Created).ToString("yyyy-MM-dd HH:mm:ss");
                     tab.AddRow(appr.ApprovalUid, appr.ApprovalType.ToString(), status, appr.AgentUid ?? "", accountInfo, applicationInfo, justification, expireIn, created);
                 }
                 tab.Dump();
             }
+        }
+
+        private static bool IsApprovalExpired(IEpmAdmin plugin, EpmApproval a, long nowSeconds)
+        {
+            if (a.ExpireIn <= 0) return false;
+            var statusInt = GetApprovalStatusInt(plugin, a.ApprovalUid);
+            if (statusInt != 0) return false;
+            var expireTime = a.Created + a.ExpireIn;
+            return nowSeconds > expireTime;
         }
 
         private void ViewApproval(string approvalUid)
@@ -96,13 +116,13 @@ namespace Commander.EPM
 
             Console.WriteLine($"Approval: {approvalUid}");
             Console.WriteLine($"  Type: {approval.ApprovalType}");
-            Console.WriteLine($"  Status: {GetApprovalStatus((IEpmAdmin)Plugin, approvalUid)}");
+            Console.WriteLine($"  Status: {GetApprovalStatusDisplay((IEpmAdmin)Plugin, approvalUid, approval.Created, approval.ExpireIn)}");
             Console.WriteLine($"  Agent UID: {approval.AgentUid ?? ""}");
             Console.WriteLine($"  Account Info: {ParseApprovalField(approval.AccountInfo)}");
             Console.WriteLine($"  Application Info: {ParseApprovalField(approval.ApplicationInfo)}");
             Console.WriteLine($"  Justification: {ParseApprovalField(approval.Justification)}");
             Console.WriteLine($"  Expire In: {(approval.ExpireIn > 0 ? $"{approval.ExpireIn}s" : "N/A")}");
-            Console.WriteLine($"  Created: {DateTimeOffset.FromUnixTimeMilliseconds(approval.Created):yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"  Created: {DateTimeOffset.FromUnixTimeSeconds(approval.Created):yyyy-MM-dd HH:mm:ss}");
         }
 
         private async Task ApproveAsync(string approvalUid)
@@ -275,6 +295,29 @@ namespace Commander.EPM
             };
         }
 
+        /// <summary>
+        /// Returns display status: PENDING, APPROVED, DENIED, or EXPIRED when stored status is PENDING
+        /// and the approval has passed its expire time (created + expire_in), matching Python Commander PR #1697.
+        /// </summary>
+        private static string GetApprovalStatusDisplay(IEpmAdmin plugin, string approvalUid, long created, int expireIn)
+        {
+            var statusInt = GetApprovalStatusInt(plugin, approvalUid);
+            if (statusInt == 0 && expireIn > 0)
+            {
+                var nowSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var expireTime = created + expireIn;
+                if (nowSeconds > expireTime)
+                    return "EXPIRED";
+            }
+            return statusInt switch
+            {
+                0 => "PENDING",
+                1 => "APPROVED",
+                2 => "DENIED",
+                _ => "UNKNOWN"
+            };
+        }
+
         private static int GetApprovalStatusInt(IEpmAdmin plugin, string approvalUid)
         {
             return plugin?.GetApprovalStatus(approvalUid) ?? 0; // 0 = PENDING when unknown
@@ -288,6 +331,9 @@ namespace Commander.EPM
 
         [Value(1, Required = false, HelpText = "Approval UID")]
         public string ApprovalUid { get; set; }
+
+        [Option("expired", Required = false, Default = false, HelpText = "List only expired approvals (for list command)")]
+        public bool ExpiredOnly { get; set; }
     }
 }
 

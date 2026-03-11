@@ -155,6 +155,13 @@ namespace Commander
                     Description = "Run an action report based on user activity",
                     Action = async options => { await context.ActionReportCommand(options, Program.GetInputManager()); },
                 });
+            cli.Commands.Add("enterprise-info",
+                new ParseableCommand<EnterpriseInfoOptions>
+                {
+                    Order = 72,
+                    Description = "Get enterprise information",
+                    Action = async options => { await context.EnterpriseInfoCommand(options); },
+                });
             var epmSyncDown = new EpmSyncDownCommand(context);
             cli.Commands.Add("epm-sync-down",
                 new ParseableCommand<EpmSyncDownOptions>

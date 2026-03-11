@@ -189,27 +189,34 @@ namespace Commander.EPM
                 return;
             }
 
-            var updateStatus = await Plugin.ModifyAgents(
-                updateAgents: updateAgents,
-                removeAgents: null);
-
-            if (updateStatus.UpdateErrors?.Count > 0)
+            try
             {
-                foreach (var error in updateStatus.UpdateErrors)
+                var updateStatus = await Plugin.ModifyAgents(
+                    updateAgents: updateAgents,
+                    removeAgents: null);
+
+                if (updateStatus.UpdateErrors?.Count > 0)
                 {
-                    if (!error.Success)
+                    foreach (var error in updateStatus.UpdateErrors)
                     {
-                        Console.WriteLine($"Failed to update agent \"{error.EntityUid}\": {error.Message}");
+                        if (!error.Success)
+                        {
+                            Console.WriteLine($"Failed to update agent \"{error.EntityUid}\": {error.Message}");
+                        }
                     }
                 }
-            }
 
-            if (updateStatus.Update?.Count > 0 || updateStatus.Add?.Count > 0 || updateStatus.Remove?.Count > 0)
+                if (updateStatus.Update?.Count > 0 || updateStatus.Add?.Count > 0 || updateStatus.Remove?.Count > 0)
+                {
+                    PrintModifyStatus(updateStatus);
+                }
+
+                await Plugin.SyncDown();
+            }
+            catch (Exception ex)
             {
-                PrintModifyStatus(updateStatus);
+                Console.WriteLine($"Error updating agent(s): {ex.Message}");
             }
-
-            await Plugin.SyncDown();
         }
 
         private async Task RemoveAgentAsync(string agentUid)
