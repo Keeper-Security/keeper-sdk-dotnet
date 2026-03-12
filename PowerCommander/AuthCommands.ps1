@@ -279,7 +279,6 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             }
         }
         else {
-            # Accept plain channel names (e.g., "security_key") as shorthand for "channel=<name>"
             if ($action -in @('authenticator', 'sms', 'duo', 'rsa', 'dna', 'security_key')) {
                 [KeeperSecurity.Authentication.TwoFactorChannel]$parsedChannel = $auth.step.DefaultChannel
                 if (tryTextToTwoFactorChannel($action) ([ref]$parsedChannel)) {
