@@ -7,14 +7,10 @@ namespace Sample.SecretManagerExamples
 {
     public static class AppListExample
     {
-        public static async Task AppList()
+        public static async Task AppList(VaultOnline vault = null)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
 
             var apps = vault.KeeperRecords.OfType<ApplicationRecord>().ToList();
 

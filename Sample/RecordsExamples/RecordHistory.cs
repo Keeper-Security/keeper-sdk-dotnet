@@ -6,9 +6,10 @@ namespace Sample.RecordsExamples
 {
     class GetRecordHistoryExample
     {
-        public async Task GetRecordHistory1(string recordUid)
+        public async Task GetRecordHistory1(VaultOnline vault, string recordUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             await GetRecordHistorySimple(
                 vault,
                 recordUid

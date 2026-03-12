@@ -1,22 +1,17 @@
 using System;
+using KeeperSecurity.Vault;
 using System.Threading.Tasks;
 using KeeperSecurity.Enterprise;
-using KeeperSecurity.Authentication;
 using Sample.Helpers;
 
 namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 {
     public static class EnterpriseDeleteUserExample
     {
-        public static async Task DeleteUser(string email)
+        public static async Task DeleteUser(VaultOnline vault, string email)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
-
-            if (vault == null)
-            {
-                Console.WriteLine("Authentication failed. Vault is null.");
-                return;
-            }
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             if (!EnterpriseHelper.RequireEnterpriseAdmin(vault))
             {
                 return;

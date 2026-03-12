@@ -39,7 +39,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Show-TwoFactorCode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-11)                                      | 2fa              | Display Two Factor Code 
 | [Copy-KeeperFileAttachment](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#powercommander)                               | kda              | Download file attachments 
 | [Remove-KeeperFileAttachment](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#powercommander-1)                             | krfa             | Remove file attachment from record
-| [Copy-KeeperFileAttachmentToStream]()                       |                  | Download file attachement to stream
+| [Copy-KeeperFileAttachmentToStream](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#clipboard-copy-command)                       |                  | Download file attachement to stream
 | [Copy-FileToKeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#power-commander)                                 |                  | Upload file attachment to a record
 | [Get-KeeperFileReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#power-commander-5)                                    | file-report      | List records with file attachments and optionally verify download accessibility
 | [Get-KeeperInformation](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/login-commands#power-commander)                                   | kwhoami          | Print account license information
@@ -63,9 +63,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 ### Import/Export Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
-| Export-KeeperVault                                      | kexport        | Export vault records and shared folders to JSON file
-| Export-KeeperMembership                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
-| Import-KeeperMembership                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
+| [Export-KeeperVault](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-1)                                      | kexport        | Export vault records and shared folders to JSON file
+| [Export-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-2)                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
+| [Import-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-3)                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
 
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -85,7 +85,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Revoke-KeeperSharesWithUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/record-share-command#power-commander-1)                             | kcancelshare     | Cancel all record shares with a user
 | [Move-KeeperRecordOwnership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/record-share-command#power-commander-3)                              | ktr              | Transfer record ownership to user
 | [Grant-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander)                          | kshf             | Add a user or team to a shared folder
-| [Revoke-KeeperSharedFolderAccess]()                         | kushf            | Remove a user or team from a shared folder
+| [Revoke-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-commands#power-commander-2)                         | kushf            | Remove a user or team from a shared folder
 | [Get-KeeperAvailableTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                                 | kat              | Get available teams
 | [Get-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-2)                                  | kotsg            | Get One-Time Shares for a record
 | [New-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-1)                                  | kotsn            | Create One-Time Share
@@ -107,7 +107,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Get-KeeperEnterpriseTeamUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                            | ketu             | Get a list of enterprise users for team
 | [Add-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                          |                  | Add a list of enterprise users to a team
 | [Remove-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                       |                  | Remove a list of enterprise users from a team
-| [Update-KeeperEnterpriseTeamUser]()                         |                  | Update team member role (admin/user) for a user in a team
+| [Update-KeeperEnterpriseTeamUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander-8)                         |                  | Update team member role (admin/user) for a user in a team
 | [Get-KeeperEnterpriseTeams](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                               | list-team        | List all enterprise teams (with optional filters)
 | [New-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-node-commands#powercommander-1)                                | kena             | Create Node
 | [Edit-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-node-commands#powercommander-2)                               | kenu             | Update Node (rename, move, or enable node isolation)
@@ -153,9 +153,6 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Edit-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-3)                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
 | [Copy-KeeperMCRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-6)                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | [Get-MspBillingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-8)                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
-| [Get-KeeperNodeName]()                                      |                  | Return Name of current Enterprise Node
-| [Get-KeeperNodePath]()                                      |                  | Return path of current Enterprise Node
-| [Get-KeeperRoleName]()                                      |                  | Get Display Name of Enterprise Role
 
 ### Device Approval Cmdlets
 | Cmdlet name                                             | Alias            | Description

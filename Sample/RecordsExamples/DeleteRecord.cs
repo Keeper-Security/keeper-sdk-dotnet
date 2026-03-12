@@ -1,20 +1,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Cli;
-using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Configuration;
 using KeeperSecurity.Vault;
-using System.Collections.Generic;
 
 namespace Sample.RecordsExamples
 {
     class DeleteRecordExample
     {
-        public static async Task DeleteRecord(string recordUid)
+        public static async Task DeleteRecord(VaultOnline vault, string recordUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             if (vault == null)
             {
                 Console.WriteLine("Vault reference is null.");

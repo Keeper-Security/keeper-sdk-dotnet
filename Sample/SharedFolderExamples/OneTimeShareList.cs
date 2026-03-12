@@ -7,9 +7,10 @@ namespace Sample.OneTimeShareListExamples
 {
     public static class OneTimeShareList
     {
-        public static async Task GetOneTimeShareList(string recordUid)
+        public static async Task GetOneTimeShareList(VaultOnline vault, string recordUid)
         {
-            var vault = await AuthenticateAndGetVault.GetVault();
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             var shares = await vault.GetExernalRecordShares(recordUid);
             Console.WriteLine($"One-Time Shares for Record UID: {recordUid}");
             Console.WriteLine(new string('=', 120));

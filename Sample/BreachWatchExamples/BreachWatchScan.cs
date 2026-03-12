@@ -7,25 +7,21 @@ namespace Sample.BreachWatchExamples
 {
     public static class BreachWatchScanExample
     {
-        public static async Task BreachWatchScan(
+        public static async Task BreachWatchScan(VaultOnline vault,
             string recordUid,
             byte[] recordKey,
             string password)
         {
+            if (string.IsNullOrWhiteSpace(recordUid))
+            {
+                Console.WriteLine("Record UID is required.");
+                return;
+            }
+
+            vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
+            if (vault == null) return;
             try
             {
-                if (string.IsNullOrWhiteSpace(recordUid))
-                {
-                    Console.WriteLine("Record UID is required.");
-                    return;
-                }
-
-                var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Authentication failed. Vault is null.");
-                    return;
-                }
 
                 if (!vault.Auth.IsBreachWatchEnabled())
                 {
