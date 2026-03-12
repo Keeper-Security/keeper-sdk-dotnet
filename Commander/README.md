@@ -290,7 +290,6 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `import` | | Import records from JSON file |
-| `export` | | Export vault records and shared folders to JSON file |
 | `download-membership` | | Export shared folder/team membership to JSON |
 | `apply-membership` | | Load shared folder membership from JSON file |
 
@@ -420,6 +419,7 @@ Commander CLI is a reference implementation built on the Keeper .NET SDK. For in
   - Role-based access control (RBAC)
   - Device management
   - Audit log retrieval
+  - EPM: deployment download token contains the deployment private key—protect it like a password; do not log or expose it.
 
 For complete SDK documentation, see:
 - [.NET SDK README](../KeeperSdk/README.md)

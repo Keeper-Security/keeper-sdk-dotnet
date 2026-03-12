@@ -135,52 +135,53 @@ namespace Vault {
             "DBIsCglsb2dpblR5cGUYAiABKA4yGS5BdXRoZW50aWNhdGlvbi5Mb2dpblR5",
             "cGUSDwoHZGVsZXRlZBgDIAEoCBISCgppdGVyYXRpb25zGAQgASgFEgwKBHNh",
             "bHQYBSABKAwSGgoSZW5jcnlwdGVkQ2xpZW50S2V5GAYgASgMEhAKCHJldmlz",
-            "aW9uGAcgASgDEgwKBG5hbWUYCCABKAkiPgoXQnJlYWNoV2F0Y2hTZWN1cml0",
-            "eURhdGESEQoJcmVjb3JkVWlkGAEgASgMEhAKCHJldmlzaW9uGAIgASgDIjIK",
-            "D1JldXNlZFBhc3N3b3JkcxINCgVjb3VudBgBIAEoBRIQCghyZXZpc2lvbhgC",
-            "IAEoAyKpAgoSU2hhcmVkRm9sZGVyUmVjb3JkEhcKD3NoYXJlZEZvbGRlclVp",
-            "ZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSEQoJcmVjb3JkS2V5GAMgASgM",
-            "EhAKCGNhblNoYXJlGAQgASgIEg8KB2NhbkVkaXQYBSABKAgSFwoPb3duZXJB",
-            "Y2NvdW50VWlkGAYgASgMEhIKCmV4cGlyYXRpb24YByABKAMSDQoFb3duZXIY",
-            "CCABKAgSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUYCSABKA4yHi5S",
-            "ZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIVCg1vd25lclVzZXJuYW1l",
-            "GAogASgJEhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgLIAEoCCLxAQoQU2hhcmVk",
-            "Rm9sZGVyVXNlchIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEAoIdXNlcm5h",
-            "bWUYAiABKAkSFQoNbWFuYWdlUmVjb3JkcxgDIAEoCBITCgttYW5hZ2VVc2Vy",
-            "cxgEIAEoCBISCgphY2NvdW50VWlkGAUgASgMEhIKCmV4cGlyYXRpb24YBiAB",
-            "KAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUYByABKA4yHi5SZWNv",
-            "cmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIaChJyb3RhdGVPbkV4cGlyYXRp",
-            "b24YCCABKAgi6gEKEFNoYXJlZEZvbGRlclRlYW0SFwoPc2hhcmVkRm9sZGVy",
-            "VWlkGAEgASgMEg8KB3RlYW1VaWQYAiABKAwSDAoEbmFtZRgDIAEoCRIVCg1t",
-            "YW5hZ2VSZWNvcmRzGAQgASgIEhMKC21hbmFnZVVzZXJzGAUgASgIEhIKCmV4",
-            "cGlyYXRpb24YBiABKAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUY",
-            "ByABKA4yHi5SZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIaChJyb3Rh",
-            "dGVPbkV4cGlyYXRpb24YCCABKAgiigEKCUtzbUNoYW5nZRIUCgxhcHBSZWNv",
-            "cmRVaWQYASABKAwSEAoIZGV0YWlsSWQYAiABKAwSDwoHcmVtb3ZlZBgDIAEo",
-            "CBIwCg1hcHBDbGllbnRUeXBlGAQgASgOMhkuRW50ZXJwcmlzZS5BcHBDbGll",
-            "bnRUeXBlEhIKCmV4cGlyYXRpb24YBSABKAMiIwoPU2hhcmVJbnZpdGF0aW9u",
-            "EhAKCHVzZXJuYW1lGAEgASgJIiwKBFVzZXISEgoKYWNjb3VudFVpZBgBIAEo",
-            "DBIQCgh1c2VybmFtZRgCIAEoCSJ7Cg9TeW5jRGlhZ25vc3RpY3MSGQoRY29u",
-            "dGludWF0aW9uVG9rZW4YASABKAwSDgoGdXNlcklkGAIgASgFEhgKEGVudGVy",
-            "cHJpc2VVc2VySWQYAyABKAMSEAoIc3luY2VkVG8YBCABKAMSEQoJc3luY2lu",
-            "Z1RvGAUgASgDIu4BCg5SZWNvcmRSb3RhdGlvbhIRCglyZWNvcmRVaWQYASAB",
-            "KAwSEAoIcmV2aXNpb24YAiABKAMSGAoQY29uZmlndXJhdGlvblVpZBgDIAEo",
-            "DBIQCghzY2hlZHVsZRgEIAEoCRIVCg1wd2RDb21wbGV4aXR5GAUgASgMEhAK",
-            "CGRpc2FibGVkGAYgASgIEhMKC3Jlc291cmNlVWlkGAcgASgMEhQKDGxhc3RS",
-            "b3RhdGlvbhgIIAEoAxI3ChJsYXN0Um90YXRpb25TdGF0dXMYCSABKA4yGy5W",
-            "YXVsdC5SZWNvcmRSb3RhdGlvblN0YXR1cyJGChFTZWN1cml0eVNjb3JlRGF0",
-            "YRIRCglyZWNvcmRVaWQYASABKAwSDAoEZGF0YRgCIAEoDBIQCghyZXZpc2lv",
-            "bhgDIAEoAyIzCh1CcmVhY2hXYXRjaEdldFN5bmNEYXRhUmVxdWVzdBISCgpy",
-            "ZWNvcmRVaWRzGAEgAygMIrMBCh5CcmVhY2hXYXRjaEdldFN5bmNEYXRhUmVz",
-            "cG9uc2USNAoSYnJlYWNoV2F0Y2hSZWNvcmRzGAEgAygLMhguVmF1bHQuQnJl",
-            "YWNoV2F0Y2hSZWNvcmQSPwoXYnJlYWNoV2F0Y2hTZWN1cml0eURhdGEYAiAD",
-            "KAsyHi5WYXVsdC5CcmVhY2hXYXRjaFNlY3VyaXR5RGF0YRIaCgV1c2VycxgD",
-            "IAMoCzILLlZhdWx0LlVzZXIiNgoYR2V0QWNjb3VudFVpZE1hcFJlc3BvbnNl",
-            "EhoKBXVzZXJzGAEgAygLMgsuVmF1bHQuVXNlcioiCgtDYWNoZVN0YXR1cxII",
-            "CgRLRUVQEAASCQoFQ0xFQVIQASpmChRSZWNvcmRSb3RhdGlvblN0YXR1cxIU",
-            "ChBSUlNUX05PVF9ST1RBVEVEEAASFAoQUlJTVF9JTl9QUk9HUkVTUxABEhAK",
-            "DFJSU1RfU1VDQ0VTUxACEhAKDFJSU1RfRkFJTFVSRRADQiEKGGNvbS5rZWVw",
-            "ZXJzZWN1cml0eS5wcm90b0IFVmF1bHRiBnByb3RvMw=="));
+            "aW9uGAcgASgDEgwKBG5hbWUYCCABKAkiTwoXQnJlYWNoV2F0Y2hTZWN1cml0",
+            "eURhdGESEQoJcmVjb3JkVWlkGAEgASgMEhAKCHJldmlzaW9uGAIgASgDEg8K",
+            "B3JlbW92ZWQYAyABKAgiMgoPUmV1c2VkUGFzc3dvcmRzEg0KBWNvdW50GAEg",
+            "ASgFEhAKCHJldmlzaW9uGAIgASgDIqkCChJTaGFyZWRGb2xkZXJSZWNvcmQS",
+            "FwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhEKCXJlY29yZFVpZBgCIAEoDBIR",
+            "CglyZWNvcmRLZXkYAyABKAwSEAoIY2FuU2hhcmUYBCABKAgSDwoHY2FuRWRp",
+            "dBgFIAEoCBIXCg9vd25lckFjY291bnRVaWQYBiABKAwSEgoKZXhwaXJhdGlv",
+            "bhgHIAEoAxINCgVvd25lchgIIAEoCBJCChpleHBpcmF0aW9uTm90aWZpY2F0",
+            "aW9uVHlwZRgJIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmljYXRpb25UeXBl",
+            "EhUKDW93bmVyVXNlcm5hbWUYCiABKAkSGgoScm90YXRlT25FeHBpcmF0aW9u",
+            "GAsgASgIIvEBChBTaGFyZWRGb2xkZXJVc2VyEhcKD3NoYXJlZEZvbGRlclVp",
+            "ZBgBIAEoDBIQCgh1c2VybmFtZRgCIAEoCRIVCg1tYW5hZ2VSZWNvcmRzGAMg",
+            "ASgIEhMKC21hbmFnZVVzZXJzGAQgASgIEhIKCmFjY291bnRVaWQYBSABKAwS",
+            "EgoKZXhwaXJhdGlvbhgGIAEoAxJCChpleHBpcmF0aW9uTm90aWZpY2F0aW9u",
+            "VHlwZRgHIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmljYXRpb25UeXBlEhoK",
+            "EnJvdGF0ZU9uRXhwaXJhdGlvbhgIIAEoCCLqAQoQU2hhcmVkRm9sZGVyVGVh",
+            "bRIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSDwoHdGVhbVVpZBgCIAEoDBIM",
+            "CgRuYW1lGAMgASgJEhUKDW1hbmFnZVJlY29yZHMYBCABKAgSEwoLbWFuYWdl",
+            "VXNlcnMYBSABKAgSEgoKZXhwaXJhdGlvbhgGIAEoAxJCChpleHBpcmF0aW9u",
+            "Tm90aWZpY2F0aW9uVHlwZRgHIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmlj",
+            "YXRpb25UeXBlEhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgIIAEoCCKKAQoJS3Nt",
+            "Q2hhbmdlEhQKDGFwcFJlY29yZFVpZBgBIAEoDBIQCghkZXRhaWxJZBgCIAEo",
+            "DBIPCgdyZW1vdmVkGAMgASgIEjAKDWFwcENsaWVudFR5cGUYBCABKA4yGS5F",
+            "bnRlcnByaXNlLkFwcENsaWVudFR5cGUSEgoKZXhwaXJhdGlvbhgFIAEoAyIj",
+            "Cg9TaGFyZUludml0YXRpb24SEAoIdXNlcm5hbWUYASABKAkiLAoEVXNlchIS",
+            "CgphY2NvdW50VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJInsKD1N5bmNE",
+            "aWFnbm9zdGljcxIZChFjb250aW51YXRpb25Ub2tlbhgBIAEoDBIOCgZ1c2Vy",
+            "SWQYAiABKAUSGAoQZW50ZXJwcmlzZVVzZXJJZBgDIAEoAxIQCghzeW5jZWRU",
+            "bxgEIAEoAxIRCglzeW5jaW5nVG8YBSABKAMi7gEKDlJlY29yZFJvdGF0aW9u",
+            "EhEKCXJlY29yZFVpZBgBIAEoDBIQCghyZXZpc2lvbhgCIAEoAxIYChBjb25m",
+            "aWd1cmF0aW9uVWlkGAMgASgMEhAKCHNjaGVkdWxlGAQgASgJEhUKDXB3ZENv",
+            "bXBsZXhpdHkYBSABKAwSEAoIZGlzYWJsZWQYBiABKAgSEwoLcmVzb3VyY2VV",
+            "aWQYByABKAwSFAoMbGFzdFJvdGF0aW9uGAggASgDEjcKEmxhc3RSb3RhdGlv",
+            "blN0YXR1cxgJIAEoDjIbLlZhdWx0LlJlY29yZFJvdGF0aW9uU3RhdHVzIkYK",
+            "EVNlY3VyaXR5U2NvcmVEYXRhEhEKCXJlY29yZFVpZBgBIAEoDBIMCgRkYXRh",
+            "GAIgASgMEhAKCHJldmlzaW9uGAMgASgDIjMKHUJyZWFjaFdhdGNoR2V0U3lu",
+            "Y0RhdGFSZXF1ZXN0EhIKCnJlY29yZFVpZHMYASADKAwiswEKHkJyZWFjaFdh",
+            "dGNoR2V0U3luY0RhdGFSZXNwb25zZRI0ChJicmVhY2hXYXRjaFJlY29yZHMY",
+            "ASADKAsyGC5WYXVsdC5CcmVhY2hXYXRjaFJlY29yZBI/ChdicmVhY2hXYXRj",
+            "aFNlY3VyaXR5RGF0YRgCIAMoCzIeLlZhdWx0LkJyZWFjaFdhdGNoU2VjdXJp",
+            "dHlEYXRhEhoKBXVzZXJzGAMgAygLMgsuVmF1bHQuVXNlciI2ChhHZXRBY2Nv",
+            "dW50VWlkTWFwUmVzcG9uc2USGgoFdXNlcnMYASADKAsyCy5WYXVsdC5Vc2Vy",
+            "KiIKC0NhY2hlU3RhdHVzEggKBEtFRVAQABIJCgVDTEVBUhABKmYKFFJlY29y",
+            "ZFJvdGF0aW9uU3RhdHVzEhQKEFJSU1RfTk9UX1JPVEFURUQQABIUChBSUlNU",
+            "X0lOX1BST0dSRVNTEAESEAoMUlJTVF9TVUNDRVNTEAISEAoMUlJTVF9GQUlM",
+            "VVJFEANCIQoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQgVWYXVsdGIGcHJv",
+            "dG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::BreachWatch.BreachwatchReflection.Descriptor, global::Authentication.APIRequestReflection.Descriptor, global::Enterprise.EnterpriseReflection.Descriptor, global::NotificationCenter.NotificationCenterReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Vault.CacheStatus), typeof(global::Vault.RecordRotationStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -204,7 +205,7 @@ namespace Vault {
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.PendingTeamMember), global::Vault.PendingTeamMember.Parser, new[]{ "EnterpriseUserId", "UserPublicKey", "TeamUids", "UserEccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchRecord), global::Vault.BreachWatchRecord.Parser, new[]{ "RecordUid", "Data", "Type", "ScannedBy", "Revision", "ScannedByAccountUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.UserAuth), global::Vault.UserAuth.Parser, new[]{ "Uid", "LoginType", "Deleted", "Iterations", "Salt", "EncryptedClientKey", "Revision", "Name" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchSecurityData), global::Vault.BreachWatchSecurityData.Parser, new[]{ "RecordUid", "Revision" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchSecurityData), global::Vault.BreachWatchSecurityData.Parser, new[]{ "RecordUid", "Revision", "Removed" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.ReusedPasswords), global::Vault.ReusedPasswords.Parser, new[]{ "Count", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderRecord), global::Vault.SharedFolderRecord.Parser, new[]{ "SharedFolderUid", "RecordUid", "RecordKey", "CanShare", "CanEdit", "OwnerAccountUid", "Expiration", "Owner", "ExpirationNotificationType", "OwnerUsername", "RotateOnExpiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderUser), global::Vault.SharedFolderUser.Parser, new[]{ "SharedFolderUid", "Username", "ManageRecords", "ManageUsers", "AccountUid", "Expiration", "ExpirationNotificationType", "RotateOnExpiration" }, null, null, null, null),
@@ -8680,6 +8681,7 @@ namespace Vault {
     public BreachWatchSecurityData(BreachWatchSecurityData other) : this() {
       recordUid_ = other.recordUid_;
       revision_ = other.revision_;
+      removed_ = other.removed_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -8713,6 +8715,18 @@ namespace Vault {
       }
     }
 
+    /// <summary>Field number for the "removed" field.</summary>
+    public const int RemovedFieldNumber = 3;
+    private bool removed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Removed {
+      get { return removed_; }
+      set {
+        removed_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -8730,6 +8744,7 @@ namespace Vault {
       }
       if (RecordUid != other.RecordUid) return false;
       if (Revision != other.Revision) return false;
+      if (Removed != other.Removed) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -8739,6 +8754,7 @@ namespace Vault {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
       if (Revision != 0L) hash ^= Revision.GetHashCode();
+      if (Removed != false) hash ^= Removed.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -8765,6 +8781,10 @@ namespace Vault {
         output.WriteRawTag(16);
         output.WriteInt64(Revision);
       }
+      if (Removed != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Removed);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -8783,6 +8803,10 @@ namespace Vault {
         output.WriteRawTag(16);
         output.WriteInt64(Revision);
       }
+      if (Removed != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Removed);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -8798,6 +8822,9 @@ namespace Vault {
       }
       if (Revision != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      if (Removed != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -8816,6 +8843,9 @@ namespace Vault {
       }
       if (other.Revision != 0L) {
         Revision = other.Revision;
+      }
+      if (other.Removed != false) {
+        Removed = other.Removed;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -8844,6 +8874,10 @@ namespace Vault {
             Revision = input.ReadInt64();
             break;
           }
+          case 24: {
+            Removed = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -8869,6 +8903,10 @@ namespace Vault {
           }
           case 16: {
             Revision = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Removed = input.ReadBool();
             break;
           }
         }
