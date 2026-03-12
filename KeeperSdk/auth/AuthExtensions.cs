@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
@@ -204,6 +207,91 @@ namespace KeeperSecurity.Authentication
                 SummaryVersion = 1
             };
             return await auth.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
+        }
+
+        /// <summary>
+        /// Executes Router REST API request with Protobuf message.
+        /// </summary>
+        /// <typeparam name="TRQ">Protobuf request message type.</typeparam>
+        /// <typeparam name="TRS">Protobuf response message type.</typeparam>
+        /// <param name="auth">The authenticated connection.</param>
+        /// <param name="path">Router endpoint path.</param>
+        /// <param name="request">Optional Protobuf request message.</param>
+        /// <param name="responseType">Optional Protobuf response message type. If null, returns null.</param>
+        /// <returns>Task returning Protobuf response message, or null if responseType is null.</returns>
+        public static async Task<TRS> ExecuteRouter<TRQ, TRS>(this IAuthentication auth, string path, TRQ request = null, Type responseType = null)
+            where TRQ : class, IMessage
+            where TRS : class, IMessage
+        {
+            byte[] payload = null;
+            if (request != null)
+            {
+                payload = request.ToByteArray();
+            }
+
+            if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
+            {
+                throw new InvalidOperationException("Endpoint must be KeeperEndpoint to use ExecuteRouter");
+            }
+
+            var rsBytes = await keeperEndpoint.ExecuteRouterRest(path, auth.AuthContext.SessionToken, payload);
+
+            if (responseType == null) return null;
+
+            var parserProperty = responseType.GetProperty("Parser", BindingFlags.Public | BindingFlags.Static);
+            if (parserProperty == null)
+                throw new InvalidOperationException($"Type {responseType.Name} does not have a static Parser property");
+
+            var parser = (MessageParser)parserProperty.GetValue(null);
+            var response = (TRS)parser.ParseFrom(rsBytes ?? Array.Empty<byte>());
+
+            return response;
+        }
+
+        /// <summary>
+        /// Executes Router REST API request with Protobuf message (generic version with type inference).
+        /// </summary>
+        /// <typeparam name="TRS">Protobuf response message type.</typeparam>
+        /// <param name="auth">The authenticated connection.</param>
+        /// <param name="path">Router endpoint path.</param>
+        /// <param name="request">Optional Protobuf request message.</param>
+        /// <returns>Task returning Protobuf response message.</returns>
+        public static async Task<TRS> ExecuteRouter<TRS>(this IAuthentication auth, string path, IMessage request = null)
+            where TRS : class, IMessage
+        {
+            return await auth.ExecuteRouter<IMessage, TRS>(path, request, typeof(TRS));
+        }
+
+        /// <summary>
+        /// Executes Router REST API request with JSON payload.
+        /// </summary>
+        /// <param name="auth">The authenticated connection.</param>
+        /// <param name="path">Router endpoint path.</param>
+        /// <param name="request">Optional JSON request as dictionary.</param>
+        /// <returns>Task returning JSON response as dictionary, or null if response is empty.</returns>
+        public static async Task<Dictionary<string, object>> ExecuteRouterJson(this IAuthentication auth, string path, Dictionary<string, object> request = null)
+        {
+            byte[] payload = null;
+           
+            payload = JsonUtils.DumpJson(request, indent: false);
+            
+
+            if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
+            {
+                throw new InvalidOperationException("Endpoint must be KeeperEndpoint to use ExecuteRouterJson");
+            }
+
+            var rsBytes = await keeperEndpoint.ExecuteRouterRest(path, auth.AuthContext.SessionToken, payload);
+
+            try
+            {
+                var response = JsonUtils.ParseJson<Dictionary<string, object>>(rsBytes);
+                return response;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
