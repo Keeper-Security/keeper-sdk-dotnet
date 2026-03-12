@@ -35,26 +35,22 @@ namespace KeeperBiometrics
         {
             if (request == null || string.IsNullOrEmpty(request.challenge))
             {
-                throw new Exception("Security key challenge is empty. Try another 2FA method.");
+                throw new Exception("security challenge is missing, try another authentication method.");
             }
 
-            var authOptions = new AuthenticationOptions
-            {
-                RpId = request.rpId,
-                Challenge = request.challenge.Base64UrlDecode(),
-                RawChallengeString = request.challenge,
-                Origin = request.extensions?.appid,
-                AuthenticatorAttachment = "cross-platform-u2f-v2",
-                UserVerification = "required",
-                TimeoutMs = (int) TimeSpan.FromMinutes(2).TotalMilliseconds,
-            };
-
-            authOptions.AllowedCredentialIds = request.allowCredentials?
-                .Where(x => x != null
-                            && string.Equals(x.type, "public-key", StringComparison.OrdinalIgnoreCase)
-                            && !string.IsNullOrWhiteSpace(x.id))
-                .Select(x => x.id)
-                .ToArray();
+            var authOptions = AuthenticationOptionsBuilder.Build(
+                LoginMethod.YubiKey,
+                request.rpId,
+                request.challenge,
+                request.allowCredentials?
+                    .Where(x => x != null
+                                && string.Equals(x.type, "public-key", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.id)
+                    .ToArray(),
+                request.userVerification,
+                request.authenticatorAttachment,
+                request.extensions?.appid,
+                (int) TimeSpan.FromMinutes(2).TotalMilliseconds);
 
             var result = await WindowsHelloApi.AuthenticateAsync(authOptions).ConfigureAwait(false);
 

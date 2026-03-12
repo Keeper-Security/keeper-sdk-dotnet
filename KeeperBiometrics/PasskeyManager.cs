@@ -316,16 +316,15 @@ namespace KeeperBiometrics
                     };
                 }
                 
-                var authOptions = new AuthenticationOptions
-                {
-                    Challenge = FromBase64Url(requestOptions.challenge),
-                    RpId = requestOptions.rpId,
-                    AllowedCredentialIds = requestOptions.allowCredentials?
-                        .Where(c => !string.IsNullOrEmpty(c.id))
+                var authOptions = AuthenticationOptionsBuilder.Build(
+                    LoginMethod.Biometric,
+                    requestOptions.rpId,
+                    requestOptions.challenge,
+                    requestOptions.allowCredentials?
                         .Select(c => c.id)
                         .ToArray(),
-                    UserVerification = requestOptions.userVerification ?? "required"
-                };
+                    requestOptions.userVerification,
+                    requestOptions.authenticatorAttachment);
                 
                 var assertion = await WindowsHelloApi.AuthenticateAsync(authOptions);
                 
@@ -687,6 +686,7 @@ namespace KeeperBiometrics
         public string challenge { get; set; }
         public string rpId { get; set; }
         public List<PublicKeyCredentialDescriptor> allowCredentials { get; set; }
+        public string authenticatorAttachment { get; set; }
         public string userVerification { get; set; }
         public int timeout { get; set; }
     }
