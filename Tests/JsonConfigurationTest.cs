@@ -113,6 +113,47 @@ public class JsonConfigurationTest
     Assert.True(a.Users[0].VaultOnly);
   }
 
+  [Fact]
+  public void TestCommanderConfigFormat()
+  {
+    var loader = new JsonInMemoryLoader();
+    loader.StoreJson(Encoding.UTF8.GetBytes(CommanderConfigJson));
+    var jsonStorage = new JsonConfigurationStorage(loader);
+    var configuration = jsonStorage.Get();
+    Assert.Equal(ServerName, configuration.LastServer);
+    Assert.Equal(UserName, configuration.LastLogin);
+    var uc = configuration.Users.Get(UserName);
+    Assert.NotNull(uc);
+    Assert.Equal(UserName, uc.Username);
+    Assert.Equal(ServerName, uc.Server);
+    Assert.NotNull(uc.LastDevice);
+    Assert.Equal(DeviceToken, uc.LastDevice.DeviceToken);
+    var dc = configuration.Devices.Get(DeviceToken);
+    Assert.NotNull(dc);
+    Assert.Equal(DeviceToken, dc.DeviceToken);
+    Assert.Equal("FrbPZYhfuch-qZR2wWgTIBa0FH0VimVm2hZwbX5BRPU".Base64UrlDecode(), dc.DeviceKey);
+    var dsc = dc.ServerInfo.Get(ServerName);
+    Assert.NotNull(dsc);
+    Assert.Equal(ServerName, dsc.Server);
+    Assert.Equal("62hNPvSGupRy62fyllHx2Q", dsc.CloneCode);
+    var sc = configuration.Servers.Get(ServerName);
+    Assert.NotNull(sc);
+    Assert.Equal(ServerName, sc.Server);
+    Assert.Equal(13, sc.ServerKeyId);
+  }
+
+  private const string CommanderConfigJson =
+    """
+    {
+      "server": "company.com",
+      "user": "user@company.com",
+      "device_token": "0_XjvsDFnN2PaZSfKThADQ924HGE4dfvedNu15uJldJeHA",
+      "private_key": "FrbPZYhfuch-qZR2wWgTIBa0FH0VimVm2hZwbX5BRPU",
+      "clone_code": "62hNPvSGupRy62fyllHx2Q",
+      "server_key_id": 13
+    }
+    """;
+
   [DataContract]
   public class B
   {

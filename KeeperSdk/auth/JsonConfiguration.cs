@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +9,101 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Configuration
 {
+    /// <summary>
+    /// Used for config file compatibility with Commander;
+    /// </summary>
+    [DataContract]
+    internal class CommanderConfigDto
+    {
+        [DataMember(Name = "server", EmitDefaultValue = false)]
+        public string server;
+
+        [DataMember(Name = "user", EmitDefaultValue = false)]
+        public string user;
+
+        [DataMember(Name = "device_token", EmitDefaultValue = false)]
+        public string device_token;
+
+        [DataMember(Name = "private_key", EmitDefaultValue = false)]
+        public string private_key;
+
+        [DataMember(Name = "clone_code", EmitDefaultValue = false)]
+        public string clone_code;
+
+        [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
+        public int server_key_id;
+    }
+
+    internal static class CommanderConfigSupport
+    {
+        /// <summary>
+        /// Returns true if the configuration looks like Commander config
+        /// </summary>
+        public static bool IsCommanderConfig(CommanderConfigDto dto)
+        {
+            if (dto == null) return false;
+            return !string.IsNullOrEmpty(dto.device_token)
+                   && !string.IsNullOrEmpty(dto.user)
+                   && !string.IsNullOrEmpty(dto.server)
+                   && !string.IsNullOrEmpty(dto.private_key)
+                   && !string.IsNullOrEmpty(dto.clone_code);
+        }
+
+        /// <summary>
+        /// Convert Commander config to Keeper SDK JsonConfiguration
+        /// </summary>
+        public static JsonConfiguration CommanderConfigToKeeperConfig(CommanderConfigDto dto)
+        {
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            var server = (dto.server ?? "").AdjustServerName();
+            var user = (dto.user ?? "").AdjustUserName();
+            var deviceToken = dto.device_token ?? "";
+            var privateKey = dto.private_key ?? "";
+            var cloneCode = dto.clone_code ?? "";
+            var serverKeyId = dto.server_key_id != 0 ? dto.server_key_id : 1;
+
+            var config = new JsonConfiguration
+            {
+                LastServer = server,
+                LastLogin = user,
+                users = new List<JsonUserConfiguration>
+                {
+                    new JsonUserConfiguration
+                    {
+                        user = user,
+                        _server = server,
+                        _last_device = !string.IsNullOrEmpty(deviceToken)
+                            ? new JsonUserDeviceConfiguration { device_token = deviceToken }
+                            : null
+                    }
+                },
+                servers = new List<JsonServerConfiguration>
+                {
+                    new JsonServerConfiguration { server = server, serverKeyId = serverKeyId }
+                },
+                devices = !string.IsNullOrEmpty(deviceToken)
+                    ? new List<JsonDeviceConfiguration>
+                    {
+                        new JsonDeviceConfiguration
+                        {
+                            deviceToken = deviceToken,
+                            privateKey = privateKey,
+                            serverInfo = new List<JsonDeviceServerConfiguration>
+                            {
+                                new JsonDeviceServerConfiguration
+                                {
+                                    server = server,
+                                    cloneCode = cloneCode
+                                }
+                            }
+                        }
+                    }
+                    : new List<JsonDeviceConfiguration>()
+            };
+            return config;
+        }
+    }
+
     /// <summary>
     /// Defines the methods for protecting sensitive storage information.
     /// </summary>
@@ -232,9 +327,25 @@ namespace KeeperSecurity.Configuration
             {
                 try
                 {
-                    var configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
-                    DecryptConfiguration(configuration);
-                    _configuration = configuration;
+                    // Try Commander config (flat format) first for compatibility with Commander config files.
+                    try
+                    {
+                        var commanderDto = JsonUtils.ParseJson<CommanderConfigDto>(data);
+                        if (CommanderConfigSupport.IsCommanderConfig(commanderDto))
+                        {
+                            _configuration = CommanderConfigSupport.CommanderConfigToKeeperConfig(commanderDto);
+                            DecryptConfiguration(_configuration);
+                            _readEpochMillis = nowMillis;
+                            return _configuration;
+                        }
+                    }
+                    catch
+                    {
+                        // Not valid Commander config or wrong format; fall through to keeper format.
+                    }
+
+                    _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                    DecryptConfiguration(_configuration);
                     _readEpochMillis = nowMillis;
                     return _configuration;
                 }
@@ -385,8 +496,25 @@ namespace KeeperSecurity.Configuration
                 {
                     try
                     {
-                        _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
-                        DecryptConfiguration(_configuration);
+                        try
+                        {
+                            var commanderDto = JsonUtils.ParseJson<CommanderConfigDto>(data);
+                            if (CommanderConfigSupport.IsCommanderConfig(commanderDto))
+                            {
+                                _configuration = CommanderConfigSupport.CommanderConfigToKeeperConfig(commanderDto);
+                                DecryptConfiguration(_configuration);
+                            }
+                            else
+                            {
+                                _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                                DecryptConfiguration(_configuration);
+                            }
+                        }
+                        catch
+                        {
+                            _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                            DecryptConfiguration(_configuration);
+                        }
                     }
                     catch (Exception e)
                     {
