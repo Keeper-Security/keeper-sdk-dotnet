@@ -16,6 +16,8 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
+using KeeperSecurity.Plugins.EPM;
+using Commander.EPM;
 using KeeperSecurity.Utils;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
@@ -41,6 +43,35 @@ namespace Commander
         EcPrivateKey EnterprisePrivateKey { get; set; }
 
         IDictionary<string, AuditEventType> AuditEvents { get; set; }
+    }
+
+    internal static class IEnterpriseContextExtensions
+    {
+        private static readonly Dictionary<IEnterpriseContext, IEpmAdmin> _epmPlugins = new Dictionary<IEnterpriseContext, IEpmAdmin>();
+
+        internal static IEpmAdmin GetEpmPlugin(this IEnterpriseContext context)
+        {
+            if (!context.Enterprise?.Auth?.AuthContext?.IsEnterpriseAdmin ?? true)
+            {
+                return null;
+            }
+
+            if (_epmPlugins.TryGetValue(context, out var plugin))
+            {
+                return plugin;
+            }
+
+            try
+            {
+                var epmPlugin = new EpmPlugin(context.Enterprise);
+                _epmPlugins[context] = epmPlugin;
+                return epmPlugin;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
     internal static class EnterpriseExtensions
@@ -124,13 +155,67 @@ namespace Commander
                     Description = "Run an action report based on user activity",
                     Action = async options => { await context.ActionReportCommand(options, Program.GetInputManager()); },
                 });
-            
             cli.Commands.Add("enterprise-info",
                 new ParseableCommand<EnterpriseInfoOptions>
                 {
                     Order = 72,
                     Description = "Get enterprise information",
                     Action = async options => { await context.EnterpriseInfoCommand(options); },
+                });
+            var epmSyncDown = new EpmSyncDownCommand(context);
+            cli.Commands.Add("epm-sync-down",
+                new ParseableCommand<EpmSyncDownOptions>
+                {
+                    Order = 80,
+                    Description = "Sync EPM data from server",
+                    Action = async options => { await epmSyncDown.ExecuteAsync(options); },
+                });
+            cli.Aliases["epm-sync"] = "epm-sync-down";
+
+            var epmDeployment = new EpmDeploymentCommand(context);
+            cli.Commands.Add("epm-deployment",
+                new ParseableCommand<EpmDeploymentOptions>
+                {
+                    Order = 81,
+                    Description = "Manage EPM deployments",
+                    Action = async options => { await epmDeployment.ExecuteAsync(options); },
+                });
+            cli.Aliases["epm-dep"] = "epm-deployment";
+
+            var epmAgent = new EpmAgentCommand(context);
+            cli.Commands.Add("epm-agent",
+                new ParseableCommand<EpmAgentOptions>
+                {
+                    Order = 82,
+                    Description = "Manage EPM agents",
+                    Action = async options => { await epmAgent.ExecuteAsync(options); },
+                });
+
+            var epmPolicy = new EpmPolicyCommand(context);
+            cli.Commands.Add("epm-policy",
+                new ParseableCommand<EpmPolicyOptions>
+                {
+                    Order = 83,
+                    Description = "Manage EPM policies",
+                    Action = async options => { await epmPolicy.ExecuteAsync(options); },
+                });
+
+            var epmCollection = new EpmCollectionCommand(context);
+            cli.Commands.Add("epm-collection",
+                new ParseableCommand<EpmCollectionOptions>
+                {
+                    Order = 84,
+                    Description = "Manage EPM collections",
+                    Action = async options => { await epmCollection.ExecuteAsync(options); },
+                });
+
+            var epmApproval = new EpmApprovalCommand(context);
+            cli.Commands.Add("epm-approval",
+                new ParseableCommand<EpmApprovalOptions>
+                {
+                    Order = 85,
+                    Description = "Manage EPM approvals",
+                    Action = async options => { await epmApproval.ExecuteAsync(options); },
                 });
 
             cli.Aliases["eget"] = "enterprise-get-data";
