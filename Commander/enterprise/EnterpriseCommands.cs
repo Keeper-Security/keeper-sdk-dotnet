@@ -133,6 +133,22 @@ namespace Commander
                     Action = async options => { await context.EnterpriseInfoCommand(options); },
                 });
 
+            cli.Commands.Add("security-audit-report",
+                new ParseableCommand<Enterprise.SecurityAuditReportOptions>
+                {
+                    Order = 73,
+                    Description = "Generate a password security strength report for enterprise users",
+                    Action = async options => { await context.SecurityAuditReportCommand(options, Program.GetInputManager()); },
+                });
+
+            cli.Commands.Add("breachwatch-report",
+                new ParseableCommand<Enterprise.BreachWatchReportOptions>
+                {
+                    Order = 74,
+                    Description = "Run an enterprise BreachWatch security report",
+                    Action = async options => { await context.BreachWatchReportCommand(options, Program.GetInputManager()); },
+                });
+                
             cli.Aliases["eget"] = "enterprise-get-data";
             cli.Aliases["en"] = "enterprise-node";
             cli.Aliases["eu"] = "enterprise-user";
@@ -140,6 +156,7 @@ namespace Commander
             cli.Aliases["er"] = "enterprise-role";
             cli.Aliases["ed"] = "enterprise-device";
             cli.Aliases["ei"] = "enterprise-info";
+            cli.Aliases["bw-report"] = "breachwatch-report";
 
 
             if (context.Enterprise.EcPrivateKey == null)
@@ -3079,7 +3096,7 @@ namespace Commander
             }
         }
 
-        private static IEnumerable<EnterpriseNode> CollectNodeAndDescendants(EnterpriseData enterpriseData, EnterpriseNode node)
+        internal static IEnumerable<EnterpriseNode> CollectNodeAndDescendants(EnterpriseData enterpriseData, EnterpriseNode node)
         {
             var result = new List<EnterpriseNode> { node };
             foreach (var childId in node.Subnodes)
@@ -3443,7 +3460,7 @@ namespace Commander
             }
         }
 
-        private static string GetNodePath(EnterpriseData enterpriseData, long nodeId)
+        internal static string GetNodePath(EnterpriseData enterpriseData, long nodeId)
         {
             if (nodeId == 0) return "";
             
