@@ -192,39 +192,6 @@ function resolveSingleNode {
     }
 }
 
-function Script:Resolve-EnterpriseNodeFilter {
-    param(
-        [Parameter(Mandatory = $true)]
-        [Enterprise] $Enterprise,
-
-        [Parameter()]
-        [string[]] $Nodes
-    )
-
-    if (-not $Nodes -or $Nodes.Count -eq 0) {
-        return $null
-    }
-
-    $resolvedIds = [System.Collections.Generic.HashSet[long]]::new()
-    foreach ($nodeInput in $Nodes) {
-        if ([string]::IsNullOrWhiteSpace($nodeInput)) {
-            continue
-        }
-
-        $resolvedNode = resolveSingleNode $nodeInput.Trim()
-        if ($null -eq $resolvedNode) {
-            continue
-        }
-
-        $descendantIds = Get-EnterpriseNodeAndDescendantIds $Enterprise.enterpriseData $resolvedNode.Id
-        foreach ($nodeId in $descendantIds) {
-            [void]$resolvedIds.Add($nodeId)
-        }
-    }
-
-    return $resolvedIds
-}
-
 function resolveRole {
     Param (
         $roleData,

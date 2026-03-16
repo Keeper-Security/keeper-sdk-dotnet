@@ -94,10 +94,9 @@ Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachme
 Get-KeeperFileReport
 Export-ModuleMember -Alias kda, krfa, file-report
 
-Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,
-Set-KeeperBreachWatchRecordIgnore, Get-KeeperIgnoredBreachWatchRecords,
-Get-KeeperSecurityAuditReport, Get-KeeperBreachWatchReport
-Export-ModuleMember -Alias kbw, kbwp, kbwi, kbwig, bw-report
+Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
+Get-KeeperIgnoredBreachWatchRecords
+Export-ModuleMember -Alias kbw, kbwp
 
 Export-ModuleMember -Function Register-KeeperBiometricCredential, Assert-KeeperBiometricCredential, 
 Show-KeeperBiometricCredentials, Unregister-KeeperBiometricCredential
