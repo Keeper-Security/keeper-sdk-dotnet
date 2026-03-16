@@ -137,7 +137,7 @@ namespace Commander
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>
                 {
                     Order = 73,
-                    Description = "Generate a password security strength report for enterprise users",
+                    Description = "Run a security audit report.",
                     Action = async options => { await context.SecurityAuditReportCommand(options, Program.GetInputManager()); },
                 });
 

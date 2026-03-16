@@ -15,7 +15,7 @@ using KeeperSecurity.Utils;
 
 namespace Commander.Enterprise
 {
-    [Verb("security-audit-report", HelpText = "Generate a password security strength report for users of your enterprise")]
+    [Verb("security-audit-report", HelpText = "Run a security audit report.")]
     internal class SecurityAuditReportOptions
     {
         [Option("format", Required = false, Default = "table",
@@ -141,7 +141,7 @@ namespace Commander.Enterprise
 
             if (context.EnterpriseData == null)
             {
-                Console.WriteLine("Enterprise data is not available.");
+                Console.WriteLine("Enterprise data is not available, use an admin account to use this command");
                 return;
             }
 
