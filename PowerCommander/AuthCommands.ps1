@@ -1,5 +1,24 @@
 #requires -Version 5.1
 
+# Optional SQLite vault storage: DLLs loaded only from PowerCommanderStorageUtils/ when -UseOfflineStorage is used
+function Get-SqliteVaultStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+    $moduleRoot = $PSScriptRoot
+    if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
+    $storageDir = Join-Path $moduleRoot 'PowerCommanderStorageUtils'
+    $helperDll = Join-Path $storageDir 'PowerCommanderStorageUtils.dll'
+    if (-not (Test-Path -LiteralPath $helperDll -PathType Leaf)) {
+        throw "PowerCommanderStorageUtils.dll not found in '$storageDir'. When using -UseOfflineStorage, place PowerCommanderStorageUtils.dll and its dependencies (Microsoft.Data.Sqlite.dll, SQLitePCLRaw.*.dll, libe_sqlite3.dylib or e_sqlite3.dll) in the PowerCommanderStorageUtils subfolder."
+    }
+    # Load only if not already loaded (e.g. from a previous Connect-Keeper -UseOfflineStorage in same session)
+    $factoryType = $null
+    try { $factoryType = [PowerCommanderStorageUtils.VaultStorageFactory] } catch { }
+    if (-not $factoryType) {
+        [System.Reflection.Assembly]::LoadFrom($helperDll) | Out-Null
+    }
+    return [PowerCommanderStorageUtils.VaultStorageFactory]::CreateSqliteStorage($ConnectionString, $OwnerUid)
+}
+
 $expires = @(
     [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin,
     [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days,
@@ -363,6 +382,12 @@ function Connect-Keeper {
     .Parameter Config
     Config file name
 
+    .Parameter UseOfflineStorage
+    Use SQLite file for vault cache (persists between sessions). Requires PowerCommanderStorageUtils.dll and its dependencies in PowerCommander/PowerCommanderStorageUtils/.
+
+    .Parameter VaultDatabasePath
+    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file (or current directory).
+
    .Parameter SkipSync
     After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
@@ -375,6 +400,8 @@ function Connect-Keeper {
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
         [Parameter()][string] $Server,
         [Parameter()][string] $Config,
+        [Parameter()][switch] $UseOfflineStorage,
+        [Parameter()][string] $VaultDatabasePath,
         [Parameter()][switch] $SkipSync
     )
 
@@ -546,7 +573,25 @@ function Connect-Keeper {
     if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
         Write-Information -MessageData "Connected to Keeper as $($auth.Username)" -InformationAction Continue
 
-        $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
+        $vaultStorage = $null
+        if ($UseOfflineStorage) {
+            $ownerUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($auth.AuthContext.AccountUid)
+            if ($VaultDatabasePath) {
+                $dbPath = $VaultDatabasePath
+            } elseif ($Config) {
+                $resolved = $null
+                try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
+                $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
+                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
+            } else {
+                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
+            }
+            $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+            Write-Information -MessageData "Using vault database: $dbPath"
+            $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
+        }
+        $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
         if ($SkipSync.IsPresent) {
             $vault.AutoSync = $false
             Write-Information -MessageData 'SkipSync: vault SyncDown skipped. Local folder tree and records are empty until you run Sync-Keeper.' -InformationAction Continue
