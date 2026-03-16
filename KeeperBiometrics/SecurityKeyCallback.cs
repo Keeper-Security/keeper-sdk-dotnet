@@ -10,9 +10,8 @@ using KeeperSecurity.Utils;
 namespace KeeperBiometrics
 {
     /// <summary>
-    /// <see cref="IAuthSyncCallback"/> + <see cref="IAuthSecurityKeyUI"/> implementation
-    /// that delegates YubiKey / WebAuthn 2FA to the existing
-    /// <see cref="WindowsHelloApi.AuthenticateAsync"/> native WebAuthn infrastructure.
+    /// Handles security key authentication by routing YubiKey and WebAuthn
+    /// two-factor requests through the existing native Windows WebAuthn flow.
     /// </summary>
     public sealed class SecurityKeyAuthCallback : IAuthSyncCallback, IAuthSecurityKeyUI
     {
