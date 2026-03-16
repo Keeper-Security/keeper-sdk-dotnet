@@ -71,7 +71,7 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
+        'KeeperBiometrics.ps1', 'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1', 'EPM\Agents.ps1'
         'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
@@ -120,7 +120,10 @@
         'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync','Sync-KeeperEpm',
+        'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
+        'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
+        'Get-KeeperEpmAgentList', 'Get-KeeperEpmAgent', 'Update-KeeperEpmAgent', 'Remove-KeeperEpmAgent', 'Get-KeeperEpmAgentCollection'
         #'Test-Keeper',
     )
 
@@ -132,7 +135,9 @@
 
     # Aliases to export from this module
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
-        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 
+        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert',
+        'kepm-sync','kepm-deployment-list', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
+        'kepm-agent-list', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
