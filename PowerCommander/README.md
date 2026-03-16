@@ -153,6 +153,11 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Edit-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-3)                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
 | [Copy-KeeperMCRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-6)                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | [Get-MspBillingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-8)                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
+| [Get-KeeperNodeName]()                                      |                  | Return Name of current Enterprise Node
+| [Get-KeeperNodePath]()                                      |                  | Return path of current Enterprise Node
+| [Get-KeeperRoleName]()                                      |                  | Get Display Name of Enterprise Role
+| [Get-KeeperSecurityAuditReport]()                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
+| [Get-KeeperBreachWatchReport]()                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 
 ### Device Approval Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -477,3 +482,25 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > kar
     ```
     Returns the last 100 raw audit events (Created, Username, Event, Message).
+
+34. Run a security audit report for the enterprise
+    ```
+    PS > Get-KeeperSecurityAuditReport
+    ```
+    Export to JSON
+    ```
+    PS > Get-KeeperSecurityAuditReport -Format json -Output security-audit.json
+    ```
+    Filter to a node subtree
+    ```
+    PS > Get-KeeperSecurityAuditReport -Node "Sales"
+    ```
+
+35. Run the BreachWatch enterprise report
+    ```
+    PS > Get-KeeperBreachWatchReport
+    ```
+    or using the alias
+    ```
+    PS > bw-report
+    ```
