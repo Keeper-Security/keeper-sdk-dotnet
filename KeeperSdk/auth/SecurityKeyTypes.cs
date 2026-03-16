@@ -36,6 +36,8 @@ namespace KeeperSecurity.Authentication
         public string rpId;
         [DataMember(Name = "allowCredentials")]
         public AllowCredential[] allowCredentials;
+        [DataMember(Name = "authenticatorAttachment")]
+        public string authenticatorAttachment;
         [DataMember(Name = "userVerification")]
         public string userVerification;
         [DataMember(Name = "extensions")]

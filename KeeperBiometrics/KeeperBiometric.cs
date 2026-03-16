@@ -419,12 +419,13 @@ namespace KeeperBiometrics
                 var ptrList = new List<IntPtr>();
                 try
                 {
-                    // Create client data with Base64Url encoding (WebAuthn standard)
+                    var challengeStr = options.RawChallengeString ?? ToBase64Url(options.Challenge);
+                    var originStr = options.Origin ?? $"https://{options.RpId ?? "keepersecurity.com"}";
                     var clientData = new SecurityKeyClientData
                     {
                         dataType = SecurityKeyClientData.GET_ASSERTION,
-                        challenge = ToBase64Url(options.Challenge),
-                        origin = $"https://{options.RpId ?? "keepersecurity.com"}",
+                        challenge = challengeStr,
+                        origin = originStr,
                     };
                     
                     var clientDataJson = SerializeClientData(clientData);
@@ -491,10 +492,8 @@ namespace KeeperBiometrics
                             cExtensions = 0,
                             pExtensions = IntPtr.Zero
                         },
-                        dwAuthenticatorAttachment = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM,
-                        dwUserVerificationRequirement = options.UserVerification == "required"
-                            ? NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED
-                            : NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED,
+                        dwAuthenticatorAttachment = ResolveAuthenticatorAttachment(options.AuthenticatorAttachment),
+                        dwUserVerificationRequirement = ResolveUserVerification(options.UserVerification),
                         dwFlags = 0,
                         pwszU2fAppId = IntPtr.Zero,
                         pbU2fAppId = IntPtr.Zero,
@@ -829,6 +828,28 @@ namespace KeeperBiometrics
         private static string SerializeClientData(SecurityKeyClientData clientData)
         {
         return $"{{\"type\":\"{clientData.dataType}\",\"challenge\":\"{clientData.challenge}\",\"origin\":\"{clientData.origin}\",\"crossOrigin\":false}}";
+        }
+
+        private static uint ResolveAuthenticatorAttachment(string attachment)
+        {
+            switch (attachment?.ToLowerInvariant())
+            {
+                case "platform": return NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM;
+                case "cross-platform": return NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM;
+                case "cross-platform-u2f-v2": return NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM_U2F_V2;
+                default: return NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_ANY;
+            }
+        }
+
+        private static uint ResolveUserVerification(string uv)
+        {
+            switch (uv?.ToLowerInvariant())
+            {
+                case "required": return NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED;
+                case "preferred": return NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED;
+                case "discouraged": return NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_DISCOURAGED;
+                default: return NativeWebAuthn.WEBAUTHN_USER_VERIFICATION_REQUIREMENT_ANY;
+            }
         }
 
         /// <summary>
@@ -1189,8 +1210,24 @@ namespace KeeperBiometrics
         public string RpId { get; set; }
         public byte[] Challenge { get; set; }
         public string[] AllowedCredentialIds { get; set; }
-        public int TimeoutMs { get; set; } = 60000; // 1 minute default
+        public int TimeoutMs { get; set; } = 60000;
         public string UserVerification { get; set; } = "required";
+        /// <summary>
+        /// "platform" (default), "cross-platform", "cross-platform-u2f-v2", or "any".
+        /// Keep default "platform" for existing Windows Hello behavior.
+        /// Use "cross-platform-u2f-v2" for U2F-only YubiKey / security key 2FA.
+        /// </summary>
+        public string AuthenticatorAttachment { get; set; } = "platform";
+        /// <summary>
+        /// Override the origin in client data JSON. If null, defaults to "https://{RpId}".
+        /// For security key 2FA, set this to extensions.appid.
+        /// </summary>
+        public string Origin { get; set; }
+        /// <summary>
+        /// If set, use this raw string as the challenge in client data JSON
+        /// instead of base64url-encoding the Challenge bytes.
+        /// </summary>
+        public string RawChallengeString { get; set; }
     }
 
     /// <summary>
