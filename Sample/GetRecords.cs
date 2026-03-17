@@ -15,7 +15,7 @@ namespace Sample
         {
             var vault = await AuthenticateAndGetVault.GetVault();
             var requiredRecord = GetRecordFromVaultWithNameAsync(vault, name);
-            Console.WriteLine($"records found : {requiredRecord}");
+            Console.WriteLine($"records found : {requiredRecord.Title}");
         }
 
         private KeeperRecord GetRecordFromVaultWithNameAsync(VaultOnline vault, String name)
