@@ -1,28 +1,207 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Cli;
 using Folder;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
-using Sample;
 
 namespace Sample.SharedFolderToUserExamples
 {
     public static class ShareFolderToUserNoSync
     {
+        private static readonly IReadOnlyDictionary<string, string> KeeperPublicHosts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "US", "keepersecurity.com" },
+            { "EU", "keepersecurity.eu" },
+            { "AU", "keepersecurity.com.au" },
+            { "US Gov", "govcloud.keepersecurity.us" },
+            { "JP", "keepersecurity.jp" },
+            { "CA", "keepersecurity.ca" },
+        };
+
+        public static async Task RunAsync(
+            string sharedFolderUid,
+            string userId,
+            UserType userType,
+            IUserShareOptions options,
+            bool grant,
+            bool? enablePersistentLogin = null)
+        {
+            var auth = await GetAuthAsync(enablePersistentLogin);
+            if (auth == null)
+            {
+                Console.WriteLine("Not authenticated. Exiting.");
+                return;
+            }
+            await ShareFolderWithUser(auth, sharedFolderUid, userId, userType, options, grant);
+        }
+
+        public static async Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null)
+        {
+            var configurationStorage = new JsonConfigurationStorage("config.json");
+            var configuration = configurationStorage.Get();
+            var inputManager = new SimpleInputManager();
+
+            await EnsureServerAsync(configurationStorage, inputManager);
+
+            var username = await PromptUsernameAsync(inputManager, configuration.LastLogin);
+            if (string.IsNullOrEmpty(username))
+            {
+                if (string.IsNullOrEmpty(configuration.LastLogin))
+                {
+                    Console.WriteLine("Bye.");
+                    return null;
+                }
+                username = configuration.LastLogin;
+            }
+
+            var authFlow = new AuthSync(configurationStorage);
+            authFlow.BiometricLoginProvider = null;
+            authFlow.ResumeSession = true;
+
+            try
+            {
+                await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Resume attempt error: {ex.Message}");
+            }
+
+            if (!authFlow.IsAuthenticated())
+            {
+                Console.WriteLine("Session resume not available. Using standard login.");
+                authFlow.Cancel();
+                authFlow.ResumeSession = false;
+                try
+                {
+                    await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Login error: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Session resumed successfully (no password needed).");
+            }
+
+            if (authFlow.Step is ErrorStep es)
+            {
+                Console.WriteLine($"Authentication error: {es.Message}");
+                return null;
+            }
+
+            if (!authFlow.IsAuthenticated())
+            {
+                Console.WriteLine("Authentication failed.");
+                return null;
+            }
+
+            if (enablePersistentLogin == true)
+                await SetupPersistentLogin(authFlow);
+            else if (enablePersistentLogin == false)
+                await DisablePersistentLogin(authFlow);
+
+            return authFlow;
+        }
+
+        private static async Task EnsureServerAsync(IConfigurationStorage storage, IInputManager inputManager)
+        {
+            var configuration = storage.Get();
+            if (!string.IsNullOrEmpty(configuration.LastServer))
+                return;
+
+            Console.WriteLine("Available server options:");
+            foreach (var kv in KeeperPublicHosts)
+                Console.WriteLine($"  {kv.Key}: {kv.Value}");
+            Console.Write("Enter server (default: keepersecurity.com): ");
+            var server = await inputManager.ReadLine(new ReadLineParameters { IsHistory = false });
+            server = string.IsNullOrWhiteSpace(server) ? "keepersecurity.com" : server.Trim();
+            if (KeeperPublicHosts.TryGetValue(server, out var host))
+                server = host;
+                server = "qa.keepersecurity.com";
+            configuration.LastServer = server;
+            storage.Put(configuration);
+        }
+
+        private static async Task<string> PromptUsernameAsync(IInputManager inputManager, string lastLogin)
+        {
+            Console.Write("Username: ");
+            var input = await inputManager.ReadLine(new ReadLineParameters { IsHistory = false, Text = lastLogin ?? "" });
+            input = (input ?? "").Trim();
+            if (string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(lastLogin))
+                input = lastLogin;
+            return string.IsNullOrEmpty(input) ? null : input;
+        }
+
+        private static async Task SetupPersistentLogin(AuthSync auth)
+        {
+            try
+            {
+                var accountSummary = await auth.LoadAccountSummary();
+                bool restricted = accountSummary.Enforcements?.Booleans?
+                    .FirstOrDefault(x => x.Key == "restrict_persistent_login")?.Value ?? false;
+                if (restricted)
+                {
+                    Console.WriteLine("Persistent login is restricted by enterprise administrator.");
+                    return;
+                }
+                var device = accountSummary.Devices
+                    .FirstOrDefault(d => d.EncryptedDeviceToken.SequenceEqual(auth.DeviceToken));
+                if (device != null && !device.EncryptedDataKeyPresent)
+                {
+                    await auth.RegisterDataKeyForDevice(device);
+                    Console.WriteLine("Device registered for persistent login.");
+                }
+                if (!accountSummary.Settings.PersistentLogin)
+                {
+                    await auth.SetSessionParameter("persistent_login", "1");
+                    Console.WriteLine("Persistent login enabled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not setup persistent login: {ex.Message}");
+            }
+        }
+
+        private static async Task DisablePersistentLogin(AuthSync auth)
+        {
+            try
+            {
+                var accountSummary = await auth.LoadAccountSummary();
+                if (accountSummary.Settings.PersistentLogin)
+                {
+                    await auth.SetSessionParameter("persistent_login", "0");
+                    Console.WriteLine("Persistent login disabled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not disable persistent login: {ex.Message}");
+            }
+        }
+
         /// <summary>Shares a shared folder with a user or team (grant=true) or revokes access (grant=false), using get_shared_folders only.</summary>
-        public static async Task ShareFolderWithUser(string sharedFolderUid,
+        /// <param name="auth">Already authenticated session; use <see cref="GetAuthAsync"/> or pass from <see cref="RunAsync"/>.</param>
+        public static async Task ShareFolderWithUser(IAuthentication auth,
+            string sharedFolderUid,
             string userId,
             UserType userType,
             IUserShareOptions options,
             bool grant = false)
         {
-            var auth = await AuthenticateAndGetVault.GetAuthAsync();
             if (auth == null) { Console.WriteLine("Not authenticated."); return; }
 
             if (await LoadSharedFolders(auth, sharedFolderUid) == null)

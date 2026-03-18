@@ -1,4 +1,4 @@
-﻿//  _  __
+//  _  __
 // | |/ /___ ___ _ __  ___ _ _ ®
 // | ' </ -_) -_) '_ \/ -_) '_|
 // |_|\_\___\___| .__/\___|_|
@@ -36,17 +36,18 @@ namespace Sample
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName( "Google");
 
-                await SharedFolderToUserExamples.ShareFolderToUserNoSync.ShareFolderWithUser(
-                    "sharedFolderUid_here",
-                    "userId_here",
-                    UserType.User,
-                    new SharedFolderUserOptions
+                await SharedFolderToUserExamples.ShareFolderToUserNoSync.RunAsync(
+                    sharedFolderUid: "CpNGnAhzcu8W6OvKglerjg",
+                    userId: "adeshmukh@keepersecurity.com",
+                    userType: UserType.User,
+                    options: new SharedFolderUserOptions
                     {
                         ManageRecords = true,
                         ManageUsers = true,
                         Expiration = DateTimeOffset.Now.AddMinutes(10)
-                    },// user share options here
-                    grant: false// grant: true to share, grant: false to revoke
+                    },
+                    grant: false,  // true = share, false = revoke
+                    enablePersistentLogin: null
                 );
 
                 // // Add Record Example
