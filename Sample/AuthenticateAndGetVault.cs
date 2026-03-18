@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Cli;
@@ -21,6 +22,31 @@ using KeeperSecurity.Vault;
 
 namespace Sample
 {
+    /// <summary>
+    /// Provides authentication and vault resolution for samples.
+    /// Implement this interface when you need to obtain the auth object (e.g. for API calls without vault sync).
+    /// </summary>
+    public interface IAuthenticateAndGetVault
+    {
+        /// <summary>
+        /// Performs login and returns the authentication object. Does not create or sync the vault.
+        /// </summary>
+        /// <param name="enablePersistentLogin">Enable, disable, or leave unchanged persistent login.</param>
+        /// <returns>The authenticated <see cref="IAuthentication"/> or null if authentication failed.</returns>
+        Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null);
+
+        /// <summary>
+        /// Performs login (if needed) and returns a vault, optionally syncing it.
+        /// </summary>
+        Task<VaultOnline> GetVaultAsync(bool? enablePersistentLogin = null);
+
+        /// <summary>
+        /// Returns the given vault, or authenticates and gets the vault if null.
+        /// </summary>
+        Task<VaultOnline> ResolveVaultAsync(VaultOnline vault);
+    }
+
+
     /// <summary>
     /// Authenticate and load vault. Prompts for username only; the server determines whether the account
     /// uses password, device approval, 2FA, or SSO. For SSO accounts the flow shows the SSO Login URL and token step.

@@ -10,17 +10,7 @@
 //
 
 using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
-using Cli;
-using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Commands;
-using KeeperSecurity.Configuration;
-using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
 using KeeperSecurity.Utils;
 using Sample.RecordsExamples;
@@ -39,17 +29,31 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
-                // Authenticate once from Main - all examples share this vault
-                var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
-                // var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
-                {
-                    Console.WriteLine("Could not authenticate. Exiting.");
-                    return;
-                }
+                // // Authenticate once from Main - all examples share this vault
+                // var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
+                // // var vault = await AuthenticateAndGetVault.GetVault();
+                // if (vault == null)
+                // {
+                //     Console.WriteLine("Could not authenticate. Exiting.");
+                //     return;
+                // }
 
-                var getRecords = new GetRecordsExample();
-                await getRecords.GetRecordsWithName(vault, "Google");
+                // var getRecords = new GetRecordsExample();
+                // await getRecords.GetRecordsWithName( "Google");
+
+                await SharedFolderToUserExamples.ShareFolderToUserNoSync.RunAsync(
+                    sharedFolderUid: "your shared folder uid here",
+                    userId: "your user here",
+                    userType: UserType.User,
+                    options: new SharedFolderUserOptions
+                    {
+                        ManageRecords = true,
+                        ManageUsers = true,
+                        Expiration = DateTimeOffset.Now.AddMinutes(10)
+                    },
+                    grant: false,  // true = share, false = revoke
+                    enablePersistentLogin: null
+                );
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");
@@ -151,7 +155,7 @@ namespace Sample
                 //     permissionsOptions: permissions
                 // );
 
-                // // Share Shared Folder to User Example
+                // Share Shared Folder to User Example
                 // var userOptions = new SharedFolderUserOptions
                 // {
                 //     ManageRecords = true,
