@@ -37,8 +37,8 @@ namespace Sample
                 // await getRecords.GetRecordsWithName( "Google");
 
                 await SharedFolderToUserExamples.ShareFolderToUserNoSync.RunAsync(
-                    sharedFolderUid: "CpNGnAhzcu8W6OvKglerjg",
-                    userId: "adeshmukh@keepersecurity.com",
+                    sharedFolderUid: "your shared folder uid here",
+                    userId: "your user here",
                     userType: UserType.User,
                     options: new SharedFolderUserOptions
                     {
