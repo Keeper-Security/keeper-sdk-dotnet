@@ -49,7 +49,7 @@ Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperNodePath, Get-Keeper
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam, Get-KeeperEnterpriseNode,
 Get-KeeperEnterpriseInfoTree, Get-KeeperEnterpriseInfoNode, Get-KeeperEnterpriseInfoUser,
 Get-KeeperEnterpriseInfoTeam, Get-KeeperEnterpriseInfoRole, Get-KeeperEnterpriseInfoManagedCompany,
-Get-KeeperAuditReport
+Get-KeeperAuditReport, Get-KeeperUserReport
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
@@ -74,7 +74,7 @@ Invoke-KeeperEnterpriseNodeWipeOut
 
 
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
-keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team, kar
+keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
@@ -105,8 +105,8 @@ Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords, R
 Clear-KeeperTrash
 Export-ModuleMember -Alias ktrash-list, ktrash-restore, ktrash-unshare, ktrash-get
 
-Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership, Import-KeeperMembership
-Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs
+Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership, Import-KeeperMembership, Import-KeeperVault
+Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs, kimport
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (

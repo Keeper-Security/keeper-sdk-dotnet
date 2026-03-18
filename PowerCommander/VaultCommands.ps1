@@ -175,6 +175,15 @@ function Get-KeeperChildItem {
 
 	.Parameter ObjectType
 	Limit result set to Folders or Records only
+
+	.Parameter List
+	Display detailed list output
+
+	.Parameter Format
+	Output format: table, csv, or json
+
+	.Parameter Output
+	Path to output file. If specified, formatted output is written to the file
 #>
 
     [CmdletBinding()]
@@ -184,7 +193,10 @@ function Get-KeeperChildItem {
         [Switch] $Recursive,
         [int] $Depth,
         [Switch] $SkipGrouping,
-        [ValidateSet('Folder' , 'Record')][string] $ObjectType
+        [ValidateSet('Folder' , 'Record')][string] $ObjectType,
+        [Alias('l')][Switch] $List,
+        [ValidateSet('table', 'csv', 'json')][string] $Format,
+        [string] $Output
     )
 
     $showFolder = $true
@@ -318,11 +330,66 @@ function Get-KeeperChildItem {
         $entries += $recordEntries.Values
     }
     if ($entries) {
-        if ($SkipGrouping.IsPresent) {
-            $entries | Sort-Object SortGroup, Name
+        $sortedEntries = if ($SkipGrouping.IsPresent) {
+            @($entries | Sort-Object SortGroup, Name)
         }
         else {
-            $entries | Sort-Object OwnerFolder, SortGroup, Name
+            @($entries | Sort-Object OwnerFolder, SortGroup, Name)
+        }
+
+        $useFormattedOutput = $List.IsPresent -or $PSBoundParameters.ContainsKey('Format') -or $PSBoundParameters.ContainsKey('Output')
+        if (-not $useFormattedOutput) {
+            $sortedEntries
+            return
+        }
+
+        $selectedFormat = if ($PSBoundParameters.ContainsKey('Format')) { $Format } else { 'table' }
+        $result = foreach ($entry in $sortedEntries) {
+            if ($entry.PSTypeNames -contains 'KeeperSecurity.Commander.FolderEntry' -or
+                $entry.PSTypeNames -contains 'KeeperSecurity.Commander.FolderEntryFlat') {
+                [PSCustomObject][ordered]@{
+                    EntryType    = 'Folder'
+                    Uid          = $entry.Uid
+                    Name         = $(if ($entry.Name) { $entry.Name } else { $entry.Uid })
+                    FolderType   = $entry.FolderType
+                    Shared       = $entry.Shared
+                    OwnerFolder  = $entry.OwnerFolder
+                    RecordType   = ''
+                    Description  = ''
+                    Owner        = ''
+                    HasAttachments = ''
+                }
+            }
+            else {
+                [PSCustomObject][ordered]@{
+                    EntryType      = 'Record'
+                    Uid            = $entry.Uid
+                    Name           = $(if ($entry.Name) { $entry.Name } else { $entry.Uid })
+                    FolderType     = ''
+                    Shared         = $entry.Shared
+                    OwnerFolder    = $entry.OwnerFolder
+                    RecordType     = $entry.Type
+                    Description    = $entry.PublicInformation
+                    Owner          = $entry.Owner
+                    HasAttachments = $entry.HasAttachments
+                }
+            }
+        }
+
+        if ($Output) {
+            switch ($selectedFormat) {
+                'json' { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+                'csv'  { $result | Export-Csv -Path $Output -NoTypeInformation -Encoding utf8 }
+                default { $result | Format-Table -AutoSize | Out-String | Set-Content -Path $Output -Encoding utf8 }
+            }
+            Write-Host "Output written to $Output"
+            return
+        }
+
+        switch ($selectedFormat) {
+            'json' { $result | ConvertTo-Json -Depth 5 }
+            'csv'  { $result | ConvertTo-Csv -NoTypeInformation }
+            default { $result | Format-Table -AutoSize }
         }
     }
 }
@@ -638,22 +705,11 @@ function Export-KeeperVault {
 
     Write-Host "Exporting vault data..."
 
-    $logger = [Action[KeeperSecurity.Vault.Severity, string]] {
-        param($severity, $message)
-        
-        if ($severity -eq [KeeperSecurity.Vault.Severity]::Warning -or 
-            $severity -eq [KeeperSecurity.Vault.Severity]::Error) {
-            Write-Host $message
-        }
-        Write-Debug $message
-    }
-
     $includeSharedFolders = -not $ExcludeSharedFolders.IsPresent
     $jsonContent = [KeeperSecurity.Vault.KeeperExport]::ExportVaultToJson(
         $vault,
         $null,
-        $includeSharedFolders,
-        $logger
+        $includeSharedFolders
     )
 
     $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
@@ -684,3 +740,97 @@ function Export-KeeperVault {
     Write-Host "Export completed successfully." -ForegroundColor Green
 }
 New-Alias -Name kexport -Value Export-KeeperVault
+
+function Import-KeeperVault {
+    <#
+	.Synopsis
+	Import vault data from a JSON file
+
+	.Parameter FileName
+	JSON import filename (from Export-KeeperVault or compatible format)
+
+	.Parameter Force
+	Proceed without confirming when file is large
+
+	.Description
+	Imports records and shared folders from a JSON file into the vault.
+	Use a file produced by Export-KeeperVault or the same JSON structure (records, shared_folders).
+
+	.Example
+	Import-KeeperVault -FileName "vault_backup.json"
+	Imports vault data from vault_backup.json
+
+	.Example
+	Import-KeeperVault -FileName "restore.json" -Force
+	Imports without size confirmation
+#>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $FileName,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    $MaxFileSizeBytes = 50 * 1024 * 1024  # 50 MB
+
+    $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Write-Error "File `"$fullPath`" not found"
+        return
+    }
+
+    $fileInfo = Get-Item -LiteralPath $fullPath
+    if ($fileInfo.Length -gt $MaxFileSizeBytes -and -not $Force) {
+        $maxMB = [math]::Round($MaxFileSizeBytes / (1024 * 1024), 2)
+        $sizeMB = [math]::Round($fileInfo.Length / (1024 * 1024), 2)
+        $response = Read-Host "File size ($sizeMB MB) exceeds $maxMB MB. Continue? (y/n)"
+        if ($response -notmatch '^y(es)?$') {
+            Write-Host "Import cancelled."
+            return
+        }
+    }
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    try {
+        $jsonBytes = [System.IO.File]::ReadAllBytes($fullPath)
+        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod("ParseJson", [Type[]]@([byte[]]))
+        $importFile = $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+    }
+    catch {
+        Write-Error "Error reading or parsing JSON file: $_"
+        return
+    }
+
+    $recordCount = if ($importFile.Records) { $importFile.Records.Length } else { 0 }
+    $sharedFolderCount = if ($importFile.SharedFolders) { $importFile.SharedFolders.Length } else { 0 }
+    Write-Host "Importing $recordCount record(s), $sharedFolderCount shared folder(s)..."
+
+    try {
+        $result = [KeeperSecurity.Vault.KeeperImport]::ImportJson($vault, $importFile).GetAwaiter().GetResult()
+        Write-Host ""
+        Write-Host "Import Summary:"
+        if ($result.SharedFolderCount -gt 0) { Write-Host "    Shared Folders: $($result.SharedFolderCount)" }
+        if ($result.FolderCount -gt 0) { Write-Host "    Folders: $($result.FolderCount)" }
+        if ($result.LegacyRecordCount -gt 0) { Write-Host "    Legacy Records: $($result.LegacyRecordCount)" }
+        if ($result.TypedRecordCount -gt 0) { Write-Host "    Typed Records: $($result.TypedRecordCount)" }
+        if ($result.UpdatedRecordCount -gt 0) { Write-Host "    Records Updated: $($result.UpdatedRecordCount)" }
+        if ($result.UpdatedFolderCount -gt 0) { Write-Host "    Folders Updated: $($result.UpdatedFolderCount)" }
+        if ($result.FolderFailure.Count -gt 0) { Write-Host "    Folder Failures: $($result.FolderFailure.Count)" -ForegroundColor Yellow }
+        if ($result.RecordFailure.Count -gt 0) { Write-Host "    Record Failures: $($result.RecordFailure.Count)" -ForegroundColor Yellow }
+        if ($result.MembershipFailure.Count -gt 0) { Write-Host "    Membership Failures: $($result.MembershipFailure.Count)" -ForegroundColor Yellow }
+        Write-Host ""
+        Write-Host "Import completed successfully." -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Import failed: $_"
+    }
+}
+New-Alias -Name kimport -Value Import-KeeperVault
