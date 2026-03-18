@@ -175,7 +175,7 @@ namespace Sample
             {
                 if (string.IsNullOrEmpty(configuration.LastLogin))
                 {
-                    Console.WriteLine("Bye.");
+                    Console.WriteLine("No last login found.");
                     return null;
                 }
 

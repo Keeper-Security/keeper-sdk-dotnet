@@ -39,7 +39,7 @@ namespace Sample.SharedFolderToUserExamples
             var auth = await GetAuthAsync(enablePersistentLogin);
             if (auth == null)
             {
-                Console.WriteLine("Not authenticated. Exiting.");
+                Console.WriteLine("Authentication was not completed. Exiting.");
                 return;
             }
             await ShareFolderWithUser(auth, sharedFolderUid, userId, userType, options, grant);
@@ -58,7 +58,7 @@ namespace Sample.SharedFolderToUserExamples
             {
                 if (string.IsNullOrEmpty(configuration.LastLogin))
                 {
-                    Console.WriteLine("Bye.");
+                    Console.WriteLine("Username is required. Exiting.");
                     return null;
                 }
                 username = configuration.LastLogin;
@@ -74,12 +74,12 @@ namespace Sample.SharedFolderToUserExamples
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Resume attempt error: {ex.Message}");
+                Console.WriteLine($"Session resume failed: {ex.Message}");
             }
 
             if (!authFlow.IsAuthenticated())
             {
-                Console.WriteLine("Session resume not available. Using standard login.");
+                Console.WriteLine("Could not resume previous session. Please sign in with your password.");
                 authFlow.Cancel();
                 authFlow.ResumeSession = false;
                 try
@@ -88,23 +88,23 @@ namespace Sample.SharedFolderToUserExamples
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Login error: {ex.Message}");
+                    Console.WriteLine($"Login failed: {ex.Message}");
                 }
             }
             else
             {
-                Console.WriteLine("Session resumed successfully (no password needed).");
+                Console.WriteLine("Signed in using saved session.");
             }
 
             if (authFlow.Step is ErrorStep es)
             {
-                Console.WriteLine($"Authentication error: {es.Message}");
+                Console.WriteLine($"Authentication failed: {es.Message}");
                 return null;
             }
 
             if (!authFlow.IsAuthenticated())
             {
-                Console.WriteLine("Authentication failed.");
+                Console.WriteLine("Could not complete authentication.");
                 return null;
             }
 
@@ -122,15 +122,14 @@ namespace Sample.SharedFolderToUserExamples
             if (!string.IsNullOrEmpty(configuration.LastServer))
                 return;
 
-            Console.WriteLine("Available server options:");
+            Console.WriteLine("Keeper server regions:");
             foreach (var kv in KeeperPublicHosts)
                 Console.WriteLine($"  {kv.Key}: {kv.Value}");
-            Console.Write("Enter server (default: keepersecurity.com): ");
+            Console.Write("Enter region or hostname (default: keepersecurity.com): ");
             var server = await inputManager.ReadLine(new ReadLineParameters { IsHistory = false });
             server = string.IsNullOrWhiteSpace(server) ? "keepersecurity.com" : server.Trim();
             if (KeeperPublicHosts.TryGetValue(server, out var host))
                 server = host;
-                server = "qa.keepersecurity.com";
             configuration.LastServer = server;
             storage.Put(configuration);
         }
@@ -154,7 +153,7 @@ namespace Sample.SharedFolderToUserExamples
                     .FirstOrDefault(x => x.Key == "restrict_persistent_login")?.Value ?? false;
                 if (restricted)
                 {
-                    Console.WriteLine("Persistent login is restricted by enterprise administrator.");
+                    Console.WriteLine("Persistent login is disabled by your administrator.");
                     return;
                 }
                 var device = accountSummary.Devices
@@ -162,17 +161,17 @@ namespace Sample.SharedFolderToUserExamples
                 if (device != null && !device.EncryptedDataKeyPresent)
                 {
                     await auth.RegisterDataKeyForDevice(device);
-                    Console.WriteLine("Device registered for persistent login.");
+                    Console.WriteLine("This device is now registered for persistent login.");
                 }
                 if (!accountSummary.Settings.PersistentLogin)
                 {
                     await auth.SetSessionParameter("persistent_login", "1");
-                    Console.WriteLine("Persistent login enabled.");
+                    Console.WriteLine("Persistent login is now enabled.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Could not setup persistent login: {ex.Message}");
+                Console.WriteLine($"Could not enable persistent login: {ex.Message}");
             }
         }
 
@@ -184,7 +183,7 @@ namespace Sample.SharedFolderToUserExamples
                 if (accountSummary.Settings.PersistentLogin)
                 {
                     await auth.SetSessionParameter("persistent_login", "0");
-                    Console.WriteLine("Persistent login disabled.");
+                    Console.WriteLine("Persistent login is now disabled.");
                 }
             }
             catch (Exception ex)
@@ -193,8 +192,6 @@ namespace Sample.SharedFolderToUserExamples
             }
         }
 
-        /// <summary>Shares a shared folder with a user or team (grant=true) or revokes access (grant=false), using get_shared_folders only.</summary>
-        /// <param name="auth">Already authenticated session; use <see cref="GetAuthAsync"/> or pass from <see cref="RunAsync"/>.</param>
         public static async Task ShareFolderWithUser(IAuthentication auth,
             string sharedFolderUid,
             string userId,
@@ -202,11 +199,15 @@ namespace Sample.SharedFolderToUserExamples
             IUserShareOptions options,
             bool grant = false)
         {
-            if (auth == null) { Console.WriteLine("Not authenticated."); return; }
+            if (auth == null)
+            {
+                Console.WriteLine("No active session. Please authenticate first.");
+                return;
+            }
 
             if (await LoadSharedFolders(auth, sharedFolderUid) == null)
             {
-                Console.WriteLine("Failed to load shared folder data.");
+                Console.WriteLine("Could not load the shared folder. Check the shared folder UID and your access.");
                 return;
             }
             try
@@ -214,17 +215,19 @@ namespace Sample.SharedFolderToUserExamples
                 if (grant)
                 {
                     await PutUserToSharedFolderNoSync(auth, sharedFolderUid, userId, userType, options);
-                    Console.WriteLine($"Folder shared successfully to {userId}.");
+                    Console.WriteLine($"Shared folder access granted to {userId}.");
                 }
                 else
                 {
                     await RemoveUserFromSharedFolderNoSync(auth, sharedFolderUid, userId, userType);
-                    Console.WriteLine($"Access revoked for {userId}.");
+                    Console.WriteLine($"Shared folder access revoked for {userId}.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(grant ? $"Failed to share folder: {ex.Message}" : $"Failed to revoke access: {ex.Message}");
+                Console.WriteLine(grant
+                    ? $"Could not share folder: {ex.Message}"
+                    : $"Could not revoke access: {ex.Message}");
             }
         }
 
@@ -243,17 +246,18 @@ namespace Sample.SharedFolderToUserExamples
                 var response = await auth.ExecuteAuthCommand<GetSharedFoldersCommand, GetSharedFoldersResponse>(command, throwOnError: false);
                 if (response == null)
                 {
-                    Console.WriteLine("get_shared_folders: no response.");
+                    Console.WriteLine("No response from server while loading the shared folder.");
                     return null;
                 }
                 if (!response.IsSuccess)
                 {
-                    Console.WriteLine($"get_shared_folders failed: result={response.result}, result_code={response.resultCode}, message={response.message}");
+                    var msg = !string.IsNullOrEmpty(response.message) ? response.message : response.result;
+                    Console.WriteLine($"Server error while loading shared folder: {msg} (code: {response.resultCode})");
                     return null;
                 }
                 if (response.SharedFolders == null || response.SharedFolders.Length == 0)
                 {
-                    Console.WriteLine("get_shared_folders: success but shared_folders array is null or empty.");
+                    Console.WriteLine("Shared folder not found or you do not have access.");
                     return null;
                 }
                 _lastGetSharedFoldersResponse = response;
@@ -261,7 +265,7 @@ namespace Sample.SharedFolderToUserExamples
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"get_shared_folders error: {ex.Message}");
+                Console.WriteLine($"Error loading shared folder: {ex.Message}");
                 return null;
             }
         }
