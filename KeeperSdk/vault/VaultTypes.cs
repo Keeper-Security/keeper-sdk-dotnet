@@ -633,25 +633,37 @@ namespace KeeperSecurity.Vault
    }
 
     /// <summary>
-    /// Shared-folder membership using authentication only—no vault sync-down.
-    /// Fetch folder metadata with <c>GetSharedFolderAsync</c>.
+    /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
+    /// For sharing with teams, use <see cref="IVaultSharedFolder"/>.
     /// </summary>
     /// <seealso cref="SharedFolderSkipSyncDown"/>
     public interface ISharedFolderSkipSyncDown
     {
-        /// <summary>Loads one shared folder.</summary>
-        /// <param name="teamUidForAccess">When the folder is only visible through a team, pass that team UID.</param>
-        Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid, string teamUidForAccess = null);
+        /// <summary>
+        /// Returns data for the shared folder with the given UID, or <c>null</c> if it is not available.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
 
-        /// <summary>Adds or updates a user or team on a shared folder.</summary>
-        /// <param name="teamUidForAccess">When the implementation must reload the folder first (e.g. team-only visibility), pass the team UID for that load.</param>
+        /// <summary>
+        /// Adds a user to the folder or updates their permissions.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="userId">User email or username.</param>
+        /// <param name="options">Permission and expiration options.</param>
         Task PutUserToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
-            string userId, UserType userType, IUserShareOptions options = null, string teamUidForAccess = null);
+            string userId, IUserShareOptions options = null);
 
-        /// <summary>Removes a user or team from a shared folder.</summary>
-        /// <param name="teamUidForAccess">When the implementation must reload the folder first, pass the team UID for that load.</param>
+        /// <summary>
+        /// Removes a user from the folder.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="userId">User email or username.</param>
         Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
-            string userId, UserType userType, string teamUidForAccess = null);
+            string userId);
     }
 
     /// <summary>

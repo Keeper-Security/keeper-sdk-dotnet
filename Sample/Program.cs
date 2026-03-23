@@ -50,8 +50,8 @@ namespace Sample
                     return;
                 }
 
-                var sharedFolderUid = "EkjQ_jibcnHLzSExtfL6Kg";
-                var userEmail = "adeshmukh@keepersecurity.com";
+                var sharedFolderUid = "<sharedFolderUid_here>";
+                var userEmail = "<userEmail_here>";
                 var folder = await SharedFolderSkipSyncDown.GetSharedFolderAsync(auth, sharedFolderUid);
                 if (folder == null)
                 {
@@ -68,8 +68,8 @@ namespace Sample
 
                 try
                 {
-                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, UserType.User, options);
-                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail, UserType.User);
+                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  KeeperSecurity.Vault.VaultOnline.Auth object to call the method
+                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  KeeperSecurity.Vault.VaultOnline.Auth object to call the method
                     Console.WriteLine("Shared folder updated.");
                 }
                 catch (Exception ex)
