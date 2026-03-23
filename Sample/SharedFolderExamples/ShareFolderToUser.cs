@@ -4,6 +4,10 @@ using KeeperSecurity.Vault;
 
 namespace Sample.SharedFolderToUserExamples
 {
+    /// <summary>
+    /// Shares via <see cref="VaultOnline.PutUserToSharedFolder"/> (requires a synced vault).
+    /// To share without <c>sync_down</c>, authenticate with <see cref="Sample.AuthenticateAndGetVault.GetAuthAsync"/> and use <see cref="SharedFolderSkipSyncDown"/>.
+    /// </summary>
     public static class ShareFolderToUser
     {
         public static async Task ShareFolderWithUser(VaultOnline vault, string sharedFolderUid,

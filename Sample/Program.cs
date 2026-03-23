@@ -41,19 +41,41 @@ namespace Sample
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName( "Google");
 
-                await SharedFolderToUserExamples.ShareFolderToUserNoSync.RunAsync(
-                    sharedFolderUid: "your shared folder uid here",
-                    userId: "your user here",
-                    userType: UserType.User,
-                    options: new SharedFolderUserOptions
-                    {
-                        ManageRecords = true,
-                        ManageUsers = true,
-                        Expiration = DateTimeOffset.Now.AddMinutes(10)
-                    },
-                    grant: false,  // true = share, false = revoke
-                    enablePersistentLogin: null
-                );
+                // Shared folder → user without vault sync: auth only, then SDK (no SyncDown).
+                // See KeeperSecurity.Vault.SharedFolderSkipSyncDown / ISharedFolderSkipSyncDown.
+                var auth = await AuthenticateAndGetVault.GetAuthAsync(enablePersistentLogin: null);
+                if (auth == null)
+                {
+                    Console.WriteLine("Could not authenticate. Exiting.");
+                    return;
+                }
+
+                var sharedFolderUid = "EkjQ_jibcnHLzSExtfL6Kg";
+                var userEmail = "adeshmukh@keepersecurity.com";
+                var folder = await SharedFolderSkipSyncDown.GetSharedFolderAsync(auth, sharedFolderUid);
+                if (folder == null)
+                {
+                    Console.WriteLine("Could not load shared folder.");
+                    return;
+                }
+
+                var options = new SharedFolderUserOptions
+                {
+                    ManageRecords = true,
+                    ManageUsers = true,
+                    Expiration = DateTimeOffset.Now.AddMinutes(10)
+                };
+
+                try
+                {
+                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, UserType.User, options);
+                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail, UserType.User);
+                    Console.WriteLine("Shared folder updated.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Collections;
@@ -630,6 +631,28 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable Task</returns>
         Task DeleteSecretManagerClient(string applicationId, string deviceId);
    }
+
+    /// <summary>
+    /// Shared-folder membership using authentication only—no vault sync-down.
+    /// Fetch folder metadata with <c>GetSharedFolderAsync</c>.
+    /// </summary>
+    /// <seealso cref="SharedFolderSkipSyncDown"/>
+    public interface ISharedFolderSkipSyncDown
+    {
+        /// <summary>Loads one shared folder.</summary>
+        /// <param name="teamUidForAccess">When the folder is only visible through a team, pass that team UID.</param>
+        Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid, string teamUidForAccess = null);
+
+        /// <summary>Adds or updates a user or team on a shared folder.</summary>
+        /// <param name="teamUidForAccess">When the implementation must reload the folder first (e.g. team-only visibility), pass the team UID for that load.</param>
+        Task PutUserToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string userId, UserType userType, IUserShareOptions options = null, string teamUidForAccess = null);
+
+        /// <summary>Removes a user or team from a shared folder.</summary>
+        /// <param name="teamUidForAccess">When the implementation must reload the folder first, pass the team UID for that load.</param>
+        Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string userId, UserType userType, string teamUidForAccess = null);
+    }
 
     /// <summary>
     /// Defines methods to manipulate Shared Folders.
