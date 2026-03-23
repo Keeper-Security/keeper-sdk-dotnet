@@ -68,8 +68,8 @@ namespace Sample
 
                 try
                 {
-                    // await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  VaultOnline.Auth object to call the method
-                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  VaultOnline.Auth object to call the method
+                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  VaultOnline.Auth object to call the method
+                    // await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  VaultOnline.Auth object to call the method
                     Console.WriteLine("Shared folder updated.");
                 }
                 catch (Exception ex)

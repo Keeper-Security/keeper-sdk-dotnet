@@ -242,9 +242,9 @@ namespace KeeperSecurity.Vault
                 ForceUpdate = true,
             };
 
-            var existingUser = sharedFolder.Users?.FirstOrDefault(u => SharedFolderUserMatches(u, userId));
+            var userIsMember = IsSharedFolderUserMember(sharedFolder, userId);
 
-            if (HasNoShareOptionsChanges(options) && existingUser != null)
+            if (HasNoShareOptionsChanges(options) && userIsMember)
                 return;
 
             var sfUpdateUser = new SharedFolderUpdateUser
@@ -252,7 +252,7 @@ namespace KeeperSecurity.Vault
                 Username = userId,
                 Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
             };
-            if (existingUser != null)
+            if (userIsMember)
             {
                 sfUpdateUser.ManageUsers = options?.ManageUsers == null
                     ? SetBooleanValue.BooleanNoChange
