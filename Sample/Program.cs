@@ -41,8 +41,8 @@ namespace Sample
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName( "Google");
 
-                // Shared folder → user without vault sync: auth only, then SDK (no SyncDown).
-                // See KeeperSecurity.Vault.SharedFolderSkipSyncDown / ISharedFolderSkipSyncDown.
+                // // Shared folder → user without vault sync: auth only, then SDK (no SyncDown).
+                // // See KeeperSecurity.Vault.SharedFolderSkipSyncDown / ISharedFolderSkipSyncDown.
                 var auth = await AuthenticateAndGetVault.GetAuthAsync(enablePersistentLogin: null);
                 if (auth == null)
                 {
@@ -68,8 +68,8 @@ namespace Sample
 
                 try
                 {
-                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  KeeperSecurity.Vault.VaultOnline.Auth object to call the method
-                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  KeeperSecurity.Vault.VaultOnline.Auth object to call the method
+                    // await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  VaultOnline.Auth object to call the method
+                    await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  VaultOnline.Auth object to call the method
                     Console.WriteLine("Shared folder updated.");
                 }
                 catch (Exception ex)

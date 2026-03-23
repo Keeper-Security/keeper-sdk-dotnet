@@ -128,9 +128,6 @@ namespace Sample
             if (KeeperPublicHosts.TryGetValue(server, out var host))
                 server = host;
 
-            // TODO: Remove this line before pushing to production
-            server = "qa.keepersecurity.com";
-            
             configuration.LastServer = server;
             storage.Put(configuration);
         }

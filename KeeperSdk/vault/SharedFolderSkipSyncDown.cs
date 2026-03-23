@@ -60,13 +60,8 @@ namespace KeeperSecurity.Vault
 
             var response = await auth.ExecuteAuthCommand<GetSharedFoldersCommand, GetSharedFoldersResponse>(command, throwOnError: false)
                 .ConfigureAwait(false);
-            if (response == null || !response.IsSuccess)
-                return null;
-
-            if ((response.SharedFolders == null || response.SharedFolders.Length == 0) && response.LegacySingleSharedFolder != null)
-                response.SharedFolders = new[] { response.LegacySingleSharedFolder };
-
-            if (response.SharedFolders == null || response.SharedFolders.Length == 0)
+            
+            if (response == null || !response.IsSuccess || response.SharedFolders == null || response.SharedFolders.Length == 0)
                 return null;
 
             return response;
@@ -78,6 +73,11 @@ namespace KeeperSecurity.Vault
         {
             if (auth == null)
                 throw new VaultException("An authenticated session is needed.");
+
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("User ID is required.", nameof(userId));
             await ShareSharedFolderToUser(auth, sharedFolderUid, userId, options).ConfigureAwait(false);
         }
 
@@ -87,6 +87,10 @@ namespace KeeperSecurity.Vault
         {
             if (auth == null)
                 throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("User ID is required.", nameof(userId));
             await RevokeSharedFolderFromUser(auth, sharedFolderUid, userId).ConfigureAwait(false);
         }
 
@@ -102,10 +106,17 @@ namespace KeeperSecurity.Vault
             return sf;
         }
 
+        private static bool SharedFolderUserMatches(SharedFolderUserObject u, string userId)
+        {
+            if (string.IsNullOrEmpty(userId) || u == null)
+                return false;
+            var userEmail = string.IsNullOrEmpty(u.Email) ? u.Username : u.Email;
+            return string.Equals(userEmail, userId, StringComparison.OrdinalIgnoreCase);
+        }
+
         private static bool IsSharedFolderUserMember(SharedFolderObject sf, string userId)
         {
-            return sf.Users?.Any(u =>
-                string.Equals(string.IsNullOrEmpty(u.Email) ? u.Username : u.Email, userId, StringComparison.OrdinalIgnoreCase)) == true;
+            return sf.Users?.Any(u => SharedFolderUserMatches(u, userId)) == true;
         }
 
         private static bool HasNoShareOptionsChanges(IUserShareOptions options)
@@ -113,12 +124,6 @@ namespace KeeperSecurity.Vault
             if (options == null)
                 return true;
             return options.ManageUsers == null && options.ManageRecords == null && options.Expiration == null;
-        }
-
-        private static async Task<SharedFolderObject> RefreshSharedFoldersAsync(IAuthentication auth, string sharedFolderUid)
-        {
-            await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
-            return await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
         }
 
         private static bool IsSharedFolderPutStatusOk(string status)
@@ -224,7 +229,7 @@ namespace KeeperSecurity.Vault
         private static async Task ShareSharedFolderToUser(IAuthentication auth, string sharedFolderUid,
             string userId, IUserShareOptions options)
         {
-            var sharedFolder = await RefreshSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
+            var sharedFolder = await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
             if (!TryResolveSharedFolderKey(sharedFolder, auth, out var key))
                 throw new VaultException(
                     $"Shared folder \"{sharedFolderUid}\" key could not be decrypted.");
@@ -237,8 +242,7 @@ namespace KeeperSecurity.Vault
                 ForceUpdate = true,
             };
 
-            var existingUser = sharedFolder.Users?.FirstOrDefault(x =>
-                string.Equals(string.IsNullOrEmpty(x.Email) ? x.Username : x.Email, userId, StringComparison.InvariantCultureIgnoreCase));
+            var existingUser = sharedFolder.Users?.FirstOrDefault(u => SharedFolderUserMatches(u, userId));
 
             if (HasNoShareOptionsChanges(options) && existingUser != null)
                 return;
@@ -320,7 +324,7 @@ namespace KeeperSecurity.Vault
         private static async Task RevokeSharedFolderFromUser(IAuthentication auth, string sharedFolderUid,
             string userId)
         {
-            var sharedFolder = await RefreshSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
+            var sharedFolder = await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
             if (!IsSharedFolderUserMember(sharedFolder, userId))
                 return;
             if (!TryResolveSharedFolderKey(sharedFolder, auth, out var key))
@@ -372,9 +376,6 @@ namespace KeeperSecurity.Vault
     {
         [DataMember(Name = "shared_folders", EmitDefaultValue = false)]
         public SharedFolderObject[] SharedFolders { get; set; }
-
-        [DataMember(Name = "shared_folder", EmitDefaultValue = false)]
-        public SharedFolderObject LegacySingleSharedFolder { get; set; }
     }
 
     [DataContract]
