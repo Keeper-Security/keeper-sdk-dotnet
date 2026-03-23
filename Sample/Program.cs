@@ -10,17 +10,7 @@
 //
 
 using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
-using Cli;
-using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Commands;
-using KeeperSecurity.Configuration;
-using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
 using KeeperSecurity.Utils;
 using Sample.RecordsExamples;
@@ -39,17 +29,53 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
-                // Authenticate once from Main - all examples share this vault
-                var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
-                // var vault = await AuthenticateAndGetVault.GetVault();
-                if (vault == null)
+                // // Authenticate once from Main - all examples share this vault
+                // var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
+                // // var vault = await AuthenticateAndGetVault.GetVault();
+                // if (vault == null)
+                // {
+                //     Console.WriteLine("Could not authenticate. Exiting.");
+                //     return;
+                // }
+
+                // var getRecords = new GetRecordsExample();
+                // await getRecords.GetRecordsWithName( "Google");
+
+                // // Shared folder → user without vault sync: auth only, then SDK (no SyncDown).
+                // // See KeeperSecurity.Vault.SharedFolderSkipSyncDown / ISharedFolderSkipSyncDown.
+                var auth = await AuthenticateAndGetVault.GetAuthAsync(enablePersistentLogin: null);
+                if (auth == null)
                 {
                     Console.WriteLine("Could not authenticate. Exiting.");
                     return;
                 }
 
-                var getRecords = new GetRecordsExample();
-                await getRecords.GetRecordsWithName(vault, "Google");
+                var sharedFolderUid = "<sharedFolderUid_here>";
+                var userEmail = "<userEmail_here>";
+                var folder = await SharedFolderSkipSyncDown.GetSharedFolderAsync(auth, sharedFolderUid);
+                if (folder == null)
+                {
+                    Console.WriteLine("Could not load shared folder.");
+                    return;
+                }
+
+                var options = new SharedFolderUserOptions
+                {
+                    ManageRecords = true,
+                    ManageUsers = true,
+                    Expiration = DateTimeOffset.Now.AddMinutes(10)
+                };
+
+                try
+                {
+                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  VaultOnline.Auth object to call the method
+                    // await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  VaultOnline.Auth object to call the method
+                    Console.WriteLine("Shared folder updated.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");
@@ -151,7 +177,7 @@ namespace Sample
                 //     permissionsOptions: permissions
                 // );
 
-                // // Share Shared Folder to User Example
+                // Share Shared Folder to User Example
                 // var userOptions = new SharedFolderUserOptions
                 // {
                 //     ManageRecords = true,
