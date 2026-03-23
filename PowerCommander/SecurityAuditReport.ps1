@@ -585,7 +585,7 @@ function Script:Write-KeeperSecurityAuditOutput {
 function Get-KeeperSecurityAuditReport {
     <#
     .SYNOPSIS
-    Generate a password security strength report for enterprise users.
+    Run a security audit report.
 
     .DESCRIPTION
     Retrieves enterprise security audit data from Keeper, decrypts each user's report
