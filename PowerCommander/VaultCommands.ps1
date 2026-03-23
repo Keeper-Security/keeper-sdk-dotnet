@@ -350,7 +350,7 @@ function Get-KeeperChildItem {
                 [PSCustomObject][ordered]@{
                     EntryType    = 'Folder'
                     Uid          = $entry.Uid
-                    Name         = $(if ($entry.Name) { $entry.Name } else { $entry.Uid })
+                    Name         = $(if ($entry.Name) { $entry.Name } else { '' })
                     FolderType   = $entry.FolderType
                     Shared       = $entry.Shared
                     OwnerFolder  = $entry.OwnerFolder
@@ -364,7 +364,7 @@ function Get-KeeperChildItem {
                 [PSCustomObject][ordered]@{
                     EntryType      = 'Record'
                     Uid            = $entry.Uid
-                    Name           = $(if ($entry.Name) { $entry.Name } else { $entry.Uid })
+                    Name           = $(if ($entry.Name) { $entry.Name } else { '' })
                     FolderType     = ''
                     Shared         = $entry.Shared
                     OwnerFolder    = $entry.OwnerFolder
@@ -774,6 +774,12 @@ function Import-KeeperVault {
         [switch] $Force
     )
 
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if (-not $vault) {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
     $MaxFileSizeBytes = 50 * 1024 * 1024  # 50 MB
 
     $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
@@ -793,12 +799,6 @@ function Import-KeeperVault {
         }
     }
 
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    if (-not $vault) {
-        Write-Error "Not connected to Keeper. Please login first."
-        return
-    }
-
     try {
         $jsonBytes = [System.IO.File]::ReadAllBytes($fullPath)
         $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod("ParseJson", [Type[]]@([byte[]]))
@@ -811,6 +811,12 @@ function Import-KeeperVault {
 
     $recordCount = if ($importFile.Records) { $importFile.Records.Length } else { 0 }
     $sharedFolderCount = if ($importFile.SharedFolders) { $importFile.SharedFolders.Length } else { 0 }
+
+    if ($recordCount -eq 0 -and $sharedFolderCount -eq 0) {
+        Write-Error "The import file contains no valid records or shared folders."
+        return
+    }
+
     Write-Host "Importing $recordCount record(s), $sharedFolderCount shared folder(s)..."
 
     try {
