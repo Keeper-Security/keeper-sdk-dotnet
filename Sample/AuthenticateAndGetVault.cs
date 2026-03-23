@@ -22,6 +22,31 @@ using KeeperSecurity.Vault;
 namespace Sample
 {
     /// <summary>
+    /// Provides authentication and vault resolution for samples.
+    /// Implement this interface when you need to obtain the auth object (e.g. for API calls without vault sync).
+    /// </summary>
+    public interface IAuthenticateAndGetVault
+    {
+        /// <summary>
+        /// Performs login and returns the authentication object. Does not create or sync the vault.
+        /// </summary>
+        /// <param name="enablePersistentLogin">Enable, disable, or leave unchanged persistent login.</param>
+        /// <returns>The authenticated <see cref="IAuthentication"/> or null if authentication failed.</returns>
+        Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null);
+
+        /// <summary>
+        /// Performs login (if needed) and returns a vault, optionally syncing it.
+        /// </summary>
+        Task<VaultOnline> GetVaultAsync(bool? enablePersistentLogin = null);
+
+        /// <summary>
+        /// Returns the given vault, or authenticates and gets the vault if null.
+        /// </summary>
+        Task<VaultOnline> ResolveVaultAsync(VaultOnline vault);
+    }
+
+
+    /// <summary>
     /// Authenticate and load vault. Prompts for username only; the server determines whether the account
     /// uses password, device approval, 2FA, or SSO. For SSO accounts the flow shows the SSO Login URL and token step.
     /// Supports server selection and persistent login. Biometric login is not used.
@@ -60,6 +85,27 @@ namespace Sample
         {
             if (vault != null) return vault;
             return await GetVault();
+        }
+
+        /// <summary>
+        /// Returns the given auth, or the cached vault's auth, or performs interactive login without loading/syncing the vault.
+        /// Use for samples that call Keeper APIs directly (e.g. <see cref="SharedFolderSkipSyncDown"/>).
+        /// </summary>
+        public static async Task<IAuthentication> ResolveAuthAsync(IAuthentication auth)
+        {
+            if (auth != null) return auth;
+            if (_cachedVault != null) return _cachedVault.Auth;
+            return await GetAuthAsync();
+        }
+
+        /// <summary>
+        /// Interactive login only — no <see cref="VaultOnline"/> and no <c>sync_down</c>. Same prompts as <see cref="GetVault"/>.
+        /// </summary>
+        public static async Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null)
+        {
+            var configurationStorage = new JsonConfigurationStorage("config.json");
+            var inputManager = new SimpleInputManager();
+            return await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -102,14 +148,23 @@ namespace Sample
         public static async Task<VaultOnline> GetVault(bool? enablePersistentLogin = null)
         {
             var configurationStorage = new JsonConfigurationStorage("config.json");
-            var configuration = configurationStorage.Get();
             var inputManager = new SimpleInputManager();
+            var authFlow = await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
+            if (authFlow == null)
+                return null;
 
-            // 1. Server selection
-            await EnsureServerAsync(configurationStorage, inputManager);
+            _cachedVault = new VaultOnline(authFlow);
+            await _cachedVault.SyncDown().ConfigureAwait(false);
+            return _cachedVault;
+        }
 
-            // 2. Username; if account is SSO, login flow shows SSO Login URL
-            var username = await PromptUsernameAsync(inputManager, configuration.LastLogin);
+        private static async Task<AuthSync> TryAuthenticateKeeperAsync(JsonConfigurationStorage configurationStorage, IInputManager inputManager, bool? enablePersistentLogin)
+        {
+            var configuration = configurationStorage.Get();
+
+            await EnsureServerAsync(configurationStorage, inputManager).ConfigureAwait(false);
+
+            var username = await PromptUsernameAsync(inputManager, configuration.LastLogin).ConfigureAwait(false);
             if (string.IsNullOrEmpty(username))
             {
                 Console.WriteLine("Bye.");
@@ -117,14 +172,12 @@ namespace Sample
             }
 
             var authFlow = new AuthSync(configurationStorage);
-            // Biometric login is not used in this sample.
             authFlow.BiometricLoginProvider = null;
             authFlow.ResumeSession = true;
 
-            // Single login path: LoginToKeeper handles password, device approval, 2FA, and SSO
             try
             {
-                await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
+                await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -138,7 +191,7 @@ namespace Sample
                 authFlow.ResumeSession = false;
                 try
                 {
-                    await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username);
+                    await KeeperLoginFlow.LoginToKeeper(authFlow, inputManager, username).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -163,17 +216,11 @@ namespace Sample
             }
 
             if (enablePersistentLogin == true)
-            {
-                await SetupPersistentLogin(authFlow);
-            }
+                await SetupPersistentLogin(authFlow).ConfigureAwait(false);
             else if (enablePersistentLogin == false)
-            {
-                await DisablePersistentLogin(authFlow);
-            }
+                await DisablePersistentLogin(authFlow).ConfigureAwait(false);
 
-            _cachedVault = new VaultOnline(authFlow);
-            await _cachedVault.SyncDown();
-            return _cachedVault;
+            return authFlow;
         }
 
         /// <summary>

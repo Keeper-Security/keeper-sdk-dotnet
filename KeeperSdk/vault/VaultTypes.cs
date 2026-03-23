@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Collections;
@@ -630,6 +631,40 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable Task</returns>
         Task DeleteSecretManagerClient(string applicationId, string deviceId);
    }
+
+    /// <summary>
+    /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
+    /// For sharing with teams, use <see cref="IVaultSharedFolder"/>.
+    /// </summary>
+    /// <seealso cref="SharedFolderSkipSyncDown"/>
+    public interface ISharedFolderSkipSyncDown
+    {
+        /// <summary>
+        /// Returns data for the shared folder with the given UID, or <c>null</c> if it is not available.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
+
+        /// <summary>
+        /// Adds a user to the folder or updates their permissions.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="userId">User email or username.</param>
+        /// <param name="options">Permission and expiration options.</param>
+        Task PutUserToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string userId, IUserShareOptions options = null);
+
+        /// <summary>
+        /// Removes a user from the folder.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="userId">User email or username.</param>
+        Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string userId);
+    }
 
     /// <summary>
     /// Defines methods to manipulate Shared Folders.
