@@ -762,16 +762,15 @@ namespace KeeperSecurity
                                 var path = string.IsNullOrEmpty(f.FolderName) ? "" : f.FolderName;
                                 if (!string.IsNullOrEmpty(f.SharedFolderName))
                                 {
-                                    if (!string.IsNullOrEmpty(path))
+                                    if (f.SharedFolderName.EndsWith(BatchVaultOperations.PathDelimiter.ToString()))
                                     {
-                                        if (f.SharedFolderName.EndsWith(BatchVaultOperations.PathDelimiter.ToString()))
-                                        {
-                                            f.SharedFolderName =
-                                                f.SharedFolderName.Substring(0, f.SharedFolderName.Length - 1);
-                                        }
-
-                                        path = f.SharedFolderName + BatchVaultOperations.PathDelimiter + path;
+                                        f.SharedFolderName =
+                                            f.SharedFolderName.Substring(0, f.SharedFolderName.Length - 1);
                                     }
+
+                                    path = string.IsNullOrEmpty(path)
+                                        ? f.SharedFolderName
+                                        : f.SharedFolderName + BatchVaultOperations.PathDelimiter + path;
                                 }
 
                                 folder = bo.GetFolderByPath(path) ?? bo.CreateFolderPath(path);
