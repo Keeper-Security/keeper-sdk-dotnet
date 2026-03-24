@@ -265,10 +265,10 @@ namespace KeeperSecurity.Vault
             else
             {
                 sfUpdateUser.ManageUsers = options?.ManageUsers == null
-                    ? (sharedFolder.ManageUsers ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
+                    ? (sharedFolder.DefaultManageUsers ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
                     : (options.ManageUsers.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse);
                 sfUpdateUser.ManageRecords = options?.ManageRecords == null
-                    ? (sharedFolder.ManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
+                    ? (sharedFolder.DefaultManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
                     : (options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse);
 
                 byte[] encryptedKey = null;
@@ -381,16 +381,59 @@ namespace KeeperSecurity.Vault
     [DataContract]
     public class SharedFolderObject
     {
-        [DataMember(Name = "shared_folder_uid")] public string SharedFolderUid { get; set; }
-        [DataMember(Name = "account_folder", EmitDefaultValue = false)] public bool? AccountFolder { get; set; }
-        [DataMember(Name = "name")] public string Name { get; set; }
-        [DataMember(Name = "manage_users")] public bool ManageUsers { get; set; }
-        [DataMember(Name = "manage_records")] public bool ManageRecords { get; set; }
-        [DataMember(Name = "shared_folder_key")] public string SharedFolderKey { get; set; }
-        [DataMember(Name = "key_type")] public int KeyType { get; set; }
-        [DataMember(Name = "users", EmitDefaultValue = false)] public SharedFolderUserObject[] Users { get; set; }
-        [DataMember(Name = "records", EmitDefaultValue = false)] public SharedFolderRecordObject[] Records { get; set; }
-        [DataMember(Name = "teams", EmitDefaultValue = false)] public SharedFolderTeamObject[] Teams { get; set; }
+        [DataMember(Name = "shared_folder_uid")]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "revision")]
+        public long Revision { get; set; }
+
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+
+        [DataMember(Name = "data", EmitDefaultValue = false)]
+        public string Data { get; set; }
+
+        [DataMember(Name = "owner", EmitDefaultValue = false)]
+        public string Owner { get; set; }
+
+        [DataMember(Name = "full_sync", EmitDefaultValue = false)]
+        public bool FullSync { get; set; }
+
+        [DataMember(Name = "key_type")]
+        public int KeyType { get; set; }
+
+        [DataMember(Name = "shared_folder_key", EmitDefaultValue = false)]
+        public string SharedFolderKey { get; set; }
+
+        [DataMember(Name = "manage_users")]
+        public bool ManageUsers { get; set; }
+
+        [DataMember(Name = "manage_records")]
+        public bool ManageRecords { get; set; }
+
+        [DataMember(Name = "default_can_edit", EmitDefaultValue = false)]
+        public bool DefaultCanEdit { get; set; }
+
+        [DataMember(Name = "default_can_share", EmitDefaultValue = false)]
+        public bool DefaultCanShare { get; set; }
+
+        [DataMember(Name = "default_manage_records", EmitDefaultValue = false)]
+        public bool DefaultManageRecords { get; set; }
+
+        [DataMember(Name = "default_manage_users", EmitDefaultValue = false)]
+        public bool DefaultManageUsers { get; set; }
+
+        [DataMember(Name = "account_folder", EmitDefaultValue = false)]
+        public bool? AccountFolder { get; set; }
+
+        [DataMember(Name = "users", EmitDefaultValue = false)]
+        public SharedFolderUserObject[] Users { get; set; }
+
+        [DataMember(Name = "records", EmitDefaultValue = false)]
+        public SharedFolderRecordObject[] Records { get; set; }
+
+        [DataMember(Name = "teams", EmitDefaultValue = false)]
+        public SharedFolderTeamObject[] Teams { get; set; }
     }
 
     [DataContract]
