@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -222,7 +222,7 @@ namespace Commander
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>
                 {
                     Order = 73,
-                    Description = "Run a security audit report.",
+                    Description = "Generate a password security strength report for enterprise users",
                     Action = async options => { await context.SecurityAuditReportCommand(options, Program.GetInputManager()); },
                 });
 
