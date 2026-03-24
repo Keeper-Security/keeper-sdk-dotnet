@@ -1,3 +1,6 @@
+$Script:UserStatusText = { param($s) switch ($s) { 'Active' { 'Active' } 'Inactive' { 'Invited' } 'Locked' { 'Locked' } 'Blocked' { 'Blocked' } 'Disabled' { 'Disabled' } default { $s } } }
+$Script:TransferStatusText = { param($s) switch ([int]$s) { 0 { 'Undefined' } 1 { 'Not required' } 2 { 'Pending transfer' } 3 { 'Partially accepted' } 4 { 'Transfer accepted' } default { $s } } }
+
 function Script:Get-EnterpriseNodeAndDescendantIds {
     param([object]$enterpriseData, [long]$rootId)
     if ($rootId -le 0) { return $null }
@@ -306,8 +309,8 @@ function Get-KeeperEnterpriseInfoUser {
         $resolved = resolveSingleNode $Node
         $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
     }
-    $statusText = { param($s) switch ($s) { 'Active' { 'Active' } 'Inactive' { 'Invited' } 'Locked' { 'Locked' } 'Blocked' { 'Blocked' } 'Disabled' { 'Disabled' } default { $s } } }
-    $transferText = { param($s) switch ([int]$s) { 0 { 'Undefined' } 1 { 'Not required' } 2 { 'Pending transfer' } 3 { 'Partially accepted' } 4 { 'Transfer accepted' } default { $s } } }
+    $statusText = $Script:UserStatusText
+    $transferText = $Script:TransferStatusText
     $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($u in ($ed.Users | Sort-Object { $_.Email })) {
@@ -646,6 +649,209 @@ function Get-KeeperEnterpriseInfoManagedCompany {
     }
 }
 
+function Get-KeeperUserReport {
+    <#
+    .SYNOPSIS
+    Generate an ad-hoc user status report.
+
+    .DESCRIPTION
+    Generates a comprehensive user status report including email, name, status,
+    transfer status, last login, node, roles, and teams. Queries audit events
+    to determine the last login time for each user.
+
+    .PARAMETER Format
+    Output format: table (default), json, csv.
+
+    .PARAMETER Output
+    Output to the given filename.
+
+    .PARAMETER Days
+    Number of days to look back for last login date. Default: 365.
+
+    .PARAMETER LastLogin
+    Show only last-login columns (email, name, status, transfer_status, last_login).
+
+    .EXAMPLE
+    Get-KeeperUserReport
+    Generates a full user report in table format.
+
+    .EXAMPLE
+    Get-KeeperUserReport -Format json -Output "user_report.json"
+    Exports the full user report to a JSON file.
+
+    .EXAMPLE
+    Get-KeeperUserReport -Days 30 -LastLogin
+    Shows a compact last-login report looking back 30 days.
+
+    .EXAMPLE
+    Get-KeeperUserReport -Format csv -Output "report.csv" -Days 90
+    Exports the full user report as CSV, looking back 90 days.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][ValidateSet('table', 'json', 'csv')][string] $Format = 'table',
+        [Parameter()][string] $Output,
+        [Parameter()][ValidateRange(1, [int]::MaxValue)][int] $Days = 365,
+        [Parameter()][switch] $LastLogin
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $ed = $enterprise.enterpriseData
+    $rd = $enterprise.roleData
+    $auth = $enterprise.loader.Auth
+
+    $rolesByUser = @{}
+    foreach ($r in $rd.Roles) {
+        foreach ($uid in @($rd.GetUsersForRole($r.Id))) {
+            if (-not $rolesByUser[$uid]) { $rolesByUser[$uid] = [System.Collections.Generic.List[string]]::new() }
+            $rolesByUser[$uid].Add($r.DisplayName) | Out-Null
+        }
+    }
+
+    $teamsByUser = @{}
+    foreach ($t in $ed.Teams) {
+        foreach ($uid in @($ed.GetUsersForTeam($t.Uid))) {
+            if (-not $teamsByUser[$uid]) { $teamsByUser[$uid] = [System.Collections.Generic.List[string]]::new() }
+            $teamsByUser[$uid].Add($t.Name) | Out-Null
+        }
+    }
+
+    $statusText = $Script:UserStatusText
+    $transferText = $Script:TransferStatusText
+
+    $activeEmails = [System.Collections.Generic.List[string]]::new()
+    foreach ($u in $ed.Users) {
+        if ($u.UserStatus -eq [KeeperSecurity.Enterprise.UserStatus]::Active) {
+            $activeEmails.Add($u.Email.ToLower()) | Out-Null
+        }
+    }
+
+    $lastLoginMap = @{}
+    $batchLimit = 1000
+
+    if ($activeEmails.Count -gt 0) {
+        Write-Verbose "Querying latest login for the last $Days days..."
+
+        $fromDate = [DateTimeOffset]::UtcNow.AddDays(-$Days)
+        $fromTs = $fromDate.ToUnixTimeSeconds()
+
+        $offset = 0
+        while ($offset -lt $activeEmails.Count) {
+            $endIdx = [Math]::Min($offset + $batchLimit, $activeEmails.Count)
+            $batch = @($activeEmails.GetRange($offset, $endIdx - $offset))
+            $offset = $endIdx
+
+            $filter = New-Object KeeperSecurity.Enterprise.AuditLogCommands.ReportFilter
+            $filter.EventTypes = @('login', 'login_console', 'chat_login', 'accept_invitation')
+            $filter.Username = $batch
+            $cf = New-Object KeeperSecurity.Enterprise.AuditLogCommands.CreatedFilter
+            $cf.Min = $fromTs
+            $filter.Created = $cf
+
+            $rq = New-Object KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventReportsCommand
+            $rq.Filter = $filter
+            $rq.ReportType = 'span'
+            $rq.Limit = $batchLimit
+            $rq.Aggregate = @('last_created')
+            $rq.Columns = @('username')
+
+            try {
+                $response = $auth.ExecuteAuthCommand(
+                    $rq,
+                    [KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventReportsResponse],
+                    $true
+                ).GetAwaiter().GetResult()
+                $rs = [KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventReportsResponse]$response
+
+                if ($rs.Events) {
+                    foreach ($evt in $rs.Events) {
+                        $username = ''
+                        $lastCreated = 0
+                        if ($evt.ContainsKey('username') -and $null -ne $evt['username']) {
+                            $username = $evt['username'].ToString().ToLower()
+                        }
+                        if ($evt.ContainsKey('last_created') -and $null -ne $evt['last_created']) {
+                            $lastCreated = [long]$evt['last_created']
+                        }
+                        if ($username -and $lastCreated -gt 0) {
+                            $lastLoginMap[$username] = $lastCreated
+                        }
+                    }
+                }
+            } catch {
+                Write-Warning "Failed to query audit events: $($_.Exception.Message)"
+            }
+        }
+    }
+
+    $nodePathCache = @{}
+    $out = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($u in ($ed.Users | Sort-Object { $_.Email.ToLower() })) {
+        $email = $u.Email
+        $name = $u.DisplayName
+        $status = & $statusText $u.UserStatus
+        $transfer = & $transferText $u.TransferAcceptanceStatus
+
+        $key = $email.ToLower()
+        $lastLoginTs = $lastLoginMap[$key]
+        $lastLog = ''
+        if ($lastLoginTs -and $lastLoginTs -gt 0) {
+            $lastLog = [DateTimeOffset]::FromUnixTimeSeconds($lastLoginTs).UtcDateTime.ToString('yyyy-MM-dd HH:mm:ss UTC')
+        } elseif ($u.UserStatus -ne [KeeperSecurity.Enterprise.UserStatus]::Inactive) {
+            $lastLog = "> $Days DAYS AGO"
+        } else {
+            $lastLog = 'N/A'
+        }
+
+        $roles = if ($rolesByUser[$u.Id]) { @($rolesByUser[$u.Id] | Sort-Object) } else { @() }
+        $teams = if ($teamsByUser[$u.Id]) { @($teamsByUser[$u.Id] | Sort-Object) } else { @() }
+
+        if ($LastLogin.IsPresent) {
+            $row = [PSCustomObject][ordered]@{
+                Email          = $email
+                Name           = $name
+                Status         = $status
+                TransferStatus = $transfer
+                LastLogin      = $lastLog
+            }
+        } else {
+            if (-not $nodePathCache.ContainsKey($u.ParentNodeId)) {
+                $nodePathCache[$u.ParentNodeId] = Get-KeeperNodePath -NodeId $u.ParentNodeId
+            }
+            $row = [PSCustomObject][ordered]@{
+                Email          = $email
+                Name           = $name
+                Status         = $status
+                TransferStatus = $transfer
+                LastLogin      = $lastLog
+                Node           = $nodePathCache[$u.ParentNodeId]
+                Roles          = ($roles -join ",")
+                Teams          = ($teams -join ",")
+            }
+        }
+        $out.Add($row) | Out-Null
+    }
+
+    $result = @($out)
+
+    $wideWidth = 4096
+    if ($Output) {
+        switch ($Format) {
+            'json' { Set-Content -Path $Output -Value ($result | ConvertTo-Json -Depth 5) -Encoding utf8 }
+            'csv'  { $result | Export-Csv -Path $Output -NoTypeInformation -Encoding utf8 }
+            default { $result | Format-Table -AutoSize | Out-String -Width $wideWidth | Set-Content -Path $Output -Encoding utf8 }
+        }
+        Write-Host "Output written to $Output"
+    } else {
+        switch ($Format) {
+            'json' { $result | ConvertTo-Json -Depth 5 }
+            'csv'  { $result | ConvertTo-Csv -NoTypeInformation }
+            default { $result | Format-Table -AutoSize | Out-String -Width $wideWidth }
+        }
+    }
+}
+
+New-Alias -Name user-report -Value Get-KeeperUserReport -ErrorAction SilentlyContinue
 New-Alias -Name keitree -Value Get-KeeperEnterpriseInfoTree -ErrorAction SilentlyContinue
 New-Alias -Name kein -Value Get-KeeperEnterpriseInfoNode -ErrorAction SilentlyContinue
 New-Alias -Name keiu -Value Get-KeeperEnterpriseInfoUser -ErrorAction SilentlyContinue
