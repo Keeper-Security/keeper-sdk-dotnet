@@ -430,10 +430,12 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task DeleteFolder(string folderUid);
 
-        /// <summary>
-        /// Retrieves all enterprise team descriptions.
-        /// </summary>
+        /// <summary>Enterprise teams for sharing (see also <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/> without vault).</summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>
+        /// <remarks>
+        /// The same data is available without loading a vault via
+        /// <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/>.
+        /// </remarks>
         Task<IEnumerable<TeamInfo>> GetTeamsForShare();
 
         /// <summary>
@@ -634,7 +636,7 @@ namespace KeeperSecurity.Vault
 
     /// <summary>
     /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
-    /// For sharing with teams, use <see cref="IVaultSharedFolder"/>.
+    /// Users and teams can be added or updated when you know the target id (email/username, team UID, or team name resolved via <see cref="SharedFolderSkipSyncDown.GetTeamUidFromNameAsync"/>).
     /// </summary>
     /// <seealso cref="SharedFolderSkipSyncDown"/>
     public interface ISharedFolderSkipSyncDown
@@ -645,6 +647,13 @@ namespace KeeperSecurity.Vault
         /// <param name="auth">Authenticated session.</param>
         /// <param name="sharedFolderUid">Shared folder UID.</param>
         Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
+
+        /// <summary>
+        /// Returns distinct record UIDs linked to the shared folder (from <c>get_shared_folders</c> with <c>sfrecords</c>), or empty if the folder is unavailable or has no records.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
 
         /// <summary>
         /// Adds a user to the folder or updates their permissions.
@@ -664,6 +673,31 @@ namespace KeeperSecurity.Vault
         /// <param name="userId">User email or username.</param>
         Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
             string userId);
+
+        /// <summary>
+        /// Adds a team to the folder or updates its permissions. Requires the team UID; loads team keys via <c>team_get_keys</c>.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="teamUid">Team UID (base64url).</param>
+        /// <param name="options">Permission and expiration options.</param>
+        Task PutTeamToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid, IUserShareOptions options = null);
+
+        /// <summary>
+        /// Removes a team from the folder.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="teamUid">Team UID (base64url).</param>
+        Task RemoveTeamFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid);
+
+        /// <summary>
+        /// Returns teams the user may share with, without loading the vault. Uses the <c>get_available_teams</c> API (same as <see cref="IVault.GetTeamsForShare"/>).
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth);
     }
 
     /// <summary>
@@ -813,6 +847,39 @@ namespace KeeperSecurity.Vault
         public VaultException(string message) : base(message)
         {
         }
+    }
+
+    /// <summary>Result of <see cref="RecordSkipSyncDown.GetRecordsAsync"/>.</summary>
+    public sealed class RecordDetailsSkipSyncResult
+    {
+        /// <exclude/>
+        public RecordDetailsSkipSyncResult(
+            IReadOnlyList<KeeperRecord> records,
+            IReadOnlyList<string> noPermissionRecordUids,
+            IReadOnlyList<string> failedRecordUids,
+            IReadOnlyList<string> invalidRecordUids = null)
+        {
+            Records = records ?? Array.Empty<KeeperRecord>();
+            NoPermissionRecordUids = noPermissionRecordUids ?? Array.Empty<string>();
+            FailedRecordUids = failedRecordUids ?? Array.Empty<string>();
+            InvalidRecordUids = invalidRecordUids ?? Array.Empty<string>();
+        }
+
+        /// <summary>Decrypted records (from <c>recordDataWithAccessInfo</c>).</summary>
+        public IReadOnlyList<KeeperRecord> Records { get; }
+
+        /// <summary>UIDs from <c>noPermissionRecordUid</c> in the response.</summary>
+        public IReadOnlyList<string> NoPermissionRecordUids { get; }
+
+        /// <summary>
+        /// UIDs from returned rows that could not be decrypted or loaded (including unsupported <c>recordKeyType</c> values).
+        /// </summary>
+        public IReadOnlyList<string> FailedRecordUids { get; }
+
+        /// <summary>
+        /// Caller-supplied UID strings that could not be decoded to binary record UIDs and were omitted from the request.
+        /// </summary>
+        public IReadOnlyList<string> InvalidRecordUids { get; }
     }
 
     /// <summary>
