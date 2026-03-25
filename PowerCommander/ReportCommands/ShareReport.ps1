@@ -1051,3 +1051,299 @@ function Get-KeeperShareReport {
 }
 
 New-Alias -Name share-report -Value Get-KeeperShareReport
+
+function Get-KeeperSharedRecordsReport {
+    <#
+    .SYNOPSIS
+    Report shared records for the logged-in user.
+
+    .DESCRIPTION
+    Generates a report of all shared records showing the share type, recipient, and permissions per row.
+    the share type (Direct Share, Share Folder, Share Team Folder), permissions, and folder path.
+    By default only owned shared records are included. Use -AllRecords to include non-owned records.
+    Mirrors the Python Commander 'shared-records-report' command.
+
+    Alias: shared-records-report, ksrr
+
+    .PARAMETER ShowTeamUsers
+    Expand team shares to show individual team members. Requires enterprise admin.
+
+    .PARAMETER AllRecords
+    Include all shared records in the vault, not just records owned by the current user.
+
+    .PARAMETER Folder
+    Optional folder path(s) or UID(s) to scope the report to records within those folders.
+
+    .PARAMETER Format
+    Output format: table (default), json, or csv.
+
+    .PARAMETER Output
+    Path to write the report to a file.
+
+    .EXAMPLE
+    Get-KeeperSharedRecordsReport
+    Report all owned shared records in table format.
+
+    .EXAMPLE
+    Get-KeeperSharedRecordsReport -AllRecords
+    Report all shared records in the vault (including non-owned).
+
+    .EXAMPLE
+    Get-KeeperSharedRecordsReport -ShowTeamUsers
+    Report with team shares expanded to individual team members.
+
+    .EXAMPLE
+    Get-KeeperSharedRecordsReport -Format csv -Output "shared_records.csv"
+    Export the shared records report to a CSV file.
+
+    .EXAMPLE
+    Get-KeeperSharedRecordsReport -Folder "Shared\Projects"
+    Report shared records within a specific folder.
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter()]
+        [Alias('tu')]
+        [switch] $ShowTeamUsers,
+
+        [Parameter()]
+        [switch] $AllRecords,
+
+        [Parameter()]
+        [string[]] $Folder,
+
+        [Parameter()]
+        [ValidateSet('table', 'json', 'csv')]
+        [string] $Format = 'table',
+
+        [Parameter()]
+        [string] $Output
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Unable to load Keeper vault context. Run Connect-Keeper and Sync-Keeper first. Details: $($_.Exception.Message)" -ErrorAction Stop
+    }
+
+    $currentUser = $vault.Auth.Username
+
+    $allowedVersions = if ($AllRecords.IsPresent) { @(0, 1, 2, 3, 5, 6) } else { @(2, 3) }
+
+    $teamMembers = @{}
+    if ($ShowTeamUsers.IsPresent) {
+        $teamMembers = Get-ShareReportTeamMembers -Vault $vault
+    }
+
+    $records = @{}
+    $filterFolderUids = $null
+
+    if ($Folder -and $Folder.Count -gt 0) {
+        $filterFolderUids = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($folderName in $Folder) {
+            $folderFound = $false
+            foreach ($fn in $vault.Folders) {
+                $folderPath = Get-ShareReportFolderPath -Vault $vault -FolderUid $fn.FolderUid
+                if ($fn.FolderUid -eq $folderName -or $fn.Name -eq $folderName -or $folderPath -eq $folderName) {
+                    [void]$filterFolderUids.Add($fn.FolderUid)
+                    $folderFound = $true
+                    foreach ($recUid in $fn.Records) {
+                        [KeeperSecurity.Vault.KeeperRecord] $rec = $null
+                        if (-not $vault.TryGetKeeperRecord($recUid, [ref]$rec)) { continue }
+                        if (-not $rec.Shared) { continue }
+                        if ($rec.Version -notin $allowedVersions) { continue }
+                        $records[$rec.Uid] = $rec
+                    }
+                }
+            }
+            if (-not $folderFound) {
+                Write-Warning "Folder '$folderName' could not be found."
+            }
+        }
+    }
+    else {
+        foreach ($kr in $vault.KeeperRecords) {
+            if (-not $kr.Shared) { continue }
+            if ($kr.Version -notin $allowedVersions) { continue }
+            $records[$kr.Uid] = $kr
+        }
+    }
+
+    if (-not $AllRecords.IsPresent) {
+        $ownedOnly = @{}
+        foreach ($entry in $records.GetEnumerator()) {
+            if ($entry.Value.Owner) {
+                $ownedOnly[$entry.Key] = $entry.Value
+            }
+        }
+        $records = $ownedOnly
+    }
+
+    if ($records.Count -eq 0) {
+        Write-Warning 'No shared records found.'
+        return
+    }
+
+    $recordUids = [string[]]@($records.Keys)
+    $allShares = Get-ShareReportRecordShares -Vault $vault -RecordUids $recordUids
+
+    $sharesMap = @{}
+    foreach ($s in $allShares) {
+        $sharesMap[$s.RecordUid] = $s
+    }
+
+    $sfMembershipCache = @{}
+    foreach ($shareInfo in $allShares) {
+        if ($shareInfo.SharedFolderPermissions) {
+            foreach ($sfp in $shareInfo.SharedFolderPermissions) {
+                if (-not $sfMembershipCache.ContainsKey($sfp.SharedFolderUid)) {
+                    [KeeperSecurity.Vault.SharedFolder] $sf = $null
+                    if ($vault.TryGetSharedFolder($sfp.SharedFolderUid, [ref]$sf)) {
+                        $sfMembershipCache[$sfp.SharedFolderUid] = $sf
+                    }
+                }
+            }
+        }
+    }
+
+    $recordToFolderIndex = Build-RecordToFolderIndex -Vault $vault
+
+    $table = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    foreach ($recordUid in $recordUids) {
+        $rec = $records[$recordUid]
+        $shareInfo = $sharesMap[$recordUid]
+        if (-not $shareInfo) { continue }
+
+        $recTitle = $rec.Title
+        if ($Format -eq 'table' -and $recTitle.Length -gt 40) {
+            $recTitle = $recTitle.Substring(0, 38) + '...'
+        }
+
+        $owner = $null
+        if ($shareInfo.UserPermissions) {
+            foreach ($up in $shareInfo.UserPermissions) {
+                if ($up.Owner) { $owner = $up.Username; break }
+            }
+        }
+        if (-not $owner -and $rec.Owner) {
+            $owner = $currentUser
+        }
+
+        $folderPaths = [System.Collections.Generic.List[string]]::new()
+        $folderUids = $recordToFolderIndex[$recordUid]
+        if ($folderUids) {
+            if ($null -ne $filterFolderUids) {
+                $folderUids = $folderUids | Where-Object { $filterFolderUids.Contains($_) }
+            }
+            foreach ($fUid in $folderUids) {
+                $folderPaths.Add((Get-ShareReportFolderPath -Vault $vault -FolderUid $fUid))
+            }
+        }
+        $folderPathStr = $folderPaths -join "`n"
+
+        if ($shareInfo.UserPermissions) {
+            foreach ($up in $shareInfo.UserPermissions) {
+                if ($up.Owner) { continue }
+                if (-not $AllRecords.IsPresent -and $up.Username -eq $currentUser) { continue }
+                $permText = Get-PermissionsText -CanEdit $up.CanEdit -CanShare $up.CanShare
+                $row = [ordered]@{
+                    'Record UID'  = $recordUid
+                    'Title'       = $recTitle
+                    'Share Type'  = 'Direct Share'
+                    'Shared To'   = $up.Username
+                    'Permissions' = $permText
+                    'Folder Path' = $folderPathStr
+                }
+                if ($AllRecords.IsPresent) {
+                    $row.Insert(0, 'Owner', $owner)
+                }
+                $table.Add([PSCustomObject]$row)
+            }
+        }
+
+        if ($shareInfo.SharedFolderPermissions) {
+            foreach ($sfp in $shareInfo.SharedFolderPermissions) {
+                $sf = $sfMembershipCache[$sfp.SharedFolderUid]
+                if (-not $sf) {
+                    $permText = Get-PermissionsText -CanEdit $sfp.CanEdit -CanShare $sfp.CanShare
+                    $row = [ordered]@{
+                        'Record UID'  = $recordUid
+                        'Title'       = $recTitle
+                        'Share Type'  = 'Share Folder'
+                        'Shared To'   = '***'
+                        'Permissions' = $permText
+                        'Folder Path' = $sfp.SharedFolderUid
+                    }
+                    if ($AllRecords.IsPresent) {
+                        $row.Insert(0, 'Owner', $owner)
+                    }
+                    $table.Add([PSCustomObject]$row)
+                    continue
+                }
+
+                $sfFolderPath = Get-ShareReportFolderPath -Vault $vault -FolderUid $sf.Uid
+                if (-not $sfFolderPath) { $sfFolderPath = $sf.Name }
+
+                foreach ($sfUser in $sf.UsersPermissions) {
+                    $isTeam = $sfUser.UserType -eq [KeeperSecurity.Vault.UserType]::Team
+                    $permText = Get-PermissionsText -CanEdit $sfp.CanEdit -CanShare $sfp.CanShare
+
+                    if ($isTeam) {
+                        if ($ShowTeamUsers.IsPresent -and $teamMembers.ContainsKey($sfUser.Uid)) {
+                            foreach ($member in $teamMembers[$sfUser.Uid]) {
+                                $row = [ordered]@{
+                                    'Record UID'  = $recordUid
+                                    'Title'       = $recTitle
+                                    'Share Type'  = 'Share Team Folder'
+                                    'Shared To'   = "($($sfUser.Name)) $member"
+                                    'Permissions' = $permText
+                                    'Folder Path' = $sfFolderPath
+                                }
+                                if ($AllRecords.IsPresent) {
+                                    $row.Insert(0, 'Owner', $owner)
+                                }
+                                $table.Add([PSCustomObject]$row)
+                            }
+                        }
+                        else {
+                            $row = [ordered]@{
+                                'Record UID'  = $recordUid
+                                'Title'       = $recTitle
+                                'Share Type'  = 'Share Team Folder'
+                                'Shared To'   = $sfUser.Name
+                                'Permissions' = $permText
+                                'Folder Path' = $sfFolderPath
+                            }
+                            if ($AllRecords.IsPresent) {
+                                $row.Insert(0, 'Owner', $owner)
+                            }
+                            $table.Add([PSCustomObject]$row)
+                        }
+                    }
+                    else {
+                        if (-not $AllRecords.IsPresent -and $sfUser.Name -eq $currentUser) { continue }
+                        $row = [ordered]@{
+                            'Record UID'  = $recordUid
+                            'Title'       = $recTitle
+                            'Share Type'  = 'Share Folder'
+                            'Shared To'   = $sfUser.Name
+                            'Permissions' = $permText
+                            'Folder Path' = $sfFolderPath
+                        }
+                        if ($AllRecords.IsPresent) {
+                            $row.Insert(0, 'Owner', $owner)
+                        }
+                        $table.Add([PSCustomObject]$row)
+                    }
+                }
+            }
+        }
+    }
+
+    Write-ShareReportOutput -Rows $table -Title 'Shared Records Report' -Format $Format -Output $Output
+}
+
+New-Alias -Name shared-records-report -Value Get-KeeperSharedRecordsReport

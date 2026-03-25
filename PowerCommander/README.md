@@ -91,6 +91,15 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [New-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-1)                                  | kotsn            | Create One-Time Share
 | [Remove-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-3)                               | kotsr            | Remove One-Time Share
 
+### Reporting Cmdlets
+| Cmdlet name                                             | Alias                       | Description
+|---------------------------------------------------------|-----------------------------|----------------------------
+| Get-KeeperShareReport                                   | share-report                | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
+| Get-KeeperSharedRecordsReport                            | shared-records-report, ksrr | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
+| Get-KeeperAuditReport                                   | kar                         | Run an enterprise audit trail report
+| Get-KeeperFileReport                                    | file-report                 | List records with file attachments and optionally verify download accessibility
+| Get-KeeperPasswordReport                                |                             | Retrieves password report based on policy and strengths
+
 ### Enterprise Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
@@ -477,3 +486,42 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > kar
     ```
     Returns the last 100 raw audit events (Created, Username, Event, Message).
+
+32. Share report - summary of all shares grouped by target
+    ```
+    PS > Get-KeeperShareReport
+    ```
+    or using the alias
+    ```
+    PS > share-report
+    ```
+    Show owner report with share dates and team member expansion
+    ```
+    PS > Get-KeeperShareReport -Owner -ShareDate -ShowTeamUsers
+    ```
+    Show shared folders listing
+    ```
+    PS > Get-KeeperShareReport -Folders
+    ```
+
+33. Shared records report - flat listing of all shared records with share details
+    ```
+    PS > Get-KeeperSharedRecordsReport
+    ```
+    or using aliases
+    ```
+    PS > shared-records-report
+    PS > ksrr
+    ```
+    Include all shared records (not just owned)
+    ```
+    PS > Get-KeeperSharedRecordsReport -AllRecords
+    ```
+    Expand team shares to individual members
+    ```
+    PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
+    ```
+    Scope to a specific folder
+    ```
+    PS > Get-KeeperSharedRecordsReport -Folder "Shared\Projects"
+    ```
