@@ -107,6 +107,9 @@ Export-ModuleMember -Alias ktrash-list, ktrash-restore, ktrash-unshare, ktrash-g
 
 Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership, Import-KeeperMembership
 Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs
+
+Export-ModuleMember -Function Get-KeeperShareReport
+Export-ModuleMember -Alias share-report
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
