@@ -10,7 +10,7 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>Load records via <c>vault/get_records_details</c> without vault sync.</summary>
+    /// <summary>Load records without vault sync.</summary>
     public static class RecordSkipSyncDown
     {
         /// <summary>Decrypt records by UID; see <see cref="RecordDetailsSkipSyncResult"/> for partial failures.</summary>

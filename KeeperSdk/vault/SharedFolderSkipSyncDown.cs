@@ -55,7 +55,9 @@ namespace KeeperSecurity.Vault
                 => SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid);
         }
 
-        /// <summary>Folder from <c>get_shared_folders</c>, or <c>null</c>.</summary>
+        /// <summary>Returns data for the shared folder with the given UID, or <c>null</c> if it is not available.</summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
         public static async Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid)
         {
             if (auth == null)
@@ -185,7 +187,7 @@ namespace KeeperSecurity.Vault
             });
         }
 
-        /// <summary>Resolve team display name to UID (<c>null</c> if none; throws if ambiguous).</summary>
+        /// <summary>Resolve team display name to UID (null if none; throws if ambiguous).</summary>
         public static async Task<string> GetTeamUidFromNameAsync(IAuthentication auth, string teamName)
         {
             if (auth == null)
