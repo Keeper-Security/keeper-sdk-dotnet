@@ -1,4 +1,4 @@
-//  _  __
+﻿//  _  __
 // | |/ /___ ___ _ __  ___ _ _ ®
 // | ' </ -_) -_) '_ \/ -_) '_|
 // |_|\_\___\___| .__/\___|_|
@@ -41,41 +41,15 @@ namespace Sample
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName( "Google");
 
-                // // Shared folder → user without vault sync: auth only, then SDK (no SyncDown).
-                // // See KeeperSecurity.Vault.SharedFolderSkipSyncDown / ISharedFolderSkipSyncDown.
-                var auth = await AuthenticateAndGetVault.GetAuthAsync(enablePersistentLogin: null);
-                if (auth == null)
-                {
-                    Console.WriteLine("Could not authenticate. Exiting.");
-                    return;
-                }
-
-                var sharedFolderUid = "<sharedFolderUid_here>";
-                var userEmail = "<userEmail_here>";
-                var folder = await SharedFolderSkipSyncDown.GetSharedFolderAsync(auth, sharedFolderUid);
-                if (folder == null)
-                {
-                    Console.WriteLine("Could not load shared folder.");
-                    return;
-                }
-
-                var options = new SharedFolderUserOptions
-                {
-                    ManageRecords = true,
-                    ManageUsers = true,
-                    Expiration = DateTimeOffset.Now.AddMinutes(10)
-                };
-
-                try
-                {
-                    await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userEmail, options); // if you have a vault object you can use  VaultOnline.Auth object to call the method
-                    // await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userEmail); // if you have a vault object you can use  VaultOnline.Auth object to call the method
-                    Console.WriteLine("Shared folder updated.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
+                // Shared folder without full sync: use ResolveAuthAsync so auth matches a prior GetVault in the same run.
+                var authStep = await AuthenticateAndGetVault.ResolveAuthAsync(enablePersistentLogin: true);
+                await SharedFolderExamples.ShareFolderSkipSyncExample.PutTeamToSharedFolder(
+                    authStep, "<shared_folder_uid>", "<team_name_or_uid>", new SharedFolderUserOptions
+                    {
+                        ManageRecords = false,
+                        ManageUsers = true,
+                        Expiration = DateTimeOffset.Now.AddMinutes(10)
+                    });
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");

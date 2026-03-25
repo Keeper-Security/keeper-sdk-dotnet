@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -12,11 +13,7 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>
-    /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
-    /// For team-only folders or sharing with teams, use <see cref="IVaultSharedFolder"/>.
-    /// This only works for shared folders with other users. Teams are not supported.
-    /// </summary>
+    /// <summary>Shared folder operations without full vault sync (users and teams).</summary>
     public static class SharedFolderSkipSyncDown
     {
         /// <summary>
@@ -37,9 +34,30 @@ namespace KeeperSecurity.Vault
             public Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
                 string userId)
                 => SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userId);
+
+            /// <inheritdoc />
+            public Task PutTeamToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+                string teamUid, IUserShareOptions options = null)
+                => SharedFolderSkipSyncDown.PutTeamToSharedFolderAsync(auth, sharedFolderUid, teamUid, options);
+
+            /// <inheritdoc />
+            public Task RemoveTeamFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+                string teamUid)
+                => SharedFolderSkipSyncDown.RemoveTeamFromSharedFolderAsync(auth, sharedFolderUid, teamUid);
+
+            /// <inheritdoc />
+            public Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth)
+                => SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(auth);
+
+            /// <inheritdoc />
+            public Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
+                string sharedFolderUid)
+                => SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid);
         }
 
-        /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetSharedFolderAsync" />
+        /// <summary>Returns data for the shared folder with the given UID, or <c>null</c> if it is not available.</summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
         public static async Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid)
         {
             if (auth == null)
@@ -55,16 +73,45 @@ namespace KeeperSecurity.Vault
                         SharedFolderUid = sharedFolderUid,
                     },
                 },
-                Include = new[] { "sfheaders", "sfusers" },
+                Include = new[] { "sfheaders", "sfusers", "sfrecords", "sfteams" },
             };
 
             var response = await auth.ExecuteAuthCommand<GetSharedFoldersCommand, GetSharedFoldersResponse>(command, throwOnError: false)
                 .ConfigureAwait(false);
-            
+
             if (response == null || !response.IsSuccess || response.SharedFolders == null || response.SharedFolders.Length == 0)
                 return null;
 
             return response;
+        }
+
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync" />
+        public static async Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
+            string sharedFolderUid)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+
+            var folderRs = await GetSharedFolderAsync(auth, sharedFolderUid).ConfigureAwait(false);
+            if (folderRs?.SharedFolders == null || folderRs.SharedFolders.Length == 0)
+                return Array.Empty<string>();
+
+            var sf = folderRs.SharedFolders.FirstOrDefault(f =>
+                    string.Equals(f.SharedFolderUid, sharedFolderUid, StringComparison.OrdinalIgnoreCase))
+                ?? folderRs.SharedFolders[0];
+
+            var uids = sf.Records?
+                .Select(r => r.RecordUid)
+                .Where(uid => !string.IsNullOrEmpty(uid))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (uids == null || uids.Count == 0)
+                return Array.Empty<string>();
+
+            return uids;
         }
 
         /// <inheritdoc cref="ISharedFolderSkipSyncDown.PutUserToSharedFolderAsync" />
@@ -94,6 +141,72 @@ namespace KeeperSecurity.Vault
             await RevokeSharedFolderFromUser(auth, sharedFolderUid, userId).ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.PutTeamToSharedFolderAsync" />
+        public static async Task PutTeamToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid, IUserShareOptions options = null)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+            if (string.IsNullOrEmpty(teamUid))
+                throw new ArgumentException("Team UID is required.", nameof(teamUid));
+            await ShareSharedFolderToTeam(auth, sharedFolderUid, teamUid, options).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.RemoveTeamFromSharedFolderAsync" />
+        public static async Task RemoveTeamFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+            if (string.IsNullOrEmpty(teamUid))
+                throw new ArgumentException("Team UID is required.", nameof(teamUid));
+            await RevokeSharedFolderFromTeam(auth, sharedFolderUid, teamUid).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync" />
+        public static async Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+
+            var request = new GetAvailableTeamsCommand();
+            var response = await auth.ExecuteAuthCommand<GetAvailableTeamsCommand, GetAvailableTeamsResponse>(request)
+                .ConfigureAwait(false);
+
+            if (response?.teams == null || response.teams.Length == 0)
+                return Enumerable.Empty<TeamInfo>();
+
+            return response.teams.Select(x => new TeamInfo
+            {
+                TeamUid = x.teamUid,
+                Name = x.teamName,
+            });
+        }
+
+        /// <summary>Resolve team display name to UID (null if none; throws if ambiguous).</summary>
+        public static async Task<string> GetTeamUidFromNameAsync(IAuthentication auth, string teamName)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(teamName))
+                throw new ArgumentException("Team name is required.", nameof(teamName));
+
+            var name = teamName.Trim();
+            var teams = (await GetAvailableTeamsForShareAsync(auth).ConfigureAwait(false)).ToList();
+            var matches = MatchTeamsByName(teams, name, includeUidMatch: false);
+
+            if (matches.Count == 0)
+                return null;
+            if (matches.Count > 1)
+                throw new VaultException($"Multiple teams match name \"{name}\". Please specify Team UID.");
+
+            return matches[0].TeamUid;
+        }
+
         private static SharedFolderObject FindSharedFolder(GetSharedFoldersResponse response, string sharedFolderUid)
         {
             if (response?.SharedFolders == null || string.IsNullOrEmpty(sharedFolderUid))
@@ -117,6 +230,14 @@ namespace KeeperSecurity.Vault
         private static bool IsSharedFolderUserMember(SharedFolderObject sf, string userId)
         {
             return sf.Users?.Any(u => SharedFolderUserMatches(u, userId)) == true;
+        }
+
+        private static SharedFolderTeamObject FindSharedFolderTeam(SharedFolderObject sf, string teamUid)
+        {
+            if (sf?.Teams == null || string.IsNullOrEmpty(teamUid))
+                return null;
+            return sf.Teams.FirstOrDefault(t =>
+                string.Equals(t.TeamUid, teamUid, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool HasNoShareOptionsChanges(IUserShareOptions options)
@@ -161,7 +282,7 @@ namespace KeeperSecurity.Vault
             return FindSharedFolder(loaded, sharedFolderUid);
         }
 
-        private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey, RecordKeyType keyType)
+        internal static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey, RecordKeyType keyType)
         {
             return keyType switch
             {
@@ -188,7 +309,7 @@ namespace KeeperSecurity.Vault
             {
                 try
                 {
-                    sharedFolderKey = DecryptKeeperKey(context, sf.SharedFolderKey.Base64UrlDecode(), (RecordKeyType)headerKeyType);
+                    sharedFolderKey = DecryptKeeperKey(context, sf.SharedFolderKey.Base64UrlDecode(), headerKeyType);
                     return sharedFolderKey != null && sharedFolderKey.Length > 0;
                 }
                 catch
@@ -199,7 +320,7 @@ namespace KeeperSecurity.Vault
             {
                 try
                 {
-                    sharedFolderKey = DecryptKeeperKey(context, Array.Empty<byte>(), (RecordKeyType)headerKeyType);
+                    sharedFolderKey = DecryptKeeperKey(context, Array.Empty<byte>(), headerKeyType);
                     return sharedFolderKey != null && sharedFolderKey.Length > 0;
                 }
                 catch
@@ -224,6 +345,197 @@ namespace KeeperSecurity.Vault
             {
                 throw new VaultException("Failed to decrypt shared folder name.");
             }
+        }
+
+        private static async Task ShareSharedFolderToTeam(IAuthentication auth, string sharedFolderUid,
+            string teamNameOrUid, IUserShareOptions options)
+        {
+            if (string.IsNullOrEmpty(teamNameOrUid))
+                throw new ArgumentException("Team name or UID is required.", nameof(teamNameOrUid));
+
+            var teamUid = await ResolveTeamUidFromNameOrUidAsync(auth, teamNameOrUid).ConfigureAwait(false);
+
+            var sharedFolder = await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
+            if (!TryResolveSharedFolderKey(sharedFolder, auth, out var key))
+                throw new VaultException(
+                    $"Shared folder \"{sharedFolderUid}\" key could not be decrypted.");
+
+            var displayName = DecryptSharedFolderName(sharedFolder, key);
+            var request = new SharedFolderUpdateV3Request
+            {
+                SharedFolderUid = ByteString.CopyFrom(sharedFolderUid.Base64UrlDecode()),
+                EncryptedSharedFolderName = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(displayName), key)),
+                ForceUpdate = true,
+            };
+
+            var existingTeam = FindSharedFolderTeam(sharedFolder, teamUid);
+            var teamIsMember = existingTeam != null;
+
+            if (HasNoShareOptionsChanges(options) && teamIsMember)
+                return;
+
+            var sfut = new SharedFolderUpdateTeam
+            {
+                TeamUid = ByteString.CopyFrom(teamUid.Base64UrlDecode()),
+                Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
+            };
+
+            if (teamIsMember)
+            {
+                sfut.ManageUsers = options?.ManageUsers ?? existingTeam.ManageUsers;
+                sfut.ManageRecords = options?.ManageRecords ?? existingTeam.ManageRecords;
+                request.SharedFolderUpdateTeam.Add(sfut);
+            }
+            else
+            {
+                sfut.ManageUsers = options?.ManageUsers ?? sharedFolder.DefaultManageUsers;
+                sfut.ManageRecords = options?.ManageRecords ?? sharedFolder.DefaultManageRecords;
+
+                byte[] encryptedSharedFolderKey = null;
+                var keyType = EncryptedKeyType.NoKey;
+
+                await auth.LoadTeamKeys(Enumerable.Repeat(teamUid, 1)).ConfigureAwait(false);
+                if (auth.TryGetTeamKeys(teamUid, out var teamKeys))
+                {
+                    if (teamKeys.AesKey != null)
+                    {
+                        if (auth.AuthContext.ForbidKeyType2)
+                        {
+                            encryptedSharedFolderKey = CryptoUtils.EncryptAesV2(key, teamKeys.AesKey);
+                            keyType = EncryptedKeyType.EncryptedByDataKeyGcm;
+                        }
+                        else
+                        {
+                            encryptedSharedFolderKey = CryptoUtils.EncryptAesV1(key, teamKeys.AesKey);
+                            keyType = EncryptedKeyType.EncryptedByDataKey;
+                        }
+                    }
+                    else if (auth.AuthContext.ForbidKeyType2 && teamKeys.EcPublicKey != null)
+                    {
+                        var publicKey = CryptoUtils.LoadEcPublicKey(teamKeys.EcPublicKey);
+                        encryptedSharedFolderKey = CryptoUtils.EncryptEc(key, publicKey);
+                        keyType = EncryptedKeyType.EncryptedByPublicKeyEcc;
+                    }
+                    else if (!auth.AuthContext.ForbidKeyType2 && teamKeys.RsaPublicKey != null)
+                    {
+                        var publicKey = CryptoUtils.LoadRsaPublicKey(teamKeys.RsaPublicKey);
+                        encryptedSharedFolderKey = CryptoUtils.EncryptRsa(key, publicKey);
+                        keyType = EncryptedKeyType.EncryptedByPublicKey;
+                    }
+                }
+
+                if (encryptedSharedFolderKey != null)
+                {
+                    sfut.TypedSharedFolderKey = new EncryptedDataKey
+                    {
+                        EncryptedKey = ByteString.CopyFrom(encryptedSharedFolderKey),
+                        EncryptedKeyType = keyType,
+                    };
+                    request.SharedFolderAddTeam.Add(sfut);
+                }
+                else
+                {
+                    throw new VaultException(
+                        $"Cannot retrieve team \"{teamUid}\" keys for sharing (team_get_keys).");
+                }
+            }
+
+            var response = await auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request)
+                .ConfigureAwait(false);
+            foreach (var arr in new[] { response.SharedFolderAddTeamStatus, response.SharedFolderUpdateTeamStatus })
+            {
+                var failed = arr?.FirstOrDefault(x => !IsSharedFolderPutStatusOk(x.Status));
+                if (failed != null)
+                {
+                    var uid = failed.TeamUid.ToArray().Base64UrlEncode();
+                    throw new VaultException(
+                        $"Put Team \"{uid}\" to Shared Folder \"{displayName}\" error: {failed.Status}");
+                }
+            }
+        }
+
+        private static async Task RevokeSharedFolderFromTeam(IAuthentication auth, string sharedFolderUid,
+            string teamNameOrUid)
+        {
+            var teamUid = await ResolveTeamUidFromNameOrUidAsync(auth, teamNameOrUid).ConfigureAwait(false);
+
+            var sharedFolder = await GetSharedFoldersAsync(auth, sharedFolderUid).ConfigureAwait(false);
+
+            if (sharedFolder.Teams != null && sharedFolder.Teams.Length > 0 &&
+                FindSharedFolderTeam(sharedFolder, teamUid) == null)
+            {
+                return;
+            }
+
+            if (!TryResolveSharedFolderKey(sharedFolder, auth, out var key))
+                throw new VaultException(
+                    $"Shared folder \"{sharedFolderUid}\" key could not be decrypted.");
+
+            var displayName = DecryptSharedFolderName(sharedFolder, key);
+            var request = new SharedFolderUpdateV3Request
+            {
+                SharedFolderUid = ByteString.CopyFrom(sharedFolderUid.Base64UrlDecode()),
+                EncryptedSharedFolderName = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(displayName), key)),
+                ForceUpdate = true,
+            };
+
+            request.SharedFolderRemoveTeam.Add(ByteString.CopyFrom(teamUid.Base64UrlDecode()));
+
+            var response = await auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request)
+                .ConfigureAwait(false);
+            var failed = response.SharedFolderRemoveTeamStatus?.FirstOrDefault(x => !IsSharedFolderRemoveStatusOk(x.Status));
+            if (failed != null)
+            {
+                var uid = failed.TeamUid.ToArray().Base64UrlEncode();
+                throw new VaultException(
+                    $"Remove Team \"{uid}\" from Shared Folder \"{displayName}\" error: {failed.Status}");
+            }
+        }
+
+        internal static async Task<string> ResolveTeamUidFromNameAsync(IAuthentication auth, string teamName)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(teamName))
+                throw new ArgumentException("Team name is required.", nameof(teamName));
+
+            var name = teamName.Trim();
+            var teams = (await GetAvailableTeamsForShareAsync(auth).ConfigureAwait(false)).ToList();
+            var matches = MatchTeamsByName(teams, name, includeUidMatch: true);
+
+            if (matches.Count == 0)
+                throw new VaultException($"Team \"{name}\" not found.");
+            if (matches.Count > 1)
+                throw new VaultException($"Multiple teams match name \"{name}\". Please specify Team UID.");
+
+            return matches[0].TeamUid;
+        }
+
+        private static List<TeamInfo> MatchTeamsByName(IList<TeamInfo> teams, string name, bool includeUidMatch)
+        {
+            return teams.Where(t =>
+                    !string.IsNullOrEmpty(t.TeamUid) &&
+                    (string.Equals(t.Name?.Trim(), name, StringComparison.OrdinalIgnoreCase) ||
+                     (includeUidMatch && string.Equals(t.TeamUid, name, StringComparison.OrdinalIgnoreCase))))
+                .ToList();
+        }
+
+        private static bool IsKeeperUidString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return false;
+            var bytes = value.Base64UrlDecode();
+            return bytes.Length == 16;
+        }
+
+        private static async Task<string> ResolveTeamUidFromNameOrUidAsync(IAuthentication auth, string teamNameOrUid)
+        {
+            if (string.IsNullOrEmpty(teamNameOrUid))
+                throw new ArgumentException("Team name or UID is required.", nameof(teamNameOrUid));
+            var trimmed = teamNameOrUid.Trim();
+            if (IsKeeperUidString(trimmed))
+                return trimmed;
+            return await ResolveTeamUidFromNameAsync(auth, trimmed).ConfigureAwait(false);
         }
 
         private static async Task ShareSharedFolderToUser(IAuthentication auth, string sharedFolderUid,
@@ -343,12 +655,9 @@ namespace KeeperSecurity.Vault
 
             var response = await auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request)
                 .ConfigureAwait(false);
-            foreach (var arr in new[] { response.SharedFolderRemoveUserStatus })
-            {
-                var failed = arr?.FirstOrDefault(x => !IsSharedFolderRemoveStatusOk(x.Status));
-                if (failed != null)
-                    throw new VaultException($"Remove user \"{failed.Username}\" from Shared Folder \"{displayName}\" error: {failed.Status}");
-            }
+            var failed = response.SharedFolderRemoveUserStatus?.FirstOrDefault(x => !IsSharedFolderRemoveStatusOk(x.Status));
+            if (failed != null)
+                throw new VaultException($"Remove user \"{failed.Username}\" from Shared Folder \"{displayName}\" error: {failed.Status}");
         }
 
         [DataContract]
