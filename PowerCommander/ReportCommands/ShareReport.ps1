@@ -215,15 +215,15 @@ function Script:Get-ShareDateForUser {
 
     if (-not $ActivityList -or $ActivityList.Count -eq 0) { return '' }
 
-    $matches = $ActivityList | Where-Object {
+    $matchesUserName = $ActivityList | Where-Object {
         $_.ContainsKey('to_username') -and $_['to_username'].ToString() -eq $Username
     }
 
-    if (-not $matches -or $matches.Count -eq 0) { return '' }
+    if (-not $matchesUserName -or $matchesUserName.Count -eq 0) { return '' }
 
     $activity = $null
     $createdSec = 0L
-    foreach ($m in $matches) {
+    foreach ($m in $matchesUserName) {
         $sec = Get-ShareReportCreatedUnixSeconds -AuditEvent $m
         if ($sec -gt $createdSec) {
             $createdSec = $sec
@@ -232,8 +232,7 @@ function Script:Get-ShareDateForUser {
     }
 
     if ($createdSec -le 0) { return '' }
-    # Guard against implausible/legacy epoch values.
-    if ($createdSec -lt 946684800) { return '' }  # 2000-01-01 UTC
+    if ($createdSec -lt 946684800) { return '' }
     $dt = [DateTimeOffset]::FromUnixTimeSeconds($createdSec).ToLocalTime().ToString('yyyy-MM-dd HH:mm:ss zzz')
     $eventType = if ($activity.ContainsKey('audit_event_type')) { $activity['audit_event_type'].ToString() } else { '' }
 
@@ -248,22 +247,22 @@ function Script:Get-ShareDateForFolder {
 
     if (-not $ActivityList -or $ActivityList.Count -eq 0) { return '' }
 
-    $matches = $ActivityList | Where-Object {
+    $matchesFolder = $ActivityList | Where-Object {
         $_.ContainsKey('audit_event_type') -and $_['audit_event_type'].ToString() -match 'folder' -and
         $_.ContainsKey('shared_folder_uid') -and $_['shared_folder_uid'].ToString() -eq $SharedFolderUid
     }
 
-    if (-not $matches -or $matches.Count -eq 0) { return '' }
+    if (-not $matchesFolder -or $matchesFolder.Count -eq 0) { return '' }
 
     $createdSec = 0L
-    foreach ($m in $matches) {
+    foreach ($m in $matchesFolder) {
         $sec = Get-ShareReportCreatedUnixSeconds -AuditEvent $m
         if ($sec -gt $createdSec) {
             $createdSec = $sec
         }
     }
     if ($createdSec -le 0) { return '' }
-    if ($createdSec -lt 946684800) { return '' }  # 2000-01-01 UTC
+    if ($createdSec -lt 946684800) { return '' }
     $dt = [DateTimeOffset]::FromUnixTimeSeconds($createdSec).ToLocalTime().ToString('yyyy-MM-dd HH:mm:ss zzz')
     return "(shared on $dt)"
 }
