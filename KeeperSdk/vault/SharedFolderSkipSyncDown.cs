@@ -13,10 +13,7 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>
-    /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
-    /// Supports sharing with users (by email/username) and with teams (by UID or resolved name via <see cref="GetTeamUidFromNameAsync"/>).
-    /// </summary>
+    /// <summary>Shared folder operations without full vault sync (users and teams).</summary>
     public static class SharedFolderSkipSyncDown
     {
         /// <summary>
@@ -51,13 +48,14 @@ namespace KeeperSecurity.Vault
             /// <inheritdoc />
             public Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth)
                 => SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(auth);
+
+            /// <inheritdoc />
+            public Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
+                string sharedFolderUid)
+                => SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid);
         }
 
-        /// <summary>
-        /// Loads shared folder metadata for the given UID without a full vault sync, or <c>null</c> if it is not available.
-        /// </summary>
-        /// <param name="auth">Authenticated session.</param>
-        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <summary>Folder from <c>get_shared_folders</c>, or <c>null</c>.</summary>
         public static async Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid)
         {
             if (auth == null)
@@ -83,6 +81,35 @@ namespace KeeperSecurity.Vault
                 return null;
 
             return response;
+        }
+
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync" />
+        public static async Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
+            string sharedFolderUid)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+
+            var folderRs = await GetSharedFolderAsync(auth, sharedFolderUid).ConfigureAwait(false);
+            if (folderRs?.SharedFolders == null || folderRs.SharedFolders.Length == 0)
+                return Array.Empty<string>();
+
+            var sf = folderRs.SharedFolders.FirstOrDefault(f =>
+                    string.Equals(f.SharedFolderUid, sharedFolderUid, StringComparison.OrdinalIgnoreCase))
+                ?? folderRs.SharedFolders[0];
+
+            var uids = sf.Records?
+                .Select(r => r.RecordUid)
+                .Where(uid => !string.IsNullOrEmpty(uid))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (uids == null || uids.Count == 0)
+                return Array.Empty<string>();
+
+            return uids;
         }
 
         /// <inheritdoc cref="ISharedFolderSkipSyncDown.PutUserToSharedFolderAsync" />
@@ -158,9 +185,7 @@ namespace KeeperSecurity.Vault
             });
         }
 
-        /// <summary>
-        /// Resolves a team display name to a team UID. Returns <c>null</c> if none match; throws if multiple match.
-        /// </summary>
+        /// <summary>Resolve team display name to UID (<c>null</c> if none; throws if ambiguous).</summary>
         public static async Task<string> GetTeamUidFromNameAsync(IAuthentication auth, string teamName)
         {
             if (auth == null)
@@ -255,7 +280,7 @@ namespace KeeperSecurity.Vault
             return FindSharedFolder(loaded, sharedFolderUid);
         }
 
-        private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey, RecordKeyType keyType)
+        internal static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey, RecordKeyType keyType)
         {
             return keyType switch
             {
@@ -493,7 +518,6 @@ namespace KeeperSecurity.Vault
                 .ToList();
         }
 
-        /// <summary>True when <paramref name="value"/> is base64url for 16 bytes (Keeper UID).</summary>
         private static bool IsKeeperUidString(string value)
         {
             if (string.IsNullOrEmpty(value))

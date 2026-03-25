@@ -430,9 +430,7 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task DeleteFolder(string folderUid);
 
-        /// <summary>
-        /// Retrieves all enterprise team descriptions.
-        /// </summary>
+        /// <summary>Enterprise teams for sharing (see also <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/> without vault).</summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>
         /// <remarks>
         /// The same data is available without loading a vault via
@@ -638,7 +636,7 @@ namespace KeeperSecurity.Vault
 
     /// <summary>
     /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
-    /// Users and teams can be added or updated when you know the target id (email/username, team UID, or team name resolved via <see cref="GetTeamUidByNameAsync"/>).
+    /// Users and teams can be added or updated when you know the target id (email/username, team UID, or team name resolved via <see cref="SharedFolderSkipSyncDown.GetTeamUidFromNameAsync"/>).
     /// </summary>
     /// <seealso cref="SharedFolderSkipSyncDown"/>
     public interface ISharedFolderSkipSyncDown
@@ -649,6 +647,13 @@ namespace KeeperSecurity.Vault
         /// <param name="auth">Authenticated session.</param>
         /// <param name="sharedFolderUid">Shared folder UID.</param>
         Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
+
+        /// <summary>
+        /// Returns distinct record UIDs linked to the shared folder (from <c>get_shared_folders</c> with <c>sfrecords</c>), or empty if the folder is unavailable or has no records.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
 
         /// <summary>
         /// Adds a user to the folder or updates their permissions.
@@ -842,6 +847,30 @@ namespace KeeperSecurity.Vault
         public VaultException(string message) : base(message)
         {
         }
+    }
+
+    /// <summary>Result of <see cref="RecordSkipSyncDown.GetRecordsAsync"/>.</summary>
+    public sealed class RecordDetailsSkipSyncResult
+    {
+        /// <exclude/>
+        public RecordDetailsSkipSyncResult(
+            IReadOnlyList<KeeperRecord> records,
+            IReadOnlyList<string> noPermissionRecordUids,
+            IReadOnlyList<string> failedRecordUids)
+        {
+            Records = records ?? Array.Empty<KeeperRecord>();
+            NoPermissionRecordUids = noPermissionRecordUids ?? Array.Empty<string>();
+            FailedRecordUids = failedRecordUids ?? Array.Empty<string>();
+        }
+
+        /// <summary>Decrypted records.</summary>
+        public IReadOnlyList<KeeperRecord> Records { get; }
+
+        /// <summary>UIDs denied by the server.</summary>
+        public IReadOnlyList<string> NoPermissionRecordUids { get; }
+
+        /// <summary>UIDs that failed to decrypt or parse.</summary>
+        public IReadOnlyList<string> FailedRecordUids { get; }
     }
 
     /// <summary>

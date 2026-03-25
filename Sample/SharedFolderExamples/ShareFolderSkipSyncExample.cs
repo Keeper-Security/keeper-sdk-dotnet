@@ -5,10 +5,6 @@ using KeeperSecurity.Vault;
 
 namespace Sample.SharedFolderExamples
 {
-    /// <summary>
-    /// Shared folder user/team helpers using <see cref="SharedFolderSkipSyncDown"/> (no full vault sync).
-    /// Authenticate with <see cref="AuthenticateAndGetVault.GetAuthAsync"/>. For a synced vault, see <see cref="ShareFolderToUser"/>.
-    /// </summary>
     public static class ShareFolderSkipSyncExample
     {
         public static async Task PutUserToSharedFolder(IAuthentication auth, string sharedFolderUid, string userId,
@@ -18,6 +14,8 @@ namespace Sample.SharedFolderExamples
             {
                 await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userId, options);
                 Console.WriteLine($"User {userId} added to shared folder {sharedFolderUid}.");
+                await WriteDecryptedFolderRecordsAsync(auth, sharedFolderUid,
+                    $"No records listed on this shared folder (user {userId} has folder access).").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -31,6 +29,8 @@ namespace Sample.SharedFolderExamples
             {
                 await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userId);
                 Console.WriteLine($"User {userId} removed from shared folder {sharedFolderUid}.");
+                await WriteDecryptedFolderRecordsAsync(auth, sharedFolderUid,
+                    "No records listed on this shared folder after remove.").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -59,11 +59,31 @@ namespace Sample.SharedFolderExamples
             {
                 await SharedFolderSkipSyncDown.RemoveTeamFromSharedFolderAsync(auth, sharedFolderUid, teamNameOrUid);
                 Console.WriteLine($"Team {teamNameOrUid} removed from shared folder {sharedFolderUid}.");
-                }
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+        }
+
+        private static async Task WriteDecryptedFolderRecordsAsync(IAuthentication auth, string sharedFolderUid,
+            string emptyFolderMessage)
+        {
+            var recordUids = await SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid)
+                .ConfigureAwait(false);
+            if (recordUids.Count == 0)
+            {
+                Console.WriteLine(emptyFolderMessage);
+                return;
+            }
+
+            var loaded = await RecordSkipSyncDown.GetRecordsAsync(auth, recordUids).ConfigureAwait(false);
+            foreach (var r in loaded.Records)
+                Console.WriteLine($"  {r.Uid}: {r.Title ?? "(no title)"}");
+            if (loaded.NoPermissionRecordUids.Count > 0)
+                Console.WriteLine($"  No permission: {string.Join(", ", loaded.NoPermissionRecordUids)}");
+            if (loaded.FailedRecordUids.Count > 0)
+                Console.WriteLine($"  Failed to decrypt: {string.Join(", ", loaded.FailedRecordUids)}");
         }
     }
 }
