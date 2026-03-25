@@ -434,6 +434,10 @@ namespace KeeperSecurity.Vault
         /// Retrieves all enterprise team descriptions.
         /// </summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>
+        /// <remarks>
+        /// The same data is available without loading a vault via
+        /// <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/>.
+        /// </remarks>
         Task<IEnumerable<TeamInfo>> GetTeamsForShare();
 
         /// <summary>
@@ -634,7 +638,7 @@ namespace KeeperSecurity.Vault
 
     /// <summary>
     /// Shared-folder operations without loading the full vault. Intended for direct user access to the folder.
-    /// For sharing with teams, use <see cref="IVaultSharedFolder"/>.
+    /// Users and teams can be added or updated when you know the target id (email/username, team UID, or team name resolved via <see cref="GetTeamUidByNameAsync"/>).
     /// </summary>
     /// <seealso cref="SharedFolderSkipSyncDown"/>
     public interface ISharedFolderSkipSyncDown
@@ -664,6 +668,31 @@ namespace KeeperSecurity.Vault
         /// <param name="userId">User email or username.</param>
         Task RemoveUserFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
             string userId);
+
+        /// <summary>
+        /// Adds a team to the folder or updates its permissions. Requires the team UID; loads team keys via <c>team_get_keys</c>.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="teamUid">Team UID (base64url).</param>
+        /// <param name="options">Permission and expiration options.</param>
+        Task PutTeamToSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid, IUserShareOptions options = null);
+
+        /// <summary>
+        /// Removes a team from the folder.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="teamUid">Team UID (base64url).</param>
+        Task RemoveTeamFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid,
+            string teamUid);
+
+        /// <summary>
+        /// Returns teams the user may share with, without loading the vault. Uses the <c>get_available_teams</c> API (same as <see cref="IVault.GetTeamsForShare"/>).
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth);
     }
 
     /// <summary>

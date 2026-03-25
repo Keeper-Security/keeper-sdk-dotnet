@@ -55,7 +55,9 @@ namespace Sample
     /// Persistent login:
     ///   1. First run  → full login (password or SSO), registers device, enables persistent_login
     ///   2. Next runs → session resume via clone_code (no password)
-    ///   3. Within run → cached vault returned to all callers
+    ///   3. Within one process → <see cref="GetAuthAsync"/> and <see cref="GetVault"/> share the same
+    ///      <see cref="AuthSync"/> after the first successful login (no second username/password prompt).
+    ///      Use <see cref="ResolveAuthAsync"/> so auth-only samples can reuse a session from <see cref="GetVault"/>.
     ///
     /// YubiKey / Security Key (FIDO2/WebAuthn): When the server returns 2FA with a security key channel,
     /// type "key" at the 2FA prompt. On Windows (net472), the native WebAuthn dialog appears; touch the key to complete.
@@ -77,6 +79,15 @@ namespace Sample
 
         private static VaultOnline _cachedVault;
 
+        /// <summary>Cached <see cref="AuthSync"/> from the last successful login in this process.</summary>
+        private static AuthSync _cachedAuth;
+
+        private static void ClearSessionCache()
+        {
+            _cachedAuth = null;
+            _cachedVault = null;
+        }
+
         /// <summary>
         /// Returns the given vault, or authenticates and gets the vault if null. Returns null if auth fails.
         /// Use as first line in example methods: vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault); if (vault == null) return;
@@ -88,21 +99,27 @@ namespace Sample
         }
 
         /// <summary>
-        /// Returns the given auth, or the cached vault's auth, or performs interactive login without loading/syncing the vault.
+        /// Returns a cached authenticated session when available; otherwise performs interactive login without loading or syncing the vault.
         /// Use for samples that call Keeper APIs directly (e.g. <see cref="SharedFolderSkipSyncDown"/>).
         /// </summary>
-        public static async Task<IAuthentication> ResolveAuthAsync(IAuthentication auth)
+        /// <param name="enablePersistentLogin">When a new login is required, pass <c>true</c>/<c>false</c> to enable or disable persistent login; <c>null</c> leaves the setting unchanged.</param>
+        public static async Task<IAuthentication> ResolveAuthAsync(
+            bool? enablePersistentLogin = null)
         {
-            if (auth != null) return auth;
+            if (_cachedAuth != null && _cachedAuth.IsAuthenticated()) return _cachedAuth;
             if (_cachedVault != null) return _cachedVault.Auth;
-            return await GetAuthAsync();
+            return await GetAuthAsync(enablePersistentLogin).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Interactive login only — no <see cref="VaultOnline"/> and no <c>sync_down</c>. Same prompts as <see cref="GetVault"/>.
+        /// Reuses the same authenticated session in-process when <see cref="GetVault"/> (or a prior <c>GetAuthAsync</c>) already ran.
         /// </summary>
         public static async Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null)
         {
+            if (_cachedAuth != null && _cachedAuth.IsAuthenticated())
+                return _cachedAuth;
+
             var configurationStorage = new JsonConfigurationStorage("config.json");
             var inputManager = new SimpleInputManager();
             return await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
@@ -124,10 +141,9 @@ namespace Sample
             var server = await inputManager.ReadLine(new ReadLineParameters { IsHistory = false });
             server = string.IsNullOrWhiteSpace(server) ? "keepersecurity.com" : server.Trim();
 
-            // If user typed a region key, resolve to host
             if (KeeperPublicHosts.TryGetValue(server, out var host))
                 server = host;
-
+            
             configuration.LastServer = server;
             storage.Put(configuration);
         }
@@ -147,6 +163,16 @@ namespace Sample
 
         public static async Task<VaultOnline> GetVault(bool? enablePersistentLogin = null)
         {
+            if (_cachedVault != null)
+                return _cachedVault;
+
+            if (_cachedAuth != null && _cachedAuth.IsAuthenticated())
+            {
+                _cachedVault = new VaultOnline(_cachedAuth);
+                await _cachedVault.SyncDown().ConfigureAwait(false);
+                return _cachedVault;
+            }
+
             var configurationStorage = new JsonConfigurationStorage("config.json");
             var inputManager = new SimpleInputManager();
             var authFlow = await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
@@ -168,6 +194,7 @@ namespace Sample
             if (string.IsNullOrEmpty(username))
             {
                 Console.WriteLine("Bye.");
+                ClearSessionCache();
                 return null;
             }
 
@@ -206,12 +233,14 @@ namespace Sample
             if (authFlow.Step is ErrorStep es)
             {
                 Console.WriteLine($"Authentication error: {es.Message}");
+                ClearSessionCache();
                 return null;
             }
 
             if (!authFlow.IsAuthenticated())
             {
                 Console.WriteLine("Authentication failed.");
+                ClearSessionCache();
                 return null;
             }
 
@@ -220,6 +249,7 @@ namespace Sample
             else if (enablePersistentLogin == false)
                 await DisablePersistentLogin(authFlow).ConfigureAwait(false);
 
+            _cachedAuth = authFlow;
             return authFlow;
         }
 
