@@ -73,7 +73,7 @@ namespace KeeperSecurity.Vault
                         SharedFolderUid = sharedFolderUid,
                     },
                 },
-                Include = new[] { "sfheaders", "sfusers" },
+                Include = new[] { "sfheaders", "sfusers", "sfrecords", "sfteams" },
             };
 
             var response = await auth.ExecuteAuthCommand<GetSharedFoldersCommand, GetSharedFoldersResponse>(command, throwOnError: false)
