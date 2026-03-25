@@ -856,21 +856,30 @@ namespace KeeperSecurity.Vault
         public RecordDetailsSkipSyncResult(
             IReadOnlyList<KeeperRecord> records,
             IReadOnlyList<string> noPermissionRecordUids,
-            IReadOnlyList<string> failedRecordUids)
+            IReadOnlyList<string> failedRecordUids,
+            IReadOnlyList<string> invalidRecordUids = null)
         {
             Records = records ?? Array.Empty<KeeperRecord>();
             NoPermissionRecordUids = noPermissionRecordUids ?? Array.Empty<string>();
             FailedRecordUids = failedRecordUids ?? Array.Empty<string>();
+            InvalidRecordUids = invalidRecordUids ?? Array.Empty<string>();
         }
 
-        /// <summary>Decrypted records.</summary>
+        /// <summary>Decrypted records (from <c>recordDataWithAccessInfo</c>).</summary>
         public IReadOnlyList<KeeperRecord> Records { get; }
 
-        /// <summary>UIDs denied by the server.</summary>
+        /// <summary>UIDs from <c>noPermissionRecordUid</c> in the response.</summary>
         public IReadOnlyList<string> NoPermissionRecordUids { get; }
 
-        /// <summary>UIDs that failed to decrypt or parse.</summary>
+        /// <summary>
+        /// UIDs from returned rows that could not be decrypted or loaded (including unsupported <c>recordKeyType</c> values).
+        /// </summary>
         public IReadOnlyList<string> FailedRecordUids { get; }
+
+        /// <summary>
+        /// Caller-supplied UID strings that could not be decoded to binary record UIDs and were omitted from the request.
+        /// </summary>
+        public IReadOnlyList<string> InvalidRecordUids { get; }
     }
 
     /// <summary>

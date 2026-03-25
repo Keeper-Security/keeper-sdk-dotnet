@@ -10,6 +10,12 @@ namespace Sample.SharedFolderExamples
         public static async Task PutUserToSharedFolder(IAuthentication auth, string sharedFolderUid, string userId,
             IUserShareOptions options = null)
         {
+            if (auth == null)
+            {
+                Console.WriteLine("Not authenticated.");
+                return;
+            }
+
             try
             {
                 await SharedFolderSkipSyncDown.PutUserToSharedFolderAsync(auth, sharedFolderUid, userId, options);
@@ -25,6 +31,12 @@ namespace Sample.SharedFolderExamples
 
         public static async Task RemoveUserFromSharedFolder(IAuthentication auth, string sharedFolderUid, string userId)
         {
+            if (auth == null)
+            {
+                Console.WriteLine("Not authenticated.");
+                return;
+            }
+
             try
             {
                 await SharedFolderSkipSyncDown.RemoveUserFromSharedFolderAsync(auth, sharedFolderUid, userId);
@@ -41,6 +53,12 @@ namespace Sample.SharedFolderExamples
         public static async Task PutTeamToSharedFolder(IAuthentication auth, string sharedFolderUid, string teamNameOrUid,
             IUserShareOptions options = null)
         {
+            if (auth == null)
+            {
+                Console.WriteLine("Not authenticated.");
+                return;
+            }
+
             try
             {
                 await SharedFolderSkipSyncDown.PutTeamToSharedFolderAsync(auth, sharedFolderUid, teamNameOrUid, options);
@@ -55,6 +73,12 @@ namespace Sample.SharedFolderExamples
         public static async Task RemoveTeamFromSharedFolder(IAuthentication auth, string sharedFolderUid,
             string teamNameOrUid)
         {
+            if (auth == null)
+            {
+                Console.WriteLine("Not authenticated.");
+                return;
+            }
+
             try
             {
                 await SharedFolderSkipSyncDown.RemoveTeamFromSharedFolderAsync(auth, sharedFolderUid, teamNameOrUid);
@@ -69,6 +93,9 @@ namespace Sample.SharedFolderExamples
         private static async Task WriteDecryptedFolderRecordsAsync(IAuthentication auth, string sharedFolderUid,
             string emptyFolderMessage)
         {
+            if (auth == null)
+                return;
+
             var recordUids = await SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid)
                 .ConfigureAwait(false);
             if (recordUids.Count == 0)
@@ -84,6 +111,8 @@ namespace Sample.SharedFolderExamples
                 Console.WriteLine($"  No permission: {string.Join(", ", loaded.NoPermissionRecordUids)}");
             if (loaded.FailedRecordUids.Count > 0)
                 Console.WriteLine($"  Failed to decrypt: {string.Join(", ", loaded.FailedRecordUids)}");
+            if (loaded.InvalidRecordUids.Count > 0)
+                Console.WriteLine($"  Invalid UID format: {string.Join(", ", loaded.InvalidRecordUids)}");
         }
     }
 }

@@ -13,14 +13,19 @@ namespace KeeperSecurity.Vault
     /// <summary>Load records without vault sync.</summary>
     public static class RecordSkipSyncDown
     {
-        /// <summary>Decrypt records by UID; see <see cref="RecordDetailsSkipSyncResult"/> for partial failures.</summary>
+        /// <summary>
+        /// Calls <c>vault/get_records_details</c> with <see cref="GetRecordDataWithAccessInfoRequest"/> and decrypts each
+        /// <see cref="RecordDataWithAccessInfo"/> (see API <c>recordDataWithAccessInfo</c> / <c>noPermissionRecordUid</c>).
+        /// </summary>
+        /// <param name="include">
+        /// Maps to <c>recordDetailsInclude</c> on the request (API default <c>DATA_PLUS_SHARE</c> =
+        /// <see cref="RecordDetailsInclude.DataPlusShare"/>).
+        /// </param>
         public static async Task<RecordDetailsSkipSyncResult> GetRecordsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
-            RecordDetailsInclude include = RecordDetailsInclude.DataOnly)
+            RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
         {
-            if (auth == null)
-                throw new VaultException("An authenticated session is needed.");
-            if (auth.AuthContext == null)
+            if (auth == null || auth.AuthContext == null)
                 throw new VaultException("An authenticated session is needed.");
 
             var uidList = (recordUids ?? Enumerable.Empty<string>())
@@ -34,16 +39,36 @@ namespace KeeperSecurity.Vault
                 return new RecordDetailsSkipSyncResult(
                     Array.Empty<KeeperRecord>(),
                     Array.Empty<string>(),
+                    Array.Empty<string>(),
                     Array.Empty<string>());
             }
 
+            var invalid = new List<string>();
             var rq = new GetRecordDataWithAccessInfoRequest
             {
                 ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 RecordDetailsInclude = include,
             };
             foreach (var uid in uidList)
-                rq.RecordUid.Add(ByteString.CopyFrom(uid.Base64UrlDecode()));
+            {
+                try
+                {
+                    rq.RecordUid.Add(ByteString.CopyFrom(uid.Base64UrlDecode()));
+                }
+                catch
+                {
+                    invalid.Add(uid);
+                }
+            }
+
+            if (rq.RecordUid.Count == 0)
+            {
+                return new RecordDetailsSkipSyncResult(
+                    Array.Empty<KeeperRecord>(),
+                    Array.Empty<string>(),
+                    Array.Empty<string>(),
+                    invalid);
+            }
 
             var rs = await auth
                 .ExecuteAuthRest<GetRecordDataWithAccessInfoRequest, GetRecordDataWithAccessInfoResponse>(
@@ -77,11 +102,6 @@ namespace KeeperSecurity.Vault
                         auth.AuthContext,
                         rd.RecordKey?.ToByteArray() ?? Array.Empty<byte>(),
                         rd.RecordKeyType);
-                }
-                catch (VaultException)
-                {
-                    failed.Add(uid);
-                    continue;
                 }
                 catch
                 {
@@ -128,7 +148,7 @@ namespace KeeperSecurity.Vault
                 records.Add(keeperRecord);
             }
 
-            return new RecordDetailsSkipSyncResult(records, noPermission, failed);
+            return new RecordDetailsSkipSyncResult(records, noPermission, failed, invalid);
         }
 
         private sealed class EphemeralStorageRecord : IStorageRecord, IUid
