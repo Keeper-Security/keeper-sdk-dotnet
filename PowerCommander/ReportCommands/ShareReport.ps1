@@ -1050,7 +1050,6 @@ function Get-KeeperShareReport {
         -CurrentUser $currentUser -UserFilter $userFilter -Format $Format -Output $Output
 }
 
-New-Alias -Name share-report -Value Get-KeeperShareReport
 
 function Get-KeeperSharedRecordsReport {
     <#
@@ -1061,9 +1060,9 @@ function Get-KeeperSharedRecordsReport {
     Generates a report of all shared records showing the share type, recipient, and permissions per row.
     the share type (Direct Share, Share Folder, Share Team Folder), permissions, and folder path.
     By default only owned shared records are included. Use -AllRecords to include non-owned records.
-    Mirrors the Python Commander 'shared-records-report' command.
+    Mirrors the Python Commander 'ksrr' command.
 
-    Alias: shared-records-report, ksrr
+    Alias: ksrr
 
     .PARAMETER ShowTeamUsers
     Expand team shares to show individual team members. Requires enterprise admin.
@@ -1346,4 +1345,4 @@ function Get-KeeperSharedRecordsReport {
     Write-ShareReportOutput -Rows $table -Title 'Shared Records Report' -Format $Format -Output $Output
 }
 
-New-Alias -Name shared-records-report -Value Get-KeeperSharedRecordsReport
+New-Alias -Name ksrr -Value Get-KeeperSharedRecordsReport

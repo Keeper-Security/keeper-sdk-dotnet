@@ -94,8 +94,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 ### Reporting Cmdlets
 | Cmdlet name                                             | Alias                       | Description
 |---------------------------------------------------------|-----------------------------|----------------------------
-| Get-KeeperShareReport                                   | share-report                | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
-| Get-KeeperSharedRecordsReport                            | shared-records-report, ksrr | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
+| Get-KeeperShareReport                                   |                             | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
+| Get-KeeperSharedRecordsReport                            | ksrr | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
 | Get-KeeperAuditReport                                   | kar                         | Run an enterprise audit trail report
 | Get-KeeperFileReport                                    | file-report                 | List records with file attachments and optionally verify download accessibility
 | Get-KeeperPasswordReport                                |                             | Retrieves password report based on policy and strengths
@@ -491,10 +491,6 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     PS > Get-KeeperShareReport
     ```
-    or using the alias
-    ```
-    PS > share-report
-    ```
     Show owner report with share dates and team member expansion
     ```
     PS > Get-KeeperShareReport -Owner -ShareDate -ShowTeamUsers
@@ -510,7 +506,6 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     or using aliases
     ```
-    PS > shared-records-report
     PS > ksrr
     ```
     Include all shared records (not just owned)

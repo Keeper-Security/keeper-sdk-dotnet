@@ -124,7 +124,7 @@
     'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
     'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
     'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'share-report', 'shared-records-report')
+    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'ksrr')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -140,8 +140,8 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'Get-KeeperShareReport (share-report) - report who records and folders are shared with, with summary, owner, and per-user views',
-                'Get-KeeperSharedRecordsReport (shared-records-report, ksrr) - list shared records with share type, recipient, and permissions per row',
+                'Get-KeeperShareReport - report who records and folders are shared with, with summary, owner, and per-user views',
+                'Get-KeeperSharedRecordsReport (ksrr) - list shared records with share type, recipient, and permissions per row',
                 'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
                 'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
                 'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
