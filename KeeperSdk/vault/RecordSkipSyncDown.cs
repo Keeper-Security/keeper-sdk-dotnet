@@ -10,28 +10,21 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>
-    /// Fetches record payloads via <c>vault/get_records_details</c> without a full vault <c>sync_down</c>.
-    /// Use <see cref="GetOwnedRecordsAsync"/> to decrypt with keys from each <see cref="RecordData"/> in the response.
-    /// Use <see cref="GetSharedFolderRecordsAsync"/> to decrypt with keys from <c>get_shared_folders</c> <c>records</c>
-    /// (see <see cref="SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync"/>).
-    /// </summary>
+    /// <summary>Load records without vault sync.</summary>
     public static class RecordSkipSyncDown
     {
         /// <summary>
-        /// Calls <c>vault/get_records_details</c> for the given UIDs and decrypts using
-        /// <see cref="RecordData.RecordKey"/> and <see cref="RecordData.RecordKeyType"/> on each row.
+        /// Calls <c>vault/get_records_details</c> and decrypts payloads using the record key from each
+        /// <see cref="RecordData"/> (<see cref="RecordData.RecordKey"/> / <see cref="RecordData.RecordKeyType"/>).
         /// </summary>
-        /// <param name="auth">Authenticated session.</param>
-        /// <param name="recordUids">Record UIDs (base64url).</param>
-        /// <param name="include">Maps to <c>recordDetailsInclude</c> (default <see cref="RecordDetailsInclude.DataPlusShare"/>).</param>
         public static Task<RecordDetailsSkipSyncResult> GetOwnedRecordsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
             => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
 
         /// <summary>
-        /// Calls <c>vault/get_records_details</c> and decrypts each <see cref="RecordDataWithAccessInfo"/> (API <c>recordDataWithAccessInfo</c> / <c>noPermissionRecordUid</c>).
+        /// Calls <c>vault/get_records_details</c> with <see cref="GetRecordDataWithAccessInfoRequest"/> and decrypts each
+        /// <see cref="RecordDataWithAccessInfo"/> (see API <c>recordDataWithAccessInfo</c> / <c>noPermissionRecordUid</c>).
         /// </summary>
         /// <remarks>Prefer <see cref="GetOwnedRecordsAsync"/> or <see cref="GetSharedFolderRecordsAsync"/>.</remarks>
         [Obsolete("Use GetOwnedRecordsAsync for arbitrary record UIDs, or GetSharedFolderRecordsAsync for shared-folder records.")]
@@ -41,13 +34,9 @@ namespace KeeperSecurity.Vault
             => GetOwnedRecordsAsync(auth, recordUids, include);
 
         /// <summary>
-        /// Gets decrypted AES keys from <see cref="SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync"/>,
-        /// then calls <c>vault/get_records_details</c> for those UIDs. Decryption uses only keys from the shared-folder
-        /// <c>records</c> map, not <see cref="RecordData.RecordKey"/> from the details response.
+        /// Loads decrypted record keys via <see cref="SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync"/>
+        /// (<c>get_shared_folders</c> → <c>records</c>), then calls <c>vault/get_records_details</c> and decrypts using those keys.
         /// </summary>
-        /// <param name="auth">Authenticated session.</param>
-        /// <param name="sharedFolderUid">Shared folder UID (base64url).</param>
-        /// <param name="include">Maps to <c>recordDetailsInclude</c> (default <see cref="RecordDetailsInclude.DataPlusShare"/>).</param>
         public static async Task<RecordDetailsSkipSyncResult> GetSharedFolderRecordsAsync(IAuthentication auth,
             string sharedFolderUid,
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)

@@ -650,7 +650,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Distinct record UIDs from <c>get_shared_folders</c> with <c>sfrecords</c>, or empty if the folder is unavailable or has no rows.
-        /// Often used with <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/> when decrypting with keys from <c>get_records_details</c>.
+        /// would be used with <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/> when decrypting with keys from <c>get_records_details</c>.
         /// </summary>
         /// <param name="auth">Authenticated session.</param>
         /// <param name="sharedFolderUid">Shared folder UID (base64url).</param>

@@ -171,9 +171,11 @@ namespace KeeperSecurity.Vault
             if (encryptedRecordKey == null || encryptedRecordKey.Length == 0 || sharedFolderAesKey == null ||
                 sharedFolderAesKey.Length == 0)
                 return null;
+
+            var useGcmFirst = encryptedRecordKey.Length == 60;
             try
             {
-                return encryptedRecordKey.Length == 60
+                return useGcmFirst
                     ? CryptoUtils.DecryptAesV2(encryptedRecordKey, sharedFolderAesKey)
                     : CryptoUtils.DecryptAesV1(encryptedRecordKey, sharedFolderAesKey);
             }
@@ -181,7 +183,7 @@ namespace KeeperSecurity.Vault
             {
                 try
                 {
-                    return encryptedRecordKey.Length == 60
+                    return useGcmFirst
                         ? CryptoUtils.DecryptAesV1(encryptedRecordKey, sharedFolderAesKey)
                         : CryptoUtils.DecryptAesV2(encryptedRecordKey, sharedFolderAesKey);
                 }
