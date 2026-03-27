@@ -649,11 +649,21 @@ namespace KeeperSecurity.Vault
         Task<GetSharedFoldersResponse> GetSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
 
         /// <summary>
-        /// Returns distinct record UIDs linked to the shared folder (from <c>get_shared_folders</c> with <c>sfrecords</c>), or empty if the folder is unavailable or has no records.
+        /// Distinct record UIDs from <c>get_shared_folders</c> with <c>sfrecords</c>, or empty if the folder is unavailable or has no rows.
+        /// would be used with <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/> when decrypting with keys from <c>get_records_details</c>.
         /// </summary>
         /// <param name="auth">Authenticated session.</param>
-        /// <param name="sharedFolderUid">Shared folder UID.</param>
+        /// <param name="sharedFolderUid">Shared folder UID (base64url).</param>
         Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth, string sharedFolderUid);
+
+        /// <summary>
+        /// Map of record UID → decrypted AES key from <c>get_shared_folders</c> <c>records</c>: each <c>record_key</c> unwrapped with the shared folder key.
+        /// Empty when the folder is unavailable or no keys could be derived. Used by <see cref="RecordSkipSyncDown.GetSharedFolderRecordsAsync"/>.
+        /// </summary>
+        /// <param name="auth">Authenticated session.</param>
+        /// <param name="sharedFolderUid">Shared folder UID (base64url).</param>
+        Task<IReadOnlyDictionary<string, byte[]>> GetRecordKeysFromSharedFolderAsync(IAuthentication auth,
+            string sharedFolderUid);
 
         /// <summary>
         /// Adds a user to the folder or updates their permissions.
@@ -849,7 +859,9 @@ namespace KeeperSecurity.Vault
         }
     }
 
-    /// <summary>Result of <see cref="RecordSkipSyncDown.GetRecordsAsync"/>.</summary>
+    /// <summary>
+    /// Result of <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/> or <see cref="RecordSkipSyncDown.GetSharedFolderRecordsAsync"/> (both call <c>vault/get_records_details</c>).
+    /// </summary>
     public sealed class RecordDetailsSkipSyncResult
     {
         /// <exclude/>
@@ -872,7 +884,9 @@ namespace KeeperSecurity.Vault
         public IReadOnlyList<string> NoPermissionRecordUids { get; }
 
         /// <summary>
-        /// UIDs from returned rows that could not be decrypted or loaded (including unsupported <c>recordKeyType</c> values).
+        /// UIDs from returned rows that could not be decrypted or loaded.
+        /// For <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/>, includes unsupported <c>recordKeyType</c> or bad <see cref="RecordData"/> keys.
+        /// For <see cref="RecordSkipSyncDown.GetSharedFolderRecordsAsync"/>, includes UIDs missing from the shared-folder key map or ciphertext load failures.
         /// </summary>
         public IReadOnlyList<string> FailedRecordUids { get; }
 
