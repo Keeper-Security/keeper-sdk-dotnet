@@ -14,16 +14,56 @@ namespace KeeperSecurity.Vault
     public static class RecordSkipSyncDown
     {
         /// <summary>
+        /// Calls <c>vault/get_records_details</c> and decrypts payloads using the record key from each
+        /// <see cref="RecordData"/> (<see cref="RecordData.RecordKey"/> / <see cref="RecordData.RecordKeyType"/>).
+        /// </summary>
+        public static Task<RecordDetailsSkipSyncResult> GetOwnedRecordsAsync(IAuthentication auth,
+            IEnumerable<string> recordUids,
+            RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
+            => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
+
+        /// <summary>
         /// Calls <c>vault/get_records_details</c> with <see cref="GetRecordDataWithAccessInfoRequest"/> and decrypts each
         /// <see cref="RecordDataWithAccessInfo"/> (see API <c>recordDataWithAccessInfo</c> / <c>noPermissionRecordUid</c>).
         /// </summary>
-        /// <param name="include">
-        /// Maps to <c>recordDetailsInclude</c> on the request (API default <c>DATA_PLUS_SHARE</c> =
-        /// <see cref="RecordDetailsInclude.DataPlusShare"/>).
-        /// </param>
-        public static async Task<RecordDetailsSkipSyncResult> GetRecordsAsync(IAuthentication auth,
+        /// <remarks>Prefer <see cref="GetOwnedRecordsAsync"/> or <see cref="GetSharedFolderRecordsAsync"/>.</remarks>
+        [Obsolete("Use GetOwnedRecordsAsync for arbitrary record UIDs, or GetSharedFolderRecordsAsync for shared-folder records.")]
+        public static Task<RecordDetailsSkipSyncResult> GetRecordsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
+            => GetOwnedRecordsAsync(auth, recordUids, include);
+
+        /// <summary>
+        /// Loads decrypted record keys via <see cref="SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync"/>
+        /// (<c>get_shared_folders</c> → <c>records</c>), then calls <c>vault/get_records_details</c> and decrypts using those keys.
+        /// </summary>
+        public static async Task<RecordDetailsSkipSyncResult> GetSharedFolderRecordsAsync(IAuthentication auth,
+            string sharedFolderUid,
+            RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
+        {
+            if (auth == null || auth.AuthContext == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+
+            var keys = await SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync(auth, sharedFolderUid.Trim())
+                .ConfigureAwait(false);
+            if (keys.Count == 0)
+            {
+                return new RecordDetailsSkipSyncResult(
+                    Array.Empty<KeeperRecord>(),
+                    Array.Empty<string>(),
+                    Array.Empty<string>(),
+                    Array.Empty<string>());
+            }
+
+            return await GetRecordsDetailsAsync(auth, keys.Keys, include, keys).ConfigureAwait(false);
+        }
+
+        private static async Task<RecordDetailsSkipSyncResult> GetRecordsDetailsAsync(IAuthentication auth,
+            IEnumerable<string> recordUids,
+            RecordDetailsInclude include,
+            IReadOnlyDictionary<string, byte[]> sharedFolderRecordKeys)
         {
             if (auth == null || auth.AuthContext == null)
                 throw new VaultException("An authenticated session is needed.");
@@ -95,50 +135,14 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                byte[] recordKey;
-                try
-                {
-                    recordKey = SharedFolderSkipSyncDown.DecryptKeeperKey(
-                        auth.AuthContext,
-                        rd.RecordKey?.ToByteArray() ?? Array.Empty<byte>(),
-                        rd.RecordKeyType);
-                }
-                catch
+                if (!TryResolveRecordKey(auth.AuthContext, rd, uid, sharedFolderRecordKeys, out var recordKey) ||
+                    recordKey == null || recordKey.Length == 0)
                 {
                     failed.Add(uid);
                     continue;
                 }
 
-                if (recordKey == null || recordKey.Length == 0)
-                {
-                    failed.Add(uid);
-                    continue;
-                }
-
-                var ephemeral = new EphemeralStorageRecord
-                {
-                    RecordUid = uid,
-                    Revision = rd.Revision,
-                    Version = rd.Version,
-                    Shared = rd.Shared,
-                    ClientModifiedTime = rd.ClientModifiedTime,
-                    Data = rd.EncryptedRecordData ?? "",
-                    Extra = rd.EncryptedExtraData ?? "",
-                    Udata = rd.NonSharedData ?? "",
-                };
-
-                KeeperRecord keeperRecord;
-                try
-                {
-                    keeperRecord = ephemeral.Load(recordKey);
-                }
-                catch
-                {
-                    failed.Add(uid);
-                    continue;
-                }
-
-                if (keeperRecord == null)
+                if (!TryLoadKeeperRecordFromDetails(item, recordKey, out var keeperRecord))
                 {
                     failed.Add(uid);
                     continue;
@@ -149,6 +153,69 @@ namespace KeeperSecurity.Vault
             }
 
             return new RecordDetailsSkipSyncResult(records, noPermission, failed, invalid);
+        }
+
+        private static bool TryResolveRecordKey(IAuthContext authContext, RecordData rd, string uid,
+            IReadOnlyDictionary<string, byte[]> sharedFolderRecordKeys, out byte[] recordKey)
+        {
+            recordKey = null;
+            if (sharedFolderRecordKeys != null)
+            {
+                if (sharedFolderRecordKeys.TryGetValue(uid, out var k) && k != null && k.Length > 0)
+                {
+                    recordKey = k;
+                    return true;
+                }
+
+                return false;
+            }
+
+            try
+            {
+                recordKey = SharedFolderSkipSyncDown.DecryptKeeperKey(
+                    authContext,
+                    rd.RecordKey?.ToByteArray() ?? Array.Empty<byte>(),
+                    rd.RecordKeyType);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return recordKey != null && recordKey.Length > 0;
+        }
+
+        private static bool TryLoadKeeperRecordFromDetails(RecordDataWithAccessInfo item, byte[] recordKey,
+            out KeeperRecord keeperRecord)
+        {
+            keeperRecord = null;
+            var rd = item.RecordData;
+            if (item.RecordUid == null || item.RecordUid.IsEmpty || rd == null)
+                return false;
+
+            var uid = item.RecordUid.ToArray().Base64UrlEncode();
+            var ephemeral = new EphemeralStorageRecord
+            {
+                RecordUid = uid,
+                Revision = rd.Revision,
+                Version = rd.Version,
+                Shared = rd.Shared,
+                ClientModifiedTime = rd.ClientModifiedTime,
+                Data = rd.EncryptedRecordData ?? "",
+                Extra = rd.EncryptedExtraData ?? "",
+                Udata = rd.NonSharedData ?? "",
+            };
+
+            try
+            {
+                keeperRecord = ephemeral.Load(recordKey);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return keeperRecord != null;
         }
 
         private sealed class EphemeralStorageRecord : IStorageRecord, IUid

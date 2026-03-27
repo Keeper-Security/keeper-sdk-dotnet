@@ -53,6 +53,11 @@ namespace KeeperSecurity.Vault
             public Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
                 string sharedFolderUid)
                 => SharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync(auth, sharedFolderUid);
+
+            /// <inheritdoc />
+            public Task<IReadOnlyDictionary<string, byte[]>> GetRecordKeysFromSharedFolderAsync(IAuthentication auth,
+                string sharedFolderUid)
+                => SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync(auth, sharedFolderUid);
         }
 
         /// <summary>Returns data for the shared folder with the given UID, or <c>null</c> if it is not available.</summary>
@@ -62,7 +67,8 @@ namespace KeeperSecurity.Vault
         {
             if (auth == null)
                 throw new VaultException("An authenticated session is needed.");
-            if (string.IsNullOrEmpty(sharedFolderUid)) throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+            if (string.IsNullOrEmpty(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
 
             var command = new GetSharedFoldersCommand
             {
@@ -85,22 +91,30 @@ namespace KeeperSecurity.Vault
             return response;
         }
 
+        private static SharedFolderObject SelectSharedFolderOrFirst(GetSharedFoldersResponse folderRs, string sharedFolderUid)
+        {
+            if (folderRs?.SharedFolders == null || folderRs.SharedFolders.Length == 0)
+                return null;
+            var uid = sharedFolderUid.Trim();
+            return folderRs.SharedFolders.FirstOrDefault(f =>
+                    string.Equals(f.SharedFolderUid, uid, StringComparison.OrdinalIgnoreCase))
+                ?? folderRs.SharedFolders[0];
+        }
+
         /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync" />
         public static async Task<IReadOnlyList<string>> GetRecordUidsFromSharedFolderAsync(IAuthentication auth,
             string sharedFolderUid)
         {
             if (auth == null)
                 throw new VaultException("An authenticated session is needed.");
-            if (string.IsNullOrEmpty(sharedFolderUid))
+            if (string.IsNullOrWhiteSpace(sharedFolderUid))
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
 
-            var folderRs = await GetSharedFolderAsync(auth, sharedFolderUid).ConfigureAwait(false);
-            if (folderRs?.SharedFolders == null || folderRs.SharedFolders.Length == 0)
+            var uid = sharedFolderUid.Trim();
+            var folderRs = await GetSharedFolderAsync(auth, uid).ConfigureAwait(false);
+            var sf = SelectSharedFolderOrFirst(folderRs, uid);
+            if (sf == null)
                 return Array.Empty<string>();
-
-            var sf = folderRs.SharedFolders.FirstOrDefault(f =>
-                    string.Equals(f.SharedFolderUid, sharedFolderUid, StringComparison.OrdinalIgnoreCase))
-                ?? folderRs.SharedFolders[0];
 
             var uids = sf.Records?
                 .Select(r => r.RecordUid)
@@ -112,6 +126,72 @@ namespace KeeperSecurity.Vault
                 return Array.Empty<string>();
 
             return uids;
+        }
+
+        /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync" />
+        public static async Task<IReadOnlyDictionary<string, byte[]>> GetRecordKeysFromSharedFolderAsync(
+            IAuthentication auth, string sharedFolderUid)
+        {
+            if (auth == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+
+            var uid = sharedFolderUid.Trim();
+            var folderRs = await GetSharedFolderAsync(auth, uid).ConfigureAwait(false);
+            var sf = SelectSharedFolderOrFirst(folderRs, uid);
+            if (sf == null)
+                return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+
+            if (!TryResolveSharedFolderKey(sf, auth, out var sfKey) || sfKey == null || sfKey.Length == 0)
+                return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+
+            var map = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+            foreach (var r in sf.Records ?? Array.Empty<SharedFolderRecordObject>())
+            {
+                if (string.IsNullOrEmpty(r?.RecordUid) || string.IsNullOrEmpty(r.RecordKey))
+                    continue;
+                try
+                {
+                    var enc = r.RecordKey.Base64UrlDecode();
+                    var plain = UnwrapRecordKeyFromSharedFolderRecord(enc, sfKey);
+                    if (plain != null && plain.Length > 0)
+                        map[r.RecordUid] = plain;
+                }
+                catch
+                {
+                }
+            }
+
+            return map;
+        }
+
+        private static byte[] UnwrapRecordKeyFromSharedFolderRecord(byte[] encryptedRecordKey, byte[] sharedFolderAesKey)
+        {
+            if (encryptedRecordKey == null || encryptedRecordKey.Length == 0 || sharedFolderAesKey == null ||
+                sharedFolderAesKey.Length == 0)
+                return null;
+
+            var useGcmFirst = encryptedRecordKey.Length == 60;
+            try
+            {
+                return useGcmFirst
+                    ? CryptoUtils.DecryptAesV2(encryptedRecordKey, sharedFolderAesKey)
+                    : CryptoUtils.DecryptAesV1(encryptedRecordKey, sharedFolderAesKey);
+            }
+            catch
+            {
+                try
+                {
+                    return useGcmFirst
+                        ? CryptoUtils.DecryptAesV1(encryptedRecordKey, sharedFolderAesKey)
+                        : CryptoUtils.DecryptAesV2(encryptedRecordKey, sharedFolderAesKey);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
 
         /// <inheritdoc cref="ISharedFolderSkipSyncDown.PutUserToSharedFolderAsync" />
@@ -295,7 +375,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        private static bool TryResolveSharedFolderKey(SharedFolderObject sf, IAuthentication auth,
+        internal static bool TryResolveSharedFolderKey(SharedFolderObject sf, IAuthentication auth,
             out byte[] sharedFolderKey)
         {
             sharedFolderKey = null;
