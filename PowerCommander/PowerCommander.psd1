@@ -70,7 +70,8 @@
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'EnterpriseDevices.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
-        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1')
+        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
+        'ReportCommands\ActionReport.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -105,7 +106,7 @@
         'Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential',
         'Get-KeeperTrashList', 'Restore-KeeperTrashRecords', 'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash',
         'Export-KeeperVault', 'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
-        'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport'
+        'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperActionReport'
         #'Test-Keeper',
     )
 
@@ -124,7 +125,7 @@
     'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
     'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
     'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar')
+    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'action-report')
 
     # List of all modules packaged with this module
     # ModuleList = @()

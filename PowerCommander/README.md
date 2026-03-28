@@ -154,6 +154,11 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Copy-KeeperMCRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-6)                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | [Get-MspBillingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-8)                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
 
+### Action Report Cmdlets
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
+
 ### Device Approval Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
@@ -477,3 +482,17 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > kar
     ```
     Returns the last 100 raw audit events (Created, Username, Event, Message).
+
+32. Run an action report on enterprise users
+    ```
+    PS > Get-KeeperActionReport
+    ```
+    or using the alias
+    ```
+    PS > action-report
+    ```
+    Shows users who haven't logged in for 30 days. Use `-Target` to change status filter, `-DaysSince` for time period, `-ApplyAction` to lock/delete/transfer users.
+    ```
+    PS > action-report -Target locked -ApplyAction delete -DryRun
+    ```
+    Preview deleting locked users without executing.
