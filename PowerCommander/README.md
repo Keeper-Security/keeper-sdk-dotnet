@@ -193,6 +193,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Revoke-KeeperAppAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/secrets-manager-commands/secrets-manager-app-commands#powercommander-5)                                  |                  | Revoke Keeper Secret Manager Application Access from a user
 
 
+### Reporting Cmdlets
+| Cmdlet name                                             | Alias                       | Description
+|---------------------------------------------------------|-----------------------------|----------------------------
+| Get-KeeperShareReport                                   |                             | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
+| Get-KeeperSharedRecordsReport                            | ksrr | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
+| Get-KeeperAuditReport                                   | kar                         | Run an enterprise audit trail report
+| Get-KeeperFileReport                                    | file-report                 | List records with file attachments and optionally verify download accessibility
+| Get-KeeperPasswordReport                                |                             | Retrieves password report based on policy and strengths
+
+
 #### Examples
 
 1. Connect To Keeper Account
@@ -523,3 +533,35 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > action-report -Target locked -ApplyAction delete -DryRun
     ```
     Preview deleting locked users without executing.
+
+33. Share report - summary of all shares grouped by target
+    ```
+    PS > Get-KeeperShareReport
+    ```
+    Show owner report with share dates and team member expansion
+    ```
+    PS > Get-KeeperShareReport -Owner -ShareDate -ShowTeamUsers
+    ```
+    Show shared folders listing
+    ```
+    PS > Get-KeeperShareReport -Folders
+    ```
+34. Shared records report - flat listing of all shared records with share details
+    ```
+    PS > Get-KeeperSharedRecordsReport
+    ```
+    or using aliases
+    ```
+    PS > ksrr
+    ```
+    Include all shared records (not just owned)
+    ```
+    PS > Get-KeeperSharedRecordsReport -AllRecords
+    ```
+    Expand team shares to individual members
+    ```
+    PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
+    ```
+    Scope to a specific folder
+    ```
+    PS > Get-K

@@ -112,6 +112,9 @@ Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs, kimport
 
 Export-ModuleMember -Function Get-KeeperActionReport
 Export-ModuleMember -Alias action-report
+
+Export-ModuleMember -Function Get-KeeperShareReport, Get-KeeperSharedRecordsReport
+Export-ModuleMember -Alias ksrr
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
