@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System;
+using System.Linq;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 
@@ -96,8 +97,41 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public int EnterpriseId { get; internal set; }
 
+        /// <summary>
+        /// Storage used as an integer percentage (0–100). Returns 0 when <see cref="BytesTotal"/> is zero or negative.
+        /// </summary>
+        public int StorageUsagePercent
+        {
+            get
+            {
+                var total = BytesTotal;
+                if (total <= 0)
+                    return 0;
+                var used = BytesUsed;
+                if (used < 0)
+                    used = 0;
+                var pct = (int)(used * 100L / total);
+                if (pct < 0)
+                    return 0;
+                if (pct > 100)
+                    return 100;
+                return pct;
+            }
+        }
+
         internal static AccountLicense LoadFromProtobuf(AccountSummary.License license)
         {
+            var bytesTotal = license.BytesTotal;
+            if (bytesTotal < 0)
+                bytesTotal = 0;
+
+            var bytesUsed = license.BytesUsed;
+            if (bytesUsed < 0)
+                bytesUsed = 0;
+
+            if (bytesTotal == 0)
+                bytesUsed = 0;
+
             return new AccountLicense
             {
                 AccountType = license.AccountType,
@@ -108,8 +142,8 @@ namespace KeeperSecurity.Authentication
                 FilePlanType = license.FilePlanType,
                 StorageExpirationDate = license.StorageExpirationDate,
                 SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration,
-                BytesTotal = license.BytesTotal,
-                BytesUsed = license.BytesUsed,
+                BytesTotal = bytesTotal,
+                BytesUsed = bytesUsed,
                 EnterpriseId = license.EnterpriseId,
             };
         }

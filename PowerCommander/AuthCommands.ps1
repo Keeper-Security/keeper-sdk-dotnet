@@ -666,7 +666,7 @@ function Get-KeeperInformation {
         AccountType = $accountType 
         RenewalDate = $license.ExpirationDate
         StorageCapacity = [int] [Math]::Truncate($license.BytesTotal / (1024 * 1024 * 1024))
-        StorageUsage = [int] [Math]::Truncate($license.BytesUsed * 100 / $license.BytesTotal)
+        StorageUsage = $license.StorageUsagePercent
         StorageExpires = $license.StorageExpirationDate
     }
 
