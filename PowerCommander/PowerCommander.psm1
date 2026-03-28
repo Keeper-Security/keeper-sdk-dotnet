@@ -73,18 +73,18 @@ Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitati
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, 
-kerua, kerur, kerta, kertr, keradd, kerdel,keitree, kein, keiu, keit, keir, keimc, invite-user, 
+Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
+kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
-Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
+Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp, msp-copy-role
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
 Revoke-KeeperSharesWithUser,Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam,
 Move-KeeperRecordOwnership,New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
-Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg
+Export-ModuleMember -Alias kshrsh, kshr, kushr, kcancelshare, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg
 
 Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Remove-KeeperSecretManagerApp,
 Grant-KeeperSecretManagerFolderAccess,Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, 
@@ -105,7 +105,7 @@ Show-KeeperBiometricCredentials, Unregister-KeeperBiometricCredential
 
 Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords, Remove-TrashedKeeperRecordShares, 
 Get-KeeperTrashedRecordDetails,Clear-KeeperTrash
-Export-ModuleMember -Alias ktrash-list, ktrash-restore, ktrash-unshare, ktrash-get
+Export-ModuleMember -Alias ktrash, ktrash-restore, ktrash-unshare, ktrash-get, ktrash-purge
 
 Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership, Import-KeeperMembership, Import-KeeperVault
 Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs, kimport

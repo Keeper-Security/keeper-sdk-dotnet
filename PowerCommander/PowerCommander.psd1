@@ -124,8 +124,8 @@
     # Aliases to export from this module
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
         'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 
-        'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 
-        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 
+        'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
+        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
