@@ -384,12 +384,12 @@ function Connect-Keeper {
     $endpoint.DeviceName = 'PowerShell Commander'
     $endpoint.ClientVersion = 'c17.2.0'
 
-    Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n"
+    Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n" -InformationAction Continue
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
     $authFlow.ResumeSession = -not ($NewLogin.IsPresent -or $Password)
-    Write-Information -MessageData "Resume Session: $($authFlow.ResumeSession)"
+    Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
@@ -459,13 +459,13 @@ function Connect-Keeper {
         }
         if ($biometricPresent) {
             try {
-                Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
+                Write-Host "Attempting Keeper biometric authentication..."
                 
                 $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success -and $biometricResult.IsValid) {
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {
-                        Write-Debug "Authentication completed successfully!" -InformationAction Continue
+                        Write-Verbose "Authentication completed successfully!"
                         break
                     }
                     Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
@@ -530,11 +530,11 @@ function Connect-Keeper {
 
     $auth = $authFlow
     if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
-        Write-Debug -Message "Connected to Keeper as $Username"
+        Write-Information -MessageData "Connected to Keeper as $Username" -InformationAction Continue
 
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
         $task = $vault.SyncDown()
-        Write-Information -MessageData 'Syncing ...'
+        Write-Information -MessageData 'Syncing ...' -InformationAction Continue
         $task.GetAwaiter().GetResult() | Out-Null
         $vault.AutoSync = $true
 
@@ -542,7 +542,7 @@ function Connect-Keeper {
         $Script:Context.Vault = $vault
 
         [KeeperSecurity.Vault.VaultData]$vaultData = $vault
-        Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)"
+        Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)" -InformationAction Continue
         Set-KeeperLocation -Path '\' | Out-Null
     }
 }
