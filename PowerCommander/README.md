@@ -159,6 +159,11 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Get-KeeperSecurityAuditReport]()                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
 | [Get-KeeperBreachWatchReport]()                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 
+### Action Report Cmdlets
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
+
 ### Device Approval Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
@@ -186,6 +191,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Remove-KeeperSecretManagerClient](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/secrets-manager-commands/secrets-manager-client-commands#powercommander-1)                        | ksm-rmclient     | Remove a client/device from KSM Application
 | [Grant-KeeperAppAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/secrets-manager-commands/secrets-manager-app-commands#powercommander-4)                                   |                  | Grant Keeper Secret Manager Application Access to a user
 | [Revoke-KeeperAppAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/secrets-manager-commands/secrets-manager-app-commands#powercommander-5)                                  |                  | Revoke Keeper Secret Manager Application Access from a user
+
+
+### Reporting Cmdlets
+| Cmdlet name                                             | Alias                       | Description
+|---------------------------------------------------------|-----------------------------|----------------------------
+| Get-KeeperShareReport                                   |                             | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
+| Get-KeeperSharedRecordsReport                            | ksrr | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
+| Get-KeeperAuditReport                                   | kar                         | Run an enterprise audit trail report
+| Get-KeeperFileReport                                    | file-report                 | List records with file attachments and optionally verify download accessibility
+| Get-KeeperPasswordReport                                |                             | Retrieves password report based on policy and strengths
 
 
 #### Examples
@@ -504,3 +519,49 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     PS > bw-report
     ```
+
+32. Run an action report on enterprise users
+    ```
+    PS > Get-KeeperActionReport
+    ```
+    or using the alias
+    ```
+    PS > action-report
+    ```
+    Shows users who haven't logged in for 30 days. Use `-Target` to change status filter, `-DaysSince` for time period, `-ApplyAction` to lock/delete/transfer users.
+    ```
+    PS > action-report -Target locked -ApplyAction delete -DryRun
+    ```
+    Preview deleting locked users without executing.
+
+33. Share report - summary of all shares grouped by target
+    ```
+    PS > Get-KeeperShareReport
+    ```
+    Show owner report with share dates and team member expansion
+    ```
+    PS > Get-KeeperShareReport -Owner -ShareDate -ShowTeamUsers
+    ```
+    Show shared folders listing
+    ```
+    PS > Get-KeeperShareReport -Folders
+    ```
+34. Shared records report - flat listing of all shared records with share details
+    ```
+    PS > Get-KeeperSharedRecordsReport
+    ```
+    or using aliases
+    ```
+    PS > ksrr
+    ```
+    Include all shared records (not just owned)
+    ```
+    PS > Get-KeeperSharedRecordsReport -AllRecords
+    ```
+    Expand team shares to individual members
+    ```
+    PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
+    ```
+    Scope to a specific folder
+    ```
+    PS > Get-K

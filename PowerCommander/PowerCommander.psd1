@@ -69,8 +69,9 @@
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
-        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
-        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1')
+        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
+        'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -85,27 +86,32 @@
         'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
-        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
-        'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
-        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
-        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
-        'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
+        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 
+        'Deny-KeeperDevice','Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 
+        'Set-KeeperEnterpriseNodeCustomLogo','Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 
+        'Edit-KeeperManagedCompany', 'Get-MspBillingReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole',
+        'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 
+        'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
-        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 'Revoke-KeeperEnterpriseRoleFromTeam', 
-        'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole', 'Copy-KeeperEnterpriseRole', 'Add-KeeperEnterpriseRolePrivilege', 
-        'Remove-KeeperEnterpriseRolePrivilege','Add-KeeperEnterpriseRoleManagedNode', 'Update-KeeperEnterpriseRoleManagedNode', 
-        'Remove-KeeperEnterpriseRoleManagedNode', 'Add-KeeperEnterpriseRoleEnforcement', 'Update-KeeperEnterpriseRoleEnforcement', 
-        'Remove-KeeperEnterpriseRoleEnforcement', 'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 
-        'Revoke-KeeperSharesWithUser', 'Grant-KeeperSharedFolderAccess','Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 
-        'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp','Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 
-        'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess','Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient',
-        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream',
-        'Remove-KeeperFileAttachment','Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword',
-        'Test-PasswordAgainstBreachWatch','Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperSecurityAuditReport', 'Get-KeeperBreachWatchReport', 'Get-KeeperPasswordReport',
-        'Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential',
-        'Get-KeeperTrashList', 'Restore-KeeperTrashRecords', 'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash',
-        'Export-KeeperVault', 'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
-        'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault'
+        'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
+        'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole', 'Copy-KeeperEnterpriseRole', 
+        'Add-KeeperEnterpriseRolePrivilege', 'Remove-KeeperEnterpriseRolePrivilege','Add-KeeperEnterpriseRoleManagedNode', 
+        'Update-KeeperEnterpriseRoleManagedNode', 'Remove-KeeperEnterpriseRoleManagedNode', 'Add-KeeperEnterpriseRoleEnforcement', 
+        'Update-KeeperEnterpriseRoleEnforcement', 'Remove-KeeperEnterpriseRoleEnforcement', 'Show-KeeperRecordShare', 
+        'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Revoke-KeeperSharesWithUser', 'Grant-KeeperSharedFolderAccess',
+        'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
+        'Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 
+        'Revoke-KeeperSecretManagerFolderAccess','Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient',
+        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 
+        'Copy-KeeperFileAttachmentToStream','Remove-KeeperFileAttachment','Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 
+        'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword','Test-PasswordAgainstBreachWatch',
+        'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperSecurityAuditReport', 
+        'Get-KeeperBreachWatchReport', 'Get-KeeperPasswordReport','Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 
+        'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential','Get-KeeperTrashList', 'Restore-KeeperTrashRecords', 
+        'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash','Export-KeeperVault', 
+        'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
+        'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
+        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport'
         #'Test-Keeper',
     )
 
@@ -124,7 +130,7 @@
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport')
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -140,23 +146,25 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
-                'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
-                'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
-                'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
-                'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
-                'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
-                'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
-                'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
-                'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
-                'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
-                'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
-                'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
-                'Get-KeeperRecordHistory (krh) - get version history for a record',
-                'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
-                'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
-                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
-                'BreachWatch and enterprise security audit reports: Get-KeeperSecurityAuditReport, Get-KeeperBreachWatchReport'
+                'Get-KeeperShareReport - report who records and folders are shared with, with summary, owner, and per-user views',
+                'Get-KeeperSharedRecordsReport (ksrr) - list shared records with share type, recipient, and permissions per row',
+                # 'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
+                # 'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
+                # 'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
+                # 'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
+                # 'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
+                # 'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
+                # 'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
+                # 'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
+                # 'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
+                # 'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
+                # 'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
+                # 'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
+                # 'Get-KeeperRecordHistory (krh) - get version history for a record',
+                # 'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
+                # 'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
+                # 'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
+                # 'BreachWatch and enterprise security audit reports: Get-KeeperSecurityAuditReport, Get-KeeperBreachWatchReport'
             )
         }
     }

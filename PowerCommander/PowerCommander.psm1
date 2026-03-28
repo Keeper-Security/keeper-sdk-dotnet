@@ -31,10 +31,10 @@ Get-KeeperObject
 Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 
 Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-TwoFactorCode,
-Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
-Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
-New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes,
-Export-KeeperRecordTypes, Get-KeeperRecordPassword, Get-KeeperPasswordReport, Find-KeeperDuplicateRecords, Get-KeeperRecordHistory
+Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,Get-KeeperPasswordVisible, 
+Set-KeeperPasswordVisible, Get-KeeperRecordType, New-KeeperRecordType, Edit-KeeperRecordType, 
+Remove-KeeperRecordType, Import-KeeperRecordTypes,Export-KeeperRecordTypes, Get-KeeperRecordPassword, 
+Get-KeeperPasswordReport, Find-KeeperDuplicateRecords, Get-KeeperRecordHistory
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti, find-duplicates, krh
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
@@ -73,25 +73,26 @@ Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitati
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, kerua, kerur, kerta, kertr, keradd, kerdel,
-keitree, kein, keiu, keit, keir, keimc, invite-user, lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report
+Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kers, 
+kerua, kerur, kerta, kertr, keradd, kerdel,keitree, kein, keiu, keit, keir, keimc, invite-user, 
+lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
-Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, Revoke-KeeperSharesWithUser,
-Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam, Move-KeeperRecordOwnership,
-New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
+Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
+Revoke-KeeperSharesWithUser,Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam,
+Move-KeeperRecordOwnership,New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg
 
-Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Remove-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
-Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient, 
-Grant-KeeperAppAccess, Revoke-KeeperAppAccess
+Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Remove-KeeperSecretManagerApp,
+Grant-KeeperSecretManagerFolderAccess,Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, 
+Remove-KeeperSecretManagerClient, Grant-KeeperAppAccess, Revoke-KeeperAppAccess
 Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
-Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, Remove-KeeperFileAttachment,
-Get-KeeperFileReport
+Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, 
+Remove-KeeperFileAttachment,Get-KeeperFileReport
 Export-ModuleMember -Alias kda, krfa, file-report
 
 Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,
@@ -102,12 +103,18 @@ Export-ModuleMember -Alias kbw, kbwp, kbwi, kbwig, bw-report
 Export-ModuleMember -Function Register-KeeperBiometricCredential, Assert-KeeperBiometricCredential, 
 Show-KeeperBiometricCredentials, Unregister-KeeperBiometricCredential
 
-Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords, Remove-TrashedKeeperRecordShares, Get-KeeperTrashedRecordDetails,
-Clear-KeeperTrash
+Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords, Remove-TrashedKeeperRecordShares, 
+Get-KeeperTrashedRecordDetails,Clear-KeeperTrash
 Export-ModuleMember -Alias ktrash-list, ktrash-restore, ktrash-unshare, ktrash-get
 
 Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership, Import-KeeperMembership, Import-KeeperVault
 Export-ModuleMember -Alias kexport, kdwnmbs, kapplymbs, kimport
+
+Export-ModuleMember -Function Get-KeeperActionReport
+Export-ModuleMember -Alias action-report
+
+Export-ModuleMember -Function Get-KeeperShareReport, Get-KeeperSharedRecordsReport
+Export-ModuleMember -Alias ksrr
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
