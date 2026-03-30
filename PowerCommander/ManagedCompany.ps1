@@ -1027,6 +1027,18 @@ function Get-MspBillingReport {
     }
 }
 
+function Script:ParseMspDateInput([string]$value, [string]$paramName) {
+    $numeric = [long]0
+    if ([long]::TryParse($value, [ref]$numeric)) {
+        return [DateTimeOffset]::FromUnixTimeSeconds($numeric).LocalDateTime
+    }
+    $parsed = [DateTime]::MinValue
+    if ([DateTime]::TryParseExact($value, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
+        return $parsed
+    }
+    Write-Error "Cannot parse -${paramName} date: '$value'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
+}
+
 function Get-KeeperMspLegacyReport {
     <#
     .Synopsis
@@ -1043,11 +1055,17 @@ function Get-KeeperMspLegacyReport {
 
     .Parameter From
     Custom start date. ISO 8601 format (YYYY-MM-dd) or Unix timestamp.
-    Both -From and -To must be specified together. Cannot be combined with -Range.
+    Use with -To for a custom date range. When used alone with -Range, the range window
+    is computed forward from this date (e.g. -Range last_7_days -From "2026-02-01"
+    gives 2026-02-01 through 2026-02-07; -Range month_to_date gives From through end
+    of that month; -Range year_to_date gives From through end of that year).
 
     .Parameter To
     Custom end date. ISO 8601 format (YYYY-MM-dd) or Unix timestamp.
-    Both -From and -To must be specified together. Cannot be combined with -Range.
+    Use with -From for a custom date range. When used alone with -Range, the range window
+    is computed backward from this date (e.g. -Range last_7_days -To "2026-02-28"
+    gives 2026-02-21 through 2026-02-28; -Range month_to_date gives 1st of To's month
+    through To; -Range year_to_date gives Jan 1 of To's year through To).
 
     .Parameter Format
     Output format: table (default), csv, json.
@@ -1070,6 +1088,22 @@ function Get-KeeperMspLegacyReport {
     .Example
     Get-KeeperMspLegacyReport -From "2026-02-01" -To "2026-02-28"
     Returns legacy billing log for February 2026.
+
+    .Example
+    Get-KeeperMspLegacyReport -Range last_7_days -From "2026-02-01"
+    Returns legacy billing log for 7 days starting from 2026-02-01 (through 2026-02-07).
+
+    .Example
+    Get-KeeperMspLegacyReport -Range last_7_days -To "2026-02-28"
+    Returns legacy billing log for the 7-day window ending on 2026-02-28 (from 2026-02-21).
+
+    .Example
+    Get-KeeperMspLegacyReport -Range month_to_date -To "2026-02-15"
+    Returns legacy billing log from 2026-02-01 (start of month) through 2026-02-15.
+
+    .Example
+    Get-KeeperMspLegacyReport -Range year_to_date -From "2026-03-01"
+    Returns legacy billing log from 2026-03-01 through 2026-12-31 (end of that year).
     #>
     [CmdletBinding()]
     Param (
@@ -1095,14 +1129,17 @@ function Get-KeeperMspLegacyReport {
     $hasTo = [bool]$To
     $rangeExplicit = $PSBoundParameters.ContainsKey('Range')
 
-    if (($hasFrom -or $hasTo) -and $rangeExplicit) {
-        Write-Error "-Range cannot be combined with -From/-To. Use either -Range or -From/-To." -ErrorAction Stop
-        return
+    if ($rangeExplicit -and $hasFrom -and $hasTo) {
+        Write-Error "When -Range is specified, provide only one anchor date: either -From or -To." -ErrorAction Stop
     }
 
-    if (($hasFrom -and -not $hasTo) -or ($hasTo -and -not $hasFrom)) {
+    if ((($hasFrom -and -not $hasTo) -or ($hasTo -and -not $hasFrom)) -and -not $rangeExplicit) {
         Write-Error "Both -From and -To must be specified for a custom date range." -ErrorAction Stop
-        return
+    }
+
+    $anchorableRanges = @('last_7_days', 'last_30_days', 'month_to_date', 'year_to_date')
+    if ($rangeExplicit -and ($hasFrom -or $hasTo) -and ($Range -notin $anchorableRanges)) {
+        Write-Error "Anchored date ranges are supported only for: $($anchorableRanges -join ', ')." -ErrorAction Stop
     }
 
     try {
@@ -1110,33 +1147,52 @@ function Get-KeeperMspLegacyReport {
     }
     catch {
         Write-Error "Failed to load MSP enterprise context: $($_.Exception.Message)" -ErrorAction Stop
-        return
     }
     $auth = $enterprise.loader.Auth
-
-    function parseDateInput([string]$value, [string]$paramName) {
-        $numeric = [long]0
-        if ([long]::TryParse($value, [ref]$numeric)) {
-            return [DateTimeOffset]::FromUnixTimeSeconds($numeric).LocalDateTime
-        }
-        $parsed = [DateTime]::MinValue
-        if ([DateTime]::TryParseExact($value, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
-            return $parsed
-        }
-        Write-Error "Cannot parse -${paramName} date: '$value'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
-        return $null
-    }
 
     $fromDate = $null
     $toDate = $null
 
     if ($hasFrom -and $hasTo) {
-        $fromDate = parseDateInput $From 'From'
-        if ($null -eq $fromDate) { return }
-
-        $toDate = parseDateInput $To 'To'
-        if ($null -eq $toDate) { return }
+        $fromDate = ParseMspDateInput $From 'From'
+        $toDate = ParseMspDateInput $To 'To'
         $toDate = $toDate.Date.AddDays(1).AddTicks(-1)
+    } elseif ($rangeExplicit -and ($hasFrom -or $hasTo)) {
+        if ($hasFrom) {
+            $fromDate = (ParseMspDateInput $From 'From').Date
+
+            switch ($Range) {
+                'last_7_days' {
+                    $toDate = $fromDate.AddDays(7).AddTicks(-1)
+                }
+                'last_30_days' {
+                    $toDate = $fromDate.AddDays(30).AddTicks(-1)
+                }
+                'month_to_date' {
+                    $toDate = [DateTime]::new($fromDate.Year, $fromDate.Month, [DateTime]::DaysInMonth($fromDate.Year, $fromDate.Month)).AddDays(1).AddTicks(-1)
+                }
+                'year_to_date' {
+                    $toDate = [DateTime]::new($fromDate.Year, 12, 31).AddDays(1).AddTicks(-1)
+                }
+            }
+        } else {
+            $toDate = (ParseMspDateInput $To 'To').Date.AddDays(1).AddTicks(-1)
+
+            switch ($Range) {
+                'last_7_days' {
+                    $fromDate = $toDate.Date.AddDays(-7)
+                }
+                'last_30_days' {
+                    $fromDate = $toDate.Date.AddDays(-30)
+                }
+                'month_to_date' {
+                    $fromDate = [DateTime]::new($toDate.Year, $toDate.Month, 1)
+                }
+                'year_to_date' {
+                    $fromDate = [DateTime]::new($toDate.Year, 1, 1)
+                }
+            }
+        }
     } else {
         $now = Get-Date
         $todayStart = $now.Date
@@ -1180,6 +1236,10 @@ function Get-KeeperMspLegacyReport {
         }
     }
 
+    if ($null -eq $fromDate -or $null -eq $toDate) {
+        Write-Error "Unable to determine date range. Check -Range, -From, and -To parameters." -ErrorAction Stop
+    }
+
     $fromTimestampMs = [long]([DateTimeOffset]::new($fromDate).ToUnixTimeMilliseconds())
     $toTimestampMs = [long]([DateTimeOffset]::new($toDate).ToUnixTimeMilliseconds())
 
@@ -1188,15 +1248,13 @@ function Get-KeeperMspLegacyReport {
     $rq.To = $toTimestampMs
 
     try {
-        $response = $auth.ExecuteAuthCommand($rq, [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse], $true).GetAwaiter().GetResult()
-        $rs = [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse]$response
+        $rs = [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse]$auth.ExecuteAuthCommand($rq, [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse], $true).GetAwaiter().GetResult()
     } catch {
         Write-Error "Failed to retrieve MSP legacy report: $($_.Exception.Message)" -ErrorAction Stop
-        return
     }
 
     if (-not $rs.Log -or $rs.Log.Count -eq 0) {
-        Write-Host "No legacy billing log entries found."
+        Write-Warning 'No legacy billing log entries found.'
         return
     }
 
@@ -1217,25 +1275,20 @@ function Get-KeeperMspLegacyReport {
 
     $out = $null
     switch ($Format) {
-        'json' { $out = $table | ConvertTo-Json -Depth 5 }
-        'csv'  { $out = $table | ConvertTo-Csv -NoTypeInformation }
+        'json'  { $out = $table | ConvertTo-Json -Depth 5 }
+        'csv'   { $out = $table | ConvertTo-Csv -NoTypeInformation }
         'table' { $out = $table | Format-Table -AutoSize | Out-String -Width 8192 }
     }
 
     if ($Output) {
         try {
             Set-Content -Path $Output -Value $out -Encoding utf8
-            Write-Host "Report saved to: $Output"
+            Write-Information "Report saved to: $Output"
         } catch {
             Write-Error "Failed to save report to '$Output': $($_.Exception.Message)" -ErrorAction Stop
-            return
         }
     } else {
-        if ($Format -eq 'table') {
-            $table | Format-Table -AutoSize
-        } else {
-            Write-Output $out
-        }
+        $out
     }
 }
 New-Alias -Name 'msp-legacy-report' -Value Get-KeeperMspLegacyReport
