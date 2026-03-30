@@ -1043,11 +1043,11 @@ function Get-KeeperMspLegacyReport {
 
     .Parameter From
     Custom start date. ISO 8601 format (YYYY-MM-dd) or Unix timestamp.
-    Both -From and -To must be specified for custom range.
+    Both -From and -To must be specified together. Cannot be combined with -Range.
 
     .Parameter To
     Custom end date. ISO 8601 format (YYYY-MM-dd) or Unix timestamp.
-    Both -From and -To must be specified for custom range.
+    Both -From and -To must be specified together. Cannot be combined with -Range.
 
     .Parameter Format
     Output format: table (default), csv, json.
@@ -1066,6 +1066,10 @@ function Get-KeeperMspLegacyReport {
     .Example
     Get-KeeperMspLegacyReport -From "2025-01-01" -To "2025-06-30" -Format csv -Output "report.csv"
     Returns legacy billing log for a custom date range, saved as CSV.
+
+    .Example
+    Get-KeeperMspLegacyReport -From "2026-02-01" -To "2026-02-28"
+    Returns legacy billing log for February 2026.
     #>
     [CmdletBinding()]
     Param (
@@ -1087,49 +1091,56 @@ function Get-KeeperMspLegacyReport {
         [string] $Output
     )
 
+    $hasFrom = [bool]$From
+    $hasTo = [bool]$To
+    $rangeExplicit = $PSBoundParameters.ContainsKey('Range')
+
+    if (($hasFrom -or $hasTo) -and $rangeExplicit) {
+        Write-Error "-Range cannot be combined with -From/-To. Use either -Range or -From/-To." -ErrorAction Stop
+        return
+    }
+
+    if (($hasFrom -and -not $hasTo) -or ($hasTo -and -not $hasFrom)) {
+        Write-Error "Both -From and -To must be specified for a custom date range." -ErrorAction Stop
+        return
+    }
+
     try {
         [Enterprise]$enterprise = getMspEnterprise
     }
     catch {
         Write-Error "Failed to load MSP enterprise context: $($_.Exception.Message)" -ErrorAction Stop
+        return
     }
     $auth = $enterprise.loader.Auth
 
-    if (($From -and -not $To) -or ($To -and -not $From)) {
-        Write-Error "Both -From and -To must be specified for a custom date range." -ErrorAction Stop
+    function parseDateInput([string]$value, [string]$paramName) {
+        $numeric = [long]0
+        if ([long]::TryParse($value, [ref]$numeric)) {
+            return [DateTimeOffset]::FromUnixTimeSeconds($numeric).LocalDateTime
+        }
+        $parsed = [DateTime]::MinValue
+        if ([DateTime]::TryParseExact($value, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
+            return $parsed
+        }
+        Write-Error "Cannot parse -${paramName} date: '$value'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
+        return $null
     }
 
     $fromDate = $null
     $toDate = $null
 
-    if ($From -and $To) {
-        $fromIsNumeric = [long]0
-        if ([long]::TryParse($From, [ref]$fromIsNumeric)) {
-            $fromDate = [DateTimeOffset]::FromUnixTimeSeconds($fromIsNumeric).LocalDateTime
-        } else {
-            $parsed = [DateTime]::MinValue
-            if ([DateTime]::TryParseExact($From, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
-                $fromDate = $parsed
-            } else {
-                Write-Error "Cannot parse -From date: '$From'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
-            }
-        }
+    if ($hasFrom -and $hasTo) {
+        $fromDate = parseDateInput $From 'From'
+        if ($null -eq $fromDate) { return }
 
-        $toIsNumeric = [long]0
-        if ([long]::TryParse($To, [ref]$toIsNumeric)) {
-            $toDate = [DateTimeOffset]::FromUnixTimeSeconds($toIsNumeric).LocalDateTime
-        } else {
-            $parsed = [DateTime]::MinValue
-            if ([DateTime]::TryParseExact($To, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
-                $toDate = $parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59)
-            } else {
-                Write-Error "Cannot parse -To date: '$To'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
-            }
-        }
+        $toDate = parseDateInput $To 'To'
+        if ($null -eq $toDate) { return }
+        $toDate = $toDate.Date.AddDays(1).AddTicks(-1)
     } else {
         $now = Get-Date
         $todayStart = $now.Date
-        $todayEnd = $now.Date.AddHours(23).AddMinutes(59).AddSeconds(59)
+        $todayEnd = $now.Date.AddDays(1).AddTicks(-1)
 
         switch ($Range) {
             'today' {
@@ -1153,11 +1164,10 @@ function Get-KeeperMspLegacyReport {
                 $toDate = $todayEnd
             }
             'last_month' {
-                $lastMonthNum = if ($now.Month -gt 1) { $now.Month - 1 } else { 12 }
-                $lastMonthYear = if ($now.Month -gt 1) { $now.Year } else { $now.Year - 1 }
-                $fromDate = [DateTime]::new($lastMonthYear, $lastMonthNum, 1)
-                $lastDay = [DateTime]::DaysInMonth($lastMonthYear, $lastMonthNum)
-                $toDate = [DateTime]::new($lastMonthYear, $lastMonthNum, $lastDay, 23, 59, 59)
+                $lastMonth = $now.AddMonths(-1)
+                $fromDate = [DateTime]::new($lastMonth.Year, $lastMonth.Month, 1)
+                $lastDay = [DateTime]::DaysInMonth($lastMonth.Year, $lastMonth.Month)
+                $toDate = [DateTime]::new($lastMonth.Year, $lastMonth.Month, $lastDay).AddDays(1).AddTicks(-1)
             }
             'year_to_date' {
                 $fromDate = [DateTime]::new($now.Year, 1, 1)
@@ -1165,7 +1175,7 @@ function Get-KeeperMspLegacyReport {
             }
             'last_year' {
                 $fromDate = [DateTime]::new($now.Year - 1, 1, 1)
-                $toDate = [DateTime]::new($now.Year - 1, 12, 31, 23, 59, 59)
+                $toDate = [DateTime]::new($now.Year - 1, 12, 31).AddDays(1).AddTicks(-1)
             }
         }
     }
@@ -1182,6 +1192,7 @@ function Get-KeeperMspLegacyReport {
         $rs = [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse]$response
     } catch {
         Write-Error "Failed to retrieve MSP legacy report: $($_.Exception.Message)" -ErrorAction Stop
+        return
     }
 
     if (-not $rs.Log -or $rs.Log.Count -eq 0) {
@@ -1217,6 +1228,7 @@ function Get-KeeperMspLegacyReport {
             Write-Host "Report saved to: $Output"
         } catch {
             Write-Error "Failed to save report to '$Output': $($_.Exception.Message)" -ErrorAction Stop
+            return
         }
     } else {
         if ($Format -eq 'table') {
