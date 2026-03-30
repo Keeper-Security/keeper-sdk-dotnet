@@ -1121,7 +1121,7 @@ function Get-KeeperMspLegacyReport {
         } else {
             $parsed = [DateTime]::MinValue
             if ([DateTime]::TryParseExact($To, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsed)) {
-                $toDate = $parsed.Date.AddHours(11).AddMinutes(59).AddSeconds(59)
+                $toDate = $parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59)
             } else {
                 Write-Error "Cannot parse -To date: '$To'. Use YYYY-MM-dd or Unix timestamp." -ErrorAction Stop
             }
@@ -1129,7 +1129,7 @@ function Get-KeeperMspLegacyReport {
     } else {
         $now = Get-Date
         $todayStart = $now.Date
-        $todayEnd = $now.Date.AddHours(11).AddMinutes(59).AddSeconds(59)
+        $todayEnd = $now.Date.AddHours(23).AddMinutes(59).AddSeconds(59)
 
         switch ($Range) {
             'today' {
@@ -1157,7 +1157,7 @@ function Get-KeeperMspLegacyReport {
                 $lastMonthYear = if ($now.Month -gt 1) { $now.Year } else { $now.Year - 1 }
                 $fromDate = [DateTime]::new($lastMonthYear, $lastMonthNum, 1)
                 $lastDay = [DateTime]::DaysInMonth($lastMonthYear, $lastMonthNum)
-                $toDate = [DateTime]::new($lastMonthYear, $lastMonthNum, $lastDay, 11, 59, 59)
+                $toDate = [DateTime]::new($lastMonthYear, $lastMonthNum, $lastDay, 23, 59, 59)
             }
             'year_to_date' {
                 $fromDate = [DateTime]::new($now.Year, 1, 1)
@@ -1165,7 +1165,7 @@ function Get-KeeperMspLegacyReport {
             }
             'last_year' {
                 $fromDate = [DateTime]::new($now.Year - 1, 1, 1)
-                $toDate = [DateTime]::new($now.Year - 1, 12, 31, 11, 59, 59)
+                $toDate = [DateTime]::new($now.Year - 1, 12, 31, 23, 59, 59)
             }
         }
     }
