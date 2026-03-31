@@ -1798,13 +1798,7 @@ function Export-KeeperAuditLog {
 
     $machineName = [System.Net.Dns]::GetHostName()
 
-    $enterpriseName = 'KeeperEnterprise'
-    try {
-        $rootNodes = @($enterprise.enterpriseData.Nodes | Where-Object { $_.ParentNodeId -eq 0 })
-        if ($rootNodes.Count -gt 0 -and $rootNodes[0].DisplayName) {
-            $enterpriseName = $rootNodes[0].DisplayName
-        }
-    } catch {}
+    $enterpriseName = $enterprise.loader.EnterpriseName
 
     $entUserIds = @{}
     if ($Anonymize.IsPresent) {
