@@ -153,6 +153,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Edit-KeeperManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-3)                               | kemc             | Edit Managed Company (name, plan, seats, storage, add-ons; -AddAddon / -RemoveAddon)
 | [Copy-KeeperMCRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-6)                                       | msp-copy-role    | Copy role(s) with enforcements from MSP to one or more Managed Companies (-Role by name or ID, -ManagedCompany by name or ID)
 | [Get-MspBillingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/msp-management-commands#powercommander-8)                                    |                  | Generate MSP Consumption Billing Statement (-Month, -Year; -ShowDate, -ShowCompany; -Format table/json/csv, -Output path)
+| Get-KeeperMspLegacyReport                               | msp-legacy-report | Generate MSP legacy billing report. Supports predefined date ranges (-Range) or custom dates (-From, -To); -Format table/json/csv, -Output path
 
 ### Device Approval Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -494,7 +495,28 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     Returns the last 100 raw audit events (Created, Username, Event, Message).
 
-34. Run a security audit report for the enterprise
+32. Generate MSP legacy billing report
+    ```
+    PS > Get-KeeperMspLegacyReport
+    ```
+    or using aliases
+    ```
+    PS > msp-legacy-report
+    ```
+    Returns the legacy license adjustment log for the last 30 days.
+    Use a predefined date range
+    ```
+    PS > Get-KeeperMspLegacyReport -Range last_7_days
+    ```
+    Use a custom date range
+    ```
+    PS > Get-KeeperMspLegacyReport -From "2025-01-01" -To "2025-06-30"
+    ```
+    Export as CSV to a file
+    ```
+    PS > Get-KeeperMspLegacyReport -Range last_month -Format csv -Output "legacy_report.csv"
+    ```
+33. Run a security audit report for the enterprise
     ```
     PS > Get-KeeperSecurityAuditReport
     ```
@@ -507,7 +529,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > Get-KeeperSecurityAuditReport -Node "Sales"
     ```
 
-35. Run the BreachWatch enterprise report
+34. Run the BreachWatch enterprise report
     ```
     PS > Get-KeeperBreachWatchReport
     ```
@@ -530,7 +552,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     Preview deleting locked users without executing.
 
-33. Share report - summary of all shares grouped by target
+35. Share report - summary of all shares grouped by target
     ```
     PS > Get-KeeperShareReport
     ```
@@ -542,7 +564,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     PS > Get-KeeperShareReport -Folders
     ```
-34. Shared records report - flat listing of all shared records with share details
+36. Shared records report - flat listing of all shared records with share details
     ```
     PS > Get-KeeperSharedRecordsReport
     ```
