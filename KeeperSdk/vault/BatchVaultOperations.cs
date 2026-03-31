@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Utils;
+using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -982,7 +982,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                 }
             }
 
-            if (_legacyRecordsToAdd.Count > 0 && left > 10)
+            if (_legacyRecordsToAdd.Count > 0 && left > 10 && rq.FolderRequest.Count == 0)
             {
                 Tuple<PasswordRecord, FolderNode>[] chunk;
                 if (_legacyRecordsToAdd.Count > left)
