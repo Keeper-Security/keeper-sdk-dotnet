@@ -1576,21 +1576,25 @@ function Export-KeeperAuditLog {
         return $info
     }
 
+    function convertEventToTimestampObject([System.Collections.Generic.Dictionary[string,object]] $evt) {
+        $obj = [ordered]@{}
+        foreach ($key in $evt.Keys) {
+            if ($key -eq 'id') { continue }
+            if ($key -eq 'created') {
+                $epoch = [long]$evt[$key].ToString()
+                $dt = [DateTimeOffset]::FromUnixTimeSeconds($epoch)
+                $obj['timestamp'] = $dt.ToString('yyyy-MM-ddTHH:mm:ssZ')
+                continue
+            }
+            $obj[$key] = $evt[$key]
+        }
+        return $obj
+    }
+
     function convertEvent([System.Collections.Generic.Dictionary[string,object]] $evt) {
         switch ($Target) {
             'json' {
-                $obj = [ordered]@{}
-                foreach ($key in $evt.Keys) {
-                    if ($key -eq 'id') { continue }
-                    if ($key -eq 'created') {
-                        $epoch = [long]$evt[$key].ToString()
-                        $dt = [DateTimeOffset]::FromUnixTimeSeconds($epoch)
-                        $obj['timestamp'] = $dt.ToString('yyyy-MM-ddTHH:mm:ssZ')
-                        continue
-                    }
-                    $obj[$key] = $evt[$key]
-                }
-                return $obj
+                return (convertEventToTimestampObject $evt)
             }
             'splunk' {
                 $evtData = [ordered]@{}
@@ -1608,33 +1612,12 @@ function Export-KeeperAuditLog {
                 return ($splunkObj | ConvertTo-Json -Depth 5 -Compress)
             }
             'sumo' {
-                $obj = [ordered]@{}
-                foreach ($key in $evt.Keys) {
-                    if ($key -eq 'id') { continue }
-                    if ($key -eq 'created') {
-                        $epoch = [long]$evt[$key].ToString()
-                        $dt = [DateTimeOffset]::FromUnixTimeSeconds($epoch)
-                        $obj['timestamp'] = $dt.ToString('yyyy-MM-ddTHH:mm:ssZ')
-                        continue
-                    }
-                    $obj[$key] = $evt[$key]
-                }
+                $obj = convertEventToTimestampObject $evt
                 $obj['message'] = getEventMessage $evt
                 return ($obj | ConvertTo-Json -Depth 5 -Compress)
             }
             'azure-la' {
-                $obj = [ordered]@{}
-                foreach ($key in $evt.Keys) {
-                    if ($key -eq 'id') { continue }
-                    if ($key -eq 'created') {
-                        $epoch = [long]$evt[$key].ToString()
-                        $dt = [DateTimeOffset]::FromUnixTimeSeconds($epoch)
-                        $obj['timestamp'] = $dt.ToString('yyyy-MM-ddTHH:mm:ssZ')
-                        continue
-                    }
-                    $obj[$key] = $evt[$key]
-                }
-                return $obj
+                return (convertEventToTimestampObject $evt)
             }
             default {
                 $pri = 110
@@ -1876,7 +1859,7 @@ function Export-KeeperAuditLog {
             }
         }
         catch {
-            Write-Host 'No events to export.'
+            Write-Warning "Failed to determine total events: $($_.Exception.Message)"
             return
         }
 
@@ -1900,6 +1883,8 @@ function Export-KeeperAuditLog {
         $finished = $false
         $runSucceeded = $true
         $lastSuccessfulEventTime = $LastEventTime
+        $reportedExportedCount = 0
+        $reportedLastEventTime = $LastEventTime
         $chunkSize = switch ($Target) {
             'sumo'     { 250 }
             'azure-la' { 250 }
@@ -2012,6 +1997,19 @@ function Export-KeeperAuditLog {
             }
         }
 
+        if ($runSucceeded) {
+            $reportedExportedCount = $numExported
+            $reportedLastEventTime = if ($numExported -gt 0) { $lastSuccessfulEventTime } else { $LastEventTime }
+        }
+        elseif ($Target -eq 'json') {
+            $reportedExportedCount = 0
+            $reportedLastEventTime = $LastEventTime
+        }
+        else {
+            $reportedExportedCount = $numExported
+            $reportedLastEventTime = if ($numExported -gt 0) { $lastSuccessfulEventTime } else { $LastEventTime }
+        }
+
         if ($configRecord -and $runSucceeded -and $numExported -gt 0) {
             $pendingRecordSave = (setRecordField $configRecord 'last_event_time' $lastSuccessfulEventTime) -or $pendingRecordSave
         }
@@ -2019,13 +2017,23 @@ function Export-KeeperAuditLog {
             $configRecord = saveAuditLogRecord $configRecord
         }
 
-        Write-Host "Exported $numExported audit event(s)."
-
-        [PSCustomObject]@{
-            ExportedCount = $numExported
-            LastEventTime = $(if ($numExported -gt 0) { $lastSuccessfulEventTime } else { $LastEventTime })
-            Target        = $Target
+        if ($runSucceeded) {
+            Write-Host "Exported $reportedExportedCount audit event(s)."
         }
+        elseif ($reportedExportedCount -gt 0) {
+            Write-Warning "Export did not complete successfully. $reportedExportedCount audit event(s) were exported before the failure."
+        }
+        else {
+            Write-Warning 'Export did not complete successfully. No audit events were exported.'
+        }
+
+        $result = [ordered]@{
+            ExportedCount = $reportedExportedCount
+            LastEventTime = $reportedLastEventTime
+            Target        = $Target
+            Success       = $runSucceeded
+        }
+        return [PSCustomObject]$result
     }
     finally {
         if ($IgnoreCertificateErrors.IsPresent -and $Target -in @('splunk','sumo','azure-la')) {
