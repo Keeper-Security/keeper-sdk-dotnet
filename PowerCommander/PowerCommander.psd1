@@ -87,7 +87,7 @@
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
         'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
         'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
-        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
+        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 'Get-KeeperMspLegacyReport',
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
@@ -124,7 +124,7 @@
     'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
     'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
     'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar')
+    'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'msp-legacy-report')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -146,6 +146,7 @@
                 'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
                 'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
                 'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
+                'MSP: Get-KeeperMspLegacyReport (msp-legacy-report) - retrieve MSP legacy billing log',
                 'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
                 'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
                 'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
