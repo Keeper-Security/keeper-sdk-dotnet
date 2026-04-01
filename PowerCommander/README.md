@@ -101,6 +101,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | [Get-KeeperEnterpriseInfoTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-3)                            | keit             | Outputs teams with restricts (Read/Write/Share), node, user/role counts, and optional user/role lists.
 | [Get-KeeperEnterpriseInfoRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-4)                            | keir             | Outputs roles with node, user/team counts, admin flag, and optional user/team lists.
 | [Get-KeeperEnterpriseInfoManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-5)                  | keimc            | Outputs managed company information. Available when logged in as MSP.
+| Export-KeeperAuditLog                                 | kal              | Exports enterprise audit events to JSON, syslog, Splunk, Sumo, Azure Log Analytics, or a syslog port. Supports Keeper record-backed config and incremental export state.
 | [Get-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-5)                                | ken              | Enumerate all enterprise nodes
 | [Get-KeeperEnterpriseUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander)                                | keu              | Enumerate all enterprise users
 | [Get-KeeperEnterpriseTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                                | ket              | Enumerate all enterprise teams
@@ -477,3 +478,13 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > kar
     ```
     Returns the last 100 raw audit events (Created, Username, Event, Message).
+
+32. Export audit log events with a Keeper config record
+    ```
+    PS > Export-KeeperAuditLog -Target splunk
+    ```
+    or using the alias
+    ```
+    PS > kal -Target splunk
+    ```
+    On first run, prompts to create a Keeper record and stores the target settings plus `last_event_time` so later runs export incrementally.
