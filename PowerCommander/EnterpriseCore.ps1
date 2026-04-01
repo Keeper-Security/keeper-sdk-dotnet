@@ -1266,8 +1266,7 @@ function Export-KeeperAuditLog {
     }
 
     $hasDirectTargetConfig = switch ($Target) {
-        'json'        { -not [string]::IsNullOrWhiteSpace($FilePath) }
-        'syslog'      { -not [string]::IsNullOrWhiteSpace($FilePath) }
+        { $_ -in @('json', 'syslog') } { -not [string]::IsNullOrWhiteSpace($FilePath) }
         'splunk'      { -not [string]::IsNullOrWhiteSpace($Url) -and -not [string]::IsNullOrWhiteSpace($Token) }
         'sumo'        { -not [string]::IsNullOrWhiteSpace($Url) }
         'azure-la'    { -not [string]::IsNullOrWhiteSpace($WorkspaceId) -and -not [string]::IsNullOrWhiteSpace($WorkspaceKey) }
@@ -1291,28 +1290,17 @@ function Export-KeeperAuditLog {
         $recordIdentifier = if ($Record) { $Record } else { $defaultRecordTitle }
         $configRecord = resolveAuditLogRecord $recordIdentifier
 
-        if (-not $configRecord -and -not $PSBoundParameters.ContainsKey('Record')) {
+        if (-not $configRecord) {
             $answer = Read-Host 'Do you want to create a Keeper record to store audit log settings? [y/n]'
             if ($answer -match '^(y|yes)$') {
                 $recordTitle = Read-Host "Choose the title for audit log record [Default: $defaultRecordTitle]"
                 if ([string]::IsNullOrWhiteSpace($recordTitle)) {
-                    $recordTitle = $defaultRecordTitle
+                    $recordTitle = if ($PSBoundParameters.ContainsKey('Record') -and $Record) { $Record } else { $defaultRecordTitle }
                 }
                 $configRecord = createAuditLogRecord $recordTitle
                 $pendingRecordSave = $true
             }
-        }
-        elseif (-not $configRecord -and $PSBoundParameters.ContainsKey('Record')) {
-            $answer = Read-Host 'Do you want to create a Keeper record to store audit log settings? [y/n]'
-            if ($answer -match '^(y|yes)$') {
-                $recordTitle = Read-Host "Choose the title for audit log record [Default: $defaultRecordTitle]"
-                if ([string]::IsNullOrWhiteSpace($recordTitle)) {
-                    $recordTitle = if ($Record) { $Record } else { $defaultRecordTitle }
-                }
-                $configRecord = createAuditLogRecord $recordTitle
-                $pendingRecordSave = $true
-            }
-            else {
+            elseif ($PSBoundParameters.ContainsKey('Record')) {
                 Write-Error "Record not found: $Record" -ErrorAction Stop
             }
         }
@@ -1320,129 +1308,99 @@ function Export-KeeperAuditLog {
 
     if ($configRecord) {
         switch ($Target) {
-            'json' {
+            { $_ -in @('json', 'syslog') } {
                 if ([string]::IsNullOrWhiteSpace($FilePath)) {
                     $FilePath = [string](getRecordField $configRecord 'login')
                 }
                 if ([string]::IsNullOrWhiteSpace($FilePath)) {
-                    $FilePath = Read-Host 'JSON file name'
-                }
-            }
-            'syslog' {
-                if ([string]::IsNullOrWhiteSpace($FilePath)) {
-                    $FilePath = [string](getRecordField $configRecord 'login')
-                }
-                if ([string]::IsNullOrWhiteSpace($FilePath)) {
-                    Write-Host 'Enter filename for syslog messages.'
-                    $FilePath = Read-Host 'Syslog file name'
-                    if ($FilePath -and -not $FilePath.EndsWith('.gz', [System.StringComparison]::OrdinalIgnoreCase)) {
-                        $gzipAnswer = Read-Host 'Gzip messages? (y/N)'
-                        if ($gzipAnswer -match '^(y|yes)$') {
-                            $FilePath += '.gz'
+                    if ($Target -eq 'syslog') {
+                        Write-Host 'Enter filename for syslog messages.'
+                        $FilePath = Read-Host 'Syslog file name'
+                        if ($FilePath -and -not $FilePath.EndsWith('.gz', [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $gzipAnswer = Read-Host 'Gzip messages? (y/N)'
+                            if ($gzipAnswer -match '^(y|yes)$') { $FilePath += '.gz' }
                         }
                     }
+                    else {
+                        $FilePath = Read-Host 'JSON file name'
+                    }
                 }
+                $pendingRecordSave = (setRecordField $configRecord 'login' $FilePath) -or $pendingRecordSave
             }
             'splunk' {
-                if ([string]::IsNullOrWhiteSpace($Url)) {
-                    $Url = [string](getRecordField $configRecord 'url')
-                }
+                if ([string]::IsNullOrWhiteSpace($Url)) { $Url = [string](getRecordField $configRecord 'url') }
                 if ([string]::IsNullOrWhiteSpace($Url)) {
                     Write-Host 'Enter HTTP Event Collector (HEC) endpoint.'
                     Write-Host 'Example: splunk.company.com:8088 or https://splunk.company.com:8088/services/collector'
-                    $Url = normalizeSplunkUrl (Read-Host 'Splunk HEC endpoint')
+                    $Url = Read-Host 'Splunk HEC endpoint'
                 }
-                else {
-                    $Url = normalizeSplunkUrl $Url
-                }
-                if ([string]::IsNullOrWhiteSpace($Token)) {
-                    $Token = [string](getRecordField $configRecord 'password')
-                }
-                if ([string]::IsNullOrWhiteSpace($Token)) {
-                    $Token = Read-Host 'Splunk Token'
-                }
+                $Url = normalizeSplunkUrl $Url
+                if ([string]::IsNullOrWhiteSpace($Token)) { $Token = [string](getRecordField $configRecord 'password') }
+                if ([string]::IsNullOrWhiteSpace($Token)) { $Token = Read-Host 'Splunk Token' }
+                $pendingRecordSave = (setRecordField $configRecord 'url' $Url) -or $pendingRecordSave
+                $pendingRecordSave = (setRecordField $configRecord 'password' $Token) -or $pendingRecordSave
             }
             'sumo' {
-                if ([string]::IsNullOrWhiteSpace($Url)) {
-                    $Url = [string](getRecordField $configRecord 'url')
-                }
+                if ([string]::IsNullOrWhiteSpace($Url)) { $Url = [string](getRecordField $configRecord 'url') }
                 if ([string]::IsNullOrWhiteSpace($Url)) {
                     Write-Host 'Enter HTTP Logs Collector URL.'
                     $Url = Read-Host 'HTTP Collector URL'
                 }
+                $pendingRecordSave = (setRecordField $configRecord 'url' $Url) -or $pendingRecordSave
             }
             'azure-la' {
-                if ([string]::IsNullOrWhiteSpace($WorkspaceId)) {
-                    $WorkspaceId = [string](getRecordField $configRecord 'login')
-                }
+                if ([string]::IsNullOrWhiteSpace($WorkspaceId)) { $WorkspaceId = [string](getRecordField $configRecord 'login') }
                 if ([string]::IsNullOrWhiteSpace($WorkspaceId)) {
                     Write-Host 'Enter Azure Log Analytics workspace ID.'
                     $WorkspaceId = Read-Host 'Workspace ID'
                 }
-                if ([string]::IsNullOrWhiteSpace($WorkspaceKey)) {
-                    $WorkspaceKey = [string](getRecordField $configRecord 'password')
-                }
+                if ([string]::IsNullOrWhiteSpace($WorkspaceKey)) { $WorkspaceKey = [string](getRecordField $configRecord 'password') }
                 if ([string]::IsNullOrWhiteSpace($WorkspaceKey)) {
                     Write-Host 'Enter Azure Log Analytics primary or secondary key.'
                     $WorkspaceKey = Read-Host 'Key'
                 }
+                $pendingRecordSave = (setRecordField $configRecord 'login' $WorkspaceId) -or $pendingRecordSave
+                $pendingRecordSave = (setRecordField $configRecord 'password' $WorkspaceKey) -or $pendingRecordSave
             }
             'syslog-port' {
                 $storedUrl = [string](getRecordField $configRecord 'url')
                 if ($storedUrl) {
                     try {
                         $uri = [System.Uri]$storedUrl
-                        if ([string]::IsNullOrWhiteSpace($SyslogHost)) {
-                            $SyslogHost = $uri.Host
-                        }
-                        if ($SyslogPort -le 0) {
-                            $SyslogPort = $uri.Port
-                        }
+                        if ([string]::IsNullOrWhiteSpace($SyslogHost)) { $SyslogHost = $uri.Host }
+                        if ($SyslogPort -le 0) { $SyslogPort = $uri.Port }
                         if (-not $PSBoundParameters.ContainsKey('SyslogProtocol')) {
-                            if ($uri.Scheme -eq 'syslogu') {
-                                $SyslogProtocol = 'udp'
-                            }
-                            else {
-                                $SyslogProtocol = 'tcp'
-                            }
+                            $SyslogProtocol = if ($uri.Scheme -eq 'syslogu') { 'udp' } else { 'tcp' }
                         }
-                        if (-not $resolvedUseSsl -and $uri.Scheme -eq 'syslogs') {
-                            $resolvedUseSsl = $true
-                        }
+                        if (-not $resolvedUseSsl -and $uri.Scheme -eq 'syslogs') { $resolvedUseSsl = $true }
                     }
                     catch {}
                 }
                 if (-not $resolvedOctetCounting) {
                     $storedOctetCounting = [string](getRecordField $configRecord 'is_octet_counting')
-                    if ($storedOctetCounting) {
-                        $resolvedOctetCounting = $storedOctetCounting -in @('1','true','True')
-                    }
+                    if ($storedOctetCounting) { $resolvedOctetCounting = $storedOctetCounting -in @('1','true','True') }
                 }
                 if ([string]::IsNullOrWhiteSpace($SyslogHost)) {
                     Write-Host 'Enter Syslog connection parameters:'
                     $SyslogHost = Read-Host 'Syslog host name'
                 }
-                if (-not $PSBoundParameters.ContainsKey('SyslogProtocol')) {
+                if (-not $PSBoundParameters.ContainsKey('SyslogProtocol') -and -not $storedUrl) {
                     $connType = Read-Host 'Syslog port type [T]cp/[U]dp. Default TCP'
-                    if ($connType -match '^(u|udp)$') {
-                        $SyslogProtocol = 'udp'
-                    }
+                    if ($connType -match '^(u|udp)$') { $SyslogProtocol = 'udp' }
                 }
                 if ($SyslogPort -le 0) {
                     $portValue = Read-Host 'Syslog port number'
-                    if ($portValue -match '^\d+$') {
-                        $SyslogPort = [int]$portValue
-                    }
+                    if ($portValue -match '^\d+$') { $SyslogPort = [int]$portValue }
                 }
                 if ($SyslogProtocol -eq 'tcp' -and -not $resolvedUseSsl -and -not $storedUrl) {
                     $sslAnswer = Read-Host 'Syslog port requires SSL/TLS (y/N)'
-                    if ($sslAnswer -match '^(y|yes)$') {
-                        $resolvedUseSsl = $true
-                    }
+                    if ($sslAnswer -match '^(y|yes)$') { $resolvedUseSsl = $true }
                 }
+                $syslogScheme = if ($SyslogProtocol -eq 'udp') { 'syslogu' } elseif ($resolvedUseSsl) { 'syslogs' } else { 'syslog' }
+                $pendingRecordSave = (setRecordField $configRecord 'url' ("{0}://{1}:{2}" -f $syslogScheme, $SyslogHost, $SyslogPort)) -or $pendingRecordSave
+                $pendingRecordSave = (setRecordField $configRecord 'is_octet_counting' $(if ($resolvedOctetCounting) { '1' } else { '0' })) -or $pendingRecordSave
             }
         }
-
         if (-not $PSBoundParameters.ContainsKey('SharedFolderUid')) {
             $storedSharedFolders = [string](getRecordField $configRecord 'shared_folder_uids')
             if ($storedSharedFolders) {
@@ -1464,75 +1422,6 @@ function Export-KeeperAuditLog {
                 $LastEventTime = [long]$storedLastEventTime
             }
         }
-    }
-
-    switch ($Target) {
-        'json' {
-            if ([string]::IsNullOrEmpty($FilePath)) {
-                Write-Error "-FilePath is required for json target." -ErrorAction Stop
-            }
-        }
-        'syslog' {
-            if ([string]::IsNullOrEmpty($FilePath)) {
-                Write-Error "-FilePath is required for syslog target." -ErrorAction Stop
-            }
-        }
-        'splunk' {
-            if ([string]::IsNullOrEmpty($Url)) {
-                Write-Error "-Url is required for splunk target (HEC endpoint)." -ErrorAction Stop
-            }
-            if ([string]::IsNullOrEmpty($Token)) {
-                Write-Error "-Token is required for splunk target (HEC token)." -ErrorAction Stop
-            }
-        }
-        'sumo' {
-            if ([string]::IsNullOrEmpty($Url)) {
-                Write-Error "-Url is required for sumo target (HTTP Collector URL)." -ErrorAction Stop
-            }
-        }
-        'azure-la' {
-            if ([string]::IsNullOrEmpty($WorkspaceId)) {
-                Write-Error "-WorkspaceId is required for azure-la target." -ErrorAction Stop
-            }
-            if ([string]::IsNullOrEmpty($WorkspaceKey)) {
-                Write-Error "-WorkspaceKey is required for azure-la target." -ErrorAction Stop
-            }
-        }
-        'syslog-port' {
-            if ([string]::IsNullOrEmpty($SyslogHost)) {
-                Write-Error "-SyslogHost is required for syslog-port target." -ErrorAction Stop
-            }
-            if ($SyslogPort -le 0) {
-                Write-Error "-SyslogPort must be a positive integer for syslog-port target." -ErrorAction Stop
-            }
-        }
-    }
-
-    if ($configRecord) {
-        switch ($Target) {
-            'json' {
-                $pendingRecordSave = (setRecordField $configRecord 'login' $FilePath) -or $pendingRecordSave
-            }
-            'syslog' {
-                $pendingRecordSave = (setRecordField $configRecord 'login' $FilePath) -or $pendingRecordSave
-            }
-            'splunk' {
-                $pendingRecordSave = (setRecordField $configRecord 'url' $Url) -or $pendingRecordSave
-                $pendingRecordSave = (setRecordField $configRecord 'password' $Token) -or $pendingRecordSave
-            }
-            'sumo' {
-                $pendingRecordSave = (setRecordField $configRecord 'url' $Url) -or $pendingRecordSave
-            }
-            'azure-la' {
-                $pendingRecordSave = (setRecordField $configRecord 'login' $WorkspaceId) -or $pendingRecordSave
-                $pendingRecordSave = (setRecordField $configRecord 'password' $WorkspaceKey) -or $pendingRecordSave
-            }
-            'syslog-port' {
-                $syslogScheme = if ($SyslogProtocol -eq 'udp') { 'syslogu' } elseif ($resolvedUseSsl) { 'syslogs' } else { 'syslog' }
-                $pendingRecordSave = (setRecordField $configRecord 'url' ("{0}://{1}:{2}" -f $syslogScheme, $SyslogHost, $SyslogPort)) -or $pendingRecordSave
-                $pendingRecordSave = (setRecordField $configRecord 'is_octet_counting' $(if ($resolvedOctetCounting) { '1' } else { '0' })) -or $pendingRecordSave
-            }
-        }
         if ($PSBoundParameters.ContainsKey('SharedFolderUid')) {
             $sharedFolderValue = if ($SharedFolderUid -and $SharedFolderUid.Count -gt 0) { $SharedFolderUid -join ', ' } else { '' }
             $pendingRecordSave = (setRecordField $configRecord 'shared_folder_uids' $sharedFolderValue) -or $pendingRecordSave
@@ -1540,6 +1429,29 @@ function Export-KeeperAuditLog {
         if ($PSBoundParameters.ContainsKey('NodeId')) {
             $nodeIdValue = if ($NodeId -and $NodeId.Count -gt 0) { ($NodeId | ForEach-Object { $_.ToString() }) -join ', ' } else { '' }
             $pendingRecordSave = (setRecordField $configRecord 'node_ids' $nodeIdValue) -or $pendingRecordSave
+        }
+    }
+
+    switch ($Target) {
+        { $_ -in @('json', 'syslog') } {
+            if ([string]::IsNullOrEmpty($FilePath)) {
+                Write-Error "-FilePath is required for $_ target." -ErrorAction Stop
+            }
+        }
+        'splunk' {
+            if ([string]::IsNullOrEmpty($Url)) { Write-Error "-Url is required for splunk target." -ErrorAction Stop }
+            if ([string]::IsNullOrEmpty($Token)) { Write-Error "-Token is required for splunk target." -ErrorAction Stop }
+        }
+        'sumo' {
+            if ([string]::IsNullOrEmpty($Url)) { Write-Error "-Url is required for sumo target." -ErrorAction Stop }
+        }
+        'azure-la' {
+            if ([string]::IsNullOrEmpty($WorkspaceId)) { Write-Error "-WorkspaceId is required for azure-la target." -ErrorAction Stop }
+            if ([string]::IsNullOrEmpty($WorkspaceKey)) { Write-Error "-WorkspaceKey is required for azure-la target." -ErrorAction Stop }
+        }
+        'syslog-port' {
+            if ([string]::IsNullOrEmpty($SyslogHost)) { Write-Error "-SyslogHost is required for syslog-port target." -ErrorAction Stop }
+            if ($SyslogPort -le 0) { Write-Error "-SyslogPort must be a positive integer for syslog-port target." -ErrorAction Stop }
         }
     }
 
@@ -1593,7 +1505,7 @@ function Export-KeeperAuditLog {
 
     function convertEvent([System.Collections.Generic.Dictionary[string,object]] $evt) {
         switch ($Target) {
-            'json' {
+            { $_ -in @('json', 'azure-la') } {
                 return (convertEventToTimestampObject $evt)
             }
             'splunk' {
@@ -1602,22 +1514,18 @@ function Export-KeeperAuditLog {
                     if ($key -in @('id','created')) { continue }
                     $evtData[$key] = $evt[$key]
                 }
-                $splunkObj = [ordered]@{
+                return ([ordered]@{
                     time       = $evt['created']
                     host       = $machineName
                     source     = $enterpriseName
                     sourcetype = '_json'
                     event      = $evtData
-                }
-                return ($splunkObj | ConvertTo-Json -Depth 5 -Compress)
+                } | ConvertTo-Json -Depth 5 -Compress)
             }
             'sumo' {
                 $obj = convertEventToTimestampObject $evt
                 $obj['message'] = getEventMessage $evt
                 return ($obj | ConvertTo-Json -Depth 5 -Compress)
-            }
-            'azure-la' {
-                return (convertEventToTimestampObject $evt)
             }
             default {
                 $pri = 110
@@ -1730,6 +1638,7 @@ function Export-KeeperAuditLog {
                     }
                     else {
                         $tcpClient = [System.Net.Sockets.TcpClient]::new()
+                        $sslStream = $null
                         try {
                             $tcpClient.SendTimeout = 5000
                             $tcpClient.Connect($SyslogHost, $SyslogPort)
@@ -1755,6 +1664,7 @@ function Export-KeeperAuditLog {
                             $writeStream.Flush()
                         }
                         finally {
+                            if ($sslStream) { $sslStream.Dispose() }
                             $tcpClient.Close()
                         }
                     }
@@ -1768,23 +1678,24 @@ function Export-KeeperAuditLog {
         }
     }
 
-    function resolveAnonymousUid([string] $username) {
-        if ([string]::IsNullOrEmpty($username)) { return '' }
-        if ($entUserIds.ContainsKey($username)) {
-            return $entUserIds[$username].ToString()
-        }
-        $md5Algo = [System.Security.Cryptography.MD5]::Create()
-        $hashBytes = $md5Algo.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($username))
-        $hex = ($hashBytes | ForEach-Object { $_.ToString('x2') }) -join ''
-        return "DELETED-$hex"
-    }
-
     $machineName = [System.Net.Dns]::GetHostName()
 
     $enterpriseName = $enterprise.loader.EnterpriseName
 
     $entUserIds = @{}
+    $md5Algo = $null
+
+    function resolveAnonymousUid([string] $username) {
+        if ([string]::IsNullOrEmpty($username)) { return '' }
+        if ($entUserIds.ContainsKey($username)) {
+            return $entUserIds[$username].ToString()
+        }
+        $hashBytes = $md5Algo.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($username))
+        $hex = ($hashBytes | ForEach-Object { $_.ToString('x2') }) -join ''
+        return "DELETED-$hex"
+    }
     if ($Anonymize.IsPresent) {
+        $md5Algo = [System.Security.Cryptography.MD5]::Create()
         try {
             foreach ($user in $enterprise.enterpriseData.Users) {
                 if ($user.Email) {
@@ -1820,7 +1731,7 @@ function Export-KeeperAuditLog {
             $jsonEvents = [System.Collections.Generic.List[object]]::new()
         }
 
-        $isGzipped = ($Target -eq 'syslog' -and $FilePath -and $FilePath.EndsWith('.gz', [StringComparison]::OrdinalIgnoreCase))
+        $isGzipped = ($Target -eq 'syslog' -and $FilePath -and $FilePath.EndsWith('.gz', [System.StringComparison]::OrdinalIgnoreCase))
 
         $createdFilter = New-Object KeeperSecurity.Enterprise.AuditLogCommands.CreatedFilter
         $createdFilter.Max = $nowTs
@@ -1860,7 +1771,12 @@ function Export-KeeperAuditLog {
         }
         catch {
             Write-Warning "Failed to determine total events: $($_.Exception.Message)"
-            return
+            return [PSCustomObject][ordered]@{
+                ExportedCount = 0
+                LastEventTime = $currentEventTime
+                Target        = $Target
+                Success       = $false
+            }
         }
 
         if ($totalEvents -eq 0) {
@@ -1868,7 +1784,12 @@ function Export-KeeperAuditLog {
                 $configRecord = saveAuditLogRecord $configRecord
             }
             Write-Host 'No events to export.'
-            return
+            return [PSCustomObject][ordered]@{
+                ExportedCount = 0
+                LastEventTime = $currentEventTime
+                Target        = $Target
+                Success       = $true
+            }
         }
 
         $rq = New-Object KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventReportsCommand
@@ -1886,14 +1807,11 @@ function Export-KeeperAuditLog {
         $reportedExportedCount = 0
         $reportedLastEventTime = $LastEventTime
         $chunkSize = switch ($Target) {
-            'sumo'     { 250 }
-            'azure-la' { 250 }
-            default    { 1000 }
+            { $_ -in @('sumo', 'azure-la') } { 250 }
+            default { 1000 }
         }
 
         while (-not $finished) {
-            $finished = $true
-
             if ($currentEventTime -gt 0) {
                 $createdFilter.Min = $currentEventTime
             }
@@ -1953,6 +1871,9 @@ function Export-KeeperAuditLog {
                     $currentEventTime++
                 }
             }
+            else {
+                $finished = $true
+            }
 
             while ($events.Count -gt 0) {
                 $chunkEnd = [Math]::Min($chunkSize, $events.Count)
@@ -1997,11 +1918,7 @@ function Export-KeeperAuditLog {
             }
         }
 
-        if ($runSucceeded) {
-            $reportedExportedCount = $numExported
-            $reportedLastEventTime = if ($numExported -gt 0) { $lastSuccessfulEventTime } else { $LastEventTime }
-        }
-        elseif ($Target -eq 'json') {
+        if (-not $runSucceeded -and $Target -eq 'json') {
             $reportedExportedCount = 0
             $reportedLastEventTime = $LastEventTime
         }
