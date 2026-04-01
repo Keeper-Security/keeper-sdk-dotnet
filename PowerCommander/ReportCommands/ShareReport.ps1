@@ -403,11 +403,11 @@ function Script:Write-ShareReportFolders {
                 if ($members) {
                     foreach ($member in $members) {
                         $table.Add([PSCustomObject][ordered]@{
-                            'Folder UID'  = $sf.Uid
-                            'Folder Name' = $sf.Name
-                            'Shared To'   = "(Team User) $member"
-                            'Permissions' = $permText
-                            'Folder Path' = $folderPath
+                            'Folder UID'  = ''
+                            'Folder Name' = ''
+                            'Shared To'   = "  $([char]0x2514) $member"
+                            'Permissions' = ''
+                            'Folder Path' = ''
                         })
                     }
                 }

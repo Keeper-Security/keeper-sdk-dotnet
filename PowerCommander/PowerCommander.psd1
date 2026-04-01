@@ -162,7 +162,7 @@
                 'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
                 'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
                 'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update'
-                'Get-KeeperShareReport - who records and shared folders are shared with; summary, owner, per-user, shared-folder, and export options',
+                'Get-KeeperShareReport - A report to display with whom records and folders are shared with along with summary, owner and per-user views',
                 'Get-KeeperSharedRecordsReport (ksrr) - per-row shared records: share type, recipient, permissions, folder path; -AllRecords, -Folder, -ShowTeamUsers',
                 'Get-KeeperAuditReport (kar) - enterprise audit trail: raw events, span/day/week/month/hour aggregates, dimension (dim) views; filters for user, dates, event type, record/shared folder/team UID, IP, node',
                 'Get-KeeperUserReport (user-report) - enterprise user report',

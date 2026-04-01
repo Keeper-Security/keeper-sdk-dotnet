@@ -185,102 +185,81 @@ function Get-KeeperActionReport {
     $needsConfirmation = $ApplyAction -in @('delete', 'transfer') -and -not $Force -and -not $DryRun
     $actionCancelled = $false
 
-    if ($needsConfirmation) {
-        $options.ApplyAction = [KeeperSecurity.Enterprise.ActionReportAdminAction]::None
+    $invokeReport = {
+        param($opts)
+        [KeeperSecurity.Enterprise.ActionReportExtensions]::RunActionReport(
+            $enterprise.enterpriseData, $auth, $opts, $enterprise.roleData
+        ).GetAwaiter().GetResult()
+    }
 
+    $syncEnterprise = {
         try {
-            $result = [KeeperSecurity.Enterprise.ActionReportExtensions]::RunActionReport(
-                $enterprise.enterpriseData,
-                $auth,
-                $options,
-                $enterprise.roleData
-            ).GetAwaiter().GetResult()
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
         }
         catch {
-            Write-Error "Failed to run action report: $($_.Exception.Message)" -ErrorAction Stop
+            Write-Warning "Failed to sync enterprise data: $($_.Exception.Message)"
         }
+    }
 
-        if (-not [string]::IsNullOrEmpty($result.ErrorMessage)) {
-            Write-Error "Action report error: $($result.ErrorMessage)" -ErrorAction Stop
-        }
-
-        if ($result.Users.Count -gt 0) {
-            Write-Host ""
-            Write-Host "ALERT!" -ForegroundColor Red
-            Write-Host ""
-            Write-Host "You are about to $ApplyAction the following accounts:"
-            $idx = 1
-            foreach ($u in ($result.Users | Sort-Object -Property Username)) {
-                Write-Host "$idx) $($u.Username)"
-                $idx++
-            }
-            Write-Host ""
-            Write-Host "This action cannot be undone."
-            Write-Host ""
-            $confirmation = Read-Host "Do you wish to proceed? (y/n)"
-            if ($confirmation -notin @('y', 'yes')) {
-                $actionCancelled = $true
-            }
-            else {
-                $options.ApplyAction = $adminActionMap[$ApplyAction]
-                $options.Force = $true
-
-                try {
-                    $actionResult = [KeeperSecurity.Enterprise.ActionReportExtensions]::RunActionReport(
-                        $enterprise.enterpriseData,
-                        $auth,
-                        $options,
-                        $enterprise.roleData
-                    ).GetAwaiter().GetResult()
-
-                    $result.ActionApplied = $actionResult.ActionApplied
-                    $result.ActionStatus = $actionResult.ActionStatus
-                    $result.AffectedCount = $actionResult.AffectedCount
-
-                    if (-not [string]::IsNullOrEmpty($actionResult.ErrorMessage)) {
-                        Write-Warning "Action error: $($actionResult.ErrorMessage)"
-                    }
-                }
-                catch {
-                    Write-Warning "Failed to apply action: $($_.Exception.Message)"
-                }
-
-                try {
-                    $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
-                }
-                catch {
-                    Write-Warning "Failed to sync enterprise data: $($_.Exception.Message)"
-                }
-            }
-        }
+    if ($needsConfirmation) {
+        $options.ApplyAction = [KeeperSecurity.Enterprise.ActionReportAdminAction]::None
     }
     else {
         $options.ApplyAction = $adminActionMap[$ApplyAction]
+    }
 
-        try {
-            $result = [KeeperSecurity.Enterprise.ActionReportExtensions]::RunActionReport(
-                $enterprise.enterpriseData,
-                $auth,
-                $options,
-                $enterprise.roleData
-            ).GetAwaiter().GetResult()
-        }
-        catch {
-            Write-Error "Failed to run action report: $($_.Exception.Message)" -ErrorAction Stop
-        }
+    try {
+        $result = & $invokeReport $options
+    }
+    catch {
+        Write-Error "Failed to run action report: $($_.Exception.Message)" -ErrorAction Stop
+    }
 
-        if (-not [string]::IsNullOrEmpty($result.ErrorMessage)) {
-            Write-Error "Action report error: $($result.ErrorMessage)" -ErrorAction Stop
-        }
+    if (-not [string]::IsNullOrEmpty($result.ErrorMessage)) {
+        Write-Error "Action report error: $($result.ErrorMessage)" -ErrorAction Stop
+    }
 
-        if ($ApplyAction -ne 'none' -and -not $DryRun -and $result.Users.Count -gt 0) {
+    if ($needsConfirmation -and $result.Users.Count -gt 0) {
+        Write-Host ""
+        Write-Host "ALERT!" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "You are about to $ApplyAction the following accounts:"
+        $idx = 1
+        foreach ($u in ($result.Users | Sort-Object -Property Username)) {
+            Write-Host "$idx) $($u.Username)"
+            $idx++
+        }
+        Write-Host ""
+        Write-Host "This action cannot be undone."
+        Write-Host ""
+        $confirmation = Read-Host "Do you wish to proceed? (y/n)"
+        if ($confirmation -notin @('y', 'yes')) {
+            $actionCancelled = $true
+        }
+        else {
+            $options.ApplyAction = $adminActionMap[$ApplyAction]
+            $options.Force = $true
+
             try {
-                $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+                $actionResult = & $invokeReport $options
+
+                $result.ActionApplied = $actionResult.ActionApplied
+                $result.ActionStatus = $actionResult.ActionStatus
+                $result.AffectedCount = $actionResult.AffectedCount
+
+                if (-not [string]::IsNullOrEmpty($actionResult.ErrorMessage)) {
+                    Write-Warning "Action error: $($actionResult.ErrorMessage)"
+                }
             }
             catch {
-                Write-Warning "Failed to sync enterprise data: $($_.Exception.Message)"
+                Write-Warning "Failed to apply action: $($_.Exception.Message)"
             }
+
+            & $syncEnterprise
         }
+    }
+    elseif (-not $needsConfirmation -and $ApplyAction -ne 'none' -and -not $DryRun -and $result.Users.Count -gt 0) {
+        & $syncEnterprise
     }
 
     $statusDescMap = @{
@@ -293,14 +272,9 @@ function Get-KeeperActionReport {
 
     Write-Host ""
     Write-Host "Admin Action Taken:"
-    if ($actionCancelled) {
-        Write-Host "`tCOMMAND: NONE (Cancelled by user)"
-        Write-Host "`tSTATUS: n/a"
-        Write-Host "`tSERVER MESSAGE: n/a"
-        Write-Host "`tAFFECTED: 0"
-    }
-    elseif ($ApplyAction -eq 'none') {
-        Write-Host "`tCOMMAND: NONE (No action specified)"
+    if ($actionCancelled -or $ApplyAction -eq 'none') {
+        $reason = if ($actionCancelled) { "Cancelled by user" } else { "No action specified" }
+        Write-Host "`tCOMMAND: NONE ($reason)"
         Write-Host "`tSTATUS: n/a"
         Write-Host "`tSERVER MESSAGE: n/a"
         Write-Host "`tAFFECTED: 0"
