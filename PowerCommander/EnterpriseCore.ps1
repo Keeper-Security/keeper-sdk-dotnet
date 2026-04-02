@@ -470,6 +470,37 @@ function Get-KeeperAuditReport {
         [string] $Format = 'table'
     )
 
+    if ($FilterPattern -and $FilterPattern.Count -gt 1) {
+        $knownPrefixes = @('exact:', 'regex:', 'not:', 'not:exact:', 'not:regex:')
+        $hasPrefix = {
+            param([string] $s)
+            foreach ($p in $knownPrefixes) {
+                if ($s.StartsWith($p, [System.StringComparison]::OrdinalIgnoreCase)) { return $true }
+            }
+            return $false
+        }
+
+        $consolidated = [System.Collections.Generic.List[string]]::new()
+        $current = $FilterPattern[0]
+
+        for ($i = 1; $i -lt $FilterPattern.Count; $i++) {
+            $token = $FilterPattern[$i]
+            if (& $hasPrefix $token) {
+                $consolidated.Add($current)
+                $current = $token
+            }
+            elseif (& $hasPrefix $current) {
+                $current += " $token"
+            }
+            else {
+                $consolidated.Add($current)
+                $current = $token
+            }
+        }
+        $consolidated.Add($current)
+        $FilterPattern = $consolidated.ToArray()
+    }
+
     try {
         [Enterprise]$enterprise = getEnterprise
         $auth = $enterprise.loader.Auth
@@ -843,32 +874,6 @@ function Get-KeeperAuditReport {
         return ''
     }
 
-    $filteredEvents = $allEvents
-    if ($FilterPattern -and $FilterPattern.Count -gt 0) {
-        $patternFilters = [System.Collections.Generic.List[PSCustomObject]]::new()
-        foreach ($fp in $FilterPattern) {
-            $pf = ParsePattern $fp $UseRegex.IsPresent
-            if ($null -ne $pf) { $patternFilters.Add($pf) }
-        }
-        if ($patternFilters.Count -eq 0) {
-            Write-Warning "No valid filter patterns were provided. Showing unfiltered results."
-        }
-        else {
-        $filteredEvents = [System.Collections.Generic.List[System.Collections.Generic.Dictionary[string,object]]]::new()
-        foreach ($evt in $allEvents) {
-            if (ApplyFilters $evt $patternFilters $MatchAll.IsPresent) {
-                $filteredEvents.Add($evt)
-            }
-        }
-        if ($filteredEvents.Count -eq 0) {
-            Write-Host "No events matched the filter pattern(s)."
-            return
-        }
-        }
-    }
-
-    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
-
     if ($ReportType -eq 'raw') {
         $auditEventTypes = @{}
         try {
@@ -880,20 +885,54 @@ function Get-KeeperAuditReport {
             Write-Verbose "Could not load audit event type definitions: $($_.Exception.Message)"
         }
 
-        foreach ($evt in $filteredEvents) {
+        foreach ($evt in $allEvents) {
             $eventName = getEventValue $evt 'audit_event_type'
-            if (-not $eventName) { continue }
-
-            $message = ''
-            if ($auditEventTypes.ContainsKey($eventName) -and $auditEventTypes[$eventName].SyslogMessage) {
-                $message = $auditEventTypes[$eventName].SyslogMessage
+            if (-not $eventName -or -not $auditEventTypes.ContainsKey($eventName)) { continue }
+            $syslogMsg = $auditEventTypes[$eventName].SyslogMessage
+            if ($syslogMsg) {
+                $message = $syslogMsg
                 while ($message -match '\$\{(\w+)\}') {
                     $paramName = $Matches[1]
                     $paramValue = getEventValue $evt $paramName
                     $message = $message.Replace('${' + $paramName + '}', $paramValue)
                 }
+                $evt['_message'] = $message
             }
+        }
+    }
 
+    $filteredEvents = $allEvents
+    if ($FilterPattern -and $FilterPattern.Count -gt 0) {
+        $patternFilters = [System.Collections.Generic.List[PSCustomObject]]::new()
+        foreach ($fp in $FilterPattern) {
+            $pf = ParsePattern $fp $UseRegex.IsPresent
+            if ($null -ne $pf) { $patternFilters.Add($pf) }
+        }
+        if ($patternFilters.Count -eq 0) {
+            Write-Warning "No valid filter patterns were provided. Showing unfiltered results."
+        }
+        else {
+            $filteredEvents = [System.Collections.Generic.List[System.Collections.Generic.Dictionary[string,object]]]::new()
+            foreach ($evt in $allEvents) {
+                if (ApplyFilters $evt $patternFilters $MatchAll.IsPresent) {
+                    $filteredEvents.Add($evt)
+                }
+            }
+            if ($filteredEvents.Count -eq 0) {
+                Write-Host "No events matched the filter pattern(s)."
+                return
+            }
+        }
+    }
+
+    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    if ($ReportType -eq 'raw') {
+        foreach ($evt in $filteredEvents) {
+            $eventName = getEventValue $evt 'audit_event_type'
+            if (-not $eventName) { continue }
+
+            $message = getEventValue $evt '_message'
             $createdRaw = getEventValue $evt 'created'
             $createdStr = if ($createdRaw) { FormatEpochValue $createdRaw 'G' } else { '' }
 

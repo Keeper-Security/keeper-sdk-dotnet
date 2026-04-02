@@ -592,4 +592,3 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     Scope to a specific folder
     ```
-    PS > Get-K
