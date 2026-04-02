@@ -110,7 +110,7 @@
         'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash','Export-KeeperVault', 
         'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
-        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport'
+        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog'
         #'Test-Keeper',
     )
 
@@ -129,7 +129,7 @@
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report')
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report', 'kal')
 
     # List of all modules packaged with this module
     # ModuleList = @()
