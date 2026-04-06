@@ -5,7 +5,7 @@
   
   ### Enterprise Password Management SDK for .NET and PowerShell
   
-  [![NuGet](https://img.shields.io/nuget/v/KeeperSdk.svg)](https://www.nuget.org/packages/Keeper.Sdk/)
+  [![NuGet](https://img.shields.io/nuget/v/Keeper.Sdk.svg)](https://www.nuget.org/packages/Keeper.Sdk/)
   [![License](https://img.shields.io/github/license/Keeper-Security/keeper-sdk-dotnet)](LICENSE)
   [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
   [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PowerCommander.svg)](https://www.powershellgallery.com/packages/PowerCommander)
