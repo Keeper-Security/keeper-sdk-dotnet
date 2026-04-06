@@ -142,7 +142,7 @@ function Script:Get-ShareReportAuditEvents {
     foreach ($evt in $rs.Events) {
         $eventType = if ($evt.ContainsKey('audit_event_type')) { $evt['audit_event_type'].ToString() } else { '' }
         $recUid = if ($evt.ContainsKey('record_uid')) { $evt['record_uid'].ToString() } else { '' }
-        $created = Get-ShareReportCreatedUnixSeconds -Event $evt
+        $created = Get-ShareReportCreatedUnixSeconds -AuditEvent $evt
 
         if ($evt.ContainsKey('to_username')) {
             $toUser = $evt['to_username'].ToString()
@@ -372,6 +372,160 @@ function Script:Build-RecordToFolderIndex {
     return $index
 }
 
+function Script:Add-ShareReportSetValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable] $Map,
+        [Parameter(Mandatory = $true)]
+        [string] $Key,
+        [Parameter(Mandatory = $true)]
+        [string] $Value
+    )
+
+    if ([string]::IsNullOrEmpty($Key) -or [string]::IsNullOrEmpty($Value)) {
+        return
+    }
+
+    if (-not $Map.ContainsKey($Key)) {
+        $Map[$Key] = [System.Collections.Generic.HashSet[string]]::new()
+    }
+
+    [void]$Map[$Key].Add($Value)
+}
+
+function Script:Build-ShareReportSharedFolderCache {
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [System.Collections.IEnumerable] $AllShares
+    )
+
+    $sfMembershipCache = @{}
+    foreach ($shareInfo in $AllShares) {
+        if (-not $shareInfo.SharedFolderPermissions) { continue }
+
+        foreach ($sfp in $shareInfo.SharedFolderPermissions) {
+            if ($sfMembershipCache.ContainsKey($sfp.SharedFolderUid)) { continue }
+
+            [KeeperSecurity.Vault.SharedFolder] $sf = $null
+            if ($Vault.TryGetSharedFolder($sfp.SharedFolderUid, [ref]$sf)) {
+                $sfMembershipCache[$sfp.SharedFolderUid] = $sf
+            }
+        }
+    }
+
+    return $sfMembershipCache
+}
+
+function Script:Build-ShareReportRecordOwnerMap {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]] $RecordUids,
+        [Parameter(Mandatory = $true)]
+        [hashtable] $SharesMap,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [string] $CurrentUser
+    )
+
+    $recordOwnerMap = @{}
+    foreach ($uid in $RecordUids) {
+        $shareInfo = $SharesMap[$uid]
+        $ownerName = ''
+
+        if ($shareInfo -and $shareInfo.UserPermissions) {
+            foreach ($up in $shareInfo.UserPermissions) {
+                if ($up.Owner) {
+                    $ownerName = $up.Username
+                    break
+                }
+            }
+        }
+
+        [KeeperSecurity.Vault.KeeperRecord] $rec = $null
+        if (-not $ownerName -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and $rec.Owner) {
+            $ownerName = $CurrentUser
+        }
+
+        $recordOwnerMap[$uid] = $ownerName
+    }
+
+    return $recordOwnerMap
+}
+
+function Script:Get-ShareReportFolderPathText {
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [hashtable] $RecordToFolderIndex,
+        [Parameter(Mandatory = $true)]
+        [string] $RecordUid,
+        [Parameter()]
+        [System.Collections.Generic.HashSet[string]] $FilterFolderUids
+    )
+
+    $folderPaths = [System.Collections.Generic.List[string]]::new()
+    $folderUids = $RecordToFolderIndex[$RecordUid]
+    if (-not $folderUids) {
+        return ''
+    }
+
+    foreach ($fUid in $folderUids) {
+        if ($FilterFolderUids -and -not $FilterFolderUids.Contains($fUid)) {
+            continue
+        }
+
+        $folderPath = Get-ShareReportFolderPath -Vault $Vault -FolderUid $fUid
+        if ($folderPath) {
+            $folderPaths.Add($folderPath)
+        }
+    }
+
+    return ($folderPaths -join "`n")
+}
+
+function Script:Add-ShareReportSharedRecordRow {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [System.Collections.Generic.List[PSCustomObject]] $Table,
+        [Parameter(Mandatory = $true)]
+        [string] $RecordUid,
+        [Parameter(Mandatory = $true)]
+        [string] $Title,
+        [Parameter(Mandatory = $true)]
+        [string] $ShareType,
+        [Parameter(Mandatory = $true)]
+        [string] $SharedTo,
+        [Parameter(Mandatory = $true)]
+        [string] $Permissions,
+        [Parameter(Mandatory = $true)]
+        [string] $FolderPath,
+        [Parameter(Mandatory = $true)]
+        [bool] $IncludeOwner,
+        [Parameter()]
+        [string] $Owner
+    )
+
+    $row = [ordered]@{
+        'Record UID'  = $RecordUid
+        'Title'       = $Title
+        'Share Type'  = $ShareType
+        'Shared To'   = $SharedTo
+        'Permissions' = $Permissions
+        'Folder Path' = $FolderPath
+    }
+
+    if ($IncludeOwner) {
+        $row.Insert(0, 'Owner', $Owner)
+    }
+
+    $Table.Add([PSCustomObject]$row)
+}
+
 function Script:Write-ShareReportFolders {
     param(
         [KeeperSecurity.Vault.VaultOnline] $Vault,
@@ -515,20 +669,14 @@ function Script:Build-ShareReportFolderShares {
     foreach ($sf in $Vault.SharedFolders) {
         foreach ($perm in $sf.UsersPermissions) {
             $target = $perm.Name
-            if (-not $sfShares.ContainsKey($target)) {
-                $sfShares[$target] = [System.Collections.Generic.HashSet[string]]::new()
-            }
-            [void]$sfShares[$target].Add($sf.Uid)
+            Add-ShareReportSetValue -Map $sfShares -Key $target -Value $sf.Uid
 
             $isTeam = $perm.UserType -eq [KeeperSecurity.Vault.UserType]::Team
             if ($isTeam -and $ShowTeamUsers) {
                 $members = $TeamMembers[$perm.Uid]
                 if ($members) {
                     foreach ($member in $members) {
-                        if (-not $sfShares.ContainsKey($member)) {
-                            $sfShares[$member] = [System.Collections.Generic.HashSet[string]]::new()
-                        }
-                        [void]$sfShares[$member].Add($sf.Uid)
+                        Add-ShareReportSetValue -Map $sfShares -Key $member -Value $sf.Uid
                     }
                 }
             }
@@ -591,14 +739,7 @@ function Script:Write-ShareReportOwner {
         $recOwner = $RecordOwnerMap[$uid]
         $title = $RecordTitleMap[$uid]
 
-        $folderPaths = [System.Collections.Generic.List[string]]::new()
-        $folderUids = $RecordToFolderIndex[$uid]
-        if ($folderUids) {
-            foreach ($fUid in $folderUids) {
-                $folderPaths.Add((Get-ShareReportFolderPath -Vault $Vault -FolderUid $fUid))
-            }
-        }
-        $folderPathStr = $folderPaths -join "`n"
+        $folderPathStr = Get-ShareReportFolderPathText -Vault $Vault -RecordToFolderIndex $RecordToFolderIndex -RecordUid $uid
 
         $shareEvents = @()
         if ($IncludeShareDate -and $aramEnabled) {
@@ -921,35 +1062,9 @@ function Get-KeeperShareReport {
         $sharesMap[$s.RecordUid] = $s
     }
 
-    $sfMembershipCache = @{}
-    foreach ($shareInfo in $allShares) {
-        if ($shareInfo.SharedFolderPermissions) {
-            foreach ($sfp in $shareInfo.SharedFolderPermissions) {
-                if (-not $sfMembershipCache.ContainsKey($sfp.SharedFolderUid)) {
-                    [KeeperSecurity.Vault.SharedFolder] $sf = $null
-                    if ($vault.TryGetSharedFolder($sfp.SharedFolderUid, [ref]$sf)) {
-                        $sfMembershipCache[$sfp.SharedFolderUid] = $sf
-                    }
-                }
-            }
-        }
-    }
-
-    $recordOwnerMap = @{}
-    foreach ($uid in $sharedRecordUids) {
-        $shareInfo = $sharesMap[$uid]
-        $ownerName = ''
-        if ($shareInfo -and $shareInfo.UserPermissions) {
-            foreach ($up in $shareInfo.UserPermissions) {
-                if ($up.Owner) { $ownerName = $up.Username; break }
-            }
-        }
-        [KeeperSecurity.Vault.KeeperRecord] $rec = $null
-        if (-not $ownerName -and $vault.TryGetKeeperRecord($uid, [ref]$rec) -and $rec.Owner) {
-            $ownerName = $currentUser
-        }
-        $recordOwnerMap[$uid] = $ownerName
-    }
+    $sfMembershipCache = Build-ShareReportSharedFolderCache -Vault $vault -AllShares $allShares
+    $recordOwnerMap = Build-ShareReportRecordOwnerMap -RecordUids $sharedRecordUids.ToArray() `
+        -SharesMap $sharesMap -Vault $vault -CurrentUser $currentUser
 
     if ($Record) {
         Write-ShareReportRecordDetail -RecordUids $sharedRecordUids.ToArray() -SharesMap $sharesMap `
@@ -985,11 +1100,7 @@ function Get-KeeperShareReport {
         if ($shareInfo.UserPermissions) {
             foreach ($up in $shareInfo.UserPermissions) {
                 if ($up.Owner) { continue }
-                $target = $up.Username
-                if (-not $recordShares.ContainsKey($target)) {
-                    $recordShares[$target] = [System.Collections.Generic.HashSet[string]]::new()
-                }
-                [void]$recordShares[$target].Add($uid)
+                Add-ShareReportSetValue -Map $recordShares -Key $up.Username -Value $uid
             }
         }
 
@@ -1002,29 +1113,15 @@ function Get-KeeperShareReport {
                     $target = $perm.Name
                     $isTeam = $perm.UserType -eq [KeeperSecurity.Vault.UserType]::Team
 
-                    if (-not $sfShares.ContainsKey($target)) {
-                        $sfShares[$target] = [System.Collections.Generic.HashSet[string]]::new()
-                    }
-                    [void]$sfShares[$target].Add($sfp.SharedFolderUid)
-
-                    if (-not $recordShares.ContainsKey($target)) {
-                        $recordShares[$target] = [System.Collections.Generic.HashSet[string]]::new()
-                    }
-                    [void]$recordShares[$target].Add($uid)
+                    Add-ShareReportSetValue -Map $sfShares -Key $target -Value $sfp.SharedFolderUid
+                    Add-ShareReportSetValue -Map $recordShares -Key $target -Value $uid
 
                     if ($isTeam -and $ShowTeamUsers.IsPresent) {
                         $members = $teamMembers[$perm.Uid]
                         if ($members) {
                             foreach ($member in $members) {
-                                if (-not $sfShares.ContainsKey($member)) {
-                                    $sfShares[$member] = [System.Collections.Generic.HashSet[string]]::new()
-                                }
-                                [void]$sfShares[$member].Add($sfp.SharedFolderUid)
-
-                                if (-not $recordShares.ContainsKey($member)) {
-                                    $recordShares[$member] = [System.Collections.Generic.HashSet[string]]::new()
-                                }
-                                [void]$recordShares[$member].Add($uid)
+                                Add-ShareReportSetValue -Map $sfShares -Key $member -Value $sfp.SharedFolderUid
+                                Add-ShareReportSetValue -Map $recordShares -Key $member -Value $uid
                             }
                         }
                     }
@@ -1193,19 +1290,7 @@ function Get-KeeperSharedRecordsReport {
         $sharesMap[$s.RecordUid] = $s
     }
 
-    $sfMembershipCache = @{}
-    foreach ($shareInfo in $allShares) {
-        if ($shareInfo.SharedFolderPermissions) {
-            foreach ($sfp in $shareInfo.SharedFolderPermissions) {
-                if (-not $sfMembershipCache.ContainsKey($sfp.SharedFolderUid)) {
-                    [KeeperSecurity.Vault.SharedFolder] $sf = $null
-                    if ($vault.TryGetSharedFolder($sfp.SharedFolderUid, [ref]$sf)) {
-                        $sfMembershipCache[$sfp.SharedFolderUid] = $sf
-                    }
-                }
-            }
-        }
-    }
+    $sfMembershipCache = Build-ShareReportSharedFolderCache -Vault $vault -AllShares $allShares
 
     $recordToFolderIndex = Build-RecordToFolderIndex -Vault $vault
 
@@ -1231,35 +1316,17 @@ function Get-KeeperSharedRecordsReport {
             $owner = $currentUser
         }
 
-        $folderPaths = [System.Collections.Generic.List[string]]::new()
-        $folderUids = $recordToFolderIndex[$recordUid]
-        if ($folderUids) {
-            if ($null -ne $filterFolderUids) {
-                $folderUids = $folderUids | Where-Object { $filterFolderUids.Contains($_) }
-            }
-            foreach ($fUid in $folderUids) {
-                $folderPaths.Add((Get-ShareReportFolderPath -Vault $vault -FolderUid $fUid))
-            }
-        }
-        $folderPathStr = $folderPaths -join "`n"
+        $folderPathStr = Get-ShareReportFolderPathText -Vault $vault -RecordToFolderIndex $recordToFolderIndex `
+            -RecordUid $recordUid -FilterFolderUids $filterFolderUids
 
         if ($shareInfo.UserPermissions) {
             foreach ($up in $shareInfo.UserPermissions) {
                 if ($up.Owner) { continue }
                 if (-not $AllRecords.IsPresent -and $up.Username -eq $currentUser) { continue }
                 $permText = Get-PermissionsText -CanEdit $up.CanEdit -CanShare $up.CanShare
-                $row = [ordered]@{
-                    'Record UID'  = $recordUid
-                    'Title'       = $recTitle
-                    'Share Type'  = 'Direct Share'
-                    'Shared To'   = $up.Username
-                    'Permissions' = $permText
-                    'Folder Path' = $folderPathStr
-                }
-                if ($AllRecords.IsPresent) {
-                    $row.Insert(0, 'Owner', $owner)
-                }
-                $table.Add([PSCustomObject]$row)
+                Add-ShareReportSharedRecordRow -Table $table -RecordUid $recordUid -Title $recTitle `
+                    -ShareType 'Direct Share' -SharedTo $up.Username -Permissions $permText `
+                    -FolderPath $folderPathStr -IncludeOwner $AllRecords.IsPresent -Owner $owner
             }
         }
 
@@ -1268,18 +1335,9 @@ function Get-KeeperSharedRecordsReport {
                 $sf = $sfMembershipCache[$sfp.SharedFolderUid]
                 if (-not $sf) {
                     $permText = Get-PermissionsText -CanEdit $sfp.CanEdit -CanShare $sfp.CanShare
-                    $row = [ordered]@{
-                        'Record UID'  = $recordUid
-                        'Title'       = $recTitle
-                        'Share Type'  = 'Share Folder'
-                        'Shared To'   = '***'
-                        'Permissions' = $permText
-                        'Folder Path' = $sfp.SharedFolderUid
-                    }
-                    if ($AllRecords.IsPresent) {
-                        $row.Insert(0, 'Owner', $owner)
-                    }
-                    $table.Add([PSCustomObject]$row)
+                    Add-ShareReportSharedRecordRow -Table $table -RecordUid $recordUid -Title $recTitle `
+                        -ShareType 'Share Folder' -SharedTo '***' -Permissions $permText `
+                        -FolderPath $sfp.SharedFolderUid -IncludeOwner $AllRecords.IsPresent -Owner $owner
                     continue
                 }
 
@@ -1293,49 +1351,23 @@ function Get-KeeperSharedRecordsReport {
                     if ($isTeam) {
                         if ($ShowTeamUsers.IsPresent -and $teamMembers.ContainsKey($sfUser.Uid)) {
                             foreach ($member in $teamMembers[$sfUser.Uid]) {
-                                $row = [ordered]@{
-                                    'Record UID'  = $recordUid
-                                    'Title'       = $recTitle
-                                    'Share Type'  = 'Share Team Folder'
-                                    'Shared To'   = "($($sfUser.Name)) $member"
-                                    'Permissions' = $permText
-                                    'Folder Path' = $sfFolderPath
-                                }
-                                if ($AllRecords.IsPresent) {
-                                    $row.Insert(0, 'Owner', $owner)
-                                }
-                                $table.Add([PSCustomObject]$row)
+                                Add-ShareReportSharedRecordRow -Table $table -RecordUid $recordUid -Title $recTitle `
+                                    -ShareType 'Share Team Folder' -SharedTo "($($sfUser.Name)) $member" `
+                                    -Permissions $permText -FolderPath $sfFolderPath `
+                                    -IncludeOwner $AllRecords.IsPresent -Owner $owner
                             }
                         }
                         else {
-                            $row = [ordered]@{
-                                'Record UID'  = $recordUid
-                                'Title'       = $recTitle
-                                'Share Type'  = 'Share Team Folder'
-                                'Shared To'   = $sfUser.Name
-                                'Permissions' = $permText
-                                'Folder Path' = $sfFolderPath
-                            }
-                            if ($AllRecords.IsPresent) {
-                                $row.Insert(0, 'Owner', $owner)
-                            }
-                            $table.Add([PSCustomObject]$row)
+                            Add-ShareReportSharedRecordRow -Table $table -RecordUid $recordUid -Title $recTitle `
+                                -ShareType 'Share Team Folder' -SharedTo $sfUser.Name -Permissions $permText `
+                                -FolderPath $sfFolderPath -IncludeOwner $AllRecords.IsPresent -Owner $owner
                         }
                     }
                     else {
                         if (-not $AllRecords.IsPresent -and $sfUser.Name -eq $currentUser) { continue }
-                        $row = [ordered]@{
-                            'Record UID'  = $recordUid
-                            'Title'       = $recTitle
-                            'Share Type'  = 'Share Folder'
-                            'Shared To'   = $sfUser.Name
-                            'Permissions' = $permText
-                            'Folder Path' = $sfFolderPath
-                        }
-                        if ($AllRecords.IsPresent) {
-                            $row.Insert(0, 'Owner', $owner)
-                        }
-                        $table.Add([PSCustomObject]$row)
+                        Add-ShareReportSharedRecordRow -Table $table -RecordUid $recordUid -Title $recTitle `
+                            -ShareType 'Share Folder' -SharedTo $sfUser.Name -Permissions $permText `
+                            -FolderPath $sfFolderPath -IncludeOwner $AllRecords.IsPresent -Owner $owner
                     }
                 }
             }
