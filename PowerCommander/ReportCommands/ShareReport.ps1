@@ -1132,7 +1132,6 @@ function Get-KeeperShareReport {
     }
 
     $recordShares = @{}
-    $sfShares = @{}
 
     foreach ($uid in $sharedRecordUids) {
         $shareInfo = $sharesMap[$uid]
@@ -1151,17 +1150,14 @@ function Get-KeeperShareReport {
                 if (-not $sf) { continue }
 
                 foreach ($perm in $sf.UsersPermissions) {
-                    $target = $perm.Name
                     $isTeam = $perm.UserType -eq [KeeperSecurity.Vault.UserType]::Team
 
-                    Add-ShareReportSetValue -Map $sfShares -Key $target -Value $sfp.SharedFolderUid
-                    Add-ShareReportSetValue -Map $recordShares -Key $target -Value $uid
+                    Add-ShareReportSetValue -Map $recordShares -Key $perm.Name -Value $uid
 
                     if ($isTeam -and $ShowTeamUsers.IsPresent) {
                         $members = $teamMembers[$perm.Uid]
                         if ($members) {
                             foreach ($member in $members) {
-                                Add-ShareReportSetValue -Map $sfShares -Key $member -Value $sfp.SharedFolderUid
                                 Add-ShareReportSetValue -Map $recordShares -Key $member -Value $uid
                             }
                         }
@@ -1171,9 +1167,10 @@ function Get-KeeperShareReport {
         }
     }
 
+    $sfShares = Build-ShareReportFolderShares -Vault $vault -TeamMembers $teamMembers -ShowTeamUsers $ShowTeamUsers.IsPresent
+
     if ($Email -and $SharedFolders.IsPresent) {
-        $folderSfShares = Build-ShareReportFolderShares -Vault $vault -TeamMembers $teamMembers -ShowTeamUsers $ShowTeamUsers.IsPresent
-        Write-ShareReportUserSharedFolders -SfShares $folderSfShares -SfMembershipCache $sfMembershipCache `
+        Write-ShareReportUserSharedFolders -SfShares $sfShares -SfMembershipCache $sfMembershipCache `
             -Vault $vault -UserFilter $userFilter -Format $Format -Output $Output
         return
     }
