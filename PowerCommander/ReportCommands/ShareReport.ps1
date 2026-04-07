@@ -68,9 +68,16 @@ function Script:Get-ShareReportTeamMembers {
 
     $teamMembers = @{}
 
-    $enterprise = $Script:Context.Enterprise
+    try {
+        $enterprise = getEnterprise
+    }
+    catch {
+        Write-Warning "Enterprise data is not available for team expansion. Details: $($_.Exception.Message)"
+        return $teamMembers
+    }
+
     if ($null -eq $enterprise -or $null -eq $enterprise.enterpriseData) {
-        Write-Warning "Enterprise data is not available. login as enterprise admin."
+        Write-Warning 'Enterprise data is not available for team expansion.'
         return $teamMembers
     }
 
@@ -267,6 +274,30 @@ function Script:Get-ShareDateForFolder {
     return "(shared on $dt)"
 }
 
+function Script:Get-ShareReportRecordDate {
+    param($ActivityList)
+
+    if (-not $ActivityList -or $ActivityList.Count -eq 0) { return '' }
+
+    $createdSec = 0L
+    foreach ($activity in $ActivityList) {
+        if (-not $activity.ContainsKey('audit_event_type')) { continue }
+
+        $eventType = $activity['audit_event_type'].ToString()
+        if ($eventType -notin @('share', 'record_share_outside_user', 'folder_add_record')) { continue }
+
+        $sec = Get-ShareReportCreatedUnixSeconds -AuditEvent $activity
+        if ($sec -le 0) { continue }
+
+        if ($createdSec -eq 0 -or $sec -lt $createdSec) {
+            $createdSec = $sec
+        }
+    }
+
+    if ($createdSec -le 0) { return '' }
+    return [DateTimeOffset]::FromUnixTimeSeconds($createdSec).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss UTC')
+}
+
 function Script:Get-PermissionsText {
     param([bool] $CanEdit, [bool] $CanShare)
 
@@ -398,7 +429,8 @@ function Script:Build-ShareReportSharedFolderCache {
         [Parameter(Mandatory = $true)]
         [KeeperSecurity.Vault.VaultOnline] $Vault,
         [Parameter(Mandatory = $true)]
-        [System.Collections.IEnumerable] $AllShares
+        [AllowEmptyCollection()]
+        [object[]] $AllShares
     )
 
     $sfMembershipCache = @{}
@@ -746,6 +778,11 @@ function Script:Write-ShareReportOwner {
             $shareEvents = Get-ShareReportAuditEvents -Auth $Vault.Auth -RecordUid $uid -AramEnabled ([ref]$aramEnabled)
         }
 
+        $recordShareDate = ''
+        if ($IncludeShareDate -and $shareEvents.Count -gt 0) {
+            $recordShareDate = Get-ShareReportRecordDate -ActivityList $shareEvents
+        }
+
         $shareTargets = [System.Collections.Generic.List[string]]::new()
         $permissionsList = [System.Collections.Generic.List[object]]::new()
 
@@ -850,13 +887,17 @@ function Script:Write-ShareReportOwner {
             $shareInfoText = $shareTargets -join "`n"
         }
 
-        $table.Add([PSCustomObject][ordered]@{
+        $row = [ordered]@{
             'Record Owner' = $recOwner
             'Record UID'   = $uid
             'Record Title' = $title
             'Shared With'  = $shareInfoText
             'Folder Path'  = $folderPathStr
-        })
+        }
+        if ($IncludeShareDate) {
+            $row['Share Date'] = $recordShareDate
+        }
+        $table.Add([PSCustomObject]$row)
     }
 
     Write-ShareReportOutput -Rows $table -Title 'Record Share Report (Owner)' -Format $Format -Output $Output
