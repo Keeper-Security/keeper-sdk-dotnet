@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System.Collections.Generic;
 
 namespace KeeperSecurity.Commands
@@ -708,6 +708,56 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "enterprise_id")]
         public int EnterpriseId { get; set; }
+    }
+
+    [DataContract]
+    public class GetMcLicenseAdjustmentLogCommand : AuthenticatedCommand
+    {
+        public GetMcLicenseAdjustmentLogCommand() : base("get_mc_license_adjustment_log") { }
+
+        [DataMember(Name = "from")]
+        public long From { get; set; }
+
+        [DataMember(Name = "to")]
+        public long To { get; set; }
+    }
+
+    [DataContract]
+    public class LicenseAdjustmentLogEntry
+    {
+        [DataMember(Name = "id")]
+        public long Id { get; set; }
+
+        [DataMember(Name = "date")]
+        public string Date { get; set; }
+
+        [DataMember(Name = "enterprise_id")]
+        public long EnterpriseId { get; set; }
+
+        [DataMember(Name = "enterprise_name")]
+        public string EnterpriseName { get; set; }
+
+        [DataMember(Name = "status")]
+        public string Status { get; set; }
+
+        [DataMember(Name = "new_number_of_seats")]
+        public int NewNumberOfSeats { get; set; }
+
+        [DataMember(Name = "new_product_type")]
+        public string NewProductType { get; set; }
+
+        [DataMember(Name = "note")]
+        public string Note { get; set; }
+
+        [DataMember(Name = "price")]
+        public string Price { get; set; }
+    }
+
+    [DataContract]
+    public class GetMcLicenseAdjustmentLogResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "log")]
+        public List<LicenseAdjustmentLogEntry> Log { get; set; }
     }
 
     [DataContract]
