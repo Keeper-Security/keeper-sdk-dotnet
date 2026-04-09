@@ -886,7 +886,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// UIDs from returned rows that could not be decrypted or loaded.
         /// For <see cref="RecordSkipSyncDown.GetOwnedRecordsAsync"/>, includes unsupported <c>recordKeyType</c> or bad <see cref="RecordData"/> keys.
-        /// For <see cref="RecordSkipSyncDown.GetSharedFolderRecordsAsync"/>, includes UIDs missing from the shared-folder key map or ciphertext load failures.
+        /// For <see cref="RecordSkipSyncDown.GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/> and the subset overload, includes UIDs missing from the shared-folder key map or ciphertext load failures.
         /// </summary>
         public IReadOnlyList<string> FailedRecordUids { get; }
 

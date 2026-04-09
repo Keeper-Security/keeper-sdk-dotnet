@@ -71,13 +71,15 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1')
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1', 'SkipSyncCommands.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
-        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
+        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperOwnedRecordsSkipSync', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
-        'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
+        'Get-KeeperSharedFolder', 'Get-KeeperSharedFolderRecordDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync',
+        'Get-KeeperSharedFolderRecordsOwnedSkipSync', 'Get-KeeperSharedFolderRecordsSharedKeySkipSync', 'Get-KeeperSharedFolderRecordsSkipSync',
+        'Get-KeeperSharedFolderSkipSync', 'Get-KeeperTeamUidSkipSync', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperNodePath', 'Get-KeeperRoleName', 
         'New-KeeperEnterpriseTeam','Get-KeeperEnterpriseInfoTree', 'Get-KeeperEnterpriseInfoNode', 'Get-KeeperEnterpriseInfoUser',
@@ -88,9 +90,9 @@
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
         'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
         'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
-        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 'Get-KeeperMspLegacyReport',
-        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
-        'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
+        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 
+        'Get-KeeperMspLegacyReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 
+        'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
         'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
         'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole', 'Copy-KeeperEnterpriseRole', 
@@ -110,7 +112,9 @@
         'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash','Export-KeeperVault', 
         'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
-        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog'
+        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog' 
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Grant-KeeperSharedFolderUserSkipSync','Remove-KeeperSharedFolderTeamSkipSync', 'Remove-KeeperSharedFolderUserSkipSync',
+        'Revoke-KeeperSharedFolderUserSkipSync', 'Set-KeeperSharedFolderTeamSkipSync', 'Set-KeeperSharedFolderUserSkipSync', 
         #'Test-Keeper',
     )
 

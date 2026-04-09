@@ -361,6 +361,10 @@ function Connect-Keeper {
 
     .Parameter Config
     Config file name
+
+   .Parameter SkipSync
+    After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available
+    (e.g. skip-sync and auth-only APIs); the local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -370,7 +374,8 @@ function Connect-Keeper {
         [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
         [Parameter()][string] $Server,
-        [Parameter()][string] $Config
+        [Parameter()][string] $Config,
+        [Parameter()][switch] $SkipSync
     )
 
     Disconnect-Keeper -Resume | Out-Null
@@ -460,12 +465,12 @@ function Connect-Keeper {
         if ($biometricPresent) {
             try {
                 Write-Host "Attempting Keeper biometric authentication..."
-                
+
                 $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success -and $biometricResult.IsValid) {
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {
-                        Write-Verbose "Authentication completed successfully!"
+                        Write-Debug "Authentication completed successfully!"
                         break
                     }
                     Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
@@ -533,10 +538,18 @@ function Connect-Keeper {
         Write-Information -MessageData "Connected to Keeper as $Username" -InformationAction Continue
 
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
-        $task = $vault.SyncDown()
-        Write-Information -MessageData 'Syncing ...' -InformationAction Continue
-        $task.GetAwaiter().GetResult() | Out-Null
-        $vault.AutoSync = $true
+        if ($SkipSync.IsPresent) {
+            $vault.AutoSync = $false
+            Write-Information -MessageData 'SkipSync: vault SyncDown skipped. Local folder tree and records are empty until you run Sync-Keeper.' -InformationAction Continue
+        }
+        else {
+            $task = $vault.SyncDown()
+            Write-Information -MessageData 'Syncing ...' -InformationAction Continue
+            $task.GetAwaiter().GetResult() | Out-Null
+            $vault.AutoSync = $true
+            [KeeperSecurity.Vault.VaultData]$vaultData = $vault
+            Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)" -InformationAction Continue
+        }
 
         $Script:Context.Auth = $auth
         $Script:Context.Vault = $vault
@@ -633,6 +646,7 @@ function Sync-Keeper {
         Write-Host "Syncing vault with Keeper server..."
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
+        $vault.AutoSync = $true
         Write-Host "Vault sync completed."
     }
     else {
