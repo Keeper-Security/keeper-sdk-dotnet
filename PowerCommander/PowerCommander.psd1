@@ -71,15 +71,15 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1', 'SkipSyncCommands.ps1')
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
+        'SkipSyncCommands.ps1'
+        )
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
-        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperOwnedRecordsSkipSync', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
+        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
-        'Get-KeeperSharedFolder', 'Get-KeeperSharedFolderRecordDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync',
-        'Get-KeeperSharedFolderRecordsOwnedSkipSync', 'Get-KeeperSharedFolderRecordsSharedKeySkipSync', 'Get-KeeperSharedFolderRecordsSkipSync',
-        'Get-KeeperSharedFolderSkipSync', 'Get-KeeperTeamUidSkipSync', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
+        'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperNodePath', 'Get-KeeperRoleName', 
         'New-KeeperEnterpriseTeam','Get-KeeperEnterpriseInfoTree', 'Get-KeeperEnterpriseInfoNode', 'Get-KeeperEnterpriseInfoUser',
@@ -112,9 +112,11 @@
         'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash','Export-KeeperVault', 
         'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
-        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog' 
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Grant-KeeperSharedFolderUserSkipSync','Remove-KeeperSharedFolderTeamSkipSync', 'Remove-KeeperSharedFolderUserSkipSync',
-        'Revoke-KeeperSharedFolderUserSkipSync', 'Set-KeeperSharedFolderTeamSkipSync', 'Set-KeeperSharedFolderUserSkipSync', 
+        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog',
+        'Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 'Get-KeeperSharedFolderRecordsSkipSync', 
+        'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 'Get-KeeperTeamUidSkipSync',
+        'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
         #'Test-Keeper',
     )
 
@@ -131,7 +133,7 @@
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
-        'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs', 
+        'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report', 'kal')
 
@@ -165,7 +167,7 @@
                 'Get-KeeperRecordHistory (krh) - get version history for a record',
                 'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
                 'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
-                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update'
+                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
                 'Get-KeeperShareReport - A report to display with whom records and folders are shared with along with summary, owner and per-user views',
                 'Get-KeeperSharedRecordsReport (ksrr) - per-row shared records: share type, recipient, permissions, folder path; -AllRecords, -Folder, -ShowTeamUsers',
                 'Get-KeeperAuditReport (kar) - enterprise audit trail: raw events, span/day/week/month/hour aggregates, dimension (dim) views; filters for user, dates, event type, record/shared folder/team UID, IP, node',

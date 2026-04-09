@@ -67,17 +67,16 @@ namespace KeeperSecurity.Vault
         {
             if (auth == null)
                 throw new VaultException("An authenticated session is needed.");
-            if (string.IsNullOrWhiteSpace(sharedFolderUid))
+            if (string.IsNullOrEmpty(sharedFolderUid))
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
 
-            var uid = sharedFolderUid.Trim();
             var command = new GetSharedFoldersCommand
             {
                 SharedFolders = new[]
                 {
                     new GetSharedFoldersRequestItem
                     {
-                        SharedFolderUid = uid,
+                        SharedFolderUid = sharedFolderUid.Trim(),
                     },
                 },
                 Include = new[] { "sfheaders", "sfusers", "sfrecords", "sfteams" },
@@ -98,7 +97,8 @@ namespace KeeperSecurity.Vault
                 return null;
             var uid = sharedFolderUid.Trim();
             return folderRs.SharedFolders.FirstOrDefault(f =>
-                string.Equals(f.SharedFolderUid, uid, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(f.SharedFolderUid, uid, StringComparison.OrdinalIgnoreCase))
+                ?? folderRs.SharedFolders[0];
         }
 
         /// <inheritdoc cref="ISharedFolderSkipSyncDown.GetRecordUidsFromSharedFolderAsync" />
@@ -143,8 +143,7 @@ namespace KeeperSecurity.Vault
             if (sf == null)
                 return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
-            var sfKey = await ResolveSharedFolderKeyBytesAsync(sf, auth).ConfigureAwait(false);
-            if (sfKey == null || sfKey.Length == 0)
+            if (!TryResolveSharedFolderKey(sf, auth, out var sfKey) || sfKey == null || sfKey.Length == 0)
                 return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
             var map = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);

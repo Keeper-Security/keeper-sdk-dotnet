@@ -348,7 +348,8 @@ function Connect-Keeper {
     User password
 
     .Parameter NewLogin
-    Do not use Last Login information
+    Do not resume the stored session (full login). When omitted, resume is also skipped if -Username
+    differs from the stored LastLogin (switching accounts).
 
     .Parameter SsoPassword
     Use Master Password for SSO account
@@ -363,8 +364,7 @@ function Connect-Keeper {
     Config file name
 
    .Parameter SkipSync
-    After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available
-    (e.g. skip-sync and auth-only APIs); the local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
+    After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -393,8 +393,6 @@ function Connect-Keeper {
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
-    $authFlow.ResumeSession = -not ($NewLogin.IsPresent -or $Password)
-    Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
@@ -422,9 +420,20 @@ function Connect-Keeper {
         Write-Error "Non-interactive session detected" -ErrorAction Stop 
     }
 
+    $canResume = -not ($NewLogin.IsPresent -or $Password)
+    if ($canResume -and $PSBoundParameters.ContainsKey('Username')) {
+        $cfgForResume = $storage.Get()
+        if ($cfgForResume.LastLogin -and $Username -and
+            [string]::Compare($Username, $cfgForResume.LastLogin, $true) -ne 0) {
+            $canResume = $false
+            Write-Verbose "Username differs from stored LastLogin; starting a new session (no resume)."
+        }
+    }
+    $authFlow.ResumeSession = $canResume
+    Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
+
     $biometricPresent = $false
     try {
-        # Check Windows Hello capabilities first
         $windowsHelloAvailable = Test-WindowsHelloCapabilities
         if ($windowsHelloAvailable) {
             $biometricPresent = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
@@ -535,7 +544,7 @@ function Connect-Keeper {
 
     $auth = $authFlow
     if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
-        Write-Information -MessageData "Connected to Keeper as $Username" -InformationAction Continue
+        Write-Information -MessageData "Connected to Keeper as $($auth.Username)" -InformationAction Continue
 
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
         if ($SkipSync.IsPresent) {
@@ -547,8 +556,6 @@ function Connect-Keeper {
             Write-Information -MessageData 'Syncing ...' -InformationAction Continue
             $task.GetAwaiter().GetResult() | Out-Null
             $vault.AutoSync = $true
-            [KeeperSecurity.Vault.VaultData]$vaultData = $vault
-            Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)" -InformationAction Continue
         }
 
         $Script:Context.Auth = $auth
