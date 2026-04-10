@@ -10,13 +10,13 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 
 ### Optional: SQLite vault storage (-UseOfflineStorage)
 
-To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). All helper DLLs must be in the **PowerCommanderStorageUtils** subfolder inside the PowerCommander module directory. If files are missing there, an error is thrown **only when you use** `-UseOfflineStorage`.
+To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Copy **PowerCommanderStorageUtils.dll** and its SQLite dependencies into the **PowerCommander module folder** (same directory as `PowerCommander.psd1`, `KeeperSdk.dll`, and other module assemblies). If the helper DLL is missing, an error is thrown **only when you use** `-UseOfflineStorage`.
 
-- Build the **PowerCommanderStorageUtils** project, then copy its output (and dependencies) into `PowerCommander/PowerCommanderStorageUtils/`.
+- Build the **PowerCommanderStorageUtils** project, then copy its output (and dependencies) next to `PowerCommander.psd1`.
 - **macOS / Linux:** Publish to include the native SQLite library:  
   `dotnet publish PowerCommanderStorageUtils/PowerCommanderStorageUtils.csproj -c Debug -r osx-arm64 -o PowerCommanderStorageUtils/bin/publish-osx-arm64`  
-  Then copy the contents of that publish folder into `PowerCommander/PowerCommanderStorageUtils/`.
-- **Windows:** `dotnet build` then copy from `PowerCommanderStorageUtils/bin/Debug/net8.0/` (and runtimes) into `PowerCommander/PowerCommanderStorageUtils/`.
+  Then copy the published DLLs and `libe_sqlite3.dylib` into `PowerCommander/`.
+- **Windows:** `dotnet build` then copy from `PowerCommanderStorageUtils/bin/Debug/net8.0/` (and runtimes) into `PowerCommander/`.
 
 See **PowerCommanderStorageUtils/README.md** for the exact file list.
 

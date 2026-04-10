@@ -1,16 +1,14 @@
 #requires -Version 5.1
 
-# Optional SQLite vault storage: DLLs loaded only from PowerCommanderStorageUtils/ when -UseOfflineStorage is used
+# Optional SQLite vault storage resolver for powershell
 function Get-SqliteVaultStorageFromHelper {
     param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
     $moduleRoot = $PSScriptRoot
     if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
-    $storageDir = Join-Path $moduleRoot 'PowerCommanderStorageUtils'
-    $helperDll = Join-Path $storageDir 'PowerCommanderStorageUtils.dll'
+    $helperDll = Join-Path $moduleRoot 'PowerCommanderStorageUtils.dll'
     if (-not (Test-Path -LiteralPath $helperDll -PathType Leaf)) {
-        throw "PowerCommanderStorageUtils.dll not found in '$storageDir'. When using -UseOfflineStorage, place PowerCommanderStorageUtils.dll and its dependencies (Microsoft.Data.Sqlite.dll, SQLitePCLRaw.*.dll, libe_sqlite3.dylib or e_sqlite3.dll) in the PowerCommanderStorageUtils subfolder."
+        throw "PowerCommanderStorageUtils.dll not found at '$helperDll'. When using -UseOfflineStorage, build PowerCommanderStorageUtils and copy PowerCommanderStorageUtils.dll plus Microsoft.Data.Sqlite.dll, SQLitePCLRaw.*.dll, and libe_sqlite3.dylib (or e_sqlite3.dll) into the PowerCommander module folder next to PowerCommander.psd1."
     }
-    # Load only if not already loaded (e.g. from a previous Connect-Keeper -UseOfflineStorage in same session)
     $factoryType = $null
     try { $factoryType = [PowerCommanderStorageUtils.VaultStorageFactory] } catch { }
     if (-not $factoryType) {
@@ -383,7 +381,7 @@ function Connect-Keeper {
     Config file name
 
     .Parameter UseOfflineStorage
-    Use SQLite file for vault cache (persists between sessions). Requires PowerCommanderStorageUtils.dll and its dependencies in PowerCommander/PowerCommanderStorageUtils/.
+    Use SQLite file for vault cache (persists between sessions).
 
     .Parameter VaultDatabasePath
     Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file (or current directory).

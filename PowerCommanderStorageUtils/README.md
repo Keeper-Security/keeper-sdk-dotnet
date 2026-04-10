@@ -1,6 +1,6 @@
 # PowerCommanderStorageUtils
 
-SQLite vault storage helper for PowerCommander when `-UseOfflineStorage` is used. Build this project and place its output (and dependencies) in **PowerCommander/PowerCommanderStorageUtils/** so that DLLs are loaded only from that subfolder.
+SQLite vault storage helper for PowerCommander when `-UseOfflineStorage` is used. Build this project and copy its output (and dependencies) into the **PowerCommander module directory**—the same folder as `PowerCommander.psd1` and `KeeperSdk.dll`—so `Assembly.LoadFrom` resolves dependencies from one place.
 
 ## Build and deploy
 
@@ -15,15 +15,14 @@ SQLite vault storage helper for PowerCommander when `-UseOfflineStorage` is used
    dotnet publish PowerCommanderStorageUtils/PowerCommanderStorageUtils.csproj -c Debug -r $RID -o PowerCommanderStorageUtils/bin/publish-$RID
    ```
 
-3. **Copy into PowerCommander:** Create the subfolder and copy DLLs there:
+3. **Copy into PowerCommander** (module root, next to `PowerCommander.psd1`):
    ```bash
-   mkdir -p PowerCommander/PowerCommanderStorageUtils
-   cp PowerCommanderStorageUtils/bin/publish-<rid>/*.dll PowerCommander/PowerCommanderStorageUtils/
-   cp PowerCommanderStorageUtils/bin/publish-<rid>/libe_sqlite3.dylib PowerCommander/PowerCommanderStorageUtils/   # macOS
-   # Windows: copy e_sqlite3.dll instead
+   cp PowerCommanderStorageUtils/bin/publish-<rid>/*.dll PowerCommander/
+   cp PowerCommanderStorageUtils/bin/publish-<rid>/libe_sqlite3.dylib PowerCommander/   # macOS
+   # Windows: copy e_sqlite3.dll into PowerCommander/ instead
    ```
 
-   Required files in `PowerCommander/PowerCommanderStorageUtils/`:
+   Required files in `PowerCommander/` (alongside `KeeperSdk.dll`):
    - PowerCommanderStorageUtils.dll
    - Microsoft.Data.Sqlite.dll
    - SQLitePCLRaw.batteries_v2.dll
@@ -31,4 +30,4 @@ SQLite vault storage helper for PowerCommander when `-UseOfflineStorage` is used
    - SQLitePCLRaw.provider.e_sqlite3.dll
    - libe_sqlite3.dylib (macOS) or e_sqlite3.dll (Windows)
 
-If these files are not found in `PowerCommanderStorageUtils/`, an error is thrown **only when you use** `Connect-Keeper -UseOfflineStorage`.
+If `PowerCommanderStorageUtils.dll` is not found in the module folder, an error is thrown **only when you use** `Connect-Keeper -UseOfflineStorage`.
