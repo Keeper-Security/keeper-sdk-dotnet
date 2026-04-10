@@ -5,10 +5,43 @@ function Get-SqliteVaultStorageFromHelper {
     param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
     $moduleRoot = $PSScriptRoot
     if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
-    $helperDll = Join-Path $moduleRoot 'PowerCommanderStorageUtils.dll'
-    if (-not (Test-Path -LiteralPath $helperDll -PathType Leaf)) {
-        throw "PowerCommanderStorageUtils.dll not found at '$helperDll'. When using -UseOfflineStorage, build PowerCommanderStorageUtils and copy PowerCommanderStorageUtils.dll plus Microsoft.Data.Sqlite.dll, SQLitePCLRaw.*.dll, and libe_sqlite3.dylib (or e_sqlite3.dll) into the PowerCommander module folder next to PowerCommander.psd1."
+
+    $storageUtilsRoot = Join-Path $moduleRoot 'StorageUtils'
+    $requiredStorageDlls = @(
+        'PowerCommanderStorageUtils.dll',
+        'Microsoft.Data.Sqlite.dll',
+        'SQLitePCLRaw.batteries_v2.dll',
+        'SQLitePCLRaw.core.dll',
+        'SQLitePCLRaw.provider.e_sqlite3.dll'
+    )
+    $nativeCandidates = @('e_sqlite3.dll', 'libe_sqlite3.dylib', 'libe_sqlite3.so')
+
+    $missingFiles = [System.Collections.Generic.List[string]]::new()
+    foreach ($fileName in $requiredStorageDlls) {
+        $filePath = Join-Path $storageUtilsRoot $fileName
+        if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
+            $missingFiles.Add($fileName)
+        }
     }
+
+    $nativeFound = $false
+    foreach ($nativeName in $nativeCandidates) {
+        $nativePath = Join-Path $storageUtilsRoot $nativeName
+        if (Test-Path -LiteralPath $nativePath -PathType Leaf) {
+            $nativeFound = $true
+            break
+        }
+    }
+    if (-not $nativeFound) {
+        $missingFiles.Add('One of: e_sqlite3.dll, libe_sqlite3.dylib, libe_sqlite3.so')
+    }
+
+    if ($missingFiles.Count -gt 0) {
+        $missingList = $missingFiles -join ', '
+        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the storage helper DLLs into the 'StorageUtils' folder under the PowerCommander module directory."
+    }
+
+    $helperDll = Join-Path $storageUtilsRoot 'PowerCommanderStorageUtils.dll'
     $factoryType = $null
     try { $factoryType = [PowerCommanderStorageUtils.VaultStorageFactory] } catch { }
     if (-not $factoryType) {

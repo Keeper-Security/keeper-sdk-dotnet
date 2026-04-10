@@ -58,9 +58,49 @@ jobs:
           Set-AuthenticodeSignature -FilePath bin\Release\net8.0\win-x64\PowerCommanderStorageUtils.dll -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell
 
-      - name: Store PowerCommander Storage Utils artifacts
+      - name: Prepare StorageUtils artifact
+        shell: powershell
+        run: |
+          $buildOutput = Resolve-Path "PowerCommanderStorageUtils/bin/Release/net8.0/win-x64"
+          $artifactRoot = Join-Path $PWD "artifact/StorageUtils"
+
+          if (Test-Path $artifactRoot) {
+            Remove-Item -Force -Recurse $artifactRoot
+          }
+
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+
+          $requiredManagedFiles = @(
+            "PowerCommanderStorageUtils.dll",
+            "Microsoft.Data.Sqlite.dll",
+            "SQLitePCLRaw.batteries_v2.dll",
+            "SQLitePCLRaw.core.dll",
+            "SQLitePCLRaw.provider.e_sqlite3.dll"
+          )
+
+          foreach ($fileName in $requiredManagedFiles) {
+            $sourcePath = Join-Path $buildOutput $fileName
+            if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+              throw "Required artifact file not found: $sourcePath"
+            }
+            Copy-Item -LiteralPath $sourcePath -Destination $artifactRoot -Force
+          }
+
+          $nativeCandidates = @(
+            (Join-Path $buildOutput "e_sqlite3.dll"),
+            (Join-Path $buildOutput "runtimes/win-x64/native/e_sqlite3.dll")
+          )
+
+          $nativePath = $nativeCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+          if (-not $nativePath) {
+            throw "Required native SQLite library not found. Checked: $($nativeCandidates -join ', ')"
+          }
+
+          Copy-Item -LiteralPath $nativePath -Destination (Join-Path $artifactRoot "e_sqlite3.dll") -Force
+
+      - name: Store StorageUtils artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PowerCommanderStorageUtils-win-x64
-          path: PowerCommanderStorageUtils/bin/Release/net8.0/win-x64/
+          name: StorageUtils-win-x64
+          path: artifact/StorageUtils/
           retention-days: 1
