@@ -8,6 +8,18 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
+### Optional: SQLite vault storage (-UseOfflineStorage)
+
+To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll` and `KeeperBiometrics.dll` in the **PowerCommander module folder**, and copy **PowerCommanderStorageUtils.dll** plus its SQLite dependencies into `PowerCommander\StorageUtils\`. These files are validated and loaded only when you use `-UseOfflineStorage`.
+
+- Build the **PowerCommanderStorageUtils** project, then copy its output (and dependencies) into `PowerCommander\StorageUtils\`.
+- **macOS / Linux:** Publish to include the native SQLite library:  
+  `dotnet publish PowerCommanderStorageUtils/PowerCommanderStorageUtils.csproj -c Debug -r osx-arm64 -o PowerCommanderStorageUtils/bin/publish-osx-arm64`  
+  Then copy the published DLLs and `libe_sqlite3.dylib` into `PowerCommander/StorageUtils/`.
+- **Windows:** `dotnet build` then copy from `PowerCommanderStorageUtils/bin/Debug/net8.0/` (and runtimes) into `PowerCommander/StorageUtils/`.
+
+See [`PowerCommanderStorageUtils/README.md`](../PowerCommanderStorageUtils/README.md) for the exact file list.
+
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
