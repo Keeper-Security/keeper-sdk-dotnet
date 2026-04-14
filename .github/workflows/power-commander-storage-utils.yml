@@ -44,7 +44,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # Commander references Microsoft.Data.Sqlite (same family as KeeperSdk); publish output contains the managed + native SQLite files for StorageUtils.
+      # Commander references Microsoft.Data.Sqlite; publish output contains the managed + native SQLite files for PowerCommander StorageUtils.
       - name: Publish Commander (win-x64, SQLite dependencies)
         run: |
           if (Test-Path artifact) { Remove-Item -Force -Recurse artifact }
