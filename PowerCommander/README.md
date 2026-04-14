@@ -197,6 +197,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperShareReport                                   |                  | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
 | Get-KeeperSharedRecordsReport                           | ksrr             | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
 | Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
+| Invoke-KeeperAuditAlert                                 |                  | Manage enterprise audit alert notification rules: list, view, history, add, edit, delete, enable, disable, reset-counts, and recipient management. Supports -Target, -Format (table, json, csv), -Output, -Reload (enterprise admin)
 | Get-KeeperSecurityAuditReport                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
 | Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 
@@ -590,5 +591,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
     ```
-    Scope to a specific folder
+
+39. Enterprise audit alerts — configure and inspect notification rules for audit events (enterprise admin)
+    ```
+    PS > Invoke-KeeperAuditAlert -Action list
+    ```
+    View one alert by name or numeric ID
+    ```
+    PS > Invoke-KeeperAuditAlert -Action view -Target 'My Alert'
+    ```
+    Alert history (sent / throttled events) for a given alert
+    ```
+    PS > Invoke-KeeperAuditAlert -Action history -Target 1
     ```

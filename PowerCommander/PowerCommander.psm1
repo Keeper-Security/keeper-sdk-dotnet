@@ -49,7 +49,7 @@ Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperNodePath, Get-Keeper
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam, Get-KeeperEnterpriseNode,
 Get-KeeperEnterpriseInfoTree, Get-KeeperEnterpriseInfoNode, Get-KeeperEnterpriseInfoUser,
 Get-KeeperEnterpriseInfoTeam, Get-KeeperEnterpriseInfoRole, Get-KeeperEnterpriseInfoManagedCompany,
-Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog
+Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog, Invoke-KeeperAuditAlert
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
