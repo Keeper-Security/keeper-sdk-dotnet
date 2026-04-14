@@ -1,4 +1,4 @@
-name: Build PowerCommander Storage Utils
+name: Build PowerCommander StorageUtils (SQLite deps)
 
 on: [workflow_dispatch]
 
@@ -44,24 +44,26 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build PowerCommander Storage Utils
-        working-directory: ./PowerCommanderStorageUtils
+      # Commander references Microsoft.Data.Sqlite (same family as KeeperSdk); publish output contains the managed + native SQLite files for StorageUtils.
+      - name: Publish Commander (win-x64, SQLite dependencies)
         run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet build --configuration=Release -r win-x64
+          if (Test-Path artifact) { Remove-Item -Force -Recurse artifact }
+          dotnet publish Commander/Commander.csproj --configuration=Release -f net8.0 -r win-x64 --self-contained false -o artifact/publish
         shell: powershell
 
-      - name: Sign PowerCommander Storage Utils
-        working-directory: ./PowerCommanderStorageUtils
+      - name: Sign SQLite managed assemblies (optional bundle)
         run: |
           $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
-          Set-AuthenticodeSignature -FilePath bin\Release\net8.0\win-x64\PowerCommanderStorageUtils.dll -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          foreach ($dll in @('Microsoft.Data.Sqlite.dll','SQLitePCLRaw.batteries_v2.dll','SQLitePCLRaw.core.dll','SQLitePCLRaw.provider.e_sqlite3.dll')) {
+            $p = Join-Path 'artifact/publish' $dll
+            if (Test-Path $p) { Set-AuthenticodeSignature -FilePath $p -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com" }
+          }
         shell: powershell
 
       - name: Prepare StorageUtils artifact
         shell: powershell
         run: |
-          $buildOutput = Resolve-Path "PowerCommanderStorageUtils/bin/Release/net8.0/win-x64"
+          $buildOutput = Resolve-Path "artifact/publish"
           $artifactRoot = Join-Path $PWD "artifact/StorageUtils"
 
           if (Test-Path $artifactRoot) {
@@ -71,7 +73,6 @@ jobs:
           New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
 
           $requiredManagedFiles = @(
-            "PowerCommanderStorageUtils.dll",
             "Microsoft.Data.Sqlite.dll",
             "SQLitePCLRaw.batteries_v2.dll",
             "SQLitePCLRaw.core.dll",

@@ -1,6 +1,6 @@
 #requires -Version 5.1
 
-# Optional SQLite vault storage resolver for powershell
+# Optional SQLite vault storage: KeeperSdk.SqliteVaultStorageFactory + SQLite DLLs in StorageUtils (AssemblyResolve)
 function Get-SqliteVaultStorageFromHelper {
     param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
     $moduleRoot = $PSScriptRoot
@@ -8,14 +8,11 @@ function Get-SqliteVaultStorageFromHelper {
 
     $storageUtilsRoot = Join-Path $moduleRoot 'StorageUtils'
     $requiredStorageDlls = @(
-        'PowerCommanderStorageUtils.dll',
         'Microsoft.Data.Sqlite.dll',
         'SQLitePCLRaw.batteries_v2.dll',
         'SQLitePCLRaw.core.dll',
         'SQLitePCLRaw.provider.e_sqlite3.dll'
     )
-    $nativeCandidates = @('e_sqlite3.dll', 'libe_sqlite3.dylib', 'libe_sqlite3.so')
-
     $missingFiles = [System.Collections.Generic.List[string]]::new()
     foreach ($fileName in $requiredStorageDlls) {
         $filePath = Join-Path $storageUtilsRoot $fileName
@@ -24,30 +21,35 @@ function Get-SqliteVaultStorageFromHelper {
         }
     }
 
-    $nativeFound = $false
-    foreach ($nativeName in $nativeCandidates) {
-        $nativePath = Join-Path $storageUtilsRoot $nativeName
-        if (Test-Path -LiteralPath $nativePath -PathType Leaf) {
-            $nativeFound = $true
-            break
-        }
-    }
-    if (-not $nativeFound) {
-        $missingFiles.Add('One of: e_sqlite3.dll, libe_sqlite3.dylib, libe_sqlite3.so')
+    $nativeSqlitePath = Join-Path $storageUtilsRoot 'e_sqlite3.dll'
+    if (-not (Test-Path -LiteralPath $nativeSqlitePath -PathType Leaf)) {
+        $missingFiles.Add('e_sqlite3.dll')
     }
 
     if ($missingFiles.Count -gt 0) {
         $missingList = $missingFiles -join ', '
-        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the storage helper DLLs into the 'StorageUtils' folder under the PowerCommander module directory."
+        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the SQLite assemblies from a Commander or KeeperSdk build (or publish output) into the 'StorageUtils' folder under the PowerCommander module directory."
     }
 
-    $helperDll = Join-Path $storageUtilsRoot 'PowerCommanderStorageUtils.dll'
-    $factoryType = $null
-    try { $factoryType = [PowerCommanderStorageUtils.VaultStorageFactory] } catch { }
-    if (-not $factoryType) {
-        [System.Reflection.Assembly]::LoadFrom($helperDll) | Out-Null
+    if (-not $script:StorageUtilsAssemblyResolveRegistered) {
+        $script:StorageUtilsAssemblyResolveRegistered = $true
+        $sur = $storageUtilsRoot
+        $mr = $moduleRoot
+        $handler = [System.ResolveEventHandler] {
+            param($sender, $e)
+            $simpleName = ($e.Name -split ',')[0]
+            foreach ($root in @($sur, $mr)) {
+                $candidate = [System.IO.Path]::Combine($root, "$simpleName.dll")
+                if ([System.IO.File]::Exists($candidate)) {
+                    return [System.Reflection.Assembly]::LoadFrom($candidate)
+                }
+            }
+            return $null
+        }
+        [System.AppDomain]::CurrentDomain.add_AssemblyResolve($handler)
     }
-    return [PowerCommanderStorageUtils.VaultStorageFactory]::CreateSqliteStorage($ConnectionString, $OwnerUid)
+
+    return [KeeperSecurity.Vault.SqliteVaultStorageFactory]::Create($ConnectionString, $OwnerUid)
 }
 
 $expires = @(
@@ -417,7 +419,7 @@ function Connect-Keeper {
     Use SQLite file for vault cache (persists between sessions).
 
     .Parameter VaultDatabasePath
-    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file (or current directory).
+    Path to the SQLite database file for vault storage. Default: keeper_powercommander.sqlite in the same directory as the config file (or current directory). This name is separate from Commander's default (keeper_db.sqlite) so both can use the same config folder without sharing one database file.
 
    .Parameter SkipSync
     After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
@@ -613,9 +615,9 @@ function Connect-Keeper {
                 $resolved = $null
                 try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
                 $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
-                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
+                $dbPath = Join-Path $configDir 'keeper_powercommander.sqlite'
             } else {
-                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
+                $dbPath = Join-Path (Get-Location).Path 'keeper_powercommander.sqlite'
             }
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
