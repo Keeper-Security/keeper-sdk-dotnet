@@ -661,9 +661,9 @@ function Connect-Keeper {
                 $resolved = $null
                 try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
                 $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
-                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
+                $dbPath = Join-Path $configDir 'keeper_powercommander.sqlite'
             } else {
-                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
+                $dbPath = Join-Path (Get-Location).Path 'keeper_powercommander.sqlite'
             }
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
