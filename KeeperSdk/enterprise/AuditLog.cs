@@ -243,6 +243,12 @@ namespace KeeperSecurity
                 /// <remarks>Predefined Filters: today, yesterday, last_30_days, last_7_days, month_to_date, last_month, year_to_date, last_year</remarks>
                 [DataMember(Name = "created", EmitDefaultValue = false)]
                 public object Created { get; set; }
+
+                /// <summary>
+                /// Parent ID filter (e.g. audit alert UID for alert-scoped reports).
+                /// </summary>
+                [DataMember(Name = "parent_id", EmitDefaultValue = false)]
+                public long? ParentId { get; set; }
             }
 
             /// <summary>
@@ -336,6 +342,12 @@ namespace KeeperSecurity
                 /// </summary>
                 [DataMember(Name = "columns", EmitDefaultValue = false)]
                 public string[] Columns { get; set; }
+
+                /// <summary>
+                /// Report format (e.g. "fields" for expanded raw event columns).
+                /// </summary>
+                [DataMember(Name = "report_format", EmitDefaultValue = false)]
+                public string ReportFormat { get; set; }
             }
 
             /// <summary>
