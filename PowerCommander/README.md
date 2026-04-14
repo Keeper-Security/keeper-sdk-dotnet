@@ -16,13 +16,12 @@ To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStor
 - `SQLitePCLRaw.batteries_v2.dll`, `SQLitePCLRaw.core.dll`, `SQLitePCLRaw.provider.e_sqlite3.dll`
 - Native library: `e_sqlite3.dll`
 
-Put **only** these files in `StorageUtils` — not `KeeperSdk.dll`, `*.pdb`, or a full `dotnet publish` output. (Publishing into `StorageUtils` by mistake adds extra DLLs and can confuse tooling; **`KeeperSdk.dll` stays in the module root**.)
+Put **only** these files in `StorageUtils` — not `KeeperSdk.dll`, `*.pdb`, or a full `dotnet publish` output. 
 
-Offline storage checks **only** these files (Windows). Copy them from a **Commander** or **KeeperSdk** `net8.0` build or publish output (same SQLite layout as Commander: managed DLLs plus `runtimes\win-x64\native\e_sqlite3.dll` copied next to the other SQLite assemblies as `e_sqlite3.dll` under `StorageUtils`).
+Offline storage checks **only** these files (Windows). Copy them from a **Commander** `net8.0` build (same SQLite layout: managed DLLs plus `runtimes\win-x64\native\e_sqlite3.dll` copied next to the other SQLite assemblies as `e_sqlite3.dll` under `StorageUtils`).
 
 Default vault database file: **`keeper_powercommander.sqlite`** next to your config (or in the current directory if no `-Config`). Commander continues to use **`keeper_db.sqlite`** in its config folder, so the two do not share the same SQLite file unless you point `-VaultDatabasePath` to the same path.
 
-**KeeperSdk** references **Microsoft.Data.Sqlite** and exposes **`KeeperSecurity.Vault.SqliteVaultStorageFactory`**; PowerCommander loads SQLite from `StorageUtils` via `AssemblyResolve` and calls that API (no separate helper compile step).
 
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description

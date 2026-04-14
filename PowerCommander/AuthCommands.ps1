@@ -1,6 +1,23 @@
 #requires -Version 5.1
 
-# Optional SQLite vault storage: KeeperSdk.SqliteVaultStorageFactory + SQLite DLLs in StorageUtils (AssemblyResolve)
+function New-SqliteIdbConnectionFunc {
+    param([Parameter(Mandatory)][string] $ConnectionString)
+    $connType = [Microsoft.Data.Sqlite.SqliteConnection]
+    $dm = [System.Reflection.Emit.DynamicMethod]::new(
+        'PcOpenSqliteConnection',
+        [System.Data.IDbConnection],
+        [Type[]]@(),
+        [KeeperSecurity.Vault.SqlKeeperStorage])
+    $il = $dm.GetILGenerator()
+    $il.Emit([System.Reflection.Emit.OpCodes]::Ldstr, $ConnectionString)
+    $il.Emit([System.Reflection.Emit.OpCodes]::Newobj, $connType.GetConstructor(@([string])))
+    $il.Emit([System.Reflection.Emit.OpCodes]::Dup)
+    $openMi = [System.Data.Common.DbConnection].GetMethod('Open', [Type[]]@())
+    $il.Emit([System.Reflection.Emit.OpCodes]::Callvirt, $openMi)
+    $il.Emit([System.Reflection.Emit.OpCodes]::Ret)
+    $dm.CreateDelegate([Func[System.Data.IDbConnection]])
+}
+
 function Get-SqliteVaultStorageFromHelper {
     param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
     $moduleRoot = $PSScriptRoot
@@ -28,7 +45,7 @@ function Get-SqliteVaultStorageFromHelper {
 
     if ($missingFiles.Count -gt 0) {
         $missingList = $missingFiles -join ', '
-        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the SQLite assemblies from a Commander or KeeperSdk build (or publish output) into the 'StorageUtils' folder under the PowerCommander module directory."
+        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the SQLite assemblies from a Commander net8.0 build into the 'StorageUtils' folder under the PowerCommander module directory."
     }
 
     if (-not $script:StorageUtilsAssemblyResolveRegistered) {
@@ -36,8 +53,8 @@ function Get-SqliteVaultStorageFromHelper {
         $sur = $storageUtilsRoot
         $mr = $moduleRoot
         $handler = [System.ResolveEventHandler] {
-            param($sender, $e)
-            $simpleName = ($e.Name -split ',')[0]
+            param($AssemblyResolveSource, $AssemblyResolveEventArgs)
+            $simpleName = ($AssemblyResolveEventArgs.Name -split ',')[0]
             foreach ($root in @($sur, $mr)) {
                 $candidate = [System.IO.Path]::Combine($root, "$simpleName.dll")
                 if ([System.IO.File]::Exists($candidate)) {
@@ -49,7 +66,36 @@ function Get-SqliteVaultStorageFromHelper {
         [System.AppDomain]::CurrentDomain.add_AssemblyResolve($handler)
     }
 
-    return [KeeperSecurity.Vault.SqliteVaultStorageFactory]::Create($ConnectionString, $OwnerUid)
+    if (-not $script:PcSqlitePclInitialized) {
+        $batteriesPath = Join-Path $storageUtilsRoot 'SQLitePCLRaw.batteries_v2.dll'
+        $batteriesAsm = [System.Reflection.Assembly]::LoadFrom($batteriesPath)
+        $batteriesType = $batteriesAsm.GetType('SQLitePCL.Batteries_V2')
+        if (-not $batteriesType) { throw "Could not load type SQLitePCL.Batteries_V2 from $batteriesPath" }
+        $initMethod = $batteriesType.GetMethod('Init', [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+        [void]$initMethod.Invoke($null, @())
+        $script:PcSqlitePclInitialized = $true
+    }
+
+    [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+
+    $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
+    $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
+    $vaultStorage = New-Object KeeperSecurity.Vault.SqlKeeperStorage($getConnection, $dialect, $OwnerUid)
+
+    $verifyConn = New-Object Microsoft.Data.Sqlite.SqliteConnection($ConnectionString)
+    $verifyConn.Open()
+    try {
+        $schemas = @($vaultStorage.GetStorages() | ForEach-Object { $_.Schema })
+        $failed = [KeeperSecurity.Storage.DatabaseUtils]::VerifyDatabase($verifyConn, $dialect, $schemas)
+        if ($failed -and $failed.Count -gt 0) {
+            [System.Diagnostics.Trace]::TraceError(($failed -join "`n"))
+        }
+    }
+    finally {
+        $verifyConn.Dispose()
+    }
+
+    return $vaultStorage
 }
 
 $expires = @(
