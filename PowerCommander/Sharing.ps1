@@ -267,11 +267,7 @@ function Grant-KeeperRecordAccess {
         }
         if ($rec) {
             try {
-                $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
-                $shareOptions.CanEdit = $CanEdit.IsPresent
-                $shareOptions.CanShare = $CanShare.IsPresent
-
-                $vault.ShareRecordWithUser($rec.Uid, $User, $shareOptions).GetAwaiter().GetResult() | Out-Null
+                $vault.ShareRecordWithUser($rec.Uid, $User, $options).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
@@ -303,8 +299,8 @@ function Get-ExpirationDate {
         if ($ExpireIn -is [TimeSpan]) {
             $expireOffset = $ExpireIn
         }
-        elseif ($ExpireIn -is [int]) {
-            $expireOffset = [TimeSpan]::FromMinutes($ExpireIn)
+        elseif ($ExpireIn -is [int] -or $ExpireIn -is [long] -or $ExpireIn -is [double] -or $ExpireIn -is [decimal]) {
+            $expireOffset = [TimeSpan]::FromMinutes([double]$ExpireIn)
         }
         elseif ($ExpireIn -is [string]) {
             $parsedMinutes = $null
