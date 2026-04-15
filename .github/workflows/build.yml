@@ -38,7 +38,7 @@ jobs:
           if ($comp[2]) {
             $packageVersion = $packageVersion + '-' + $comp[2]
           }
-          $buildVersion = $sdkVersion + '.' + $Env:GITHUB_RUN_NUMBER
+          $buildVersion = $sdkVersion
           echo "sdk_version=${sdkVersion}" >> $Env:GITHUB_OUTPUT
           echo "package_version=${packageVersion}" >> $Env:GITHUB_OUTPUT
           echo "build_version=${buildVersion}" >> $Env:GITHUB_OUTPUT
