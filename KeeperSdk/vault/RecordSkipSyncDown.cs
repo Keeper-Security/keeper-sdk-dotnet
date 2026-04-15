@@ -60,6 +60,57 @@ namespace KeeperSecurity.Vault
             return await GetRecordsDetailsAsync(auth, keys.Keys, include, keys).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Like <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>, 
+        /// but only requests the given record UIDs.
+        /// </summary>
+        public static async Task<RecordDetailsSkipSyncResult> GetSharedFolderRecordsAsync(IAuthentication auth,
+            string sharedFolderUid,
+            IEnumerable<string> recordUids,
+            RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
+        {
+            if (auth == null || auth.AuthContext == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(sharedFolderUid))
+                throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
+
+            var uidList = (recordUids ?? Enumerable.Empty<string>())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (uidList.Count == 0)
+            {
+                return new RecordDetailsSkipSyncResult(
+                    Array.Empty<KeeperRecord>(),
+                    Array.Empty<string>(),
+                    Array.Empty<string>(),
+                    Array.Empty<string>());
+            }
+
+            var keys = await SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync(auth, sharedFolderUid.Trim())
+                .ConfigureAwait(false);
+
+            var filtered = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+            foreach (var uid in uidList)
+            {
+                if (keys.TryGetValue(uid, out var k) && k != null && k.Length > 0)
+                    filtered[uid] = k;
+            }
+
+            if (filtered.Count == 0)
+            {
+                return new RecordDetailsSkipSyncResult(
+                    Array.Empty<KeeperRecord>(),
+                    Array.Empty<string>(),
+                    uidList,
+                    Array.Empty<string>());
+            }
+
+            return await GetRecordsDetailsAsync(auth, uidList, include, filtered).ConfigureAwait(false);
+        }
+
         private static async Task<RecordDetailsSkipSyncResult> GetRecordsDetailsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
             RecordDetailsInclude include,
