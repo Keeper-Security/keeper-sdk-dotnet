@@ -465,8 +465,8 @@ function Connect-Keeper {
     Use SQLite file for vault cache (persists between sessions).
 
     .Parameter VaultDatabasePath
-    Path to the SQLite database file for vault storage. Default: keeper_powercommander.sqlite in the same directory as the config file (or current directory). This name is separate from Commander's default (keeper_db.sqlite) so both can use the same config folder without sharing one database file.
-
+    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file 
+    ß
    .Parameter SkipSync
     After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
@@ -661,9 +661,9 @@ function Connect-Keeper {
                 $resolved = $null
                 try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
                 $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
-                $dbPath = Join-Path $configDir 'keeper_powercommander.sqlite'
+                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
             } else {
-                $dbPath = Join-Path (Get-Location).Path 'keeper_powercommander.sqlite'
+                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
             }
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
