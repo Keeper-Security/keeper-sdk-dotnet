@@ -27,6 +27,8 @@ jobs:
       package_version: ${{ steps.vars.outputs.package_version }}
       build_version: ${{ steps.vars.outputs.build_version }}
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Setup product versions
         id: vars
         run: |
@@ -38,8 +40,19 @@ jobs:
           if ($comp[2]) {
             $packageVersion = $packageVersion + '-' + $comp[2]
           }
-          $buildVersion = $sdkVersion
-          echo "sdk_version=${sdkVersion}" >> $Env:GITHUB_OUTPUT
+
+          if ([string]::IsNullOrWhiteSpace($sdkVersion)) {
+            $raw = Get-Content "KeeperSdk/KeeperSdk.csproj" -Raw
+            if ($raw -notmatch '<Version>([^<]+)</Version>') {
+              throw "Could not read <Version> from KeeperSdk/KeeperSdk.csproj"
+            }
+            $packageVersion = $Matches[1].Trim()
+          }
+
+          $assemblyBase = ($packageVersion -split '-')[0].Trim()
+          $buildVersion = $assemblyBase + '.' + $Env:GITHUB_RUN_NUMBER
+
+          echo "sdk_version=${assemblyBase}" >> $Env:GITHUB_OUTPUT
           echo "package_version=${packageVersion}" >> $Env:GITHUB_OUTPUT
           echo "build_version=${buildVersion}" >> $Env:GITHUB_OUTPUT
         shell: powershell
