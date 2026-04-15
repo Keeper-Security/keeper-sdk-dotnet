@@ -8,6 +8,22 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
+### Optional: SQLite vault storage (-UseOfflineStorage)
+
+To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll` and `KeeperBiometrics.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
+
+- `Microsoft.Data.Sqlite.dll`
+- `SQLitePCLRaw.batteries_v2.dll`, `SQLitePCLRaw.core.dll`, `SQLitePCLRaw.provider.e_sqlite3.dll`
+- Native library: `e_sqlite3.dll`
+
+Put **only** these files in `StorageUtils` — not `KeeperSdk.dll`, `*.pdb`, or a full `dotnet publish` output. 
+
+Offline storage checks **only** these files (Windows). Copy them from a **Commander** `net8.0` build (same SQLite layout: managed DLLs plus `runtimes\win-x64\native\e_sqlite3.dll` copied next to the other SQLite assemblies as `e_sqlite3.dll` under `StorageUtils`).
+
+Default vault database file: **`keeper_db.sqlite`** next to your config (or in the current directory if no `-Config`). Commander continues to use **`keeper_db.sqlite`** in its config folder, so the two do not share the same SQLite file unless you point `-VaultDatabasePath` to the same path.
+
+Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyResolve`; SQLitePCL is initialized; a `Func<IDbConnection>` for `SqlKeeperStorage` is built with **Reflection.Emit** (PowerShell cannot supply that delegate type directly). **KeeperSdk** does not reference `Microsoft.Data.Sqlite`; SQLite stays optional beside the module.
+
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
