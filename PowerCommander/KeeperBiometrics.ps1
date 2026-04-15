@@ -74,10 +74,10 @@ function Test-WindowsHelloCapabilities {
     
     try {
         if ($PassThru) {
-            return [KeeperBiometric.PasskeyManager]::GetCapabilities()
+            return [KeeperBiometrics.PasskeyManager]::GetCapabilities()
         }
         else {
-            return [KeeperBiometric.PasskeyManager]::IsAvailable()
+            return [KeeperBiometrics.PasskeyManager]::IsAvailable()
         }
     }
     catch {

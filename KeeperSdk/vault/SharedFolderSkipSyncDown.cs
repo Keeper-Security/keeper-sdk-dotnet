@@ -76,7 +76,7 @@ namespace KeeperSecurity.Vault
                 {
                     new GetSharedFoldersRequestItem
                     {
-                        SharedFolderUid = sharedFolderUid,
+                        SharedFolderUid = sharedFolderUid.Trim(),
                     },
                 },
                 Include = new[] { "sfheaders", "sfusers", "sfrecords", "sfteams" },
