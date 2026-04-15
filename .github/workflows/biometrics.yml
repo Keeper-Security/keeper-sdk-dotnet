@@ -44,12 +44,12 @@ jobs:
         run: |
           dotnet build --configuration=Release
           $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
-          Set-AuthenticodeSignature -FilePath bin\Release\net472\KeeperBiometric.dll -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath bin\Release\net472\KeeperBiometrics.dll -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell      
 
       - name: Store Commander artifacts
         uses: actions/upload-artifact@v4
         with:
           name: KeeperBiometrics
-          path: KeeperBiometrics/bin/Release/net472/KeeperBiometric.dll
+          path: KeeperBiometrics/bin/Release/net472/KeeperBiometrics.dll
           retention-days: 1

@@ -1,5 +1,103 @@
 #requires -Version 5.1
 
+function New-SqliteIdbConnectionFunc {
+    param([Parameter(Mandatory)][string] $ConnectionString)
+    $connType = [Microsoft.Data.Sqlite.SqliteConnection]
+    $dm = [System.Reflection.Emit.DynamicMethod]::new(
+        'PcOpenSqliteConnection',
+        [System.Data.IDbConnection],
+        [Type[]]@(),
+        [KeeperSecurity.Vault.SqlKeeperStorage])
+    $il = $dm.GetILGenerator()
+    $il.Emit([System.Reflection.Emit.OpCodes]::Ldstr, $ConnectionString)
+    $il.Emit([System.Reflection.Emit.OpCodes]::Newobj, $connType.GetConstructor(@([string])))
+    $il.Emit([System.Reflection.Emit.OpCodes]::Dup)
+    $openMi = [System.Data.Common.DbConnection].GetMethod('Open', [Type[]]@())
+    $il.Emit([System.Reflection.Emit.OpCodes]::Callvirt, $openMi)
+    $il.Emit([System.Reflection.Emit.OpCodes]::Ret)
+    $dm.CreateDelegate([Func[System.Data.IDbConnection]])
+}
+
+function Get-SqliteVaultStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+    $moduleRoot = $PSScriptRoot
+    if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
+
+    $storageUtilsRoot = Join-Path $moduleRoot 'StorageUtils'
+    $requiredStorageDlls = @(
+        'Microsoft.Data.Sqlite.dll',
+        'SQLitePCLRaw.batteries_v2.dll',
+        'SQLitePCLRaw.core.dll',
+        'SQLitePCLRaw.provider.e_sqlite3.dll'
+    )
+    $missingFiles = [System.Collections.Generic.List[string]]::new()
+    foreach ($fileName in $requiredStorageDlls) {
+        $filePath = Join-Path $storageUtilsRoot $fileName
+        if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
+            $missingFiles.Add($fileName)
+        }
+    }
+
+    $nativeSqlitePath = Join-Path $storageUtilsRoot 'e_sqlite3.dll'
+    if (-not (Test-Path -LiteralPath $nativeSqlitePath -PathType Leaf)) {
+        $missingFiles.Add('e_sqlite3.dll')
+    }
+
+    if ($missingFiles.Count -gt 0) {
+        $missingList = $missingFiles -join ', '
+        throw "Offline storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. When using -UseOfflineStorage, copy the SQLite assemblies from a Commander net8.0 build into the 'StorageUtils' folder under the PowerCommander module directory."
+    }
+
+    if (-not $script:StorageUtilsAssemblyResolveRegistered) {
+        $script:StorageUtilsAssemblyResolveRegistered = $true
+        $sur = $storageUtilsRoot
+        $mr = $moduleRoot
+        $handler = [System.ResolveEventHandler] {
+            param($AssemblyResolveSource, $AssemblyResolveEventArgs)
+            $simpleName = ($AssemblyResolveEventArgs.Name -split ',')[0]
+            foreach ($root in @($sur, $mr)) {
+                $candidate = [System.IO.Path]::Combine($root, "$simpleName.dll")
+                if ([System.IO.File]::Exists($candidate)) {
+                    return [System.Reflection.Assembly]::LoadFrom($candidate)
+                }
+            }
+            return $null
+        }
+        [System.AppDomain]::CurrentDomain.add_AssemblyResolve($handler)
+    }
+
+    if (-not $script:PcSqlitePclInitialized) {
+        $batteriesPath = Join-Path $storageUtilsRoot 'SQLitePCLRaw.batteries_v2.dll'
+        $batteriesAsm = [System.Reflection.Assembly]::LoadFrom($batteriesPath)
+        $batteriesType = $batteriesAsm.GetType('SQLitePCL.Batteries_V2')
+        if (-not $batteriesType) { throw "Could not load type SQLitePCL.Batteries_V2 from $batteriesPath" }
+        $initMethod = $batteriesType.GetMethod('Init', [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+        [void]$initMethod.Invoke($null, @())
+        $script:PcSqlitePclInitialized = $true
+    }
+
+    [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+
+    $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
+    $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
+    $vaultStorage = New-Object KeeperSecurity.Vault.SqlKeeperStorage($getConnection, $dialect, $OwnerUid)
+
+    $verifyConn = New-Object Microsoft.Data.Sqlite.SqliteConnection($ConnectionString)
+    $verifyConn.Open()
+    try {
+        $schemas = @($vaultStorage.GetStorages() | ForEach-Object { $_.Schema })
+        $failed = [KeeperSecurity.Storage.DatabaseUtils]::VerifyDatabase($verifyConn, $dialect, $schemas)
+        if ($failed -and $failed.Count -gt 0) {
+            [System.Diagnostics.Trace]::TraceError(($failed -join "`n"))
+        }
+    }
+    finally {
+        $verifyConn.Dispose()
+    }
+
+    return $vaultStorage
+}
+
 $expires = @(
     [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin,
     [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days,
@@ -348,7 +446,8 @@ function Connect-Keeper {
     User password
 
     .Parameter NewLogin
-    Do not use Last Login information
+    Do not resume the stored session (full login). When omitted, resume is also skipped if -Username
+    differs from the stored LastLogin (switching accounts).
 
     .Parameter SsoPassword
     Use Master Password for SSO account
@@ -361,6 +460,15 @@ function Connect-Keeper {
 
     .Parameter Config
     Config file name
+
+    .Parameter UseOfflineStorage
+    Use SQLite file for vault cache (persists between sessions).
+
+    .Parameter VaultDatabasePath
+    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file 
+    ß
+   .Parameter SkipSync
+    After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -370,7 +478,10 @@ function Connect-Keeper {
         [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
         [Parameter()][string] $Server,
-        [Parameter()][string] $Config
+        [Parameter()][string] $Config,
+        [Parameter()][switch] $UseOfflineStorage,
+        [Parameter()][string] $VaultDatabasePath,
+        [Parameter()][switch] $SkipSync
     )
 
     Disconnect-Keeper -Resume | Out-Null
@@ -388,8 +499,6 @@ function Connect-Keeper {
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
-    $authFlow.ResumeSession = -not ($NewLogin.IsPresent -or $Password)
-    Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
@@ -417,9 +526,20 @@ function Connect-Keeper {
         Write-Error "Non-interactive session detected" -ErrorAction Stop 
     }
 
+    $canResume = -not ($NewLogin.IsPresent -or $Password)
+    if ($canResume -and $PSBoundParameters.ContainsKey('Username')) {
+        $cfgForResume = $storage.Get()
+        if ($cfgForResume.LastLogin -and $Username -and
+            [string]::Compare($Username, $cfgForResume.LastLogin, $true) -ne 0) {
+            $canResume = $false
+            Write-Verbose "Username differs from stored LastLogin; starting a new session (no resume)."
+        }
+    }
+    $authFlow.ResumeSession = $canResume
+    Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
+
     $biometricPresent = $false
     try {
-        # Check Windows Hello capabilities first
         $windowsHelloAvailable = Test-WindowsHelloCapabilities
         if ($windowsHelloAvailable) {
             $biometricPresent = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
@@ -460,12 +580,12 @@ function Connect-Keeper {
         if ($biometricPresent) {
             try {
                 Write-Host "Attempting Keeper biometric authentication..."
-                
+
                 $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success -and $biometricResult.IsValid) {
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {
-                        Write-Verbose "Authentication completed successfully!"
+                        Write-Debug "Authentication completed successfully!"
                         break
                     }
                     Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
@@ -530,13 +650,37 @@ function Connect-Keeper {
 
     $auth = $authFlow
     if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
-        Write-Information -MessageData "Connected to Keeper as $Username" -InformationAction Continue
+        Write-Information -MessageData "Connected to Keeper as $($auth.Username)" -InformationAction Continue
 
-        $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
-        $task = $vault.SyncDown()
-        Write-Information -MessageData 'Syncing ...' -InformationAction Continue
-        $task.GetAwaiter().GetResult() | Out-Null
-        $vault.AutoSync = $true
+        $vaultStorage = $null
+        if ($UseOfflineStorage) {
+            $ownerUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($auth.AuthContext.AccountUid)
+            if ($VaultDatabasePath) {
+                $dbPath = $VaultDatabasePath
+            } elseif ($Config) {
+                $resolved = $null
+                try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
+                $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
+                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
+            } else {
+                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
+            }
+            $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+            Write-Information -MessageData "Using vault database: $dbPath"
+            $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
+        }
+        $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
+        if ($SkipSync.IsPresent) {
+            $vault.AutoSync = $false
+            Write-Information -MessageData 'SkipSync: vault SyncDown skipped. Local folder tree and records are empty until you run Sync-Keeper.' -InformationAction Continue
+        }
+        else {
+            $task = $vault.SyncDown()
+            Write-Information -MessageData 'Syncing ...' -InformationAction Continue
+            $task.GetAwaiter().GetResult() | Out-Null
+            $vault.AutoSync = $true
+        }
 
         $Script:Context.Auth = $auth
         $Script:Context.Vault = $vault
@@ -633,6 +777,7 @@ function Sync-Keeper {
         Write-Host "Syncing vault with Keeper server..."
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
+        $vault.AutoSync = $true
         Write-Host "Vault sync completed."
     }
     else {

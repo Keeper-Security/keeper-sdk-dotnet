@@ -47,6 +47,7 @@ project.lock.json
 *.nuget.props
 UpgradeLog.htm
 nuget.config
+config.json
 
 Help/
 .vscode/
