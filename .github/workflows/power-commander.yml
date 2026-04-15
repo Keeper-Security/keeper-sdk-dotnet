@@ -1,10 +1,10 @@
-name: Publish PowerCommander 
+name: PowerCommander
 
 on:
   workflow_dispatch:
     inputs:
       publish_to_gallery:
-        description: Push to PowerShell Gallery
+        description: Publish signed module to PowerShell Gallery
         type: boolean
         required: false
         default: false
@@ -27,7 +27,7 @@ jobs:
           echo "version=$v" >> $Env:GITHUB_OUTPUT
         shell: powershell
 
-  commander_and_artifacts:
+  build_module:
     runs-on: windows-latest
     needs: configure
     env:
@@ -143,60 +143,23 @@ jobs:
           path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
-  publish_gallery:
-    runs-on: windows-latest
-    needs: [configure, commander_and_artifacts]
-    environment: prod
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download PowerCommander runtime staging
-        uses: actions/download-artifact@v4
-        with:
-          name: PowerCommander-runtime-from-Commander
-          path: runtime-staging
-
-      - name: Copy Commander-built binaries into PowerCommander module folder
+      - name: Copy Commander net8.0 outputs into PowerCommander module folder
         shell: powershell
         run: |
-          $src = Resolve-Path "runtime-staging"
+          $out = Resolve-Path "Commander/bin/Release/net8.0"
           $pc = Resolve-Path "PowerCommander"
-          $sdk = Join-Path $src "KeeperSdk.dll"
-          if (-not (Test-Path -LiteralPath $sdk)) { throw "KeeperSdk.dll not found under runtime-staging" }
-          Copy-Item -LiteralPath $sdk $pc -Force
-          $from = Join-Path $src "StorageUtils"
+          Copy-Item (Join-Path $out "KeeperSdk.dll") $pc -Force
           $to = Join-Path $pc "StorageUtils"
           if (-not (Test-Path -LiteralPath $to)) { New-Item -ItemType Directory -Path $to -Force | Out-Null }
-          Get-ChildItem -LiteralPath $from -File | ForEach-Object { Copy-Item -LiteralPath $_.FullName $to -Force }
-
-      - name: Setup Code Sign Cert
-        shell: bash
-        run: |
-          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-
-      - name: Set variables
-        shell: bash
-        run: |
-          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:/Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
-          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
-          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
-          echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
-
-      - name: Setup DigiCert SSM Tools
-        uses: digicert/ssm-code-signing@b300bb7e8c2ab85257d660fe5b6c6374131ca2ef
-
-      - name: Sync Certificates
-        shell: cmd
-        env:
-          KEYPAIR_ALIAS: ${{ secrets.KEYPAIR_ALIAS }}
-        run: |
-          smctl healthcheck
-          smctl windows certsync --keypair-alias=%KEYPAIR_ALIAS%
+          foreach ($f in @('Microsoft.Data.Sqlite.dll', 'SQLitePCLRaw.batteries_v2.dll', 'SQLitePCLRaw.core.dll', 'SQLitePCLRaw.provider.e_sqlite3.dll')) {
+            $src = Join-Path $out $f
+            Copy-Item -LiteralPath $src $to -Force
+          }
+          $native = @(
+            (Join-Path $out 'e_sqlite3.dll'),
+            (Join-Path $out 'runtimes/win-x64/native/e_sqlite3.dll')
+          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          Copy-Item -LiteralPath $native (Join-Path $to 'e_sqlite3.dll') -Force
 
       - name: Sign KeeperSdk.dll
         run: |
@@ -213,15 +176,27 @@ jobs:
           Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell
 
-      - name: Upload signed PowerCommander module (download from workflow run → Artifacts)
+      - name: Upload signed PowerCommander module (workflow run → Artifacts)
         uses: actions/upload-artifact@v4
         with:
           name: PowerCommander-module-${{ needs.configure.outputs.package_version }}
           path: PowerCommander/
-          retention-days: 1
+          retention-days: 14
+
+  publish_gallery:
+    if: ${{ inputs.publish_to_gallery }}
+    runs-on: windows-latest
+    needs: [configure, build_module]
+    environment: prod
+
+    steps:
+      - name: Download signed PowerCommander module
+        uses: actions/download-artifact@v4
+        with:
+          name: PowerCommander-module-${{ needs.configure.outputs.package_version }}
+          path: PowerCommander
 
       - name: Publish to PowerShell Gallery
-        if: ${{ inputs.publish_to_gallery }}
         run: |
           Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
         shell: powershell
