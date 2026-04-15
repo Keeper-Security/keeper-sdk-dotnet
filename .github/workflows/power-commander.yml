@@ -181,7 +181,7 @@ jobs:
         with:
           name: PowerCommander-module-${{ needs.configure.outputs.package_version }}
           path: PowerCommander/
-          retention-days: 14
+          retention-days: 1
 
   publish_gallery:
     if: ${{ inputs.publish_to_gallery }}
