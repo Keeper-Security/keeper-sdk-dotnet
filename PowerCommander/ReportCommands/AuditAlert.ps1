@@ -349,11 +349,33 @@ function Apply-AuditAlertOptions {
 
     $RecordUid = $CallerParams['RecordUid']
     if ($RecordUid -and $RecordUid.Count -gt 0) {
+        $vault = getVault
+        foreach ($chunk in $RecordUid) {
+            foreach ($r in $chunk.Split(',')) {
+                $uid = $r.Trim()
+                if ([string]::IsNullOrEmpty($uid)) { continue }
+                [KeeperSecurity.Vault.KeeperRecord] $rec = $null
+                if (-not $vault.TryGetRecord($uid, [ref]$rec)) {
+                    Stop-KeeperAuditAlert "Record UID `"$uid`" was not found in the vault."
+                }
+            }
+        }
         Set-KeeperAuditFilterIdSelectedEntries -Detail $f -Property RecordUids -Chunks $RecordUid
     }
 
     $SharedFolderUid = $CallerParams['SharedFolderUid']
     if ($SharedFolderUid -and $SharedFolderUid.Count -gt 0) {
+        $vault = getVault
+        foreach ($chunk in $SharedFolderUid) {
+            foreach ($s in $chunk.Split(',')) {
+                $uid = $s.Trim()
+                if ([string]::IsNullOrEmpty($uid)) { continue }
+                [KeeperSecurity.Vault.SharedFolder] $sf = $null
+                if (-not $vault.TryGetSharedFolder($uid, [ref]$sf)) {
+                    Stop-KeeperAuditAlert "Shared folder UID `"$uid`" was not found in the vault."
+                }
+            }
+        }
         Set-KeeperAuditFilterIdSelectedEntries -Detail $f -Property SharedFolderUids -Chunks $SharedFolderUid
     }
 }
