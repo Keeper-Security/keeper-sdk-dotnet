@@ -751,7 +751,7 @@ function Invoke-AuditAlertDelete {
         }
     }
     Clear-KeeperAuditAlertCache
-    if ($deleted -gt 0) { Get-KeeperAuditAlert -Action list -Reload }
+    if ($deleted -gt 0) { Get-KeeperAuditAlert -Action list -Reload -Format $Format -Output $Output }
     else { Write-Warning 'No alerts were deleted.' }
 }
 
@@ -878,35 +878,30 @@ function Invoke-AuditAlertEnableDisable {
     )
     if ($All.IsPresent -and $Target) { Stop-KeeperAuditAlert "Cannot use -All together with -Target." }
     if ($All.IsPresent) {
-        $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.KeeperApiCommand]'
-        foreach ($a in $Settings.AuditAlertFilter) {
-            if (-not $a.Id) { continue }
-            $patch = New-Object KeeperSecurity.Enterprise.AuditAlertContextPatch
-            $patch.Id = $a.Id
-            $patch.Disabled = $Disabled
-            $cmd = New-Object KeeperSecurity.Enterprise.PutAuditAlertContextEnterpriseSettingCommand
-            $cmd.Settings = $patch
-            [void]$list.Add($cmd)
-        }
-        if ($list.Count -eq 0) {
+        $alerts = @($Settings.AuditAlertFilter | Where-Object { $_.Id })
+        if ($alerts.Count -eq 0) {
             Write-Host "No valid alerts found to $ActionLabel."
             return
         }
-        try {
-            $batchOut = [KeeperSecurity.Authentication.AuthExtensions]::ExecuteBatch($Auth, $list).GetAwaiter().GetResult()
-        } catch {
-            Write-Error "Batch $ActionLabel failed (execute): $($_.Exception.Message)" -ErrorAction Stop
-        }
-        $verb = if ($Disabled) { 'disable' } else { 'enable' }
-        $bi = 0
-        foreach ($resp in $batchOut) {
-            $bi++
-            Assert-KeeperApiResponse -Response $resp -Context "$verb all alerts ($bi/$($batchOut.Count))"
+        $successCount = 0
+        foreach ($a in $alerts) {
+            $patch = New-Object KeeperSecurity.Enterprise.AuditAlertContextPatch
+            $patch.Id = $a.Id
+            $patch.Disabled = $Disabled
+            $put = New-Object KeeperSecurity.Enterprise.PutAuditAlertContextEnterpriseSettingCommand
+            $put.Settings = $patch
+            try {
+                $putRs = $Auth.ExecuteAuthCommand($put, [KeeperSecurity.Commands.KeeperApiResponse], $true).GetAwaiter().GetResult()
+                Assert-KeeperApiResponse -Response $putRs -Context "$ActionLabel alert $($a.Id)"
+                $successCount++
+            } catch {
+                Write-Warning "Failed to $ActionLabel alert $($a.Id) `"$($a.Name)`": $($_.Exception.Message)"
+            }
         }
         Clear-KeeperAuditAlertCache
         $past = if ($Disabled) { 'Disabled' } else { 'Enabled' }
-        Write-Host "$past $($list.Count) alert(s)."
-        Get-KeeperAuditAlert -Action list -Reload
+        Write-Host "$past $successCount of $($alerts.Count) alert(s)."
+        Get-KeeperAuditAlert -Action list -Reload -Format $Format -Output $Output
         return
     }
     if ([string]::IsNullOrWhiteSpace($Target)) { Stop-KeeperAuditAlert "$ActionLabel requires -Target or -All." }
