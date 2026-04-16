@@ -50,7 +50,6 @@ jobs:
         shell: powershell      
 
       - name: Publish to PowerShell Gallery
-        if: ${{ inputs.publish_to_gallery }}
         run: |
           Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
         shell: powershell      

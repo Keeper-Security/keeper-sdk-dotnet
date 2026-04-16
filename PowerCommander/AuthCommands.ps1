@@ -98,6 +98,82 @@ function Get-SqliteVaultStorageFromHelper {
     return $vaultStorage
 }
 
+function Get-SqliteComplianceStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString)
+    $moduleRoot = $PSScriptRoot
+    if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
+
+    $storageUtilsRoot = Join-Path $moduleRoot 'StorageUtils'
+    $requiredStorageDlls = @(
+        'Microsoft.Data.Sqlite.dll',
+        'SQLitePCLRaw.batteries_v2.dll',
+        'SQLitePCLRaw.core.dll',
+        'SQLitePCLRaw.provider.e_sqlite3.dll'
+    )
+    $missingFiles = [System.Collections.Generic.List[string]]::new()
+    foreach ($fileName in $requiredStorageDlls) {
+        $filePath = Join-Path $storageUtilsRoot $fileName
+        if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
+            $missingFiles.Add($fileName)
+        }
+    }
+
+    $nativeSqlitePath = Join-Path $storageUtilsRoot 'e_sqlite3.dll'
+    if (-not (Test-Path -LiteralPath $nativeSqlitePath -PathType Leaf)) {
+        $missingFiles.Add('e_sqlite3.dll')
+    }
+
+    if ($missingFiles.Count -gt 0) {
+        $missingList = $missingFiles -join ', '
+        throw "Compliance storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. Copy the SQLite assemblies from a Commander net8.0 build into the 'StorageUtils' folder under the PowerCommander module directory."
+    }
+
+    if (-not $script:StorageUtilsAssemblyResolveRegistered) {
+        $script:StorageUtilsAssemblyResolveRegistered = $true
+        $sur = $storageUtilsRoot
+        $mr = $moduleRoot
+        $handler = [System.ResolveEventHandler] {
+            param($AssemblyResolveSource, $AssemblyResolveEventArgs)
+            $simpleName = ($AssemblyResolveEventArgs.Name -split ',')[0]
+            foreach ($root in @($sur, $mr)) {
+                $candidate = [System.IO.Path]::Combine($root, "$simpleName.dll")
+                if ([System.IO.File]::Exists($candidate)) {
+                    return [System.Reflection.Assembly]::LoadFrom($candidate)
+                }
+            }
+            return $null
+        }
+        [System.AppDomain]::CurrentDomain.add_AssemblyResolve($handler)
+    }
+
+    if (-not $script:PcSqlitePclInitialized) {
+        $batteriesPath = Join-Path $storageUtilsRoot 'SQLitePCLRaw.batteries_v2.dll'
+        $batteriesAsm = [System.Reflection.Assembly]::LoadFrom($batteriesPath)
+        $batteriesType = $batteriesAsm.GetType('SQLitePCL.Batteries_V2')
+        if (-not $batteriesType) { throw "Could not load type SQLitePCL.Batteries_V2 from $batteriesPath" }
+        $initMethod = $batteriesType.GetMethod('Init', [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+        [void]$initMethod.Invoke($null, @())
+        $script:PcSqlitePclInitialized = $true
+    }
+
+    [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+
+    $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
+    $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
+    $complianceStorage = New-Object KeeperSecurity.Compliance.SqlComplianceStorage($getConnection, $dialect)
+
+    $verifyConn = New-Object Microsoft.Data.Sqlite.SqliteConnection($ConnectionString)
+    $verifyConn.Open()
+    try {
+        [KeeperSecurity.Compliance.SqlComplianceStorage]::VerifyDatabase($verifyConn, $dialect)
+    }
+    finally {
+        $verifyConn.Dispose()
+    }
+
+    return $complianceStorage
+}
+
 $expires = @(
     [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin,
     [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days,
@@ -661,9 +737,9 @@ function Connect-Keeper {
                 $resolved = $null
                 try { $resolved = Resolve-Path -LiteralPath $Config -ErrorAction Stop } catch { }
                 $configDir = if ($resolved) { [System.IO.Path]::GetDirectoryName($resolved.Path) } else { [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($Config)) }
-                $dbPath = Join-Path $configDir 'keeper_powercommander.sqlite'
+                $dbPath = Join-Path $configDir 'keeper_db.sqlite'
             } else {
-                $dbPath = Join-Path (Get-Location).Path 'keeper_powercommander.sqlite'
+                $dbPath = Join-Path (Get-Location).Path 'keeper_db.sqlite'
             }
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
