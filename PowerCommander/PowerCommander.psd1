@@ -71,7 +71,11 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
+        'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
+        'ReportCommands\ExternalSharesReport.ps1',
+        'ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1'
         )
 
