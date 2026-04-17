@@ -1,13 +1,8 @@
 name: Build Keeper SDK for .NET
 
-on:
+on: 
   workflow_dispatch:
     inputs:
-      publish_to_nuget:
-        description: Push Keeper.Sdk package to NuGet.org
-        type: boolean
-        required: false
-        default: false
       cli:
         description: Build CLI package
         type: boolean
@@ -18,22 +13,19 @@ on:
         type: boolean
         required: false
         default: false
-
+  
 jobs:
-  configure:
+  build:
     runs-on: windows-latest
     outputs:
-      sdk_version: ${{ steps.vars.outputs.sdk_version }}
-      package_version: ${{ steps.vars.outputs.package_version }}
-      build_version: ${{ steps.vars.outputs.build_version }}
-    steps:
-      - uses: actions/checkout@v4
+      package-version: ${{ steps.vars.outputs.package_version }}
       
+    steps:
       - name: Setup product versions
         id: vars
         run: |
           $ErrorView = 'NormalView'
-          $branch = ($Env:GITHUB_REF -split '/')[2]
+          $branch = ($Env:GITHUB_REF -split '/')[2] 
           $comp = $branch -split '_'
           $sdkVersion = $comp[1]
           $packageVersion = $sdkVersion
@@ -41,35 +33,18 @@ jobs:
             $packageVersion = $packageVersion + '-' + $comp[2]
           }
 
-          if ([string]::IsNullOrWhiteSpace($sdkVersion)) {
-            $raw = Get-Content "KeeperSdk/KeeperSdk.csproj" -Raw
-            if ($raw -notmatch '<Version>([^<]+)</Version>') {
-              throw "Could not read <Version> from KeeperSdk/KeeperSdk.csproj"
-            }
-            $packageVersion = $Matches[1].Trim()
-          }
+          $buildVersion = $sdkVersion + '.' + $Env:GITHUB_RUN_NUMBER
 
-          $assemblyBase = ($packageVersion -split '-')[0].Trim()
-          $buildVersion = $assemblyBase + '.' + $Env:GITHUB_RUN_NUMBER
-
-          echo "sdk_version=${assemblyBase}" >> $Env:GITHUB_OUTPUT
+          echo "SDK_VERSION=${sdkVersion}" >> $Env:GITHUB_ENV
+          echo "PACKAGE_VERSION=${packageVersion}" >> $Env:GITHUB_ENV
+          echo "BUILD_VERSION=${buildVersion}" >> $Env:GITHUB_ENV
           echo "package_version=${packageVersion}" >> $Env:GITHUB_OUTPUT
-          echo "build_version=${buildVersion}" >> $Env:GITHUB_OUTPUT
         shell: powershell
 
-  keeper_sdk:
-    runs-on: windows-latest
-    needs: configure
-    env:
-      SDK_VERSION: ${{ needs.configure.outputs.sdk_version }}
-      PACKAGE_VERSION: ${{ needs.configure.outputs.package_version }}
-      BUILD_VERSION: ${{ needs.configure.outputs.build_version }}
-
-    steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+         dotnet-version: '8.0.x'
 
       - name: Setup Code Sign Cert
         shell: bash
@@ -78,6 +53,7 @@ jobs:
 
       - name: Set variables
         shell: bash
+        id: variables
         run: |
           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
@@ -100,7 +76,8 @@ jobs:
           smctl windows certsync --keypair-alias=%KEYPAIR_ALIAS%
 
       - name: Restore solution
-        run: dotnet restore KeeperSdk.sln
+        run: |
+          dotnet restore KeeperSdk.sln
         shell: powershell
 
       - name: Build Keeper SDK Nuget package
@@ -111,12 +88,15 @@ jobs:
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\KeeperSdk.dll"
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
-        shell: powershell
+          # $cert = Get-Item "Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}"
+          # $sha256 = $cert.GetCertHashString("SHA256") 
+          # dotnet nuget sign --certificate-fingerprint $sha256 --timestamper http://timestamp.digicert.com "bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg"
+        shell: powershell      
 
       - name: Store SDK Nuget artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KeeperSdk-Nuget-${{ env.PACKAGE_VERSION }}
+          name: KeeperSdk-Nuget-Package
           path: |
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
@@ -141,6 +121,51 @@ jobs:
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
+      - name: Build .Net Commander
+        working-directory: ./Commander
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet build --configuration=Release
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Commander.exe"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\Commander.dll"
+        shell: powershell 
+
+      - name: Zip .Net Framework Commander
+        working-directory: "./Commander/bin/Release/net472"
+        run: |
+          $params = @{
+            Path = "*.exe", "*.dll", "Commander.exe.config"
+            CompressionLevel = "Fastest"
+            DestinationPath = "Commander-win-${Env:PACKAGE_VERSION}.zip"
+          }
+          Compress-Archive @params
+        shell: powershell
+
+      - name: Zip .Net 8.0 Commander
+        working-directory: "./Commander/bin/Release/net8.0"
+        run: |
+          $params = @{
+            Path = "*.dll", "Commander.dll.config", "Commander.deps.json", "runtimes/", "Commander.runtimeconfig.json"
+            CompressionLevel = "Fastest"
+            DestinationPath = "Commander-net-${Env:PACKAGE_VERSION}.zip"
+          }
+          Compress-Archive @params
+        shell: powershell
+
+      - name: Store Commander artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Commander-win-${{ env.PACKAGE_VERSION }}
+          path: Commander/bin/Release/net472/Commander-win-${{ env.PACKAGE_VERSION }}.zip
+          retention-days: 1
+
+      - name: Store Commander artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Commander-net-${{ env.PACKAGE_VERSION }}
+          path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
+          retention-days: 1
+
       - name: Store Cli artifacts
         if: ${{ inputs.cli }}
         uses: actions/upload-artifact@v4
@@ -162,22 +187,21 @@ jobs:
           retention-days: 1
 
   publish:
-    if: ${{ inputs.publish_to_nuget }}
     runs-on: windows-latest
-    needs: [configure, keeper_sdk]
+    needs: build
     environment: prod
     env:
-      PACKAGE_VERSION: ${{ needs.configure.outputs.package_version }}
-
+      PACKAGE_VERSION: ${{ needs.build.outputs.package-version }}
+    
     steps:
       - name: Download Nuget package
         uses: actions/download-artifact@v4
         with:
-          name: KeeperSdk-Nuget-${{ needs.configure.outputs.package_version }}
+          name: KeeperSdk-Nuget-Package
           path: nuget
-
+          
       - name: Publish to Nuget repo
         working-directory: nuget
         run: |
-          dotnet nuget push Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg -k "${{ secrets.NUGET_PUBLISH_KEY }}" -s https://api.nuget.org/v3/index.json
-        shell: powershell
+          dotnet nuget push Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg -k "${{ secrets.NUGET_PUBLISH_KEY }}" -s https://api.nuget.org/v3/index.json 
+        shell: powershell   

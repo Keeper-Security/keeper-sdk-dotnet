@@ -1,60 +1,32 @@
-name: PowerCommander
+name: Publish PowerCommander 
 
-on:
-  workflow_dispatch:
-    inputs:
-      publish_to_gallery:
-        description: Publish signed module to PowerShell Gallery
-        type: boolean
-        required: false
-        default: false
+on: [workflow_dispatch]
 
 jobs:
-  configure:
+  build:
     runs-on: windows-latest
-    outputs:
-      package_version: ${{ steps.vars.outputs.package_version }}
-      version: ${{ steps.vars.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Read version from PowerCommander.psd1
-        id: vars
-        run: |
-          $m = Import-PowerShellDataFile -Path "PowerCommander/PowerCommander.psd1"
-          $v = [string]$m.ModuleVersion
-          echo "package_version=$v" >> $Env:GITHUB_OUTPUT
-          echo "version=$v" >> $Env:GITHUB_OUTPUT
-        shell: powershell
-
-  build_module:
-    runs-on: windows-latest
-    needs: configure
-    env:
-      PACKAGE_VERSION: ${{ needs.configure.outputs.package_version }}
+    environment: prod
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - uses: actions/checkout@v2
 
-      - name: Setup Code Sign Cert
+      - name: Set up certificate
         shell: bash
         run: |
           echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
 
       - name: Set variables
         shell: bash
+        id: variables
         run: |
-          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:/Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
-          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
-          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
-          echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
+           echo "::set-output name=version::${GITHUB_REF#refs/tags/v}" 
+           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV" 
+           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_FILE=D:/Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV" 
+           echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
+           echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
+           echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
 
       - name: Setup DigiCert SSM Tools
         uses: digicert/ssm-code-signing@b300bb7e8c2ab85257d660fe5b6c6374131ca2ef
@@ -67,140 +39,17 @@ jobs:
           smctl healthcheck
           smctl windows certsync --keypair-alias=%KEYPAIR_ALIAS%
 
-      - name: Restore solution
-        run: dotnet restore KeeperSdk.sln
-        shell: powershell
-
-      - name: Build .Net Commander
-        working-directory: ./Commander
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet build --configuration=Release
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Commander.exe"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\Commander.dll"
-        shell: powershell
-
-      - name: Stage PowerCommander runtime from Commander net8.0
-        shell: powershell
-        run: |
-          $out = Resolve-Path "Commander/bin/Release/net8.0"
-          $stage = Join-Path $PWD "artifact/PowerCommander-runtime"
-          $su = Join-Path $stage "StorageUtils"
-          New-Item -ItemType Directory -Path $su -Force | Out-Null
-          Copy-Item (Join-Path $out "KeeperSdk.dll") $stage -Force
-          foreach ($f in @('Microsoft.Data.Sqlite.dll', 'SQLitePCLRaw.batteries_v2.dll', 'SQLitePCLRaw.core.dll', 'SQLitePCLRaw.provider.e_sqlite3.dll')) {
-            $src = Join-Path $out $f
-            if (-not (Test-Path -LiteralPath $src)) { throw "Missing $f under $out" }
-            Copy-Item -LiteralPath $src $su -Force
-          }
-          $native = @(
-            (Join-Path $out 'e_sqlite3.dll'),
-            (Join-Path $out 'runtimes/win-x64/native/e_sqlite3.dll')
-          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $native) { throw "e_sqlite3.dll not found under Commander net8.0 output: $out" }
-          Copy-Item -LiteralPath $native (Join-Path $su 'e_sqlite3.dll') -Force
-
-      - name: Store PowerCommander runtime artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PowerCommander-runtime-from-Commander
-          path: artifact/PowerCommander-runtime/
-          retention-days: 1
-
-      - name: Zip .Net Framework Commander
-        working-directory: "./Commander/bin/Release/net472"
-        run: |
-          $params = @{
-            Path = "*.exe", "*.dll", "Commander.exe.config"
-            CompressionLevel = "Fastest"
-            DestinationPath = "Commander-win-${Env:PACKAGE_VERSION}.zip"
-          }
-          Compress-Archive @params
-        shell: powershell
-
-      - name: Zip .Net 8.0 Commander
-        working-directory: "./Commander/bin/Release/net8.0"
-        run: |
-          $params = @{
-            Path = "*.dll", "Commander.dll.config", "Commander.deps.json", "runtimes/", "Commander.runtimeconfig.json"
-            CompressionLevel = "Fastest"
-            DestinationPath = "Commander-net-${Env:PACKAGE_VERSION}.zip"
-          }
-          Compress-Archive @params
-        shell: powershell
-
-      - name: Store Commander artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Commander-win-${{ env.PACKAGE_VERSION }}
-          path: Commander/bin/Release/net472/Commander-win-${{ env.PACKAGE_VERSION }}.zip
-          retention-days: 1
-
-      - name: Store Commander artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Commander-net-${{ env.PACKAGE_VERSION }}
-          path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
-          retention-days: 1
-
-      - name: Copy Commander net8.0 outputs into PowerCommander module folder
-        shell: powershell
-        run: |
-          $out = Resolve-Path "Commander/bin/Release/net8.0"
-          $pc = Resolve-Path "PowerCommander"
-          Copy-Item (Join-Path $out "KeeperSdk.dll") $pc -Force
-          $to = Join-Path $pc "StorageUtils"
-          if (-not (Test-Path -LiteralPath $to)) { New-Item -ItemType Directory -Path $to -Force | Out-Null }
-          foreach ($f in @('Microsoft.Data.Sqlite.dll', 'SQLitePCLRaw.batteries_v2.dll', 'SQLitePCLRaw.core.dll', 'SQLitePCLRaw.provider.e_sqlite3.dll')) {
-            $src = Join-Path $out $f
-            Copy-Item -LiteralPath $src $to -Force
-          }
-          $native = @(
-            (Join-Path $out 'e_sqlite3.dll'),
-            (Join-Path $out 'runtimes/win-x64/native/e_sqlite3.dll')
-          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          Copy-Item -LiteralPath $native (Join-Path $to 'e_sqlite3.dll') -Force
-
-      - name: Sign KeeperSdk.dll
-        run: |
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "PowerCommander\KeeperSdk.dll"
-        shell: powershell
-
       - name: Sign PowerShell scripts
         working-directory: ./PowerCommander
         run: |
           $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
           Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-          $root = (Get-Location).Path
-          Get-ChildItem -Path . -Recurse -Filter *.ps1 -File | Where-Object { $_.DirectoryName -ne $root } | ForEach-Object {
-            Set-AuthenticodeSignature -FilePath $_.FullName -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-          }
           Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
           Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
           Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-        shell: powershell
-
-      - name: Upload signed PowerCommander module (workflow run → Artifacts)
-        uses: actions/upload-artifact@v4
-        with:
-          name: PowerCommander-module-${{ needs.configure.outputs.package_version }}
-          path: PowerCommander/
-          retention-days: 1
-
-  publish_gallery:
-    if: ${{ inputs.publish_to_gallery }}
-    runs-on: windows-latest
-    needs: [configure, build_module]
-    environment: prod
-
-    steps:
-      - name: Download signed PowerCommander module
-        uses: actions/download-artifact@v4
-        with:
-          name: PowerCommander-module-${{ needs.configure.outputs.package_version }}
-          path: PowerCommander
+        shell: powershell      
 
       - name: Publish to PowerShell Gallery
         run: |
           Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
-        shell: powershell
+        shell: powershell      
