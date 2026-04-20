@@ -215,6 +215,7 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
 | Get-KeeperSecurityAuditReport                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
 | Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
+| Get-KeeperRiskManagementReport                          | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
 
 
 #### Examples
@@ -607,4 +608,32 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
     PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
     ```
     Scope to a specific folder
+    ```
+39. Risk management report - enterprise stats
+    ```
+    PS > Get-KeeperRiskManagementReport
+    ```
+    or using the alias
+    ```
+    PS > risk-report
+    ```
+    Per-user login and record details
+    ```
+    PS > Get-KeeperRiskManagementReport -Action enterprise-stat-details
+    ```
+    Security alerts summary with 30-day trends
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-alerts-summary
+    ```
+    Security alerts detail for a specific event type
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-alerts-detail -AuditEventType 1001
+    ```
+    Get security benchmark statuses
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-benchmarks-get
+    ```
+    Set security benchmark status
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-benchmarks-set -BenchmarkFields "SB_ENFORCE_STRONG_MASTER_PASSWORD:RESOLVED"
     ```

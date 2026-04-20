@@ -119,6 +119,9 @@ Export-ModuleMember -Alias action-report
 
 Export-ModuleMember -Function Get-KeeperShareReport, Get-KeeperSharedRecordsReport
 Export-ModuleMember -Alias ksrr
+
+Export-ModuleMember -Function Get-KeeperRiskManagementReport
+Export-ModuleMember -Alias risk-report
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
