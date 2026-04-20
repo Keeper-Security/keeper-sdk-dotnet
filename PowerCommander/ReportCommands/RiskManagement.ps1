@@ -24,6 +24,25 @@ Options:
   -Output <path>            Write report to file
   -SyntaxHelp               Display this help text
 
+Audit Event Types (-AuditEventType):
+  Accepts an event name or numeric ID. Use 'security-alerts-summary' to see available types.
+  Docs: https://docs.keeper.io/en/enterprise-guide/event-reporting
+
+Benchmark Fields (-BenchmarkFields):
+  Format: NAME:STATUS. Use 'security-benchmarks-get' to see current values.
+
+  Valid benchmark names:
+    SB_DEPLOY_ACROSS_ENTIRE_ORGANIZATION              SB_ENFORCE_STRONG_MASTER_PASSWORD
+    SB_PREVENT_INSTALLATION_OF_UNTRUSTED_EXTENSIONS   SB_ENSURE_TWO_FACTOR_AUTHENTICATION_FOR_END_USERS
+    SB_ENABLE_ACCOUNT_TRANSFER_POLICY                 SB_CONFIGURE_IP_ALLOWLISTING
+    SB_REDUCE_ADMINISTRATOR_PRIVILEGE                 SB_CREATE_ALERTS
+    SB_ENSURE_OUTSIDE_SSO_ADMINISTRATOR_EXISTS        SB_DISABLE_BROWSER_PASSWORD_MANAGERS
+    SB_LOCK_DOWN_SSO_PROVIDER                         SB_DISABLE_ACCOUNT_RECOVERY
+    SB_CREATE_AT_LEAST_TWO_KEEPER_ADMINISTRATORS      SB_ENFORCE_LEAST_PRIVILEGE_POLICY
+    SB_ENSURE_TWO_FACTOR_AUTHENTICATION_ADMIN_USERS
+
+  Valid statuses: RESOLVED, IGNORED, UNRESOLVED
+
 Examples:
   Get-KeeperRiskManagementReport
       Enterprise-wide login/record stats
@@ -113,6 +132,31 @@ function Script:Write-RiskManagementOutput {
     }
 }
 
+$Script:ArrowUp        = [char]0x2191  # ↑
+$Script:ArrowDown      = [char]0x2193  # ↓
+$Script:ArrowUpRight   = [char]0x2197  # ↗
+$Script:ArrowDownRight = [char]0x2198  # ↘
+
+$Script:ValidBenchmarkNames = @(
+    'SB_DEPLOY_ACROSS_ENTIRE_ORGANIZATION',
+    'SB_PREVENT_INSTALLATION_OF_UNTRUSTED_EXTENSIONS',
+    'SB_ENABLE_ACCOUNT_TRANSFER_POLICY',
+    'SB_REDUCE_ADMINISTRATOR_PRIVILEGE',
+    'SB_ENSURE_OUTSIDE_SSO_ADMINISTRATOR_EXISTS',
+    'SB_LOCK_DOWN_SSO_PROVIDER',
+    'SB_CREATE_AT_LEAST_TWO_KEEPER_ADMINISTRATORS',
+    'SB_ENSURE_TWO_FACTOR_AUTHENTICATION_ADMIN_USERS',
+    'SB_ENFORCE_STRONG_MASTER_PASSWORD',
+    'SB_ENSURE_TWO_FACTOR_AUTHENTICATION_FOR_END_USERS',
+    'SB_CONFIGURE_IP_ALLOWLISTING',
+    'SB_CREATE_ALERTS',
+    'SB_DISABLE_BROWSER_PASSWORD_MANAGERS',
+    'SB_DISABLE_ACCOUNT_RECOVERY',
+    'SB_ENFORCE_LEAST_PRIVILEGE_POLICY'
+)
+
+$Script:ValidBenchmarkStatuses = @('RESOLVED', 'IGNORED', 'UNRESOLVED')
+
 function Script:Get-TrendIndicator {
     param(
         [int] $Current,
@@ -121,10 +165,10 @@ function Script:Get-TrendIndicator {
     if ($Current -ne $Previous) {
         if ($Previous -gt 0 -and $Current -gt 0) {
             $rate = ($Current - $Previous) / $Previous
-            if ($rate -gt 0) { return "[   $([char]0x2197) ]" } else { return "[ $([char]0x2198)   ]" }
+            if ($rate -gt 0) { return "[   $ArrowUpRight ]" } else { return "[ $ArrowDownRight   ]" }
         }
-        elseif ($Previous -gt 0) { return "[    $([char]0x2191)]" }
-        else { return "[$([char]0x2193)    ]" }
+        elseif ($Previous -gt 0) { return "[    $ArrowUp]" }
+        else { return "[$ArrowDown    ]" }
     }
     return '[  -  ]'
 }
@@ -135,7 +179,7 @@ function Get-KeeperRiskManagementReport {
     Generate risk management reports from Keeper's RMD APIs.
 
     .DESCRIPTION
-   This command provides risk management reports from Keeper's Risk Management Dashboard
+    This command provides risk management reports from Keeper's Risk Management Dashboard.
 
     Alias: risk-report
 
@@ -150,9 +194,11 @@ function Get-KeeperRiskManagementReport {
 
     .PARAMETER AuditEventType
     Audit event type name (e.g. "bw_record_high_risk") or numeric ID. Required for security-alerts-detail.
+    Use 'security-alerts-summary' to see available types.
 
     .PARAMETER BenchmarkFields
     Benchmark fields to set as 'NAME:STATUS' pairs. Required for security-benchmarks-set.
+    Use 'security-benchmarks-get' to see current values. Statuses: RESOLVED, IGNORED, UNRESOLVED.
 
     .PARAMETER Format
     Output format: table (default), json, csv.
@@ -226,6 +272,13 @@ function Get-KeeperRiskManagementReport {
 
     $auth = $enterprise.loader.Auth
 
+    if ($AuditEventType -and $Action -ne 'security-alerts-detail') {
+        Write-Warning "-AuditEventType is only used with 'security-alerts-detail'. Ignoring."
+    }
+    if ($BenchmarkFields -and $Action -ne 'security-benchmarks-set') {
+        Write-Warning "-BenchmarkFields is only used with 'security-benchmarks-set'. Ignoring."
+    }
+
     switch ($Action) {
         'enterprise-stat' {
             Write-Verbose "Calling rmd/get_enterprise_stat..."
@@ -233,27 +286,11 @@ function Get-KeeperRiskManagementReport {
                 $auth
             ).GetAwaiter().GetResult()
 
-            if ($Format -eq 'json') {
-                $jsonObj = [PSCustomObject]@{
-                    users_logged_recent = $result.UsersLoggedRecent
-                    users_has_records   = $result.UsersHasRecords
-                }
-                $jsonText = $jsonObj | ConvertTo-Json -Depth 5
-                if ($Output) {
-                    Set-Content -Path $Output -Value $jsonText -Encoding utf8
-                    Write-Host "Output written to $Output"
-                }
-                else {
-                    return $jsonText
-                }
-            }
-            else {
-                $rows = @(
-                    [PSCustomObject]@{ Metric = 'Logged In (Recent)'; Value = $result.UsersLoggedRecent }
-                    [PSCustomObject]@{ Metric = 'Has Records';        Value = $result.UsersHasRecords }
-                )
-                Write-RiskManagementOutput -Rows $rows -Format $Format -Output $Output -Title 'Users Enterprise Stat'
-            }
+            $rows = @(
+                [PSCustomObject]@{ Metric = 'Logged In (Recent)'; Value = $result.UsersLoggedRecent }
+                [PSCustomObject]@{ Metric = 'Has Records';        Value = $result.UsersHasRecords }
+            )
+            Write-RiskManagementOutput -Rows $rows -Format $Format -Output $Output -Title 'Users Enterprise Stat'
         }
 
         'enterprise-stat-details' {
@@ -285,29 +322,21 @@ function Get-KeeperRiskManagementReport {
 
             $rows = foreach ($r in $results) {
                 $eventDisplay = if ($r.EventName) { $r.EventName } else { $r.AuditEventTypeId.ToString() }
-                $eventTrend = Get-TrendIndicator -Current $r.CurrentCount -Previous $r.PreviousCount
-                $userTrend  = Get-TrendIndicator -Current $r.CurrentUserCount -Previous $r.PreviousUserCount
 
-                if ($Format -eq 'json') {
-                    [PSCustomObject]@{
-                        Event            = $eventDisplay
-                        EventOccurrences = $r.CurrentCount
-                        LastEvents       = $r.PreviousCount
-                        UniqueUsers      = $r.CurrentUserCount
-                        LastUsers        = $r.PreviousUserCount
-                    }
+                $row = [PSCustomObject]@{
+                    Event            = $eventDisplay
+                    EventOccurrences = $r.CurrentCount
+                    LastEvents       = $r.PreviousCount
+                    UniqueUsers      = $r.CurrentUserCount
+                    LastUsers        = $r.PreviousUserCount
                 }
-                else {
-                    [PSCustomObject]@{
-                        Event            = $eventDisplay
-                        EventOccurrences = $r.CurrentCount
-                        LastEvents       = $r.PreviousCount
-                        UniqueUsers      = $r.CurrentUserCount
-                        LastUsers        = $r.PreviousUserCount
-                        EventTrend       = $eventTrend
-                        UserTrend        = $userTrend
-                    }
+
+                if ($Format -ne 'json') {
+                    $row | Add-Member -NotePropertyName EventTrend -NotePropertyValue (Get-TrendIndicator -Current $r.CurrentCount -Previous $r.PreviousCount)
+                    $row | Add-Member -NotePropertyName UserTrend  -NotePropertyValue (Get-TrendIndicator -Current $r.CurrentUserCount -Previous $r.PreviousUserCount)
                 }
+
+                $row
             }
 
             Write-RiskManagementOutput -Rows @($rows) -Format $Format -Output $Output -Title 'Security Alerts Summary'
@@ -320,6 +349,9 @@ function Get-KeeperRiskManagementReport {
 
             $eventTypeId = 0
             if ([int]::TryParse($AuditEventType, [ref]$eventTypeId)) {
+                if ($eventTypeId -le 0) {
+                    Write-Error "Audit event type ID must be a positive integer. Got: $eventTypeId" -ErrorAction Stop
+                }
                 Write-Verbose "Using numeric event type ID: $eventTypeId"
             }
             else {
@@ -396,7 +428,17 @@ function Get-KeeperRiskManagementReport {
                     Write-Warning "Skipping invalid field '$field'. Expected format: NAME:STATUS"
                     continue
                 }
-                $updates[$parts[0].Trim()] = $parts[1].Trim()
+                $name   = $parts[0].Trim().ToUpper()
+                $status = $parts[1].Trim().ToUpper()
+
+                if ($name -notin $Script:ValidBenchmarkNames) {
+                    Write-Error "Invalid benchmark name: '$name'. Valid names: $($Script:ValidBenchmarkNames -join ', ')" -ErrorAction Stop
+                }
+                if ($status -notin $Script:ValidBenchmarkStatuses) {
+                    Write-Error "Invalid benchmark status: '$status'. Valid statuses: $($Script:ValidBenchmarkStatuses -join ', ')" -ErrorAction Stop
+                }
+
+                $updates[$name] = $status
             }
 
             if ($updates.Count -eq 0) {
@@ -412,7 +454,8 @@ function Get-KeeperRiskManagementReport {
                 Write-Host "Done"
             }
             catch {
-                Write-Error $_.Exception.InnerException.Message -ErrorAction Stop
+                $msg = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { $_.Exception.Message }
+                Write-Error $msg -ErrorAction Stop
             }
         }
     }
