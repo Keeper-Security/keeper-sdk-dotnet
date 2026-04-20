@@ -87,7 +87,9 @@ Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp, m
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
 Revoke-KeeperSharesWithUser,Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam,
-Move-KeeperRecordOwnership,New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare, Get-KeeperComplianceReport, Get-KeeperComplianceTeamReport, Get-KeeperComplianceRecordAccessReport, Get-KeeperComplianceSummaryReport, Get-KeeperComplianceSharedFolderReport, Get-KeeperExternalSharesReport, Get-KeeperAgingReport
+Move-KeeperRecordOwnership,New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare, Get-KeeperComplianceReport, 
+Get-KeeperComplianceTeamReport, Get-KeeperComplianceRecordAccessReport, Get-KeeperComplianceSummaryReport, 
+Get-KeeperComplianceSharedFolderReport, Get-KeeperExternalSharesReport, Get-KeeperAgingReport
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kcancelshare, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg, compliance-report,
 compliance-team-report, record-access-report, compliance-summary-report, compliance-shared-folder-report, external-shares-report, aging-report
 

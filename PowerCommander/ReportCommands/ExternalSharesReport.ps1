@@ -139,12 +139,11 @@ function Confirm-KeeperExternalShareRemoval {
         [Parameter()][ValidateSet('direct', 'shared-folder', 'all')][string]$ShareType = 'all'
     )
 
-    Write-Host ""
-    Write-Host "ALERT!"
-    Write-Host "You are about to delete the following shares:"
-    Write-Host ""
-
     if ($PreviewRows.Count -gt 0) {
+        Write-Host ""
+        Write-Host "ALERT!"
+        Write-Host "You are about to delete the following shares:"
+        Write-Host ""
         $PreviewRows | Format-Table -Property uid, name, type, shared_to, permissions -Wrap
     }
     else {
