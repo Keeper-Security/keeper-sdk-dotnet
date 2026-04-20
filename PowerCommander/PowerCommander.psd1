@@ -71,8 +71,8 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1', 'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1', 'EPM\Agents.ps1'
-        'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'KeeperBiometrics.ps1', 'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1', 'EPM\Agents.ps1', 
+        'EPM\Approval.ps1', 'EPM\Policy.ps1''ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
@@ -91,7 +91,8 @@
         'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
-        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
+        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 
+        'Deny-KeeperDevice',
         'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 
         'Get-KeeperMspLegacyReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 
@@ -123,7 +124,10 @@
         'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync','Sync-KeeperEpm',
         'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
         'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
-        'Get-KeeperEpmAgentList', 'Get-KeeperEpmAgent', 'Update-KeeperEpmAgent', 'Remove-KeeperEpmAgent', 'Get-KeeperEpmAgentCollection'
+        'Get-KeeperEpmAgentList', 'Get-KeeperEpmAgent', 'Update-KeeperEpmAgent', 'Remove-KeeperEpmAgent', 'Get-KeeperEpmAgentCollection',
+        'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval',
+        'Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy', 'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy',
+        'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection'
         #'Test-Keeper',
     )
 
@@ -137,7 +141,9 @@
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
         'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert',
         'kepm-sync','kepm-deployment-list', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
-        'kepm-agent-list', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
+        'kepm-agent-list', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection', 'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
+        'kepm-approval-delete', 'kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit', 'kepm-policy-delete',
+        'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 

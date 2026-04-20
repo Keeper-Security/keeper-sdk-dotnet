@@ -29,9 +29,9 @@ function Resolve-KeeperEpmDeployment {
 function Get-KeeperEpmDeploymentList {
     <#
     .Synopsis
-        List all EPM deployments (mirrors Commander "epm-deployment list").
+        List all EPM deployments.
     .Description
-        Lists deployment UID, name, disabled state, created/modified timestamps, and agent count.
+        Takes no parameters. Lists deployment UID, name, disabled state, created/modified timestamps, and agent count.
     #>
     [CmdletBinding()]
     Param ()
@@ -67,7 +67,9 @@ function Get-KeeperEpmDeploymentList {
 function Get-KeeperEpmDeployment {
     <#
     .Synopsis
-        View a single EPM deployment by UID or name (mirrors Commander "epm-deployment view").
+        View a single EPM deployment by UID or name.
+    .Parameter DeploymentUidOrName
+        Deployment UID or deployment name (case-insensitive).
     #>
     [CmdletBinding()]
     Param (
@@ -97,7 +99,13 @@ function Get-KeeperEpmDeployment {
 function Add-KeeperEpmDeployment {
     <#
     .Synopsis
-        Add a new EPM deployment (mirrors Commander "epm-deployment add").
+        Add a new EPM deployment.
+    .Parameter Name
+        Deployment display name.
+    .Parameter SpiffeCert
+        SPIFFE certificate as base64url text, or path to a certificate file (.cer, .der, or PFX).
+    .Parameter Force
+        If set, allow adding a deployment whose name already exists.
     #>
     [CmdletBinding()]
     Param (
@@ -174,7 +182,15 @@ function Add-KeeperEpmDeployment {
 function Update-KeeperEpmDeployment {
     <#
     .Synopsis
-        Update an existing EPM deployment (mirrors Commander "epm-deployment update").
+        Update an existing EPM deployment.
+    .Parameter DeploymentUidOrName
+        Deployment UID or deployment name (case-insensitive).
+    .Parameter Name
+        New deployment display name.
+    .Parameter Disabled
+        true/false/1/0/yes/no/on/off to set disabled state. Parsed via parseEpmBool.
+    .Parameter SpiffeCert
+        SPIFFE certificate as base64url text or certificate file path.
     #>
     [CmdletBinding()]
     Param (
@@ -219,7 +235,11 @@ function Update-KeeperEpmDeployment {
 function Remove-KeeperEpmDeployment {
     <#
     .Synopsis
-        Remove an EPM deployment (mirrors Commander "epm-deployment remove").
+        Remove an EPM deployment.
+    .Parameter DeploymentUidOrName
+        Deployment UID or deployment name (case-insensitive).
+    .Parameter Force
+        If set, skip confirmation prompt before delete.
     #>
     [CmdletBinding()]
     Param (
@@ -267,6 +287,10 @@ function Get-KeeperEpmDeploymentDownload {
         Get deployment token and agent download URLs.
     .Description
         Outputs deployment token and Windows/MacOS/Linux download URLs. Optionally writes to a file.
+    .Parameter DeploymentUidOrName
+        Deployment UID or deployment name (case-insensitive).
+    .Parameter File
+        Optional path to write token and download lines (tab-separated) as UTF-8.
     #>
     [CmdletBinding()]
     Param (

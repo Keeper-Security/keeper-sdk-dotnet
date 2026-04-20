@@ -32,6 +32,8 @@ function Get-KeeperEpmAgentList {
     <#
     .Synopsis
         List all EPM agents.
+    .Description
+        Takes no parameters; outputs a table of agents with deployment, machine name, and status.
     #>
     [CmdletBinding()]
     Param ()
@@ -73,6 +75,8 @@ function Get-KeeperEpmAgent {
     <#
     .Synopsis
         View a single EPM agent by UID or machine name.
+    .Parameter AgentUidOrName
+        Agent UID or machine name (case-insensitive).
     #>
     [CmdletBinding()]
     Param (
@@ -106,6 +110,12 @@ function Update-KeeperEpmAgent {
     <#
     .Synopsis
         Update EPM agent(s) - deployment and/or enable/disable.
+    .Parameter AgentUid
+        One or more agent UIDs.
+    .Parameter DeploymentUid
+        Deployment UID to assign, if changing deployment.
+    .Parameter Enable
+        Use 'on' or 'off' to enable or disable the agent(s).
     #>
     [CmdletBinding()]
     Param (
@@ -185,6 +195,8 @@ function Remove-KeeperEpmAgent {
     <#
     .Synopsis
         Remove an EPM agent by UID or machine name.
+    .Parameter AgentUidOrName
+        Agent UID or machine name (case-insensitive).
     #>
     [CmdletBinding()]
     Param (
@@ -228,7 +240,13 @@ function Get-KeeperEpmAgentCollection {
     .Synopsis
         List collections linked to an EPM agent.
     .Description
-        By default shows collection type and count. Use -Verbose for type, UID, and value per collection.
+        By default shows collection type and count. Use -CollectionVerbose for type, UID, and value per collection.
+    .Parameter AgentUid
+        The agent UID.
+    .Parameter CollectionType
+        Optional collection type number to filter results.
+    .Parameter CollectionVerbose
+        If set, show each collection's type, UID, and value instead of grouped counts.
     #>
     [CmdletBinding()]
     Param (
