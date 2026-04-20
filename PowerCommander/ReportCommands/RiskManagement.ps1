@@ -135,9 +135,7 @@ function Get-KeeperRiskManagementReport {
     Generate risk management reports from Keeper's RMD APIs.
 
     .DESCRIPTION
-    Mirrors the Python Commander 'risk-management' group command. Provides
-    enterprise stats, security alerts, and security benchmarks via the RMD
-    (Risk Management Dashboard) APIs.
+   This command provides risk management reports from Keeper's Risk Management Dashboard
 
     Alias: risk-report
 
