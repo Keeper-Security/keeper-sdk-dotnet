@@ -52,7 +52,7 @@ namespace KeeperSecurity.Enterprise
 
     public static class RiskManagementExtensions
     {
-        private static string GetProtoOriginalName<T>(T value) where T : struct, Enum
+        private static string GetProtoEnumName<T>(T value) where T : struct, Enum
         {
             var field = typeof(T).GetField(value.ToString());
             var attr = field?.GetCustomAttribute<Google.Protobuf.Reflection.OriginalNameAttribute>();
@@ -65,9 +65,9 @@ namespace KeeperSecurity.Enterprise
             return Enum.TryParse(normalized, true, out result);
         }
 
-        private static string GetValidProtoNames<T>() where T : struct, Enum
+        private static string GetValidProtoEnumNames<T>() where T : struct, Enum
         {
-            return string.Join(", ", Enum.GetValues(typeof(T)).Cast<T>().Select(GetProtoOriginalName));
+            return string.Join(", ", Enum.GetValues(typeof(T)).Cast<T>().Select(GetProtoEnumName));
         }
 
         /// <summary>
@@ -241,8 +241,8 @@ namespace KeeperSecurity.Enterprise
             {
                 results.Add(new RiskManagementSecurityBenchmarkResult
                 {
-                    BenchmarkName = GetProtoOriginalName(benchmark.SecurityBenchmark),
-                    Status = GetProtoOriginalName(benchmark.SecurityBenchmarkStatus),
+                    BenchmarkName = GetProtoEnumName(benchmark.SecurityBenchmark),
+                    Status = GetProtoEnumName(benchmark.SecurityBenchmarkStatus),
                     LastUpdatedMs = benchmark.LastUpdated,
                     AutoResolve = benchmark.AutoResolve
                 });
@@ -258,10 +258,10 @@ namespace KeeperSecurity.Enterprise
             {
                 if (!TryParseProtoEnum<SecurityBenchmark>(kvp.Key, out var benchmarkEnum))
                     throw new ArgumentException(
-                        $"Invalid benchmark name: '{kvp.Key}'. Valid values: {GetValidProtoNames<SecurityBenchmark>()}");
+                        $"Invalid benchmark name: '{kvp.Key}'. Valid values: {GetValidProtoEnumNames<SecurityBenchmark>()}");
                 if (!TryParseProtoEnum<SecurityBenchmarkStatus>(kvp.Value, out var statusEnum))
                     throw new ArgumentException(
-                        $"Invalid benchmark status: '{kvp.Value}'. Valid values: {GetValidProtoNames<SecurityBenchmarkStatus>()}");
+                        $"Invalid benchmark status: '{kvp.Value}'. Valid values: {GetValidProtoEnumNames<SecurityBenchmarkStatus>()}");
 
                 var esb = new EnterpriseSecurityBenchmark
                 {
