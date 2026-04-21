@@ -223,10 +223,12 @@ function Resolve-KeeperAuditAlertConfiguration {
         if ($n -and $n.ToLowerInvariant() -eq $want) { $matches.Add($a) }
     }
     if ($matches.Count -eq 0) {
-        Stop-KeeperAuditAlert "No audit alert matches `"$Target`". Run Get-KeeperAuditAlert -Action list and use a real alert name or numeric ID for -Target."
+        Write-Warning "No audit alert matches `"$Target`". Run Get-KeeperAuditAlert -Action list and use a real alert name or numeric ID for -Target."
+        return $null
     }
     if ($matches.Count -gt 1) {
-        Stop-KeeperAuditAlert "There are $($matches.Count) alerts named `"$Target`". Use the alert ID."
+        Write-Warning "There are $($matches.Count) alerts named `"$Target`". Use the alert ID."
+        return $null
     }
     return $matches[0]
 }
