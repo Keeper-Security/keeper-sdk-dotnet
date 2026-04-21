@@ -5,8 +5,7 @@ function Script:Write-RiskManagementSyntaxHelp {
 
 Risk Management Report Command Syntax Description:
 
-This command provides risk management reports from Keeper's RMD (Risk Management Dashboard)
-APIs. It mirrors the Python Commander 'risk-management' group command.
+This command provides risk management reports from Keeper's RMD (Risk Management Dashboard) APIs.
 
 Actions (-Action):
   enterprise-stat           Enterprise-wide login and record stats (default)
