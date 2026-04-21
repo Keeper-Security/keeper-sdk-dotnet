@@ -18,8 +18,10 @@ function New-SqliteIdbConnectionFunc {
     $dm.CreateDelegate([Func[System.Data.IDbConnection]])
 }
 
-function Get-SqliteVaultStorageFromHelper {
-    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+function Initialize-SqliteStorageDependencies {
+    param(
+        [Parameter(Mandatory = $true)][string] $ErrorContext
+    )
     $moduleRoot = $PSScriptRoot
     if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
 
@@ -77,6 +79,12 @@ function Get-SqliteVaultStorageFromHelper {
     }
 
     [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+}
+
+function Get-SqliteVaultStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+
+    Initialize-SqliteStorageDependencies -ErrorContext 'Offline storage'
 
     $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
     $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
@@ -100,63 +108,8 @@ function Get-SqliteVaultStorageFromHelper {
 
 function Get-SqliteComplianceStorageFromHelper {
     param([Parameter(Mandatory = $true)][string] $ConnectionString)
-    $moduleRoot = $PSScriptRoot
-    if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
 
-    $storageUtilsRoot = Join-Path $moduleRoot 'StorageUtils'
-    $requiredStorageDlls = @(
-        'Microsoft.Data.Sqlite.dll',
-        'SQLitePCLRaw.batteries_v2.dll',
-        'SQLitePCLRaw.core.dll',
-        'SQLitePCLRaw.provider.e_sqlite3.dll'
-    )
-    $missingFiles = [System.Collections.Generic.List[string]]::new()
-    foreach ($fileName in $requiredStorageDlls) {
-        $filePath = Join-Path $storageUtilsRoot $fileName
-        if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
-            $missingFiles.Add($fileName)
-        }
-    }
-
-    $nativeSqlitePath = Join-Path $storageUtilsRoot 'e_sqlite3.dll'
-    if (-not (Test-Path -LiteralPath $nativeSqlitePath -PathType Leaf)) {
-        $missingFiles.Add('e_sqlite3.dll')
-    }
-
-    if ($missingFiles.Count -gt 0) {
-        $missingList = $missingFiles -join ', '
-        throw "Compliance storage dependencies were not found in '$storageUtilsRoot'. Missing: $missingList. Copy the SQLite assemblies from a Commander net8.0 build into the 'StorageUtils' folder under the PowerCommander module directory."
-    }
-
-    if (-not $script:StorageUtilsAssemblyResolveRegistered) {
-        $script:StorageUtilsAssemblyResolveRegistered = $true
-        $sur = $storageUtilsRoot
-        $mr = $moduleRoot
-        $handler = [System.ResolveEventHandler] {
-            param($AssemblyResolveSource, $AssemblyResolveEventArgs)
-            $simpleName = ($AssemblyResolveEventArgs.Name -split ',')[0]
-            foreach ($root in @($sur, $mr)) {
-                $candidate = [System.IO.Path]::Combine($root, "$simpleName.dll")
-                if ([System.IO.File]::Exists($candidate)) {
-                    return [System.Reflection.Assembly]::LoadFrom($candidate)
-                }
-            }
-            return $null
-        }
-        [System.AppDomain]::CurrentDomain.add_AssemblyResolve($handler)
-    }
-
-    if (-not $script:PcSqlitePclInitialized) {
-        $batteriesPath = Join-Path $storageUtilsRoot 'SQLitePCLRaw.batteries_v2.dll'
-        $batteriesAsm = [System.Reflection.Assembly]::LoadFrom($batteriesPath)
-        $batteriesType = $batteriesAsm.GetType('SQLitePCL.Batteries_V2')
-        if (-not $batteriesType) { throw "Could not load type SQLitePCL.Batteries_V2 from $batteriesPath" }
-        $initMethod = $batteriesType.GetMethod('Init', [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
-        [void]$initMethod.Invoke($null, @())
-        $script:PcSqlitePclInitialized = $true
-    }
-
-    [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+    Initialize-SqliteStorageDependencies -ErrorContext 'Compliance storage'
 
     $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
     $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
