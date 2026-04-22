@@ -1,6 +1,4 @@
 ﻿#requires -Version 5.1
-
-# record access report
 function Get-KeeperComplianceManagedUserEmailSet {
     $enterprise = getEnterprise
     $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -95,6 +93,19 @@ function Get-KeeperVaultRecordMetadataFallback {
             $rtype = 'login'
             if ($pr.Link) {
                 $url = ([string]$pr.Link).TrimEnd('/')
+            }
+        }
+        elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) {
+            $tr = [KeeperSecurity.Vault.TypedRecord]$rec
+            if ($tr.TypeName) {
+                $rtype = $tr.TypeName
+            }
+            $urlField = $null
+            if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($tr, 'url', $null, [ref]$urlField)) {
+                $urlVal = [KeeperSecurity.Vault.VaultDataExtensions]::GetExternalValue($urlField)
+                if ($urlVal) {
+                    $url = ([string]$urlVal).TrimEnd('/')
+                }
             }
         }
         else {
@@ -211,18 +222,7 @@ function Get-KeeperRecordAccessAuditEventsForUser {
             [void][long]::TryParse($lc.ToString(), [ref]$lastCreatedEpoch)
         }
 
-        $queriesDone = $false
-        if ($events.Count -lt $Limit) {
-            $queriesDone = $true
-        }
-        if ($VaultMode -and $remaining.Count -eq 0) {
-            $queriesDone = $true
-        }
-        if ($queriesDone) {
-            break
-        }
-
-        if ($lastCreatedEpoch -le 0) {
+        if (($events.Count -lt $Limit) -or ($VaultMode -and $remaining.Count -eq 0) -or ($lastCreatedEpoch -le 0)) {
             break
         }
         $createdMax = $lastCreatedEpoch
@@ -469,8 +469,6 @@ function Get-KeeperComplianceRecordAccessReport {
             return
         }
 
-        # Full snapshot (not SharedOnly): audit can reference any accessed record; shared-only preliminary
-        # data omits many owned/non-shared UIDs, leaving title, record_type, record_url, and record_owner blank.
         $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $null
 
         $rows = [System.Collections.Generic.List[object]]::new()
@@ -637,7 +635,6 @@ function Get-KeeperComplianceRecordAccessReport {
     }
 }
 New-Alias -Name record-access-report -Value Get-KeeperComplianceRecordAccessReport
-# Record access report ends.
 
 function Get-KeeperComplianceTeamReportFilters {
     param(
@@ -766,7 +763,6 @@ function Get-KeeperComplianceTeamPermissionText {
         return 'Read Only'
     }
 
-    # Semicolons read clearly in narrow tables; commas wrap awkwardly with Format-Table.
     return ($permissions -join '; ')
 }
 
@@ -790,9 +786,6 @@ function Get-KeeperComplianceTeamReportRows {
         }
     }
 
-    # -Node: include a team row only if the team's enterprise home node (ParentNodeId) is the filter node or a
-    # descendant. Folder-level gates (records owned in node / members in node) wrongly dropped sibling teams on
-    # the same shared folder and missed teams when no member lived in the node despite the team's ParentNodeId.
     $filterTeamNodeSubtreeIds = $null
     $filterTeamNodeSkip = $false
     if (Test-KeeperComplianceHasNodeFilter -Node $Node) {
@@ -899,8 +892,6 @@ function Get-KeeperComplianceTeamReport {
             Write-Warning "No enterprise users matched the provided node filter."
         }
 
-        # With -Node, use a full shared snapshot so shared folders still appear when record owners are outside
-        # the node; rows are filtered by each team's enterprise ParentNodeId.
         $ownerIdsForSnapshot = if (Test-KeeperComplianceHasNodeFilter -Node $Node) { $null } else { $fetchOwnerIds }
         $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $ownerIdsForSnapshot -SharedOnly
         $reportRows = Get-KeeperComplianceTeamReportRows -Snapshot $snapshot -Team $Team `
@@ -932,7 +923,6 @@ function Get-KeeperComplianceTeamReport {
 }
 New-Alias -Name compliance-team-report -Value Get-KeeperComplianceTeamReport
 
-# Compliance summary stats for user.
 function Get-KeeperComplianceSummaryStatsForUser {
     param(
         [Parameter(Mandatory = $true)]$Snapshot,

@@ -49,7 +49,7 @@ function Get-KeeperComplianceSnapshot {
             return $cacheEntry.Snapshot
         }
     }
-    # Do not substitute the full snapshot for owner-scoped requests (e.g. -Node): filtered compliance data must be built.
+    
     if ($null -eq $OwnerUserIds -and $SharedOnly -and $allCacheEntry) {
         $allLoadedAt = [datetime]$allCacheEntry.LoadedAt
         $allCacheIsFresh = ((Get-Date) - $allLoadedAt) -lt $cacheTtl

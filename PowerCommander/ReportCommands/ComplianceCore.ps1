@@ -1233,7 +1233,6 @@ function Assert-KeeperComplianceReportAccess {
         Write-Error "Enterprise connection is required for compliance reports." -ErrorAction Stop
     }
     $auth = $enterprise.loader.Auth
-    # Login identity is on IAuthentication (AuthCommon.Username), not IAuthContext.
     $username = [string]$auth.Username
     if ([string]::IsNullOrWhiteSpace($username)) {
         Write-Error "Could not determine login username for compliance access validation." -ErrorAction Stop
