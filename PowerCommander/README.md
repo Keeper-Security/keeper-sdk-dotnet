@@ -213,6 +213,7 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | Get-KeeperShareReport                                   |                  | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
 | Get-KeeperSharedRecordsReport                           | ksrr             | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
 | Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
+| Get-KeeperAuditAlert                                    | audit-alert      | Configure and inspect enterprise audit alert rules (enterprise admin)
 | Get-KeeperSecurityAuditReport                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
 | Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 
@@ -606,5 +607,16 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
     ```
     PS > Get-KeeperSharedRecordsReport -ShowTeamUsers
     ```
-    Scope to a specific folder
+
+39. Enterprise audit alerts — configure and inspect notification rules for audit events (enterprise admin)
+    ```
+    PS > Get-KeeperAuditAlert -Action list
+    ```
+    View one alert by name or numeric ID
+    ```
+    PS > Get-KeeperAuditAlert -Action view -Target 'My Alert'
+    ```
+    Alert history (sent / throttled events) for a given alert
+    ```
+    PS > Get-KeeperAuditAlert -Action history -Target 1
     ```
