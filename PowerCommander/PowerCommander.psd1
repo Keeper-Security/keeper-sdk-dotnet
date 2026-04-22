@@ -74,9 +74,8 @@
         'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
         'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
-        'ReportCommands\ExternalSharesReport.ps1',
-        'ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1', 'ReportCommands\AuditAlert.ps1'
+        'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
+        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
         )
 
     # Functions to export from this module
@@ -118,7 +117,7 @@
         'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
         'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog',
-        'Get-KeeperAuditAlert', 'Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
+        'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
         'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
@@ -141,7 +140,7 @@
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
-        'kal', 'audit-alert', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
+        'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
         'external-shares-report', 'aging-report')
 
     # List of all modules packaged with this module
@@ -181,7 +180,8 @@
                 'Get-KeeperUserReport (user-report) - enterprise user report',
                 'Get-KeeperActionReport (action-report) - user activity report (no-logon, no-update, locked, invited, no-recovery); optional lock/delete/transfer with -DryRun, -Force, node filter, table/json/csv',
                 'Get-KeeperSecurityAuditReport and Get-KeeperBreachWatchReport; BreachWatch summary alias bw-report',
-                'Import-KeeperVault (kimport) - import vault data from file'
+                'Import-KeeperVault (kimport) - import vault data from file',
+                'Get-KeeperRiskManagementReport (risk-report) - risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set; table/json/csv output'
             )
         }
     }
