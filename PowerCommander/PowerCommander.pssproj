@@ -41,6 +41,7 @@
     <Compile Include="SharedFolderCommands.ps1" />
     <Compile Include="VaultCommands.ps1" />
     <Compile Include="ReportCommands\ActionReport.ps1" />
+    <Compile Include="ReportCommands\AuditAlert.ps1" />
     <Compile Include="ReportCommands\ShareReport.ps1" />
   </ItemGroup>
   <ItemGroup>
