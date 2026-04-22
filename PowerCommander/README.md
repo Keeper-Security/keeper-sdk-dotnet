@@ -224,6 +224,7 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | Get-KeeperAuditAlert                                    | audit-alert      | Configure and inspect enterprise audit alert rules (enterprise admin)
 | Get-KeeperSecurityAuditReport                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
 | Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
+| Get-KeeperRiskManagementReport                          | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
 
 
 #### Examples
@@ -627,6 +628,34 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
     Alert history (sent / throttled events) for a given alert
     ```
     PS > Get-KeeperAuditAlert -Action history -Target 1
+    ```
+39. Risk management report - enterprise stats
+    ```
+    PS > Get-KeeperRiskManagementReport
+    ```
+    or using the alias
+    ```
+    PS > risk-report
+    ```
+    Per-user login and record details
+    ```
+    PS > Get-KeeperRiskManagementReport -Action enterprise-stat-details
+    ```
+    Security alerts summary with 30-day trends
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-alerts-summary
+    ```
+    Security alerts detail for a specific event type
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-alerts-detail -AuditEventType 1001
+    ```
+    Get security benchmark statuses
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-benchmarks-get
+    ```
+    Set security benchmark status
+    ```
+    PS > Get-KeeperRiskManagementReport -Action security-benchmarks-set -BenchmarkFields "SB_ENFORCE_STRONG_MASTER_PASSWORD:RESOLVED"
     ```
     PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
     ```
