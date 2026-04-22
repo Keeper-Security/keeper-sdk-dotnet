@@ -60,12 +60,22 @@ function Get-KeeperComplianceSnapshot {
         }
     }
 
+    $enterprise = getEnterprise
+    if (-not $enterprise -or -not $enterprise.loader) {
+        Write-Error "Enterprise data is required to build the compliance report." -ErrorAction Stop
+    }
+
+    $auth = $enterprise.loader.Auth
+    if (-not $auth) {
+        Write-Warning "Cannot fetch compliance aging data: enterprise authentication is not available."
+        return
+    }
+
     if (-not $Rebuild) {
         try {
-            $entForCache = getEnterprise
-            if ($entForCache -and $entForCache.loader -and $entForCache.loader.Auth) {
+            if ($enterprise.loader.Auth) {
                 $sqliteLoaded = Import-KeeperComplianceSnapshotFromSqlite -CacheKey $cacheKey -CacheTtl $cacheTtl `
-                    -Enterprise $entForCache -Auth $entForCache.loader.Auth
+                    -Enterprise $enterprise -Auth $enterprise.loader.Auth
                 if ($sqliteLoaded) {
                     $script:ComplianceReportCache.Entries[$cacheKey] = @{
                         Snapshot = $sqliteLoaded.Snapshot
@@ -77,7 +87,7 @@ function Get-KeeperComplianceSnapshot {
                 }
                 if ($null -eq $OwnerUserIds -and $SharedOnly) {
                     $sqliteAll = Import-KeeperComplianceSnapshotFromSqlite -CacheKey 'all' -CacheTtl $cacheTtl `
-                        -Enterprise $entForCache -Auth $entForCache.loader.Auth
+                        -Enterprise $enterprise -Auth $enterprise.loader.Auth
                     if ($sqliteAll) {
                         $script:ComplianceReportCache.Entries['all'] = @{
                             Snapshot = $sqliteAll.Snapshot
@@ -97,11 +107,6 @@ function Get-KeeperComplianceSnapshot {
 
     if ($null -eq $OwnerUserIds -and $NoRebuild) {
         Write-Warning "No local compliance cache is available for this request. Building it now."
-    }
-
-    $enterprise = getEnterprise
-    if (-not $enterprise -or -not $enterprise.loader) {
-        Write-Error "Enterprise data is required to build the compliance report." -ErrorAction Stop
     }
 
     $auth = $enterprise.loader.Auth
@@ -636,10 +641,6 @@ function Get-KeeperComplianceAgingData {
     }
     Write-KeeperComplianceStatus "Aging phase: fetching audit events for $($staleRecordIds.Count) stale record(s); cache hits=$($recordIds.Count - $staleRecordIds.Count)."
 
-    if (-not $auth) {
-        Write-Warning "Cannot fetch compliance aging data: enterprise authentication is not available."
-        return $agingData
-    }
     $typesByAgingEvent = [ordered]@{
         created        = @()
         last_modified  = @('record_update')
@@ -853,7 +854,6 @@ function Get-KeeperComplianceOwners {
         $targetNodeId = [long]$resolvedNode.Id
         $rootNodeId = [long]$enterpriseData.RootNode.Id
         if ($targetNodeId -ne $rootNodeId) {
-            # Commander parity: exact home node match only (not subtree).
             $owners = @($owners | Where-Object {
                 $nid = [long]$_.NodeId
                 if ($nid -le 0) {
@@ -1021,7 +1021,6 @@ function Get-KeeperComplianceReportRows {
         }
     }
 
-    # Commander: stable sort — primary record_uid ASC, then (bits & 1) DESC, then permission bits DESC.
     $rows = @(
         $rows |
             Sort-Object record_uid,
@@ -1275,7 +1274,7 @@ function Resolve-KeeperAgingCutoffDateTime {
     )
 
     if ($Period -and $CutoffDate) {
-        Write-Error "-Period and -CutoffDate cannot be used together (same as Keeper Commander aging-report)." -ErrorAction Stop
+        Write-Error "-Period and -CutoffDate cannot be used together." -ErrorAction Stop
     }
 
     if ($CutoffDate) {
