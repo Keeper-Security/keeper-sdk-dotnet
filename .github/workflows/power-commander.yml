@@ -44,6 +44,10 @@ jobs:
         run: |
           $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
           Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          $root = (Get-Location).Path
+          Get-ChildItem -Path . -Recurse -Filter *.ps1 -File | Where-Object { $_.DirectoryName -ne $root } | ForEach-Object {
+            Set-AuthenticodeSignature -FilePath $_.FullName -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          }
           Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
           Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
           Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
