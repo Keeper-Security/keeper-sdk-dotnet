@@ -72,8 +72,7 @@
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1'
-        ,'ReportCommands\AuditAlert.ps1')
+        'SkipSyncCommands.ps1','ReportCommands\AuditAlert.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -114,12 +113,11 @@
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
         'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog',
 <<<<<<< HEAD
-        'Invoke-KeeperAuditAlert', 'Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
+        'Get-KeeperAuditAlert', 'Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
         'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
 =======
-        'Get-KeeperAuditAlert'
 >>>>>>> a076364 (Chaned the structure from switch case to helper functions)
         #'Test-Keeper',
     )
