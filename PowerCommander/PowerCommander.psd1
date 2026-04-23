@@ -71,8 +71,13 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1','ReportCommands\AuditAlert.ps1')
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
+        'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
+        'ReportCommands\ExternalSharesReport.ps1',
+        'ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
+        'SkipSyncCommands.ps1', 'ReportCommands\AuditAlert.ps1'
+        )
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -102,7 +107,8 @@
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
         'Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 
         'Revoke-KeeperSecretManagerFolderAccess','Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient',
-        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 
+        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Get-KeeperComplianceReport', 'Get-KeeperComplianceTeamReport', 'Get-KeeperComplianceRecordAccessReport', 
+        'Get-KeeperComplianceSummaryReport', 'Get-KeeperComplianceSharedFolderReport', 'Get-KeeperExternalSharesReport', 'Get-KeeperAgingReport', 'Copy-KeeperFileAttachment', 
         'Copy-KeeperFileAttachmentToStream','Remove-KeeperFileAttachment','Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 
         'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword','Test-PasswordAgainstBreachWatch',
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperSecurityAuditReport', 
@@ -134,7 +140,9 @@
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report', 'kal', 'audit-alert')
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
+        'kal', 'audit-alert', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
+        'external-shares-report', 'aging-report')
 
     # List of all modules packaged with this module
     # ModuleList = @()

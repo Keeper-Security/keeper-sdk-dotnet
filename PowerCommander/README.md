@@ -99,6 +99,14 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Move-KeeperRecordOwnership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/record-share-command#power-commander-3)                              | ktr              | Transfer record ownership to user
 | [Grant-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander)                          | kshf             | Add a user or team to a shared folder
 | [Revoke-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-commands#power-commander-2)                         | kushf            | Remove a user or team from a shared folder
+| [Get-KeeperAvailableTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                                 | kat              | Get available teams
+| Get-KeeperComplianceReport                             | compliance-report | Run enterprise compliance report
+| Get-KeeperAgingReport                                  | aging-report      | Run password aging report
+| Get-KeeperComplianceTeamReport                         | compliance-team-report | Run compliance team report
+| Get-KeeperComplianceRecordAccessReport                   | record-access-report | Run record-access report
+| Get-KeeperComplianceSummaryReport                      | compliance-summary-report | Run compliance summary report
+| Get-KeeperComplianceSharedFolderReport                   | compliance-shared-folder-report | Run compliance shared-folder report
+| Get-KeeperExternalSharesReport                         | external-shares-report | Run external shares report
 | [Get-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-2)                                  | kotsg            | Get One-Time Shares for a record
 | [New-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-1)                                  | kotsn            | Create One-Time Share
 | [Remove-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-3)                               | kotsr            | Remove One-Time Share
@@ -619,4 +627,192 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
     Alert history (sent / throttled events) for a given alert
     ```
     PS > Get-KeeperAuditAlert -Action history -Target 1
+    ```
+    PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
+    ```
+
+39. Compliance report
+    ```
+    PS > compliance-report
+    ```
+    Export to CSV
+    ```
+    PS > compliance-report -Format csv -Output report.csv
+    ```
+    Filter by user or node
+    ```
+    PS > compliance-report -Username user@company.com
+    PS > compliance-report -Node "Sales"
+    ```
+
+40. Password aging report
+    ```
+    PS > aging-report
+    ```
+    Show passwords older than 6 months
+    ```
+    PS > aging-report -Period 6m
+    ```
+    Set a fixed cutoff date and export to JSON
+    ```
+    PS > aging-report -CutoffDate "2025-01-01" -Format json -Output aging.json
+    ```
+    Only records in shared folders, exclude deleted
+    ```
+    PS > aging-report -InSharedFolder -ExcludeDeleted
+    ```
+
+41. Record-access report
+    ```
+    PS > record-access-report -Email user@company.com
+    ```
+    Vault view for all users, export to CSV
+    ```
+    PS > record-access-report -Email @all -ReportType vault -Format csv -Output access.csv
+    ```
+    Filter by node
+    ```
+    PS > record-access-report -Email user@company.com -Node "Engineering"
+    ```
+
+42. Compliance team report
+    ```
+    PS > compliance-team-report
+    ```
+    Show team members and filter by node
+    ```
+    PS > compliance-team-report -ShowTeamUsers -Node "Sales"
+    ```
+    Export to CSV
+    ```
+    PS > compliance-team-report -Format csv -Output teams.csv
+    ```
+
+43. Compliance summary report
+    ```
+    PS > compliance-summary-report
+    ```
+    Filter by node and export to JSON
+    ```
+    PS > compliance-summary-report -Node "Engineering" -Format json -Output summary.json
+    ```
+
+44. Compliance shared-folder report
+    ```
+    PS > compliance-shared-folder-report
+    ```
+    Include team members in the email column
+    ```
+    PS > compliance-shared-folder-report -ShowTeamUsers
+    ```
+    Filter by node and export to CSV
+    ```
+    PS > compliance-shared-folder-report -Node "Sales" -Format csv -Output sf-report.csv
+    ```
+
+45. External shares report
+    ```
+    PS > external-shares-report
+    ```
+    Remove external shares
+    ```
+    PS > external-shares-report -Action remove
+    ```
+    Remove only direct shares without confirmation
+    ```
+    PS > external-shares-report -Action remove -ShareType direct -Force
+    ```
+    PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
+    ```
+
+39. Compliance report
+    ```
+    PS > compliance-report
+    ```
+    Export to CSV
+    ```
+    PS > compliance-report -Format csv -Output report.csv
+    ```
+    Filter by user or node
+    ```
+    PS > compliance-report -Username user@company.com
+    PS > compliance-report -Node "Sales"
+    ```
+
+40. Password aging report
+    ```
+    PS > aging-report
+    ```
+    Show passwords older than 6 months
+    ```
+    PS > aging-report -Period 6m
+    ```
+    Set a fixed cutoff date and export to JSON
+    ```
+    PS > aging-report -CutoffDate "2025-01-01" -Format json -Output aging.json
+    ```
+    Only records in shared folders, exclude deleted
+    ```
+    PS > aging-report -InSharedFolder -ExcludeDeleted
+    ```
+
+41. Record-access report
+    ```
+    PS > record-access-report -Email user@company.com
+    ```
+    Vault view for all users, export to CSV
+    ```
+    PS > record-access-report -Email @all -ReportType vault -Format csv -Output access.csv
+    ```
+    Filter by node
+    ```
+    PS > record-access-report -Email user@company.com -Node "Engineering"
+    ```
+
+42. Compliance team report
+    ```
+    PS > compliance-team-report
+    ```
+    Show team members and filter by node
+    ```
+    PS > compliance-team-report -ShowTeamUsers -Node "Sales"
+    ```
+    Export to CSV
+    ```
+    PS > compliance-team-report -Format csv -Output teams.csv
+    ```
+
+43. Compliance summary report
+    ```
+    PS > compliance-summary-report
+    ```
+    Filter by node and export to JSON
+    ```
+    PS > compliance-summary-report -Node "Engineering" -Format json -Output summary.json
+    ```
+
+44. Compliance shared-folder report
+    ```
+    PS > compliance-shared-folder-report
+    ```
+    Include team members in the email column
+    ```
+    PS > compliance-shared-folder-report -ShowTeamUsers
+    ```
+    Filter by node and export to CSV
+    ```
+    PS > compliance-shared-folder-report -Node "Sales" -Format csv -Output sf-report.csv
+    ```
+
+45. External shares report
+    ```
+    PS > external-shares-report
+    ```
+    Remove external shares
+    ```
+    PS > external-shares-report -Action remove
+    ```
+    Remove only direct shares without confirmation
+    ```
+    PS > external-shares-report -Action remove -ShareType direct -Force
     ```
