@@ -18,8 +18,10 @@ function New-SqliteIdbConnectionFunc {
     $dm.CreateDelegate([Func[System.Data.IDbConnection]])
 }
 
-function Get-SqliteVaultStorageFromHelper {
-    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+function Initialize-SqliteStorageDependencies {
+    param(
+        [Parameter(Mandatory = $true)][string] $ErrorContext
+    )
     $moduleRoot = $PSScriptRoot
     if ($MyInvocation.MyCommand.Module) { $moduleRoot = $MyInvocation.MyCommand.Module.ModuleBase }
 
@@ -77,6 +79,12 @@ function Get-SqliteVaultStorageFromHelper {
     }
 
     [void][System.Reflection.Assembly]::LoadFrom((Join-Path $storageUtilsRoot 'Microsoft.Data.Sqlite.dll'))
+}
+
+function Get-SqliteVaultStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString, [Parameter(Mandatory = $true)][string] $OwnerUid)
+
+    Initialize-SqliteStorageDependencies -ErrorContext 'Offline storage'
 
     $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
     $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
@@ -96,6 +104,27 @@ function Get-SqliteVaultStorageFromHelper {
     }
 
     return $vaultStorage
+}
+
+function Get-SqliteComplianceStorageFromHelper {
+    param([Parameter(Mandatory = $true)][string] $ConnectionString)
+
+    Initialize-SqliteStorageDependencies -ErrorContext 'Compliance storage'
+
+    $getConnection = New-SqliteIdbConnectionFunc -ConnectionString $ConnectionString
+    $dialect = [KeeperSecurity.Storage.SqliteDialect]::Instance
+    $complianceStorage = New-Object KeeperSecurity.Compliance.SqlComplianceStorage($getConnection, $dialect)
+
+    $verifyConn = New-Object Microsoft.Data.Sqlite.SqliteConnection($ConnectionString)
+    $verifyConn.Open()
+    try {
+        [KeeperSecurity.Compliance.SqlComplianceStorage]::VerifyDatabase($verifyConn, $dialect)
+    }
+    finally {
+        $verifyConn.Dispose()
+    }
+
+    return $complianceStorage
 }
 
 $expires = @(
@@ -465,8 +494,8 @@ function Connect-Keeper {
     Use SQLite file for vault cache (persists between sessions).
 
     .Parameter VaultDatabasePath
-    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file 
-    ß
+    Path to the SQLite database file for vault storage. Default: keeper_db.sqlite in the same directory as the config file (or current directory).
+
    .Parameter SkipSync
     After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
 #>
