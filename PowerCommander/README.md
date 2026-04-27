@@ -100,13 +100,13 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Grant-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander)                          | kshf             | Add a user or team to a shared folder
 | [Revoke-KeeperSharedFolderAccess](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-commands#power-commander-2)                         | kushf            | Remove a user or team from a shared folder
 | [Get-KeeperAvailableTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                                 | kat              | Get available teams
-| Get-KeeperComplianceReport                             | compliance-report | Run enterprise compliance report
-| Get-KeeperAgingReport                                  | aging-report      | Run password aging report
-| Get-KeeperComplianceTeamReport                         | compliance-team-report | Run compliance team report
-| Get-KeeperComplianceRecordAccessReport                   | record-access-report | Run record-access report
-| Get-KeeperComplianceSummaryReport                      | compliance-summary-report | Run compliance summary report
-| Get-KeeperComplianceSharedFolderReport                   | compliance-shared-folder-report | Run compliance shared-folder report
-| Get-KeeperExternalSharesReport                         | external-shares-report | Run external shares report
+| [Get-KeeperComplianceReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/compliance-command#power-commander)                             | compliance-report | Run enterprise compliance report
+| [Get-KeeperAgingReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/aging-report-command#powercommander)                                  | aging-report      | Run password aging report
+| [Get-KeeperComplianceTeamReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/compliance-command#power-commander-1)                         | compliance-team-report | Run compliance team report
+| [Get-KeeperComplianceRecordAccessReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/compliance-command#power-commander-2)                   | record-access-report | Run record-access report
+| [Get-KeeperComplianceSummaryReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/compliance-command#power-commander-3)                      | compliance-summary-report | Run compliance summary report
+| [Get-KeeperComplianceSharedFolderReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/compliance-command#power-commander-4)                   | compliance-shared-folder-report | Run compliance shared-folder report
+| [Get-KeeperExternalSharesReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/external-shares-report-command#powercommander)                         | external-shares-report | Run external shares report
 | [Get-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-2)                                  | kotsg            | Get One-Time Shares for a record
 | [New-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-1)                                  | kotsn            | Create One-Time Share
 | [Remove-KeeperOneTimeShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands#power-commander-3)                               | kotsr            | Remove One-Time Share
@@ -226,6 +226,24 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 | Get-KeeperRiskManagementReport                          | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
 
+### Skip sync cmdlets
+
+Shared-folder and record operations that use **`IAuthentication` only** (REST skip-sync APIs). They work when **`Connect-Keeper -SkipSync`** skipped vault `SyncDown` or the local vault tree is empty; run **`Sync-Keeper`** when you need full vault navigation and cache-backed cmdlets.
+
+Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without sync-down](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down)**
+
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| [Get-KeeperSharedFolderDetailsSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander)                       |                  | Fetch shared folder metadata (`get_shared_folders`) without full vault sync
+| [Get-KeeperSharedFolderRecordUidsSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-1)                 |                  | Record UIDs linked to a folder (no record bodies)
+| [Get-KeeperSharedFolderRecordsSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#example-teams-record-uids-and-decrypt-records-no-full-vault-sync)                      |                  | List decrypted records in a shared folder (`-Mode Auto`, `SharedKey`, or `OwnedKey`)
+| [Get-KeeperRecordDetailsByUidSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-8)                        |                  | Load record bodies by UID via `vault/get_records_details` without full sync
+| [Get-KeeperAvailableTeamsSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-4)                               |                  | Teams available for shared-folder sharing (`get_available_teams`)
+| [Get-KeeperTeamUidSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-5)                                               |                  | Resolve team display name to team UID
+| [Grant-KeeperSharedFolderUserSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-2)                         |                  | Add or update a user on a shared folder (`PutUserToSharedFolderAsync`)
+| [Revoke-KeeperSharedFolderUserSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-3)                     |                  | Remove a user from a shared folder
+| [Grant-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-6)                         |                  | Add or update a team on a shared folder (`PutTeamToSharedFolderAsync`)
+| [Revoke-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-7)                       |                  | Remove a team from a shared folder
 
 #### Examples
 

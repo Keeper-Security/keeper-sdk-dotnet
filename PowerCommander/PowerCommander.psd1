@@ -157,38 +157,55 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
-                'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
-                'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
-                'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
-                'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
-                'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
-                'MSP: Get-KeeperMspLegacyReport (msp-legacy-report) - retrieve MSP legacy billing log',
-                'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
-                'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
-                'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
-                'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
-                'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
-                'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
-                'Get-KeeperRecordHistory (krh) - get version history for a record',
-                'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
-                'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
                 'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
-                'Get-KeeperShareReport - A report to display with whom records and folders are shared with along with summary, owner and per-user views',
-                'Get-KeeperSharedRecordsReport (ksrr) - per-row shared records: share type, recipient, permissions, folder path; -AllRecords, -Folder, -ShowTeamUsers',
-                'Get-KeeperAuditReport (kar) - enterprise audit trail: raw events, span/day/week/month/hour aggregates, dimension (dim) views; filters for user, dates, event type, record/shared folder/team UID, IP, node',
-                'Get-KeeperUserReport (user-report) - enterprise user report',
-                'Get-KeeperActionReport (action-report) - user activity report (no-logon, no-update, locked, invited, no-recovery); optional lock/delete/transfer with -DryRun, -Force, node filter, table/json/csv',
-                'Get-KeeperSecurityAuditReport and Get-KeeperBreachWatchReport; BreachWatch summary alias bw-report',
-                'Import-KeeperVault (kimport) - import vault data from file',
-                'Get-KeeperRiskManagementReport (risk-report) - risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set; table/json/csv output'
+                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync 
+                    - Get-KeeperSharedFolderDetailsSkipSync 
+                    - Get-KeeperSharedFolderRecordUidsSkipSync
+                    - Get-KeeperSharedFolderRecordsSkipSync
+                    - Get-KeeperRecordDetailsByUidSkipSync
+                    - Get-KeeperAvailableTeamsSkipSync
+                    - Get-KeeperTeamUidSkipSync
+                    - Grant-KeeperSharedFolderUserSkipSync
+                    - Revoke-KeeperSharedFolderUserSkipSync
+                    - Grant-KeeperSharedFolderTeamSkipSync
+                    - Revoke-KeeperSharedFolderTeamSkipSync
+                ',
+                'Compliance reports:
+                    - Get-KeeperComplianceReport
+                    - Get-KeeperComplianceTeamReport
+                    - Get-KeeperComplianceRecordAccessReport
+                    - Get-KeeperComplianceSummaryReport
+                    - Get-KeeperComplianceSharedFolderReport
+                    - Get-KeeperExternalSharesReport
+                    - Get-KeeperAgingReport
+                ',
+                'Audit:
+                    - Get-KeeperUserReport (user-report)
+                    - Export-KeeperAuditLog (audit-log)
+                    - Get-KeeperAuditAlert (audit-alert)
+                    - Get-KeeperAuditReport (audit-report)
+                ',
+                'Security summary:
+                    - Get-KeeperSecurityAuditReport (security-audit-report)
+                    - Get-KeeperBreachWatchReport (breach-watch-report)
+                    - Get-KeeperBreachWatchReportSummary (breach-watch-report-summary)
+                ',
+                'Import-KeeperVault (kimport) - import vault data from file (import-vault)',
+                'Activity and sharing visibility:
+                    - Get-KeeperActionReport (action-report)
+                    - Get-KeeperShareReport (share-report)
+                    - Get-KeeperSharedRecordsReport (shared-records-report)
+                ',
+                'Get-KeeperRiskManagementReport (risk-report) - risk dashboard: 
+                    - enterprise-stat (enterprise-stat) - enterprise statistics
+                    - enterprise-stat-details (enterprise-stat-details) - enterprise statistics details
+                    - security alerts (security-alerts) - security alerts
+                    - benchmarks (benchmarks) - benchmarks
+                ',
+                'MSP:
+                    - Get-KeeperMspLegacyReport (msp-legacy-report)
+                '
             )
         }
     }
-
-    # HelpInfo URI of this module
-    # HelpInfoURI = ''
-
-    # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
-    # DefaultCommandPrefix = ''
 }
