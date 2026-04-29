@@ -195,7 +195,7 @@ function Add-KeeperComplianceUserQueueFront {
     while ($Queue.Count -gt 0) {
         $newQ.Enqueue($Queue.Dequeue())
     }
-    return $newQ
+    return ,$newQ
 }
 
 $script:KeeperCompliancePermissionMasks = @(
