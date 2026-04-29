@@ -11,6 +11,19 @@ function getKeeperAuth {
     $Script:Context.Auth
 }
 
+function __AwaitSkipSyncTask {
+    param([Parameter(Mandatory)][System.Threading.Tasks.Task]$Task)
+    try {
+        return $Task.GetAwaiter().GetResult()
+    } catch {
+        $ex = $_.Exception
+        while ($null -ne $ex.InnerException) {
+            $ex = $ex.InnerException
+        }
+        throw $ex
+    }
+}
+
 function __ResolveSharedFolderUidSkipSync {
     param($SharedFolder)
     if ($SharedFolder -is [Array]) {
@@ -359,7 +372,7 @@ function Get-KeeperSharedFolderDetailsSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetSharedFolderAsync($auth, $SharedFolderUid)
-    $rs = $task.GetAwaiter().GetResult()
+    $rs = __AwaitSkipSyncTask $task
     if (-not $rs) {
         Write-Warning "Shared folder not found or get_shared_folders returned no data for: $SharedFolderUid"
         return $null
@@ -398,7 +411,7 @@ function Get-KeeperSharedFolderRecordUidsSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetRecordUidsFromSharedFolderAsync($auth, $SharedFolderUid)
-    $task.GetAwaiter().GetResult()
+    __AwaitSkipSyncTask $task
 }
 
 function Get-KeeperSharedFolderRecordsSkipSync {
@@ -446,23 +459,23 @@ function Get-KeeperSharedFolderRecordsSkipSync {
     }
     else {
         $taskFolder = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetSharedFolderAsync($auth, $sfUid)
-        $folderRs = $taskFolder.GetAwaiter().GetResult()
+        $folderRs = __AwaitSkipSyncTask $taskFolder
         $sfObj = __GetSharedFolderObjectFromResponseSkipSync $folderRs $sfUid
         $useOwned = __TestSharedFolderOwnerIsCurrentUserSkipSync $sfObj $auth
     }
 
     $result = if ($useOwned) {
         $taskUids = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetRecordUidsFromSharedFolderAsync($auth, $sfUid)
-        $uids = $taskUids.GetAwaiter().GetResult()
+        $uids = __AwaitSkipSyncTask $taskUids
         if ($null -eq $uids) {
             $uids = [string[]]@()
         }
         $taskRec = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetOwnedRecordsAsync($auth, $uids, $includeVal)
-        $taskRec.GetAwaiter().GetResult()
+        __AwaitSkipSyncTask $taskRec
     }
     else {
         $task = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetSharedFolderRecordsAsync($auth, $sfUid, $includeVal)
-        $task.GetAwaiter().GetResult()
+        __AwaitSkipSyncTask $task
     }
 
     if ($PassThru) {
@@ -517,15 +530,15 @@ function Get-KeeperRecordDetailsByUidSkipSync {
             throw 'SharedKey mode requires -SharedFolderUid.'
         }
         $task = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetSharedFolderRecordsAsync($auth, $SharedFolderUid.Trim(), $RecordUid, $includeVal)
-        $result = $task.GetAwaiter().GetResult()
+        $result = __AwaitSkipSyncTask $task
     }
     elseif ($Mode -eq 'OwnedKey') {
         $task = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetOwnedRecordsAsync($auth, $RecordUid, $includeVal)
-        $result = $task.GetAwaiter().GetResult()
+        $result = __AwaitSkipSyncTask $task
     }
     else {
         $taskOwned = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetOwnedRecordsAsync($auth, $RecordUid, $includeVal)
-        $owned = $taskOwned.GetAwaiter().GetResult()
+        $owned = __AwaitSkipSyncTask $taskOwned
         $needSf = __GetRequestedRecordUidsMissingFromLoadedRecords -RequestedUids $RecordUid -Result $owned
         if ($needSf.Count -eq 0) {
             $result = $owned
@@ -536,7 +549,7 @@ function Get-KeeperRecordDetailsByUidSkipSync {
             if ($SharedFolderUid) {
                 $tSf = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetSharedFolderRecordsAsync(
                     $auth, $SharedFolderUid.Trim(), [string[]]$needSf, $includeVal)
-                [void]$sfResults.Add($tSf.GetAwaiter().GetResult())
+                [void]$sfResults.Add((__AwaitSkipSyncTask $tSf))
             }
             else {
                 $groups = @{}
@@ -554,7 +567,7 @@ function Get-KeeperRecordDetailsByUidSkipSync {
                 foreach ($group in $groups.GetEnumerator()) {
                     $uids = [string[]]@($group.Value)
                     $tSf = [KeeperSecurity.Vault.RecordSkipSyncDown]::GetSharedFolderRecordsAsync($auth, $group.Key, $uids, $includeVal)
-                    [void]$sfResults.Add($tSf.GetAwaiter().GetResult())
+                    [void]$sfResults.Add((__AwaitSkipSyncTask $tSf))
                 }
             }
             if ($sfResults.Count -eq 0) {
@@ -585,7 +598,7 @@ function Get-KeeperAvailableTeamsSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetAvailableTeamsForShareAsync($auth)
-    $task.GetAwaiter().GetResult()
+    __AwaitSkipSyncTask $task
 }
 
 function Get-KeeperTeamUidSkipSync {
@@ -601,7 +614,7 @@ function Get-KeeperTeamUidSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetTeamUidFromNameAsync($auth, $TeamName)
-    $task.GetAwaiter().GetResult()
+    __AwaitSkipSyncTask $task
 }
 
 
@@ -650,7 +663,7 @@ function Grant-KeeperSharedFolderUserSkipSync {
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to $email")) {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutUserToSharedFolderAsync($auth, $sfUid, $email, $options)
-        $task.GetAwaiter().GetResult() | Out-Null
+        [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid — user $email added or updated."
         $didGrant = $true
     }
@@ -689,7 +702,7 @@ function Revoke-KeeperSharedFolderUserSkipSync {
     if ($PSCmdlet.ShouldProcess("$sfUid", "Remove shared folder access for $email")) {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveUserFromSharedFolderAsync($auth, $sfUid, $email)
-        $task.GetAwaiter().GetResult() | Out-Null
+        [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid — user $email removed."
         $didRevoke = $true
     }
@@ -746,7 +759,7 @@ function Grant-KeeperSharedFolderTeamSkipSync {
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to team $Team")) {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutTeamToSharedFolderAsync($auth, $sfUid, $teamKey, $options)
-        $task.GetAwaiter().GetResult() | Out-Null
+        [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid — team $teamKey added or updated."
         $didGrant = $true
     }
@@ -785,7 +798,7 @@ function Revoke-KeeperSharedFolderTeamSkipSync {
     if ($PSCmdlet.ShouldProcess("$sfUid", "Remove shared folder access for team $Team")) {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveTeamFromSharedFolderAsync($auth, $sfUid, $teamKey)
-        $task.GetAwaiter().GetResult() | Out-Null
+        [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid — team $teamKey removed."
         $didRevoke = $true
     }
