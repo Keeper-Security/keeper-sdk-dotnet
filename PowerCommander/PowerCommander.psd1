@@ -69,13 +69,9 @@
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
-        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
+        'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
-        'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
-        'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
-        'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
+        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1'
         )
 
     # Functions to export from this module
@@ -106,21 +102,16 @@
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
         'Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 
         'Revoke-KeeperSecretManagerFolderAccess','Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient',
-        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Get-KeeperComplianceReport', 'Get-KeeperComplianceTeamReport', 'Get-KeeperComplianceRecordAccessReport', 
-        'Get-KeeperComplianceSummaryReport', 'Get-KeeperComplianceSharedFolderReport', 'Get-KeeperExternalSharesReport', 'Get-KeeperAgingReport', 'Copy-KeeperFileAttachment', 
+        'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare', 'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 
         'Copy-KeeperFileAttachmentToStream','Remove-KeeperFileAttachment','Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 
         'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword','Test-PasswordAgainstBreachWatch',
-        'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperSecurityAuditReport', 
-        'Get-KeeperBreachWatchReport', 'Get-KeeperPasswordReport','Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 
+        'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 
+        'Get-KeeperPasswordReport','Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 
         'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential','Get-KeeperTrashList', 'Restore-KeeperTrashRecords', 
         'Remove-TrashedKeeperRecordShares', 'Get-KeeperTrashedRecordDetails', 'Clear-KeeperTrash','Export-KeeperVault', 
         'Export-KeeperMembership','Import-KeeperMembership', 'Get-KeeperEnterpriseTeams','Find-KeeperDuplicateRecords',
         'Get-KeeperFileReport', 'Get-KeeperRecordHistory', 'Get-KeeperAuditReport', 'Get-KeeperUserReport', 'Import-KeeperVault', 
-        'Get-KeeperActionReport','Get-KeeperShareReport', 'Get-KeeperSharedRecordsReport', 'Export-KeeperAuditLog',
-        'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
-        'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
-        'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
+        'Export-KeeperAuditLog'
         #'Test-Keeper',
     )
 
@@ -136,12 +127,11 @@
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
-        'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
+        'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
-        'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
-        'external-shares-report', 'aging-report')
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'msp-legacy-report',
+        'kal')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -158,50 +148,12 @@
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
                 'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
-                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync 
-                    - Get-KeeperSharedFolderDetailsSkipSync: fetch shared folder metadata by UID
-                    - Get-KeeperSharedFolderRecordUidsSkipSync: list record UIDs in a shared folder
-                    - Get-KeeperSharedFolderRecordsSkipSync: fetch decrypted records in a shared folder
-                    - Get-KeeperRecordDetailsByUidSkipSync: load record details by one or more record UIDs
-                    - Get-KeeperAvailableTeamsSkipSync: list teams available for shared-folder sharing
-                    - Get-KeeperTeamUidSkipSync: resolve team name to team UID
-                    - Grant-KeeperSharedFolderUserSkipSync: add or update user access on a shared folder
-                    - Revoke-KeeperSharedFolderUserSkipSync: remove user access from a shared folder
-                    - Grant-KeeperSharedFolderTeamSkipSync: add or update team access on a shared folder
-                    - Revoke-KeeperSharedFolderTeamSkipSync: remove team access from a shared folder
-                ',
-                'Compliance reports:
-                    - Get-KeeperComplianceReport: record-level compliance report
-                    - Get-KeeperComplianceTeamReport: team access to shared folders
-                    - Get-KeeperComplianceRecordAccessReport: record access history or vault visibility by user
-                    - Get-KeeperComplianceSummaryReport: aggregated compliance counts by owner
-                    - Get-KeeperComplianceSharedFolderReport: shared-folder access report for users and teams
-                    - Get-KeeperExternalSharesReport: external direct and shared-folder shares
-                    - Get-KeeperAgingReport: passwords older than period or cutoff date
-                ',
                 'Audit:
                     - Get-KeeperUserReport (user-report): enterprise user status report
                     - Export-KeeperAuditLog (audit-log): export audit events to file or SIEM targets
-                    - Get-KeeperAuditAlert (audit-alert): list and manage audit alert rules
                     - Get-KeeperAuditReport (audit-report): query enterprise audit trail events
                 ',
-                'Security summary:
-                    - Get-KeeperSecurityAuditReport (security-audit-report): enterprise password strength/security score report
-                    - Get-KeeperBreachWatchReport (breach-watch-report): enterprise BreachWatch user summary
-                    - Get-KeeperBreachWatchReportSummary (breach-watch-report-summary): compact BreachWatch totals
-                ',
                 'Import-KeeperVault (kimport) - import vault data from file (import-vault)',
-                'Activity and sharing visibility:
-                    - Get-KeeperActionReport (action-report): identify inactive/locked users and optional admin actions
-                    - Get-KeeperShareReport (share-report): shared records and shared-folder visibility report
-                    - Get-KeeperSharedRecordsReport (shared-records-report): flat report of shared records and recipients
-                ',
-                'Get-KeeperRiskManagementReport (risk-report) - risk dashboard: 
-                    - enterprise-stat (enterprise-stat) - enterprise statistics
-                    - enterprise-stat-details (enterprise-stat-details) - enterprise statistics details
-                    - security alerts (security-alerts) - security alerts
-                    - benchmarks (benchmarks) - benchmarks
-                ',
                 'MSP:
                     - Get-KeeperMspLegacyReport (msp-legacy-report): legacy license adjustment log with date filters
                 '
