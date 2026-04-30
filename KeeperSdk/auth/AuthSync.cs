@@ -61,6 +61,9 @@ namespace KeeperSecurity.Authentication.Sync
         /// <inheritdoc/>>
         public bool AlternatePassword { get; set; }
 
+        /// <inheritdoc/>>
+        public bool NoNewDevice { get; set; }
+
         /// <inheritdoc cref="IAuth.Username" />>
         public new string Username
         {
@@ -216,6 +219,10 @@ namespace KeeperSecurity.Authentication.Sync
                     switch (response.EncryptedDataKeyType)
                     {
                         case EncryptedDataKeyType.ByDevicePublicKey:
+                            if (_loginContext.DeviceKey == null)
+                            {
+                                throw new KeeperInvalidDeviceToken("device private key is required for this login flow");
+                            }
                             context.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, _loginContext.DeviceKey);
                             break;
                     }
