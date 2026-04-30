@@ -411,7 +411,12 @@ function Get-KeeperSharedFolderRecordUidsSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetRecordUidsFromSharedFolderAsync($auth, $SharedFolderUid)
-    __AwaitSkipSyncTask $task
+    $result = __AwaitSkipSyncTask $task
+    if ($null -eq $result -or $result.Count -eq 0) {
+        Write-Warning "Shared folder not found or has no records: $SharedFolderUid"
+        return $null
+    }
+    $result
 }
 
 function Get-KeeperSharedFolderRecordsSkipSync {
@@ -614,7 +619,12 @@ function Get-KeeperTeamUidSkipSync {
 
     $auth = getKeeperAuth
     $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetTeamUidFromNameAsync($auth, $TeamName)
-    __AwaitSkipSyncTask $task
+    $result = __AwaitSkipSyncTask $task
+    if ([string]::IsNullOrWhiteSpace($result)) {
+        Write-Warning "Team not found: $TeamName"
+        return $null
+    }
+    $result
 }
 
 
