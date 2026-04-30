@@ -80,6 +80,14 @@ namespace KeeperSecurity.Authentication
             }
 
             var configuration = auth.Storage.Get();
+            if (auth.NoNewDevice)
+            {
+                var token = configuration.Users.Get(auth.Username)?.LastDevice?.DeviceToken
+                    ?? configuration.Devices.List.FirstOrDefault()?.DeviceToken;
+                auth.DeviceToken = token.Base64UrlDecode();
+                return;
+            }
+
             IDeviceConfiguration deviceConf = null;
             if (auth.DeviceToken != null)
             {
@@ -355,7 +363,7 @@ namespace KeeperSecurity.Authentication
                 catch (Exception e)
                 {
                     auth.SetPushNotifications(null);
-                    if (attempt < 3 && e is KeeperInvalidDeviceToken)
+                    if (attempt < 3 && e is KeeperInvalidDeviceToken && !auth.NoNewDevice)
                     {
                         var configuration = auth.Storage.Get();
                         configuration.Devices.Delete(auth.DeviceToken.Base64UrlEncode());

@@ -463,6 +463,42 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
     }
 }
 
+function getConfigurationForDevice {
+    param(
+        [Parameter(Mandatory=$true)] [string] $Device,
+        [Parameter()] [string] $Username,
+        [Parameter()] [string] $Server
+    )
+
+    $deviceToken = $Device.Trim()
+    if (-not $deviceToken) {
+        Write-Error "Device parameter requires a device_token value." -ErrorAction Stop
+    }
+
+    $configuration = New-Object KeeperSecurity.Configuration.KeeperConfiguration
+    $configuration.LastLogin = $Username
+    $configuration.LastServer = $Server
+
+    $deviceConf = New-Object KeeperSecurity.Configuration.DeviceConfiguration $deviceToken
+    if ($Server) {
+        $deviceConf.ServerInfo.Put((New-Object KeeperSecurity.Configuration.DeviceServerConfiguration $Server))
+    }
+    $configuration.Devices.Put($deviceConf)
+
+    if ($Username) {
+        $userConf = New-Object KeeperSecurity.Configuration.UserConfiguration $Username
+        $userConf.Server = $Server
+        $userConf.LastDevice = New-Object KeeperSecurity.Configuration.UserDeviceConfiguration $deviceToken
+        $configuration.Users.Put($userConf)
+    }
+
+    if ($Server) {
+        $configuration.Servers.Put((New-Object KeeperSecurity.Configuration.ServerConfiguration $Server))
+    }
+
+    return New-Object KeeperSecurity.Configuration.InMemoryConfigurationStorage $configuration
+}
+
 function Connect-Keeper {
     <#
     .Synopsis
@@ -487,6 +523,9 @@ function Connect-Keeper {
     .Parameter Server
     Change default keeper server
 
+    .Parameter Device
+    Device token. When provided, skips loading configuration from file.
+
     .Parameter Config
     Config file name
 
@@ -507,6 +546,7 @@ function Connect-Keeper {
         [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
         [Parameter()][string] $Server,
+        [Parameter()][string] $Device,
         [Parameter()][string] $Config,
         [Parameter()][switch] $UseOfflineStorage,
         [Parameter()][string] $VaultDatabasePath,
@@ -514,7 +554,15 @@ function Connect-Keeper {
     )
 
     Disconnect-Keeper -Resume | Out-Null
-    if ($Config) {
+    $deviceTokenOnly = $false
+    if ($Device) {
+        if ($Config) {
+            Write-Error "The Device and Config parameters cannot be used together." -ErrorAction Stop
+        }
+        $storage = getConfigurationForDevice -Device $Device -Username $Username -Server $Server
+        $deviceTokenOnly = $true
+    }
+    elseif ($Config) {
         $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage $Config
     } else {
         $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
@@ -529,6 +577,7 @@ function Connect-Keeper {
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
+    $authFlow.NoNewDevice = $deviceTokenOnly
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
         if (-not $Username) {
@@ -565,6 +614,9 @@ function Connect-Keeper {
         }
     }
     $authFlow.ResumeSession = $canResume
+    if ($deviceTokenOnly) {
+        $authFlow.ResumeSession = $false
+    }
     Write-Verbose "Resume Session: $($authFlow.ResumeSession)"
 
     $biometricPresent = $false
