@@ -182,6 +182,11 @@ namespace KeeperSecurity.Authentication
         bool AlternatePassword { get; set; }
 
         /// <summary>
+        /// Uses a configured device token without requiring a stored device private key.
+        /// </summary>
+        public bool NoNewDevice { get; set; }
+
+        /// <summary>
         /// Login to Keeper account with email.
         /// </summary>
         /// <param name="username">Keeper account email address.</param>
