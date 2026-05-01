@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.0'
+    ModuleVersion        = '1.1.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -140,22 +140,7 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
-                'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
-                'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
-                'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
-                'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
-                'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
-                'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
-                'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
-                'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
-                'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
-                'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
-                'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
-                'Get-KeeperRecordHistory (krh) - get version history for a record',
-                'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
-                'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
-                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update'
+                'Connect-Keeper -Device parameter for preventing config file loading'
             )
         }
     }
