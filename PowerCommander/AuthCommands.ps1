@@ -30,7 +30,8 @@ function Initialize-SqliteStorageDependencies {
         'Microsoft.Data.Sqlite.dll',
         'SQLitePCLRaw.batteries_v2.dll',
         'SQLitePCLRaw.core.dll',
-        'SQLitePCLRaw.provider.e_sqlite3.dll'
+        'SQLitePCLRaw.provider.dynamic_cdecl.dll',
+        'e_sqlite3.dll'
     )
     $missingFiles = [System.Collections.Generic.List[string]]::new()
     foreach ($fileName in $requiredStorageDlls) {
