@@ -1,7 +1,3 @@
-$script:CltAgent = 1
-$script:CltPolicy = 2
-$script:CltCollection = 3
-
 function script:getEpmPlugin {
     <#
         .Synopsis
@@ -113,14 +109,18 @@ function script:getEpmCollectionTypeName {
     #>
     Param ([int] $CollectionType)
 
-    switch ($CollectionType) {
-        1   { return 'OS Build' }
-        2   { return 'Application' }
-        3   { return 'User Account' }
-        4   { return 'Group Account' }
-        202 { return 'OS Version' }
-        default { return "Type $CollectionType" }
+    $enumType = [KeeperSecurity.Plugins.EPM.EpmCollectionType]
+    if ([System.Enum]::IsDefined($enumType, $CollectionType)) {
+        $enumValue = [KeeperSecurity.Plugins.EPM.EpmCollectionType]$CollectionType
+        switch ($enumValue) {
+            ([KeeperSecurity.Plugins.EPM.EpmCollectionType]::OsBuild)      { return 'OS Build' }
+            ([KeeperSecurity.Plugins.EPM.EpmCollectionType]::Application)  { return 'Application' }
+            ([KeeperSecurity.Plugins.EPM.EpmCollectionType]::UserAccount)  { return 'User Account' }
+            ([KeeperSecurity.Plugins.EPM.EpmCollectionType]::GroupAccount) { return 'Group Account' }
+            ([KeeperSecurity.Plugins.EPM.EpmCollectionType]::OsVersion)    { return 'OS Version' }
+        }
     }
+    return "Type $CollectionType"
 }
 
 function Sync-KeeperEpm {

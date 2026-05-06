@@ -1,3 +1,7 @@
+$script:StatusApproved = ([KeeperSecurity.Plugins.EPM.EpmApprovalStatus]::Approved).ToString().ToUpperInvariant()
+$script:StatusDenied   = ([KeeperSecurity.Plugins.EPM.EpmApprovalStatus]::Denied).ToString().ToUpperInvariant()
+$script:StatusExpired  = ([KeeperSecurity.Plugins.EPM.EpmApprovalStatus]::Expired).ToString().ToUpperInvariant()
+
 function script:ConvertFrom-KeeperEpmApprovalField {
     Param ([byte[]] $FieldData)
     if ($null -eq $FieldData -or $FieldData.Length -eq 0) { return '' }
@@ -12,16 +16,16 @@ function script:ConvertFrom-KeeperEpmApprovalField {
             try {
                 $json = $text | ConvertFrom-Json -ErrorAction Stop
                 if ($null -ne $json) {
-                    $props = @($json.PSObject.Properties)
-                    if ($props.Count -gt 0) {
-                        $take = [Math]::Min(3, $props.Count)
+                    $properties = @($json.PSObject.Properties)
+                    if ($properties.Count -gt 0) {
+                        $take = [Math]::Min(3, $properties.Count)
                         $parts = [System.Collections.Generic.List[string]]::new()
                         for ($i = 0; $i -lt $take; $i++) {
-                            $p = $props[$i]
-                            $parts.Add("$($p.Name): $($p.Value)")
+                            $property = $properties[$i]
+                            $parts.Add("$($property.Name): $($property.Value)")
                         }
                         $result = $parts -join ', '
-                        if ($props.Count -gt 3) { $result += '...' }
+                        if ($properties.Count -gt 3) { $result += '...' }
                         return $result
                     }
                 }
@@ -63,26 +67,20 @@ function script:Get-KeeperEpmApprovalStatusDisplay {
         [string] $ApprovalUid
     )
     $statusInt = Get-KeeperEpmApprovalStatusInt -Plugin $Plugin -ApprovalUid $ApprovalUid
-    switch ($statusInt) {
-        0 { return 'PENDING' }
-        1 { return 'APPROVED' }
-        2 { return 'DENIED' }
-        3 { return 'EXPIRED' }
-        5 { return 'ESCALATED' }
-        default { return 'UNKNOWN' }
+    $enumType = [KeeperSecurity.Plugins.EPM.EpmApprovalStatus]
+    if ([System.Enum]::IsDefined($enumType, $statusInt)) {
+        return ([KeeperSecurity.Plugins.EPM.EpmApprovalStatus]$statusInt).ToString().ToUpperInvariant()
     }
+    return 'UNKNOWN'
 }
 
 function script:Get-KeeperEpmApprovalTypeName {
     Param ([int] $ApprovalType)
-    switch ($ApprovalType) {
-        1 { return 'PrivilegeElevation' }
-        2 { return 'FileAccess' }
-        5 { return 'CommandLine' }
-        6 { return 'LeastPrivilege' }
-        99 { return 'Custom' }
-        default { return 'Other' }
+    $enumType = [KeeperSecurity.Plugins.EPM.EpmApprovalType]
+    if ([System.Enum]::IsDefined($enumType, $ApprovalType)) {
+        return ([KeeperSecurity.Plugins.EPM.EpmApprovalType]$ApprovalType).ToString()
     }
+    return 'Other'
 }
 
 function Get-KeeperEpmApprovalList {
@@ -196,14 +194,14 @@ function Approve-KeeperEpmApproval {
     }
 
     $currentStatus = Get-KeeperEpmApprovalStatusDisplay -Plugin $plugin -ApprovalUid $ApprovalUid
-    if ($currentStatus -eq 'APPROVED') {
-        Write-Error -Message "Approval '$ApprovalUid' is already APPROVED. Cannot approve again." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusApproved) {
+        Write-Error -Message "Approval '$ApprovalUid' is already $($script:StatusApproved). Cannot approve again." -ErrorAction Stop
     }
-    if ($currentStatus -eq 'DENIED') {
-        Write-Error -Message "Approval '$ApprovalUid' is already DENIED. Cannot approve a denied request." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusDenied) {
+        Write-Error -Message "Approval '$ApprovalUid' is already $($script:StatusDenied). Cannot approve a denied request." -ErrorAction Stop
     }
-    if ($currentStatus -eq 'EXPIRED') {
-        Write-Error -Message "Approval '$ApprovalUid' is EXPIRED. Cannot approve an expired request." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusExpired) {
+        Write-Error -Message "Approval '$ApprovalUid' is $($script:StatusExpired). Cannot approve an expired request." -ErrorAction Stop
     }
 
     try {
@@ -249,14 +247,14 @@ function Deny-KeeperEpmApproval {
     }
 
     $currentStatus = Get-KeeperEpmApprovalStatusDisplay -Plugin $plugin -ApprovalUid $ApprovalUid
-    if ($currentStatus -eq 'DENIED') {
-        Write-Error -Message "Approval '$ApprovalUid' is already DENIED. Cannot deny again." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusDenied) {
+        Write-Error -Message "Approval '$ApprovalUid' is already $($script:StatusDenied). Cannot deny again." -ErrorAction Stop
     }
-    if ($currentStatus -eq 'APPROVED') {
-        Write-Error -Message "Approval '$ApprovalUid' is already APPROVED. Cannot deny an approved request." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusApproved) {
+        Write-Error -Message "Approval '$ApprovalUid' is already $($script:StatusApproved). Cannot deny an approved request." -ErrorAction Stop
     }
-    if ($currentStatus -eq 'EXPIRED') {
-        Write-Error -Message "Approval '$ApprovalUid' is EXPIRED. Cannot deny an expired request." -ErrorAction Stop
+    if ($currentStatus -eq $script:StatusExpired) {
+        Write-Error -Message "Approval '$ApprovalUid' is $($script:StatusExpired). Cannot deny an expired request." -ErrorAction Stop
     }
 
     try {
