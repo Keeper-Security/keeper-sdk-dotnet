@@ -71,8 +71,8 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
-        'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'KeeperBiometrics.ps1', 'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1', 
+        'EPM\Approval.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
@@ -91,8 +91,8 @@
         'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
-        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 'Deny-KeeperDevice',
-        'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
+        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 
+        'Deny-KeeperDevice','Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 
         'Get-KeeperMspLegacyReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 
         'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
@@ -120,7 +120,10 @@
         'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync','Sync-KeeperEpm',
+        'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
+        'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
+        'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval'
         #'Test-Keeper',
     )
 
@@ -132,7 +135,9 @@
 
     # Aliases to export from this module
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
-        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 
+        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert',
+        'kepm-sync','kepm-deployment-list', 'kepm-deployment-view', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
+        'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
@@ -157,55 +162,38 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
+                'MSP/Managed Company: Get-KeeperManagedCompany (kmc) - restriction, pricing, or MC list; -Detailed, -Format, -Output',
+                'MSP: Get-MspBillingReport - consumption billing statement; -Month, -ShowDate, -ShowCompany, -Format, -Output',
+                'MSP: Edit-KeeperManagedCompany (kemc) - update MC name, plan, seats, storage, node, addons; -AddAddon, -RemoveAddon',
+                'MSP: Copy-KeeperMCRole (msp-copy-role) - copy role(s) with enforcements to one or more Managed Companies',
+                'MSP: Switch-KeeperMC (switch-to-mc), Switch-KeeperMSP (switch-to-msp) - switch context to/from Managed Company',
+                'MSP: New-KeeperManagedCompany (kamc), Remove-KeeperManagedCompany (krmc) - create/remove Managed Company',
+                'MSP: Get-KeeperMspLegacyReport (msp-legacy-report) - retrieve MSP legacy billing log',
+                'Import-KeeperMembership (kapplymbs) - load shared folder membership from JSON',
+                'Get-KeeperEnterpriseTeams (list-team) - list enterprise teams with optional filters',
+                'Copy-KeeperEnterpriseRole (kercopy) - copy role enforcements, users, and teams to another node',
+                'Invoke-KeeperEnterpriseNodeWipeOut (kenwipe) - wipe out node and all its content (users, roles, teams, queued teams, subnodes); -Force to skip confirmation',
+                'Revoke-KeeperSharesWithUser (kcancelshare) - cancel all record shares with a user',
+                'Find-KeeperDuplicateRecords (find-duplicates) - find records with duplicate passwords or criteria',
+                'Get-KeeperRecordHistory (krh) - get version history for a record',
+                'Get-KeeperFileReport (file-report) - list records with file attachments, verify download accessibility',
+                'Enterprise info cmdlets (SDK-276): Get-KeeperEnterpriseInfoTree/Node/User/Team/Role/ManagedCompany (keitree, kein, keiu, keit, keir, keimc)',
                 'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
-                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync 
-                    - Get-KeeperSharedFolderDetailsSkipSync: fetch shared folder metadata by UID
-                    - Get-KeeperSharedFolderRecordUidsSkipSync: list record UIDs in a shared folder
-                    - Get-KeeperSharedFolderRecordsSkipSync: fetch decrypted records in a shared folder
-                    - Get-KeeperRecordDetailsByUidSkipSync: load record details by one or more record UIDs
-                    - Get-KeeperAvailableTeamsSkipSync: list teams available for shared-folder sharing
-                    - Get-KeeperTeamUidSkipSync: resolve team name to team UID
-                    - Grant-KeeperSharedFolderUserSkipSync: add or update user access on a shared folder
-                    - Revoke-KeeperSharedFolderUserSkipSync: remove user access from a shared folder
-                    - Grant-KeeperSharedFolderTeamSkipSync: add or update team access on a shared folder
-                    - Revoke-KeeperSharedFolderTeamSkipSync: remove team access from a shared folder
-                ',
-                'Compliance reports:
-                    - Get-KeeperComplianceReport: record-level compliance report
-                    - Get-KeeperComplianceTeamReport: team access to shared folders
-                    - Get-KeeperComplianceRecordAccessReport: record access history or vault visibility by user
-                    - Get-KeeperComplianceSummaryReport: aggregated compliance counts by owner
-                    - Get-KeeperComplianceSharedFolderReport: shared-folder access report for users and teams
-                    - Get-KeeperExternalSharesReport: external direct and shared-folder shares
-                    - Get-KeeperAgingReport: passwords older than period or cutoff date
-                ',
-                'Audit:
-                    - Get-KeeperUserReport (user-report): enterprise user status report
-                    - Export-KeeperAuditLog (audit-log): export audit events to file or SIEM targets
-                    - Get-KeeperAuditAlert (audit-alert): list and manage audit alert rules
-                    - Get-KeeperAuditReport (audit-report): query enterprise audit trail events
-                ',
-                'Security summary:
-                    - Get-KeeperSecurityAuditReport (security-audit-report): enterprise password strength/security score report
-                    - Get-KeeperBreachWatchReport (breach-watch-report): enterprise BreachWatch user summary
-                    - Get-KeeperBreachWatchReportSummary (breach-watch-report-summary): compact BreachWatch totals
-                ',
-                'Import-KeeperVault (kimport) - import vault data from file (import-vault)',
-                'Activity and sharing visibility:
-                    - Get-KeeperActionReport (action-report): identify inactive/locked users and optional admin actions
-                    - Get-KeeperShareReport (share-report): shared records and shared-folder visibility report
-                    - Get-KeeperSharedRecordsReport (shared-records-report): flat report of shared records and recipients
-                ',
-                'Get-KeeperRiskManagementReport (risk-report) - risk dashboard: 
-                    - enterprise-stat (enterprise-stat) - enterprise statistics
-                    - enterprise-stat-details (enterprise-stat-details) - enterprise statistics details
-                    - security alerts (security-alerts) - security alerts
-                    - benchmarks (benchmarks) - benchmarks
-                ',
-                'MSP:
-                    - Get-KeeperMspLegacyReport (msp-legacy-report): legacy license adjustment log with date filters
-                '
+                'Get-KeeperShareReport - A report to display with whom records and folders are shared with along with summary, owner and per-user views',
+                'Get-KeeperSharedRecordsReport (ksrr) - per-row shared records: share type, recipient, permissions, folder path; -AllRecords, -Folder, -ShowTeamUsers',
+                'Get-KeeperAuditReport (kar) - enterprise audit trail: raw events, span/day/week/month/hour aggregates, dimension (dim) views; filters for user, dates, event type, record/shared folder/team UID, IP, node',
+                'Get-KeeperUserReport (user-report) - enterprise user report',
+                'Get-KeeperActionReport (action-report) - user activity report (no-logon, no-update, locked, invited, no-recovery); optional lock/delete/transfer with -DryRun, -Force, node filter, table/json/csv',
+                'Get-KeeperSecurityAuditReport and Get-KeeperBreachWatchReport; BreachWatch summary alias bw-report',
+                'Import-KeeperVault (kimport) - import vault data from file',
+                'Get-KeeperRiskManagementReport (risk-report) - risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set; table/json/csv output'
             )
         }
     }
+
+    # HelpInfo URI of this module
+    # HelpInfoURI = ''
+
+    # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
+    # DefaultCommandPrefix = ''
 }
