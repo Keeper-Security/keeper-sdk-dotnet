@@ -74,9 +74,9 @@ function script:ConvertFrom-KeeperEpmLinkType {
     Param ([string] $LinkType)
     $v = $LinkType.Trim().ToLowerInvariant()
     switch ($v) {
-        'agent'      { return $script:CltAgent }
-        'policy'     { return $script:CltPolicy }
-        'collection' { return $script:CltCollection }
+        'agent'      { return [int][PEDM.CollectionLinkType]::CltAgent }
+        'policy'     { return [int][PEDM.CollectionLinkType]::CltPolicy }
+        'collection' { return [int][PEDM.CollectionLinkType]::CltCollection }
         default      { return $null }
     }
 }
@@ -419,7 +419,7 @@ function Connect-KeeperEpmCollection {
         if ([string]::IsNullOrEmpty($trimmed)) { continue }
 
         switch ($linkTypeValue) {
-            $script:CltAgent {
+            ([int][PEDM.CollectionLinkType]::CltAgent) {
                 $agentMatches = @(Resolve-KeeperEpmAgent -Identifier $trimmed -Plugin $plugin)
                 if ($agentMatches.Count -eq 0) {
                     Write-Warning "Agent '$trimmed' not found."
@@ -431,7 +431,7 @@ function Connect-KeeperEpmCollection {
                 }
                 $links.Add($agentMatches[0].AgentUid)
             }
-            $script:CltPolicy {
+            ([int][PEDM.CollectionLinkType]::CltPolicy) {
                 $policyMatches = @(Resolve-KeeperEpmPolicy -Identifier $trimmed -Plugin $plugin)
                 if ($policyMatches.Count -eq 0) {
                     Write-Warning "Policy '$trimmed' not found."
@@ -443,7 +443,7 @@ function Connect-KeeperEpmCollection {
                 }
                 $links.Add($policyMatches[0].PolicyUid)
             }
-            $script:CltCollection {
+            ([int][PEDM.CollectionLinkType]::CltCollection) {
                 $collMatches = @(Resolve-KeeperEpmCollection -Identifier $trimmed -Plugin $plugin)
                 if ($collMatches.Count -eq 0) {
                     Write-Warning "Collection '$trimmed' not found."

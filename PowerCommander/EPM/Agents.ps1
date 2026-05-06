@@ -283,7 +283,7 @@ function Get-KeeperEpmAgentCollection {
 
     $agent = Resolve-KeeperEpmSingleAgent -Identifier $AgentUid -Plugin $plugin
 
-    $resourceUids = @($plugin.CollectionLinks.GetLinksForObject($agent.AgentUid) | Where-Object { $_.LinkType -eq $script:CltAgent } | ForEach-Object { $_.CollectionUid })
+    $resourceUids = @($plugin.CollectionLinks.GetLinksForObject($agent.AgentUid) | Where-Object { $_.LinkType -eq [int][PEDM.CollectionLinkType]::CltAgent } | ForEach-Object { $_.CollectionUid })
 
     $collections = [System.Collections.Generic.List[object]]::new()
     foreach ($uid in $resourceUids) {
