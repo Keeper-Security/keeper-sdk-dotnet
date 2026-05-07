@@ -14,6 +14,33 @@ using Folder;
 
 namespace KeeperSecurity.Plugins.EPM
 {
+    public enum EpmApprovalStatus
+    {
+        Pending   = 0,
+        Approved  = 1,
+        Denied    = 2,
+        Expired   = 3,
+        Escalated = 5
+    }
+
+    public enum EpmApprovalType
+    {
+        PrivilegeElevation = 1,
+        FileAccess         = 2,
+        CommandLine        = 5,
+        LeastPrivilege     = 6,
+        Custom             = 99
+    }
+
+    public enum EpmCollectionType
+    {
+        OsBuild      = 1,
+        Application  = 2,
+        UserAccount  = 3,
+        GroupAccount = 4,
+        OsVersion    = 202
+    }
+
     public class RebuildTask
     {
         private readonly bool _fullRebuild;

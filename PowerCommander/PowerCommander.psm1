@@ -125,6 +125,14 @@ Export-ModuleMember -Alias ksrr
 
 Export-ModuleMember -Function Get-KeeperRiskManagementReport
 Export-ModuleMember -Alias risk-report
+
+Export-ModuleMember -Function Sync-KeeperEpm,
+Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,
+Update-KeeperEpmDeployment, Remove-KeeperEpmDeployment, Get-KeeperEpmDeploymentDownload,
+Get-KeeperEpmApprovalList, Get-KeeperEpmApproval, Approve-KeeperEpmApproval, Deny-KeeperEpmApproval, Remove-KeeperEpmApproval
+Export-ModuleMember -Alias kepm-sync,
+kepm-deployment-list, kepm-deployment-view, kepm-deployment-add, kepm-deployment-edit, kepm-deployment-delete, kepm-deployment-download,
+kepm-approval-list, kepm-approval-view, kepm-approval-approve, kepm-approval-deny, kepm-approval-remove
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (

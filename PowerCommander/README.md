@@ -216,15 +216,31 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Get-KeeperFileReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#power-commander-5)                                    | file-report      | List records with file attachments and optionally verify download accessibility
 | [Find-KeeperDuplicateRecords](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#power-commander-4)                             | find-duplicates  | Find records with duplicate passwords or other criteria
 | [Get-KeeperRecordHistory](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#power-commander-2)                                 | krh              | Get version history for a Keeper record
-| Get-KeeperAuditReport                                   | kar              | Run an enterprise audit trail report
-| Get-KeeperUserReport                                    | user-report      | Run an enterprise user report
-| Get-KeeperShareReport                                   |                  | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
-| Get-KeeperSharedRecordsReport                           | ksrr             | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
-| Get-KeeperActionReport                                  | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
-| Get-KeeperAuditAlert                                    | audit-alert      | Configure and inspect enterprise audit alert rules (enterprise admin)
-| Get-KeeperSecurityAuditReport                           |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
-| Get-KeeperBreachWatchReport                             | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
-| Get-KeeperRiskManagementReport                          | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
+| [Get-KeeperAuditReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/audit-report-command#powercommander)                               | kar              | Run an enterprise audit trail report
+| [Get-KeeperUserReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/user-report-command#powercommander)                                | user-report      | Run an enterprise user report
+| [Get-KeeperShareReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/share-report-command#powercommander)                               |                  | Show a report of shared records and shared folders with multiple modes: summary, per-record detail, per-user, owner report, and shared folders listing
+| [Get-KeeperSharedRecordsReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/shared-records-report-command#powercommander)                       | ksrr             | Report shared records showing share type (Direct/Folder/Team), who each record is shared with, and permissions. Use -AllRecords for non-owned records, -ShowTeamUsers to expand teams
+| [Get-KeeperActionReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/action-report-command#powercommander)                              | action-report    | Generate a report of users based on activity status (no-logon, no-update, locked, invited, no-recovery) and optionally apply admin actions (lock, delete, transfer). Supports -DaysSince, -Node, -DryRun, -Force, -Columns, -Format, -Output
+| [Get-KeeperAuditAlert](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/audit-alert-commands#powercommander)                                | audit-alert      | Configure and inspect enterprise audit alert rules (enterprise admin)
+| [Get-KeeperSecurityAuditReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/security-audit-report-command)                       |                  | Generate enterprise security audit reports in table, JSON, or CSV with optional node filtering, BreachWatch view, save, and repair options
+| [Get-KeeperBreachWatchReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/breachwatch-report-command#powercommander)                         | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
+| [Get-KeeperRiskManagementReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands/risk-management-report-command)                      | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
+
+### EPM (Endpoint Privilege Management) Cmdlets
+| Cmdlet name                                             | Alias                    | Description
+|---------------------------------------------------------|--------------------------|----------------------------
+| [Sync-KeeperEpm]()                                      | kepm-sync                | Sync EPM data from the server (-Reload for full sync)
+| [Get-KeeperEpmDeploymentList]()                         | kepm-deployment-list     | List all EPM deployments
+| [Get-KeeperEpmDeployment]()                             | kepm-deployment-view     | View a single EPM deployment by UID or name
+| [Add-KeeperEpmDeployment]()                             | kepm-deployment-add      | Add a new EPM deployment
+| [Update-KeeperEpmDeployment]()                          | kepm-deployment-edit     | Update an existing EPM deployment (rename, enable/disable)
+| [Remove-KeeperEpmDeployment]()                          | kepm-deployment-delete   | Remove an EPM deployment
+| [Get-KeeperEpmDeploymentDownload]()                     | kepm-deployment-download | Get deployment token and agent download URLs
+| [Get-KeeperEpmApprovalList]()                           | kepm-approval-list       | List EPM approval requests (filter by status)
+| [Get-KeeperEpmApproval]()                               | kepm-approval-view       | View a single EPM approval by UID
+| [Approve-KeeperEpmApproval]()                           | kepm-approval-approve    | Approve a pending EPM approval
+| [Deny-KeeperEpmApproval]()                              | kepm-approval-deny       | Deny a pending EPM approval
+| [Remove-KeeperEpmApproval]()                            | kepm-approval-remove     | Remove an EPM approval record
 
 ### Skip sync cmdlets
 
@@ -647,7 +663,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
     PS > Get-KeeperAuditAlert -Action history -Target 1
     ```
-39. Risk management report - enterprise stats
+40. Risk management report - enterprise stats
     ```
     PS > Get-KeeperRiskManagementReport
     ```
@@ -678,7 +694,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
     ```
 
-39. Compliance report
+41. Compliance report
     ```
     PS > compliance-report
     ```
@@ -692,7 +708,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > compliance-report -Node "Sales"
     ```
 
-40. Password aging report
+42. Password aging report
     ```
     PS > aging-report
     ```
@@ -709,7 +725,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > aging-report -InSharedFolder -ExcludeDeleted
     ```
 
-41. Record-access report
+43. Record-access report
     ```
     PS > record-access-report -Email user@company.com
     ```
@@ -722,7 +738,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > record-access-report -Email user@company.com -Node "Engineering"
     ```
 
-42. Compliance team report
+44. Compliance team report
     ```
     PS > compliance-team-report
     ```
@@ -735,7 +751,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > compliance-team-report -Format csv -Output teams.csv
     ```
 
-43. Compliance summary report
+45. Compliance summary report
     ```
     PS > compliance-summary-report
     ```
@@ -744,7 +760,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > compliance-summary-report -Node "Engineering" -Format json -Output summary.json
     ```
 
-44. Compliance shared-folder report
+46. Compliance shared-folder report
     ```
     PS > compliance-shared-folder-report
     ```
@@ -757,7 +773,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > compliance-shared-folder-report -Node "Sales" -Format csv -Output sf-report.csv
     ```
 
-45. External shares report
+47. External shares report
     ```
     PS > external-shares-report
     ```
@@ -769,97 +785,130 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
     PS > external-shares-report -Action remove -ShareType direct -Force
     ```
-    PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
+
+
+48. Sync EPM data
+    ```
+    PS > Sync-KeeperEpm
+    ```
+    or using the alias
+    ```
+    PS > kepm-sync
+    ```
+    Perform a full sync (instead of incremental)
+    ```
+    PS > Sync-KeeperEpm -Reload
     ```
 
-39. Compliance report
+49. List all EPM deployments
     ```
-    PS > compliance-report
+    PS > Get-KeeperEpmDeploymentList
     ```
-    Export to CSV
+    or using the alias
     ```
-    PS > compliance-report -Format csv -Output report.csv
-    ```
-    Filter by user or node
-    ```
-    PS > compliance-report -Username user@company.com
-    PS > compliance-report -Node "Sales"
+    PS > kepm-deployment-list
     ```
 
-40. Password aging report
+50. View a single EPM deployment
     ```
-    PS > aging-report
+    PS > Get-KeeperEpmDeployment "MyDeployment"
     ```
-    Show passwords older than 6 months
+    or by UID
     ```
-    PS > aging-report -Period 6m
-    ```
-    Set a fixed cutoff date and export to JSON
-    ```
-    PS > aging-report -CutoffDate "2025-01-01" -Format json -Output aging.json
-    ```
-    Only records in shared folders, exclude deleted
-    ```
-    PS > aging-report -InSharedFolder -ExcludeDeleted
+    PS > kepm-deployment-view "abc123-uid"
     ```
 
-41. Record-access report
+51. Add a new EPM deployment
     ```
-    PS > record-access-report -Email user@company.com
+    PS > Add-KeeperEpmDeployment -Name "Production Agents"
     ```
-    Vault view for all users, export to CSV
+    or using the alias
     ```
-    PS > record-access-report -Email @all -ReportType vault -Format csv -Output access.csv
+    PS > kepm-deployment-add -Name "Production Agents"
     ```
-    Filter by node
+    Allow duplicate name
     ```
-    PS > record-access-report -Email user@company.com -Node "Engineering"
-    ```
-
-42. Compliance team report
-    ```
-    PS > compliance-team-report
-    ```
-    Show team members and filter by node
-    ```
-    PS > compliance-team-report -ShowTeamUsers -Node "Sales"
-    ```
-    Export to CSV
-    ```
-    PS > compliance-team-report -Format csv -Output teams.csv
+    PS > Add-KeeperEpmDeployment -Name "Production Agents" -Force
     ```
 
-43. Compliance summary report
+52. Update an EPM deployment
     ```
-    PS > compliance-summary-report
+    PS > Update-KeeperEpmDeployment "MyDeployment" -Name "New Name"
     ```
-    Filter by node and export to JSON
+    Disable a deployment
     ```
-    PS > compliance-summary-report -Node "Engineering" -Format json -Output summary.json
+    PS > kepm-deployment-edit "MyDeployment" -Enable off
     ```
-
-44. Compliance shared-folder report
+    Re-enable a deployment
     ```
-    PS > compliance-shared-folder-report
-    ```
-    Include team members in the email column
-    ```
-    PS > compliance-shared-folder-report -ShowTeamUsers
-    ```
-    Filter by node and export to CSV
-    ```
-    PS > compliance-shared-folder-report -Node "Sales" -Format csv -Output sf-report.csv
+    PS > kepm-deployment-edit "MyDeployment" -Enable on
     ```
 
-45. External shares report
+53. Remove an EPM deployment
     ```
-    PS > external-shares-report
+    PS > Remove-KeeperEpmDeployment "MyDeployment"
     ```
-    Remove external shares
+    Skip confirmation
     ```
-    PS > external-shares-report -Action remove
+    PS > kepm-deployment-delete "MyDeployment" -Force
     ```
-    Remove only direct shares without confirmation
+
+54. Get deployment token and download URLs
     ```
-    PS > external-shares-report -Action remove -ShareType direct -Force
+    PS > Get-KeeperEpmDeploymentDownload "MyDeployment"
+    ```
+    Save token and URLs to a file
+    ```
+    PS > kepm-deployment-download "MyDeployment" -File "deployment-info.txt"
+    ```
+
+55. List EPM approval requests
+    ```
+    PS > Get-KeeperEpmApprovalList
+    ```
+    or using the alias
+    ```
+    PS > kepm-approval-list
+    ```
+    Filter by status
+    ```
+    PS > Get-KeeperEpmApprovalList -Type pending
+    PS > Get-KeeperEpmApprovalList -Type approved
+    PS > Get-KeeperEpmApprovalList -Type denied
+    ```
+
+56. View a single EPM approval
+    ```
+    PS > Get-KeeperEpmApproval "approval-uid-here"
+    ```
+    or using the alias
+    ```
+    PS > kepm-approval-view "approval-uid-here"
+    ```
+
+57. Approve a pending EPM approval
+    ```
+    PS > Approve-KeeperEpmApproval "approval-uid-here"
+    ```
+    or using the alias
+    ```
+    PS > kepm-approval-approve "approval-uid-here"
+    ```
+
+58. Deny a pending EPM approval
+    ```
+    PS > Deny-KeeperEpmApproval "approval-uid-here"
+    ```
+    or using the alias
+    ```
+    PS > kepm-approval-deny "approval-uid-here"
+    ```
+
+59. Remove an EPM approval record
+    ```
+    PS > Remove-KeeperEpmApproval "approval-uid-here"
+    ```
+    Skip confirmation
+    ```
+    PS > kepm-approval-remove "approval-uid-here" -Force
     ```
