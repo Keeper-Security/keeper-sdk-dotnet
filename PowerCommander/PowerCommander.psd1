@@ -72,6 +72,7 @@
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1','TrashCommands.ps1', 'Membership.ps1',
+        'EPM\Policy.ps1',
         'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
@@ -120,7 +121,9 @@
         'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync'
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync',
+        'Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
+        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection'
         #'Test-Keeper',
     )
 
@@ -141,7 +144,9 @@
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
         'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
-        'external-shares-report', 'aging-report')
+        'external-shares-report', 'aging-report',
+        'kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
+        'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign')
 
     # List of all modules packaged with this module
     # ModuleList = @()

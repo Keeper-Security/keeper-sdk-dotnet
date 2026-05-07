@@ -125,6 +125,11 @@ Export-ModuleMember -Alias ksrr
 
 Export-ModuleMember -Function Get-KeeperRiskManagementReport
 Export-ModuleMember -Alias risk-report
+
+Export-ModuleMember -Function Get-KeeperEpmPolicyList, Get-KeeperEpmPolicy, Add-KeeperEpmPolicy,
+Update-KeeperEpmPolicy, Remove-KeeperEpmPolicy, Get-KeeperEpmPolicyAgent, Add-KeeperEpmPolicyCollection
+Export-ModuleMember -Alias kepm-policy-list, kepm-policy-view, kepm-policy-add, kepm-policy-edit,
+kepm-policy-delete, kepm-policy-remove, kepm-policy-agents, kepm-policy-assign
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
