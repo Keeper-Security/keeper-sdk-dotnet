@@ -125,6 +125,14 @@ Export-ModuleMember -Alias ksrr
 
 Export-ModuleMember -Function Get-KeeperRiskManagementReport
 Export-ModuleMember -Alias risk-report
+
+Export-ModuleMember -Function Get-KeeperEpmAgentList, Get-KeeperEpmAgent, Update-KeeperEpmAgent, Remove-KeeperEpmAgent, Get-KeeperEpmAgentCollection,
+Get-KeeperEpmCollectionList, Get-KeeperEpmCollection, Add-KeeperEpmCollection,
+Update-KeeperEpmCollection, Remove-KeeperEpmCollection, Connect-KeeperEpmCollection,
+Disconnect-KeeperEpmCollection, Remove-KeeperEpmCollectionsByType
+Export-ModuleMember -Alias kepm-agent-list, kepm-agent-view, kepm-agent-edit, kepm-agent-delete, kepm-agent-collection,
+kepm-collection-list, kepm-collection-view, kepm-collection-add, kepm-collection-edit,
+kepm-collection-delete, kepm-collection-connect, kepm-collection-disconnect, kepm-collection-wipeout
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
