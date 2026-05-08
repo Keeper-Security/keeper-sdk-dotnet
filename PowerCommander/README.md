@@ -274,29 +274,6 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
 | [Grant-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-6)                         |                  | Add or update a team on a shared folder (`PutTeamToSharedFolderAsync`)
 | [Revoke-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-7)                       |                  | Remove a team from a shared folder
 
-### EPM (Endpoint Privilege Management) Cmdlets
-
-#### Agent Cmdlets
-| Cmdlet name                                             | Alias                | Description
-|---------------------------------------------------------|----------------------|----------------------------
-| [Get-KeeperEpmAgentList]()                              | kepm-agent-list      | List all EPM agents with deployment, machine name, and status
-| [Get-KeeperEpmAgent]()                                  | kepm-agent-view      | View a single EPM agent by UID or machine name
-| [Update-KeeperEpmAgent]()                               | kepm-agent-edit      | Update agent(s) — reassign deployment and/or enable/disable
-| [Remove-KeeperEpmAgent]()                               | kepm-agent-delete    | Remove an EPM agent by UID or machine name
-| [Get-KeeperEpmAgentCollection]()                        | kepm-agent-collection| List collections linked to an EPM agent
-
-#### Collection Cmdlets
-| Cmdlet name                                             | Alias                    | Description
-|---------------------------------------------------------|--------------------------|----------------------------
-| [Get-KeeperEpmCollectionList]()                         | kepm-collection-list     | List all EPM collections (optional type filter)
-| [Get-KeeperEpmCollection]()                             | kepm-collection-view     | View a single EPM collection by UID or name
-| [Add-KeeperEpmCollection]()                             | kepm-collection-add      | Add a new EPM collection with type and JSON data
-| [Update-KeeperEpmCollection]()                          | kepm-collection-edit     | Update an existing EPM collection
-| [Remove-KeeperEpmCollection]()                          | kepm-collection-delete   | Remove an EPM collection by UID or name
-| [Connect-KeeperEpmCollection]()                         | kepm-collection-connect  | Link a collection to agent(s), policy(ies), or other collection(s)
-| [Disconnect-KeeperEpmCollection]()                      | kepm-collection-disconnect| Unlink agent(s), policy(ies), or collection(s) from a collection
-| [Remove-KeeperEpmCollectionsByType]()                   | kepm-collection-wipeout  | Remove all EPM collections of a given type
-
 #### Examples
 
 1. Connect To Keeper Account
