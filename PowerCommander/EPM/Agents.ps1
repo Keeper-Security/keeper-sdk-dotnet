@@ -1,3 +1,23 @@
+class EpmAgentInfo {
+    [string]$AgentUid
+    [string]$MachineName
+    [string]$Deployment
+    [string]$Disabled
+    [string]$Created
+    [string]$Modified
+}
+
+class EpmAgentCollectionDetail {
+    [string]$CollectionType
+    [string]$CollectionUid
+    [string]$Value
+}
+
+class EpmAgentCollectionSummary {
+    [string]$CollectionType
+    [int]$Count
+}
+
 function Resolve-KeeperEpmAgent {
     <#
     .Synopsis
@@ -17,15 +37,17 @@ function Resolve-KeeperEpmAgent {
     if ($null -ne $agent) { return @($agent) }
 
     $lUid = $uid.ToLowerInvariant()
-    return @($Plugin.Agents.GetAll() | Where-Object { $_.MachineId -and $_.MachineId.ToLowerInvariant() -eq $lUid })
+    [array]$matched = @($Plugin.Agents.GetAll() | Where-Object { $null -ne $_ -and $_.MachineId -and $_.MachineId.ToLowerInvariant() -eq $lUid })
+    return $matched
 }
 
 function script:Resolve-KeeperEpmSingleAgent {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$Identifier,
         [Parameter(Mandatory = $true)][object]$Plugin
     )
-    $agents = @(Resolve-KeeperEpmAgent -Identifier $Identifier -Plugin $Plugin)
+    [array]$agents = @(Resolve-KeeperEpmAgent -Identifier $Identifier -Plugin $Plugin | Where-Object { $null -ne $_ })
     if ($agents.Count -eq 0) {
         Write-Error -Message "Agent '$Identifier' not found." -ErrorAction Stop
     }
@@ -54,14 +76,14 @@ function Get-KeeperEpmAgentList {
         Write-Error -Message "EPM plugin is not available. Enterprise admin access is required." -ErrorAction Stop
     }
 
-    $agents = @($plugin.Agents.GetAll())
+    [array]$agents = @($plugin.Agents.GetAll() | Where-Object { $null -ne $_ } | Sort-Object -Property AgentUid)
     if ($agents.Count -eq 0) {
         Write-Output "No agents found."
         return
     }
 
-    $agents = $agents | Sort-Object -Property AgentUid
-    $rows = foreach ($ag in $agents) {
+    $rows = [System.Collections.Generic.List[EpmAgentInfo]]::new()
+    foreach ($ag in $agents) {
         $deploymentName = ''
         if (-not [string]::IsNullOrEmpty($ag.DeploymentUid)) {
             $dep = $plugin.Deployments.GetEntity($ag.DeploymentUid)
@@ -72,14 +94,14 @@ function Get-KeeperEpmAgentList {
         $disabled = if ($ag.Disabled) { 'True' } else { 'False' }
         $created = [DateTimeOffset]::FromUnixTimeMilliseconds($ag.Created).ToString("yyyy-MM-dd HH:mm:ss")
         $modified = [DateTimeOffset]::FromUnixTimeMilliseconds($ag.Modified).ToString("yyyy-MM-dd HH:mm:ss")
-        [PSCustomObject]@{
-            'Agent UID'    = $ag.AgentUid
-            'Machine Name' = $machineName
-            'Deployment'   = $deploymentName
-            'Disabled'     = $disabled
-            'Created'      = $created
-            'Modified'     = $modified
-        }
+        $row = [EpmAgentInfo]::new()
+        $row.AgentUid    = $ag.AgentUid
+        $row.MachineName = $machineName
+        $row.Deployment  = $deploymentName
+        $row.Disabled    = $disabled
+        $row.Created     = $created
+        $row.Modified    = $modified
+        $rows.Add($row)
     }
     $rows | Format-Table -AutoSize
 }
@@ -143,7 +165,7 @@ function Update-KeeperEpmAgent {
         Write-Error -Message "EPM plugin is not available. Enterprise admin access is required." -ErrorAction Stop
     }
 
-    $identifiers = @($AgentUidOrName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    [array]$identifiers = @($AgentUidOrName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     if ($identifiers.Count -eq 0) {
         Write-Error -Message "Agent UID(s) or machine name(s) are required for 'update' command." -ErrorAction Stop
     }
@@ -283,7 +305,7 @@ function Get-KeeperEpmAgentCollection {
 
     $agent = Resolve-KeeperEpmSingleAgent -Identifier $AgentUid -Plugin $plugin
 
-    $resourceUids = @($plugin.CollectionLinks.GetLinksForObject($agent.AgentUid) | Where-Object { $_.LinkType -eq [int][PEDM.CollectionLinkType]::CltAgent } | ForEach-Object { $_.CollectionUid })
+    [array]$resourceUids = @($plugin.CollectionLinks.GetLinksForObject($agent.AgentUid) | Where-Object { $null -ne $_ -and $_.LinkType -eq [int][PEDM.CollectionLinkType]::CltAgent } | ForEach-Object { $_.CollectionUid })
 
     $collections = [System.Collections.Generic.List[object]]::new()
     foreach ($uid in $resourceUids) {
@@ -292,7 +314,8 @@ function Get-KeeperEpmAgentCollection {
     }
 
     if ($PSBoundParameters.ContainsKey('CollectionType')) {
-        $collections = @($collections | Where-Object { $_.CollectionType -eq $CollectionType })
+        [array]$filtered = @($collections | Where-Object { $_.CollectionType -eq $CollectionType })
+        $collections = $filtered
     }
 
     if ($collections.Count -eq 0) {
@@ -302,7 +325,8 @@ function Get-KeeperEpmAgentCollection {
 
     if ($CollectionVerbose) {
         $collections = $collections | Sort-Object -Property CollectionType, CollectionUid
-        $rows = foreach ($collection in $collections) {
+        $rows = [System.Collections.Generic.List[EpmAgentCollectionDetail]]::new()
+        foreach ($collection in $collections) {
             $typeName = getEpmCollectionTypeName -CollectionType $collection.CollectionType
             $value = ''
             if ($collection.CollectionData -and $collection.CollectionData.Length -gt 0) {
@@ -316,21 +340,22 @@ function Get-KeeperEpmAgentCollection {
                     $value = "(binary data, $($collection.CollectionData.Length) bytes)"
                 }
             }
-            [PSCustomObject]@{
-                'Collection Type' = "$typeName ($($collection.CollectionType))"
-                'Collection UID'  = $collection.CollectionUid
-                'Value'           = $value
-            }
+            $row = [EpmAgentCollectionDetail]::new()
+            $row.CollectionType = "$typeName ($($collection.CollectionType))"
+            $row.CollectionUid  = $collection.CollectionUid
+            $row.Value          = $value
+            $rows.Add($row)
         }
         $rows | Format-Table -AutoSize
     } else {
         $grouped = $collections | Group-Object -Property CollectionType | Sort-Object -Property Name
-        $rows = foreach ($g in $grouped) {
+        $rows = [System.Collections.Generic.List[EpmAgentCollectionSummary]]::new()
+        foreach ($g in $grouped) {
             $typeName = getEpmCollectionTypeName -CollectionType $g.Name
-            [PSCustomObject]@{
-                'Collection Type' = "$typeName ($($g.Name))"
-                'Count'           = $g.Count
-            }
+            $row = [EpmAgentCollectionSummary]::new()
+            $row.CollectionType = "$typeName ($($g.Name))"
+            $row.Count          = $g.Count
+            $rows.Add($row)
         }
         $rows | Format-Table -AutoSize
     }

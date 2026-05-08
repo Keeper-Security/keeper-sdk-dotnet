@@ -1,3 +1,9 @@
+class EpmCollectionInfo {
+    [string]$CollectionUid
+    [string]$CollectionType
+    [string]$Name
+}
+
 function script:Resolve-KeeperEpmCollection {
     <#
     .Synopsis
@@ -18,7 +24,7 @@ function script:Resolve-KeeperEpmCollection {
     if ($null -ne $collection) { return @($collection) }
 
     $nameMatches = [System.Collections.Generic.List[object]]::new()
-    foreach ($c in $Plugin.Collections.GetAll()) {
+    foreach ($c in @($Plugin.Collections.GetAll() | Where-Object { $null -ne $_ })) {
         if (-not $c.CollectionData -or $c.CollectionData.Length -eq 0) { continue }
         try {
             $jsonStr = [System.Text.Encoding]::UTF8.GetString($c.CollectionData)
@@ -38,11 +44,12 @@ function script:Resolve-KeeperEpmSingleCollection {
     .Synopsis
         Resolve a single collection by UID or name. Errors if not found or not unique.
     #>
+    [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)][string] $Identifier,
         [Parameter(Mandatory = $true)][object] $Plugin
     )
-    $collections = @(Resolve-KeeperEpmCollection -Identifier $Identifier -Plugin $Plugin)
+    [array]$collections = @(Resolve-KeeperEpmCollection -Identifier $Identifier -Plugin $Plugin | Where-Object { $null -ne $_ })
     if ($collections.Count -eq 0) {
         Write-Error -Message "Collection '$Identifier' not found." -ErrorAction Stop
     }
@@ -99,32 +106,27 @@ function Get-KeeperEpmCollectionList {
         Write-Error -Message "EPM plugin is not available. Enterprise admin access is required." -ErrorAction Stop
     }
 
-    $collections = @($plugin.Collections.GetAll())
-
     $hasTypeFilter = $PSBoundParameters.ContainsKey('CollectionType')
     if ($hasTypeFilter) {
-        $collections = @($collections | Where-Object { $_.CollectionType -eq $CollectionType })
+        [array]$collections = @($plugin.Collections.GetAll() | Where-Object { $null -ne $_ -and $_.CollectionType -eq $CollectionType } | Sort-Object -Property CollectionType, CollectionUid)
+    } else {
+        [array]$collections = @($plugin.Collections.GetAll() | Where-Object { $null -ne $_ } | Sort-Object -Property CollectionType, CollectionUid)
     }
 
     if ($collections.Count -eq 0) {
-        if ($hasTypeFilter) {
-            $typeName = getEpmCollectionTypeName -CollectionType $CollectionType
-            Write-Output "No collections found for type: $typeName (Type $CollectionType)"
-        } else {
-            Write-Output "No collections found."
-        }
+        Write-Output "No collections found."
         return
     }
 
-    $collections = $collections | Sort-Object -Property CollectionType, CollectionUid
-    $rows = foreach ($coll in $collections) {
+    $rows = [System.Collections.Generic.List[EpmCollectionInfo]]::new()
+    foreach ($coll in $collections) {
         $typeName = getEpmCollectionTypeName -CollectionType $coll.CollectionType
         $name = Get-KeeperEpmCollectionName -Collection $coll
-        [PSCustomObject]@{
-            'Collection UID'  = $coll.CollectionUid
-            'Collection Type' = $typeName
-            'Name'            = $name
-        }
+        $row = [EpmCollectionInfo]::new()
+        $row.CollectionUid  = $coll.CollectionUid
+        $row.CollectionType = $typeName
+        $row.Name           = $name
+        $rows.Add($row)
     }
     $rows | Format-Table -AutoSize
 }
@@ -181,6 +183,57 @@ function Get-KeeperEpmCollection {
                 Write-Output "  Data: $dataJson"
             } catch {
                 Write-Output "  Data: (binary data, $($collection.CollectionData.Length) bytes)"
+            }
+        }
+    }
+
+    [array]$links = @($plugin.CollectionLinks.GetLinksForSubject($collection.CollectionUid) | Where-Object { $null -ne $_ })
+    $agentLinkType = [int][PEDM.CollectionLinkType]::CltAgent
+    [array]$agentLinks = @($links | Where-Object { $_.LinkType -eq $agentLinkType })
+
+    if ($agentLinks.Count -gt 0) {
+        Write-Output ""
+        Write-Output "  Linked Agents ($($agentLinks.Count)):"
+        foreach ($link in $agentLinks) {
+            $agent = $plugin.Agents.GetEntity($link.LinkUid)
+            if ($agent) {
+                $machineName = if ($agent.MachineId) { $agent.MachineId } else { '(unknown)' }
+                Write-Output "    $($link.LinkUid)  ($machineName)"
+            } else {
+                Write-Output "    $($link.LinkUid)"
+            }
+        }
+    } else {
+        Write-Output ""
+        Write-Output "  Linked Agents: (none)"
+    }
+
+    $policyLinkType = [int][PEDM.CollectionLinkType]::CltPolicy
+    [array]$policyLinks = @($links | Where-Object { $_.LinkType -eq $policyLinkType })
+    if ($policyLinks.Count -gt 0) {
+        Write-Output ""
+        Write-Output "  Linked Policies ($($policyLinks.Count)):"
+        foreach ($link in $policyLinks) {
+            Write-Output "    $($link.LinkUid)"
+        }
+    }
+
+    $collLinkType = [int][PEDM.CollectionLinkType]::CltCollection
+    [array]$collLinks = @($links | Where-Object { $_.LinkType -eq $collLinkType })
+    if ($collLinks.Count -gt 0) {
+        Write-Output ""
+        Write-Output "  Linked Collections ($($collLinks.Count)):"
+        foreach ($link in $collLinks) {
+            $linkedColl = $plugin.Collections.GetEntity($link.LinkUid)
+            if ($linkedColl) {
+                $linkedName = Get-KeeperEpmCollectionName -Collection $linkedColl
+                if ($linkedName) {
+                    Write-Output "    $($link.LinkUid)  ($linkedName)"
+                } else {
+                    Write-Output "    $($link.LinkUid)"
+                }
+            } else {
+                Write-Output "    $($link.LinkUid)"
             }
         }
     }
@@ -420,7 +473,7 @@ function Connect-KeeperEpmCollection {
 
         switch ($linkTypeValue) {
             ([int][PEDM.CollectionLinkType]::CltAgent) {
-                $agentMatches = @(Resolve-KeeperEpmAgent -Identifier $trimmed -Plugin $plugin)
+                [array]$agentMatches = @(Resolve-KeeperEpmAgent -Identifier $trimmed -Plugin $plugin | Where-Object { $null -ne $_ })
                 if ($agentMatches.Count -eq 0) {
                     Write-Warning "Agent '$trimmed' not found."
                     continue
@@ -432,7 +485,7 @@ function Connect-KeeperEpmCollection {
                 $links.Add($agentMatches[0].AgentUid)
             }
             ([int][PEDM.CollectionLinkType]::CltPolicy) {
-                $policyMatches = @(Resolve-KeeperEpmPolicy -Identifier $trimmed -Plugin $plugin)
+                [array]$policyMatches = @(Resolve-KeeperEpmPolicy -Identifier $trimmed -Plugin $plugin | Where-Object { $null -ne $_ })
                 if ($policyMatches.Count -eq 0) {
                     Write-Warning "Policy '$trimmed' not found."
                     continue
@@ -444,7 +497,7 @@ function Connect-KeeperEpmCollection {
                 $links.Add($policyMatches[0].PolicyUid)
             }
             ([int][PEDM.CollectionLinkType]::CltCollection) {
-                $collMatches = @(Resolve-KeeperEpmCollection -Identifier $trimmed -Plugin $plugin)
+                [array]$collMatches = @(Resolve-KeeperEpmCollection -Identifier $trimmed -Plugin $plugin | Where-Object { $null -ne $_ })
                 if ($collMatches.Count -eq 0) {
                     Write-Warning "Collection '$trimmed' not found."
                     continue
@@ -521,7 +574,7 @@ function Disconnect-KeeperEpmCollection {
 
     $collection = Resolve-KeeperEpmSingleCollection -Identifier $CollectionUidOrName -Plugin $plugin
 
-    $existingLinks = @($plugin.CollectionLinks.GetLinksForSubject($collection.CollectionUid))
+    [array]$existingLinks = @($plugin.CollectionLinks.GetLinksForSubject($collection.CollectionUid) | Where-Object { $null -ne $_ })
     $toUnlink = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($u in $LinkUid) {
         $t = if ($u) { $u.Trim() }
@@ -594,7 +647,7 @@ function Remove-KeeperEpmCollectionsByType {
         Write-Error -Message "EPM plugin is not available. Enterprise admin access is required." -ErrorAction Stop
     }
 
-    $collectionUids = @($plugin.Collections.GetAll() | Where-Object { $_.CollectionType -eq $CollectionType } | ForEach-Object { $_.CollectionUid })
+    [array]$collectionUids = @($plugin.Collections.GetAll() | Where-Object { $null -ne $_ -and $_.CollectionType -eq $CollectionType } | ForEach-Object { $_.CollectionUid })
 
     if ($collectionUids.Count -eq 0) {
         $typeName = getEpmCollectionTypeName -CollectionType $CollectionType
