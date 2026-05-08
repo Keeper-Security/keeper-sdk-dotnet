@@ -71,8 +71,8 @@
         'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
-        'KeeperBiometrics.ps1', 'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1', 
-        'EPM\Approval.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
+        'EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
@@ -124,6 +124,9 @@
         'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
         'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
         'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval'
+        'Get-KeeperEpmAgentList', 'Get-KeeperEpmAgent', 'Update-KeeperEpmAgent', 'Remove-KeeperEpmAgent', 'Get-KeeperEpmAgentCollection',
+        'Get-KeeperEpmCollectionList', 'Get-KeeperEpmCollection', 'Add-KeeperEpmCollection',
+        'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 'Remove-KeeperEpmCollectionsByType'
         #'Test-Keeper',
     )
 
@@ -138,6 +141,7 @@
         'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert',
         'kepm-sync','kepm-deployment-list', 'kepm-deployment-view', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
         'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
+        'kepm-agent-list', 'kepm-agent-view', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
@@ -146,7 +150,9 @@
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
         'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
-        'external-shares-report', 'aging-report')
+        'external-shares-report', 'aging-report',
+        'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
+        'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout')
 
     # List of all modules packaged with this module
     # ModuleList = @()

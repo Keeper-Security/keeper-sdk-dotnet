@@ -236,6 +236,19 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Update-KeeperEpmDeployment]()                          | kepm-deployment-edit     | Update an existing EPM deployment (rename, enable/disable)
 | [Remove-KeeperEpmDeployment]()                          | kepm-deployment-delete   | Remove an EPM deployment
 | [Get-KeeperEpmDeploymentDownload]()                     | kepm-deployment-download | Get deployment token and agent download URLs
+| [Get-KeeperEpmAgentList]()                              | kepm-agent-list          | List all EPM agents
+| [Get-KeeperEpmAgent]()                                  | kepm-agent-view          | View a single EPM agent by UID or machine name
+| [Update-KeeperEpmAgent]()                               | kepm-agent-edit          | Update EPM agent(s) - deployment and/or enable/disable
+| [Remove-KeeperEpmAgent]()                               | kepm-agent-delete        | Remove an EPM agent by UID or machine name
+| [Get-KeeperEpmAgentCollection]()                        | kepm-agent-collection    | List collections linked to an EPM agent
+| [Get-KeeperEpmCollectionList]()                         | kepm-collection-list     | List all EPM collections
+| [Get-KeeperEpmCollection]()                             | kepm-collection-view     | View a single EPM collection by UID or name
+| [Add-KeeperEpmCollection]()                             | kepm-collection-add      | Add a new EPM collection
+| [Update-KeeperEpmCollection]()                          | kepm-collection-edit     | Update an existing EPM collection
+| [Remove-KeeperEpmCollection]()                          | kepm-collection-delete   | Remove an EPM collection by UID or name
+| [Connect-KeeperEpmCollection]()                         | kepm-collection-connect  | Link a collection to agent(s), policy(ies), or other collection(s)
+| [Disconnect-KeeperEpmCollection]()                      | kepm-collection-disconnect | Unlink agent(s), policy(ies), or collection(s) from a collection
+| [Remove-KeeperEpmCollectionsByType]()                   | kepm-collection-wipeout  | Remove all EPM collections of a given type
 | [Get-KeeperEpmApprovalList]()                           | kepm-approval-list       | List EPM approval requests (filter by status)
 | [Get-KeeperEpmApproval]()                               | kepm-approval-view       | View a single EPM approval by UID
 | [Approve-KeeperEpmApproval]()                           | kepm-approval-approve    | Approve a pending EPM approval
@@ -691,8 +704,6 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
     PS > Get-KeeperRiskManagementReport -Action security-benchmarks-set -BenchmarkFields "SB_ENFORCE_STRONG_MASTER_PASSWORD:RESOLVED"
     ```
-    PS > Get-KeeperSharedRecordsReport -Folder "Shared Folder Name"
-    ```
 
 41. Compliance report
     ```
@@ -862,7 +873,41 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > kepm-deployment-download "MyDeployment" -File "deployment-info.txt"
     ```
 
-55. List EPM approval requests
+55. EPM — list agents and their collections
+    ```
+    PS > kepm-agent-list
+    ```
+    View a specific agent
+    ```
+    PS > kepm-agent-view "AGENT_UID_OR_MACHINE_NAME"
+    ```
+    List collections linked to an agent
+    ```
+    PS > kepm-agent-collection "AGENT_UID" -CollectionVerbose
+    ```
+
+56. EPM — manage collections
+    ```
+    PS > kepm-collection-list
+    ```
+    Filter by type (1=OS Build, 2=Application, 3=User Account, 4=Group Account, 202=OS Version)
+    ```
+    PS > kepm-collection-list -CollectionType 2
+    ```
+    Add a collection
+    ```
+    PS > Add-KeeperEpmCollection -CollectionType 2 -Data '{"Name":"MyApp","Path":"C:\\app.exe"}'
+    ```
+    Link a collection to an agent
+    ```
+    PS > kepm-collection-connect "COLLECTION_UID" -LinkType agent -LinkUid "AGENT_UID"
+    ```
+    Remove all collections of a type
+    ```
+    PS > kepm-collection-wipeout 2 -Force
+    ```
+
+57. List EPM approval requests
     ```
     PS > Get-KeeperEpmApprovalList
     ```
@@ -877,7 +922,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > Get-KeeperEpmApprovalList -Type denied
     ```
 
-56. View a single EPM approval
+58. View a single EPM approval
     ```
     PS > Get-KeeperEpmApproval "approval-uid-here"
     ```
@@ -886,7 +931,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > kepm-approval-view "approval-uid-here"
     ```
 
-57. Approve a pending EPM approval
+59. Approve a pending EPM approval
     ```
     PS > Approve-KeeperEpmApproval "approval-uid-here"
     ```
@@ -895,7 +940,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > kepm-approval-approve "approval-uid-here"
     ```
 
-58. Deny a pending EPM approval
+60. Deny a pending EPM approval
     ```
     PS > Deny-KeeperEpmApproval "approval-uid-here"
     ```
@@ -904,7 +949,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > kepm-approval-deny "approval-uid-here"
     ```
 
-59. Remove an EPM approval record
+61. Remove an EPM approval record
     ```
     PS > Remove-KeeperEpmApproval "approval-uid-here"
     ```
