@@ -585,6 +585,12 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable Task</returns>
         Task DeleteSecretManagerApplication(string applicationId);
 
+        /// <summary>
+        /// Renames an existing Secret Manager Application (updates the application record title).
+        /// </summary>
+        /// <param name="applicationId">Application UID or current Title</param>
+        /// <param name="newTitle">New application title</param>
+        Task<ApplicationRecord> UpdateSecretManagerApplication(string applicationId, string newTitle);
 
         /// <summary>
         /// Grants Shared Folder or Record Access to Secret Manager Application
