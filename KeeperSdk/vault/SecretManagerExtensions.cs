@@ -140,11 +140,79 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<ApplicationRecord> UpdateSecretManagerApplication(string applicationId, string newTitle)
+        {
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", "", "New application title cannot be empty");
+            }
+
+            var application = KeeperRecords
+                .OfType<ApplicationRecord>()
+                .FirstOrDefault(x => x.Uid == applicationId ||
+                    string.Equals(x.Title, applicationId, StringComparison.InvariantCultureIgnoreCase));
+
+            if (application == null)
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "applicationId", applicationId, "Application not found");
+            }
+
+            var duplicate = KeeperRecords
+                .OfType<ApplicationRecord>()
+                .FirstOrDefault(x => x.Uid != application.Uid &&
+                    string.Equals(x.Title, newTitle, StringComparison.InvariantCultureIgnoreCase));
+
+            if (duplicate != null)
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", newTitle,
+                    $"Application with the name \"{newTitle}\" already exists");
+            }
+
+            var data = new RecordApplicationData
+            {
+                Title = newTitle,
+                Type = application.Type
+            };
+
+            var dataBytes = JsonUtils.DumpJson(data);
+            dataBytes = VaultExtensions.PadRecordData(dataBytes);  // ← THIS WAS MISSING
+            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, application.RecordKey);
+
+            var rq = new RecordsUpdateRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  // ← THIS WAS MISSING
+            };
+            rq.Records.Add(new RecordUpdate
+            {
+                RecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
+                ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Revision = application.Revision,
+                Data = ByteString.CopyFrom(encryptedData),
+            });
+
+            var rs = await Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
+                "vault/records_update", rq);
+
+            var recordUidBytes = application.Uid.Base64UrlDecode();
+            var status = rs.Records.FirstOrDefault(x => x.RecordUid.ToByteArray().SequenceEqual(recordUidBytes));
+            if (status != null && status.Status != RecordModifyResult.RsSuccess)
+            {
+                throw new KeeperApiException(status.Status.ToString(), status.Message);
+            }
+
+            await SyncDown();
+
+            if (TryGetKeeperRecord(application.Uid, out var updated))
+            {
+                return updated as ApplicationRecord;
+            }
+            return null;
+        }
+                /// <inheritdoc/>
         public async Task DeleteSecretManagerApplication(string applicationId)
         {
             await this.DeleteVaultObjects(new[] { new RecordPath { RecordUid = applicationId } }, true);
         }
-
 
         /// <inheritdoc/>
         public async Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool editable)
