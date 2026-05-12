@@ -73,13 +73,13 @@ namespace KeeperSecurity.Vault
                     Name = x.Id,
                     DeviceId = x.ClientId.ToByteArray().Base64UrlEncode(),
                     CreatedOn = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.CreatedOn),
-                    FirstAccess = x.FirstAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.FirstAccess) : (DateTimeOffset?) null,
-                    LastAccess = x.LastAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.LastAccess) : (DateTimeOffset?) null,
+                    FirstAccess = x.FirstAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.FirstAccess) : (DateTimeOffset?)null,
+                    LastAccess = x.LastAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.LastAccess) : (DateTimeOffset?)null,
                     LockIp = x.LockIp,
                     IpAddress = x.IpAddress,
                     PublicKey = x.PublicKey.ToByteArray(),
-                    FirstAccessExpireOn = x.FirstAccessExpireOn > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.FirstAccessExpireOn) : (DateTimeOffset?) null,
-                    AccessExpireOn = x.AccessExpireOn > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.AccessExpireOn) : (DateTimeOffset?) null,
+                    FirstAccessExpireOn = x.FirstAccessExpireOn > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.FirstAccessExpireOn) : (DateTimeOffset?)null,
+                    AccessExpireOn = x.AccessExpireOn > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.AccessExpireOn) : (DateTimeOffset?)null,
                 }).ToArray(),
                 Shares = appInfo.Shares
                 .Where(x =>
@@ -97,7 +97,7 @@ namespace KeeperSecurity.Vault
                 .Select(x => new SecretManagerShare
                 {
                     SecretUid = x.SecretUid.ToByteArray().Base64UrlEncode(),
-                    SecretType = (SecretManagerSecretType) x.ShareType,
+                    SecretType = (SecretManagerSecretType)x.ShareType,
                     Editable = x.Editable,
                     CreatedOn = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.CreatedOn)
                 }).ToArray()
@@ -142,73 +142,73 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<ApplicationRecord> UpdateSecretManagerApplication(string applicationId, string newTitle)
         {
-            if (string.IsNullOrEmpty(newTitle))
-            {
-                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", "", "New application title cannot be empty");
-            }
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", "", "New application title cannot be empty");
+            }
 
-            var application = KeeperRecords
-                .OfType<ApplicationRecord>()
-                .FirstOrDefault(x => x.Uid == applicationId ||
-                    string.Equals(x.Title, applicationId, StringComparison.InvariantCultureIgnoreCase));
+            var application = KeeperRecords
+            .OfType<ApplicationRecord>()
+            .FirstOrDefault(x => x.Uid == applicationId ||
+            string.Equals(x.Title, applicationId, StringComparison.InvariantCultureIgnoreCase));
 
-            if (application == null)
-            {
-                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "applicationId", applicationId, "Application not found");
-            }
+            if (application == null)
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "applicationId", applicationId, "Application not found");
+            }
 
-            var duplicate = KeeperRecords
-                .OfType<ApplicationRecord>()
-                .FirstOrDefault(x => x.Uid != application.Uid &&
-                    string.Equals(x.Title, newTitle, StringComparison.InvariantCultureIgnoreCase));
+            var duplicate = KeeperRecords
+            .OfType<ApplicationRecord>()
+            .FirstOrDefault(x => x.Uid != application.Uid &&
+            string.Equals(x.Title, newTitle, StringComparison.InvariantCultureIgnoreCase));
 
-            if (duplicate != null)
-            {
-                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", newTitle,
-                    $"Application with the name \"{newTitle}\" already exists");
-            }
+            if (duplicate != null)
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", newTitle,
+                $"Application with the name \"{newTitle}\" already exists");
+            }
 
-            var data = new RecordApplicationData
-            {
-                Title = newTitle,
-                Type = application.Type
-            };
+            var data = new RecordApplicationData
+            {
+                Title = newTitle,
+                Type = application.Type
+            };
 
-            var dataBytes = JsonUtils.DumpJson(data);
-            dataBytes = VaultExtensions.PadRecordData(dataBytes);  // ← THIS WAS MISSING
+            var dataBytes = JsonUtils.DumpJson(data);
+            dataBytes = VaultExtensions.PadRecordData(dataBytes);  // ← THIS WAS MISSING
             var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, application.RecordKey);
 
-            var rq = new RecordsUpdateRequest
-            {
-                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  // ← THIS WAS MISSING
+            var rq = new RecordsUpdateRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  // ← THIS WAS MISSING
             };
-            rq.Records.Add(new RecordUpdate
-            {
-                RecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
-                ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                Revision = application.Revision,
-                Data = ByteString.CopyFrom(encryptedData),
-            });
+            rq.Records.Add(new RecordUpdate
+            {
+                RecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
+                ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Revision = application.Revision,
+                Data = ByteString.CopyFrom(encryptedData),
+            });
 
-            var rs = await Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
-                "vault/records_update", rq);
+            var rs = await Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
+            "vault/records_update", rq);
 
-            var recordUidBytes = application.Uid.Base64UrlDecode();
-            var status = rs.Records.FirstOrDefault(x => x.RecordUid.ToByteArray().SequenceEqual(recordUidBytes));
-            if (status != null && status.Status != RecordModifyResult.RsSuccess)
-            {
-                throw new KeeperApiException(status.Status.ToString(), status.Message);
-            }
+            var recordUidBytes = application.Uid.Base64UrlDecode();
+            var status = rs.Records.FirstOrDefault(x => x.RecordUid.ToByteArray().SequenceEqual(recordUidBytes));
+            if (status != null && status.Status != RecordModifyResult.RsSuccess)
+            {
+                throw new KeeperApiException(status.Status.ToString(), status.Message);
+            }
 
-            await SyncDown();
+            await SyncDown();
 
-            if (TryGetKeeperRecord(application.Uid, out var updated))
-            {
-                return updated as ApplicationRecord;
-            }
-            return null;
+            if (TryGetKeeperRecord(application.Uid, out var updated))
+            {
+                return updated as ApplicationRecord;
+            }
+            return null;
         }
-                /// <inheritdoc/>
+        /// <inheritdoc/>
         public async Task DeleteSecretManagerApplication(string applicationId)
         {
             await this.DeleteVaultObjects(new[] { new RecordPath { RecordUid = applicationId } }, true);
