@@ -149,23 +149,27 @@ namespace KeeperSecurity.Vault
 
             var application = KeeperRecords
             .OfType<ApplicationRecord>()
-            .FirstOrDefault(x => x.Uid == applicationId ||
-            string.Equals(x.Title, applicationId, StringComparison.InvariantCultureIgnoreCase));
+            .FirstOrDefault(x => x.Uid == applicationId);
+
+            if (application == null)
+            {
+                var byName = KeeperRecords
+                .OfType<ApplicationRecord>()
+                .Where(x => string.Equals(x.Title, applicationId, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+
+                if (byName.Count > 1)
+                {
+                    throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "applicationId", applicationId,
+                    $"More than one application found with the name \"{applicationId}\". Please use the UID instead.");
+                }
+
+                application = byName.FirstOrDefault();
+            }
 
             if (application == null)
             {
                 throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "applicationId", applicationId, "Application not found");
-            }
-
-            var duplicate = KeeperRecords
-            .OfType<ApplicationRecord>()
-            .FirstOrDefault(x => x.Uid != application.Uid &&
-            string.Equals(x.Title, newTitle, StringComparison.InvariantCultureIgnoreCase));
-
-            if (duplicate != null)
-            {
-                throw new KeeperInvalidParameter("UpdateSecretManagerApplication", "newTitle", newTitle,
-                $"Application with the name \"{newTitle}\" already exists");
             }
 
             var data = new RecordApplicationData
@@ -176,12 +180,12 @@ namespace KeeperSecurity.Vault
 
             var dataBytes = JsonUtils.DumpJson(data);
             dataBytes = VaultExtensions.PadRecordData(dataBytes);
-            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, application.RecordKey);
+            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, application.RecordKey);
 
             var rq = new RecordsUpdateRequest
             {
-                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  
-            };
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
             rq.Records.Add(new RecordUpdate
             {
                 RecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
