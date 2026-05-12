@@ -175,12 +175,12 @@ namespace KeeperSecurity.Vault
             };
 
             var dataBytes = JsonUtils.DumpJson(data);
-            dataBytes = VaultExtensions.PadRecordData(dataBytes);  // ← THIS WAS MISSING
+            dataBytes = VaultExtensions.PadRecordData(dataBytes);
             var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, application.RecordKey);
 
             var rq = new RecordsUpdateRequest
             {
-                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  // ← THIS WAS MISSING
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()  
             };
             rq.Records.Add(new RecordUpdate
             {
