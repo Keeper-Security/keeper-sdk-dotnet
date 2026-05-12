@@ -150,6 +150,29 @@ namespace Commander
                 return;
             }
 
+            if (action == "update")
+            {
+                if (string.IsNullOrEmpty(arguments.NewName))
+                {
+                    Console.WriteLine("--name <NEW NAME> is required for the update command.");
+                    Console.WriteLine($"Example: sm update {arguments.KsmId} --name NewAppName");
+                    return;
+                }
+                try
+                {
+                    var updated = await context.Vault.UpdateSecretManagerApplication(arguments.KsmId, arguments.NewName);
+                    if (updated != null)
+                    {
+                        Console.WriteLine($"Application was successfully renamed to \"{updated.Title}\" (UID: {updated.Uid})");
+                    }
+                }
+                catch (KeeperInvalidParameter ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+                return;
+            }
+
             var application = context.Vault.KeeperRecords.OfType<ApplicationRecord>().FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
             if (application == null)
             {
@@ -686,9 +709,10 @@ namespace Commander
         [Option("is-admin", Required = false, HelpText = "Share as admin user. \"app-share\", \"app-unshare\" only")]
         public bool IsAdmin { get; set; }
 
+        [Option("name", Required = false, HelpText = "New application name. \"update\" only")]
+        public string NewName { get; set; }
 
-
-        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\", \"app-share\", \"app-unshare\"")]
+        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"update\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\", \"app-share\", \"app-unshare\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Secret Manager application UID or Title")]
