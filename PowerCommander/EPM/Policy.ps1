@@ -1,3 +1,88 @@
+class EpmPolicyDataInfo {
+    [string]$Name
+    [string]$Type
+    [System.Collections.Generic.List[string]]$Controls
+    [string]$Users
+    [string]$Machines
+    [string]$Applications
+    [string]$Collections
+
+    EpmPolicyDataInfo() {
+        $this.Name = ''
+        $this.Type = ''
+        $this.Controls = [System.Collections.Generic.List[string]]::new()
+        $this.Users = ''
+        $this.Machines = ''
+        $this.Applications = ''
+        $this.Collections = ''
+    }
+}
+
+class EpmDateRange {
+    [long]$StartDate
+    [long]$EndDate
+
+    EpmDateRange([long]$start, [long]$end) {
+        $this.StartDate = $start
+        $this.EndDate = $end
+    }
+}
+
+class EpmTimeRange {
+    [string]$StartTime
+    [string]$EndTime
+
+    EpmTimeRange([string]$start, [string]$end) {
+        $this.StartTime = $start
+        $this.EndTime = $end
+    }
+}
+
+class EpmPolicyFilterResult {
+    [int[]]$DayCheck
+    [EpmDateRange[]]$DateCheck
+    [EpmTimeRange[]]$TimeCheck
+
+    EpmPolicyFilterResult() {
+        $this.DayCheck = $null
+        $this.DateCheck = $null
+        $this.TimeCheck = $null
+    }
+}
+
+class EpmPolicyRule {
+    [string]$RuleName
+    [string]$ErrorMessage
+    [string]$RuleExpressionType
+    [string]$Expression
+
+    EpmPolicyRule([string]$name, [string]$error, [string]$exprType, [string]$expr) {
+        $this.RuleName = $name
+        $this.ErrorMessage = $error
+        $this.RuleExpressionType = $exprType
+        $this.Expression = $expr
+    }
+}
+
+class EpmPolicyListRow {
+    [string]$PolicyUid
+    [string]$PolicyName
+    [string]$PolicyType
+    [string]$Status
+    [string]$Controls
+    [string]$Users
+    [string]$Machines
+    [string]$Applications
+    [string]$Collections
+}
+
+class EpmPolicyAgentRow {
+    [string]$Key
+    [string]$UID
+    [string]$Name
+    [string]$Status
+}
+
 function script:Get-KeeperEpmPolicyListStatus {
     Param ($Policy)
     if ($Policy.Disabled) {
@@ -12,14 +97,19 @@ function script:Get-KeeperEpmPolicyListStatus {
         }
         elseif ($Policy.PolicyData -and $Policy.PolicyData.Length -gt 0) {
             $jsonText = [System.Text.Encoding]::UTF8.GetString($Policy.PolicyData)
-            $jo = $jsonText | ConvertFrom-Json -ErrorAction Stop
-            if ($null -ne $jo -and $jo.PSObject.Properties['Status']) {
-                return [string]$jo.Status
+            if ([string]::IsNullOrWhiteSpace($jsonText)) {
+                Write-Warning "Get-KeeperEpmPolicyListStatus: PolicyData decoded to empty string for policy '$($Policy.PolicyUid)'."
+            }
+            else {
+                $jo = $jsonText | ConvertFrom-Json -ErrorAction Stop
+                if ($null -ne $jo -and $jo.PSObject.Properties['Status']) {
+                    return [string]$jo.Status
+                }
             }
         }
     }
     catch {
-        Write-Debug "Get-KeeperEpmPolicyListStatus: $($_.Exception.Message)"
+        Write-Warning "Get-KeeperEpmPolicyListStatus: Failed to parse policy data for '$($Policy.PolicyUid)': $($_.Exception.Message)"
     }
     return [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce
 }
@@ -29,29 +119,15 @@ function script:Get-KeeperEpmPolicyDataInfo {
         [Parameter(Mandatory = $true)] $Policy,
         [Parameter(Mandatory = $true)] $Plugin
     )
-    $name = ''
-    $type = ''
-    $controls = [System.Collections.Generic.List[string]]::new()
-    $users = ''
-    $machines = ''
-    $applications = ''
-    $collections = ''
+    $info = [EpmPolicyDataInfo]::new()
 
     $data = $Policy.Data
     if ($null -eq $data) {
-        return [PSCustomObject]@{
-            Name           = $name
-            Type           = $type
-            Controls       = $controls
-            Users          = $users
-            Machines       = $machines
-            Applications   = $applications
-            Collections    = $collections
-        }
+        return $info
     }
 
-    if ($null -ne $data.PolicyName) { $name = [string]$data.PolicyName }
-    if ($null -ne $data.PolicyType) { $type = [string]$data.PolicyType }
+    if ($null -ne $data.PolicyName) { $info.Name = [string]$data.PolicyName }
+    if ($null -ne $data.PolicyType) { $info.Type = [string]$data.PolicyType }
 
     if ($null -ne $data.Actions -and $null -ne $data.Actions.OnSuccess -and $data.Actions.OnSuccess.Controls) {
         foreach ($control in $data.Actions.OnSuccess.Controls) {
@@ -59,21 +135,21 @@ function script:Get-KeeperEpmPolicyDataInfo {
             $controlStr = [string]$control
             if ([string]::IsNullOrEmpty($controlStr)) { continue }
             $upper = $controlStr.ToUpperInvariant()
-            if ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Approval) { [void]$controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Approval) }
-            elseif ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Justify) { [void]$controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Justify) }
-            elseif ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Mfa) { [void]$controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Mfa) }
-            else { [void]$controls.Add($upper) }
+            if ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Approval) { [void]$info.Controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Approval) }
+            elseif ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Justify) { [void]$info.Controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Justify) }
+            elseif ($upper -eq [KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Mfa) { [void]$info.Controls.Add([KeeperSecurity.Plugins.EPM.EpmPolicyControl]::Mfa) }
+            else { [void]$info.Controls.Add($upper) }
         }
     }
 
     if ($data.UserCheck -and $data.UserCheck.Count -gt 0) {
-        $users = $data.UserCheck -join ', '
+        $info.Users = $data.UserCheck -join ', '
     }
     if ($data.MachineCheck -and $data.MachineCheck.Count -gt 0) {
-        $machines = $data.MachineCheck -join ', '
+        $info.Machines = $data.MachineCheck -join ', '
     }
     if ($data.ApplicationCheck -and $data.ApplicationCheck.Count -gt 0) {
-        $applications = $data.ApplicationCheck -join ', '
+        $info.Applications = $data.ApplicationCheck -join ', '
     }
 
     try {
@@ -92,21 +168,13 @@ function script:Get-KeeperEpmPolicyDataInfo {
             }
         }
         $collectionUids.Sort()
-        $collections = $collectionUids -join ', '
+        $info.Collections = $collectionUids -join ', '
     }
     catch {
         Write-Debug "GetCollectionLinksForObject: $($_.Exception.Message)"
     }
 
-    return [PSCustomObject]@{
-        Name         = $name
-        Type         = $type
-        Controls     = $controls
-        Users        = $users
-        Machines     = $machines
-        Applications = $applications
-        Collections  = $collections
-    }
+    return $info
 }
 
 function script:Resolve-KeeperEpmPolicy {
@@ -116,24 +184,33 @@ function script:Resolve-KeeperEpmPolicy {
         [Parameter(Mandatory = $true)]
         $Plugin
     )
+    if ([string]::IsNullOrEmpty($Identifier)) {
+        throw "Identifier cannot be null or empty"
+    }
     $id = $Identifier.Trim()
-    if ([string]::IsNullOrEmpty($id)) { return @() }
+    if ([string]::IsNullOrEmpty($id)) {
+        throw "Identifier cannot be whitespace-only"
+    }
 
     $policy = $Plugin.Policies.GetEntity($id)
     if ($null -ne $policy) { return @($policy) }
 
-    return @($Plugin.Policies.GetAll() | ForEach-Object {
-            $info = Get-KeeperEpmPolicyDataInfo -Policy $_ -Plugin $Plugin
-            if (-not [string]::IsNullOrEmpty($info.Name) -and $info.Name.Equals($id, [System.StringComparison]::OrdinalIgnoreCase)) {
-                $_
-            }
-        })
+    $matched = [System.Collections.Generic.List[object]]::new()
+    foreach ($p in $Plugin.Policies.GetAll()) {
+        $pInfo = Get-KeeperEpmPolicyDataInfo -Policy $p -Plugin $Plugin
+        if (-not [string]::IsNullOrEmpty($pInfo.Name) -and $pInfo.Name.Equals($id, [System.StringComparison]::OrdinalIgnoreCase)) {
+            [void]$matched.Add($p)
+        }
+    }
+    return @($matched)
 }
 
 function script:Resolve-KeeperEpmSinglePolicy {
     Param (
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][object] $Plugin
+        [Parameter(Mandatory = $true)]
+        [string] $Identifier,
+        [Parameter(Mandatory = $true)]
+        [object] $Plugin
     )
     $policies = @(Resolve-KeeperEpmPolicy -Identifier $Identifier -Plugin $Plugin)
     if ($policies.Count -eq 0) {
@@ -150,6 +227,80 @@ function script:Resolve-KeeperEpmSinglePolicy {
     return $policies[0]
 }
 
+function script:Confirm-EpmPolicyFilterParams {
+    Param (
+        [string[]] $DayFilter,
+        [string[]] $DateFilter,
+        [string[]] $TimeFilter
+    )
+
+    $validDays = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    'sunday','monday','tuesday','wednesday','thursday','friday','saturday' | ForEach-Object { [void]$validDays.Add($_) }
+    $dayMap = @{ sunday = 0; monday = 1; tuesday = 2; wednesday = 3; thursday = 4; friday = 5; saturday = 6 }
+
+    $result = [EpmPolicyFilterResult]::new()
+
+    if ($DayFilter) {
+        foreach ($day in $DayFilter) {
+            if (-not $validDays.Contains($day.Trim())) {
+                throw "Invalid day '$day'. Allowed values: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday."
+            }
+        }
+        $result.DayCheck = @($DayFilter | ForEach-Object { $dayMap[$_.Trim().ToLowerInvariant()] })
+    }
+
+    if ($DateFilter) {
+        $dateRanges = [System.Collections.Generic.List[EpmDateRange]]::new()
+        $dateFmt = 'yyyy-MM-dd'
+        $culture = [System.Globalization.CultureInfo]::InvariantCulture
+        foreach ($df in $DateFilter) {
+            $parts = $df -split ':'
+            if ($parts.Count -ne 2) {
+                Write-Error -Message "Invalid date filter format '$df'. Use YYYY-MM-DD:YYYY-MM-DD." -ErrorAction Stop
+            }
+            try {
+                $startDate = [DateTimeOffset]::ParseExact($parts[0].Trim(), $dateFmt, $culture).ToUnixTimeMilliseconds()
+            } catch {
+                Write-Error -Message "Invalid start date '$($parts[0])'. Use format YYYY-MM-DD." -ErrorAction Stop
+            }
+            try {
+                $endDate = [DateTimeOffset]::ParseExact($parts[1].Trim(), $dateFmt, $culture).ToUnixTimeMilliseconds()
+            } catch {
+                Write-Error -Message "Invalid end date '$($parts[1])'. Use format YYYY-MM-DD." -ErrorAction Stop
+            }
+            if ($endDate -lt $startDate) {
+                Write-Error -Message "Date range end '$($parts[1])' is before start '$($parts[0])'." -ErrorAction Stop
+            }
+            [void]$dateRanges.Add([EpmDateRange]::new($startDate, $endDate))
+        }
+        $result.DateCheck = @($dateRanges)
+    }
+
+    if ($TimeFilter) {
+        $timeRanges = [System.Collections.Generic.List[EpmTimeRange]]::new()
+        foreach ($tf in $TimeFilter) {
+            $parts = $tf -split '-'
+            if ($parts.Count -ne 2) {
+                Write-Error -Message "Invalid time filter format '$tf'. Use HH-HH (e.g. 09-17)." -ErrorAction Stop
+            }
+            $startHour = 0; $endHour = 0
+            if (-not [int]::TryParse($parts[0], [ref]$startHour) -or -not [int]::TryParse($parts[1], [ref]$endHour)) {
+                Write-Error -Message "Invalid time filter '$tf'. Hours must be numeric." -ErrorAction Stop
+            }
+            if ($startHour -lt 0 -or $startHour -gt 23 -or $endHour -lt 0 -or $endHour -gt 23) {
+                Write-Error -Message "Invalid time filter '$tf'. Hours must be between 0 and 23." -ErrorAction Stop
+            }
+            if ($startHour -eq $endHour) {
+                Write-Error -Message "Invalid time filter '$tf'. Start and end hours cannot be equal (zero-width range)." -ErrorAction Stop
+            }
+            [void]$timeRanges.Add([EpmTimeRange]::new($parts[0], $parts[1]))
+        }
+        $result.TimeCheck = @($timeRanges)
+    }
+
+    return $result
+}
+
 function script:GetPedmPolicyAgentsResponse {
     Param (
         [Parameter(Mandatory = $true)]
@@ -160,23 +311,15 @@ function script:GetPedmPolicyAgentsResponse {
     $rq = New-Object PEDM.PolicyAgentRequest
     $rq.SummaryOnly = $false
     foreach ($uid in $PolicyUids) {
-        $b = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($uid)
+        try {
+            $b = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($uid)
+        } catch {
+            Write-Error -Message "Invalid policy UID '$uid': $($_.Exception.Message)" -ErrorAction Stop
+        }
         [void]$rq.PolicyUid.Add([Google.Protobuf.ByteString]::CopyFrom($b))
     }
-    $methods = [KeeperSecurity.Authentication.AuthExtensions].GetMethods([System.Reflection.BindingFlags]'Public,Static') | Where-Object {
-        $_.Name -eq 'ExecuteRouter' -and $_.IsGenericMethodDefinition -and $_.GetGenericArguments().Count -eq 1 -and $_.GetParameters().Count -eq 3
-    }
-    if ($methods.Count -lt 1) {
-        throw 'ExecuteRouter(IAuthentication, string, IMessage) not found on AuthExtensions.'
-    }
-    $gm = $methods[0].MakeGenericMethod([PEDM.PolicyAgentResponse])
-    try {
-        $task = $gm.Invoke($null, @($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq))
-        return $task.GetAwaiter().GetResult()
-    }
-    catch [System.Reflection.TargetInvocationException] {
-        throw $_.Exception.InnerException
-    }
+    $task = [KeeperSecurity.Authentication.AuthExtensions]::ExecuteRouter[PEDM.PolicyAgentResponse]($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq)
+    return $task.GetAwaiter().GetResult()
 }
 
 function Get-KeeperEpmPolicyList {
@@ -200,21 +343,21 @@ function Get-KeeperEpmPolicyList {
         return
     }
 
-    $rows = foreach ($pol in ($policies | Sort-Object -Property PolicyUid)) {
+    $rows = [System.Collections.Generic.List[EpmPolicyListRow]]::new()
+    foreach ($pol in ($policies | Sort-Object -Property PolicyUid)) {
         $policyInfo = Get-KeeperEpmPolicyDataInfo -Policy $pol -Plugin $plugin
         $status = Get-KeeperEpmPolicyListStatus -Policy $pol
-        $controls = ($policyInfo.Controls -join "`n").Trim()
-        [PSCustomObject]@{
-            'Policy UID'     = $pol.PolicyUid
-            'Policy Name'    = $policyInfo.Name
-            'Policy Type'    = $policyInfo.Type
-            'Status'         = $status
-            'Controls'       = $controls
-            'Users'          = $policyInfo.Users
-            'Machines'       = $policyInfo.Machines
-            'Applications'   = $policyInfo.Applications
-            'Collections'    = $policyInfo.Collections
-        }
+        $row = [EpmPolicyListRow]::new()
+        $row.PolicyUid = $pol.PolicyUid
+        $row.PolicyName = $policyInfo.Name
+        $row.PolicyType = $policyInfo.Type
+        $row.Status = $status
+        $row.Controls = ($policyInfo.Controls -join "`n").Trim()
+        $row.Users = $policyInfo.Users
+        $row.Machines = $policyInfo.Machines
+        $row.Applications = $policyInfo.Applications
+        $row.Collections = $policyInfo.Collections
+        [void]$rows.Add($row)
     }
     $rows | Format-Table -AutoSize -Wrap
 }
@@ -244,14 +387,12 @@ function Get-KeeperEpmPolicy {
     Write-Output "  UID: $($policy.PolicyUid)"
     Write-Output "  Type: $($policyInfo.Type)"
     $d = $policy.Data
+    $displayStatus = Get-KeeperEpmPolicyListStatus -Policy $policy
+    Write-Output "  Status: $displayStatus"
     if ($null -eq $d) {
-        $displayStatus = if ($policy.Disabled) { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off } else { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce }
-        Write-Output "  Status: $displayStatus"
         Write-Output "  (Policy data could not be decrypted)"
     }
-    if ($null -ne $d) {
-        $displayStatus = if ($policy.Disabled) { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off } elseif ($null -ne $d.Status -and $d.Status -ne '') { $d.Status } else { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce }
-        Write-Output "  Status: $displayStatus"
+    else {
         if (-not [string]::IsNullOrEmpty($d.PolicyId)) {
             Write-Output "  Policy ID: $($d.PolicyId)"
         }
@@ -392,7 +533,6 @@ function Add-KeeperEpmPolicy {
         [Parameter()]
         [bool] $NotificationRequiresAcknowledge = $false,
         [Parameter()]
-        [ValidateSet('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')]
         [string[]] $DayFilter,
         [Parameter()]
         [string[]] $DateFilter,
@@ -413,12 +553,12 @@ function Add-KeeperEpmPolicy {
     }
 
     $rules = @(
-        @{ RuleName = 'UserCheck'; ErrorMessage = 'This user is not included in this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckUser()' }
-        @{ RuleName = 'MachineCheck'; ErrorMessage = 'This Machine is not included in this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckMachine()' }
-        @{ RuleName = 'ApplicationCheck'; ErrorMessage = 'This application is not included in this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckFile(false)' }
-        @{ RuleName = 'DateCheck'; ErrorMessage = 'Current date is not covered by this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckDate()' }
-        @{ RuleName = 'TimeCheck'; ErrorMessage = 'Current time is not covered by this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckTime()' }
-        @{ RuleName = 'DayCheck'; ErrorMessage = 'Today is not included in this policy'; RuleExpressionType = 'BuiltInAction'; Expression = 'CheckDay()' }
+        [EpmPolicyRule]::new('UserCheck', 'This user is not included in this policy', 'BuiltInAction', 'CheckUser()')
+        [EpmPolicyRule]::new('MachineCheck', 'This Machine is not included in this policy', 'BuiltInAction', 'CheckMachine()')
+        [EpmPolicyRule]::new('ApplicationCheck', 'This application is not included in this policy', 'BuiltInAction', 'CheckFile(false)')
+        [EpmPolicyRule]::new('DateCheck', 'Current date is not covered by this policy', 'BuiltInAction', 'CheckDate()')
+        [EpmPolicyRule]::new('TimeCheck', 'Current time is not covered by this policy', 'BuiltInAction', 'CheckTime()')
+        [EpmPolicyRule]::new('DayCheck', 'Today is not included in this policy', 'BuiltInAction', 'CheckDay()')
     )
 
     $policyData = [ordered]@{
@@ -437,45 +577,15 @@ function Add-KeeperEpmPolicy {
         Rules                          = $rules
     }
 
+    $validated = Confirm-EpmPolicyFilterParams -DayFilter $DayFilter -DateFilter $DateFilter -TimeFilter $TimeFilter
+
     if ($UserFilter)    { $policyData['UserCheck'] = @($UserFilter) }
     if ($MachineFilter) { $policyData['MachineCheck'] = @($MachineFilter) }
     if ($AppFilter)     { $policyData['ApplicationCheck'] = @($AppFilter) }
 
-    if ($DayFilter) {
-        $dayMap = @{ Sunday = 0; Monday = 1; Tuesday = 2; Wednesday = 3; Thursday = 4; Friday = 5; Saturday = 6 }
-        $policyData['DayCheck'] = @($DayFilter | ForEach-Object { $dayMap[$_] })
-    }
-    if ($DateFilter) {
-        $dateRanges = @()
-        foreach ($df in $DateFilter) {
-            $parts = $df -split ':'
-            if ($parts.Count -ne 2) {
-                Write-Error -Message "Invalid date filter format '$df'. Use YYYY-MM-DD:YYYY-MM-DD." -ErrorAction Stop
-            }
-            $startDate = [DateTimeOffset]::Parse($parts[0]).ToUnixTimeMilliseconds()
-            $endDate = [DateTimeOffset]::Parse($parts[1]).ToUnixTimeMilliseconds()
-            $dateRanges += @{ StartDate = $startDate; EndDate = $endDate }
-        }
-        $policyData['DateCheck'] = $dateRanges
-    }
-    if ($TimeFilter) {
-        $timeRanges = @()
-        foreach ($tf in $TimeFilter) {
-            $parts = $tf -split '-'
-            if ($parts.Count -ne 2) {
-                Write-Error -Message "Invalid time filter format '$tf'. Use HH-HH (e.g. 09-17)." -ErrorAction Stop
-            }
-            $startHour = 0; $endHour = 0
-            if (-not [int]::TryParse($parts[0], [ref]$startHour) -or -not [int]::TryParse($parts[1], [ref]$endHour)) {
-                Write-Error -Message "Invalid time filter '$tf'. Hours must be numeric." -ErrorAction Stop
-            }
-            if ($startHour -lt 0 -or $startHour -gt 23 -or $endHour -lt 0 -or $endHour -gt 23) {
-                Write-Error -Message "Invalid time filter '$tf'. Hours must be between 0 and 23." -ErrorAction Stop
-            }
-            $timeRanges += @{ StartTime = $parts[0]; EndTime = $parts[1] }
-        }
-        $policyData['TimeCheck'] = $timeRanges
-    }
+    if ($null -ne $validated.DayCheck)  { $policyData['DayCheck'] = $validated.DayCheck }
+    if ($null -ne $validated.DateCheck) { $policyData['DateCheck'] = $validated.DateCheck }
+    if ($null -ne $validated.TimeCheck) { $policyData['TimeCheck'] = $validated.TimeCheck }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress
     $plainData = [ordered]@{
@@ -563,13 +673,12 @@ function Update-KeeperEpmPolicy {
         [string[]] $AppFilter,
         [Parameter()]
         [ValidateRange(0, 100)]
-        [int] $RiskLevel = -1,
+        [Nullable[int]] $RiskLevel,
         [Parameter()]
         [string] $NotificationMessage,
         [Parameter()]
         [Nullable[bool]] $NotificationRequiresAcknowledge,
         [Parameter()]
-        [ValidateSet('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')]
         [string[]] $DayFilter,
         [Parameter()]
         [string[]] $DateFilter,
@@ -587,8 +696,13 @@ function Update-KeeperEpmPolicy {
     $hasChanges = $false
     $policyData = $null
     if ($null -ne $policy.Data) {
-        $existingJson = $policy.Data | ConvertTo-Json -Depth 10
-        $policyData = $existingJson | ConvertFrom-Json
+        # Deep-clone via JSON round-trip to avoid mutating the cached SDK object
+        try {
+            $existingJson = $policy.Data | ConvertTo-Json -Depth 10
+            $policyData = $existingJson | ConvertFrom-Json
+        } catch {
+            Write-Error -Message "Failed to clone existing policy data for '$($policy.PolicyUid)': $($_.Exception.Message)" -ErrorAction Stop
+        }
     }
     if ($null -eq $policyData) {
         $policyData = [PSCustomObject]@{}
@@ -613,6 +727,8 @@ function Update-KeeperEpmPolicy {
         $policyData | Add-Member -MemberType NoteProperty -Name 'Actions' -Value $actions -Force
         $hasChanges = $true
     }
+    $validated = Confirm-EpmPolicyFilterParams -DayFilter $DayFilter -DateFilter $DateFilter -TimeFilter $TimeFilter
+
     if ($null -ne $UserFilter) {
         $policyData | Add-Member -MemberType NoteProperty -Name 'UserCheck' -Value @($UserFilter) -Force
         $hasChanges = $true
@@ -625,8 +741,8 @@ function Update-KeeperEpmPolicy {
         $policyData | Add-Member -MemberType NoteProperty -Name 'ApplicationCheck' -Value @($AppFilter) -Force
         $hasChanges = $true
     }
-    if ($RiskLevel -ge 0) {
-        $policyData | Add-Member -MemberType NoteProperty -Name 'RiskLevel' -Value $RiskLevel -Force
+    if ($null -ne $RiskLevel) {
+        $policyData | Add-Member -MemberType NoteProperty -Name 'RiskLevel' -Value $RiskLevel.Value -Force
         $hasChanges = $true
     }
     if (-not [string]::IsNullOrEmpty($NotificationMessage)) {
@@ -637,42 +753,16 @@ function Update-KeeperEpmPolicy {
         $policyData | Add-Member -MemberType NoteProperty -Name 'NotificationRequiresAcknowledge' -Value $NotificationRequiresAcknowledge -Force
         $hasChanges = $true
     }
-    if ($null -ne $DayFilter) {
-        $dayMap = @{ Sunday = 0; Monday = 1; Tuesday = 2; Wednesday = 3; Thursday = 4; Friday = 5; Saturday = 6 }
-        $policyData | Add-Member -MemberType NoteProperty -Name 'DayCheck' -Value @($DayFilter | ForEach-Object { $dayMap[$_] }) -Force
+    if ($null -ne $validated.DayCheck) {
+        $policyData | Add-Member -MemberType NoteProperty -Name 'DayCheck' -Value $validated.DayCheck -Force
         $hasChanges = $true
     }
-    if ($null -ne $DateFilter) {
-        $dateRanges = @()
-        foreach ($df in $DateFilter) {
-            $parts = $df -split ':'
-            if ($parts.Count -ne 2) {
-                Write-Error -Message "Invalid date filter format '$df'. Use YYYY-MM-DD:YYYY-MM-DD." -ErrorAction Stop
-            }
-            $startDate = [DateTimeOffset]::Parse($parts[0]).ToUnixTimeMilliseconds()
-            $endDate = [DateTimeOffset]::Parse($parts[1]).ToUnixTimeMilliseconds()
-            $dateRanges += @{ StartDate = $startDate; EndDate = $endDate }
-        }
-        $policyData | Add-Member -MemberType NoteProperty -Name 'DateCheck' -Value $dateRanges -Force
+    if ($null -ne $validated.DateCheck) {
+        $policyData | Add-Member -MemberType NoteProperty -Name 'DateCheck' -Value $validated.DateCheck -Force
         $hasChanges = $true
     }
-    if ($null -ne $TimeFilter) {
-        $timeRanges = @()
-        foreach ($tf in $TimeFilter) {
-            $parts = $tf -split '-'
-            if ($parts.Count -ne 2) {
-                Write-Error -Message "Invalid time filter format '$tf'. Use HH-HH (e.g. 09-17)." -ErrorAction Stop
-            }
-            $startHour = 0; $endHour = 0
-            if (-not [int]::TryParse($parts[0], [ref]$startHour) -or -not [int]::TryParse($parts[1], [ref]$endHour)) {
-                Write-Error -Message "Invalid time filter '$tf'. Hours must be numeric." -ErrorAction Stop
-            }
-            if ($startHour -lt 0 -or $startHour -gt 23 -or $endHour -lt 0 -or $endHour -gt 23) {
-                Write-Error -Message "Invalid time filter '$tf'. Hours must be between 0 and 23." -ErrorAction Stop
-            }
-            $timeRanges += @{ StartTime = $parts[0]; EndTime = $parts[1] }
-        }
-        $policyData | Add-Member -MemberType NoteProperty -Name 'TimeCheck' -Value $timeRanges -Force
+    if ($null -ne $validated.TimeCheck) {
+        $policyData | Add-Member -MemberType NoteProperty -Name 'TimeCheck' -Value $validated.TimeCheck -Force
         $hasChanges = $true
     }
 
@@ -802,16 +892,16 @@ function Get-KeeperEpmPolicyAgent {
 
     $policyUids = [System.Collections.Generic.List[string]]::new()
     foreach ($identifier in $identifiers) {
-        $matches = @(Resolve-KeeperEpmPolicy -Identifier $identifier -Plugin $plugin)
-        if ($matches.Count -eq 0) {
+        $resolvedPolicies = @(Resolve-KeeperEpmPolicy -Identifier $identifier -Plugin $plugin)
+        if ($resolvedPolicies.Count -eq 0) {
             Write-Warning "Policy '$identifier' not found."
             continue
         }
-        if ($matches.Count -gt 1) {
+        if ($resolvedPolicies.Count -gt 1) {
             Write-Warning "Multiple policies match name '$identifier'. Use Policy UID."
             continue
         }
-        [void]$policyUids.Add($matches[0].PolicyUid)
+        [void]$policyUids.Add($resolvedPolicies[0].PolicyUid)
     }
 
     if ($policyUids.Count -eq 0) { return }
@@ -826,18 +916,18 @@ function Get-KeeperEpmPolicyAgent {
             [void]$activeAgentUids.Add([KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($b))
         }
 
-        $rows = [System.Collections.Generic.List[object]]::new()
+        $rows = [System.Collections.Generic.List[EpmPolicyAgentRow]]::new()
         foreach ($policyUid in $policyUids) {
             $policy = $plugin.Policies.GetEntity($policyUid)
             if ($null -ne $policy) {
                 $policyInfo = Get-KeeperEpmPolicyDataInfo -Policy $policy -Plugin $plugin
                 $status = Get-KeeperEpmPolicyListStatus -Policy $policy
-                [void]$rows.Add([PSCustomObject]@{
-                        Key    = 'Policy'
-                        UID    = $policyUid
-                        Name   = $policyInfo.Name
-                        Status = $status
-                    })
+                $row = [EpmPolicyAgentRow]::new()
+                $row.Key = 'Policy'
+                $row.UID = $policyUid
+                $row.Name = $policyInfo.Name
+                $row.Status = $status
+                [void]$rows.Add($row)
             }
         }
         foreach ($agentUid in $activeAgentUids) {
@@ -846,14 +936,14 @@ function Get-KeeperEpmPolicyAgent {
             $st = ''
             if ($null -ne $agent) {
                 $machineName = if ($agent.MachineId) { $agent.MachineId } else { '' }
-                $st = if ($agent.Disabled) { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off } else { 'on' }
+                $st = if ($agent.Disabled) { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off } else { [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce }
             }
-            [void]$rows.Add([PSCustomObject]@{
-                    Key    = 'Agent'
-                    UID    = $agentUid
-                    Name   = $machineName
-                    Status = $st
-                })
+            $row = [EpmPolicyAgentRow]::new()
+            $row.Key = 'Agent'
+            $row.UID = $agentUid
+            $row.Name = $machineName
+            $row.Status = $st
+            [void]$rows.Add($row)
         }
         $rows | Format-Table -Property Key, UID, Name, Status -AutoSize
     }
@@ -891,39 +981,52 @@ function Add-KeeperEpmPolicyCollection {
 
     $policies = [System.Collections.Generic.List[object]]::new()
     foreach ($identifier in $identifiers) {
-        $matches = @(Resolve-KeeperEpmPolicy -Identifier $identifier -Plugin $plugin)
-        if ($matches.Count -eq 0) {
+        $resolvedPolicies = @(Resolve-KeeperEpmPolicy -Identifier $identifier -Plugin $plugin)
+        if ($resolvedPolicies.Count -eq 0) {
             Write-Warning "Policy '$identifier' not found."
             continue
         }
-        if ($matches.Count -gt 1) {
+        if ($resolvedPolicies.Count -gt 1) {
             Write-Warning "Multiple policies match name '$identifier'. Use Policy UID."
             continue
         }
-        [void]$policies.Add($matches[0])
+        [void]$policies.Add($resolvedPolicies[0])
     }
 
     if ($policies.Count -eq 0) { return }
 
     $collectionUids = [System.Collections.Generic.List[byte[]]]::new()
     foreach ($collUid in $CollectionUid) {
+        if ([string]::IsNullOrWhiteSpace($collUid)) {
+            Write-Warning "Empty collection UID. Skipped."
+            continue
+        }
         $c = $collUid.Trim()
         if ($c -eq '*' -or $c -eq 'all') {
             $allAgentsUid = $plugin.AllAgentsCollectionUid
             if (-not [string]::IsNullOrEmpty($allAgentsUid)) {
                 try {
-                    [void]$collectionUids.Add([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($allAgentsUid))
+                    $allBytes = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($allAgentsUid)
+                    if ($null -eq $allBytes -or $allBytes.Length -ne 16) {
+                        Write-Warning "Invalid all-agents collection UID (expected 16 bytes, got $($allBytes.Length)). Skipped."
+                    } else {
+                        [void]$collectionUids.Add($allBytes)
+                    }
                 }
                 catch {
-                    Write-Warning 'Invalid all-agents collection UID. Skipped.'
+                    Write-Warning "Invalid all-agents collection UID: $($_.Exception.Message). Skipped."
                 }
             }
         }
         else {
+            if ($c -notmatch '^[A-Za-z0-9_\-]+=*$') {
+                Write-Warning "Collection UID '$c' is not valid Base64Url. Skipped."
+                continue
+            }
             try {
                 $collUidBytes = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($c)
-                if ($collUidBytes.Length -ne 16) {
-                    Write-Warning "Invalid collection UID: $c. Skipped."
+                if ($null -eq $collUidBytes -or $collUidBytes.Length -ne 16) {
+                    Write-Warning "Invalid collection UID: $c (expected 16 bytes, got $($collUidBytes.Length)). Skipped."
                     continue
                 }
                 $existing = $plugin.Collections.GetEntity($c)
