@@ -16,26 +16,40 @@ namespace KeeperSecurity
     {
         public partial class VaultOnline
         {
-            public async Task<RecordHistory[]> GetRecordHistory(string recordUid)
+            public static async Task<RecordHistory[]> GetRecordHistory(string recordUid)
             {
                 if (!TryGetKeeperRecord(recordUid, out var r))
                 {
                     throw new Exception($"Record UID {recordUid} not found");
                 }
-                var rq = new GetRecordHistoryCommand
-                {
-                    RecordUid = recordUid,
-                };
-                var rs = await Auth.ExecuteAuthCommand<GetRecordHistoryCommand, GetRecordHistoryResponse>(rq);
-                var history = await ParseRecordHistory(rs.History);
+
+                var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
+                .ConfigureAwait(false);
+
+                var history = await ParseRecordHistory(r, rs.History)
+                .ConfigureAwait(false);
 
                 history.Reverse();
                 return history.ToArray();
             }
 
-            internal async Task<RecordHistory[]> ParseRecordHistory(RecordHistoryStorage[] records)
+            internal static async Task<GetRecordHistoryResponse> FetchRecordHistoryResponseAsync(
+            IAuthentication auth,
+            string recordUid)
             {
-                foreach (var rh in records)
+                var rq = new GetRecordHistoryCommand
+                {
+                    RecordUid = recordUid,
+                };
+                return await auth
+                .ExecuteAuthCommand<GetRecordHistoryCommand, GetRecordHistoryResponse>(rq)
+                .ConfigureAwait(false);
+            }
+
+            private static Task<List<RecordHistory>> ParseRecordHistory(IKeeperRecord r, RecordHistoryStorage[] historyEntries)
+            {
+                var history = new List<RecordHistory>();
+                foreach (var rh in historyEntries)
                 {
                     try
                     {
@@ -57,15 +71,17 @@ namespace KeeperSecurity
                     var r2 = history[i - 1].KeeperRecord;
                     history[i].RecordChange = RecordHistoryUtils.GetRecordChanges(r1, r2);
                 }
-            }
 
+                return Task.FromResult(history);
+            }
         }
         internal static class RecordHistoryUtils
         {
             internal static RecordChange GetRecordChanges(KeeperRecord r1, KeeperRecord r2)
             {
                 RecordChange change = 0;
-                if (!string.Equals(r1.ExtractType(), r2.ExtractType())) { 
+                if (!string.Equals(r1.ExtractType(), r2.ExtractType()))
+                {
                     change |= RecordChange.RecordType;
                 }
                 if (!string.Equals(r1.ExtractTitle(), r2.ExtractTitle()))
@@ -141,14 +157,14 @@ namespace KeeperSecurity
                     case null:
                         return null;
                     case TypedRecord tr when tr.FindTypedField("host", null, out var rf):
-                    {
-                        var totp = rf.GetExternalValue();
-                        if (!string.IsNullOrEmpty(totp))
                         {
-                            Debug.WriteLine(totp);
+                            var totp = rf.GetExternalValue();
+                            if (!string.IsNullOrEmpty(totp))
+                            {
+                                Debug.WriteLine(totp);
+                            }
+                            return totp;
                         }
-                        return totp;
-                    }
                     default:
                         return "";
                 }
@@ -161,14 +177,14 @@ namespace KeeperSecurity
                     case null:
                         return null;
                     case TypedRecord tr when tr.FindTypedField("address", null, out var rf):
-                    {
-                        var totp = rf.GetExternalValue();
-                        if (!string.IsNullOrEmpty(totp))
                         {
-                            Debug.WriteLine(totp);
+                            var totp = rf.GetExternalValue();
+                            if (!string.IsNullOrEmpty(totp))
+                            {
+                                Debug.WriteLine(totp);
+                            }
+                            return totp;
                         }
-                        return totp;
-                    }
                     default:
                         return "";
                 }
@@ -181,14 +197,14 @@ namespace KeeperSecurity
                     case null:
                         return null;
                     case TypedRecord tr when tr.FindTypedField("paymentCard", null, out var rf):
-                    {
-                        var totp = rf.GetExternalValue();
-                        if (!string.IsNullOrEmpty(totp))
                         {
-                            Debug.WriteLine(totp);
+                            var totp = rf.GetExternalValue();
+                            if (!string.IsNullOrEmpty(totp))
+                            {
+                                Debug.WriteLine(totp);
+                            }
+                            return totp;
                         }
-                        return totp;
-                    }
                     default:
                         return "";
                 }
@@ -202,30 +218,31 @@ namespace KeeperSecurity
                 switch (record)
                 {
                     case PasswordRecord pr:
-                    {
-                        if ((pr.Custom?.Count ?? 0) > 0)
                         {
-                            values = new List<string>();
-                            foreach (var cf in pr.Custom)
+                            if ((pr.Custom?.Count ?? 0) > 0)
                             {
-                                values.Add($"$text.{cf.Name}:{cf.Value}");
+                                values = new List<string>();
+                                foreach (var cf in pr.Custom)
+                                {
+                                    values.Add($"$text.{cf.Name}:{cf.Value}");
+                                }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                     case TypedRecord tr:
-                    {
-                        if ((tr.Custom?.Count ?? 0) > 0) {
-                            values = new List<string>();
-                            foreach (var cf in tr.Custom)
+                        {
+                            if ((tr.Custom?.Count ?? 0) > 0)
                             {
-                                values.Add($"${cf.FieldName}.{cf.FieldLabel ?? string.Empty}:{cf.GetExternalValue()}");
+                                values = new List<string>();
+                                foreach (var cf in tr.Custom)
+                                {
+                                    values.Add($"${cf.FieldName}.{cf.FieldLabel ?? string.Empty}:{cf.GetExternalValue()}");
+                                }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
 
                 if (values == null || values.Count <= 0) return "";
@@ -242,34 +259,35 @@ namespace KeeperSecurity
                 switch (record)
                 {
                     case PasswordRecord pr:
-                    {
-                        if ((pr.Attachments?.Count ?? 0) > 0)
                         {
-                            values = new List<string>();
-                            foreach (var atta in pr.Attachments)
+                            if ((pr.Attachments?.Count ?? 0) > 0)
                             {
-                                values.Add(atta.Id);
-                            }
-                        }
-
-                        break;
-                    }
-                    case TypedRecord tr:
-                    {
-                        if (tr.FindTypedField("fileRef", null, out var rf))
-                        {
-                            values = new List<string>();
-                            for (int i = 0; i < rf.Count; i++) 
-                            {
-                                var v = rf.GetValueAt(i);
-                                if (v is string s) { 
-                                    values.Add(s);
+                                values = new List<string>();
+                                foreach (var atta in pr.Attachments)
+                                {
+                                    values.Add(atta.Id);
                                 }
                             }
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
+                    case TypedRecord tr:
+                        {
+                            if (tr.FindTypedField("fileRef", null, out var rf))
+                            {
+                                values = new List<string>();
+                                for (int i = 0; i < rf.Count; i++)
+                                {
+                                    var v = rf.GetValueAt(i);
+                                    if (v is string s)
+                                    {
+                                        values.Add(s);
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
                 }
 
                 if (values == null || values.Count <= 0) return "";
@@ -311,7 +329,7 @@ namespace KeeperSecurity
                 public bool Shared { get; set; }
                 [DataMember(Name = "client_modified_time")]
                 internal double _client_modified_time;
-                public long ClientModifiedTime => (long) _client_modified_time;
+                public long ClientModifiedTime => (long)_client_modified_time;
                 [DataMember(Name = "data")]
                 public string Data { get; internal set; }
                 [DataMember(Name = "extra")]
