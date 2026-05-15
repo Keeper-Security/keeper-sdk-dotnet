@@ -674,12 +674,12 @@ function Grant-KeeperSharedFolderUserSkipSync {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutUserToSharedFolderAsync($auth, $sfUid, $email, $options)
         [void](__AwaitSkipSyncTask $task)
-        Write-Host "OK: Shared folder $sfUid — user $email added or updated."
+        Write-Host "OK: Shared folder $sfUid - user $email added or updated."
         $didGrant = $true
     }
     if ($didGrant -and $ShowDetail) {
         $listed = Get-KeeperSharedFolderRecordsSkipSync -SharedFolder $sfUid -Mode SharedKey -PassThru
-        __WriteRecordDetailsSkipSyncResult $listed "No records listed on this shared folder (user $User has folder access)."
+        __WriteRecordDetailsSkipSyncResult $listed "No records listed on this shared folder - user $User has folder access."
         if ($PassThru) { $listed }
     }
 }
@@ -713,7 +713,7 @@ function Revoke-KeeperSharedFolderUserSkipSync {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveUserFromSharedFolderAsync($auth, $sfUid, $email)
         [void](__AwaitSkipSyncTask $task)
-        Write-Host "OK: Shared folder $sfUid — user $email removed."
+        Write-Host "OK: Shared folder $sfUid - user $email removed."
         $didRevoke = $true
     }
     if ($didRevoke -and $ShowDetail) {
@@ -770,12 +770,12 @@ function Grant-KeeperSharedFolderTeamSkipSync {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutTeamToSharedFolderAsync($auth, $sfUid, $teamKey, $options)
         [void](__AwaitSkipSyncTask $task)
-        Write-Host "OK: Shared folder $sfUid — team $teamKey added or updated."
+        Write-Host "OK: Shared folder $sfUid - team $teamKey added or updated."
         $didGrant = $true
     }
     if ($didGrant -and $ShowDetail) {
         $listed = Get-KeeperSharedFolderRecordsSkipSync -SharedFolder $sfUid -Mode SharedKey -PassThru
-        __WriteRecordDetailsSkipSyncResult $listed "No records listed on this shared folder (team $Team has folder access)."
+        __WriteRecordDetailsSkipSyncResult $listed "No records listed on this shared folder - team $Team has folder access."
         if ($PassThru) { $listed }
     }
 }
@@ -809,7 +809,7 @@ function Revoke-KeeperSharedFolderTeamSkipSync {
         $auth = getKeeperAuth
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveTeamFromSharedFolderAsync($auth, $sfUid, $teamKey)
         [void](__AwaitSkipSyncTask $task)
-        Write-Host "OK: Shared folder $sfUid — team $teamKey removed."
+        Write-Host "OK: Shared folder $sfUid - team $teamKey removed."
         $didRevoke = $true
     }
     if ($didRevoke -and $ShowDetail) {

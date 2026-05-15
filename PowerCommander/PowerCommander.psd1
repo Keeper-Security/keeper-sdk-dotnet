@@ -72,6 +72,7 @@
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
+        'EPM\Policy.ps1',
         'EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
@@ -126,7 +127,9 @@
         'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval'
         'Get-KeeperEpmAgentList', 'Get-KeeperEpmAgent', 'Update-KeeperEpmAgent', 'Remove-KeeperEpmAgent', 'Get-KeeperEpmAgentCollection',
         'Get-KeeperEpmCollectionList', 'Get-KeeperEpmCollection', 'Add-KeeperEpmCollection',
-        'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 'Remove-KeeperEpmCollectionsByType'
+        'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 
+        'Remove-KeeperEpmCollectionsByType','Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
+        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection'
         #'Test-Keeper',
     )
 
@@ -150,7 +153,8 @@
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree',
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
         'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
-        'external-shares-report', 'aging-report',
+        'external-shares-report', 'aging-report','kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
+        'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign')
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout')
 

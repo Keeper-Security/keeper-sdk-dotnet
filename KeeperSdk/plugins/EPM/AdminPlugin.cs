@@ -41,6 +41,22 @@ namespace KeeperSecurity.Plugins.EPM
         OsVersion    = 202
     }
 
+
+    public static class EpmPolicyStatus
+    {
+        public const string Enforce          = "enforce";
+        public const string Monitor          = "monitor";
+        public const string MonitorAndNotify = "monitor_and_notify";
+        public const string Off              = "off";
+    }
+
+    public static class EpmPolicyControl
+    {
+        public const string Approval = "APPROVAL";
+        public const string Justify  = "JUSTIFY";
+        public const string Mfa      = "MFA";
+    }
+
     public class RebuildTask
     {
         private readonly bool _fullRebuild;
@@ -1259,6 +1275,11 @@ namespace KeeperSecurity.Plugins.EPM
             /// Policy JSON data to encrypt (policy data)
             /// </summary>
             public string PolicyDataJson { get; set; }
+
+            /// <summary>
+            /// Enable/disable the policy. Null means no change.
+            /// </summary>
+            public bool? Disabled { get; set; }
         }
 
         public async Task<ModifyStatus> ModifyPolicies(
@@ -1286,13 +1307,18 @@ namespace KeeperSecurity.Plugins.EPM
                     var encryptedData = CryptoUtils.EncryptAesV2(policyData, policyKey);
                     var encryptedKey = CryptoUtils.EncryptAesV2(policyKey, agentKey);
 
-                    rq.AddPolicy.Add(new PEDMProto.PolicyAdd
+                    var addProto = new PEDMProto.PolicyAdd
                     {
                         PolicyUid = ByteString.CopyFrom(policyUid.Base64UrlDecode()),
                         PlainData = ByteString.CopyFrom(plainData),
                         EncryptedData = ByteString.CopyFrom(encryptedData),
                         EncryptedKey = ByteString.CopyFrom(encryptedKey),
-                    });
+                    };
+                    if (ap.Disabled.HasValue)
+                    {
+                        addProto.Disabled = ap.Disabled.Value;
+                    }
+                    rq.AddPolicy.Add(addProto);
                 }
             }
 
@@ -1322,12 +1348,19 @@ namespace KeeperSecurity.Plugins.EPM
                         ? CryptoUtils.EncryptAesV2(Encoding.UTF8.GetBytes(up.PolicyDataJson), policyKey)
                         : storagePolicy.Data ?? Array.Empty<byte>();
 
-                    rq.UpdatePolicy.Add(new PEDMProto.PolicyUpdate
+                    var updateProto = new PEDMProto.PolicyUpdate
                     {
                         PolicyUid = ByteString.CopyFrom(policyUid.Base64UrlDecode()),
                         PlainData = ByteString.CopyFrom(plainDataBytes),
                         EncryptedData = ByteString.CopyFrom(encryptedDataBytes),
-                    });
+                    };
+                    if (up.Disabled.HasValue)
+                    {
+                        updateProto.Disabled = up.Disabled.Value
+                            ? SetBooleanValue.BooleanTrue
+                            : SetBooleanValue.BooleanFalse;
+                    }
+                    rq.UpdatePolicy.Add(updateProto);
                 }
             }
 

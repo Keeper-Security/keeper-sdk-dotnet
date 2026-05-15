@@ -141,6 +141,11 @@ Disconnect-KeeperEpmCollection, Remove-KeeperEpmCollectionsByType
 Export-ModuleMember -Alias kepm-agent-list, kepm-agent-view, kepm-agent-edit, kepm-agent-delete, kepm-agent-collection,
 kepm-collection-list, kepm-collection-view, kepm-collection-add, kepm-collection-edit,
 kepm-collection-delete, kepm-collection-connect, kepm-collection-disconnect, kepm-collection-wipeout
+
+Export-ModuleMember -Function Get-KeeperEpmPolicyList, Get-KeeperEpmPolicy, Add-KeeperEpmPolicy,
+Update-KeeperEpmPolicy, Remove-KeeperEpmPolicy, Get-KeeperEpmPolicyAgent, Add-KeeperEpmPolicyCollection
+Export-ModuleMember -Alias kepm-policy-list, kepm-policy-view, kepm-policy-add, kepm-policy-edit,
+kepm-policy-delete, kepm-policy-remove, kepm-policy-agents, kepm-policy-assign
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
