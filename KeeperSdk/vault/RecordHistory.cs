@@ -15,8 +15,8 @@ namespace KeeperSecurity
     namespace Vault
     {
         public partial class VaultOnline
-        {
-            public static async Task<RecordHistory[]> GetRecordHistory(string recordUid)
+        {          
+            public async Task<RecordHistory[]> GetRecordHistory(string recordUid)
             {
                 if (!TryGetKeeperRecord(recordUid, out var r))
                 {
@@ -26,7 +26,7 @@ namespace KeeperSecurity
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = await ParseRecordHistory(r, rs.History)
+                var history = ParseRecordHistory(r, rs.History)
                 .ConfigureAwait(false);
 
                 history.Reverse();
@@ -46,7 +46,7 @@ namespace KeeperSecurity
                 .ConfigureAwait(false);
             }
 
-            private static Task<List<RecordHistory>> ParseRecordHistory(IKeeperRecord r, RecordHistoryStorage[] historyEntries)
+            private static List<RecordHistory> ParseRecordHistory(IKeeperRecord r, RecordHistoryStorage[] historyEntries)
             {
                 var history = new List<RecordHistory>();
                 foreach (var rh in historyEntries)

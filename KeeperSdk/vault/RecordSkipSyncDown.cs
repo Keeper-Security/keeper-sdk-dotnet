@@ -23,33 +23,13 @@ namespace KeeperSecurity.Vault
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
             => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
 
-        ///<summary>
-        /// Calls <c>get_record_history</c> API and returns who last modified a record and when,
-        /// without requiring vault cache or sync-down.
-        /// <para>
-        /// Unlike <see cref="VaultOnline.GetRecordHistory"/> which needs vault cache
-        /// to decrypt full record content, this method only reads
-        /// <c>Username</c> and <c>ClientModifiedTime</c> from the latest history entry.
-        /// No decryption, no cache needed.
-        /// </para>
-        /// <para>
-        /// Use after <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>
-        /// or <see cref="GetOwnedRecordsAsync"/> passing each <see cref="KeeperRecord.Uid"/>.
-        /// </para>
+        ///summary>
+        /// Calls <c>get_record_history</c> and returns the last modifier and timestamp
+        /// for a record without requiring a vault sync.
+        /// Use <see cref="KeeperRecord.Uid"/> from
+        /// <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>
+        /// or <see cref="GetOwnedRecordsAsync"/> as the <paramref name="recordUid"/>.
         /// </summary>
-        /// <param name="auth">
-        /// Authenticated session — same instance used in
-        /// <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>.
-        /// </param>
-        /// <param name="recordUid">
-        /// UID of the record. Get this from <see cref="KeeperRecord.Uid"/>
-        /// after calling <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>.
-        /// </param>
-        /// <returns>
-        /// <see cref="RecordLastModifiedInfo"/> with
-        /// <see cref="RecordLastModifiedInfo.LastModifiedBy"/> (email) and
-        /// <see cref="RecordLastModifiedInfo.LastModifiedTime"/> (unix milliseconds).
-        /// </returns>
         public static async Task<RecordLastModifiedInfo> GetRecordLastModifiedAsync(IAuthentication auth,string recordUid)
         {
             if (auth == null || auth.AuthContext == null)
