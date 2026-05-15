@@ -24,146 +24,264 @@ namespace Folder {
     static FolderReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cgxmb2xkZXIucHJvdG8SBkZvbGRlchoMcmVjb3JkLnByb3RvIlwKEEVuY3J5",
-            "cHRlZERhdGFLZXkSFAoMZW5jcnlwdGVkS2V5GAEgASgMEjIKEGVuY3J5cHRl",
-            "ZEtleVR5cGUYAiABKA4yGC5Gb2xkZXIuRW5jcnlwdGVkS2V5VHlwZSKCAQoW",
-            "U2hhcmVkRm9sZGVyUmVjb3JkRGF0YRIRCglmb2xkZXJVaWQYASABKAwSEQoJ",
-            "cmVjb3JkVWlkGAIgASgMEg4KBnVzZXJJZBgDIAEoBRIyChBlbmNyeXB0ZWRE",
-            "YXRhS2V5GAQgAygLMhguRm9sZGVyLkVuY3J5cHRlZERhdGFLZXkiXAoaU2hh",
-            "cmVkRm9sZGVyUmVjb3JkRGF0YUxpc3QSPgoWc2hhcmVkRm9sZGVyUmVjb3Jk",
-            "RGF0YRgBIAMoCzIeLkZvbGRlci5TaGFyZWRGb2xkZXJSZWNvcmREYXRhIl8K",
-            "FVNoYXJlZEZvbGRlclJlY29yZEZpeBIRCglmb2xkZXJVaWQYASABKAwSEQoJ",
-            "cmVjb3JkVWlkGAIgASgMEiAKGGVuY3J5cHRlZFJlY29yZEZvbGRlcktleRgD",
-            "IAEoDCJZChlTaGFyZWRGb2xkZXJSZWNvcmRGaXhMaXN0EjwKFXNoYXJlZEZv",
-            "bGRlclJlY29yZEZpeBgBIAMoCzIdLkZvbGRlci5TaGFyZWRGb2xkZXJSZWNv",
-            "cmRGaXgiogIKDVJlY29yZFJlcXVlc3QSEQoJcmVjb3JkVWlkGAEgASgMEiYK",
-            "CnJlY29yZFR5cGUYAiABKA4yEi5Gb2xkZXIuUmVjb3JkVHlwZRISCgpyZWNv",
-            "cmREYXRhGAMgASgMEhoKEmVuY3J5cHRlZFJlY29yZEtleRgEIAEoDBImCgpm",
-            "b2xkZXJUeXBlGAUgASgOMhIuRm9sZGVyLkZvbGRlclR5cGUSEgoKaG93TG9u",
-            "Z0FnbxgGIAEoAxIRCglmb2xkZXJVaWQYByABKAwSIAoYZW5jcnlwdGVkUmVj",
-            "b3JkRm9sZGVyS2V5GAggASgMEg0KBWV4dHJhGAkgASgMEhUKDW5vblNoYXJl",
-            "ZERhdGEYCiABKAwSDwoHZmlsZUlkcxgLIAMoAyJFCg5SZWNvcmRSZXNwb25z",
-            "ZRIRCglyZWNvcmRVaWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSDgoGc3Rh",
-            "dHVzGAMgASgJIoABChJTaGFyZWRGb2xkZXJGaWVsZHMSGwoTZW5jcnlwdGVk",
-            "Rm9sZGVyTmFtZRgBIAEoDBITCgttYW5hZ2VVc2VycxgCIAEoCBIVCg1tYW5h",
-            "Z2VSZWNvcmRzGAMgASgIEg8KB2NhbkVkaXQYBCABKAgSEAoIY2FuU2hhcmUY",
-            "BSABKAgiMwoYU2hhcmVkRm9sZGVyRm9sZGVyRmllbGRzEhcKD3NoYXJlZEZv",
-            "bGRlclVpZBgBIAEoDCKPAgoNRm9sZGVyUmVxdWVzdBIRCglmb2xkZXJVaWQY",
-            "ASABKAwSJgoKZm9sZGVyVHlwZRgCIAEoDjISLkZvbGRlci5Gb2xkZXJUeXBl",
-            "EhcKD3BhcmVudEZvbGRlclVpZBgDIAEoDBISCgpmb2xkZXJEYXRhGAQgASgM",
-            "EhoKEmVuY3J5cHRlZEZvbGRlcktleRgFIAEoDBI2ChJzaGFyZWRGb2xkZXJG",
-            "aWVsZHMYBiABKAsyGi5Gb2xkZXIuU2hhcmVkRm9sZGVyRmllbGRzEkIKGHNo",
-            "YXJlZEZvbGRlckZvbGRlckZpZWxkcxgHIAEoCzIgLkZvbGRlci5TaGFyZWRG",
-            "b2xkZXJGb2xkZXJGaWVsZHMiRQoORm9sZGVyUmVzcG9uc2USEQoJZm9sZGVy",
-            "VWlkGAEgASgMEhAKCHJldmlzaW9uGAIgASgDEg4KBnN0YXR1cxgDIAEoCSJ3",
-            "ChlJbXBvcnRGb2xkZXJSZWNvcmRSZXF1ZXN0EiwKDWZvbGRlclJlcXVlc3QY",
-            "ASADKAsyFS5Gb2xkZXIuRm9sZGVyUmVxdWVzdBIsCg1yZWNvcmRSZXF1ZXN0",
-            "GAIgAygLMhUuRm9sZGVyLlJlY29yZFJlcXVlc3QifAoaSW1wb3J0Rm9sZGVy",
-            "UmVjb3JkUmVzcG9uc2USLgoOZm9sZGVyUmVzcG9uc2UYASADKAsyFi5Gb2xk",
-            "ZXIuRm9sZGVyUmVzcG9uc2USLgoOcmVjb3JkUmVzcG9uc2UYAiADKAsyFi5G",
-            "b2xkZXIuUmVjb3JkUmVzcG9uc2UiyQIKGFNoYXJlZEZvbGRlclVwZGF0ZVJl",
-            "Y29yZBIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAIg",
-            "ASgMEg8KB3RlYW1VaWQYAyABKAwSKAoHY2FuRWRpdBgEIAEoDjIXLkZvbGRl",
-            "ci5TZXRCb29sZWFuVmFsdWUSKQoIY2FuU2hhcmUYBSABKA4yFy5Gb2xkZXIu",
-            "U2V0Qm9vbGVhblZhbHVlEhoKEmVuY3J5cHRlZFJlY29yZEtleRgGIAEoDBIQ",
-            "CghyZXZpc2lvbhgHIAEoBRISCgpleHBpcmF0aW9uGAggASgSEj0KFXRpbWVy",
-            "Tm90aWZpY2F0aW9uVHlwZRgJIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmlj",
-            "YXRpb25UeXBlEhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgKIAEoCCLMAgoWU2hh",
-            "cmVkRm9sZGVyVXBkYXRlVXNlchIQCgh1c2VybmFtZRgBIAEoCRIsCgttYW5h",
-            "Z2VVc2VycxgCIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSLgoNbWFu",
-            "YWdlUmVjb3JkcxgDIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSGwoP",
-            "c2hhcmVkRm9sZGVyS2V5GAQgASgMQgIYARISCgpleHBpcmF0aW9uGAUgASgS",
-            "Ej0KFXRpbWVyTm90aWZpY2F0aW9uVHlwZRgGIAEoDjIeLlJlY29yZHMuVGlt",
-            "ZXJOb3RpZmljYXRpb25UeXBlEjYKFHR5cGVkU2hhcmVkRm9sZGVyS2V5GAcg",
-            "ASgLMhguRm9sZGVyLkVuY3J5cHRlZERhdGFLZXkSGgoScm90YXRlT25FeHBp",
-            "cmF0aW9uGAggASgIIpkCChZTaGFyZWRGb2xkZXJVcGRhdGVUZWFtEg8KB3Rl",
-            "YW1VaWQYASABKAwSEwoLbWFuYWdlVXNlcnMYAiABKAgSFQoNbWFuYWdlUmVj",
-            "b3JkcxgDIAEoCBIbCg9zaGFyZWRGb2xkZXJLZXkYBCABKAxCAhgBEhIKCmV4",
-            "cGlyYXRpb24YBSABKBISPQoVdGltZXJOb3RpZmljYXRpb25UeXBlGAYgASgO",
-            "Mh4uUmVjb3Jkcy5UaW1lck5vdGlmaWNhdGlvblR5cGUSNgoUdHlwZWRTaGFy",
-            "ZWRGb2xkZXJLZXkYByABKAsyGC5Gb2xkZXIuRW5jcnlwdGVkRGF0YUtleRIa",
-            "ChJyb3RhdGVPbkV4cGlyYXRpb24YCCABKAgijgcKG1NoYXJlZEZvbGRlclVw",
-            "ZGF0ZVYzUmVxdWVzdBIsCiRzaGFyZWRGb2xkZXJVcGRhdGVPcGVyYXRpb25f",
-            "ZG9udF91c2UYASABKAUSFwoPc2hhcmVkRm9sZGVyVWlkGAIgASgMEiEKGWVu",
-            "Y3J5cHRlZFNoYXJlZEZvbGRlck5hbWUYAyABKAwSEAoIcmV2aXNpb24YBCAB",
-            "KAMSEwoLZm9yY2VVcGRhdGUYBSABKAgSEwoLZnJvbVRlYW1VaWQYBiABKAwS",
-            "MwoSZGVmYXVsdE1hbmFnZVVzZXJzGAcgASgOMhcuRm9sZGVyLlNldEJvb2xl",
-            "YW5WYWx1ZRI1ChRkZWZhdWx0TWFuYWdlUmVjb3JkcxgIIAEoDjIXLkZvbGRl",
-            "ci5TZXRCb29sZWFuVmFsdWUSLwoOZGVmYXVsdENhbkVkaXQYCSABKA4yFy5G",
-            "b2xkZXIuU2V0Qm9vbGVhblZhbHVlEjAKD2RlZmF1bHRDYW5TaGFyZRgKIAEo",
-            "DjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSPwoVc2hhcmVkRm9sZGVyQWRk",
-            "UmVjb3JkGAsgAygLMiAuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJlY29y",
-            "ZBI7ChNzaGFyZWRGb2xkZXJBZGRVc2VyGAwgAygLMh4uRm9sZGVyLlNoYXJl",
-            "ZEZvbGRlclVwZGF0ZVVzZXISOwoTc2hhcmVkRm9sZGVyQWRkVGVhbRgNIAMo",
-            "CzIeLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtEkIKGHNoYXJlZEZv",
-            "bGRlclVwZGF0ZVJlY29yZBgOIAMoCzIgLkZvbGRlci5TaGFyZWRGb2xkZXJV",
-            "cGRhdGVSZWNvcmQSPgoWc2hhcmVkRm9sZGVyVXBkYXRlVXNlchgPIAMoCzIe",
-            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyEj4KFnNoYXJlZEZvbGRl",
-            "clVwZGF0ZVRlYW0YECADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRl",
-            "VGVhbRIgChhzaGFyZWRGb2xkZXJSZW1vdmVSZWNvcmQYESADKAwSHgoWc2hh",
-            "cmVkRm9sZGVyUmVtb3ZlVXNlchgSIAMoCRIeChZzaGFyZWRGb2xkZXJSZW1v",
-            "dmVUZWFtGBMgAygMEhkKEXNoYXJlZEZvbGRlck93bmVyGBQgASgJImMKHVNo",
-            "YXJlZEZvbGRlclVwZGF0ZVYzUmVxdWVzdFYyEkIKFXNoYXJlZEZvbGRlcnNV",
-            "cGRhdGVWMxgBIAMoCzIjLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVWM1Jl",
-            "cXVlc3QiQwoeU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEhEKCXJl",
-            "Y29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkiQAocU2hhcmVkRm9sZGVy",
-            "VXBkYXRlVXNlclN0YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIOCgZzdGF0dXMY",
-            "AiABKAkiPwocU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIPCgd0ZWFt",
-            "VWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCSKIBgocU2hhcmVkRm9sZGVyVXBk",
-            "YXRlVjNSZXNwb25zZRIQCghyZXZpc2lvbhgBIAEoAxJLChtzaGFyZWRGb2xk",
-            "ZXJBZGRSZWNvcmRTdGF0dXMYAiADKAsyJi5Gb2xkZXIuU2hhcmVkRm9sZGVy",
-            "VXBkYXRlUmVjb3JkU3RhdHVzEkcKGXNoYXJlZEZvbGRlckFkZFVzZXJTdGF0",
-            "dXMYAyADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1",
-            "cxJHChlzaGFyZWRGb2xkZXJBZGRUZWFtU3RhdHVzGAQgAygLMiQuRm9sZGVy",
-            "LlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVkRm9sZGVy",
-            "VXBkYXRlUmVjb3JkU3RhdHVzGAUgAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRl",
-            "clVwZGF0ZVJlY29yZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJVcGRhdGVVc2Vy",
-            "U3RhdHVzGAYgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJT",
-            "dGF0dXMSSgocc2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxgHIAMoCzIk",
-            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEk4KHnNoYXJl",
-            "ZEZvbGRlclJlbW92ZVJlY29yZFN0YXR1cxgIIAMoCzImLkZvbGRlci5TaGFy",
-            "ZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSSgocc2hhcmVkRm9sZGVyUmVt",
-            "b3ZlVXNlclN0YXR1cxgJIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRh",
-            "dGVVc2VyU3RhdHVzEkoKHHNoYXJlZEZvbGRlclJlbW92ZVRlYW1TdGF0dXMY",
-            "CiADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIX",
-            "Cg9zaGFyZWRGb2xkZXJVaWQYDCABKAwSDgoGc3RhdHVzGA0gASgJIm0KHlNo",
-            "YXJlZEZvbGRlclVwZGF0ZVYzUmVzcG9uc2VWMhJLCh1zaGFyZWRGb2xkZXJz",
-            "VXBkYXRlVjNSZXNwb25zZRgBIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJV",
-            "cGRhdGVWM1Jlc3BvbnNlIvoBCilHZXREZWxldGVkU2hhcmVkRm9sZGVyc0Fu",
-            "ZFJlY29yZHNSZXNwb25zZRIyCg1zaGFyZWRGb2xkZXJzGAEgAygLMhsuRm9s",
-            "ZGVyLkRlbGV0ZWRTaGFyZWRGb2xkZXISPgoTc2hhcmVkRm9sZGVyUmVjb3Jk",
-            "cxgCIAMoCzIhLkZvbGRlci5EZWxldGVkU2hhcmVkRm9sZGVyUmVjb3JkEjQK",
-            "EWRlbGV0ZWRSZWNvcmREYXRhGAMgAygLMhkuRm9sZGVyLkRlbGV0ZWRSZWNv",
-            "cmREYXRhEiMKCXVzZXJuYW1lcxgEIAMoCzIQLkZvbGRlci5Vc2VybmFtZSLR",
-            "AQoTRGVsZXRlZFNoYXJlZEZvbGRlchIXCg9zaGFyZWRGb2xkZXJVaWQYASAB",
-            "KAwSEQoJZm9sZGVyVWlkGAIgASgMEhEKCXBhcmVudFVpZBgDIAEoDBIXCg9z",
-            "aGFyZWRGb2xkZXJLZXkYBCABKAwSLQoNZm9sZGVyS2V5VHlwZRgFIAEoDjIW",
-            "LlJlY29yZHMuUmVjb3JkS2V5VHlwZRIMCgRkYXRhGAYgASgMEhMKC2RhdGVE",
-            "ZWxldGVkGAcgASgDEhAKCHJldmlzaW9uGAggASgDIoEBChlEZWxldGVkU2hh",
-            "cmVkRm9sZGVyUmVjb3JkEhEKCWZvbGRlclVpZBgBIAEoDBIRCglyZWNvcmRV",
-            "aWQYAiABKAwSFwoPc2hhcmVkUmVjb3JkS2V5GAMgASgMEhMKC2RhdGVEZWxl",
-            "dGVkGAQgASgDEhAKCHJldmlzaW9uGAUgASgDIoUBChFEZWxldGVkUmVjb3Jk",
-            "RGF0YRIRCglyZWNvcmRVaWQYASABKAwSEAoIb3duZXJVaWQYAiABKAwSEAoI",
-            "cmV2aXNpb24YAyABKAMSGgoSY2xpZW50TW9kaWZpZWRUaW1lGAQgASgDEgwK",
-            "BGRhdGEYBSABKAwSDwoHdmVyc2lvbhgGIAEoBSIwCghVc2VybmFtZRISCgph",
-            "Y2NvdW50VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJIooBCixSZXN0b3Jl",
-            "RGVsZXRlZFNoYXJlZEZvbGRlcnNBbmRSZWNvcmRzUmVxdWVzdBIsCgdmb2xk",
-            "ZXJzGAEgAygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRPYmplY3QSLAoHcmVj",
-            "b3JkcxgCIAMoCzIbLkZvbGRlci5SZXN0b3JlU2hhcmVkT2JqZWN0IjwKE1Jl",
-            "c3RvcmVTaGFyZWRPYmplY3QSEQoJZm9sZGVyVWlkGAEgASgMEhIKCnJlY29y",
-            "ZFVpZHMYAiADKAwqGgoKUmVjb3JkVHlwZRIMCghwYXNzd29yZBAAKl4KCkZv",
-            "bGRlclR5cGUSEgoOZGVmYXVsdF9mb2xkZXIQABIPCgt1c2VyX2ZvbGRlchAB",
-            "EhEKDXNoYXJlZF9mb2xkZXIQAhIYChRzaGFyZWRfZm9sZGVyX2ZvbGRlchAD",
-            "KpYBChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tleRAAEhkKFWVuY3J5cHRl",
-            "ZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRlZF9ieV9wdWJsaWNfa2V5EAIS",
-            "HQoZZW5jcnlwdGVkX2J5X2RhdGFfa2V5X2djbRADEh8KG2VuY3J5cHRlZF9i",
-            "eV9wdWJsaWNfa2V5X2VjYxAEKk0KD1NldEJvb2xlYW5WYWx1ZRIVChFCT09M",
-            "RUFOX05PX0NIQU5HRRAAEhAKDEJPT0xFQU5fVFJVRRABEhEKDUJPT0xFQU5f",
-            "RkFMU0UQAkIiChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CBkZvbGRlcmIG",
-            "cHJvdG8z"));
+            "Cgxmb2xkZXIucHJvdG8SBkZvbGRlchoMcmVjb3JkLnByb3RvGgl0bGEucHJv",
+            "dG8iXAoQRW5jcnlwdGVkRGF0YUtleRIUCgxlbmNyeXB0ZWRLZXkYASABKAwS",
+            "MgoQZW5jcnlwdGVkS2V5VHlwZRgCIAEoDjIYLkZvbGRlci5FbmNyeXB0ZWRL",
+            "ZXlUeXBlIoIBChZTaGFyZWRGb2xkZXJSZWNvcmREYXRhEhEKCWZvbGRlclVp",
+            "ZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSDgoGdXNlcklkGAMgASgFEjIK",
+            "EGVuY3J5cHRlZERhdGFLZXkYBCADKAsyGC5Gb2xkZXIuRW5jcnlwdGVkRGF0",
+            "YUtleSJcChpTaGFyZWRGb2xkZXJSZWNvcmREYXRhTGlzdBI+ChZzaGFyZWRG",
+            "b2xkZXJSZWNvcmREYXRhGAEgAygLMh4uRm9sZGVyLlNoYXJlZEZvbGRlclJl",
+            "Y29yZERhdGEiXwoVU2hhcmVkRm9sZGVyUmVjb3JkRml4EhEKCWZvbGRlclVp",
+            "ZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSIAoYZW5jcnlwdGVkUmVjb3Jk",
+            "Rm9sZGVyS2V5GAMgASgMIlkKGVNoYXJlZEZvbGRlclJlY29yZEZpeExpc3QS",
+            "PAoVc2hhcmVkRm9sZGVyUmVjb3JkRml4GAEgAygLMh0uRm9sZGVyLlNoYXJl",
+            "ZEZvbGRlclJlY29yZEZpeCKiAgoNUmVjb3JkUmVxdWVzdBIRCglyZWNvcmRV",
+            "aWQYASABKAwSJgoKcmVjb3JkVHlwZRgCIAEoDjISLkZvbGRlci5SZWNvcmRU",
+            "eXBlEhIKCnJlY29yZERhdGEYAyABKAwSGgoSZW5jcnlwdGVkUmVjb3JkS2V5",
+            "GAQgASgMEiYKCmZvbGRlclR5cGUYBSABKA4yEi5Gb2xkZXIuRm9sZGVyVHlw",
+            "ZRISCgpob3dMb25nQWdvGAYgASgDEhEKCWZvbGRlclVpZBgHIAEoDBIgChhl",
+            "bmNyeXB0ZWRSZWNvcmRGb2xkZXJLZXkYCCABKAwSDQoFZXh0cmEYCSABKAwS",
+            "FQoNbm9uU2hhcmVkRGF0YRgKIAEoDBIPCgdmaWxlSWRzGAsgAygDIkUKDlJl",
+            "Y29yZFJlc3BvbnNlEhEKCXJlY29yZFVpZBgBIAEoDBIQCghyZXZpc2lvbhgC",
+            "IAEoAxIOCgZzdGF0dXMYAyABKAkigAEKElNoYXJlZEZvbGRlckZpZWxkcxIb",
+            "ChNlbmNyeXB0ZWRGb2xkZXJOYW1lGAEgASgMEhMKC21hbmFnZVVzZXJzGAIg",
+            "ASgIEhUKDW1hbmFnZVJlY29yZHMYAyABKAgSDwoHY2FuRWRpdBgEIAEoCBIQ",
+            "CghjYW5TaGFyZRgFIAEoCCIzChhTaGFyZWRGb2xkZXJGb2xkZXJGaWVsZHMS",
+            "FwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMIo8CCg1Gb2xkZXJSZXF1ZXN0EhEK",
+            "CWZvbGRlclVpZBgBIAEoDBImCgpmb2xkZXJUeXBlGAIgASgOMhIuRm9sZGVy",
+            "LkZvbGRlclR5cGUSFwoPcGFyZW50Rm9sZGVyVWlkGAMgASgMEhIKCmZvbGRl",
+            "ckRhdGEYBCABKAwSGgoSZW5jcnlwdGVkRm9sZGVyS2V5GAUgASgMEjYKEnNo",
+            "YXJlZEZvbGRlckZpZWxkcxgGIAEoCzIaLkZvbGRlci5TaGFyZWRGb2xkZXJG",
+            "aWVsZHMSQgoYc2hhcmVkRm9sZGVyRm9sZGVyRmllbGRzGAcgASgLMiAuRm9s",
+            "ZGVyLlNoYXJlZEZvbGRlckZvbGRlckZpZWxkcyJFCg5Gb2xkZXJSZXNwb25z",
+            "ZRIRCglmb2xkZXJVaWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSDgoGc3Rh",
+            "dHVzGAMgASgJIncKGUltcG9ydEZvbGRlclJlY29yZFJlcXVlc3QSLAoNZm9s",
+            "ZGVyUmVxdWVzdBgBIAMoCzIVLkZvbGRlci5Gb2xkZXJSZXF1ZXN0EiwKDXJl",
+            "Y29yZFJlcXVlc3QYAiADKAsyFS5Gb2xkZXIuUmVjb3JkUmVxdWVzdCJ8ChpJ",
+            "bXBvcnRGb2xkZXJSZWNvcmRSZXNwb25zZRIuCg5mb2xkZXJSZXNwb25zZRgB",
+            "IAMoCzIWLkZvbGRlci5Gb2xkZXJSZXNwb25zZRIuCg5yZWNvcmRSZXNwb25z",
+            "ZRgCIAMoCzIWLkZvbGRlci5SZWNvcmRSZXNwb25zZSLJAgoYU2hhcmVkRm9s",
+            "ZGVyVXBkYXRlUmVjb3JkEhEKCXJlY29yZFVpZBgBIAEoDBIXCg9zaGFyZWRG",
+            "b2xkZXJVaWQYAiABKAwSDwoHdGVhbVVpZBgDIAEoDBIoCgdjYW5FZGl0GAQg",
+            "ASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIpCghjYW5TaGFyZRgFIAEo",
+            "DjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSGgoSZW5jcnlwdGVkUmVjb3Jk",
+            "S2V5GAYgASgMEhAKCHJldmlzaW9uGAcgASgFEhIKCmV4cGlyYXRpb24YCCAB",
+            "KBISPQoVdGltZXJOb3RpZmljYXRpb25UeXBlGAkgASgOMh4uUmVjb3Jkcy5U",
+            "aW1lck5vdGlmaWNhdGlvblR5cGUSGgoScm90YXRlT25FeHBpcmF0aW9uGAog",
+            "ASgIIswCChZTaGFyZWRGb2xkZXJVcGRhdGVVc2VyEhAKCHVzZXJuYW1lGAEg",
+            "ASgJEiwKC21hbmFnZVVzZXJzGAIgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5W",
+            "YWx1ZRIuCg1tYW5hZ2VSZWNvcmRzGAMgASgOMhcuRm9sZGVyLlNldEJvb2xl",
+            "YW5WYWx1ZRIbCg9zaGFyZWRGb2xkZXJLZXkYBCABKAxCAhgBEhIKCmV4cGly",
+            "YXRpb24YBSABKBISPQoVdGltZXJOb3RpZmljYXRpb25UeXBlGAYgASgOMh4u",
+            "UmVjb3Jkcy5UaW1lck5vdGlmaWNhdGlvblR5cGUSNgoUdHlwZWRTaGFyZWRG",
+            "b2xkZXJLZXkYByABKAsyGC5Gb2xkZXIuRW5jcnlwdGVkRGF0YUtleRIaChJy",
+            "b3RhdGVPbkV4cGlyYXRpb24YCCABKAgimQIKFlNoYXJlZEZvbGRlclVwZGF0",
+            "ZVRlYW0SDwoHdGVhbVVpZBgBIAEoDBITCgttYW5hZ2VVc2VycxgCIAEoCBIV",
+            "Cg1tYW5hZ2VSZWNvcmRzGAMgASgIEhsKD3NoYXJlZEZvbGRlcktleRgEIAEo",
+            "DEICGAESEgoKZXhwaXJhdGlvbhgFIAEoEhI9ChV0aW1lck5vdGlmaWNhdGlv",
+            "blR5cGUYBiABKA4yHi5SZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRI2",
+            "ChR0eXBlZFNoYXJlZEZvbGRlcktleRgHIAEoCzIYLkZvbGRlci5FbmNyeXB0",
+            "ZWREYXRhS2V5EhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgIIAEoCCKOBwobU2hh",
+            "cmVkRm9sZGVyVXBkYXRlVjNSZXF1ZXN0EiwKJHNoYXJlZEZvbGRlclVwZGF0",
+            "ZU9wZXJhdGlvbl9kb250X3VzZRgBIAEoBRIXCg9zaGFyZWRGb2xkZXJVaWQY",
+            "AiABKAwSIQoZZW5jcnlwdGVkU2hhcmVkRm9sZGVyTmFtZRgDIAEoDBIQCghy",
+            "ZXZpc2lvbhgEIAEoAxITCgtmb3JjZVVwZGF0ZRgFIAEoCBITCgtmcm9tVGVh",
+            "bVVpZBgGIAEoDBIzChJkZWZhdWx0TWFuYWdlVXNlcnMYByABKA4yFy5Gb2xk",
+            "ZXIuU2V0Qm9vbGVhblZhbHVlEjUKFGRlZmF1bHRNYW5hZ2VSZWNvcmRzGAgg",
+            "ASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIvCg5kZWZhdWx0Q2FuRWRp",
+            "dBgJIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSMAoPZGVmYXVsdENh",
+            "blNoYXJlGAogASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRI/ChVzaGFy",
+            "ZWRGb2xkZXJBZGRSZWNvcmQYCyADKAsyIC5Gb2xkZXIuU2hhcmVkRm9sZGVy",
+            "VXBkYXRlUmVjb3JkEjsKE3NoYXJlZEZvbGRlckFkZFVzZXIYDCADKAsyHi5G",
+            "b2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlchI7ChNzaGFyZWRGb2xkZXJB",
+            "ZGRUZWFtGA0gAygLMh4uRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRlYW0S",
+            "QgoYc2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkGA4gAygLMiAuRm9sZGVyLlNo",
+            "YXJlZEZvbGRlclVwZGF0ZVJlY29yZBI+ChZzaGFyZWRGb2xkZXJVcGRhdGVV",
+            "c2VyGA8gAygLMh4uRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXISPgoW",
+            "c2hhcmVkRm9sZGVyVXBkYXRlVGVhbRgQIAMoCzIeLkZvbGRlci5TaGFyZWRG",
+            "b2xkZXJVcGRhdGVUZWFtEiAKGHNoYXJlZEZvbGRlclJlbW92ZVJlY29yZBgR",
+            "IAMoDBIeChZzaGFyZWRGb2xkZXJSZW1vdmVVc2VyGBIgAygJEh4KFnNoYXJl",
+            "ZEZvbGRlclJlbW92ZVRlYW0YEyADKAwSGQoRc2hhcmVkRm9sZGVyT3duZXIY",
+            "FCABKAkiYwodU2hhcmVkRm9sZGVyVXBkYXRlVjNSZXF1ZXN0VjISQgoVc2hh",
+            "cmVkRm9sZGVyc1VwZGF0ZVYzGAEgAygLMiMuRm9sZGVyLlNoYXJlZEZvbGRl",
+            "clVwZGF0ZVYzUmVxdWVzdCJDCh5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRT",
+            "dGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCSJAChxT",
+            "aGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVzEhAKCHVzZXJuYW1lGAEgASgJ",
+            "Eg4KBnN0YXR1cxgCIAEoCSI/ChxTaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3Rh",
+            "dHVzEg8KB3RlYW1VaWQYASABKAwSDgoGc3RhdHVzGAIgASgJIogGChxTaGFy",
+            "ZWRGb2xkZXJVcGRhdGVWM1Jlc3BvbnNlEhAKCHJldmlzaW9uGAEgASgDEksK",
+            "G3NoYXJlZEZvbGRlckFkZFJlY29yZFN0YXR1cxgCIAMoCzImLkZvbGRlci5T",
+            "aGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSRwoZc2hhcmVkRm9sZGVy",
+            "QWRkVXNlclN0YXR1cxgDIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRh",
+            "dGVVc2VyU3RhdHVzEkcKGXNoYXJlZEZvbGRlckFkZFRlYW1TdGF0dXMYBCAD",
+            "KAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxJOCh5z",
+            "aGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMYBSADKAsyJi5Gb2xkZXIu",
+            "U2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEkoKHHNoYXJlZEZvbGRl",
+            "clVwZGF0ZVVzZXJTdGF0dXMYBiADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVy",
+            "VXBkYXRlVXNlclN0YXR1cxJKChxzaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3Rh",
+            "dHVzGAcgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0",
+            "dXMSTgoec2hhcmVkRm9sZGVyUmVtb3ZlUmVjb3JkU3RhdHVzGAggAygLMiYu",
+            "Rm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJlY29yZFN0YXR1cxJKChxzaGFy",
+            "ZWRGb2xkZXJSZW1vdmVVc2VyU3RhdHVzGAkgAygLMiQuRm9sZGVyLlNoYXJl",
+            "ZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMSSgocc2hhcmVkRm9sZGVyUmVtb3Zl",
+            "VGVhbVN0YXR1cxgKIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVU",
+            "ZWFtU3RhdHVzEhcKD3NoYXJlZEZvbGRlclVpZBgMIAEoDBIOCgZzdGF0dXMY",
+            "DSABKAkibQoeU2hhcmVkRm9sZGVyVXBkYXRlVjNSZXNwb25zZVYyEksKHXNo",
+            "YXJlZEZvbGRlcnNVcGRhdGVWM1Jlc3BvbnNlGAEgAygLMiQuRm9sZGVyLlNo",
+            "YXJlZEZvbGRlclVwZGF0ZVYzUmVzcG9uc2Ui+gEKKUdldERlbGV0ZWRTaGFy",
+            "ZWRGb2xkZXJzQW5kUmVjb3Jkc1Jlc3BvbnNlEjIKDXNoYXJlZEZvbGRlcnMY",
+            "ASADKAsyGy5Gb2xkZXIuRGVsZXRlZFNoYXJlZEZvbGRlchI+ChNzaGFyZWRG",
+            "b2xkZXJSZWNvcmRzGAIgAygLMiEuRm9sZGVyLkRlbGV0ZWRTaGFyZWRGb2xk",
+            "ZXJSZWNvcmQSNAoRZGVsZXRlZFJlY29yZERhdGEYAyADKAsyGS5Gb2xkZXIu",
+            "RGVsZXRlZFJlY29yZERhdGESIwoJdXNlcm5hbWVzGAQgAygLMhAuRm9sZGVy",
+            "LlVzZXJuYW1lItEBChNEZWxldGVkU2hhcmVkRm9sZGVyEhcKD3NoYXJlZEZv",
+            "bGRlclVpZBgBIAEoDBIRCglmb2xkZXJVaWQYAiABKAwSEQoJcGFyZW50VWlk",
+            "GAMgASgMEhcKD3NoYXJlZEZvbGRlcktleRgEIAEoDBItCg1mb2xkZXJLZXlU",
+            "eXBlGAUgASgOMhYuUmVjb3Jkcy5SZWNvcmRLZXlUeXBlEgwKBGRhdGEYBiAB",
+            "KAwSEwoLZGF0ZURlbGV0ZWQYByABKAMSEAoIcmV2aXNpb24YCCABKAMigQEK",
+            "GURlbGV0ZWRTaGFyZWRGb2xkZXJSZWNvcmQSEQoJZm9sZGVyVWlkGAEgASgM",
+            "EhEKCXJlY29yZFVpZBgCIAEoDBIXCg9zaGFyZWRSZWNvcmRLZXkYAyABKAwS",
+            "EwoLZGF0ZURlbGV0ZWQYBCABKAMSEAoIcmV2aXNpb24YBSABKAMihQEKEURl",
+            "bGV0ZWRSZWNvcmREYXRhEhEKCXJlY29yZFVpZBgBIAEoDBIQCghvd25lclVp",
+            "ZBgCIAEoDBIQCghyZXZpc2lvbhgDIAEoAxIaChJjbGllbnRNb2RpZmllZFRp",
+            "bWUYBCABKAMSDAoEZGF0YRgFIAEoDBIPCgd2ZXJzaW9uGAYgASgFIjAKCFVz",
+            "ZXJuYW1lEhIKCmFjY291bnRVaWQYASABKAwSEAoIdXNlcm5hbWUYAiABKAki",
+            "igEKLFJlc3RvcmVEZWxldGVkU2hhcmVkRm9sZGVyc0FuZFJlY29yZHNSZXF1",
+            "ZXN0EiwKB2ZvbGRlcnMYASADKAsyGy5Gb2xkZXIuUmVzdG9yZVNoYXJlZE9i",
+            "amVjdBIsCgdyZWNvcmRzGAIgAygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRP",
+            "YmplY3QiPAoTUmVzdG9yZVNoYXJlZE9iamVjdBIRCglmb2xkZXJVaWQYASAB",
+            "KAwSEgoKcmVjb3JkVWlkcxgCIAMoDCKDAgoKRm9sZGVyRGF0YRIRCglmb2xk",
+            "ZXJVaWQYASABKAwSEQoJcGFyZW50VWlkGAIgASgMEgwKBGRhdGEYAyABKAwS",
+            "JQoEdHlwZRgEIAEoDjIXLkZvbGRlci5Gb2xkZXJVc2FnZVR5cGUSNwoWaW5o",
+            "ZXJpdFVzZXJQZXJtaXNzaW9ucxgFIAEoDjIXLkZvbGRlci5TZXRCb29sZWFu",
+            "VmFsdWUSEQoJZm9sZGVyS2V5GAYgASgMEiMKCW93bmVySW5mbxgHIAEoCzIQ",
+            "LkZvbGRlci5Vc2VySW5mbxITCgtkYXRlQ3JlYXRlZBgIIAEoAxIUCgxsYXN0",
+            "TW9kaWZpZWQYCSABKAMiegoJRm9sZGVyS2V5EhEKCWZvbGRlclVpZBgBIAEo",
+            "DBIRCglwYXJlbnRVaWQYAiABKAwSEQoJZm9sZGVyS2V5GAMgASgMEjQKC2Vu",
+            "Y3J5cHRlZEJ5GAQgASgOMh8uRm9sZGVyLkZvbGRlcktleUVuY3J5cHRpb25U",
+            "eXBlIjoKEEZvbGRlckFkZFJlcXVlc3QSJgoKZm9sZGVyRGF0YRgBIAMoCzIS",
+            "LkZvbGRlci5Gb2xkZXJEYXRhImQKEkZvbGRlck1vZGlmeVJlc3VsdBIRCglm",
+            "b2xkZXJVaWQYASABKAwSKgoGc3RhdHVzGAIgASgOMhouRm9sZGVyLkZvbGRl",
+            "ck1vZGlmeVN0YXR1cxIPCgdtZXNzYWdlGAMgASgJIkkKEUZvbGRlckFkZFJl",
+            "c3BvbnNlEjQKEGZvbGRlckFkZFJlc3VsdHMYASADKAsyGi5Gb2xkZXIuRm9s",
+            "ZGVyTW9kaWZ5UmVzdWx0Ij0KE0ZvbGRlclVwZGF0ZVJlcXVlc3QSJgoKZm9s",
+            "ZGVyRGF0YRgBIAMoCzISLkZvbGRlci5Gb2xkZXJEYXRhIk8KFEZvbGRlclVw",
+            "ZGF0ZVJlc3BvbnNlEjcKE2ZvbGRlclVwZGF0ZVJlc3VsdHMYASADKAsyGi5G",
+            "b2xkZXIuRm9sZGVyTW9kaWZ5UmVzdWx0IsMCChFGb2xkZXJQZXJtaXNzaW9u",
+            "cxIOCgZjYW5BZGQYASABKAgSEQoJY2FuUmVtb3ZlGAIgASgIEhEKCWNhbkRl",
+            "bGV0ZRgDIAEoCBIVCg1jYW5MaXN0QWNjZXNzGAQgASgIEhcKD2NhblVwZGF0",
+            "ZUFjY2VzcxgFIAEoCBIaChJjYW5DaGFuZ2VPd25lcnNoaXAYBiABKAgSFgoO",
+            "Y2FuRWRpdFJlY29yZHMYByABKAgSFgoOY2FuVmlld1JlY29yZHMYCCABKAgS",
+            "GAoQY2FuQXBwcm92ZUFjY2VzcxgJIAEoCBIYChBjYW5SZXF1ZXN0QWNjZXNz",
+            "GAogASgIEhgKEGNhblVwZGF0ZVNldHRpbmcYCyABKAgSFgoOY2FuTGlzdFJl",
+            "Y29yZHMYDCABKAgSFgoOY2FuTGlzdEZvbGRlcnMYDSABKAgigwUKDENhcGFi",
+            "aWxpdGllcxInCgZjYW5BZGQYASABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZh",
+            "bHVlEioKCWNhblJlbW92ZRgCIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFs",
+            "dWUSKgoJY2FuRGVsZXRlGAMgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1",
+            "ZRIuCg1jYW5MaXN0QWNjZXNzGAQgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5W",
+            "YWx1ZRIwCg9jYW5VcGRhdGVBY2Nlc3MYBSABKA4yFy5Gb2xkZXIuU2V0Qm9v",
+            "bGVhblZhbHVlEjMKEmNhbkNoYW5nZU93bmVyc2hpcBgGIAEoDjIXLkZvbGRl",
+            "ci5TZXRCb29sZWFuVmFsdWUSLwoOY2FuRWRpdFJlY29yZHMYByABKA4yFy5G",
+            "b2xkZXIuU2V0Qm9vbGVhblZhbHVlEi8KDmNhblZpZXdSZWNvcmRzGAggASgO",
+            "MhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIxChBjYW5BcHByb3ZlQWNjZXNz",
+            "GAkgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIxChBjYW5SZXF1ZXN0",
+            "QWNjZXNzGAogASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIxChBjYW5V",
+            "cGRhdGVTZXR0aW5nGAsgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIv",
+            "Cg5jYW5MaXN0UmVjb3JkcxgMIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFs",
+            "dWUSLwoOY2FuTGlzdEZvbGRlcnMYDSABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVh",
+            "blZhbHVlIrgBChlGb2xkZXJSZWNvcmRVcGRhdGVSZXF1ZXN0EhEKCWZvbGRl",
+            "clVpZBgBIAEoDBIqCgphZGRSZWNvcmRzGAIgAygLMhYuRm9sZGVyLlJlY29y",
+            "ZE1ldGFkYXRhEi0KDXVwZGF0ZVJlY29yZHMYAyADKAsyFi5Gb2xkZXIuUmVj",
+            "b3JkTWV0YWRhdGESLQoNcmVtb3ZlUmVjb3JkcxgEIAMoCzIWLkZvbGRlci5S",
+            "ZWNvcmRNZXRhZGF0YSKrAQoOUmVjb3JkTWV0YWRhdGESEQoJcmVjb3JkVWlk",
+            "GAEgASgMEhoKEmVuY3J5cHRlZFJlY29yZEtleRgCIAEoDBI4ChZlbmNyeXB0",
+            "ZWRSZWNvcmRLZXlUeXBlGAMgASgOMhguRm9sZGVyLkVuY3J5cHRlZEtleVR5",
+            "cGUSMAoNdGxhUHJvcGVydGllcxgFIAEoCzIZLmNvbW1vbi50bGEuVExBUHJv",
+            "cGVydGllcyKTAQoMRm9sZGVyUmVjb3JkEhEKCWZvbGRlclVpZBgBIAEoDBIu",
+            "Cg5yZWNvcmRNZXRhZGF0YRgCIAEoCzIWLkZvbGRlci5SZWNvcmRNZXRhZGF0",
+            "YRJAChdmb2xkZXJLZXlFbmNyeXB0aW9uVHlwZRgDIAEoDjIfLkZvbGRlci5G",
+            "b2xkZXJLZXlFbmNyeXB0aW9uVHlwZSJzChpGb2xkZXJSZWNvcmRVcGRhdGVS",
+            "ZXNwb25zZRIRCglmb2xkZXJVaWQYASABKAwSQgoYZm9sZGVyUmVjb3JkVXBk",
+            "YXRlUmVzdWx0GAQgAygLMiAuRm9sZGVyLkZvbGRlclJlY29yZFVwZGF0ZVJl",
+            "c3VsdCJqChhGb2xkZXJSZWNvcmRVcGRhdGVSZXN1bHQSEQoJcmVjb3JkVWlk",
+            "GAEgASgMEioKBnN0YXR1cxgCIAEoDjIaLkZvbGRlci5Gb2xkZXJNb2RpZnlT",
+            "dGF0dXMSDwoHbWVzc2FnZRgDIAEoCSKHAwoQRm9sZGVyQWNjZXNzRGF0YRIR",
+            "Cglmb2xkZXJVaWQYASABKAwSFQoNYWNjZXNzVHlwZVVpZBgCIAEoDBImCgph",
+            "Y2Nlc3NUeXBlGAMgASgOMhIuRm9sZGVyLkFjY2Vzc1R5cGUSLgoOYWNjZXNz",
+            "Um9sZVR5cGUYBCABKA4yFi5Gb2xkZXIuQWNjZXNzUm9sZVR5cGUSKwoJZm9s",
+            "ZGVyS2V5GAUgASgLMhguRm9sZGVyLkVuY3J5cHRlZERhdGFLZXkSEQoJaW5o",
+            "ZXJpdGVkGAYgASgIEg4KBmhpZGRlbhgHIAEoCBIuCgtwZXJtaXNzaW9ucxgI",
+            "IAEoCzIZLkZvbGRlci5Gb2xkZXJQZXJtaXNzaW9ucxIwCg10bGFQcm9wZXJ0",
+            "aWVzGAkgASgLMhkuY29tbW9uLnRsYS5UTEFQcm9wZXJ0aWVzEhMKC2RhdGVD",
+            "cmVhdGVkGAogASgDEhQKDGxhc3RNb2RpZmllZBgLIAEoAxIUCgxkZW5pZWRB",
+            "Y2Nlc3MYDCABKAgiXAoNUmV2b2tlZEFjY2VzcxIRCglmb2xkZXJVaWQYASAB",
+            "KAwSEAoIYWN0b3JVaWQYAiABKAwSJgoKYWNjZXNzVHlwZRgDIAEoDjISLkZv",
+            "bGRlci5BY2Nlc3NUeXBlIiMKDUZvbGRlclJlbW92ZWQSEgoKZm9sZGVyX3Vp",
+            "ZBgBIAEoDCKTBAoQUmVjb3JkQWNjZXNzRGF0YRIVCg1hY2Nlc3NUeXBlVWlk",
+            "GAEgASgMEiYKCmFjY2Vzc1R5cGUYAiABKA4yEi5Gb2xkZXIuQWNjZXNzVHlw",
+            "ZRIRCglyZWNvcmRVaWQYAyABKAwSLgoOYWNjZXNzUm9sZVR5cGUYBCABKA4y",
+            "Fi5Gb2xkZXIuQWNjZXNzUm9sZVR5cGUSDQoFb3duZXIYBSABKAgSEQoJaW5o",
+            "ZXJpdGVkGAYgASgIEg4KBmhpZGRlbhgHIAEoCBIUCgxkZW5pZWRBY2Nlc3MY",
+            "CCABKAgSFgoOY2FuX3ZpZXdfdGl0bGUYCSABKAgSEAoIY2FuX2VkaXQYCiAB",
+            "KAgSEAoIY2FuX3ZpZXcYCyABKAgSFwoPY2FuX2xpc3RfYWNjZXNzGAwgASgI",
+            "EhkKEWNhbl91cGRhdGVfYWNjZXNzGA0gASgIEhIKCmNhbl9kZWxldGUYDiAB",
+            "KAgSHAoUY2FuX2NoYW5nZV9vd25lcnNoaXAYDyABKAgSGgoSY2FuX3JlcXVl",
+            "c3RfYWNjZXNzGBAgASgIEhoKEmNhbl9hcHByb3ZlX2FjY2VzcxgRIAEoCBIT",
+            "CgtkYXRlQ3JlYXRlZBgSIAEoAxIUCgxsYXN0TW9kaWZpZWQYEyABKAMSMAoN",
+            "dGxhUHJvcGVydGllcxgUIAEoCzIZLmNvbW1vbi50bGEuVExBUHJvcGVydGll",
+            "cyK4AQoKQWNjZXNzRGF0YRIVCg1hY2Nlc3NUeXBlVWlkGAEgASgMEi4KDmFj",
+            "Y2Vzc1JvbGVUeXBlGAIgASgOMhYuRm9sZGVyLkFjY2Vzc1JvbGVUeXBlEhQK",
+            "DGRlbmllZEFjY2VzcxgDIAEoCBIRCglpbmhlcml0ZWQYBCABKAgSDgoGaGlk",
+            "ZGVuGAUgASgIEioKDGNhcGFiaWxpdGllcxgGIAEoCzIULkZvbGRlci5DYXBh",
+            "YmlsaXRpZXMitwEKE0ZvbGRlckFjY2Vzc1JlcXVlc3QSMgoQZm9sZGVyQWNj",
+            "ZXNzQWRkcxgBIAMoCzIYLkZvbGRlci5Gb2xkZXJBY2Nlc3NEYXRhEjUKE2Zv",
+            "bGRlckFjY2Vzc1VwZGF0ZXMYAiADKAsyGC5Gb2xkZXIuRm9sZGVyQWNjZXNz",
+            "RGF0YRI1ChNmb2xkZXJBY2Nlc3NSZW1vdmVzGAMgAygLMhguRm9sZGVyLkZv",
+            "bGRlckFjY2Vzc0RhdGEinwEKEkZvbGRlckFjY2Vzc1Jlc3VsdBIRCglmb2xk",
+            "ZXJVaWQYASABKAwSEQoJYWNjZXNzVWlkGAIgASgMEiYKCmFjY2Vzc1R5cGUY",
+            "AyABKA4yEi5Gb2xkZXIuQWNjZXNzVHlwZRIqCgZzdGF0dXMYBCABKA4yGi5G",
+            "b2xkZXIuRm9sZGVyTW9kaWZ5U3RhdHVzEg8KB21lc3NhZ2UYBSABKAkiTwoU",
+            "Rm9sZGVyQWNjZXNzUmVzcG9uc2USNwoTZm9sZGVyQWNjZXNzUmVzdWx0cxgB",
+            "IAMoCzIaLkZvbGRlci5Gb2xkZXJBY2Nlc3NSZXN1bHQiMAoIVXNlckluZm8S",
+            "EgoKYWNjb3VudFVpZBgBIAEoDBIQCgh1c2VybmFtZRgCIAEoCSJNCgpSZWNv",
+            "cmREYXRhEh4KBHVzZXIYASABKAsyEC5Gb2xkZXIuVXNlckluZm8SDAoEZGF0",
+            "YRgCIAEoDBIRCglyZWNvcmRVaWQYAyABKAwiewoJUmVjb3JkS2V5EhAKCHVz",
+            "ZXJfdWlkGAEgASgMEhIKCnJlY29yZF91aWQYAiABKAwSEgoKcmVjb3JkX2tl",
+            "eRgDIAEoDBI0ChJlbmNyeXB0ZWRfa2V5X3R5cGUYBCABKA4yGC5Gb2xkZXIu",
+            "RW5jcnlwdGVkS2V5VHlwZSoaCgpSZWNvcmRUeXBlEgwKCHBhc3N3b3JkEAAq",
+            "XgoKRm9sZGVyVHlwZRISCg5kZWZhdWx0X2ZvbGRlchAAEg8KC3VzZXJfZm9s",
+            "ZGVyEAESEQoNc2hhcmVkX2ZvbGRlchACEhgKFHNoYXJlZF9mb2xkZXJfZm9s",
+            "ZGVyEAMqlgEKEEVuY3J5cHRlZEtleVR5cGUSCgoGbm9fa2V5EAASGQoVZW5j",
+            "cnlwdGVkX2J5X2RhdGFfa2V5EAESGwoXZW5jcnlwdGVkX2J5X3B1YmxpY19r",
+            "ZXkQAhIdChllbmNyeXB0ZWRfYnlfZGF0YV9rZXlfZ2NtEAMSHwobZW5jcnlw",
+            "dGVkX2J5X3B1YmxpY19rZXlfZWNjEAQqTQoPU2V0Qm9vbGVhblZhbHVlEhUK",
+            "EUJPT0xFQU5fTk9fQ0hBTkdFEAASEAoMQk9PTEVBTl9UUlVFEAESEQoNQk9P",
+            "TEVBTl9GQUxTRRACKlIKD0ZvbGRlclVzYWdlVHlwZRIOCgpVVF9VTktOT1dO",
+            "EAASDQoJVVRfTk9STUFMEAESDwoLVVRfV09SS0ZMT1cQAhIPCgtVVF9UUkFT",
+            "SENBThADKmwKF0ZvbGRlcktleUVuY3J5cHRpb25UeXBlEhkKFUVOQ1JZUFRF",
+            "RF9CWV9VU0VSX0tFWRAAEhsKF0VOQ1JZUFRFRF9CWV9QQVJFTlRfS0VZEAES",
+            "GQoVRU5DUllQVEVEX0JZX1RFQU1fS0VZEAIqVAoSRm9sZGVyTW9kaWZ5U3Rh",
+            "dHVzEgsKB1NVQ0NFU1MQABIPCgtCQURfUkVRVUVTVBABEhEKDUFDQ0VTU19E",
+            "RU5JRUQQAhINCglOT1RfRk9VTkQQAyqkAgoURm9sZGVyUGVybWlzc2lvbkJp",
+            "dHMSCgoGbm9CaXRzEAASCgoGY2FuQWRkEAESDQoJY2FuUmVtb3ZlEAISDQoJ",
+            "Y2FuRGVsZXRlEAQSEQoNY2FuTGlzdEFjY2VzcxAIEhMKD2NhblVwZGF0ZUFj",
+            "Y2VzcxAQEhYKEmNhbkNoYW5nZU93bmVyc2hpcBAgEhIKDmNhbkVkaXRSZWNv",
+            "cmRzEEASEwoOY2FuVmlld1JlY29yZHMQgAESFQoQY2FuQXBwcm92ZUFjY2Vz",
+            "cxCAAhIVChBjYW5SZXF1ZXN0QWNjZXNzEIAEEhUKEGNhblVwZGF0ZVNldHRp",
+            "bmcQgAgSEwoOY2FuTGlzdFJlY29yZHMQgBASEwoOY2FuTGlzdEZvbGRlcnMQ",
+            "gCAqmwEKDkFjY2Vzc1JvbGVUeXBlEg0KCU5BVklHQVRPUhAAEg0KCVJFUVVF",
+            "U1RPUhABEgoKBlZJRVdFUhACEhIKDlNIQVJFRF9NQU5BR0VSEAMSEwoPQ09O",
+            "VEVOVF9NQU5BR0VSEAQSGQoVQ09OVEVOVF9TSEFSRV9NQU5BR0VSEAUSCwoH",
+            "TUFOQUdFUhAGEg4KClVOUkVTT0xWRUQQByp6CgpBY2Nlc3NUeXBlEg4KCkFU",
+            "X1VOS05PV04QABIMCghBVF9PV05FUhABEgsKB0FUX1VTRVIQAhILCgdBVF9U",
+            "RUFNEAMSEQoNQVRfRU5URVJQUklTRRAEEg0KCUFUX0ZPTERFUhAFEhIKDkFU",
+            "X0FQUExJQ0FUSU9OEAYqOgoKT2JqZWN0VHlwZRIOCgpPVF9VTktOT1dOEAAS",
+            "DQoJT1RfUkVDT1JEEAESDQoJT1RfRk9MREVSEAJCIgoYY29tLmtlZXBlcnNl",
+            "Y3VyaXR5LnByb3RvQgZGb2xkZXJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::Common.Tla.TlaReflection.Descriptor, },
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), typeof(global::Folder.FolderUsageType), typeof(global::Folder.FolderKeyEncryptionType), typeof(global::Folder.FolderModifyStatus), typeof(global::Folder.FolderPermissionBits), typeof(global::Folder.AccessRoleType), typeof(global::Folder.AccessType), typeof(global::Folder.ObjectType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.EncryptedDataKey), global::Folder.EncryptedDataKey.Parser, new[]{ "EncryptedKey", "EncryptedKeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordData), global::Folder.SharedFolderRecordData.Parser, new[]{ "FolderUid", "RecordUid", "UserId", "EncryptedDataKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordDataList), global::Folder.SharedFolderRecordDataList.Parser, new[]{ "SharedFolderRecordData" }, null, null, null, null),
@@ -193,7 +311,32 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.DeletedRecordData), global::Folder.DeletedRecordData.Parser, new[]{ "RecordUid", "OwnerUid", "Revision", "ClientModifiedTime", "Data", "Version" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.Username), global::Folder.Username.Parser, new[]{ "AccountUid", "Username_" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RestoreDeletedSharedFoldersAndRecordsRequest), global::Folder.RestoreDeletedSharedFoldersAndRecordsRequest.Parser, new[]{ "Folders", "Records" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RestoreSharedObject), global::Folder.RestoreSharedObject.Parser, new[]{ "FolderUid", "RecordUids" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RestoreSharedObject), global::Folder.RestoreSharedObject.Parser, new[]{ "FolderUid", "RecordUids" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderData), global::Folder.FolderData.Parser, new[]{ "FolderUid", "ParentUid", "Data", "Type", "InheritUserPermissions", "FolderKey", "OwnerInfo", "DateCreated", "LastModified" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderKey), global::Folder.FolderKey.Parser, new[]{ "FolderUid", "ParentUid", "FolderKey_", "EncryptedBy" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAddRequest), global::Folder.FolderAddRequest.Parser, new[]{ "FolderData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderModifyResult), global::Folder.FolderModifyResult.Parser, new[]{ "FolderUid", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAddResponse), global::Folder.FolderAddResponse.Parser, new[]{ "FolderAddResults" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderUpdateRequest), global::Folder.FolderUpdateRequest.Parser, new[]{ "FolderData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderUpdateResponse), global::Folder.FolderUpdateResponse.Parser, new[]{ "FolderUpdateResults" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderPermissions), global::Folder.FolderPermissions.Parser, new[]{ "CanAdd", "CanRemove", "CanDelete", "CanListAccess", "CanUpdateAccess", "CanChangeOwnership", "CanEditRecords", "CanViewRecords", "CanApproveAccess", "CanRequestAccess", "CanUpdateSetting", "CanListRecords", "CanListFolders" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.Capabilities), global::Folder.Capabilities.Parser, new[]{ "CanAdd", "CanRemove", "CanDelete", "CanListAccess", "CanUpdateAccess", "CanChangeOwnership", "CanEditRecords", "CanViewRecords", "CanApproveAccess", "CanRequestAccess", "CanUpdateSetting", "CanListRecords", "CanListFolders" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecordUpdateRequest), global::Folder.FolderRecordUpdateRequest.Parser, new[]{ "FolderUid", "AddRecords", "UpdateRecords", "RemoveRecords" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RecordMetadata), global::Folder.RecordMetadata.Parser, new[]{ "RecordUid", "EncryptedRecordKey", "EncryptedRecordKeyType", "TlaProperties" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecord), global::Folder.FolderRecord.Parser, new[]{ "FolderUid", "RecordMetadata", "FolderKeyEncryptionType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecordUpdateResponse), global::Folder.FolderRecordUpdateResponse.Parser, new[]{ "FolderUid", "FolderRecordUpdateResult" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecordUpdateResult), global::Folder.FolderRecordUpdateResult.Parser, new[]{ "RecordUid", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessData), global::Folder.FolderAccessData.Parser, new[]{ "FolderUid", "AccessTypeUid", "AccessType", "AccessRoleType", "FolderKey", "Inherited", "Hidden", "Permissions", "TlaProperties", "DateCreated", "LastModified", "DeniedAccess" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RevokedAccess), global::Folder.RevokedAccess.Parser, new[]{ "FolderUid", "ActorUid", "AccessType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRemoved), global::Folder.FolderRemoved.Parser, new[]{ "FolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RecordAccessData), global::Folder.RecordAccessData.Parser, new[]{ "AccessTypeUid", "AccessType", "RecordUid", "AccessRoleType", "Owner", "Inherited", "Hidden", "DeniedAccess", "CanViewTitle", "CanEdit", "CanView", "CanListAccess", "CanUpdateAccess", "CanDelete", "CanChangeOwnership", "CanRequestAccess", "CanApproveAccess", "DateCreated", "LastModified", "TlaProperties" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.AccessData), global::Folder.AccessData.Parser, new[]{ "AccessTypeUid", "AccessRoleType", "DeniedAccess", "Inherited", "Hidden", "Capabilities" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessRequest), global::Folder.FolderAccessRequest.Parser, new[]{ "FolderAccessAdds", "FolderAccessUpdates", "FolderAccessRemoves" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessResult), global::Folder.FolderAccessResult.Parser, new[]{ "FolderUid", "AccessUid", "AccessType", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessResponse), global::Folder.FolderAccessResponse.Parser, new[]{ "FolderAccessResults" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.UserInfo), global::Folder.UserInfo.Parser, new[]{ "AccountUid", "Username" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RecordData), global::Folder.RecordData.Parser, new[]{ "User", "Data", "RecordUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RecordKey), global::Folder.RecordKey.Parser, new[]{ "UserUid", "RecordUid", "RecordKey_", "EncryptedKeyType" }, null, null, null, null)
           }));
     }
     #endregion
@@ -223,6 +366,70 @@ namespace Folder {
     [pbr::OriginalName("BOOLEAN_NO_CHANGE")] BooleanNoChange = 0,
     [pbr::OriginalName("BOOLEAN_TRUE")] BooleanTrue = 1,
     [pbr::OriginalName("BOOLEAN_FALSE")] BooleanFalse = 2,
+  }
+
+  public enum FolderUsageType {
+    [pbr::OriginalName("UT_UNKNOWN")] UtUnknown = 0,
+    [pbr::OriginalName("UT_NORMAL")] UtNormal = 1,
+    [pbr::OriginalName("UT_WORKFLOW")] UtWorkflow = 2,
+    [pbr::OriginalName("UT_TRASHCAN")] UtTrashcan = 3,
+  }
+
+  public enum FolderKeyEncryptionType {
+    [pbr::OriginalName("ENCRYPTED_BY_USER_KEY")] EncryptedByUserKey = 0,
+    [pbr::OriginalName("ENCRYPTED_BY_PARENT_KEY")] EncryptedByParentKey = 1,
+    [pbr::OriginalName("ENCRYPTED_BY_TEAM_KEY")] EncryptedByTeamKey = 2,
+  }
+
+  public enum FolderModifyStatus {
+    [pbr::OriginalName("SUCCESS")] Success = 0,
+    [pbr::OriginalName("BAD_REQUEST")] BadRequest = 1,
+    [pbr::OriginalName("ACCESS_DENIED")] AccessDenied = 2,
+    [pbr::OriginalName("NOT_FOUND")] NotFound = 3,
+  }
+
+  public enum FolderPermissionBits {
+    [pbr::OriginalName("noBits")] NoBits = 0,
+    [pbr::OriginalName("canAdd")] CanAdd = 1,
+    [pbr::OriginalName("canRemove")] CanRemove = 2,
+    [pbr::OriginalName("canDelete")] CanDelete = 4,
+    [pbr::OriginalName("canListAccess")] CanListAccess = 8,
+    [pbr::OriginalName("canUpdateAccess")] CanUpdateAccess = 16,
+    [pbr::OriginalName("canChangeOwnership")] CanChangeOwnership = 32,
+    [pbr::OriginalName("canEditRecords")] CanEditRecords = 64,
+    [pbr::OriginalName("canViewRecords")] CanViewRecords = 128,
+    [pbr::OriginalName("canApproveAccess")] CanApproveAccess = 256,
+    [pbr::OriginalName("canRequestAccess")] CanRequestAccess = 512,
+    [pbr::OriginalName("canUpdateSetting")] CanUpdateSetting = 1024,
+    [pbr::OriginalName("canListRecords")] CanListRecords = 2048,
+    [pbr::OriginalName("canListFolders")] CanListFolders = 4096,
+  }
+
+  public enum AccessRoleType {
+    [pbr::OriginalName("NAVIGATOR")] Navigator = 0,
+    [pbr::OriginalName("REQUESTOR")] Requestor = 1,
+    [pbr::OriginalName("VIEWER")] Viewer = 2,
+    [pbr::OriginalName("SHARED_MANAGER")] SharedManager = 3,
+    [pbr::OriginalName("CONTENT_MANAGER")] ContentManager = 4,
+    [pbr::OriginalName("CONTENT_SHARE_MANAGER")] ContentShareManager = 5,
+    [pbr::OriginalName("MANAGER")] Manager = 6,
+    [pbr::OriginalName("UNRESOLVED")] Unresolved = 7,
+  }
+
+  public enum AccessType {
+    [pbr::OriginalName("AT_UNKNOWN")] AtUnknown = 0,
+    [pbr::OriginalName("AT_OWNER")] AtOwner = 1,
+    [pbr::OriginalName("AT_USER")] AtUser = 2,
+    [pbr::OriginalName("AT_TEAM")] AtTeam = 3,
+    [pbr::OriginalName("AT_ENTERPRISE")] AtEnterprise = 4,
+    [pbr::OriginalName("AT_FOLDER")] AtFolder = 5,
+    [pbr::OriginalName("AT_APPLICATION")] AtApplication = 6,
+  }
+
+  public enum ObjectType {
+    [pbr::OriginalName("OT_UNKNOWN")] OtUnknown = 0,
+    [pbr::OriginalName("OT_RECORD")] OtRecord = 1,
+    [pbr::OriginalName("OT_FOLDER")] OtFolder = 2,
   }
 
   #endregion
@@ -9923,6 +10130,8641 @@ namespace Folder {
           }
           case 18: {
             recordUids_.AddEntriesFrom(ref input, _repeated_recordUids_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///*
+  /// FolderData is used in the folder add and update requests and it is stored in the DAG.
+  /// It is also used to store folders' data in the sync down response.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderData : pb::IMessage<FolderData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderData> _parser = new pb::MessageParser<FolderData>(() => new FolderData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[30]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderData(FolderData other) : this() {
+      folderUid_ = other.folderUid_;
+      parentUid_ = other.parentUid_;
+      data_ = other.data_;
+      type_ = other.type_;
+      inheritUserPermissions_ = other.inheritUserPermissions_;
+      folderKey_ = other.folderKey_;
+      ownerInfo_ = other.ownerInfo_ != null ? other.ownerInfo_.Clone() : null;
+      dateCreated_ = other.dateCreated_;
+      lastModified_ = other.lastModified_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderData Clone() {
+      return new FolderData(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///The folder uid.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "parentUid" field.</summary>
+    public const int ParentUidFieldNumber = 2;
+    private pb::ByteString parentUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///The folder parent uid.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ParentUid {
+      get { return parentUid_; }
+      set {
+        parentUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 3;
+    private pb::ByteString data_ = pb::ByteString.Empty;
+    /// <summary>
+    ///The folder data. It should contain the folder name. Max length=255 bytes.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Data {
+      get { return data_; }
+      set {
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "type" field.</summary>
+    public const int TypeFieldNumber = 4;
+    private global::Folder.FolderUsageType type_ = global::Folder.FolderUsageType.UtUnknown;
+    /// <summary>
+    ///This is the folder usage type (Normal is the default is not set).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderUsageType Type {
+      get { return type_; }
+      set {
+        type_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "inheritUserPermissions" field.</summary>
+    public const int InheritUserPermissionsFieldNumber = 5;
+    private global::Folder.SetBooleanValue inheritUserPermissions_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    /// <summary>
+    ///To indicate if the user permissions are to be cascaded to this sub-folder. 
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue InheritUserPermissions {
+      get { return inheritUserPermissions_; }
+      set {
+        inheritUserPermissions_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "folderKey" field.</summary>
+    public const int FolderKeyFieldNumber = 6;
+    private pb::ByteString folderKey_ = pb::ByteString.Empty;
+    /// <summary>
+    ///Valid values: oneOf(TRUE, FALSE).  Default to TRUE.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderKey {
+      get { return folderKey_; }
+      set {
+        folderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ownerInfo" field.</summary>
+    public const int OwnerInfoFieldNumber = 7;
+    private global::Folder.UserInfo ownerInfo_;
+    /// <summary>
+    ///This is encrypted with the users' data key.  This is encrypted with the parent folder key if this is not the root folder.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.UserInfo OwnerInfo {
+      get { return ownerInfo_; }
+      set {
+        ownerInfo_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "dateCreated" field.</summary>
+    public const int DateCreatedFieldNumber = 8;
+    private long dateCreated_;
+    /// <summary>
+    ///The date this folder was created.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DateCreated {
+      get { return dateCreated_; }
+      set {
+        dateCreated_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "lastModified" field.</summary>
+    public const int LastModifiedFieldNumber = 9;
+    private long lastModified_;
+    /// <summary>
+    ///The date the folder was last modified.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long LastModified {
+      get { return lastModified_; }
+      set {
+        lastModified_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (ParentUid != other.ParentUid) return false;
+      if (Data != other.Data) return false;
+      if (Type != other.Type) return false;
+      if (InheritUserPermissions != other.InheritUserPermissions) return false;
+      if (FolderKey != other.FolderKey) return false;
+      if (!object.Equals(OwnerInfo, other.OwnerInfo)) return false;
+      if (DateCreated != other.DateCreated) return false;
+      if (LastModified != other.LastModified) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (ParentUid.Length != 0) hash ^= ParentUid.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
+      if (Type != global::Folder.FolderUsageType.UtUnknown) hash ^= Type.GetHashCode();
+      if (InheritUserPermissions != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= InheritUserPermissions.GetHashCode();
+      if (FolderKey.Length != 0) hash ^= FolderKey.GetHashCode();
+      if (ownerInfo_ != null) hash ^= OwnerInfo.GetHashCode();
+      if (DateCreated != 0L) hash ^= DateCreated.GetHashCode();
+      if (LastModified != 0L) hash ^= LastModified.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ParentUid);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(Data);
+      }
+      if (Type != global::Folder.FolderUsageType.UtUnknown) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Type);
+      }
+      if (InheritUserPermissions != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) InheritUserPermissions);
+      }
+      if (FolderKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(FolderKey);
+      }
+      if (ownerInfo_ != null) {
+        output.WriteRawTag(58);
+        output.WriteMessage(OwnerInfo);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(72);
+        output.WriteInt64(LastModified);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ParentUid);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(Data);
+      }
+      if (Type != global::Folder.FolderUsageType.UtUnknown) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Type);
+      }
+      if (InheritUserPermissions != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) InheritUserPermissions);
+      }
+      if (FolderKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(FolderKey);
+      }
+      if (ownerInfo_ != null) {
+        output.WriteRawTag(58);
+        output.WriteMessage(OwnerInfo);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(72);
+        output.WriteInt64(LastModified);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ParentUid);
+      }
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
+      }
+      if (Type != global::Folder.FolderUsageType.UtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Type);
+      }
+      if (InheritUserPermissions != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) InheritUserPermissions);
+      }
+      if (FolderKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderKey);
+      }
+      if (ownerInfo_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(OwnerInfo);
+      }
+      if (DateCreated != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(DateCreated);
+      }
+      if (LastModified != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastModified);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.ParentUid.Length != 0) {
+        ParentUid = other.ParentUid;
+      }
+      if (other.Data.Length != 0) {
+        Data = other.Data;
+      }
+      if (other.Type != global::Folder.FolderUsageType.UtUnknown) {
+        Type = other.Type;
+      }
+      if (other.InheritUserPermissions != global::Folder.SetBooleanValue.BooleanNoChange) {
+        InheritUserPermissions = other.InheritUserPermissions;
+      }
+      if (other.FolderKey.Length != 0) {
+        FolderKey = other.FolderKey;
+      }
+      if (other.ownerInfo_ != null) {
+        if (ownerInfo_ == null) {
+          OwnerInfo = new global::Folder.UserInfo();
+        }
+        OwnerInfo.MergeFrom(other.OwnerInfo);
+      }
+      if (other.DateCreated != 0L) {
+        DateCreated = other.DateCreated;
+      }
+      if (other.LastModified != 0L) {
+        LastModified = other.LastModified;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ParentUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            Type = (global::Folder.FolderUsageType) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            InheritUserPermissions = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            FolderKey = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            if (ownerInfo_ == null) {
+              OwnerInfo = new global::Folder.UserInfo();
+            }
+            input.ReadMessage(OwnerInfo);
+            break;
+          }
+          case 64: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 72: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ParentUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            Type = (global::Folder.FolderUsageType) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            InheritUserPermissions = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            FolderKey = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            if (ownerInfo_ == null) {
+              OwnerInfo = new global::Folder.UserInfo();
+            }
+            input.ReadMessage(OwnerInfo);
+            break;
+          }
+          case 64: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 72: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderKey : pb::IMessage<FolderKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderKey> _parser = new pb::MessageParser<FolderKey>(() => new FolderKey());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderKey> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[31]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderKey() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderKey(FolderKey other) : this() {
+      folderUid_ = other.folderUid_;
+      parentUid_ = other.parentUid_;
+      folderKey_ = other.folderKey_;
+      encryptedBy_ = other.encryptedBy_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderKey Clone() {
+      return new FolderKey(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "parentUid" field.</summary>
+    public const int ParentUidFieldNumber = 2;
+    private pb::ByteString parentUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// parent folder or user
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ParentUid {
+      get { return parentUid_; }
+      set {
+        parentUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "folderKey" field.</summary>
+    public const int FolderKey_FieldNumber = 3;
+    private pb::ByteString folderKey_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderKey_ {
+      get { return folderKey_; }
+      set {
+        folderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedBy" field.</summary>
+    public const int EncryptedByFieldNumber = 4;
+    private global::Folder.FolderKeyEncryptionType encryptedBy_ = global::Folder.FolderKeyEncryptionType.EncryptedByUserKey;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderKeyEncryptionType EncryptedBy {
+      get { return encryptedBy_; }
+      set {
+        encryptedBy_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderKey);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderKey other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (ParentUid != other.ParentUid) return false;
+      if (FolderKey_ != other.FolderKey_) return false;
+      if (EncryptedBy != other.EncryptedBy) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (ParentUid.Length != 0) hash ^= ParentUid.GetHashCode();
+      if (FolderKey_.Length != 0) hash ^= FolderKey_.GetHashCode();
+      if (EncryptedBy != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) hash ^= EncryptedBy.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ParentUid);
+      }
+      if (FolderKey_.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(FolderKey_);
+      }
+      if (EncryptedBy != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) EncryptedBy);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ParentUid);
+      }
+      if (FolderKey_.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(FolderKey_);
+      }
+      if (EncryptedBy != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) EncryptedBy);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (ParentUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ParentUid);
+      }
+      if (FolderKey_.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderKey_);
+      }
+      if (EncryptedBy != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) EncryptedBy);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderKey other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.ParentUid.Length != 0) {
+        ParentUid = other.ParentUid;
+      }
+      if (other.FolderKey_.Length != 0) {
+        FolderKey_ = other.FolderKey_;
+      }
+      if (other.EncryptedBy != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        EncryptedBy = other.EncryptedBy;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ParentUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            FolderKey_ = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            EncryptedBy = (global::Folder.FolderKeyEncryptionType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ParentUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            FolderKey_ = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            EncryptedBy = (global::Folder.FolderKeyEncryptionType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAddRequest : pb::IMessage<FolderAddRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAddRequest> _parser = new pb::MessageParser<FolderAddRequest>(() => new FolderAddRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAddRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[32]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddRequest(FolderAddRequest other) : this() {
+      folderData_ = other.folderData_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddRequest Clone() {
+      return new FolderAddRequest(this);
+    }
+
+    /// <summary>Field number for the "folderData" field.</summary>
+    public const int FolderDataFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderData> _repeated_folderData_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderData.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderData> folderData_ = new pbc::RepeatedField<global::Folder.FolderData>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderData> FolderData {
+      get { return folderData_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAddRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAddRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderData_.Equals(other.folderData_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderData_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderData_.WriteTo(output, _repeated_folderData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderData_.WriteTo(ref output, _repeated_folderData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderData_.CalculateSize(_repeated_folderData_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAddRequest other) {
+      if (other == null) {
+        return;
+      }
+      folderData_.Add(other.folderData_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderData_.AddEntriesFrom(input, _repeated_folderData_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderData_.AddEntriesFrom(ref input, _repeated_folderData_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderModifyResult : pb::IMessage<FolderModifyResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderModifyResult> _parser = new pb::MessageParser<FolderModifyResult>(() => new FolderModifyResult());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderModifyResult> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[33]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderModifyResult() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderModifyResult(FolderModifyResult other) : this() {
+      folderUid_ = other.folderUid_;
+      status_ = other.status_;
+      message_ = other.message_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderModifyResult Clone() {
+      return new FolderModifyResult(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private global::Folder.FolderModifyStatus status_ = global::Folder.FolderModifyStatus.Success;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderModifyStatus Status {
+      get { return status_; }
+      set {
+        status_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 3;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderModifyResult);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderModifyResult other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (Status != other.Status) return false;
+      if (Message != other.Message) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (Status != global::Folder.FolderModifyStatus.Success) hash ^= Status.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderModifyResult other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.Status != global::Folder.FolderModifyStatus.Success) {
+        Status = other.Status;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAddResponse : pb::IMessage<FolderAddResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAddResponse> _parser = new pb::MessageParser<FolderAddResponse>(() => new FolderAddResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAddResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[34]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddResponse(FolderAddResponse other) : this() {
+      folderAddResults_ = other.folderAddResults_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAddResponse Clone() {
+      return new FolderAddResponse(this);
+    }
+
+    /// <summary>Field number for the "folderAddResults" field.</summary>
+    public const int FolderAddResultsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderModifyResult> _repeated_folderAddResults_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderModifyResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderModifyResult> folderAddResults_ = new pbc::RepeatedField<global::Folder.FolderModifyResult>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderModifyResult> FolderAddResults {
+      get { return folderAddResults_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAddResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAddResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderAddResults_.Equals(other.folderAddResults_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderAddResults_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderAddResults_.WriteTo(output, _repeated_folderAddResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderAddResults_.WriteTo(ref output, _repeated_folderAddResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderAddResults_.CalculateSize(_repeated_folderAddResults_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAddResponse other) {
+      if (other == null) {
+        return;
+      }
+      folderAddResults_.Add(other.folderAddResults_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderAddResults_.AddEntriesFrom(input, _repeated_folderAddResults_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderAddResults_.AddEntriesFrom(ref input, _repeated_folderAddResults_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderUpdateRequest : pb::IMessage<FolderUpdateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderUpdateRequest> _parser = new pb::MessageParser<FolderUpdateRequest>(() => new FolderUpdateRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderUpdateRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[35]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateRequest(FolderUpdateRequest other) : this() {
+      folderData_ = other.folderData_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateRequest Clone() {
+      return new FolderUpdateRequest(this);
+    }
+
+    /// <summary>Field number for the "folderData" field.</summary>
+    public const int FolderDataFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderData> _repeated_folderData_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderData.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderData> folderData_ = new pbc::RepeatedField<global::Folder.FolderData>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderData> FolderData {
+      get { return folderData_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderUpdateRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderUpdateRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderData_.Equals(other.folderData_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderData_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderData_.WriteTo(output, _repeated_folderData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderData_.WriteTo(ref output, _repeated_folderData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderData_.CalculateSize(_repeated_folderData_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderUpdateRequest other) {
+      if (other == null) {
+        return;
+      }
+      folderData_.Add(other.folderData_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderData_.AddEntriesFrom(input, _repeated_folderData_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderData_.AddEntriesFrom(ref input, _repeated_folderData_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderUpdateResponse : pb::IMessage<FolderUpdateResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderUpdateResponse> _parser = new pb::MessageParser<FolderUpdateResponse>(() => new FolderUpdateResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderUpdateResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[36]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateResponse(FolderUpdateResponse other) : this() {
+      folderUpdateResults_ = other.folderUpdateResults_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderUpdateResponse Clone() {
+      return new FolderUpdateResponse(this);
+    }
+
+    /// <summary>Field number for the "folderUpdateResults" field.</summary>
+    public const int FolderUpdateResultsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderModifyResult> _repeated_folderUpdateResults_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderModifyResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderModifyResult> folderUpdateResults_ = new pbc::RepeatedField<global::Folder.FolderModifyResult>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderModifyResult> FolderUpdateResults {
+      get { return folderUpdateResults_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderUpdateResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderUpdateResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderUpdateResults_.Equals(other.folderUpdateResults_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderUpdateResults_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderUpdateResults_.WriteTo(output, _repeated_folderUpdateResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderUpdateResults_.WriteTo(ref output, _repeated_folderUpdateResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderUpdateResults_.CalculateSize(_repeated_folderUpdateResults_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderUpdateResponse other) {
+      if (other == null) {
+        return;
+      }
+      folderUpdateResults_.Add(other.folderUpdateResults_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderUpdateResults_.AddEntriesFrom(input, _repeated_folderUpdateResults_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderUpdateResults_.AddEntriesFrom(ref input, _repeated_folderUpdateResults_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderPermissions : pb::IMessage<FolderPermissions>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderPermissions> _parser = new pb::MessageParser<FolderPermissions>(() => new FolderPermissions());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderPermissions> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[37]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderPermissions() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderPermissions(FolderPermissions other) : this() {
+      canAdd_ = other.canAdd_;
+      canRemove_ = other.canRemove_;
+      canDelete_ = other.canDelete_;
+      canListAccess_ = other.canListAccess_;
+      canUpdateAccess_ = other.canUpdateAccess_;
+      canChangeOwnership_ = other.canChangeOwnership_;
+      canEditRecords_ = other.canEditRecords_;
+      canViewRecords_ = other.canViewRecords_;
+      canApproveAccess_ = other.canApproveAccess_;
+      canRequestAccess_ = other.canRequestAccess_;
+      canUpdateSetting_ = other.canUpdateSetting_;
+      canListRecords_ = other.canListRecords_;
+      canListFolders_ = other.canListFolders_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderPermissions Clone() {
+      return new FolderPermissions(this);
+    }
+
+    /// <summary>Field number for the "canAdd" field.</summary>
+    public const int CanAddFieldNumber = 1;
+    private bool canAdd_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanAdd {
+      get { return canAdd_; }
+      set {
+        canAdd_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canRemove" field.</summary>
+    public const int CanRemoveFieldNumber = 2;
+    private bool canRemove_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanRemove {
+      get { return canRemove_; }
+      set {
+        canRemove_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canDelete" field.</summary>
+    public const int CanDeleteFieldNumber = 3;
+    private bool canDelete_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanDelete {
+      get { return canDelete_; }
+      set {
+        canDelete_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListAccess" field.</summary>
+    public const int CanListAccessFieldNumber = 4;
+    private bool canListAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanListAccess {
+      get { return canListAccess_; }
+      set {
+        canListAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canUpdateAccess" field.</summary>
+    public const int CanUpdateAccessFieldNumber = 5;
+    private bool canUpdateAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanUpdateAccess {
+      get { return canUpdateAccess_; }
+      set {
+        canUpdateAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canChangeOwnership" field.</summary>
+    public const int CanChangeOwnershipFieldNumber = 6;
+    private bool canChangeOwnership_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanChangeOwnership {
+      get { return canChangeOwnership_; }
+      set {
+        canChangeOwnership_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canEditRecords" field.</summary>
+    public const int CanEditRecordsFieldNumber = 7;
+    private bool canEditRecords_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanEditRecords {
+      get { return canEditRecords_; }
+      set {
+        canEditRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canViewRecords" field.</summary>
+    public const int CanViewRecordsFieldNumber = 8;
+    private bool canViewRecords_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanViewRecords {
+      get { return canViewRecords_; }
+      set {
+        canViewRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canApproveAccess" field.</summary>
+    public const int CanApproveAccessFieldNumber = 9;
+    private bool canApproveAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanApproveAccess {
+      get { return canApproveAccess_; }
+      set {
+        canApproveAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canRequestAccess" field.</summary>
+    public const int CanRequestAccessFieldNumber = 10;
+    private bool canRequestAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanRequestAccess {
+      get { return canRequestAccess_; }
+      set {
+        canRequestAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canUpdateSetting" field.</summary>
+    public const int CanUpdateSettingFieldNumber = 11;
+    private bool canUpdateSetting_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanUpdateSetting {
+      get { return canUpdateSetting_; }
+      set {
+        canUpdateSetting_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListRecords" field.</summary>
+    public const int CanListRecordsFieldNumber = 12;
+    private bool canListRecords_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanListRecords {
+      get { return canListRecords_; }
+      set {
+        canListRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListFolders" field.</summary>
+    public const int CanListFoldersFieldNumber = 13;
+    private bool canListFolders_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanListFolders {
+      get { return canListFolders_; }
+      set {
+        canListFolders_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderPermissions);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderPermissions other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (CanAdd != other.CanAdd) return false;
+      if (CanRemove != other.CanRemove) return false;
+      if (CanDelete != other.CanDelete) return false;
+      if (CanListAccess != other.CanListAccess) return false;
+      if (CanUpdateAccess != other.CanUpdateAccess) return false;
+      if (CanChangeOwnership != other.CanChangeOwnership) return false;
+      if (CanEditRecords != other.CanEditRecords) return false;
+      if (CanViewRecords != other.CanViewRecords) return false;
+      if (CanApproveAccess != other.CanApproveAccess) return false;
+      if (CanRequestAccess != other.CanRequestAccess) return false;
+      if (CanUpdateSetting != other.CanUpdateSetting) return false;
+      if (CanListRecords != other.CanListRecords) return false;
+      if (CanListFolders != other.CanListFolders) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (CanAdd != false) hash ^= CanAdd.GetHashCode();
+      if (CanRemove != false) hash ^= CanRemove.GetHashCode();
+      if (CanDelete != false) hash ^= CanDelete.GetHashCode();
+      if (CanListAccess != false) hash ^= CanListAccess.GetHashCode();
+      if (CanUpdateAccess != false) hash ^= CanUpdateAccess.GetHashCode();
+      if (CanChangeOwnership != false) hash ^= CanChangeOwnership.GetHashCode();
+      if (CanEditRecords != false) hash ^= CanEditRecords.GetHashCode();
+      if (CanViewRecords != false) hash ^= CanViewRecords.GetHashCode();
+      if (CanApproveAccess != false) hash ^= CanApproveAccess.GetHashCode();
+      if (CanRequestAccess != false) hash ^= CanRequestAccess.GetHashCode();
+      if (CanUpdateSetting != false) hash ^= CanUpdateSetting.GetHashCode();
+      if (CanListRecords != false) hash ^= CanListRecords.GetHashCode();
+      if (CanListFolders != false) hash ^= CanListFolders.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (CanAdd != false) {
+        output.WriteRawTag(8);
+        output.WriteBool(CanAdd);
+      }
+      if (CanRemove != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(CanRemove);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(CanDelete);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanUpdateAccess != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(CanUpdateAccess);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanEditRecords != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(CanEditRecords);
+      }
+      if (CanViewRecords != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(CanViewRecords);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanApproveAccess);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanUpdateSetting != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanUpdateSetting);
+      }
+      if (CanListRecords != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanListRecords);
+      }
+      if (CanListFolders != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanListFolders);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (CanAdd != false) {
+        output.WriteRawTag(8);
+        output.WriteBool(CanAdd);
+      }
+      if (CanRemove != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(CanRemove);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(CanDelete);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanUpdateAccess != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(CanUpdateAccess);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanEditRecords != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(CanEditRecords);
+      }
+      if (CanViewRecords != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(CanViewRecords);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanApproveAccess);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanUpdateSetting != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanUpdateSetting);
+      }
+      if (CanListRecords != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanListRecords);
+      }
+      if (CanListFolders != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanListFolders);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (CanAdd != false) {
+        size += 1 + 1;
+      }
+      if (CanRemove != false) {
+        size += 1 + 1;
+      }
+      if (CanDelete != false) {
+        size += 1 + 1;
+      }
+      if (CanListAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanUpdateAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanChangeOwnership != false) {
+        size += 1 + 1;
+      }
+      if (CanEditRecords != false) {
+        size += 1 + 1;
+      }
+      if (CanViewRecords != false) {
+        size += 1 + 1;
+      }
+      if (CanApproveAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanRequestAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanUpdateSetting != false) {
+        size += 1 + 1;
+      }
+      if (CanListRecords != false) {
+        size += 1 + 1;
+      }
+      if (CanListFolders != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderPermissions other) {
+      if (other == null) {
+        return;
+      }
+      if (other.CanAdd != false) {
+        CanAdd = other.CanAdd;
+      }
+      if (other.CanRemove != false) {
+        CanRemove = other.CanRemove;
+      }
+      if (other.CanDelete != false) {
+        CanDelete = other.CanDelete;
+      }
+      if (other.CanListAccess != false) {
+        CanListAccess = other.CanListAccess;
+      }
+      if (other.CanUpdateAccess != false) {
+        CanUpdateAccess = other.CanUpdateAccess;
+      }
+      if (other.CanChangeOwnership != false) {
+        CanChangeOwnership = other.CanChangeOwnership;
+      }
+      if (other.CanEditRecords != false) {
+        CanEditRecords = other.CanEditRecords;
+      }
+      if (other.CanViewRecords != false) {
+        CanViewRecords = other.CanViewRecords;
+      }
+      if (other.CanApproveAccess != false) {
+        CanApproveAccess = other.CanApproveAccess;
+      }
+      if (other.CanRequestAccess != false) {
+        CanRequestAccess = other.CanRequestAccess;
+      }
+      if (other.CanUpdateSetting != false) {
+        CanUpdateSetting = other.CanUpdateSetting;
+      }
+      if (other.CanListRecords != false) {
+        CanListRecords = other.CanListRecords;
+      }
+      if (other.CanListFolders != false) {
+        CanListFolders = other.CanListFolders;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            CanAdd = input.ReadBool();
+            break;
+          }
+          case 16: {
+            CanRemove = input.ReadBool();
+            break;
+          }
+          case 24: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 32: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 40: {
+            CanUpdateAccess = input.ReadBool();
+            break;
+          }
+          case 48: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 56: {
+            CanEditRecords = input.ReadBool();
+            break;
+          }
+          case 64: {
+            CanViewRecords = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanApproveAccess = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanUpdateSetting = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanListRecords = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanListFolders = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            CanAdd = input.ReadBool();
+            break;
+          }
+          case 16: {
+            CanRemove = input.ReadBool();
+            break;
+          }
+          case 24: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 32: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 40: {
+            CanUpdateAccess = input.ReadBool();
+            break;
+          }
+          case 48: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 56: {
+            CanEditRecords = input.ReadBool();
+            break;
+          }
+          case 64: {
+            CanViewRecords = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanApproveAccess = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanUpdateSetting = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanListRecords = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanListFolders = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Capabilities : pb::IMessage<Capabilities>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Capabilities> _parser = new pb::MessageParser<Capabilities>(() => new Capabilities());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Capabilities> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[38]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Capabilities() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Capabilities(Capabilities other) : this() {
+      canAdd_ = other.canAdd_;
+      canRemove_ = other.canRemove_;
+      canDelete_ = other.canDelete_;
+      canListAccess_ = other.canListAccess_;
+      canUpdateAccess_ = other.canUpdateAccess_;
+      canChangeOwnership_ = other.canChangeOwnership_;
+      canEditRecords_ = other.canEditRecords_;
+      canViewRecords_ = other.canViewRecords_;
+      canApproveAccess_ = other.canApproveAccess_;
+      canRequestAccess_ = other.canRequestAccess_;
+      canUpdateSetting_ = other.canUpdateSetting_;
+      canListRecords_ = other.canListRecords_;
+      canListFolders_ = other.canListFolders_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Capabilities Clone() {
+      return new Capabilities(this);
+    }
+
+    /// <summary>Field number for the "canAdd" field.</summary>
+    public const int CanAddFieldNumber = 1;
+    private global::Folder.SetBooleanValue canAdd_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanAdd {
+      get { return canAdd_; }
+      set {
+        canAdd_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canRemove" field.</summary>
+    public const int CanRemoveFieldNumber = 2;
+    private global::Folder.SetBooleanValue canRemove_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanRemove {
+      get { return canRemove_; }
+      set {
+        canRemove_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canDelete" field.</summary>
+    public const int CanDeleteFieldNumber = 3;
+    private global::Folder.SetBooleanValue canDelete_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanDelete {
+      get { return canDelete_; }
+      set {
+        canDelete_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListAccess" field.</summary>
+    public const int CanListAccessFieldNumber = 4;
+    private global::Folder.SetBooleanValue canListAccess_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanListAccess {
+      get { return canListAccess_; }
+      set {
+        canListAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canUpdateAccess" field.</summary>
+    public const int CanUpdateAccessFieldNumber = 5;
+    private global::Folder.SetBooleanValue canUpdateAccess_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanUpdateAccess {
+      get { return canUpdateAccess_; }
+      set {
+        canUpdateAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canChangeOwnership" field.</summary>
+    public const int CanChangeOwnershipFieldNumber = 6;
+    private global::Folder.SetBooleanValue canChangeOwnership_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanChangeOwnership {
+      get { return canChangeOwnership_; }
+      set {
+        canChangeOwnership_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canEditRecords" field.</summary>
+    public const int CanEditRecordsFieldNumber = 7;
+    private global::Folder.SetBooleanValue canEditRecords_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanEditRecords {
+      get { return canEditRecords_; }
+      set {
+        canEditRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canViewRecords" field.</summary>
+    public const int CanViewRecordsFieldNumber = 8;
+    private global::Folder.SetBooleanValue canViewRecords_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanViewRecords {
+      get { return canViewRecords_; }
+      set {
+        canViewRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canApproveAccess" field.</summary>
+    public const int CanApproveAccessFieldNumber = 9;
+    private global::Folder.SetBooleanValue canApproveAccess_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanApproveAccess {
+      get { return canApproveAccess_; }
+      set {
+        canApproveAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canRequestAccess" field.</summary>
+    public const int CanRequestAccessFieldNumber = 10;
+    private global::Folder.SetBooleanValue canRequestAccess_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanRequestAccess {
+      get { return canRequestAccess_; }
+      set {
+        canRequestAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canUpdateSetting" field.</summary>
+    public const int CanUpdateSettingFieldNumber = 11;
+    private global::Folder.SetBooleanValue canUpdateSetting_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanUpdateSetting {
+      get { return canUpdateSetting_; }
+      set {
+        canUpdateSetting_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListRecords" field.</summary>
+    public const int CanListRecordsFieldNumber = 12;
+    private global::Folder.SetBooleanValue canListRecords_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanListRecords {
+      get { return canListRecords_; }
+      set {
+        canListRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListFolders" field.</summary>
+    public const int CanListFoldersFieldNumber = 13;
+    private global::Folder.SetBooleanValue canListFolders_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.SetBooleanValue CanListFolders {
+      get { return canListFolders_; }
+      set {
+        canListFolders_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Capabilities);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Capabilities other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (CanAdd != other.CanAdd) return false;
+      if (CanRemove != other.CanRemove) return false;
+      if (CanDelete != other.CanDelete) return false;
+      if (CanListAccess != other.CanListAccess) return false;
+      if (CanUpdateAccess != other.CanUpdateAccess) return false;
+      if (CanChangeOwnership != other.CanChangeOwnership) return false;
+      if (CanEditRecords != other.CanEditRecords) return false;
+      if (CanViewRecords != other.CanViewRecords) return false;
+      if (CanApproveAccess != other.CanApproveAccess) return false;
+      if (CanRequestAccess != other.CanRequestAccess) return false;
+      if (CanUpdateSetting != other.CanUpdateSetting) return false;
+      if (CanListRecords != other.CanListRecords) return false;
+      if (CanListFolders != other.CanListFolders) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (CanAdd != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanAdd.GetHashCode();
+      if (CanRemove != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanRemove.GetHashCode();
+      if (CanDelete != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanDelete.GetHashCode();
+      if (CanListAccess != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanListAccess.GetHashCode();
+      if (CanUpdateAccess != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanUpdateAccess.GetHashCode();
+      if (CanChangeOwnership != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanChangeOwnership.GetHashCode();
+      if (CanEditRecords != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanEditRecords.GetHashCode();
+      if (CanViewRecords != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanViewRecords.GetHashCode();
+      if (CanApproveAccess != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanApproveAccess.GetHashCode();
+      if (CanRequestAccess != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanRequestAccess.GetHashCode();
+      if (CanUpdateSetting != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanUpdateSetting.GetHashCode();
+      if (CanListRecords != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanListRecords.GetHashCode();
+      if (CanListFolders != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanListFolders.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (CanAdd != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) CanAdd);
+      }
+      if (CanRemove != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) CanRemove);
+      }
+      if (CanDelete != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) CanDelete);
+      }
+      if (CanListAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) CanListAccess);
+      }
+      if (CanUpdateAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) CanUpdateAccess);
+      }
+      if (CanChangeOwnership != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) CanChangeOwnership);
+      }
+      if (CanEditRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) CanEditRecords);
+      }
+      if (CanViewRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) CanViewRecords);
+      }
+      if (CanApproveAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(72);
+        output.WriteEnum((int) CanApproveAccess);
+      }
+      if (CanRequestAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(80);
+        output.WriteEnum((int) CanRequestAccess);
+      }
+      if (CanUpdateSetting != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(88);
+        output.WriteEnum((int) CanUpdateSetting);
+      }
+      if (CanListRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(96);
+        output.WriteEnum((int) CanListRecords);
+      }
+      if (CanListFolders != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(104);
+        output.WriteEnum((int) CanListFolders);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (CanAdd != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) CanAdd);
+      }
+      if (CanRemove != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) CanRemove);
+      }
+      if (CanDelete != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) CanDelete);
+      }
+      if (CanListAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) CanListAccess);
+      }
+      if (CanUpdateAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) CanUpdateAccess);
+      }
+      if (CanChangeOwnership != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) CanChangeOwnership);
+      }
+      if (CanEditRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) CanEditRecords);
+      }
+      if (CanViewRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) CanViewRecords);
+      }
+      if (CanApproveAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(72);
+        output.WriteEnum((int) CanApproveAccess);
+      }
+      if (CanRequestAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(80);
+        output.WriteEnum((int) CanRequestAccess);
+      }
+      if (CanUpdateSetting != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(88);
+        output.WriteEnum((int) CanUpdateSetting);
+      }
+      if (CanListRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(96);
+        output.WriteEnum((int) CanListRecords);
+      }
+      if (CanListFolders != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(104);
+        output.WriteEnum((int) CanListFolders);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (CanAdd != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanAdd);
+      }
+      if (CanRemove != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanRemove);
+      }
+      if (CanDelete != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanDelete);
+      }
+      if (CanListAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanListAccess);
+      }
+      if (CanUpdateAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanUpdateAccess);
+      }
+      if (CanChangeOwnership != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanChangeOwnership);
+      }
+      if (CanEditRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanEditRecords);
+      }
+      if (CanViewRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanViewRecords);
+      }
+      if (CanApproveAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanApproveAccess);
+      }
+      if (CanRequestAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanRequestAccess);
+      }
+      if (CanUpdateSetting != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanUpdateSetting);
+      }
+      if (CanListRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanListRecords);
+      }
+      if (CanListFolders != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanListFolders);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Capabilities other) {
+      if (other == null) {
+        return;
+      }
+      if (other.CanAdd != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanAdd = other.CanAdd;
+      }
+      if (other.CanRemove != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanRemove = other.CanRemove;
+      }
+      if (other.CanDelete != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanDelete = other.CanDelete;
+      }
+      if (other.CanListAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanListAccess = other.CanListAccess;
+      }
+      if (other.CanUpdateAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanUpdateAccess = other.CanUpdateAccess;
+      }
+      if (other.CanChangeOwnership != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanChangeOwnership = other.CanChangeOwnership;
+      }
+      if (other.CanEditRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanEditRecords = other.CanEditRecords;
+      }
+      if (other.CanViewRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanViewRecords = other.CanViewRecords;
+      }
+      if (other.CanApproveAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanApproveAccess = other.CanApproveAccess;
+      }
+      if (other.CanRequestAccess != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanRequestAccess = other.CanRequestAccess;
+      }
+      if (other.CanUpdateSetting != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanUpdateSetting = other.CanUpdateSetting;
+      }
+      if (other.CanListRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanListRecords = other.CanListRecords;
+      }
+      if (other.CanListFolders != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanListFolders = other.CanListFolders;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            CanAdd = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            CanRemove = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            CanDelete = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            CanListAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            CanUpdateAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            CanChangeOwnership = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 56: {
+            CanEditRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            CanViewRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 72: {
+            CanApproveAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 80: {
+            CanRequestAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 88: {
+            CanUpdateSetting = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 96: {
+            CanListRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 104: {
+            CanListFolders = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            CanAdd = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            CanRemove = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            CanDelete = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            CanListAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            CanUpdateAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            CanChangeOwnership = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 56: {
+            CanEditRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            CanViewRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 72: {
+            CanApproveAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 80: {
+            CanRequestAccess = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 88: {
+            CanUpdateSetting = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 96: {
+            CanListRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 104: {
+            CanListFolders = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderRecordUpdateRequest : pb::IMessage<FolderRecordUpdateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderRecordUpdateRequest> _parser = new pb::MessageParser<FolderRecordUpdateRequest>(() => new FolderRecordUpdateRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderRecordUpdateRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[39]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateRequest(FolderRecordUpdateRequest other) : this() {
+      folderUid_ = other.folderUid_;
+      addRecords_ = other.addRecords_.Clone();
+      updateRecords_ = other.updateRecords_.Clone();
+      removeRecords_ = other.removeRecords_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateRequest Clone() {
+      return new FolderRecordUpdateRequest(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "addRecords" field.</summary>
+    public const int AddRecordsFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Folder.RecordMetadata> _repeated_addRecords_codec
+        = pb::FieldCodec.ForMessage(18, global::Folder.RecordMetadata.Parser);
+    private readonly pbc::RepeatedField<global::Folder.RecordMetadata> addRecords_ = new pbc::RepeatedField<global::Folder.RecordMetadata>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.RecordMetadata> AddRecords {
+      get { return addRecords_; }
+    }
+
+    /// <summary>Field number for the "updateRecords" field.</summary>
+    public const int UpdateRecordsFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Folder.RecordMetadata> _repeated_updateRecords_codec
+        = pb::FieldCodec.ForMessage(26, global::Folder.RecordMetadata.Parser);
+    private readonly pbc::RepeatedField<global::Folder.RecordMetadata> updateRecords_ = new pbc::RepeatedField<global::Folder.RecordMetadata>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.RecordMetadata> UpdateRecords {
+      get { return updateRecords_; }
+    }
+
+    /// <summary>Field number for the "removeRecords" field.</summary>
+    public const int RemoveRecordsFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Folder.RecordMetadata> _repeated_removeRecords_codec
+        = pb::FieldCodec.ForMessage(34, global::Folder.RecordMetadata.Parser);
+    private readonly pbc::RepeatedField<global::Folder.RecordMetadata> removeRecords_ = new pbc::RepeatedField<global::Folder.RecordMetadata>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.RecordMetadata> RemoveRecords {
+      get { return removeRecords_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderRecordUpdateRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderRecordUpdateRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if(!addRecords_.Equals(other.addRecords_)) return false;
+      if(!updateRecords_.Equals(other.updateRecords_)) return false;
+      if(!removeRecords_.Equals(other.removeRecords_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      hash ^= addRecords_.GetHashCode();
+      hash ^= updateRecords_.GetHashCode();
+      hash ^= removeRecords_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      addRecords_.WriteTo(output, _repeated_addRecords_codec);
+      updateRecords_.WriteTo(output, _repeated_updateRecords_codec);
+      removeRecords_.WriteTo(output, _repeated_removeRecords_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      addRecords_.WriteTo(ref output, _repeated_addRecords_codec);
+      updateRecords_.WriteTo(ref output, _repeated_updateRecords_codec);
+      removeRecords_.WriteTo(ref output, _repeated_removeRecords_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      size += addRecords_.CalculateSize(_repeated_addRecords_codec);
+      size += updateRecords_.CalculateSize(_repeated_updateRecords_codec);
+      size += removeRecords_.CalculateSize(_repeated_removeRecords_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderRecordUpdateRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      addRecords_.Add(other.addRecords_);
+      updateRecords_.Add(other.updateRecords_);
+      removeRecords_.Add(other.removeRecords_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            addRecords_.AddEntriesFrom(input, _repeated_addRecords_codec);
+            break;
+          }
+          case 26: {
+            updateRecords_.AddEntriesFrom(input, _repeated_updateRecords_codec);
+            break;
+          }
+          case 34: {
+            removeRecords_.AddEntriesFrom(input, _repeated_removeRecords_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            addRecords_.AddEntriesFrom(ref input, _repeated_addRecords_codec);
+            break;
+          }
+          case 26: {
+            updateRecords_.AddEntriesFrom(ref input, _repeated_updateRecords_codec);
+            break;
+          }
+          case 34: {
+            removeRecords_.AddEntriesFrom(ref input, _repeated_removeRecords_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RecordMetadata : pb::IMessage<RecordMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordMetadata> _parser = new pb::MessageParser<RecordMetadata>(() => new RecordMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[40]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordMetadata(RecordMetadata other) : this() {
+      recordUid_ = other.recordUid_;
+      encryptedRecordKey_ = other.encryptedRecordKey_;
+      encryptedRecordKeyType_ = other.encryptedRecordKeyType_;
+      tlaProperties_ = other.tlaProperties_ != null ? other.tlaProperties_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordMetadata Clone() {
+      return new RecordMetadata(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///*
+    /// The record uid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedRecordKey" field.</summary>
+    public const int EncryptedRecordKeyFieldNumber = 2;
+    private pb::ByteString encryptedRecordKey_ = pb::ByteString.Empty;
+    /// <summary>
+    ///*
+    /// The record key encrypted with the folder key or the user’s data key if the record is located in the Vault root.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString EncryptedRecordKey {
+      get { return encryptedRecordKey_; }
+      set {
+        encryptedRecordKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedRecordKeyType" field.</summary>
+    public const int EncryptedRecordKeyTypeFieldNumber = 3;
+    private global::Folder.EncryptedKeyType encryptedRecordKeyType_ = global::Folder.EncryptedKeyType.NoKey;
+    /// <summary>
+    ///*
+    /// Indicates the encryption scheme used to encrypt the record key.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.EncryptedKeyType EncryptedRecordKeyType {
+      get { return encryptedRecordKeyType_; }
+      set {
+        encryptedRecordKeyType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tlaProperties" field.</summary>
+    public const int TlaPropertiesFieldNumber = 5;
+    private global::Common.Tla.TLAProperties tlaProperties_;
+    /// <summary>
+    ///*
+    /// time limited access settings define expiration, notification and rotation policies.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Common.Tla.TLAProperties TlaProperties {
+      get { return tlaProperties_; }
+      set {
+        tlaProperties_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (EncryptedRecordKey != other.EncryptedRecordKey) return false;
+      if (EncryptedRecordKeyType != other.EncryptedRecordKeyType) return false;
+      if (!object.Equals(TlaProperties, other.TlaProperties)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (EncryptedRecordKey.Length != 0) hash ^= EncryptedRecordKey.GetHashCode();
+      if (EncryptedRecordKeyType != global::Folder.EncryptedKeyType.NoKey) hash ^= EncryptedRecordKeyType.GetHashCode();
+      if (tlaProperties_ != null) hash ^= TlaProperties.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (EncryptedRecordKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) EncryptedRecordKeyType);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (EncryptedRecordKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) EncryptedRecordKeyType);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedRecordKey);
+      }
+      if (EncryptedRecordKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) EncryptedRecordKeyType);
+      }
+      if (tlaProperties_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.EncryptedRecordKey.Length != 0) {
+        EncryptedRecordKey = other.EncryptedRecordKey;
+      }
+      if (other.EncryptedRecordKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        EncryptedRecordKeyType = other.EncryptedRecordKeyType;
+      }
+      if (other.tlaProperties_ != null) {
+        if (tlaProperties_ == null) {
+          TlaProperties = new global::Common.Tla.TLAProperties();
+        }
+        TlaProperties.MergeFrom(other.TlaProperties);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            EncryptedRecordKeyType = (global::Folder.EncryptedKeyType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            EncryptedRecordKeyType = (global::Folder.EncryptedKeyType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderRecord : pb::IMessage<FolderRecord>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderRecord> _parser = new pb::MessageParser<FolderRecord>(() => new FolderRecord());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderRecord> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[41]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecord() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecord(FolderRecord other) : this() {
+      folderUid_ = other.folderUid_;
+      recordMetadata_ = other.recordMetadata_ != null ? other.recordMetadata_.Clone() : null;
+      folderKeyEncryptionType_ = other.folderKeyEncryptionType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecord Clone() {
+      return new FolderRecord(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///*
+    /// the parent folder uid. Can reference the implicit root folder.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "recordMetadata" field.</summary>
+    public const int RecordMetadataFieldNumber = 2;
+    private global::Folder.RecordMetadata recordMetadata_;
+    /// <summary>
+    ///*
+    /// record key and tla information
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.RecordMetadata RecordMetadata {
+      get { return recordMetadata_; }
+      set {
+        recordMetadata_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "folderKeyEncryptionType" field.</summary>
+    public const int FolderKeyEncryptionTypeFieldNumber = 3;
+    private global::Folder.FolderKeyEncryptionType folderKeyEncryptionType_ = global::Folder.FolderKeyEncryptionType.EncryptedByUserKey;
+    /// <summary>
+    ///*
+    /// Indicates the encryption scheme used to encrypt the record key for this folder.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderKeyEncryptionType FolderKeyEncryptionType {
+      get { return folderKeyEncryptionType_; }
+      set {
+        folderKeyEncryptionType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderRecord);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderRecord other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (!object.Equals(RecordMetadata, other.RecordMetadata)) return false;
+      if (FolderKeyEncryptionType != other.FolderKeyEncryptionType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (recordMetadata_ != null) hash ^= RecordMetadata.GetHashCode();
+      if (FolderKeyEncryptionType != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) hash ^= FolderKeyEncryptionType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (recordMetadata_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(RecordMetadata);
+      }
+      if (FolderKeyEncryptionType != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) FolderKeyEncryptionType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (recordMetadata_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(RecordMetadata);
+      }
+      if (FolderKeyEncryptionType != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) FolderKeyEncryptionType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (recordMetadata_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RecordMetadata);
+      }
+      if (FolderKeyEncryptionType != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) FolderKeyEncryptionType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderRecord other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.recordMetadata_ != null) {
+        if (recordMetadata_ == null) {
+          RecordMetadata = new global::Folder.RecordMetadata();
+        }
+        RecordMetadata.MergeFrom(other.RecordMetadata);
+      }
+      if (other.FolderKeyEncryptionType != global::Folder.FolderKeyEncryptionType.EncryptedByUserKey) {
+        FolderKeyEncryptionType = other.FolderKeyEncryptionType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            if (recordMetadata_ == null) {
+              RecordMetadata = new global::Folder.RecordMetadata();
+            }
+            input.ReadMessage(RecordMetadata);
+            break;
+          }
+          case 24: {
+            FolderKeyEncryptionType = (global::Folder.FolderKeyEncryptionType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            if (recordMetadata_ == null) {
+              RecordMetadata = new global::Folder.RecordMetadata();
+            }
+            input.ReadMessage(RecordMetadata);
+            break;
+          }
+          case 24: {
+            FolderKeyEncryptionType = (global::Folder.FolderKeyEncryptionType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderRecordUpdateResponse : pb::IMessage<FolderRecordUpdateResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderRecordUpdateResponse> _parser = new pb::MessageParser<FolderRecordUpdateResponse>(() => new FolderRecordUpdateResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderRecordUpdateResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[42]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResponse(FolderRecordUpdateResponse other) : this() {
+      folderUid_ = other.folderUid_;
+      folderRecordUpdateResult_ = other.folderRecordUpdateResult_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResponse Clone() {
+      return new FolderRecordUpdateResponse(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "folderRecordUpdateResult" field.</summary>
+    public const int FolderRecordUpdateResultFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Folder.FolderRecordUpdateResult> _repeated_folderRecordUpdateResult_codec
+        = pb::FieldCodec.ForMessage(34, global::Folder.FolderRecordUpdateResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderRecordUpdateResult> folderRecordUpdateResult_ = new pbc::RepeatedField<global::Folder.FolderRecordUpdateResult>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderRecordUpdateResult> FolderRecordUpdateResult {
+      get { return folderRecordUpdateResult_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderRecordUpdateResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderRecordUpdateResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if(!folderRecordUpdateResult_.Equals(other.folderRecordUpdateResult_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      hash ^= folderRecordUpdateResult_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      folderRecordUpdateResult_.WriteTo(output, _repeated_folderRecordUpdateResult_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      folderRecordUpdateResult_.WriteTo(ref output, _repeated_folderRecordUpdateResult_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      size += folderRecordUpdateResult_.CalculateSize(_repeated_folderRecordUpdateResult_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderRecordUpdateResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      folderRecordUpdateResult_.Add(other.folderRecordUpdateResult_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            folderRecordUpdateResult_.AddEntriesFrom(input, _repeated_folderRecordUpdateResult_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            folderRecordUpdateResult_.AddEntriesFrom(ref input, _repeated_folderRecordUpdateResult_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderRecordUpdateResult : pb::IMessage<FolderRecordUpdateResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderRecordUpdateResult> _parser = new pb::MessageParser<FolderRecordUpdateResult>(() => new FolderRecordUpdateResult());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderRecordUpdateResult> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[43]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResult() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResult(FolderRecordUpdateResult other) : this() {
+      recordUid_ = other.recordUid_;
+      status_ = other.status_;
+      message_ = other.message_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRecordUpdateResult Clone() {
+      return new FolderRecordUpdateResult(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private global::Folder.FolderModifyStatus status_ = global::Folder.FolderModifyStatus.Success;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderModifyStatus Status {
+      get { return status_; }
+      set {
+        status_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 3;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderRecordUpdateResult);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderRecordUpdateResult other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (Status != other.Status) return false;
+      if (Message != other.Message) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (Status != global::Folder.FolderModifyStatus.Success) hash ^= Status.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderRecordUpdateResult other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.Status != global::Folder.FolderModifyStatus.Success) {
+        Status = other.Status;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAccessData : pb::IMessage<FolderAccessData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAccessData> _parser = new pb::MessageParser<FolderAccessData>(() => new FolderAccessData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAccessData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[44]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessData(FolderAccessData other) : this() {
+      folderUid_ = other.folderUid_;
+      accessTypeUid_ = other.accessTypeUid_;
+      accessType_ = other.accessType_;
+      accessRoleType_ = other.accessRoleType_;
+      folderKey_ = other.folderKey_ != null ? other.folderKey_.Clone() : null;
+      inherited_ = other.inherited_;
+      hidden_ = other.hidden_;
+      permissions_ = other.permissions_ != null ? other.permissions_.Clone() : null;
+      tlaProperties_ = other.tlaProperties_ != null ? other.tlaProperties_.Clone() : null;
+      dateCreated_ = other.dateCreated_;
+      lastModified_ = other.lastModified_;
+      deniedAccess_ = other.deniedAccess_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessData Clone() {
+      return new FolderAccessData(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///The folder uid.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessTypeUid" field.</summary>
+    public const int AccessTypeUidFieldNumber = 2;
+    private pb::ByteString accessTypeUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///The accessor uid (account uid, team uid).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccessTypeUid {
+      get { return accessTypeUid_; }
+      set {
+        accessTypeUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessType" field.</summary>
+    public const int AccessTypeFieldNumber = 3;
+    private global::Folder.AccessType accessType_ = global::Folder.AccessType.AtUnknown;
+    /// <summary>
+    ///The folder access type (user, team).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessType AccessType {
+      get { return accessType_; }
+      set {
+        accessType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "accessRoleType" field.</summary>
+    public const int AccessRoleTypeFieldNumber = 4;
+    private global::Folder.AccessRoleType accessRoleType_ = global::Folder.AccessRoleType.Navigator;
+    /// <summary>
+    ///The access role type.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessRoleType AccessRoleType {
+      get { return accessRoleType_; }
+      set {
+        accessRoleType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "folderKey" field.</summary>
+    public const int FolderKeyFieldNumber = 5;
+    private global::Folder.EncryptedDataKey folderKey_;
+    /// <summary>
+    ///The folder key. Not required when removing access.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.EncryptedDataKey FolderKey {
+      get { return folderKey_; }
+      set {
+        folderKey_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "inherited" field.</summary>
+    public const int InheritedFieldNumber = 6;
+    private bool inherited_;
+    /// <summary>
+    ///This is used only to unpin permissions.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Inherited {
+      get { return inherited_; }
+      set {
+        inherited_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hidden" field.</summary>
+    public const int HiddenFieldNumber = 7;
+    private bool hidden_;
+    /// <summary>
+    ///This is used to hide the folder access.  Default false (only use for update).\
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Hidden {
+      get { return hidden_; }
+      set {
+        hidden_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "permissions" field.</summary>
+    public const int PermissionsFieldNumber = 8;
+    private global::Folder.FolderPermissions permissions_;
+    /// <summary>
+    /// This is used internally only.  Clients don't use this property.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderPermissions Permissions {
+      get { return permissions_; }
+      set {
+        permissions_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tlaProperties" field.</summary>
+    public const int TlaPropertiesFieldNumber = 9;
+    private global::Common.Tla.TLAProperties tlaProperties_;
+    /// <summary>
+    /// This defines expiration, notification and rotation policies.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Common.Tla.TLAProperties TlaProperties {
+      get { return tlaProperties_; }
+      set {
+        tlaProperties_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "dateCreated" field.</summary>
+    public const int DateCreatedFieldNumber = 10;
+    private long dateCreated_;
+    /// <summary>
+    ///This is used by the backend to when retrieving the data from the repository.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DateCreated {
+      get { return dateCreated_; }
+      set {
+        dateCreated_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "lastModified" field.</summary>
+    public const int LastModifiedFieldNumber = 11;
+    private long lastModified_;
+    /// <summary>
+    ///This is used by the backend to when retrieving the data from the repository.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long LastModified {
+      get { return lastModified_; }
+      set {
+        lastModified_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "deniedAccess" field.</summary>
+    public const int DeniedAccessFieldNumber = 12;
+    private bool deniedAccess_;
+    /// <summary>
+    ///Explicit deny for this accessor on this folder.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool DeniedAccess {
+      get { return deniedAccess_; }
+      set {
+        deniedAccess_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAccessData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAccessData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (AccessTypeUid != other.AccessTypeUid) return false;
+      if (AccessType != other.AccessType) return false;
+      if (AccessRoleType != other.AccessRoleType) return false;
+      if (!object.Equals(FolderKey, other.FolderKey)) return false;
+      if (Inherited != other.Inherited) return false;
+      if (Hidden != other.Hidden) return false;
+      if (!object.Equals(Permissions, other.Permissions)) return false;
+      if (!object.Equals(TlaProperties, other.TlaProperties)) return false;
+      if (DateCreated != other.DateCreated) return false;
+      if (LastModified != other.LastModified) return false;
+      if (DeniedAccess != other.DeniedAccess) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (AccessTypeUid.Length != 0) hash ^= AccessTypeUid.GetHashCode();
+      if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) hash ^= AccessRoleType.GetHashCode();
+      if (folderKey_ != null) hash ^= FolderKey.GetHashCode();
+      if (Inherited != false) hash ^= Inherited.GetHashCode();
+      if (Hidden != false) hash ^= Hidden.GetHashCode();
+      if (permissions_ != null) hash ^= Permissions.GetHashCode();
+      if (tlaProperties_ != null) hash ^= TlaProperties.GetHashCode();
+      if (DateCreated != 0L) hash ^= DateCreated.GetHashCode();
+      if (LastModified != 0L) hash ^= LastModified.GetHashCode();
+      if (DeniedAccess != false) hash ^= DeniedAccess.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (folderKey_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(FolderKey);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(Hidden);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Permissions);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(TlaProperties);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(80);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(88);
+        output.WriteInt64(LastModified);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(DeniedAccess);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (folderKey_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(FolderKey);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(Hidden);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Permissions);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(TlaProperties);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(80);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(88);
+        output.WriteInt64(LastModified);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(DeniedAccess);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (AccessTypeUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessType);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessRoleType);
+      }
+      if (folderKey_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(FolderKey);
+      }
+      if (Inherited != false) {
+        size += 1 + 1;
+      }
+      if (Hidden != false) {
+        size += 1 + 1;
+      }
+      if (permissions_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Permissions);
+      }
+      if (tlaProperties_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TlaProperties);
+      }
+      if (DateCreated != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(DateCreated);
+      }
+      if (LastModified != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastModified);
+      }
+      if (DeniedAccess != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAccessData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.AccessTypeUid.Length != 0) {
+        AccessTypeUid = other.AccessTypeUid;
+      }
+      if (other.AccessType != global::Folder.AccessType.AtUnknown) {
+        AccessType = other.AccessType;
+      }
+      if (other.AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        AccessRoleType = other.AccessRoleType;
+      }
+      if (other.folderKey_ != null) {
+        if (folderKey_ == null) {
+          FolderKey = new global::Folder.EncryptedDataKey();
+        }
+        FolderKey.MergeFrom(other.FolderKey);
+      }
+      if (other.Inherited != false) {
+        Inherited = other.Inherited;
+      }
+      if (other.Hidden != false) {
+        Hidden = other.Hidden;
+      }
+      if (other.permissions_ != null) {
+        if (permissions_ == null) {
+          Permissions = new global::Folder.FolderPermissions();
+        }
+        Permissions.MergeFrom(other.Permissions);
+      }
+      if (other.tlaProperties_ != null) {
+        if (tlaProperties_ == null) {
+          TlaProperties = new global::Common.Tla.TLAProperties();
+        }
+        TlaProperties.MergeFrom(other.TlaProperties);
+      }
+      if (other.DateCreated != 0L) {
+        DateCreated = other.DateCreated;
+      }
+      if (other.LastModified != 0L) {
+        LastModified = other.LastModified;
+      }
+      if (other.DeniedAccess != false) {
+        DeniedAccess = other.DeniedAccess;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            if (folderKey_ == null) {
+              FolderKey = new global::Folder.EncryptedDataKey();
+            }
+            input.ReadMessage(FolderKey);
+            break;
+          }
+          case 48: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 66: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+          case 74: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+          case 80: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 88: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+          case 96: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            if (folderKey_ == null) {
+              FolderKey = new global::Folder.EncryptedDataKey();
+            }
+            input.ReadMessage(FolderKey);
+            break;
+          }
+          case 48: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 66: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+          case 74: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+          case 80: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 88: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+          case 96: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RevokedAccess : pb::IMessage<RevokedAccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RevokedAccess> _parser = new pb::MessageParser<RevokedAccess>(() => new RevokedAccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RevokedAccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[45]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RevokedAccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RevokedAccess(RevokedAccess other) : this() {
+      folderUid_ = other.folderUid_;
+      actorUid_ = other.actorUid_;
+      accessType_ = other.accessType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RevokedAccess Clone() {
+      return new RevokedAccess(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///* the uid of the folder whose access have been revoked 
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "actorUid" field.</summary>
+    public const int ActorUidFieldNumber = 2;
+    private pb::ByteString actorUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///* the uid of actor whose access has been revoked. can represent a Team or a User (an account) 
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ActorUid {
+      get { return actorUid_; }
+      set {
+        actorUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessType" field.</summary>
+    public const int AccessTypeFieldNumber = 3;
+    private global::Folder.AccessType accessType_ = global::Folder.AccessType.AtUnknown;
+    /// <summary>
+    ///* discriminant to distinguish between user (account) and team 
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessType AccessType {
+      get { return accessType_; }
+      set {
+        accessType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RevokedAccess);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RevokedAccess other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (ActorUid != other.ActorUid) return false;
+      if (AccessType != other.AccessType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (ActorUid.Length != 0) hash ^= ActorUid.GetHashCode();
+      if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ActorUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ActorUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (ActorUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ActorUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (ActorUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ActorUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RevokedAccess other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.ActorUid.Length != 0) {
+        ActorUid = other.ActorUid;
+      }
+      if (other.AccessType != global::Folder.AccessType.AtUnknown) {
+        AccessType = other.AccessType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ActorUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ActorUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderRemoved : pb::IMessage<FolderRemoved>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderRemoved> _parser = new pb::MessageParser<FolderRemoved>(() => new FolderRemoved());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderRemoved> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[46]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRemoved() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRemoved(FolderRemoved other) : this() {
+      folderUid_ = other.folderUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderRemoved Clone() {
+      return new FolderRemoved(this);
+    }
+
+    /// <summary>Field number for the "folder_uid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///* the uid of the folder that is either moved to trash or permanently deleted 
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderRemoved);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderRemoved other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderRemoved other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RecordAccessData : pb::IMessage<RecordAccessData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordAccessData> _parser = new pb::MessageParser<RecordAccessData>(() => new RecordAccessData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordAccessData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[47]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordAccessData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordAccessData(RecordAccessData other) : this() {
+      accessTypeUid_ = other.accessTypeUid_;
+      accessType_ = other.accessType_;
+      recordUid_ = other.recordUid_;
+      accessRoleType_ = other.accessRoleType_;
+      owner_ = other.owner_;
+      inherited_ = other.inherited_;
+      hidden_ = other.hidden_;
+      deniedAccess_ = other.deniedAccess_;
+      canViewTitle_ = other.canViewTitle_;
+      canEdit_ = other.canEdit_;
+      canView_ = other.canView_;
+      canListAccess_ = other.canListAccess_;
+      canUpdateAccess_ = other.canUpdateAccess_;
+      canDelete_ = other.canDelete_;
+      canChangeOwnership_ = other.canChangeOwnership_;
+      canRequestAccess_ = other.canRequestAccess_;
+      canApproveAccess_ = other.canApproveAccess_;
+      dateCreated_ = other.dateCreated_;
+      lastModified_ = other.lastModified_;
+      tlaProperties_ = other.tlaProperties_ != null ? other.tlaProperties_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordAccessData Clone() {
+      return new RecordAccessData(this);
+    }
+
+    /// <summary>Field number for the "accessTypeUid" field.</summary>
+    public const int AccessTypeUidFieldNumber = 1;
+    private pb::ByteString accessTypeUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccessTypeUid {
+      get { return accessTypeUid_; }
+      set {
+        accessTypeUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessType" field.</summary>
+    public const int AccessTypeFieldNumber = 2;
+    private global::Folder.AccessType accessType_ = global::Folder.AccessType.AtUnknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessType AccessType {
+      get { return accessType_; }
+      set {
+        accessType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 3;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessRoleType" field.</summary>
+    public const int AccessRoleTypeFieldNumber = 4;
+    private global::Folder.AccessRoleType accessRoleType_ = global::Folder.AccessRoleType.Navigator;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessRoleType AccessRoleType {
+      get { return accessRoleType_; }
+      set {
+        accessRoleType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "owner" field.</summary>
+    public const int OwnerFieldNumber = 5;
+    private bool owner_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Owner {
+      get { return owner_; }
+      set {
+        owner_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "inherited" field.</summary>
+    public const int InheritedFieldNumber = 6;
+    private bool inherited_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Inherited {
+      get { return inherited_; }
+      set {
+        inherited_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hidden" field.</summary>
+    public const int HiddenFieldNumber = 7;
+    private bool hidden_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Hidden {
+      get { return hidden_; }
+      set {
+        hidden_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "deniedAccess" field.</summary>
+    public const int DeniedAccessFieldNumber = 8;
+    private bool deniedAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool DeniedAccess {
+      get { return deniedAccess_; }
+      set {
+        deniedAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_view_title" field.</summary>
+    public const int CanViewTitleFieldNumber = 9;
+    private bool canViewTitle_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanViewTitle {
+      get { return canViewTitle_; }
+      set {
+        canViewTitle_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_edit" field.</summary>
+    public const int CanEditFieldNumber = 10;
+    private bool canEdit_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanEdit {
+      get { return canEdit_; }
+      set {
+        canEdit_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_view" field.</summary>
+    public const int CanViewFieldNumber = 11;
+    private bool canView_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanView {
+      get { return canView_; }
+      set {
+        canView_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_list_access" field.</summary>
+    public const int CanListAccessFieldNumber = 12;
+    private bool canListAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanListAccess {
+      get { return canListAccess_; }
+      set {
+        canListAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_update_access" field.</summary>
+    public const int CanUpdateAccessFieldNumber = 13;
+    private bool canUpdateAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanUpdateAccess {
+      get { return canUpdateAccess_; }
+      set {
+        canUpdateAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_delete" field.</summary>
+    public const int CanDeleteFieldNumber = 14;
+    private bool canDelete_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanDelete {
+      get { return canDelete_; }
+      set {
+        canDelete_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_change_ownership" field.</summary>
+    public const int CanChangeOwnershipFieldNumber = 15;
+    private bool canChangeOwnership_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanChangeOwnership {
+      get { return canChangeOwnership_; }
+      set {
+        canChangeOwnership_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_request_access" field.</summary>
+    public const int CanRequestAccessFieldNumber = 16;
+    private bool canRequestAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanRequestAccess {
+      get { return canRequestAccess_; }
+      set {
+        canRequestAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "can_approve_access" field.</summary>
+    public const int CanApproveAccessFieldNumber = 17;
+    private bool canApproveAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanApproveAccess {
+      get { return canApproveAccess_; }
+      set {
+        canApproveAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "dateCreated" field.</summary>
+    public const int DateCreatedFieldNumber = 18;
+    private long dateCreated_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DateCreated {
+      get { return dateCreated_; }
+      set {
+        dateCreated_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "lastModified" field.</summary>
+    public const int LastModifiedFieldNumber = 19;
+    private long lastModified_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long LastModified {
+      get { return lastModified_; }
+      set {
+        lastModified_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tlaProperties" field.</summary>
+    public const int TlaPropertiesFieldNumber = 20;
+    private global::Common.Tla.TLAProperties tlaProperties_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Common.Tla.TLAProperties TlaProperties {
+      get { return tlaProperties_; }
+      set {
+        tlaProperties_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordAccessData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordAccessData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AccessTypeUid != other.AccessTypeUid) return false;
+      if (AccessType != other.AccessType) return false;
+      if (RecordUid != other.RecordUid) return false;
+      if (AccessRoleType != other.AccessRoleType) return false;
+      if (Owner != other.Owner) return false;
+      if (Inherited != other.Inherited) return false;
+      if (Hidden != other.Hidden) return false;
+      if (DeniedAccess != other.DeniedAccess) return false;
+      if (CanViewTitle != other.CanViewTitle) return false;
+      if (CanEdit != other.CanEdit) return false;
+      if (CanView != other.CanView) return false;
+      if (CanListAccess != other.CanListAccess) return false;
+      if (CanUpdateAccess != other.CanUpdateAccess) return false;
+      if (CanDelete != other.CanDelete) return false;
+      if (CanChangeOwnership != other.CanChangeOwnership) return false;
+      if (CanRequestAccess != other.CanRequestAccess) return false;
+      if (CanApproveAccess != other.CanApproveAccess) return false;
+      if (DateCreated != other.DateCreated) return false;
+      if (LastModified != other.LastModified) return false;
+      if (!object.Equals(TlaProperties, other.TlaProperties)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AccessTypeUid.Length != 0) hash ^= AccessTypeUid.GetHashCode();
+      if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) hash ^= AccessRoleType.GetHashCode();
+      if (Owner != false) hash ^= Owner.GetHashCode();
+      if (Inherited != false) hash ^= Inherited.GetHashCode();
+      if (Hidden != false) hash ^= Hidden.GetHashCode();
+      if (DeniedAccess != false) hash ^= DeniedAccess.GetHashCode();
+      if (CanViewTitle != false) hash ^= CanViewTitle.GetHashCode();
+      if (CanEdit != false) hash ^= CanEdit.GetHashCode();
+      if (CanView != false) hash ^= CanView.GetHashCode();
+      if (CanListAccess != false) hash ^= CanListAccess.GetHashCode();
+      if (CanUpdateAccess != false) hash ^= CanUpdateAccess.GetHashCode();
+      if (CanDelete != false) hash ^= CanDelete.GetHashCode();
+      if (CanChangeOwnership != false) hash ^= CanChangeOwnership.GetHashCode();
+      if (CanRequestAccess != false) hash ^= CanRequestAccess.GetHashCode();
+      if (CanApproveAccess != false) hash ^= CanApproveAccess.GetHashCode();
+      if (DateCreated != 0L) hash ^= DateCreated.GetHashCode();
+      if (LastModified != 0L) hash ^= LastModified.GetHashCode();
+      if (tlaProperties_ != null) hash ^= TlaProperties.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessType);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (Owner != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Owner);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(Hidden);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(DeniedAccess);
+      }
+      if (CanViewTitle != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanViewTitle);
+      }
+      if (CanEdit != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanEdit);
+      }
+      if (CanView != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanView);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanUpdateAccess != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanUpdateAccess);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(112);
+        output.WriteBool(CanDelete);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(120);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(128, 1);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(136, 1);
+        output.WriteBool(CanApproveAccess);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(144, 1);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(152, 1);
+        output.WriteInt64(LastModified);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(162, 1);
+        output.WriteMessage(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessType);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (Owner != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Owner);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(Hidden);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(DeniedAccess);
+      }
+      if (CanViewTitle != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanViewTitle);
+      }
+      if (CanEdit != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanEdit);
+      }
+      if (CanView != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanView);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanUpdateAccess != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanUpdateAccess);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(112);
+        output.WriteBool(CanDelete);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(120);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(128, 1);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(136, 1);
+        output.WriteBool(CanApproveAccess);
+      }
+      if (DateCreated != 0L) {
+        output.WriteRawTag(144, 1);
+        output.WriteInt64(DateCreated);
+      }
+      if (LastModified != 0L) {
+        output.WriteRawTag(152, 1);
+        output.WriteInt64(LastModified);
+      }
+      if (tlaProperties_ != null) {
+        output.WriteRawTag(162, 1);
+        output.WriteMessage(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (AccessTypeUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccessTypeUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessType);
+      }
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessRoleType);
+      }
+      if (Owner != false) {
+        size += 1 + 1;
+      }
+      if (Inherited != false) {
+        size += 1 + 1;
+      }
+      if (Hidden != false) {
+        size += 1 + 1;
+      }
+      if (DeniedAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanViewTitle != false) {
+        size += 1 + 1;
+      }
+      if (CanEdit != false) {
+        size += 1 + 1;
+      }
+      if (CanView != false) {
+        size += 1 + 1;
+      }
+      if (CanListAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanUpdateAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanDelete != false) {
+        size += 1 + 1;
+      }
+      if (CanChangeOwnership != false) {
+        size += 1 + 1;
+      }
+      if (CanRequestAccess != false) {
+        size += 2 + 1;
+      }
+      if (CanApproveAccess != false) {
+        size += 2 + 1;
+      }
+      if (DateCreated != 0L) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(DateCreated);
+      }
+      if (LastModified != 0L) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(LastModified);
+      }
+      if (tlaProperties_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(TlaProperties);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordAccessData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AccessTypeUid.Length != 0) {
+        AccessTypeUid = other.AccessTypeUid;
+      }
+      if (other.AccessType != global::Folder.AccessType.AtUnknown) {
+        AccessType = other.AccessType;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        AccessRoleType = other.AccessRoleType;
+      }
+      if (other.Owner != false) {
+        Owner = other.Owner;
+      }
+      if (other.Inherited != false) {
+        Inherited = other.Inherited;
+      }
+      if (other.Hidden != false) {
+        Hidden = other.Hidden;
+      }
+      if (other.DeniedAccess != false) {
+        DeniedAccess = other.DeniedAccess;
+      }
+      if (other.CanViewTitle != false) {
+        CanViewTitle = other.CanViewTitle;
+      }
+      if (other.CanEdit != false) {
+        CanEdit = other.CanEdit;
+      }
+      if (other.CanView != false) {
+        CanView = other.CanView;
+      }
+      if (other.CanListAccess != false) {
+        CanListAccess = other.CanListAccess;
+      }
+      if (other.CanUpdateAccess != false) {
+        CanUpdateAccess = other.CanUpdateAccess;
+      }
+      if (other.CanDelete != false) {
+        CanDelete = other.CanDelete;
+      }
+      if (other.CanChangeOwnership != false) {
+        CanChangeOwnership = other.CanChangeOwnership;
+      }
+      if (other.CanRequestAccess != false) {
+        CanRequestAccess = other.CanRequestAccess;
+      }
+      if (other.CanApproveAccess != false) {
+        CanApproveAccess = other.CanApproveAccess;
+      }
+      if (other.DateCreated != 0L) {
+        DateCreated = other.DateCreated;
+      }
+      if (other.LastModified != 0L) {
+        LastModified = other.LastModified;
+      }
+      if (other.tlaProperties_ != null) {
+        if (tlaProperties_ == null) {
+          TlaProperties = new global::Common.Tla.TLAProperties();
+        }
+        TlaProperties.MergeFrom(other.TlaProperties);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            Owner = input.ReadBool();
+            break;
+          }
+          case 48: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 64: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanViewTitle = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanEdit = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanView = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanUpdateAccess = input.ReadBool();
+            break;
+          }
+          case 112: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 120: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 128: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 136: {
+            CanApproveAccess = input.ReadBool();
+            break;
+          }
+          case 144: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 152: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+          case 162: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            Owner = input.ReadBool();
+            break;
+          }
+          case 48: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 64: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanViewTitle = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanEdit = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanView = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanUpdateAccess = input.ReadBool();
+            break;
+          }
+          case 112: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 120: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 128: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 136: {
+            CanApproveAccess = input.ReadBool();
+            break;
+          }
+          case 144: {
+            DateCreated = input.ReadInt64();
+            break;
+          }
+          case 152: {
+            LastModified = input.ReadInt64();
+            break;
+          }
+          case 162: {
+            if (tlaProperties_ == null) {
+              TlaProperties = new global::Common.Tla.TLAProperties();
+            }
+            input.ReadMessage(TlaProperties);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class AccessData : pb::IMessage<AccessData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<AccessData> _parser = new pb::MessageParser<AccessData>(() => new AccessData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<AccessData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[48]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AccessData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AccessData(AccessData other) : this() {
+      accessTypeUid_ = other.accessTypeUid_;
+      accessRoleType_ = other.accessRoleType_;
+      deniedAccess_ = other.deniedAccess_;
+      inherited_ = other.inherited_;
+      hidden_ = other.hidden_;
+      capabilities_ = other.capabilities_ != null ? other.capabilities_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AccessData Clone() {
+      return new AccessData(this);
+    }
+
+    /// <summary>Field number for the "accessTypeUid" field.</summary>
+    public const int AccessTypeUidFieldNumber = 1;
+    private pb::ByteString accessTypeUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccessTypeUid {
+      get { return accessTypeUid_; }
+      set {
+        accessTypeUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessRoleType" field.</summary>
+    public const int AccessRoleTypeFieldNumber = 2;
+    private global::Folder.AccessRoleType accessRoleType_ = global::Folder.AccessRoleType.Navigator;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessRoleType AccessRoleType {
+      get { return accessRoleType_; }
+      set {
+        accessRoleType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "deniedAccess" field.</summary>
+    public const int DeniedAccessFieldNumber = 3;
+    private bool deniedAccess_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool DeniedAccess {
+      get { return deniedAccess_; }
+      set {
+        deniedAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "inherited" field.</summary>
+    public const int InheritedFieldNumber = 4;
+    private bool inherited_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Inherited {
+      get { return inherited_; }
+      set {
+        inherited_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hidden" field.</summary>
+    public const int HiddenFieldNumber = 5;
+    private bool hidden_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Hidden {
+      get { return hidden_; }
+      set {
+        hidden_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "capabilities" field.</summary>
+    public const int CapabilitiesFieldNumber = 6;
+    private global::Folder.Capabilities capabilities_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.Capabilities Capabilities {
+      get { return capabilities_; }
+      set {
+        capabilities_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as AccessData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(AccessData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AccessTypeUid != other.AccessTypeUid) return false;
+      if (AccessRoleType != other.AccessRoleType) return false;
+      if (DeniedAccess != other.DeniedAccess) return false;
+      if (Inherited != other.Inherited) return false;
+      if (Hidden != other.Hidden) return false;
+      if (!object.Equals(Capabilities, other.Capabilities)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AccessTypeUid.Length != 0) hash ^= AccessTypeUid.GetHashCode();
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) hash ^= AccessRoleType.GetHashCode();
+      if (DeniedAccess != false) hash ^= DeniedAccess.GetHashCode();
+      if (Inherited != false) hash ^= Inherited.GetHashCode();
+      if (Hidden != false) hash ^= Hidden.GetHashCode();
+      if (capabilities_ != null) hash ^= Capabilities.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(DeniedAccess);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Hidden);
+      }
+      if (capabilities_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Capabilities);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AccessTypeUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccessTypeUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessRoleType);
+      }
+      if (DeniedAccess != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(DeniedAccess);
+      }
+      if (Inherited != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(Inherited);
+      }
+      if (Hidden != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Hidden);
+      }
+      if (capabilities_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Capabilities);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (AccessTypeUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccessTypeUid);
+      }
+      if (AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessRoleType);
+      }
+      if (DeniedAccess != false) {
+        size += 1 + 1;
+      }
+      if (Inherited != false) {
+        size += 1 + 1;
+      }
+      if (Hidden != false) {
+        size += 1 + 1;
+      }
+      if (capabilities_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Capabilities);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(AccessData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AccessTypeUid.Length != 0) {
+        AccessTypeUid = other.AccessTypeUid;
+      }
+      if (other.AccessRoleType != global::Folder.AccessRoleType.Navigator) {
+        AccessRoleType = other.AccessRoleType;
+      }
+      if (other.DeniedAccess != false) {
+        DeniedAccess = other.DeniedAccess;
+      }
+      if (other.Inherited != false) {
+        Inherited = other.Inherited;
+      }
+      if (other.Hidden != false) {
+        Hidden = other.Hidden;
+      }
+      if (other.capabilities_ != null) {
+        if (capabilities_ == null) {
+          Capabilities = new global::Folder.Capabilities();
+        }
+        Capabilities.MergeFrom(other.Capabilities);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+          case 32: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 40: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 50: {
+            if (capabilities_ == null) {
+              Capabilities = new global::Folder.Capabilities();
+            }
+            input.ReadMessage(Capabilities);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AccessTypeUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessRoleType = (global::Folder.AccessRoleType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            DeniedAccess = input.ReadBool();
+            break;
+          }
+          case 32: {
+            Inherited = input.ReadBool();
+            break;
+          }
+          case 40: {
+            Hidden = input.ReadBool();
+            break;
+          }
+          case 50: {
+            if (capabilities_ == null) {
+              Capabilities = new global::Folder.Capabilities();
+            }
+            input.ReadMessage(Capabilities);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///*
+  /// Request for rest/vault/folders/v3/access_update end-point.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAccessRequest : pb::IMessage<FolderAccessRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAccessRequest> _parser = new pb::MessageParser<FolderAccessRequest>(() => new FolderAccessRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAccessRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[49]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessRequest(FolderAccessRequest other) : this() {
+      folderAccessAdds_ = other.folderAccessAdds_.Clone();
+      folderAccessUpdates_ = other.folderAccessUpdates_.Clone();
+      folderAccessRemoves_ = other.folderAccessRemoves_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessRequest Clone() {
+      return new FolderAccessRequest(this);
+    }
+
+    /// <summary>Field number for the "folderAccessAdds" field.</summary>
+    public const int FolderAccessAddsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderAccessData> _repeated_folderAccessAdds_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderAccessData.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderAccessData> folderAccessAdds_ = new pbc::RepeatedField<global::Folder.FolderAccessData>();
+    /// <summary>
+    ///The list of folder access to be added.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderAccessData> FolderAccessAdds {
+      get { return folderAccessAdds_; }
+    }
+
+    /// <summary>Field number for the "folderAccessUpdates" field.</summary>
+    public const int FolderAccessUpdatesFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Folder.FolderAccessData> _repeated_folderAccessUpdates_codec
+        = pb::FieldCodec.ForMessage(18, global::Folder.FolderAccessData.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderAccessData> folderAccessUpdates_ = new pbc::RepeatedField<global::Folder.FolderAccessData>();
+    /// <summary>
+    ///The list of folder access to be updated.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderAccessData> FolderAccessUpdates {
+      get { return folderAccessUpdates_; }
+    }
+
+    /// <summary>Field number for the "folderAccessRemoves" field.</summary>
+    public const int FolderAccessRemovesFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Folder.FolderAccessData> _repeated_folderAccessRemoves_codec
+        = pb::FieldCodec.ForMessage(26, global::Folder.FolderAccessData.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderAccessData> folderAccessRemoves_ = new pbc::RepeatedField<global::Folder.FolderAccessData>();
+    /// <summary>
+    ///The list of folder access to be removed.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderAccessData> FolderAccessRemoves {
+      get { return folderAccessRemoves_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAccessRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAccessRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderAccessAdds_.Equals(other.folderAccessAdds_)) return false;
+      if(!folderAccessUpdates_.Equals(other.folderAccessUpdates_)) return false;
+      if(!folderAccessRemoves_.Equals(other.folderAccessRemoves_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderAccessAdds_.GetHashCode();
+      hash ^= folderAccessUpdates_.GetHashCode();
+      hash ^= folderAccessRemoves_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderAccessAdds_.WriteTo(output, _repeated_folderAccessAdds_codec);
+      folderAccessUpdates_.WriteTo(output, _repeated_folderAccessUpdates_codec);
+      folderAccessRemoves_.WriteTo(output, _repeated_folderAccessRemoves_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderAccessAdds_.WriteTo(ref output, _repeated_folderAccessAdds_codec);
+      folderAccessUpdates_.WriteTo(ref output, _repeated_folderAccessUpdates_codec);
+      folderAccessRemoves_.WriteTo(ref output, _repeated_folderAccessRemoves_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderAccessAdds_.CalculateSize(_repeated_folderAccessAdds_codec);
+      size += folderAccessUpdates_.CalculateSize(_repeated_folderAccessUpdates_codec);
+      size += folderAccessRemoves_.CalculateSize(_repeated_folderAccessRemoves_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAccessRequest other) {
+      if (other == null) {
+        return;
+      }
+      folderAccessAdds_.Add(other.folderAccessAdds_);
+      folderAccessUpdates_.Add(other.folderAccessUpdates_);
+      folderAccessRemoves_.Add(other.folderAccessRemoves_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderAccessAdds_.AddEntriesFrom(input, _repeated_folderAccessAdds_codec);
+            break;
+          }
+          case 18: {
+            folderAccessUpdates_.AddEntriesFrom(input, _repeated_folderAccessUpdates_codec);
+            break;
+          }
+          case 26: {
+            folderAccessRemoves_.AddEntriesFrom(input, _repeated_folderAccessRemoves_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderAccessAdds_.AddEntriesFrom(ref input, _repeated_folderAccessAdds_codec);
+            break;
+          }
+          case 18: {
+            folderAccessUpdates_.AddEntriesFrom(ref input, _repeated_folderAccessUpdates_codec);
+            break;
+          }
+          case 26: {
+            folderAccessRemoves_.AddEntriesFrom(ref input, _repeated_folderAccessRemoves_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAccessResult : pb::IMessage<FolderAccessResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAccessResult> _parser = new pb::MessageParser<FolderAccessResult>(() => new FolderAccessResult());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAccessResult> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[50]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResult() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResult(FolderAccessResult other) : this() {
+      folderUid_ = other.folderUid_;
+      accessUid_ = other.accessUid_;
+      accessType_ = other.accessType_;
+      status_ = other.status_;
+      message_ = other.message_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResult Clone() {
+      return new FolderAccessResult(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessUid" field.</summary>
+    public const int AccessUidFieldNumber = 2;
+    private pb::ByteString accessUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccessUid {
+      get { return accessUid_; }
+      set {
+        accessUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessType" field.</summary>
+    public const int AccessTypeFieldNumber = 3;
+    private global::Folder.AccessType accessType_ = global::Folder.AccessType.AtUnknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessType AccessType {
+      get { return accessType_; }
+      set {
+        accessType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 4;
+    private global::Folder.FolderModifyStatus status_ = global::Folder.FolderModifyStatus.Success;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderModifyStatus Status {
+      get { return status_; }
+      set {
+        status_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 5;
+    private string message_ = "";
+    /// <summary>
+    ///error message
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAccessResult);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAccessResult other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (AccessUid != other.AccessUid) return false;
+      if (AccessType != other.AccessType) return false;
+      if (Status != other.Status) return false;
+      if (Message != other.Message) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (AccessUid.Length != 0) hash ^= AccessUid.GetHashCode();
+      if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
+      if (Status != global::Folder.FolderModifyStatus.Success) hash ^= Status.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccessUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccessUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) AccessType);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (AccessUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccessUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessType);
+      }
+      if (Status != global::Folder.FolderModifyStatus.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAccessResult other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.AccessUid.Length != 0) {
+        AccessUid = other.AccessUid;
+      }
+      if (other.AccessType != global::Folder.AccessType.AtUnknown) {
+        AccessType = other.AccessType;
+      }
+      if (other.Status != global::Folder.FolderModifyStatus.Success) {
+        Status = other.Status;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccessUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccessUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            Status = (global::Folder.FolderModifyStatus) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///*
+  /// Response for rest/vault/folders/v3/access_update end-point.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class FolderAccessResponse : pb::IMessage<FolderAccessResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<FolderAccessResponse> _parser = new pb::MessageParser<FolderAccessResponse>(() => new FolderAccessResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<FolderAccessResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[51]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResponse(FolderAccessResponse other) : this() {
+      folderAccessResults_ = other.folderAccessResults_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public FolderAccessResponse Clone() {
+      return new FolderAccessResponse(this);
+    }
+
+    /// <summary>Field number for the "folderAccessResults" field.</summary>
+    public const int FolderAccessResultsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.FolderAccessResult> _repeated_folderAccessResults_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.FolderAccessResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.FolderAccessResult> folderAccessResults_ = new pbc::RepeatedField<global::Folder.FolderAccessResult>();
+    /// <summary>
+    ///Store only error status (not the successful ones)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.FolderAccessResult> FolderAccessResults {
+      get { return folderAccessResults_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as FolderAccessResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(FolderAccessResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!folderAccessResults_.Equals(other.folderAccessResults_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= folderAccessResults_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      folderAccessResults_.WriteTo(output, _repeated_folderAccessResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      folderAccessResults_.WriteTo(ref output, _repeated_folderAccessResults_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += folderAccessResults_.CalculateSize(_repeated_folderAccessResults_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(FolderAccessResponse other) {
+      if (other == null) {
+        return;
+      }
+      folderAccessResults_.Add(other.folderAccessResults_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            folderAccessResults_.AddEntriesFrom(input, _repeated_folderAccessResults_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            folderAccessResults_.AddEntriesFrom(ref input, _repeated_folderAccessResults_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserInfo : pb::IMessage<UserInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserInfo> _parser = new pb::MessageParser<UserInfo>(() => new UserInfo());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserInfo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[52]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserInfo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserInfo(UserInfo other) : this() {
+      accountUid_ = other.accountUid_;
+      username_ = other.username_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserInfo Clone() {
+      return new UserInfo(this);
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 1;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 2;
+    private string username_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserInfo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserInfo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AccountUid != other.AccountUid) return false;
+      if (Username != other.Username) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccountUid);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccountUid);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserInfo other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RecordData : pb::IMessage<RecordData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordData> _parser = new pb::MessageParser<RecordData>(() => new RecordData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[53]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordData(RecordData other) : this() {
+      user_ = other.user_ != null ? other.user_.Clone() : null;
+      data_ = other.data_;
+      recordUid_ = other.recordUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordData Clone() {
+      return new RecordData(this);
+    }
+
+    /// <summary>Field number for the "user" field.</summary>
+    public const int UserFieldNumber = 1;
+    private global::Folder.UserInfo user_;
+    /// <summary>
+    ///owner account uid and username
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.UserInfo User {
+      get { return user_; }
+      set {
+        user_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 2;
+    private pb::ByteString data_ = pb::ByteString.Empty;
+    /// <summary>
+    ///record data
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Data {
+      get { return data_; }
+      set {
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 3;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///record uid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(User, other.User)) return false;
+      if (Data != other.Data) return false;
+      if (RecordUid != other.RecordUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (user_ != null) hash ^= User.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (user_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(User);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (user_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(User);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (user_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(User);
+      }
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
+      }
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.user_ != null) {
+        if (user_ == null) {
+          User = new global::Folder.UserInfo();
+        }
+        User.MergeFrom(other.User);
+      }
+      if (other.Data.Length != 0) {
+        Data = other.Data;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (user_ == null) {
+              User = new global::Folder.UserInfo();
+            }
+            input.ReadMessage(User);
+            break;
+          }
+          case 18: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (user_ == null) {
+              User = new global::Folder.UserInfo();
+            }
+            input.ReadMessage(User);
+            break;
+          }
+          case 18: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///* * Represents a key for a record, which includes the user UID, record UID, and the encrypted key type.
+  /// This is used to identify and manage access to the record's encrypted data.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RecordKey : pb::IMessage<RecordKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordKey> _parser = new pb::MessageParser<RecordKey>(() => new RecordKey());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordKey> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[54]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordKey() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordKey(RecordKey other) : this() {
+      userUid_ = other.userUid_;
+      recordUid_ = other.recordUid_;
+      recordKey_ = other.recordKey_;
+      encryptedKeyType_ = other.encryptedKeyType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordKey Clone() {
+      return new RecordKey(this);
+    }
+
+    /// <summary>Field number for the "user_uid" field.</summary>
+    public const int UserUidFieldNumber = 1;
+    private pb::ByteString userUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString UserUid {
+      get { return userUid_; }
+      set {
+        userUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "record_uid" field.</summary>
+    public const int RecordUidFieldNumber = 2;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "record_key" field.</summary>
+    public const int RecordKey_FieldNumber = 3;
+    private pb::ByteString recordKey_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordKey_ {
+      get { return recordKey_; }
+      set {
+        recordKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encrypted_key_type" field.</summary>
+    public const int EncryptedKeyTypeFieldNumber = 4;
+    private global::Folder.EncryptedKeyType encryptedKeyType_ = global::Folder.EncryptedKeyType.NoKey;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.EncryptedKeyType EncryptedKeyType {
+      get { return encryptedKeyType_; }
+      set {
+        encryptedKeyType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordKey);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordKey other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (UserUid != other.UserUid) return false;
+      if (RecordUid != other.RecordUid) return false;
+      if (RecordKey_ != other.RecordKey_) return false;
+      if (EncryptedKeyType != other.EncryptedKeyType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (UserUid.Length != 0) hash ^= UserUid.GetHashCode();
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (RecordKey_.Length != 0) hash ^= RecordKey_.GetHashCode();
+      if (EncryptedKeyType != global::Folder.EncryptedKeyType.NoKey) hash ^= EncryptedKeyType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (UserUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(UserUid);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RecordUid);
+      }
+      if (RecordKey_.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordKey_);
+      }
+      if (EncryptedKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) EncryptedKeyType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (UserUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(UserUid);
+      }
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RecordUid);
+      }
+      if (RecordKey_.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(RecordKey_);
+      }
+      if (EncryptedKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) EncryptedKeyType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (UserUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(UserUid);
+      }
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (RecordKey_.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordKey_);
+      }
+      if (EncryptedKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) EncryptedKeyType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordKey other) {
+      if (other == null) {
+        return;
+      }
+      if (other.UserUid.Length != 0) {
+        UserUid = other.UserUid;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.RecordKey_.Length != 0) {
+        RecordKey_ = other.RecordKey_;
+      }
+      if (other.EncryptedKeyType != global::Folder.EncryptedKeyType.NoKey) {
+        EncryptedKeyType = other.EncryptedKeyType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            UserUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            RecordKey_ = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            EncryptedKeyType = (global::Folder.EncryptedKeyType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            UserUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            RecordKey_ = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            EncryptedKeyType = (global::Folder.EncryptedKeyType) input.ReadEnum();
             break;
           }
         }
