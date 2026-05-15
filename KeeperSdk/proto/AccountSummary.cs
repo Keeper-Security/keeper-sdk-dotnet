@@ -27,7 +27,7 @@ namespace AccountSummary {
             "ChRBY2NvdW50U3VtbWFyeS5wcm90bxIOQWNjb3VudFN1bW1hcnkaEEFQSVJl",
             "cXVlc3QucHJvdG8iTgoVQWNjb3VudFN1bW1hcnlSZXF1ZXN0EhYKDnN1bW1h",
             "cnlWZXJzaW9uGAEgASgFEh0KFWluY2x1ZGVSZWNlbnRBY3Rpdml0eRgCIAEo",
-            "CCKwBQoWQWNjb3VudFN1bW1hcnlFbGVtZW50cxIRCgljbGllbnRLZXkYASAB",
+            "CCLMBQoWQWNjb3VudFN1bW1hcnlFbGVtZW50cxIRCgljbGllbnRLZXkYASAB",
             "KAwSKgoIc2V0dGluZ3MYAiABKAsyGC5BY2NvdW50U3VtbWFyeS5TZXR0aW5n",
             "cxIqCghrZXlzSW5mbxgDIAEoCzIYLkFjY291bnRTdW1tYXJ5LktleXNJbmZv",
             "EikKCHN5bmNMb2dzGAQgAygLMhcuQWNjb3VudFN1bW1hcnkuU3luY0xvZxIZ",
@@ -42,111 +42,113 @@ namespace AccountSummary {
             "bhgOIAEoCBIXCg9hY2NvdW50UmVjb3ZlcnkYDyABKAgSHQoVYWNjb3VudFJl",
             "Y292ZXJ5UHJvbXB0GBAgASgIEicKH21pbk1hc3RlclBhc3N3b3JkTGVuZ3Ro",
             "Tm9Qcm9tcHQYESABKAUSFgoOZm9yYmlkS2V5VHlwZTIYEiABKAgSFgoOZm9y",
-            "YmlkS2V5VHlwZTEYEyABKAgiiwMKCkRldmljZUluZm8SHAoUZW5jcnlwdGVk",
-            "RGV2aWNlVG9rZW4YASABKAwSEgoKZGV2aWNlTmFtZRgCIAEoCRIyCgxkZXZp",
-            "Y2VTdGF0dXMYAyABKA4yHC5BdXRoZW50aWNhdGlvbi5EZXZpY2VTdGF0dXMS",
-            "FwoPZGV2aWNlUHVibGljS2V5GAQgASgMEiAKGGVuY3J5cHRlZERhdGFLZXlE",
-            "b05vdFVzZRgFIAEoDBIVCg1jbGllbnRWZXJzaW9uGAYgASgJEhAKCHVzZXJu",
-            "YW1lGAcgASgJEhEKCWlwQWRkcmVzcxgIIAEoCRIaChJhcHByb3ZlUmVxdWVz",
-            "dFRpbWUYCSABKAMSHwoXZW5jcnlwdGVkRGF0YUtleVByZXNlbnQYCiABKAgS",
-            "DwoHZ3JvdXBJZBgLIAEoAxIWCg5kZXZpY2VQbGF0Zm9ybRgMIAEoCRI6ChBj",
-            "bGllbnRGb3JtRmFjdG9yGA0gASgOMiAuQXV0aGVudGljYXRpb24uQ2xpZW50",
-            "Rm9ybUZhY3RvciLBAQoIS2V5c0luZm8SGAoQZW5jcnlwdGlvblBhcmFtcxgB",
-            "IAEoDBIYChBlbmNyeXB0ZWREYXRhS2V5GAIgASgMEhkKEWRhdGFLZXlCYWNr",
-            "dXBEYXRlGAMgASgBEhMKC3VzZXJBdXRoVWlkGAQgASgMEhsKE2VuY3J5cHRl",
-            "ZFByaXZhdGVLZXkYBSABKAwSHgoWZW5jcnlwdGVkRWNjUHJpdmF0ZUtleRgG",
-            "IAEoDBIUCgxlY2NQdWJsaWNLZXkYByABKAwigQEKB1N5bmNMb2cSEwoLY291",
-            "bnRyeU5hbWUYASABKAkSEgoKc2Vjb25kc0FnbxgCIAEoAxISCgpkZXZpY2VO",
-            "YW1lGAMgASgJEhMKC2NvdW50cnlDb2RlGAQgASgJEhEKCWRldmljZVVJRBgF",
-            "IAEoDBIRCglpcEFkZHJlc3MYBiABKAki/QYKB0xpY2Vuc2USGAoQc3Vic2Ny",
-            "aXB0aW9uQ29kZRgBIAEoCRIVCg1wcm9kdWN0VHlwZUlkGAIgASgFEhcKD3By",
-            "b2R1Y3RUeXBlTmFtZRgDIAEoCRIWCg5leHBpcmF0aW9uRGF0ZRgEIAEoCRIe",
-            "ChZzZWNvbmRzVW50aWxFeHBpcmF0aW9uGAUgASgDEhIKCm1heERldmljZXMY",
-            "BiABKAUSFAoMZmlsZVBsYW5UeXBlGAcgASgFEhEKCWJ5dGVzVXNlZBgIIAEo",
-            "AxISCgpieXRlc1RvdGFsGAkgASgDEiUKHXNlY29uZHNVbnRpbFN0b3JhZ2VF",
-            "eHBpcmF0aW9uGAogASgDEh0KFXN0b3JhZ2VFeHBpcmF0aW9uRGF0ZRgLIAEo",
-            "CRIsCiRoYXNBdXRvUmVuZXdhYmxlQXBwc3RvcmVTdWJzY3JpcHRpb24YDCAB",
-            "KAgSEwoLYWNjb3VudFR5cGUYDSABKAUSGAoQdXBsb2Fkc1JlbWFpbmluZxgO",
-            "IAEoBRIUCgxlbnRlcnByaXNlSWQYDyABKAUSEwoLY2hhdEVuYWJsZWQYECAB",
-            "KAgSIAoYYXVkaXRBbmRSZXBvcnRpbmdFbmFibGVkGBEgASgIEiEKGWJyZWFj",
-            "aFdhdGNoRmVhdHVyZURpc2FibGUYEiABKAgSEgoKYWNjb3VudFVpZBgTIAEo",
-            "DBIcChRhbGxvd1BlcnNvbmFsTGljZW5zZRgUIAEoCBISCgpsaWNlbnNlZEJ5",
-            "GBUgASgJEg0KBWVtYWlsGBYgASgJEhoKEmJyZWFjaFdhdGNoRW5hYmxlZBgX",
-            "IAEoCBIaChJicmVhY2hXYXRjaFNjYW5uZWQYGCABKAgSHQoVYnJlYWNoV2F0",
-            "Y2hFeHBpcmF0aW9uGBkgASgDEh4KFmJyZWFjaFdhdGNoRGF0ZUNyZWF0ZWQY",
-            "GiABKAMSJQoFZXJyb3IYGyABKAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQS",
-            "EgoKZXhwaXJhdGlvbhgdIAEoAxIZChFzdG9yYWdlRXhwaXJhdGlvbhgeIAEo",
-            "AxIUCgx1cGxvYWRzQ291bnQYHyABKAUSDQoFdW5pdHMYICABKAUSGQoRcGVu",
-            "ZGluZ0VudGVycHJpc2UYISABKAgSFAoMaXNQYW1FbmFibGVkGCIgASgIEhQK",
-            "DGlzS3NtRW5hYmxlZBgjIAEoCCKjAQoFQWRkT24SFAoMbGljZW5zZUtleUlk",
-            "GAEgASgFEgwKBG5hbWUYAiABKAkSFgoOZXhwaXJhdGlvbkRhdGUYAyABKAMS",
-            "EwoLY3JlYXRlZERhdGUYBCABKAMSDwoHaXNUcmlhbBgFIAEoCBIPCgdlbmFi",
-            "bGVkGAYgASgIEg8KB3NjYW5uZWQYByABKAgSFgoOZmVhdHVyZURpc2FibGUY",
-            "CCABKAgivQkKCFNldHRpbmdzEg0KBWF1ZGl0GAEgASgIEiEKGW11c3RQZXJm",
-            "b3JtQWNjb3VudFNoYXJlQnkYAiABKAMSPgoOc2hhcmVBY2NvdW50VG8YAyAD",
-            "KAsyJi5BY2NvdW50U3VtbWFyeS5NaXNzaW5nQWNjb3VudFNoYXJlS2V5EisK",
-            "BXJ1bGVzGAQgAygLMhwuQWNjb3VudFN1bW1hcnkuUGFzc3dvcmRSdWxlEhoK",
-            "EnBhc3N3b3JkUnVsZXNJbnRybxgFIAEoCRIWCg5hdXRvQmFja3VwRGF5cxgG",
-            "IAEoBRINCgV0aGVtZRgHIAEoCRIPCgdjaGFubmVsGAggASgJEhQKDGNoYW5u",
-            "ZWxWYWx1ZRgJIAEoCRIVCg1yc2FDb25maWd1cmVkGAogASgIEhUKDWVtYWls",
-            "VmVyaWZpZWQYCyABKAgSIgoabWFzdGVyUGFzc3dvcmRMYXN0TW9kaWZpZWQY",
-            "DCABKAESGAoQYWNjb3VudEZvbGRlcktleRgNIAEoDBIxCgxzZWN1cml0eUtl",
-            "eXMYDiADKAsyGy5BY2NvdW50U3VtbWFyeS5TZWN1cml0eUtleRIrCglrZXlW",
-            "YWx1ZXMYDyADKAsyGC5BY2NvdW50U3VtbWFyeS5LZXlWYWx1ZRIPCgdzc29V",
-            "c2VyGBAgASgIEhgKEG9ubGluZUFjY2Vzc09ubHkYESABKAgSHAoUbWFzdGVy",
-            "UGFzc3dvcmRFeHBpcnkYEiABKAUSGQoRdHdvRmFjdG9yUmVxdWlyZWQYEyAB",
-            "KAgSFgoOZGlzYWxsb3dFeHBvcnQYFCABKAgSFQoNcmVzdHJpY3RGaWxlcxgV",
-            "IAEoCBIaChJyZXN0cmljdEFsbFNoYXJpbmcYFiABKAgSFwoPcmVzdHJpY3RT",
-            "aGFyaW5nGBcgASgIEiIKGnJlc3RyaWN0U2hhcmluZ0luY29taW5nQWxsGBgg",
-            "ASgIEikKIXJlc3RyaWN0U2hhcmluZ0luY29taW5nRW50ZXJwcmlzZRgZIAEo",
-            "CBITCgtsb2dvdXRUaW1lchgaIAEoAxIXCg9wZXJzaXN0ZW50TG9naW4YGyAB",
-            "KAgSHAoUaXBEaXNhYmxlQXV0b0FwcHJvdmUYHCABKAgSJAocc2hhcmVEYXRh",
-            "S2V5V2l0aEVjY1B1YmxpY0tleRgdIAEoCBInCh9zaGFyZURhdGFLZXlXaXRo",
-            "RGV2aWNlUHVibGljS2V5GB4gASgIEhoKElJlY29yZFR5cGVzQ291bnRlchgf",
-            "IAEoBRIkChxSZWNvcmRUeXBlc0VudGVycHJpc2VDb3VudGVyGCAgASgFEhoK",
-            "EnJlY29yZFR5cGVzRW5hYmxlZBghIAEoCBIcChRjYW5NYW5hZ2VSZWNvcmRU",
-            "eXBlcxgiIAEoCBIdChVyZWNvcmRUeXBlc1BBTUNvdW50ZXIYIyABKAUSGgoS",
-            "bG9nb3V0VGltZXJNaW51dGVzGCQgASgFEiAKGHNlY3VyaXR5S2V5c05vVXNl",
-            "clZlcmlmeRglIAEoCBI2CghjaGFubmVscxgmIAMoDjIkLkF1dGhlbnRpY2F0",
-            "aW9uLlR3b0ZhY3RvckNoYW5uZWxUeXBlEhkKEXBlcnNvbmFsVXNlcm5hbWVz",
-            "GCcgAygJIiYKCEtleVZhbHVlEgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEo",
-            "CSItCg9LZXlWYWx1ZUJvb2xlYW4SCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIg",
-            "ASgIIioKDEtleVZhbHVlTG9uZxILCgNrZXkYASABKAkSDQoFdmFsdWUYAiAB",
-            "KAMiPQoGUmVzdWx0EhIKCnJlc3VsdENvZGUYASABKAkSDwoHbWVzc2FnZRgC",
-            "IAEoCRIOCgZyZXN1bHQYAyABKAkiwgEKDEVuZm9yY2VtZW50cxIpCgdzdHJp",
-            "bmdzGAEgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUSMQoIYm9vbGVh",
-            "bnMYAiADKAsyHy5BY2NvdW50U3VtbWFyeS5LZXlWYWx1ZUJvb2xlYW4SKwoF",
-            "bG9uZ3MYAyADKAsyHC5BY2NvdW50U3VtbWFyeS5LZXlWYWx1ZUxvbmcSJwoF",
-            "anNvbnMYBCADKAsyGC5BY2NvdW50U3VtbWFyeS5LZXlWYWx1ZSI8ChZNaXNz",
-            "aW5nQWNjb3VudFNoYXJlS2V5Eg8KB3JvbGVfaWQYASABKAMSEQoJcHVibGlj",
-            "S2V5GAIgASgMInUKDFBhc3N3b3JkUnVsZRIQCghydWxlVHlwZRgBIAEoCRIP",
-            "CgdwYXR0ZXJuGAIgASgJEg0KBW1hdGNoGAMgASgIEg8KB21pbmltdW0YBCAB",
-            "KAUSEwoLZGVzY3JpcHRpb24YBSABKAkSDQoFdmFsdWUYBiABKAkilwEKC1Nl",
-            "Y3VyaXR5S2V5EhAKCGRldmljZUlkGAEgASgDEhIKCmRldmljZU5hbWUYAiAB",
-            "KAkSEQoJZGF0ZUFkZGVkGAMgASgDEg8KB2lzVmFsaWQYBCABKAgSPgoSZGV2",
-            "aWNlUmVnaXN0cmF0aW9uGAUgASgLMiIuQWNjb3VudFN1bW1hcnkuRGV2aWNl",
-            "UmVnaXN0cmF0aW9uInkKEkRldmljZVJlZ2lzdHJhdGlvbhIRCglrZXlIYW5k",
-            "bGUYASABKAkSEQoJcHVibGljS2V5GAIgASgMEhcKD2F0dGVzdGF0aW9uQ2Vy",
-            "dBgDIAEoCRIPCgdjb3VudGVyGAQgASgDEhMKC2NvbXByb21pc2VkGAUgASgI",
-            "ImsKBUdyb3VwEg0KBWFkbWluGAEgASgIEh0KFWdyb3VwVmVyaWZpY2F0aW9u",
-            "Q29kZRgCIAEoCRI0Cg1hZG1pbmlzdHJhdG9yGAQgASgLMh0uQWNjb3VudFN1",
-            "bW1hcnkuQWRtaW5pc3RyYXRvciLAAQoNQWRtaW5pc3RyYXRvchIRCglmaXJz",
-            "dE5hbWUYASABKAkSEAoIbGFzdE5hbWUYAiABKAkSDQoFZW1haWwYAyABKAkS",
-            "HAoUY3VycmVudE51bWJlck9mVXNlcnMYBCABKAUSFQoNbnVtYmVyT2ZVc2Vy",
-            "cxgFIAEoBRIYChBzdWJzY3JpcHRpb25Db2RlGAcgASgJEhYKDmV4cGlyYXRp",
-            "b25EYXRlGAggASgJEhQKDHB1cmNoYXNlRGF0ZRgJIAEoCUIqChhjb20ua2Vl",
-            "cGVyc2VjdXJpdHkucHJvdG9CDkFjY291bnRTdW1tYXJ5YgZwcm90bzM="));
+            "YmlkS2V5VHlwZTEYEyABKAgSGgoSZGlzYWxsb3dlZEZlYXR1cmVzGBQgAygJ",
+            "IosDCgpEZXZpY2VJbmZvEhwKFGVuY3J5cHRlZERldmljZVRva2VuGAEgASgM",
+            "EhIKCmRldmljZU5hbWUYAiABKAkSMgoMZGV2aWNlU3RhdHVzGAMgASgOMhwu",
+            "QXV0aGVudGljYXRpb24uRGV2aWNlU3RhdHVzEhcKD2RldmljZVB1YmxpY0tl",
+            "eRgEIAEoDBIgChhlbmNyeXB0ZWREYXRhS2V5RG9Ob3RVc2UYBSABKAwSFQoN",
+            "Y2xpZW50VmVyc2lvbhgGIAEoCRIQCgh1c2VybmFtZRgHIAEoCRIRCglpcEFk",
+            "ZHJlc3MYCCABKAkSGgoSYXBwcm92ZVJlcXVlc3RUaW1lGAkgASgDEh8KF2Vu",
+            "Y3J5cHRlZERhdGFLZXlQcmVzZW50GAogASgIEg8KB2dyb3VwSWQYCyABKAMS",
+            "FgoOZGV2aWNlUGxhdGZvcm0YDCABKAkSOgoQY2xpZW50Rm9ybUZhY3RvchgN",
+            "IAEoDjIgLkF1dGhlbnRpY2F0aW9uLkNsaWVudEZvcm1GYWN0b3IiwQEKCEtl",
+            "eXNJbmZvEhgKEGVuY3J5cHRpb25QYXJhbXMYASABKAwSGAoQZW5jcnlwdGVk",
+            "RGF0YUtleRgCIAEoDBIZChFkYXRhS2V5QmFja3VwRGF0ZRgDIAEoARITCgt1",
+            "c2VyQXV0aFVpZBgEIAEoDBIbChNlbmNyeXB0ZWRQcml2YXRlS2V5GAUgASgM",
+            "Eh4KFmVuY3J5cHRlZEVjY1ByaXZhdGVLZXkYBiABKAwSFAoMZWNjUHVibGlj",
+            "S2V5GAcgASgMIoEBCgdTeW5jTG9nEhMKC2NvdW50cnlOYW1lGAEgASgJEhIK",
+            "CnNlY29uZHNBZ28YAiABKAMSEgoKZGV2aWNlTmFtZRgDIAEoCRITCgtjb3Vu",
+            "dHJ5Q29kZRgEIAEoCRIRCglkZXZpY2VVSUQYBSABKAwSEQoJaXBBZGRyZXNz",
+            "GAYgASgJIv0GCgdMaWNlbnNlEhgKEHN1YnNjcmlwdGlvbkNvZGUYASABKAkS",
+            "FQoNcHJvZHVjdFR5cGVJZBgCIAEoBRIXCg9wcm9kdWN0VHlwZU5hbWUYAyAB",
+            "KAkSFgoOZXhwaXJhdGlvbkRhdGUYBCABKAkSHgoWc2Vjb25kc1VudGlsRXhw",
+            "aXJhdGlvbhgFIAEoAxISCgptYXhEZXZpY2VzGAYgASgFEhQKDGZpbGVQbGFu",
+            "VHlwZRgHIAEoBRIRCglieXRlc1VzZWQYCCABKAMSEgoKYnl0ZXNUb3RhbBgJ",
+            "IAEoAxIlCh1zZWNvbmRzVW50aWxTdG9yYWdlRXhwaXJhdGlvbhgKIAEoAxId",
+            "ChVzdG9yYWdlRXhwaXJhdGlvbkRhdGUYCyABKAkSLAokaGFzQXV0b1JlbmV3",
+            "YWJsZUFwcHN0b3JlU3Vic2NyaXB0aW9uGAwgASgIEhMKC2FjY291bnRUeXBl",
+            "GA0gASgFEhgKEHVwbG9hZHNSZW1haW5pbmcYDiABKAUSFAoMZW50ZXJwcmlz",
+            "ZUlkGA8gASgFEhMKC2NoYXRFbmFibGVkGBAgASgIEiAKGGF1ZGl0QW5kUmVw",
+            "b3J0aW5nRW5hYmxlZBgRIAEoCBIhChlicmVhY2hXYXRjaEZlYXR1cmVEaXNh",
+            "YmxlGBIgASgIEhIKCmFjY291bnRVaWQYEyABKAwSHAoUYWxsb3dQZXJzb25h",
+            "bExpY2Vuc2UYFCABKAgSEgoKbGljZW5zZWRCeRgVIAEoCRINCgVlbWFpbBgW",
+            "IAEoCRIaChJicmVhY2hXYXRjaEVuYWJsZWQYFyABKAgSGgoSYnJlYWNoV2F0",
+            "Y2hTY2FubmVkGBggASgIEh0KFWJyZWFjaFdhdGNoRXhwaXJhdGlvbhgZIAEo",
+            "AxIeChZicmVhY2hXYXRjaERhdGVDcmVhdGVkGBogASgDEiUKBWVycm9yGBsg",
+            "ASgLMhYuQWNjb3VudFN1bW1hcnkuUmVzdWx0EhIKCmV4cGlyYXRpb24YHSAB",
+            "KAMSGQoRc3RvcmFnZUV4cGlyYXRpb24YHiABKAMSFAoMdXBsb2Fkc0NvdW50",
+            "GB8gASgFEg0KBXVuaXRzGCAgASgFEhkKEXBlbmRpbmdFbnRlcnByaXNlGCEg",
+            "ASgIEhQKDGlzUGFtRW5hYmxlZBgiIAEoCBIUCgxpc0tzbUVuYWJsZWQYIyAB",
+            "KAgiowEKBUFkZE9uEhQKDGxpY2Vuc2VLZXlJZBgBIAEoBRIMCgRuYW1lGAIg",
+            "ASgJEhYKDmV4cGlyYXRpb25EYXRlGAMgASgDEhMKC2NyZWF0ZWREYXRlGAQg",
+            "ASgDEg8KB2lzVHJpYWwYBSABKAgSDwoHZW5hYmxlZBgGIAEoCBIPCgdzY2Fu",
+            "bmVkGAcgASgIEhYKDmZlYXR1cmVEaXNhYmxlGAggASgIIvQJCghTZXR0aW5n",
+            "cxINCgVhdWRpdBgBIAEoCBIhChltdXN0UGVyZm9ybUFjY291bnRTaGFyZUJ5",
+            "GAIgASgDEj4KDnNoYXJlQWNjb3VudFRvGAMgAygLMiYuQWNjb3VudFN1bW1h",
+            "cnkuTWlzc2luZ0FjY291bnRTaGFyZUtleRIrCgVydWxlcxgEIAMoCzIcLkFj",
+            "Y291bnRTdW1tYXJ5LlBhc3N3b3JkUnVsZRIaChJwYXNzd29yZFJ1bGVzSW50",
+            "cm8YBSABKAkSFgoOYXV0b0JhY2t1cERheXMYBiABKAUSDQoFdGhlbWUYByAB",
+            "KAkSDwoHY2hhbm5lbBgIIAEoCRIUCgxjaGFubmVsVmFsdWUYCSABKAkSFQoN",
+            "cnNhQ29uZmlndXJlZBgKIAEoCBIVCg1lbWFpbFZlcmlmaWVkGAsgASgIEiIK",
+            "Gm1hc3RlclBhc3N3b3JkTGFzdE1vZGlmaWVkGAwgASgBEhgKEGFjY291bnRG",
+            "b2xkZXJLZXkYDSABKAwSMQoMc2VjdXJpdHlLZXlzGA4gAygLMhsuQWNjb3Vu",
+            "dFN1bW1hcnkuU2VjdXJpdHlLZXkSKwoJa2V5VmFsdWVzGA8gAygLMhguQWNj",
+            "b3VudFN1bW1hcnkuS2V5VmFsdWUSDwoHc3NvVXNlchgQIAEoCBIYChBvbmxp",
+            "bmVBY2Nlc3NPbmx5GBEgASgIEhwKFG1hc3RlclBhc3N3b3JkRXhwaXJ5GBIg",
+            "ASgFEhkKEXR3b0ZhY3RvclJlcXVpcmVkGBMgASgIEhYKDmRpc2FsbG93RXhw",
+            "b3J0GBQgASgIEhUKDXJlc3RyaWN0RmlsZXMYFSABKAgSGgoScmVzdHJpY3RB",
+            "bGxTaGFyaW5nGBYgASgIEhcKD3Jlc3RyaWN0U2hhcmluZxgXIAEoCBIiChpy",
+            "ZXN0cmljdFNoYXJpbmdJbmNvbWluZ0FsbBgYIAEoCBIpCiFyZXN0cmljdFNo",
+            "YXJpbmdJbmNvbWluZ0VudGVycHJpc2UYGSABKAgSEwoLbG9nb3V0VGltZXIY",
+            "GiABKAMSFwoPcGVyc2lzdGVudExvZ2luGBsgASgIEhwKFGlwRGlzYWJsZUF1",
+            "dG9BcHByb3ZlGBwgASgIEiQKHHNoYXJlRGF0YUtleVdpdGhFY2NQdWJsaWNL",
+            "ZXkYHSABKAgSJwofc2hhcmVEYXRhS2V5V2l0aERldmljZVB1YmxpY0tleRge",
+            "IAEoCBIaChJSZWNvcmRUeXBlc0NvdW50ZXIYHyABKAUSJAocUmVjb3JkVHlw",
+            "ZXNFbnRlcnByaXNlQ291bnRlchggIAEoBRIaChJyZWNvcmRUeXBlc0VuYWJs",
+            "ZWQYISABKAgSHAoUY2FuTWFuYWdlUmVjb3JkVHlwZXMYIiABKAgSHQoVcmVj",
+            "b3JkVHlwZXNQQU1Db3VudGVyGCMgASgFEhoKEmxvZ291dFRpbWVyTWludXRl",
+            "cxgkIAEoBRIgChhzZWN1cml0eUtleXNOb1VzZXJWZXJpZnkYJSABKAgSNgoI",
+            "Y2hhbm5lbHMYJiADKA4yJC5BdXRoZW50aWNhdGlvbi5Ud29GYWN0b3JDaGFu",
+            "bmVsVHlwZRIZChFwZXJzb25hbFVzZXJuYW1lcxgnIAMoCRIVCg1tYXhJcERp",
+            "c3RhbmNlGCggASgFEh4KFm1heElwRGlzdGFuY2VFZmZlY3RpdmUYKSABKAUi",
+            "JgoIS2V5VmFsdWUSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJIi0KD0tl",
+            "eVZhbHVlQm9vbGVhbhILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAgiKgoM",
+            "S2V5VmFsdWVMb25nEgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAyI9CgZS",
+            "ZXN1bHQSEgoKcmVzdWx0Q29kZRgBIAEoCRIPCgdtZXNzYWdlGAIgASgJEg4K",
+            "BnJlc3VsdBgDIAEoCSLCAQoMRW5mb3JjZW1lbnRzEikKB3N0cmluZ3MYASAD",
+            "KAsyGC5BY2NvdW50U3VtbWFyeS5LZXlWYWx1ZRIxCghib29sZWFucxgCIAMo",
+            "CzIfLkFjY291bnRTdW1tYXJ5LktleVZhbHVlQm9vbGVhbhIrCgVsb25ncxgD",
+            "IAMoCzIcLkFjY291bnRTdW1tYXJ5LktleVZhbHVlTG9uZxInCgVqc29ucxgE",
+            "IAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVlIjwKFk1pc3NpbmdBY2Nv",
+            "dW50U2hhcmVLZXkSDwoHcm9sZV9pZBgBIAEoAxIRCglwdWJsaWNLZXkYAiAB",
+            "KAwidQoMUGFzc3dvcmRSdWxlEhAKCHJ1bGVUeXBlGAEgASgJEg8KB3BhdHRl",
+            "cm4YAiABKAkSDQoFbWF0Y2gYAyABKAgSDwoHbWluaW11bRgEIAEoBRITCgtk",
+            "ZXNjcmlwdGlvbhgFIAEoCRINCgV2YWx1ZRgGIAEoCSKXAQoLU2VjdXJpdHlL",
+            "ZXkSEAoIZGV2aWNlSWQYASABKAMSEgoKZGV2aWNlTmFtZRgCIAEoCRIRCglk",
+            "YXRlQWRkZWQYAyABKAMSDwoHaXNWYWxpZBgEIAEoCBI+ChJkZXZpY2VSZWdp",
+            "c3RyYXRpb24YBSABKAsyIi5BY2NvdW50U3VtbWFyeS5EZXZpY2VSZWdpc3Ry",
+            "YXRpb24ieQoSRGV2aWNlUmVnaXN0cmF0aW9uEhEKCWtleUhhbmRsZRgBIAEo",
+            "CRIRCglwdWJsaWNLZXkYAiABKAwSFwoPYXR0ZXN0YXRpb25DZXJ0GAMgASgJ",
+            "Eg8KB2NvdW50ZXIYBCABKAMSEwoLY29tcHJvbWlzZWQYBSABKAgiawoFR3Jv",
+            "dXASDQoFYWRtaW4YASABKAgSHQoVZ3JvdXBWZXJpZmljYXRpb25Db2RlGAIg",
+            "ASgJEjQKDWFkbWluaXN0cmF0b3IYBCABKAsyHS5BY2NvdW50U3VtbWFyeS5B",
+            "ZG1pbmlzdHJhdG9yIsABCg1BZG1pbmlzdHJhdG9yEhEKCWZpcnN0TmFtZRgB",
+            "IAEoCRIQCghsYXN0TmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIcChRjdXJy",
+            "ZW50TnVtYmVyT2ZVc2VycxgEIAEoBRIVCg1udW1iZXJPZlVzZXJzGAUgASgF",
+            "EhgKEHN1YnNjcmlwdGlvbkNvZGUYByABKAkSFgoOZXhwaXJhdGlvbkRhdGUY",
+            "CCABKAkSFAoMcHVyY2hhc2VEYXRlGAkgASgJQioKGGNvbS5rZWVwZXJzZWN1",
+            "cml0eS5wcm90b0IOQWNjb3VudFN1bW1hcnliBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AccountSummaryRequest), global::AccountSummary.AccountSummaryRequest.Parser, new[]{ "SummaryVersion", "IncludeRecentActivity" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AccountSummaryElements), global::AccountSummary.AccountSummaryElements.Parser, new[]{ "ClientKey", "Settings", "KeysInfo", "SyncLogs", "IsEnterpriseAdmin", "License", "Group", "Enforcements", "Images", "PersonalLicense", "FixSharedFolderRecords", "Usernames", "Devices", "IsShareAdmin", "AccountRecovery", "AccountRecoveryPrompt", "MinMasterPasswordLengthNoPrompt", "ForbidKeyType2", "ForbidKeyType1" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AccountSummaryElements), global::AccountSummary.AccountSummaryElements.Parser, new[]{ "ClientKey", "Settings", "KeysInfo", "SyncLogs", "IsEnterpriseAdmin", "License", "Group", "Enforcements", "Images", "PersonalLicense", "FixSharedFolderRecords", "Usernames", "Devices", "IsShareAdmin", "AccountRecovery", "AccountRecoveryPrompt", "MinMasterPasswordLengthNoPrompt", "ForbidKeyType2", "ForbidKeyType1", "DisallowedFeatures" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.DeviceInfo), global::AccountSummary.DeviceInfo.Parser, new[]{ "EncryptedDeviceToken", "DeviceName", "DeviceStatus", "DevicePublicKey", "EncryptedDataKeyDoNotUse", "ClientVersion", "Username", "IpAddress", "ApproveRequestTime", "EncryptedDataKeyPresent", "GroupId", "DevicePlatform", "ClientFormFactor" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeysInfo), global::AccountSummary.KeysInfo.Parser, new[]{ "EncryptionParams", "EncryptedDataKey", "DataKeyBackupDate", "UserAuthUid", "EncryptedPrivateKey", "EncryptedEccPrivateKey", "EccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SyncLog), global::AccountSummary.SyncLog.Parser, new[]{ "CountryName", "SecondsAgo", "DeviceName", "CountryCode", "DeviceUID", "IpAddress" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error", "Expiration", "StorageExpiration", "UploadsCount", "Units", "PendingEnterprise", "IsPamEnabled", "IsKsmEnabled" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AddOn), global::AccountSummary.AddOn.Parser, new[]{ "LicenseKeyId", "Name", "ExpirationDate", "CreatedDate", "IsTrial", "Enabled", "Scanned", "FeatureDisable" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove", "ShareDataKeyWithEccPublicKey", "ShareDataKeyWithDevicePublicKey", "RecordTypesCounter", "RecordTypesEnterpriseCounter", "RecordTypesEnabled", "CanManageRecordTypes", "RecordTypesPAMCounter", "LogoutTimerMinutes", "SecurityKeysNoUserVerify", "Channels", "PersonalUsernames" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove", "ShareDataKeyWithEccPublicKey", "ShareDataKeyWithDevicePublicKey", "RecordTypesCounter", "RecordTypesEnterpriseCounter", "RecordTypesEnabled", "CanManageRecordTypes", "RecordTypesPAMCounter", "LogoutTimerMinutes", "SecurityKeysNoUserVerify", "Channels", "PersonalUsernames", "MaxIpDistance", "MaxIpDistanceEffective" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValue), global::AccountSummary.KeyValue.Parser, new[]{ "Key", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValueBoolean), global::AccountSummary.KeyValueBoolean.Parser, new[]{ "Key", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValueLong), global::AccountSummary.KeyValueLong.Parser, new[]{ "Key", "Value" }, null, null, null, null),
@@ -453,6 +455,7 @@ namespace AccountSummary {
       minMasterPasswordLengthNoPrompt_ = other.minMasterPasswordLengthNoPrompt_;
       forbidKeyType2_ = other.forbidKeyType2_;
       forbidKeyType1_ = other.forbidKeyType1_;
+      disallowedFeatures_ = other.disallowedFeatures_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -696,6 +699,17 @@ namespace AccountSummary {
       }
     }
 
+    /// <summary>Field number for the "disallowedFeatures" field.</summary>
+    public const int DisallowedFeaturesFieldNumber = 20;
+    private static readonly pb::FieldCodec<string> _repeated_disallowedFeatures_codec
+        = pb::FieldCodec.ForString(162);
+    private readonly pbc::RepeatedField<string> disallowedFeatures_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> DisallowedFeatures {
+      get { return disallowedFeatures_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -730,6 +744,7 @@ namespace AccountSummary {
       if (MinMasterPasswordLengthNoPrompt != other.MinMasterPasswordLengthNoPrompt) return false;
       if (ForbidKeyType2 != other.ForbidKeyType2) return false;
       if (ForbidKeyType1 != other.ForbidKeyType1) return false;
+      if(!disallowedFeatures_.Equals(other.disallowedFeatures_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -756,6 +771,7 @@ namespace AccountSummary {
       if (MinMasterPasswordLengthNoPrompt != 0) hash ^= MinMasterPasswordLengthNoPrompt.GetHashCode();
       if (ForbidKeyType2 != false) hash ^= ForbidKeyType2.GetHashCode();
       if (ForbidKeyType1 != false) hash ^= ForbidKeyType1.GetHashCode();
+      hash ^= disallowedFeatures_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -838,6 +854,7 @@ namespace AccountSummary {
         output.WriteRawTag(152, 1);
         output.WriteBool(ForbidKeyType1);
       }
+      disallowedFeatures_.WriteTo(output, _repeated_disallowedFeatures_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -912,6 +929,7 @@ namespace AccountSummary {
         output.WriteRawTag(152, 1);
         output.WriteBool(ForbidKeyType1);
       }
+      disallowedFeatures_.WriteTo(ref output, _repeated_disallowedFeatures_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -971,6 +989,7 @@ namespace AccountSummary {
       if (ForbidKeyType1 != false) {
         size += 2 + 1;
       }
+      size += disallowedFeatures_.CalculateSize(_repeated_disallowedFeatures_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1050,6 +1069,7 @@ namespace AccountSummary {
       if (other.ForbidKeyType1 != false) {
         ForbidKeyType1 = other.ForbidKeyType1;
       }
+      disallowedFeatures_.Add(other.disallowedFeatures_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1163,6 +1183,10 @@ namespace AccountSummary {
             ForbidKeyType1 = input.ReadBool();
             break;
           }
+          case 162: {
+            disallowedFeatures_.AddEntriesFrom(input, _repeated_disallowedFeatures_codec);
+            break;
+          }
         }
       }
     #endif
@@ -1274,6 +1298,10 @@ namespace AccountSummary {
           }
           case 152: {
             ForbidKeyType1 = input.ReadBool();
+            break;
+          }
+          case 162: {
+            disallowedFeatures_.AddEntriesFrom(ref input, _repeated_disallowedFeatures_codec);
             break;
           }
         }
@@ -4711,6 +4739,8 @@ namespace AccountSummary {
       securityKeysNoUserVerify_ = other.securityKeysNoUserVerify_;
       channels_ = other.channels_.Clone();
       personalUsernames_ = other.personalUsernames_.Clone();
+      maxIpDistance_ = other.maxIpDistance_;
+      maxIpDistanceEffective_ = other.maxIpDistanceEffective_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -5194,6 +5224,30 @@ namespace AccountSummary {
       get { return personalUsernames_; }
     }
 
+    /// <summary>Field number for the "maxIpDistance" field.</summary>
+    public const int MaxIpDistanceFieldNumber = 40;
+    private int maxIpDistance_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int MaxIpDistance {
+      get { return maxIpDistance_; }
+      set {
+        maxIpDistance_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "maxIpDistanceEffective" field.</summary>
+    public const int MaxIpDistanceEffectiveFieldNumber = 41;
+    private int maxIpDistanceEffective_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int MaxIpDistanceEffective {
+      get { return maxIpDistanceEffective_; }
+      set {
+        maxIpDistanceEffective_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -5248,6 +5302,8 @@ namespace AccountSummary {
       if (SecurityKeysNoUserVerify != other.SecurityKeysNoUserVerify) return false;
       if(!channels_.Equals(other.channels_)) return false;
       if(!personalUsernames_.Equals(other.personalUsernames_)) return false;
+      if (MaxIpDistance != other.MaxIpDistance) return false;
+      if (MaxIpDistanceEffective != other.MaxIpDistanceEffective) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5294,6 +5350,8 @@ namespace AccountSummary {
       if (SecurityKeysNoUserVerify != false) hash ^= SecurityKeysNoUserVerify.GetHashCode();
       hash ^= channels_.GetHashCode();
       hash ^= personalUsernames_.GetHashCode();
+      if (MaxIpDistance != 0) hash ^= MaxIpDistance.GetHashCode();
+      if (MaxIpDistanceEffective != 0) hash ^= MaxIpDistanceEffective.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5450,6 +5508,14 @@ namespace AccountSummary {
       }
       channels_.WriteTo(output, _repeated_channels_codec);
       personalUsernames_.WriteTo(output, _repeated_personalUsernames_codec);
+      if (MaxIpDistance != 0) {
+        output.WriteRawTag(192, 2);
+        output.WriteInt32(MaxIpDistance);
+      }
+      if (MaxIpDistanceEffective != 0) {
+        output.WriteRawTag(200, 2);
+        output.WriteInt32(MaxIpDistanceEffective);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5598,6 +5664,14 @@ namespace AccountSummary {
       }
       channels_.WriteTo(ref output, _repeated_channels_codec);
       personalUsernames_.WriteTo(ref output, _repeated_personalUsernames_codec);
+      if (MaxIpDistance != 0) {
+        output.WriteRawTag(192, 2);
+        output.WriteInt32(MaxIpDistance);
+      }
+      if (MaxIpDistanceEffective != 0) {
+        output.WriteRawTag(200, 2);
+        output.WriteInt32(MaxIpDistanceEffective);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5713,6 +5787,12 @@ namespace AccountSummary {
       }
       size += channels_.CalculateSize(_repeated_channels_codec);
       size += personalUsernames_.CalculateSize(_repeated_personalUsernames_codec);
+      if (MaxIpDistance != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(MaxIpDistance);
+      }
+      if (MaxIpDistanceEffective != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(MaxIpDistanceEffective);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5830,6 +5910,12 @@ namespace AccountSummary {
       }
       channels_.Add(other.channels_);
       personalUsernames_.Add(other.personalUsernames_);
+      if (other.MaxIpDistance != 0) {
+        MaxIpDistance = other.MaxIpDistance;
+      }
+      if (other.MaxIpDistanceEffective != 0) {
+        MaxIpDistanceEffective = other.MaxIpDistanceEffective;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -6006,6 +6092,14 @@ namespace AccountSummary {
             personalUsernames_.AddEntriesFrom(input, _repeated_personalUsernames_codec);
             break;
           }
+          case 320: {
+            MaxIpDistance = input.ReadInt32();
+            break;
+          }
+          case 328: {
+            MaxIpDistanceEffective = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -6180,6 +6274,14 @@ namespace AccountSummary {
           }
           case 314: {
             personalUsernames_.AddEntriesFrom(ref input, _repeated_personalUsernames_codec);
+            break;
+          }
+          case 320: {
+            MaxIpDistance = input.ReadInt32();
+            break;
+          }
+          case 328: {
+            MaxIpDistanceEffective = input.ReadInt32();
             break;
           }
         }
