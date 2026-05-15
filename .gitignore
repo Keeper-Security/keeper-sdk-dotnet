@@ -56,3 +56,4 @@ packages.config
 CLAUDE.md
 .claude
 keeper_db.sqlite
+*.lscache
