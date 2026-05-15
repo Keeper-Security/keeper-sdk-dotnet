@@ -7,6 +7,7 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
 using Records;
+using KeeperSecurity.Vault.Commands;
 
 namespace KeeperSecurity.Vault
 {
@@ -21,6 +22,49 @@ namespace KeeperSecurity.Vault
             IEnumerable<string> recordUids,
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
             => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
+
+        ///<summary>
+        /// Calls <c>get_record_history</c> API and returns who last modified a record and when,
+        /// without requiring vault cache or sync-down.
+        /// <para>
+        /// Unlike <see cref="VaultOnline.GetRecordHistory"/> which needs vault cache
+        /// to decrypt full record content, this method only reads
+        /// <c>Username</c> and <c>ClientModifiedTime</c> from the latest history entry.
+        /// No decryption, no cache needed.
+        /// </para>
+        /// <para>
+        /// Use after <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>
+        /// or <see cref="GetOwnedRecordsAsync"/> passing each <see cref="KeeperRecord.Uid"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="auth">
+        /// Authenticated session — same instance used in
+        /// <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>.
+        /// </param>
+        /// <param name="recordUid">
+        /// UID of the record. Get this from <see cref="KeeperRecord.Uid"/>
+        /// after calling <see cref="GetSharedFolderRecordsAsync(IAuthentication, string, RecordDetailsInclude)"/>.
+        /// </param>
+        /// <returns>
+        /// <see cref="RecordLastModifiedInfo"/> with
+        /// <see cref="RecordLastModifiedInfo.LastModifiedBy"/> (email) and
+        /// <see cref="RecordLastModifiedInfo.LastModifiedTime"/> (unix milliseconds).
+        /// </returns>
+        public static async Task<RecordLastModifiedInfo> GetRecordLastModifiedAsync(IAuthentication auth,string recordUid)
+        {
+            if (auth == null || auth.AuthContext == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(recordUid))
+                throw new ArgumentException("recordUid is required.", nameof(recordUid));
+
+            var rs = await VaultOnline.FetchRecordHistoryResponseAsync(auth, recordUid.Trim()).ConfigureAwait(false);
+            var latest = rs.History?.LastOrDefault();
+            return new RecordLastModifiedInfo(
+            recordUid: recordUid.Trim(),
+            lastModifiedBy: latest?.Username,
+            lastModifiedTime: latest?.ClientModifiedTime ?? 0
+            );
+        }
 
         /// <summary>
         /// Calls <c>vault/get_records_details</c> with <see cref="GetRecordDataWithAccessInfoRequest"/> and decrypts each
@@ -280,6 +324,23 @@ namespace KeeperSecurity.Vault
             public string Udata { get; set; }
             public bool Shared { get; set; }
             string IUid.Uid => RecordUid;
+        }
+    }
+
+    public sealed class RecordLastModifiedInfo
+    {
+        public string RecordUid { get; }
+        public string LastModifiedBy { get; }
+        public long LastModifiedTime { get; }
+
+        public RecordLastModifiedInfo(
+            string recordUid,
+            string lastModifiedBy,
+            long lastModifiedTime)
+        {
+            RecordUid = recordUid;
+            LastModifiedBy = lastModifiedBy;
+            LastModifiedTime = lastModifiedTime;
         }
     }
 }
