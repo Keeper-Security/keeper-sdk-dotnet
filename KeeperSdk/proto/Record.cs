@@ -193,82 +193,85 @@ namespace Records {
             "cmVUZWFtEigKDHNoYXJlTUNUZWFtcxgFIAMoCzISLlJlY29yZHMuU2hhcmVU",
             "ZWFtEjIKFnNoYXJlTUNFbnRlcnByaXNlVXNlcnMYBiADKAsyEi5SZWNvcmRz",
             "LlNoYXJlVXNlchI2ChRzaGFyZUVudGVycHJpc2VOYW1lcxgHIAMoCzIYLlJl",
-            "Y29yZHMuU2hhcmVFbnRlcnByaXNlIqUBCglTaGFyZVVzZXISEAoIdXNlcm5h",
+            "Y29yZHMuU2hhcmVFbnRlcnByaXNlIr0BCglTaGFyZVVzZXISEAoIdXNlcm5h",
             "bWUYASABKAkSEAoIZnVsbG5hbWUYAiABKAkSFAoMZW50ZXJwcmlzZUlkGAMg",
             "ASgFEiQKBnN0YXR1cxgEIAEoDjIULlJlY29yZHMuU2hhcmVTdGF0dXMSFAoM",
             "aXNTaGFyZUFkbWluGAUgASgIEiIKGmlzQWRtaW5PZlNoYXJlZEZvbGRlck93",
-            "bmVyGAYgASgIIkQKCVNoYXJlVGVhbRIQCgh0ZWFtbmFtZRgBIAEoCRIUCgxl",
-            "bnRlcnByaXNlSWQYAiABKAUSDwoHdGVhbVVpZBgDIAEoDCI/Cg9TaGFyZUVu",
-            "dGVycHJpc2USFgoOZW50ZXJwcmlzZW5hbWUYASABKAkSFAoMZW50ZXJwcmlz",
-            "ZUlkGAIgASgFIlMKH1JlY29yZHNPbndlcnNoaXBUcmFuc2ZlclJlcXVlc3QS",
-            "MAoPdHJhbnNmZXJSZWNvcmRzGAEgAygLMhcuUmVjb3Jkcy5UcmFuc2ZlclJl",
-            "Y29yZCJbCg5UcmFuc2ZlclJlY29yZBIQCgh1c2VybmFtZRgBIAEoCRIRCgly",
-            "ZWNvcmRVaWQYAiABKAwSEQoJcmVjb3JkS2V5GAMgASgMEhEKCXVzZUVjY0tl",
-            "eRgEIAEoCCJfCiBSZWNvcmRzT253ZXJzaGlwVHJhbnNmZXJSZXNwb25zZRI7",
-            "ChR0cmFuc2ZlclJlY29yZFN0YXR1cxgBIAMoCzIdLlJlY29yZHMuVHJhbnNm",
-            "ZXJSZWNvcmRTdGF0dXMiXAoUVHJhbnNmZXJSZWNvcmRTdGF0dXMSEAoIdXNl",
-            "cm5hbWUYASABKAkSEQoJcmVjb3JkVWlkGAIgASgMEg4KBnN0YXR1cxgDIAEo",
-            "CRIPCgdtZXNzYWdlGAQgASgJInkKFVJlY29yZHNVbnNoYXJlUmVxdWVzdBI0",
-            "Cg1zaGFyZWRGb2xkZXJzGAEgAygLMh0uUmVjb3Jkcy5SZWNvcmRzVW5zaGFy",
-            "ZUZvbGRlchIqCgV1c2VycxgCIAMoCzIbLlJlY29yZHMuUmVjb3Jkc1Vuc2hh",
-            "cmVVc2VyIoYBChZSZWNvcmRzVW5zaGFyZVJlc3BvbnNlEjoKDXNoYXJlZEZv",
-            "bGRlcnMYASADKAsyIy5SZWNvcmRzLlJlY29yZHNVbnNoYXJlRm9sZGVyU3Rh",
-            "dHVzEjAKBXVzZXJzGAIgAygLMiEuUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZVVz",
-            "ZXJTdGF0dXMiQgoUUmVjb3Jkc1Vuc2hhcmVGb2xkZXISEQoJcmVjb3JkVWlk",
-            "GAEgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDCI7ChJSZWNvcmRzVW5z",
-            "aGFyZVVzZXISEQoJcmVjb3JkVWlkGAEgASgMEhIKCmFjY291bnRVaWQYAiAB",
-            "KAwiSAoaUmVjb3Jkc1Vuc2hhcmVGb2xkZXJTdGF0dXMSEQoJcmVjb3JkVWlk",
-            "GAEgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDCJBChhSZWNvcmRzVW5z",
-            "aGFyZVVzZXJTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEhIKCmFjY291bnRV",
-            "aWQYAiABKAwiWwoaVGltZWRBY2Nlc3NDYWxsYmFja1BheWxvYWQSPQoVdGlt",
-            "ZUxpbWl0ZWRBY2Nlc3NUeXBlGAEgASgOMh4uUmVjb3Jkcy5UaW1lTGltaXRl",
-            "ZEFjY2Vzc1R5cGUi/QEKGFRpbWVMaW1pdGVkQWNjZXNzUmVxdWVzdBISCgph",
-            "Y2NvdW50VWlkGAEgAygMEg8KB3RlYW1VaWQYAiADKAwSEQoJcmVjb3JkVWlk",
-            "GAMgAygMEhcKD3NoYXJlZE9iamVjdFVpZBgEIAEoDBI9ChV0aW1lTGltaXRl",
-            "ZEFjY2Vzc1R5cGUYBSABKA4yHi5SZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNz",
-            "VHlwZRISCgpleHBpcmF0aW9uGAYgASgDEj0KFXRpbWVyTm90aWZpY2F0aW9u",
-            "VHlwZRgHIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmljYXRpb25UeXBlIjcK",
-            "F1RpbWVMaW1pdGVkQWNjZXNzU3RhdHVzEgsKA3VpZBgBIAEoDBIPCgdtZXNz",
-            "YWdlGAIgASgJIuMBChlUaW1lTGltaXRlZEFjY2Vzc1Jlc3BvbnNlEhAKCHJl",
-            "dmlzaW9uGAEgASgDEjoKEHVzZXJBY2Nlc3NTdGF0dXMYAiADKAsyIC5SZWNv",
-            "cmRzLlRpbWVMaW1pdGVkQWNjZXNzU3RhdHVzEjoKEHRlYW1BY2Nlc3NTdGF0",
-            "dXMYAyADKAsyIC5SZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNzU3RhdHVzEjwK",
-            "EnJlY29yZEFjY2Vzc1N0YXR1cxgEIAMoCzIgLlJlY29yZHMuVGltZUxpbWl0",
-            "ZWRBY2Nlc3NTdGF0dXMqaAoPUmVjb3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5E",
-            "QVJEEAASCwoHUlRfVVNFUhABEhEKDVJUX0VOVEVSUFJJU0UQAhIKCgZSVF9Q",
-            "QU0QAxIYChRSVF9QQU1fQ09ORklHVVJBVElPThAEKtEBCg1SZWNvcmRLZXlU",
-            "eXBlEgoKBk5PX0tFWRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsK",
-            "F0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RB",
-            "VEFfS0VZX0dDTRADEh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAE",
-            "Eh0KGUVOQ1JZUFRFRF9CWV9ST09UX0tFWV9DQkMQBRIdChlFTkNSWVBURURf",
-            "QllfUk9PVF9LRVlfR0NNEAYqUAoQUmVjb3JkRm9sZGVyVHlwZRIPCgt1c2Vy",
-            "X2ZvbGRlchAAEhEKDXNoYXJlZF9mb2xkZXIQARIYChRzaGFyZWRfZm9sZGVy",
-            "X2ZvbGRlchACKuwCChJSZWNvcmRNb2RpZnlSZXN1bHQSDgoKUlNfU1VDQ0VT",
-            "UxAAEhIKDlJTX09VVF9PRl9TWU5DEAESFAoQUlNfQUNDRVNTX0RFTklFRBAC",
-            "EhMKD1JTX1NIQVJFX0RFTklFRBADEhQKEFJTX1JFQ09SRF9FWElTVFMQBBIe",
-            "ChpSU19PTERfUkVDT1JEX1ZFUlNJT05fVFlQRRAFEh4KGlJTX05FV19SRUNP",
-            "UkRfVkVSU0lPTl9UWVBFEAYSFgoSUlNfRklMRVNfTk9UX01BVENIEAcSGwoX",
-            "UlNfUkVDT1JEX05PVF9TSEFSRUFCTEUQCBIfChtSU19BVFRBQ0hNRU5UX05P",
-            "VF9TSEFSRUFCTEUQCRIZChVSU19GSUxFX0xJTUlUX1JFQUNIRUQQChIaChZS",
-            "U19TSVpFX0VYQ0VFREVEX0xJTUlUEAsSJAogUlNfT05MWV9PV05FUl9DQU5f",
-            "TU9ESUZZX1NDUklQVFMQDCotCg1GaWxlQWRkUmVzdWx0Eg4KCkZBX1NVQ0NF",
-            "U1MQABIMCghGQV9FUlJPUhABKkMKDUZpbGVHZXRSZXN1bHQSDgoKRkdfU1VD",
-            "Q0VTUxAAEgwKCEZHX0VSUk9SEAESFAoQRkdfQUNDRVNTX0RFTklFRBACKkoK",
-            "FFJlY29yZERldGFpbHNJbmNsdWRlEhMKD0RBVEFfUExVU19TSEFSRRAAEg0K",
-            "CURBVEFfT05MWRABEg4KClNIQVJFX09OTFkQAipiChlDaGVja1NoYXJlQWRt",
-            "aW5PYmplY3RUeXBlEhkKFUNIRUNLX1NBX0lOVkFMSURfVFlQRRAAEhIKDkNI",
-            "RUNLX1NBX09OX1NGEAESFgoSQ0hFQ0tfU0FfT05fUkVDT1JEEAIqMQoLU2hh",
-            "cmVTdGF0dXMSCgoGQUNUSVZFEAASCQoFQkxPQ0sQARILCgdJTlZJVEVEEAIq",
-            "OgoVUmVjb3JkVHJhbnNhY3Rpb25UeXBlEg8KC1JUVF9HRU5FUkFMEAASEAoM",
-            "UlRUX1JPVEFUSU9OEAEq5gEKFVRpbWVMaW1pdGVkQWNjZXNzVHlwZRIkCiBJ",
-            "TlZBTElEX1RJTUVfTElNSVRFRF9BQ0NFU1NfVFlQRRAAEhkKFVVTRVJfQUND",
-            "RVNTX1RPX1JFQ09SRBABEicKI1VTRVJfT1JfVEVBTV9BQ0NFU1NfVE9fU0hB",
-            "UkVERk9MREVSEAISIQodUkVDT1JEX0FDQ0VTU19UT19TSEFSRURGT0xERVIQ",
-            "AxIfChtVU0VSX0FDQ0VTU19UT19TSEFSRURGT0xERVIQBBIfChtURUFNX0FD",
-            "Q0VTU19UT19TSEFSRURGT0xERVIQBSpcChVUaW1lck5vdGlmaWNhdGlvblR5",
-            "cGUSFAoQTk9USUZJQ0FUSU9OX09GRhAAEhAKDE5PVElGWV9PV05FUhABEhsK",
-            "F05PVElGWV9QUklWSUxFR0VEX1VTRVJTEAJCIwoYY29tLmtlZXBlcnNlY3Vy",
-            "aXR5LnByb3RvQgdSZWNvcmRzYgZwcm90bzM="));
+            "bmVyGAYgASgIEhYKDnVzZXJBY2NvdW50VWlkGAcgASgMIkQKCVNoYXJlVGVh",
+            "bRIQCgh0ZWFtbmFtZRgBIAEoCRIUCgxlbnRlcnByaXNlSWQYAiABKAUSDwoH",
+            "dGVhbVVpZBgDIAEoDCI/Cg9TaGFyZUVudGVycHJpc2USFgoOZW50ZXJwcmlz",
+            "ZW5hbWUYASABKAkSFAoMZW50ZXJwcmlzZUlkGAIgASgFIlMKH1JlY29yZHNP",
+            "bndlcnNoaXBUcmFuc2ZlclJlcXVlc3QSMAoPdHJhbnNmZXJSZWNvcmRzGAEg",
+            "AygLMhcuUmVjb3Jkcy5UcmFuc2ZlclJlY29yZCJbCg5UcmFuc2ZlclJlY29y",
+            "ZBIQCgh1c2VybmFtZRgBIAEoCRIRCglyZWNvcmRVaWQYAiABKAwSEQoJcmVj",
+            "b3JkS2V5GAMgASgMEhEKCXVzZUVjY0tleRgEIAEoCCJfCiBSZWNvcmRzT253",
+            "ZXJzaGlwVHJhbnNmZXJSZXNwb25zZRI7ChR0cmFuc2ZlclJlY29yZFN0YXR1",
+            "cxgBIAMoCzIdLlJlY29yZHMuVHJhbnNmZXJSZWNvcmRTdGF0dXMiXAoUVHJh",
+            "bnNmZXJSZWNvcmRTdGF0dXMSEAoIdXNlcm5hbWUYASABKAkSEQoJcmVjb3Jk",
+            "VWlkGAIgASgMEg4KBnN0YXR1cxgDIAEoCRIPCgdtZXNzYWdlGAQgASgJInkK",
+            "FVJlY29yZHNVbnNoYXJlUmVxdWVzdBI0Cg1zaGFyZWRGb2xkZXJzGAEgAygL",
+            "Mh0uUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZUZvbGRlchIqCgV1c2VycxgCIAMo",
+            "CzIbLlJlY29yZHMuUmVjb3Jkc1Vuc2hhcmVVc2VyIoYBChZSZWNvcmRzVW5z",
+            "aGFyZVJlc3BvbnNlEjoKDXNoYXJlZEZvbGRlcnMYASADKAsyIy5SZWNvcmRz",
+            "LlJlY29yZHNVbnNoYXJlRm9sZGVyU3RhdHVzEjAKBXVzZXJzGAIgAygLMiEu",
+            "UmVjb3Jkcy5SZWNvcmRzVW5zaGFyZVVzZXJTdGF0dXMiQgoUUmVjb3Jkc1Vu",
+            "c2hhcmVGb2xkZXISEQoJcmVjb3JkVWlkGAEgASgMEhcKD3NoYXJlZEZvbGRl",
+            "clVpZBgCIAEoDCI7ChJSZWNvcmRzVW5zaGFyZVVzZXISEQoJcmVjb3JkVWlk",
+            "GAEgASgMEhIKCmFjY291bnRVaWQYAiABKAwiSAoaUmVjb3Jkc1Vuc2hhcmVG",
+            "b2xkZXJTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEhcKD3NoYXJlZEZvbGRl",
+            "clVpZBgCIAEoDCJBChhSZWNvcmRzVW5zaGFyZVVzZXJTdGF0dXMSEQoJcmVj",
+            "b3JkVWlkGAEgASgMEhIKCmFjY291bnRVaWQYAiABKAwiWwoaVGltZWRBY2Nl",
+            "c3NDYWxsYmFja1BheWxvYWQSPQoVdGltZUxpbWl0ZWRBY2Nlc3NUeXBlGAEg",
+            "ASgOMh4uUmVjb3Jkcy5UaW1lTGltaXRlZEFjY2Vzc1R5cGUi/QEKGFRpbWVM",
+            "aW1pdGVkQWNjZXNzUmVxdWVzdBISCgphY2NvdW50VWlkGAEgAygMEg8KB3Rl",
+            "YW1VaWQYAiADKAwSEQoJcmVjb3JkVWlkGAMgAygMEhcKD3NoYXJlZE9iamVj",
+            "dFVpZBgEIAEoDBI9ChV0aW1lTGltaXRlZEFjY2Vzc1R5cGUYBSABKA4yHi5S",
+            "ZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNzVHlwZRISCgpleHBpcmF0aW9uGAYg",
+            "ASgDEj0KFXRpbWVyTm90aWZpY2F0aW9uVHlwZRgHIAEoDjIeLlJlY29yZHMu",
+            "VGltZXJOb3RpZmljYXRpb25UeXBlIjcKF1RpbWVMaW1pdGVkQWNjZXNzU3Rh",
+            "dHVzEgsKA3VpZBgBIAEoDBIPCgdtZXNzYWdlGAIgASgJIuMBChlUaW1lTGlt",
+            "aXRlZEFjY2Vzc1Jlc3BvbnNlEhAKCHJldmlzaW9uGAEgASgDEjoKEHVzZXJB",
+            "Y2Nlc3NTdGF0dXMYAiADKAsyIC5SZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNz",
+            "U3RhdHVzEjoKEHRlYW1BY2Nlc3NTdGF0dXMYAyADKAsyIC5SZWNvcmRzLlRp",
+            "bWVMaW1pdGVkQWNjZXNzU3RhdHVzEjwKEnJlY29yZEFjY2Vzc1N0YXR1cxgE",
+            "IAMoCzIgLlJlY29yZHMuVGltZUxpbWl0ZWRBY2Nlc3NTdGF0dXMqaAoPUmVj",
+            "b3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5EQVJEEAASCwoHUlRfVVNFUhABEhEK",
+            "DVJUX0VOVEVSUFJJU0UQAhIKCgZSVF9QQU0QAxIYChRSVF9QQU1fQ09ORklH",
+            "VVJBVElPThAEKtEBCg1SZWNvcmRLZXlUeXBlEgoKBk5PX0tFWRAAEhkKFUVO",
+            "Q1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZUFRFRF9CWV9QVUJMSUNf",
+            "S0VZEAISHQoZRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dDTRADEh8KG0VOQ1JZ",
+            "UFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEEh0KGUVOQ1JZUFRFRF9CWV9ST09U",
+            "X0tFWV9DQkMQBRIdChlFTkNSWVBURURfQllfUk9PVF9LRVlfR0NNEAYqUAoQ",
+            "UmVjb3JkRm9sZGVyVHlwZRIPCgt1c2VyX2ZvbGRlchAAEhEKDXNoYXJlZF9m",
+            "b2xkZXIQARIYChRzaGFyZWRfZm9sZGVyX2ZvbGRlchACKuwCChJSZWNvcmRN",
+            "b2RpZnlSZXN1bHQSDgoKUlNfU1VDQ0VTUxAAEhIKDlJTX09VVF9PRl9TWU5D",
+            "EAESFAoQUlNfQUNDRVNTX0RFTklFRBACEhMKD1JTX1NIQVJFX0RFTklFRBAD",
+            "EhQKEFJTX1JFQ09SRF9FWElTVFMQBBIeChpSU19PTERfUkVDT1JEX1ZFUlNJ",
+            "T05fVFlQRRAFEh4KGlJTX05FV19SRUNPUkRfVkVSU0lPTl9UWVBFEAYSFgoS",
+            "UlNfRklMRVNfTk9UX01BVENIEAcSGwoXUlNfUkVDT1JEX05PVF9TSEFSRUFC",
+            "TEUQCBIfChtSU19BVFRBQ0hNRU5UX05PVF9TSEFSRUFCTEUQCRIZChVSU19G",
+            "SUxFX0xJTUlUX1JFQUNIRUQQChIaChZSU19TSVpFX0VYQ0VFREVEX0xJTUlU",
+            "EAsSJAogUlNfT05MWV9PV05FUl9DQU5fTU9ESUZZX1NDUklQVFMQDCotCg1G",
+            "aWxlQWRkUmVzdWx0Eg4KCkZBX1NVQ0NFU1MQABIMCghGQV9FUlJPUhABKkMK",
+            "DUZpbGVHZXRSZXN1bHQSDgoKRkdfU1VDQ0VTUxAAEgwKCEZHX0VSUk9SEAES",
+            "FAoQRkdfQUNDRVNTX0RFTklFRBACKkoKFFJlY29yZERldGFpbHNJbmNsdWRl",
+            "EhMKD0RBVEFfUExVU19TSEFSRRAAEg0KCURBVEFfT05MWRABEg4KClNIQVJF",
+            "X09OTFkQAipiChlDaGVja1NoYXJlQWRtaW5PYmplY3RUeXBlEhkKFUNIRUNL",
+            "X1NBX0lOVkFMSURfVFlQRRAAEhIKDkNIRUNLX1NBX09OX1NGEAESFgoSQ0hF",
+            "Q0tfU0FfT05fUkVDT1JEEAIqMQoLU2hhcmVTdGF0dXMSCgoGQUNUSVZFEAAS",
+            "CQoFQkxPQ0sQARILCgdJTlZJVEVEEAIqOgoVUmVjb3JkVHJhbnNhY3Rpb25U",
+            "eXBlEg8KC1JUVF9HRU5FUkFMEAASEAoMUlRUX1JPVEFUSU9OEAEq3AIKFVRp",
+            "bWVMaW1pdGVkQWNjZXNzVHlwZRIkCiBJTlZBTElEX1RJTUVfTElNSVRFRF9B",
+            "Q0NFU1NfVFlQRRAAEhkKFVVTRVJfQUNDRVNTX1RPX1JFQ09SRBABEicKI1VT",
+            "RVJfT1JfVEVBTV9BQ0NFU1NfVE9fU0hBUkVERk9MREVSEAISIQodUkVDT1JE",
+            "X0FDQ0VTU19UT19TSEFSRURGT0xERVIQAxIfChtVU0VSX0FDQ0VTU19UT19T",
+            "SEFSRURGT0xERVIQBBIfChtURUFNX0FDQ0VTU19UT19TSEFSRURGT0xERVIQ",
+            "BRIbChdSRUNPUkRfQUNDRVNTX1RPX0ZPTERFUhAGEhkKFVVTRVJfQUNDRVNT",
+            "X1RPX0ZPTERFUhAHEhkKFVRFQU1fQUNDRVNTX1RPX0ZPTERFUhAIEiEKHVVT",
+            "RVJfT1JfVEVBTV9BQ0NFU1NfVE9fRk9MREVSEAkqXAoVVGltZXJOb3RpZmlj",
+            "YXRpb25UeXBlEhQKEE5PVElGSUNBVElPTl9PRkYQABIQCgxOT1RJRllfT1dO",
+            "RVIQARIbChdOT1RJRllfUFJJVklMRUdFRF9VU0VSUxACQiMKGGNvbS5rZWVw",
+            "ZXJzZWN1cml0eS5wcm90b0IHUmVjb3Jkc2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.CheckShareAdminObjectType), typeof(global::Records.ShareStatus), typeof(global::Records.RecordTransactionType), typeof(global::Records.TimeLimitedAccessType), typeof(global::Records.TimerNotificationType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -327,7 +330,7 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordPermission), global::Records.RecordPermission.Parser, new[]{ "RecordUid", "Owner", "CanEdit", "CanShare", "CanTransfer" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsRequest), global::Records.GetShareObjectsRequest.Parser, new[]{ "StartWith", "Contains", "Filtered", "SharedFolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsResponse), global::Records.GetShareObjectsResponse.Parser, new[]{ "ShareRelationships", "ShareFamilyUsers", "ShareEnterpriseUsers", "ShareTeams", "ShareMCTeams", "ShareMCEnterpriseUsers", "ShareEnterpriseNames" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareUser), global::Records.ShareUser.Parser, new[]{ "Username", "Fullname", "EnterpriseId", "Status", "IsShareAdmin", "IsAdminOfSharedFolderOwner" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareUser), global::Records.ShareUser.Parser, new[]{ "Username", "Fullname", "EnterpriseId", "Status", "IsShareAdmin", "IsAdminOfSharedFolderOwner", "UserAccountUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareTeam), global::Records.ShareTeam.Parser, new[]{ "Teamname", "EnterpriseId", "TeamUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareEnterprise), global::Records.ShareEnterprise.Parser, new[]{ "Enterprisename", "EnterpriseId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsOnwershipTransferRequest), global::Records.RecordsOnwershipTransferRequest.Parser, new[]{ "TransferRecords" }, null, null, null, null),
@@ -437,6 +440,16 @@ namespace Records {
     /// used for scheduler callback
     /// </summary>
     [pbr::OriginalName("TEAM_ACCESS_TO_SHAREDFOLDER")] TeamAccessToSharedfolder = 5,
+    /// <summary>
+    /// used for scheduler callback
+    /// </summary>
+    [pbr::OriginalName("RECORD_ACCESS_TO_FOLDER")] RecordAccessToFolder = 6,
+    /// <summary>
+    /// used for scheduler callback
+    /// </summary>
+    [pbr::OriginalName("USER_ACCESS_TO_FOLDER")] UserAccessToFolder = 7,
+    [pbr::OriginalName("TEAM_ACCESS_TO_FOLDER")] TeamAccessToFolder = 8,
+    [pbr::OriginalName("USER_OR_TEAM_ACCESS_TO_FOLDER")] UserOrTeamAccessToFolder = 9,
   }
 
   public enum TimerNotificationType {
@@ -17380,6 +17393,7 @@ namespace Records {
       status_ = other.status_;
       isShareAdmin_ = other.isShareAdmin_;
       isAdminOfSharedFolderOwner_ = other.isAdminOfSharedFolderOwner_;
+      userAccountUid_ = other.userAccountUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -17470,6 +17484,21 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "userAccountUid" field.</summary>
+    public const int UserAccountUidFieldNumber = 7;
+    private pb::ByteString userAccountUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// user account uid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString UserAccountUid {
+      get { return userAccountUid_; }
+      set {
+        userAccountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -17491,6 +17520,7 @@ namespace Records {
       if (Status != other.Status) return false;
       if (IsShareAdmin != other.IsShareAdmin) return false;
       if (IsAdminOfSharedFolderOwner != other.IsAdminOfSharedFolderOwner) return false;
+      if (UserAccountUid != other.UserAccountUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -17504,6 +17534,7 @@ namespace Records {
       if (Status != global::Records.ShareStatus.Active) hash ^= Status.GetHashCode();
       if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
       if (IsAdminOfSharedFolderOwner != false) hash ^= IsAdminOfSharedFolderOwner.GetHashCode();
+      if (UserAccountUid.Length != 0) hash ^= UserAccountUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -17546,6 +17577,10 @@ namespace Records {
         output.WriteRawTag(48);
         output.WriteBool(IsAdminOfSharedFolderOwner);
       }
+      if (UserAccountUid.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(UserAccountUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -17580,6 +17615,10 @@ namespace Records {
         output.WriteRawTag(48);
         output.WriteBool(IsAdminOfSharedFolderOwner);
       }
+      if (UserAccountUid.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(UserAccountUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -17607,6 +17646,9 @@ namespace Records {
       }
       if (IsAdminOfSharedFolderOwner != false) {
         size += 1 + 1;
+      }
+      if (UserAccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(UserAccountUid);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -17637,6 +17679,9 @@ namespace Records {
       }
       if (other.IsAdminOfSharedFolderOwner != false) {
         IsAdminOfSharedFolderOwner = other.IsAdminOfSharedFolderOwner;
+      }
+      if (other.UserAccountUid.Length != 0) {
+        UserAccountUid = other.UserAccountUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -17681,6 +17726,10 @@ namespace Records {
             IsAdminOfSharedFolderOwner = input.ReadBool();
             break;
           }
+          case 58: {
+            UserAccountUid = input.ReadBytes();
+            break;
+          }
         }
       }
     #endif
@@ -17722,6 +17771,10 @@ namespace Records {
           }
           case 48: {
             IsAdminOfSharedFolderOwner = input.ReadBool();
+            break;
+          }
+          case 58: {
+            UserAccountUid = input.ReadBytes();
             break;
           }
         }

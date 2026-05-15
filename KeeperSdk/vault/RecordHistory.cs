@@ -27,15 +27,8 @@ namespace KeeperSecurity
                     RecordUid = recordUid,
                 };
                 var rs = await Auth.ExecuteAuthCommand<GetRecordHistoryCommand, GetRecordHistoryResponse>(rq);
-                var history = await ParseRecordHistory(rs.History);
-
-                history.Reverse();
-                return history.ToArray();
-            }
-
-            internal async Task<RecordHistory[]> ParseRecordHistory(RecordHistoryStorage[] records)
-            {
-                foreach (var rh in records)
+                var history = new List<RecordHistory>();
+                foreach (var rh in rs.History)
                 {
                     try
                     {
@@ -57,6 +50,9 @@ namespace KeeperSecurity
                     var r2 = history[i - 1].KeeperRecord;
                     history[i].RecordChange = RecordHistoryUtils.GetRecordChanges(r1, r2);
                 }
+
+                history.Reverse();
+                return history.ToArray();
             }
 
         }
