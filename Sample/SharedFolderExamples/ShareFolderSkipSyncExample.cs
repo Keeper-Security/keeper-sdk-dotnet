@@ -48,17 +48,21 @@ namespace Sample.SharedFolderExamples
 				Console.WriteLine("No records in this shared folder.");
 				return;
 			}
-			foreach (var record in loaded.Records)
+			var metaResults = await Task.WhenAll(
+			loaded.Records.Select(r => RecordSkipSyncDown.GetRecordLastModifiedAsync(auth, r.Uid))).ConfigureAwait(false);
+
+			for (var i = 0; i < loaded.Records.Count; i++)
 			{
-				var meta = await RecordSkipSyncDown.GetRecordLastModifiedAsync(auth, record.Uid).ConfigureAwait(false);
+				var record = loaded.Records[i];
+				var meta   = metaResults[i];
 				var modifiedAt = meta.LastModifiedTime > 0
-				
-			? DateTimeOffset.FromUnixTimeMilliseconds(meta.LastModifiedTime).ToString("u")
-			: "(unknown)";
-			Console.WriteLine(
-			$" {record.Uid}: {record.Title ?? "(no title)"}" +
-			$" | By: {meta.LastModifiedBy ?? "(unknown)"}" +
-			$" | At: {modifiedAt}");
+				? DateTimeOffset.FromUnixTimeMilliseconds(meta.LastModifiedTime).ToString("u")
+				: "(unknown)";
+
+				Console.WriteLine(
+				$" {record.Uid}: {record.Title ?? "(no title)"}" +
+				$" | By: {meta.LastModifiedBy ?? "(unknown)"}" +
+				$" | At: {modifiedAt}");
 			}
 		}
         /// <summary>Adds or updates a user on the shared folder, then prints folder records (shared-folder key path).</summary>

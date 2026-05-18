@@ -23,7 +23,7 @@ namespace KeeperSecurity.Vault
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
             => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
 
-        ///summary>
+        ///<summary>
         /// Calls <c>get_record_history</c> and returns the last modifier and timestamp
         /// for a record without requiring a vault sync.
         /// Use <see cref="KeeperRecord.Uid"/> from

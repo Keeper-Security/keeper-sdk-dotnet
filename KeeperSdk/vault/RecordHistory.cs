@@ -26,7 +26,7 @@ namespace KeeperSecurity
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = ParseRecordHistory(r, rs.History)
+                var history = ParseRecordHistory(r.RecordKey, rs.History)
                 .ConfigureAwait(false);
 
                 history.Reverse();
@@ -46,7 +46,7 @@ namespace KeeperSecurity
                 .ConfigureAwait(false);
             }
 
-            private static List<RecordHistory> ParseRecordHistory(IKeeperRecord r, RecordHistoryStorage[] historyEntries)
+            private static List<RecordHistory> ParseRecordHistory(byte[] recordKey, RecordHistoryStorage[] historyEntries)
             {
                 var history = new List<RecordHistory>();
                 foreach (var rh in historyEntries)
@@ -55,7 +55,7 @@ namespace KeeperSecurity
                     {
                         history.Add(new RecordHistory
                         {
-                            KeeperRecord = rh.Load(r.RecordKey),
+                            KeeperRecord = rh.Load(recordKey),
                             Username = rh.Username,
                             Revision = rh.Revision,
                         });
@@ -72,7 +72,7 @@ namespace KeeperSecurity
                     history[i].RecordChange = RecordHistoryUtils.GetRecordChanges(r1, r2);
                 }
 
-                return Task.FromResult(history);
+                return history;
             }
         }
         internal static class RecordHistoryUtils
