@@ -91,6 +91,36 @@ namespace KeeperSecurity.Vault
         bool TryGetRecord(string recordUid, out PasswordRecord record);
 
         /// <summary>
+        /// Gets the number of Keeper Drive folders in the vault.
+        /// </summary>
+        int KeeperDriveFolderCount { get; }
+
+        /// <summary>
+        /// Gets all Keeper Drive folders in the vault.
+        /// </summary>
+        IEnumerable<FolderNode> KeeperDriveFolderNodes { get; }
+
+        /// <summary>
+        /// Gets the Keeper Drive folder associated with the specified folder UID.
+        /// </summary>
+        bool TryGetKeeperDriveFolder(string folderUid, out FolderNode folder);
+
+        /// <summary>
+        /// Gets the number of Keeper Drive records in the vault.
+        /// </summary>
+        int KeeperDriveRecordCount { get; }
+
+        /// <summary>
+        /// Gets all Keeper Drive records in the vault.
+        /// </summary>
+        IEnumerable<KeeperDriveRecord> KeeperDriveRecordEntries { get; }
+
+        /// <summary>
+        /// Gets the Keeper Drive record associated with the specified record UID.
+        /// </summary>
+        bool TryGetKeeperDriveRecord(string recordUid, out KeeperDriveRecord record);
+
+        /// <summary>
         /// Gets  number of all shared folders in the vault.
         /// </summary>
         int SharedFolderCount { get; }
