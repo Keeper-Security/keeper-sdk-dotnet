@@ -29,10 +29,11 @@ namespace KeeperSecurity.Vault
             StoreRecords(kdData, storage);
             StoreRecordData(kdData, storage);
             StoreFolderRecords(kdData, storage);
-            ProcessRevokedFolderAccesses(kdData, storage);
+            StoreRecords(kdData, storage);
             StoreFolderAccesses(kdData, storage);
-            ProcessRevokedRecordAccesses(kdData, storage);
+            ProcessRevokedFolderAccesses(kdData, storage);
             StoreRecordAccesses(kdData, storage);
+            ProcessRevokedRecordAccesses(kdData, storage);
             StoreRecordLinks(kdData, storage);
             StoreFolderSharingStates(kdData, storage);
             StoreRecordSharingStates(kdData, storage);
