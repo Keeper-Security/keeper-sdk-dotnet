@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Vault;
+using System.Linq;
 
 namespace Sample.SharedFolderExamples
 {
@@ -30,6 +31,41 @@ namespace Sample.SharedFolderExamples
                 return await RecordSkipSyncDown.GetOwnedRecordsAsync(auth, uids).ConfigureAwait(false);
             });
 
+		///<summary>
+		/// Lists records in a shared folder with last modifier and timestamp for each,
+		/// using <see cref="RecordSkipSyncDown.GetRecordLastModifiedAsync"/>.
+		/// </summary>
+		public static async Task ListSharedFolderRecordsWithLastModifiedAsync(IAuthentication auth,string sharedFolderUid)
+		{
+			if (!TryEnsureAuthenticated(auth)) return;
+			if (string.IsNullOrWhiteSpace(sharedFolderUid))
+			{
+				Console.WriteLine("Shared folder UID is required.");
+				return;
+			}
+			var loaded = await RecordSkipSyncDown.GetSharedFolderRecordsAsync(auth, sharedFolderUid.Trim()).ConfigureAwait(false);
+			if (loaded.Records.Count == 0)
+			{
+				Console.WriteLine("No records in this shared folder.");
+				return;
+			}
+			var metaResults = await Task.WhenAll(
+			loaded.Records.Select(r => RecordSkipSyncDown.GetRecordLastModifiedAsync(auth, r.Uid))).ConfigureAwait(false);
+
+			for (var i = 0; i < loaded.Records.Count; i++)
+			{
+				var record = loaded.Records[i];
+				var meta   = metaResults[i];
+				var modifiedAt = meta.LastModifiedTime > 0
+				? DateTimeOffset.FromUnixTimeMilliseconds(meta.LastModifiedTime).ToString("u")
+				: "(unknown)";
+
+				Console.WriteLine(
+				$" {record.Uid}: {record.Title ?? "(no title)"}" +
+				$" | By: {meta.LastModifiedBy ?? "(unknown)"}" +
+				$" | At: {modifiedAt}");
+			}
+		}
         /// <summary>Adds or updates a user on the shared folder, then prints folder records (shared-folder key path).</summary>
         public static async Task PutUserToSharedFolder(IAuthentication auth, string sharedFolderUid, string userId,
             IUserShareOptions options = null)
