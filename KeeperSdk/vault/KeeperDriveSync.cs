@@ -427,7 +427,6 @@ namespace KeeperSecurity.Vault
                 }
             } while (progress);
 
-            // Fallback: try folder access keys for any folders still undecrypted
             if (decryptedKeys.Count < keysByFolder.Count)
             {
                 var undecrypted = keysByFolder.Keys.Where(k => !decryptedKeys.ContainsKey(k)).ToList();
@@ -445,7 +444,6 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            // Also try folder access keys for folders that have no entry in KdFolderKeys at all
             foreach (var kdFolder in storage.KdFolders.GetAll())
             {
                 if (decryptedKeys.ContainsKey(kdFolder.FolderUid)) continue;
@@ -593,7 +591,6 @@ namespace KeeperSecurity.Vault
                         case FolderProto.EncryptedKeyType.EncryptedByDataKey:
                         case FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm:
                         default:
-                            // Build ordered list of keys to try based on folderKeyEncryptionType
                             byte[] folderKey = null;
                             if (!string.IsNullOrEmpty(rk.FolderUid))
                                 decryptedFolderKeys.TryGetValue(rk.FolderUid, out folderKey);
@@ -601,21 +598,18 @@ namespace KeeperSecurity.Vault
                             if (folderEncType == FolderProto.FolderKeyEncryptionType.EncryptedByUserKey
                                 || string.IsNullOrEmpty(rk.FolderUid))
                             {
-                                // User key should be primary
                                 recordKey = TryDecryptSymmetric(encryptedKey, context.DataKey);
                                 if (recordKey == null && folderKey != null)
                                     recordKey = TryDecryptSymmetric(encryptedKey, folderKey);
                             }
                             else
                             {
-                                // Folder key should be primary
                                 if (folderKey != null)
                                     recordKey = TryDecryptSymmetric(encryptedKey, folderKey);
                                 if (recordKey == null)
                                     recordKey = TryDecryptSymmetric(encryptedKey, context.DataKey);
                             }
 
-                            // Last resort: asymmetric decryption
                             if (recordKey == null && context.PrivateRsaKey != null)
                                 try { recordKey = CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); } catch { }
                             if (recordKey == null && context.PrivateEcKey != null)
