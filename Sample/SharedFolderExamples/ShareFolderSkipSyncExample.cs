@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Vault;
+using System.Linq;
 
 namespace Sample.SharedFolderExamples
 {
