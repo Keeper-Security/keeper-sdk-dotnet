@@ -26,9 +26,7 @@ namespace KeeperSecurity
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = ParseRecordHistory(r.RecordKey, rs.History)
-                .ConfigureAwait(false);
-
+                var history = ParseRecordHistory(r.RecordKey, rs.History);
                 history.Reverse();
                 return history.ToArray();
             }
