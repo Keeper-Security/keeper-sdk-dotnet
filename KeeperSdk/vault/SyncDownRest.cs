@@ -717,6 +717,18 @@ namespace KeeperSecurity.Vault
 
                 }
 
+                // Keeper Drive data
+                System.Console.Error.WriteLine($"[KD-DEBUG] KeeperDriveData is {(rs.KeeperDriveData != null ? "PRESENT" : "NULL")}");
+                if (rs.KeeperDriveData != null)
+                {
+                    System.Console.Error.WriteLine($"[KD-DEBUG] Folders={rs.KeeperDriveData.Folders.Count} FolderKeys={rs.KeeperDriveData.FolderKeys.Count} Records={rs.KeeperDriveData.Records.Count} RecordData={rs.KeeperDriveData.RecordData.Count} FolderRecords={rs.KeeperDriveData.FolderRecords.Count}");
+                    if (rs.CacheStatus == VaultProto.CacheStatus.Clear)
+                    {
+                        storage.ClearKeeperDrive();
+                    }
+                    KeeperDriveSync.ProcessKeeperDriveData(rs.KeeperDriveData, storage, result);
+                }
+
                 // BreachWatch Records
                 if (rs.BreachWatchRecords.Count > 0)
                 {
@@ -791,6 +803,12 @@ namespace KeeperSecurity.Vault
             Debug.WriteLine("Rebuild Data: Enter");
             vault.RebuildData(result);
             Debug.WriteLine("Rebuild Data: Leave");
+
+            Debug.WriteLine("Rebuild KeeperDrive: Enter");
+            vault.KeeperDriveFolders.Clear();
+            vault.KeeperDriveRecords.Clear();
+            KeeperDriveSync.RebuildKeeperDrive(vault, context, clientKey, result.IsFullSync);
+            Debug.WriteLine("Rebuild KeeperDrive: Leave");
         }
 
         private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey,

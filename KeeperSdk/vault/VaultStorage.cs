@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Storage;
+using KeeperSecurity.Storage;
 
 namespace KeeperSecurity.Vault
 {
@@ -417,7 +417,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines properties for offline Keeper vault storage.
     /// </summary>
-    public interface IKeeperStorage
+    public interface IKeeperStorage : IKeeperDriveStorage
     {
         /// <summary>
         /// ID for logged in user. 
@@ -588,5 +588,164 @@ namespace KeeperSecurity.Vault
         /// Encrypted record data 
         /// </summary>
         string Data { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive folder.
+    /// </summary>
+    public interface IStorageKdFolder : IUid
+    {
+        string FolderUid { get; }
+        string ParentUid { get; }
+        string Data { get; }
+        string FolderKey { get; }
+        int KeyType { get; }
+        int FolderType { get; }
+        int InheritPermissions { get; }
+        string OwnerAccountUid { get; }
+        string OwnerUsername { get; }
+        long DateCreated { get; }
+        long LastModified { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive folder key entry.
+    /// </summary>
+    public interface IStorageKdFolderKey : IUidLink
+    {
+        string FolderUid { get; }
+        string ParentUid { get; }
+        string EncryptedKey { get; }
+        int KeyType { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive record.
+    /// </summary>
+    public interface IStorageKdRecord : IUid
+    {
+        string RecordUid { get; }
+        long Revision { get; }
+        int Version { get; }
+        bool Shared { get; set; }
+        long ClientModifiedTime { get; }
+        long FileSize { get; }
+        long ThumbnailSize { get; }
+        string Data { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive record key (from folder-record associations).
+    /// </summary>
+    public interface IStorageKdRecordKey : IUidLink
+    {
+        string RecordUid { get; }
+        string FolderUid { get; }
+        string RecordKey { get; }
+        int RecordKeyType { get; }
+        int FolderKeyEncryptionType { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive folder-record link.
+    /// </summary>
+    public interface IStorageKdFolderRecord : IUidLink
+    {
+        string FolderUid { get; }
+        string RecordUid { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive folder access entry.
+    /// </summary>
+    public interface IStorageKdFolderAccess : IUidLink
+    {
+        string FolderUid { get; }
+        string AccessTypeUid { get; }
+        int AccessType { get; }
+        int AccessRoleType { get; }
+        bool Inherited { get; }
+        bool Hidden { get; }
+        bool DeniedAccess { get; }
+        string EncryptedFolderKey { get; }
+        int FolderKeyType { get; }
+        long DateCreated { get; }
+        long LastModified { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive record access entry.
+    /// </summary>
+    public interface IStorageKdRecordAccess : IUidLink
+    {
+        string RecordUid { get; }
+        string AccessTypeUid { get; }
+        int AccessType { get; }
+        int AccessRoleType { get; }
+        bool Owner { get; }
+        bool Inherited { get; }
+        bool Hidden { get; }
+        bool DeniedAccess { get; }
+        bool CanViewTitle { get; }
+        bool CanEdit { get; }
+        bool CanView { get; }
+        bool CanListAccess { get; }
+        bool CanUpdateAccess { get; }
+        bool CanDelete { get; }
+        bool CanChangeOwnership { get; }
+        bool CanRequestAccess { get; }
+        bool CanApproveAccess { get; }
+        long DateCreated { get; }
+        long LastModified { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive record link (parent/child relationship).
+    /// </summary>
+    public interface IStorageKdRecordLink : IUidLink
+    {
+        string ParentRecordUid { get; }
+        string ChildRecordUid { get; }
+        string RecordKey { get; }
+        long Revision { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive folder sharing state.
+    /// </summary>
+    public interface IStorageKdFolderSharingState : IUid
+    {
+        string FolderUid { get; }
+        bool Shared { get; }
+        int Count { get; }
+    }
+
+    /// <summary>
+    /// Defines storage for a Keeper Drive record sharing state.
+    /// </summary>
+    public interface IStorageKdRecordSharingState : IUid
+    {
+        string RecordUid { get; }
+        bool IsDirectlyShared { get; }
+        bool IsIndirectlyShared { get; }
+        bool IsShared { get; }
+    }
+
+    /// <summary>
+    /// Defines Keeper Drive storage on <see cref="IKeeperStorage"/>.
+    /// </summary>
+    public interface IKeeperDriveStorage
+    {
+        IEntityStorage<IStorageKdFolder> KdFolders { get; }
+        ILinkStorage<IStorageKdFolderKey> KdFolderKeys { get; }
+        IEntityStorage<IStorageKdRecord> KdRecords { get; }
+        ILinkStorage<IStorageKdRecordKey> KdRecordKeys { get; }
+        ILinkStorage<IStorageKdFolderRecord> KdFolderRecords { get; }
+        ILinkStorage<IStorageKdFolderAccess> KdFolderAccesses { get; }
+        ILinkStorage<IStorageKdRecordAccess> KdRecordAccesses { get; }
+        ILinkStorage<IStorageKdRecordLink> KdRecordLinks { get; }
+        IEntityStorage<IStorageKdFolderSharingState> KdFolderSharingStates { get; }
+        IEntityStorage<IStorageKdRecordSharingState> KdRecordSharingStates { get; }
+        void ClearKeeperDrive();
     }
 }

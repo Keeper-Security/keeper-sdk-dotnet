@@ -235,6 +235,33 @@ namespace KeeperSecurity.Vault
         private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
         private readonly BreachWatchService _breachWatchService;
 
+        internal readonly ConcurrentDictionary<string, FolderNode> KeeperDriveFolders = new();
+        internal readonly ConcurrentDictionary<string, KeeperDriveRecord> KeeperDriveRecords = new();
+
+        /// <inheritdoc/>
+        public int KeeperDriveFolderCount => KeeperDriveFolders.Count;
+
+        /// <inheritdoc/>
+        public IEnumerable<FolderNode> KeeperDriveFolderNodes => KeeperDriveFolders.Values;
+
+        /// <inheritdoc/>
+        public bool TryGetKeeperDriveFolder(string folderUid, out FolderNode folder)
+        {
+            return KeeperDriveFolders.TryGetValue(folderUid, out folder);
+        }
+
+        /// <inheritdoc/>
+        public int KeeperDriveRecordCount => KeeperDriveRecords.Count;
+
+        /// <inheritdoc/>
+        public IEnumerable<KeeperDriveRecord> KeeperDriveRecordEntries => KeeperDriveRecords.Values;
+
+        /// <inheritdoc/>
+        public bool TryGetKeeperDriveRecord(string recordUid, out KeeperDriveRecord record)
+        {
+            return KeeperDriveRecords.TryGetValue(recordUid, out record);
+        }
+
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
 
