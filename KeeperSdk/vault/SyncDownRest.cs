@@ -717,11 +717,8 @@ namespace KeeperSecurity.Vault
 
                 }
 
-                // Keeper Drive data
-                System.Console.Error.WriteLine($"[KD-DEBUG] KeeperDriveData is {(rs.KeeperDriveData != null ? "PRESENT" : "NULL")}");
                 if (rs.KeeperDriveData != null)
                 {
-                    System.Console.Error.WriteLine($"[KD-DEBUG] Folders={rs.KeeperDriveData.Folders.Count} FolderKeys={rs.KeeperDriveData.FolderKeys.Count} Records={rs.KeeperDriveData.Records.Count} RecordData={rs.KeeperDriveData.RecordData.Count} FolderRecords={rs.KeeperDriveData.FolderRecords.Count}");
                     if (rs.CacheStatus == VaultProto.CacheStatus.Clear)
                     {
                         storage.ClearKeeperDrive();
@@ -729,7 +726,6 @@ namespace KeeperSecurity.Vault
                     KeeperDriveSync.ProcessKeeperDriveData(rs.KeeperDriveData, storage, result);
                 }
 
-                // BreachWatch Records
                 if (rs.BreachWatchRecords.Count > 0)
                 {
                     var BreachWatchRecords = new List<IStorageBreachWatchRecord>();
