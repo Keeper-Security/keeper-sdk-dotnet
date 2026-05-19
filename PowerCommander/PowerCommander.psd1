@@ -76,7 +76,8 @@
         'EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
+        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
+        'KeeperDrive.ps1'
         )
 
     # Functions to export from this module
@@ -129,7 +130,8 @@
         'Get-KeeperEpmCollectionList', 'Get-KeeperEpmCollection', 'Add-KeeperEpmCollection',
         'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 
         'Remove-KeeperEpmCollectionsByType','Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
-        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection'
+        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
+        'Get-KeeperDriveList', 'Get-KeeperDriveFolderList', 'Get-KeeperDriveRecordList', 'Get-KeeperDriveDiag'
         #'Test-Keeper',
     )
 
@@ -156,7 +158,8 @@
         'external-shares-report', 'aging-report','kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
         'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign')
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
-        'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout')
+        'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
+        'kd-list', 'kd-folders', 'kd-records', 'kd-diag')
 
     # List of all modules packaged with this module
     # ModuleList = @()

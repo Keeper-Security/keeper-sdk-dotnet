@@ -28,6 +28,17 @@ public class SnapshotKeeperStorage : IKeeperStorage
         RecordTypes = new SnapshotEntityStorage<IStorageRecordType>(sourceStorage.RecordTypes);
         UserEmails = new SnapshotLinkStorage<IStorageUserEmail>(sourceStorage.UserEmails);
         BreachWatchRecords = new SnapshotEntityStorage<IStorageBreachWatchRecord>(sourceStorage.BreachWatchRecords);
+
+        KdFolders = new SnapshotEntityStorage<IStorageKdFolder>(sourceStorage.KdFolders);
+        KdFolderKeys = new SnapshotLinkStorage<IStorageKdFolderKey>(sourceStorage.KdFolderKeys);
+        KdRecords = new SnapshotEntityStorage<IStorageKdRecord>(sourceStorage.KdRecords);
+        KdRecordKeys = new SnapshotLinkStorage<IStorageKdRecordKey>(sourceStorage.KdRecordKeys);
+        KdFolderRecords = new SnapshotLinkStorage<IStorageKdFolderRecord>(sourceStorage.KdFolderRecords);
+        KdFolderAccesses = new SnapshotLinkStorage<IStorageKdFolderAccess>(sourceStorage.KdFolderAccesses);
+        KdRecordAccesses = new SnapshotLinkStorage<IStorageKdRecordAccess>(sourceStorage.KdRecordAccesses);
+        KdRecordLinks = new SnapshotLinkStorage<IStorageKdRecordLink>(sourceStorage.KdRecordLinks);
+        KdFolderSharingStates = new SnapshotEntityStorage<IStorageKdFolderSharingState>(sourceStorage.KdFolderSharingStates);
+        KdRecordSharingStates = new SnapshotEntityStorage<IStorageKdRecordSharingState>(sourceStorage.KdRecordSharingStates);
     }
 
     public string PersonalScopeUid { get; }
@@ -46,13 +57,28 @@ public class SnapshotKeeperStorage : IKeeperStorage
     public ILinkStorage<IStorageUserEmail> UserEmails { get; }
     public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords { get; }
 
+    public IEntityStorage<IStorageKdFolder> KdFolders { get; }
+    public ILinkStorage<IStorageKdFolderKey> KdFolderKeys { get; }
+    public IEntityStorage<IStorageKdRecord> KdRecords { get; }
+    public ILinkStorage<IStorageKdRecordKey> KdRecordKeys { get; }
+    public ILinkStorage<IStorageKdFolderRecord> KdFolderRecords { get; }
+    public ILinkStorage<IStorageKdFolderAccess> KdFolderAccesses { get; }
+    public ILinkStorage<IStorageKdRecordAccess> KdRecordAccesses { get; }
+    public ILinkStorage<IStorageKdRecordLink> KdRecordLinks { get; }
+    public IEntityStorage<IStorageKdFolderSharingState> KdFolderSharingStates { get; }
+    public IEntityStorage<IStorageKdRecordSharingState> KdRecordSharingStates { get; }
+
     public void Clear()
     {
-        // Clear() is called during full sync, which is not supported with cached storage
-        // because it would require clearing MySQL data (read-only source)
         throw new NotSupportedException(
             "CachedKeeperStorage does not support full sync (Clear operation). " +
             "Full sync requires clearing the backing MySQL storage, which violates the read-only contract. " +
             "Use incremental sync only.");
+    }
+
+    public void ClearKeeperDrive()
+    {
+        throw new NotSupportedException(
+            "CachedKeeperStorage does not support ClearKeeperDrive operation.");
     }
 }
