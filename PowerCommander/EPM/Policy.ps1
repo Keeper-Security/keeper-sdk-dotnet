@@ -545,6 +545,35 @@ function Add-KeeperEpmPolicy {
         Write-Error -Message 'EPM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
+    if ($Status -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
+        $missing = [System.Collections.Generic.List[string]]::new()
+        switch ($PolicyType) {
+            'PrivilegeElevation' {
+                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
+                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
+                if (-not $AppFilter)     { [void]$missing.Add('-AppFilter') }
+                if (-not $Control)       { [void]$missing.Add('-Control') }
+            }
+            'FileAccess' {
+                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
+                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
+                if (-not $AppFilter)     { [void]$missing.Add('-AppFilter') }
+                if (-not $Control)       { [void]$missing.Add('-Control') }
+            }
+            'CommandLine' {
+                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
+                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
+                if (-not $Control)       { [void]$missing.Add('-Control') }
+            }
+            'LeastPrivilege' {
+                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
+            }
+        }
+        if ($missing.Count -gt 0) {
+            Write-Error -Message "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')" -ErrorAction Stop
+        }
+    }
+
     $policyUid = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
 
     $controls = @()
@@ -768,6 +797,48 @@ function Update-KeeperEpmPolicy {
 
     if (-not $hasChanges) {
         Write-Error -Message 'No changes specified. Provide at least one parameter to update.' -ErrorAction Stop
+    }
+
+    $effectiveStatus = if (-not [string]::IsNullOrEmpty($Status)) { $Status } elseif ($policyData.PSObject.Properties['Status'] -and $policyData.Status) { $policyData.Status } else { '' }
+    $effectiveType = if ($policyData.PSObject.Properties['PolicyType']) { [string]$policyData.PolicyType } else { '' }
+
+    if ($effectiveStatus -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off -and -not [string]::IsNullOrEmpty($effectiveType)) {
+        $missing = [System.Collections.Generic.List[string]]::new()
+        $hasMachine = $policyData.PSObject.Properties['MachineCheck'] -and $policyData.MachineCheck -and $policyData.MachineCheck.Count -gt 0
+        $hasUser = $policyData.PSObject.Properties['UserCheck'] -and $policyData.UserCheck -and $policyData.UserCheck.Count -gt 0
+        $hasApp = $policyData.PSObject.Properties['ApplicationCheck'] -and $policyData.ApplicationCheck -and $policyData.ApplicationCheck.Count -gt 0
+        $hasControl = $false
+        if ($policyData.PSObject.Properties['Actions'] -and $policyData.Actions) {
+            $act = $policyData.Actions
+            if ($act.PSObject.Properties['OnSuccess'] -and $act.OnSuccess -and $act.OnSuccess.PSObject.Properties['Controls'] -and $act.OnSuccess.Controls -and $act.OnSuccess.Controls.Count -gt 0) {
+                $hasControl = $true
+            }
+        }
+        switch ($effectiveType) {
+            'PrivilegeElevation' {
+                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
+                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
+                if (-not $hasApp)     { [void]$missing.Add('-AppFilter') }
+                if (-not $hasControl) { [void]$missing.Add('-Control') }
+            }
+            'FileAccess' {
+                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
+                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
+                if (-not $hasApp)     { [void]$missing.Add('-AppFilter') }
+                if (-not $hasControl) { [void]$missing.Add('-Control') }
+            }
+            'CommandLine' {
+                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
+                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
+                if (-not $hasControl) { [void]$missing.Add('-Control') }
+            }
+            'LeastPrivilege' {
+                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
+            }
+        }
+        if ($missing.Count -gt 0) {
+            Write-Error -Message "Policy type '$effectiveType' requires the following parameters: $($missing -join ', '). Provide them or set -Status off." -ErrorAction Stop
+        }
     }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress
