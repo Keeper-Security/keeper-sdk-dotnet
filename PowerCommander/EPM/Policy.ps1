@@ -301,6 +301,34 @@ function script:Confirm-EpmPolicyFilterParams {
     return $result
 }
 
+function script:Assert-EpmPolicyRequiredParams {
+    Param (
+        [string] $PolicyType,
+        [bool] $HasMachine,
+        [bool] $HasUser,
+        [bool] $HasApp,
+        [bool] $HasControl,
+        [string] $ErrorSuffix
+    )
+
+    $rules = @{
+        'PrivilegeElevation' = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
+        'FileAccess'         = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
+        'CommandLine'        = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; Control = $HasControl }
+        'LeastPrivilege'     = @{ MachineFilter = $HasMachine }
+    }
+
+    $required = $rules[$PolicyType]
+    if (-not $required) { return }
+
+    $missing = @($required.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object { "-$($_.Key)" })
+    if ($missing.Count -gt 0) {
+        $msg = "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')"
+        if ($ErrorSuffix) { $msg += ". $ErrorSuffix" }
+        Write-Error -Message $msg -ErrorAction Stop
+    }
+}
+
 function script:GetPedmPolicyAgentsResponse {
     Param (
         [Parameter(Mandatory = $true)]
@@ -546,32 +574,9 @@ function Add-KeeperEpmPolicy {
     }
 
     if ($Status -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
-        $missing = [System.Collections.Generic.List[string]]::new()
-        switch ($PolicyType) {
-            'PrivilegeElevation' {
-                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
-                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
-                if (-not $AppFilter)     { [void]$missing.Add('-AppFilter') }
-                if (-not $Control)       { [void]$missing.Add('-Control') }
-            }
-            'FileAccess' {
-                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
-                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
-                if (-not $AppFilter)     { [void]$missing.Add('-AppFilter') }
-                if (-not $Control)       { [void]$missing.Add('-Control') }
-            }
-            'CommandLine' {
-                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
-                if (-not $UserFilter)    { [void]$missing.Add('-UserFilter') }
-                if (-not $Control)       { [void]$missing.Add('-Control') }
-            }
-            'LeastPrivilege' {
-                if (-not $MachineFilter) { [void]$missing.Add('-MachineFilter') }
-            }
-        }
-        if ($missing.Count -gt 0) {
-            Write-Error -Message "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')" -ErrorAction Stop
-        }
+        Assert-EpmPolicyRequiredParams -PolicyType $PolicyType `
+            -HasMachine ([bool]$MachineFilter) -HasUser ([bool]$UserFilter) `
+            -HasApp ([bool]$AppFilter) -HasControl ([bool]$Control)
     }
 
     $policyUid = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
@@ -803,7 +808,6 @@ function Update-KeeperEpmPolicy {
     $effectiveType = if ($policyData.PSObject.Properties['PolicyType']) { [string]$policyData.PolicyType } else { '' }
 
     if ($effectiveStatus -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off -and -not [string]::IsNullOrEmpty($effectiveType)) {
-        $missing = [System.Collections.Generic.List[string]]::new()
         $hasMachine = $policyData.PSObject.Properties['MachineCheck'] -and $policyData.MachineCheck -and $policyData.MachineCheck.Count -gt 0
         $hasUser = $policyData.PSObject.Properties['UserCheck'] -and $policyData.UserCheck -and $policyData.UserCheck.Count -gt 0
         $hasApp = $policyData.PSObject.Properties['ApplicationCheck'] -and $policyData.ApplicationCheck -and $policyData.ApplicationCheck.Count -gt 0
@@ -814,31 +818,10 @@ function Update-KeeperEpmPolicy {
                 $hasControl = $true
             }
         }
-        switch ($effectiveType) {
-            'PrivilegeElevation' {
-                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
-                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
-                if (-not $hasApp)     { [void]$missing.Add('-AppFilter') }
-                if (-not $hasControl) { [void]$missing.Add('-Control') }
-            }
-            'FileAccess' {
-                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
-                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
-                if (-not $hasApp)     { [void]$missing.Add('-AppFilter') }
-                if (-not $hasControl) { [void]$missing.Add('-Control') }
-            }
-            'CommandLine' {
-                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
-                if (-not $hasUser)    { [void]$missing.Add('-UserFilter') }
-                if (-not $hasControl) { [void]$missing.Add('-Control') }
-            }
-            'LeastPrivilege' {
-                if (-not $hasMachine) { [void]$missing.Add('-MachineFilter') }
-            }
-        }
-        if ($missing.Count -gt 0) {
-            Write-Error -Message "Policy type '$effectiveType' requires the following parameters: $($missing -join ', '). Provide them or set -Status off." -ErrorAction Stop
-        }
+        Assert-EpmPolicyRequiredParams -PolicyType $effectiveType `
+            -HasMachine ([bool]$hasMachine) -HasUser ([bool]$hasUser) `
+            -HasApp ([bool]$hasApp) -HasControl ([bool]$hasControl) `
+            -ErrorSuffix 'Provide them or set -Status off'
     }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress
