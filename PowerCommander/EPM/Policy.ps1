@@ -346,7 +346,11 @@ function script:GetPedmPolicyAgentsResponse {
         }
         [void]$rq.PolicyUid.Add([Google.Protobuf.ByteString]::CopyFrom($b))
     }
-    $task = [KeeperSecurity.Authentication.AuthExtensions]::ExecuteRouter[PEDM.PolicyAgentResponse]($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq)
+    $executeRouterMethod = [KeeperSecurity.Authentication.AuthExtensions].GetMethods() |
+        Where-Object { $_.Name -eq 'ExecuteRouter' -and $_.GetGenericArguments().Count -eq 1 } |
+        Select-Object -First 1
+    $genericMethod = $executeRouterMethod.MakeGenericMethod([PEDM.PolicyAgentResponse])
+    $task = $genericMethod.Invoke($null, @($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq))
     return $task.GetAwaiter().GetResult()
 }
 
