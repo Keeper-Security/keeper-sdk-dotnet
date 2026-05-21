@@ -301,6 +301,34 @@ function script:Confirm-EpmPolicyFilterParams {
     return $result
 }
 
+function script:Assert-EpmPolicyRequiredParams {
+    Param (
+        [string] $PolicyType,
+        [bool] $HasMachine,
+        [bool] $HasUser,
+        [bool] $HasApp,
+        [bool] $HasControl,
+        [string] $ErrorSuffix
+    )
+
+    $rules = @{
+        'PrivilegeElevation' = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
+        'FileAccess'         = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
+        'CommandLine'        = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; Control = $HasControl }
+        'LeastPrivilege'     = @{ MachineFilter = $HasMachine }
+    }
+
+    $required = $rules[$PolicyType]
+    if (-not $required) { return }
+
+    $missing = @($required.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object { "-$($_.Key)" })
+    if ($missing.Count -gt 0) {
+        $msg = "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')"
+        if ($ErrorSuffix) { $msg += ". $ErrorSuffix" }
+        Write-Error -Message $msg -ErrorAction Stop
+    }
+}
+
 function script:GetPedmPolicyAgentsResponse {
     Param (
         [Parameter(Mandatory = $true)]
@@ -318,7 +346,11 @@ function script:GetPedmPolicyAgentsResponse {
         }
         [void]$rq.PolicyUid.Add([Google.Protobuf.ByteString]::CopyFrom($b))
     }
-    $task = [KeeperSecurity.Authentication.AuthExtensions]::ExecuteRouter[PEDM.PolicyAgentResponse]($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq)
+    $executeRouterMethod = [KeeperSecurity.Authentication.AuthExtensions].GetMethods() |
+        Where-Object { $_.Name -eq 'ExecuteRouter' -and $_.GetGenericArguments().Count -eq 1 } |
+        Select-Object -First 1
+    $genericMethod = $executeRouterMethod.MakeGenericMethod([PEDM.PolicyAgentResponse])
+    $task = $genericMethod.Invoke($null, @($Auth, 'pedm/get_policy_agents', [Google.Protobuf.IMessage]$rq))
     return $task.GetAwaiter().GetResult()
 }
 
@@ -545,6 +577,12 @@ function Add-KeeperEpmPolicy {
         Write-Error -Message 'EPM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
+    if ($Status -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
+        Assert-EpmPolicyRequiredParams -PolicyType $PolicyType `
+            -HasMachine ([bool]$MachineFilter) -HasUser ([bool]$UserFilter) `
+            -HasApp ([bool]$AppFilter) -HasControl ([bool]$Control)
+    }
+
     $policyUid = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
 
     $controls = @()
@@ -768,6 +806,26 @@ function Update-KeeperEpmPolicy {
 
     if (-not $hasChanges) {
         Write-Error -Message 'No changes specified. Provide at least one parameter to update.' -ErrorAction Stop
+    }
+
+    $effectiveStatus = if (-not [string]::IsNullOrEmpty($Status)) { $Status } elseif ($policyData.PSObject.Properties['Status'] -and $policyData.Status) { $policyData.Status } else { '' }
+    $effectiveType = if ($policyData.PSObject.Properties['PolicyType']) { [string]$policyData.PolicyType } else { '' }
+
+    if ($effectiveStatus -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off -and -not [string]::IsNullOrEmpty($effectiveType)) {
+        $hasMachine = $policyData.PSObject.Properties['MachineCheck'] -and $policyData.MachineCheck -and $policyData.MachineCheck.Count -gt 0
+        $hasUser = $policyData.PSObject.Properties['UserCheck'] -and $policyData.UserCheck -and $policyData.UserCheck.Count -gt 0
+        $hasApp = $policyData.PSObject.Properties['ApplicationCheck'] -and $policyData.ApplicationCheck -and $policyData.ApplicationCheck.Count -gt 0
+        $hasControl = $false
+        if ($policyData.PSObject.Properties['Actions'] -and $policyData.Actions) {
+            $act = $policyData.Actions
+            if ($act.PSObject.Properties['OnSuccess'] -and $act.OnSuccess -and $act.OnSuccess.PSObject.Properties['Controls'] -and $act.OnSuccess.Controls -and $act.OnSuccess.Controls.Count -gt 0) {
+                $hasControl = $true
+            }
+        }
+        Assert-EpmPolicyRequiredParams -PolicyType $effectiveType `
+            -HasMachine ([bool]$hasMachine) -HasUser ([bool]$hasUser) `
+            -HasApp ([bool]$hasApp) -HasControl ([bool]$hasControl) `
+            -ErrorSuffix 'Provide them or set -Status off'
     }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress

@@ -154,7 +154,7 @@
         'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
         'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
         'external-shares-report', 'aging-report','kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
-        'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign')
+        'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign',
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout')
 
