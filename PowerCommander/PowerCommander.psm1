@@ -126,6 +126,9 @@ Export-ModuleMember -Alias ksrr
 Export-ModuleMember -Function Get-KeeperRiskManagementReport
 Export-ModuleMember -Alias risk-report
 
+Export-ModuleMember -Function Get-KeeperDriveList, Get-KeeperDriveFolderList, Get-KeeperDriveRecordList, Get-KeeperDriveDiag
+Export-ModuleMember -Alias kd-list, kd-folders, kd-records, kd-diag
+
 Export-ModuleMember -Function Sync-KeeperEpm,
 Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,
 Update-KeeperEpmDeployment, Remove-KeeperEpmDeployment, Get-KeeperEpmDeploymentDownload,

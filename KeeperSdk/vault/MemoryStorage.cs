@@ -22,6 +22,17 @@ namespace KeeperSecurity.Vault
         private readonly InMemoryLinkStorage<IStorageUserEmail> _userEmailStorage = new();
         private readonly InMemoryEntityStorage<IStorageBreachWatchRecord> _breachWatchRecordStorage = new();
 
+        private readonly InMemoryEntityStorage<IStorageKdFolder> _kdFolderStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdFolderKey> _kdFolderKeyStorage = new();
+        private readonly InMemoryEntityStorage<IStorageKdRecord> _kdRecordStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdRecordKey> _kdRecordKeyStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdFolderRecord> _kdFolderRecordStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdFolderAccess> _kdFolderAccessStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdRecordAccess> _kdRecordAccessStorage = new();
+        private readonly InMemoryLinkStorage<IStorageKdRecordLink> _kdRecordLinkStorage = new();
+        private readonly InMemoryEntityStorage<IStorageKdFolderSharingState> _kdFolderSharingStateStorage = new();
+        private readonly InMemoryEntityStorage<IStorageKdRecordSharingState> _kdRecordSharingStateStorage = new();
+
         /// <inheritdoc/>
         public string PersonalScopeUid => "PersonalScopeUid";
 
@@ -64,6 +75,27 @@ namespace KeeperSecurity.Vault
          /// <inheritdoc/>
         public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords => _breachWatchRecordStorage;
 
+        /// <inheritdoc/>
+        public IEntityStorage<IStorageKdFolder> KdFolders => _kdFolderStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdFolderKey> KdFolderKeys => _kdFolderKeyStorage;
+        /// <inheritdoc/>
+        public IEntityStorage<IStorageKdRecord> KdRecords => _kdRecordStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdRecordKey> KdRecordKeys => _kdRecordKeyStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdFolderRecord> KdFolderRecords => _kdFolderRecordStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdFolderAccess> KdFolderAccesses => _kdFolderAccessStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdRecordAccess> KdRecordAccesses => _kdRecordAccessStorage;
+        /// <inheritdoc/>
+        public ILinkStorage<IStorageKdRecordLink> KdRecordLinks => _kdRecordLinkStorage;
+        /// <inheritdoc/>
+        public IEntityStorage<IStorageKdFolderSharingState> KdFolderSharingStates => _kdFolderSharingStateStorage;
+        /// <inheritdoc/>
+        public IEntityStorage<IStorageKdRecordSharingState> KdRecordSharingStates => _kdRecordSharingStateStorage;
+
 
         /// <inheritdoc/>
         public void Clear()
@@ -81,6 +113,22 @@ namespace KeeperSecurity.Vault
             _recordStorage.Clear();
             _userEmailStorage.Clear();
             _breachWatchRecordStorage.Clear();
+            ClearKeeperDrive();
+        }
+
+        /// <inheritdoc/>
+        public void ClearKeeperDrive()
+        {
+            _kdFolderStorage.Clear();
+            _kdFolderKeyStorage.Clear();
+            _kdRecordStorage.Clear();
+            _kdRecordKeyStorage.Clear();
+            _kdFolderRecordStorage.Clear();
+            _kdFolderAccessStorage.Clear();
+            _kdRecordAccessStorage.Clear();
+            _kdRecordLinkStorage.Clear();
+            _kdFolderSharingStateStorage.Clear();
+            _kdRecordSharingStateStorage.Clear();
         }
     }
 }

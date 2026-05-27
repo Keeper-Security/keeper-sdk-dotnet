@@ -571,7 +571,7 @@ function Connect-Keeper {
 
     $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($storage, $Server)
     $endpoint.DeviceName = 'PowerShell Commander'
-    $endpoint.ClientVersion = 'c17.2.0'
+    $endpoint.ClientVersion = 'c18.0.0'
 
     Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n" -InformationAction Continue
 

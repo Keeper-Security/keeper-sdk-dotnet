@@ -24,6 +24,17 @@ namespace KeeperSecurity.Vault
         private readonly SqlLinkStorage<IStorageUserEmail, StorageUserEmail> _userEmails;
         private readonly SqlEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord> _breachWatchRecords;
 
+        private readonly SqlEntityStorage<IStorageKdFolder, StorageKdFolder> _kdFolders;
+        private readonly SqlLinkStorage<IStorageKdFolderKey, StorageKdFolderKey> _kdFolderKeys;
+        private readonly SqlEntityStorage<IStorageKdRecord, StorageKdRecord> _kdRecords;
+        private readonly SqlLinkStorage<IStorageKdRecordKey, StorageKdRecordKey> _kdRecordKeys;
+        private readonly SqlLinkStorage<IStorageKdFolderRecord, StorageKdFolderRecord> _kdFolderRecords;
+        private readonly SqlLinkStorage<IStorageKdFolderAccess, StorageKdFolderAccess> _kdFolderAccesses;
+        private readonly SqlLinkStorage<IStorageKdRecordAccess, StorageKdRecordAccess> _kdRecordAccesses;
+        private readonly SqlLinkStorage<IStorageKdRecordLink, StorageKdRecordLink> _kdRecordLinks;
+        private readonly SqlEntityStorage<IStorageKdFolderSharingState, StorageKdFolderSharingState> _kdFolderSharingStates;
+        private readonly SqlEntityStorage<IStorageKdRecordSharingState, StorageKdRecordSharingState> _kdRecordSharingStates;
+
         /// <summary>
         /// Constructor with custom SQL dialect.
         /// </summary>
@@ -66,6 +77,36 @@ namespace KeeperSecurity.Vault
             _breachWatchRecords =
                 new SqlEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord>(getConnection, dialect,
                     OwnerColumnName, ownerId);
+            _kdFolders =
+                new SqlEntityStorage<IStorageKdFolder, StorageKdFolder>(getConnection, dialect, OwnerColumnName,
+                    ownerId);
+            _kdFolderKeys =
+                new SqlLinkStorage<IStorageKdFolderKey, StorageKdFolderKey>(getConnection, dialect, OwnerColumnName,
+                    ownerId);
+            _kdRecords =
+                new SqlEntityStorage<IStorageKdRecord, StorageKdRecord>(getConnection, dialect, OwnerColumnName,
+                    ownerId);
+            _kdRecordKeys =
+                new SqlLinkStorage<IStorageKdRecordKey, StorageKdRecordKey>(getConnection, dialect, OwnerColumnName,
+                    ownerId);
+            _kdFolderRecords =
+                new SqlLinkStorage<IStorageKdFolderRecord, StorageKdFolderRecord>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
+            _kdFolderAccesses =
+                new SqlLinkStorage<IStorageKdFolderAccess, StorageKdFolderAccess>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
+            _kdRecordAccesses =
+                new SqlLinkStorage<IStorageKdRecordAccess, StorageKdRecordAccess>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
+            _kdRecordLinks =
+                new SqlLinkStorage<IStorageKdRecordLink, StorageKdRecordLink>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
+            _kdFolderSharingStates =
+                new SqlEntityStorage<IStorageKdFolderSharingState, StorageKdFolderSharingState>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
+            _kdRecordSharingStates =
+                new SqlEntityStorage<IStorageKdRecordSharingState, StorageKdRecordSharingState>(getConnection, dialect,
+                    OwnerColumnName, ownerId);
         }
 
         public IEnumerable<SqlStorage> GetStorages()
@@ -83,6 +124,16 @@ namespace KeeperSecurity.Vault
             yield return _recordTypes;
             yield return _userEmails;
             yield return _breachWatchRecords;
+            yield return _kdFolders;
+            yield return _kdFolderKeys;
+            yield return _kdRecords;
+            yield return _kdRecordKeys;
+            yield return _kdFolderRecords;
+            yield return _kdFolderAccesses;
+            yield return _kdRecordAccesses;
+            yield return _kdRecordLinks;
+            yield return _kdFolderSharingStates;
+            yield return _kdRecordSharingStates;
         }
 
         public string PersonalScopeUid { get; }
@@ -101,12 +152,37 @@ namespace KeeperSecurity.Vault
         public ILinkStorage<IStorageUserEmail> UserEmails => _userEmails;
         public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords => _breachWatchRecords;
 
+        public IEntityStorage<IStorageKdFolder> KdFolders => _kdFolders;
+        public ILinkStorage<IStorageKdFolderKey> KdFolderKeys => _kdFolderKeys;
+        public IEntityStorage<IStorageKdRecord> KdRecords => _kdRecords;
+        public ILinkStorage<IStorageKdRecordKey> KdRecordKeys => _kdRecordKeys;
+        public ILinkStorage<IStorageKdFolderRecord> KdFolderRecords => _kdFolderRecords;
+        public ILinkStorage<IStorageKdFolderAccess> KdFolderAccesses => _kdFolderAccesses;
+        public ILinkStorage<IStorageKdRecordAccess> KdRecordAccesses => _kdRecordAccesses;
+        public ILinkStorage<IStorageKdRecordLink> KdRecordLinks => _kdRecordLinks;
+        public IEntityStorage<IStorageKdFolderSharingState> KdFolderSharingStates => _kdFolderSharingStates;
+        public IEntityStorage<IStorageKdRecordSharingState> KdRecordSharingStates => _kdRecordSharingStates;
+
         public void Clear()
         {
             foreach (var storage in GetStorages())
             {
                 storage.DeleteAll();
             }
+        }
+
+        public void ClearKeeperDrive()
+        {
+            _kdFolders.DeleteAll();
+            _kdFolderKeys.DeleteAll();
+            _kdRecords.DeleteAll();
+            _kdRecordKeys.DeleteAll();
+            _kdFolderRecords.DeleteAll();
+            _kdFolderAccesses.DeleteAll();
+            _kdRecordAccesses.DeleteAll();
+            _kdRecordLinks.DeleteAll();
+            _kdFolderSharingStates.DeleteAll();
+            _kdRecordSharingStates.DeleteAll();
         }
     }
 }
