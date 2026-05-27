@@ -126,8 +126,16 @@ Export-ModuleMember -Alias ksrr
 Export-ModuleMember -Function Get-KeeperRiskManagementReport
 Export-ModuleMember -Alias risk-report
 
-Export-ModuleMember -Function Get-KeeperDriveList, Get-KeeperDriveFolderList, Get-KeeperDriveRecordList, Get-KeeperDriveDiag
-Export-ModuleMember -Alias kd-list, kd-folders, kd-records, kd-diag
+Export-ModuleMember -Function Get-KeeperNSFList, Get-KeeperNSFFolderList, Get-KeeperNSFRecordList, Get-KeeperNSFRecord, Get-KeeperNSFRecordDetails
+Export-ModuleMember -Alias nsf-list, nsf-folders, nsf-records, nsf-get, nsf-record-details
+
+Export-ModuleMember -Function New-KeeperNSFFolder, Set-KeeperNSFFolderAccess
+Export-ModuleMember -Alias nsf-mkdir, nsf-share-folder
+
+Export-ModuleMember -Function Add-KeeperNSFRecord, Edit-KeeperNSFRecord, Set-KeeperNSFRecordAccess, Set-KeeperNSFRecordPermission,
+Get-KeeperNSFShortcut, Set-KeeperNSFShortcutKeep
+Export-ModuleMember -Alias nsf-record-add, nsf-record-update, nsf-share-record, nsf-record-permission,
+nsf-shortcut-list, nsf-shortcut-keep
 
 Export-ModuleMember -Function Sync-KeeperEpm,
 Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,

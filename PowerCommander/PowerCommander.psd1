@@ -72,12 +72,11 @@
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
-        'EPM\Policy.ps1',
-        'EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'EPM\Policy.ps1','EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
-        'KeeperDrive.ps1'
+        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1'
         )
 
     # Functions to export from this module
@@ -131,7 +130,10 @@
         'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 
         'Remove-KeeperEpmCollectionsByType','Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
         'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
-        'Get-KeeperDriveList', 'Get-KeeperDriveFolderList', 'Get-KeeperDriveRecordList', 'Get-KeeperDriveDiag'
+        'Get-KeeperNSFList', 'Get-KeeperNSFFolderList', 'Get-KeeperNSFRecordList', 'Get-KeeperNSFRecord', 'Get-KeeperNSFRecordDetails',
+        'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess',
+        'Add-KeeperNSFRecord', 'Edit-KeeperNSFRecord', 'Set-KeeperNSFRecordAccess', 'Set-KeeperNSFRecordPermission',
+        'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep'
         #'Test-Keeper',
     )
 
@@ -159,7 +161,10 @@
         'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign',
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
-        'kd-list', 'kd-folders', 'kd-records', 'kd-diag')
+        'nsf-list', 'nsf-folders', 'nsf-records', 'nsf-get', 'nsf-record-details',
+        'nsf-mkdir', 'nsf-share-folder',
+        'nsf-record-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
+        'nsf-shortcut-list', 'nsf-shortcut-keep')
 
     # List of all modules packaged with this module
     # ModuleList = @()

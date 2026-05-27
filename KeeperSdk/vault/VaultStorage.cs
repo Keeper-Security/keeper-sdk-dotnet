@@ -417,7 +417,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines properties for offline Keeper vault storage.
     /// </summary>
-    public interface IKeeperStorage : IKeeperDriveStorage
+    public interface IKeeperStorage : IKeeperNSFStorage
     {
         /// <summary>
         /// ID for logged in user. 
@@ -734,7 +734,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines Keeper Drive storage on <see cref="IKeeperStorage"/>.
     /// </summary>
-    public interface IKeeperDriveStorage
+    public interface IKeeperNSFStorage
     {
         IEntityStorage<IStorageKdFolder> KdFolders { get; }
         ILinkStorage<IStorageKdFolderKey> KdFolderKeys { get; }
@@ -746,6 +746,6 @@ namespace KeeperSecurity.Vault
         ILinkStorage<IStorageKdRecordLink> KdRecordLinks { get; }
         IEntityStorage<IStorageKdFolderSharingState> KdFolderSharingStates { get; }
         IEntityStorage<IStorageKdRecordSharingState> KdRecordSharingStates { get; }
-        void ClearKeeperDrive();
+        void ClearKeeperNSF();
     }
 }

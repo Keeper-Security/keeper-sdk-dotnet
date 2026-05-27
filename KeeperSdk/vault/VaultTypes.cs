@@ -91,34 +91,34 @@ namespace KeeperSecurity.Vault
         bool TryGetRecord(string recordUid, out PasswordRecord record);
 
         /// <summary>
-        /// Gets the number of Keeper Drive folders in the vault.
+        /// Gets the number of Keeper NSF folders in the vault.
         /// </summary>
-        int KeeperDriveFolderCount { get; }
+        int KeeperNSFFolderCount { get; }
 
         /// <summary>
-        /// Gets all Keeper Drive folders in the vault.
+        /// Gets all Keeper NSF folders in the vault.
         /// </summary>
-        IEnumerable<FolderNode> KeeperDriveFolderNodes { get; }
+        IEnumerable<FolderNode> KeeperNSFFolderNodes { get; }
 
         /// <summary>
-        /// Gets the Keeper Drive folder associated with the specified folder UID.
+        /// Gets the Keeper NSF folder associated with the specified folder UID.
         /// </summary>
-        bool TryGetKeeperDriveFolder(string folderUid, out FolderNode folder);
+        bool TryGetKeeperNSFFolder(string folderUid, out FolderNode folder);
 
         /// <summary>
-        /// Gets the number of Keeper Drive records in the vault.
+        /// Gets the number of Keeper NSF records in the vault.
         /// </summary>
-        int KeeperDriveRecordCount { get; }
+        int KeeperNSFRecordCount { get; }
 
         /// <summary>
-        /// Gets all Keeper Drive records in the vault.
+        /// Gets all Keeper NSF records in the vault.
         /// </summary>
-        IEnumerable<KeeperDriveRecord> KeeperDriveRecordEntries { get; }
+        IEnumerable<KeeperNSFRecord> KeeperNSFRecordEntries { get; }
 
         /// <summary>
-        /// Gets the Keeper Drive record associated with the specified record UID.
+        /// Gets the Keeper NSF record associated with the specified record UID.
         /// </summary>
-        bool TryGetKeeperDriveRecord(string recordUid, out KeeperDriveRecord record);
+        bool TryGetKeeperNSFRecord(string recordUid, out KeeperNSFRecord record);
 
         /// <summary>
         /// Gets  number of all shared folders in the vault.
@@ -459,6 +459,96 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task DeleteFolder(string folderUid);
+
+        /// <summary>
+        /// Creates a new Keeper NSF folder using the v3 API.
+        /// </summary>
+        /// <param name="folderName">Folder name.</param>
+        /// <param name="parentFolderUid">Parent folder UID. If null, the folder is created at root level.</param>
+        /// <param name="color">Optional folder color.</param>
+        /// <param name="inheritPermissions">Whether to inherit permissions from the parent folder. Default is true.</param>
+        /// <returns>A task returning the UID of the created folder.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        Task<string> CreateKeeperNSFFolder(string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true);
+
+        /// <summary>
+        /// Grants a user access to a Keeper NSF folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID to share.</param>
+        /// <param name="userEmail">Email address of the user to grant access.</param>
+        /// <param name="role">Access role: viewer, shared-manager, content-manager, content-share-manager, full-manager.</param>
+        /// <returns>Awaitable task.</returns>
+        Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer");
+
+        /// <summary>
+        /// Revokes a user's access from a Keeper NSF folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID to revoke access from.</param>
+        /// <param name="userEmail">Email address of the user to revoke.</param>
+        /// <returns>Awaitable task.</returns>
+        Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail);
+
+        /// <summary>
+        /// Creates a new Keeper NSF record.
+        /// </summary>
+        /// <param name="title">Record title.</param>
+        /// <param name="recordType">Record type (e.g. "login", "general").</param>
+        /// <param name="folderUid">Optional folder UID to place the record in.</param>
+        /// <param name="notes">Optional notes.</param>
+        /// <param name="fields">Optional fields as key-value pairs.</param>
+        /// <returns>The new record UID.</returns>
+        Task<string> CreateKeeperNSFRecord(string title, string recordType = "general", string folderUid = null, string notes = null, IDictionary<string, string> fields = null);
+
+        /// <summary>
+        /// Updates an existing Keeper NSF record.
+        /// </summary>
+        /// <param name="recordUid">Record UID to update.</param>
+        /// <param name="title">New title (null to keep existing).</param>
+        /// <param name="recordType">New record type (null to keep existing).</param>
+        /// <param name="notes">New notes (null to keep existing).</param>
+        /// <param name="fields">Fields to add or update.</param>
+        Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, string> fields = null);
+
+        /// <summary>
+        /// Grants a user access to a Keeper NSF record by sharing the record key.
+        /// </summary>
+        /// <param name="recordUid">Record UID to share.</param>
+        /// <param name="userEmail">Email of the user to grant access.</param>
+        /// <param name="role">Access role: viewer, shared-manager, content-manager, content-share-manager, full-manager.</param>
+        Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer");
+
+        /// <summary>
+        /// Revokes a user's access from a Keeper NSF record.
+        /// </summary>
+        /// <param name="recordUid">Record UID to unshare.</param>
+        /// <param name="userEmail">Email of the user to revoke access from.</param>
+        Task UnshareKeeperNSFRecord(string recordUid, string userEmail);
+
+        /// <summary>
+        /// Bulk grant or revoke record-level sharing permissions for all records in a Keeper NSF folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID containing the records. If null, operates on root-level records.</param>
+        /// <param name="action">Action: "grant" or "revoke".</param>
+        /// <param name="role">Role to grant or revoke (e.g. "viewer", "content-manager"). Required for grant.</param>
+        /// <param name="recursive">Whether to include records in subfolders.</param>
+        /// <param name="dryRun">If true, computes the plan without executing any changes.</param>
+        Task<KeeperNSFPermissionResult> UpdateKeeperNSFRecordPermissions(string folderUid, string action, string role = null, bool recursive = false, bool dryRun = false);
+
+        /// <summary>
+        /// Lists Keeper NSF records that appear in more than one folder (shortcuts).
+        /// </summary>
+        /// <param name="recordUid">Optional record UID to filter results.</param>
+        /// <param name="folderUid">Optional folder UID to filter results to records in that folder.</param>
+        /// <returns>A list of shortcut entries.</returns>
+        IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null);
+
+        /// <summary>
+        /// Keeps a Keeper NSF record in exactly one folder and removes it from all other folders.
+        /// </summary>
+        /// <param name="recordUid">Record UID to keep.</param>
+        /// <param name="keepFolderUid">Folder UID to keep the record in.</param>
+        /// <returns>Result describing what was kept and what was removed.</returns>
+        Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid);
 
         /// <summary>Enterprise teams for sharing (see also <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/> without vault).</summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>

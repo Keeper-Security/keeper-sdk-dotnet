@@ -113,11 +113,11 @@ namespace KeeperSecurity.Vault
             _recordStorage.Clear();
             _userEmailStorage.Clear();
             _breachWatchRecordStorage.Clear();
-            ClearKeeperDrive();
+            ClearKeeperNSF();
         }
 
         /// <inheritdoc/>
-        public void ClearKeeperDrive()
+        public void ClearKeeperNSF()
         {
             _kdFolderStorage.Clear();
             _kdFolderKeyStorage.Clear();

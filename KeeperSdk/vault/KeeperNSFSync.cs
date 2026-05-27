@@ -12,27 +12,23 @@ using VaultProto = Vault;
 
 namespace KeeperSecurity.Vault
 {
-    internal static class KeeperDriveSync
+    internal static class KeeperNSFSync
     {
-        internal static void ProcessKeeperDriveData(
+        internal static void ProcessKeeperNSFData(
             VaultProto.KeeperDriveData kdData,
             IKeeperStorage storage,
             RebuildTask result)
         {
             if (kdData == null) return;
 
-            Debug.WriteLine($"KeeperDrive SyncDown: folders={kdData.Folders.Count}, folderKeys={kdData.FolderKeys.Count}, " +
-                $"records={kdData.Records.Count}, recordData={kdData.RecordData.Count}, " +
-                $"folderRecords={kdData.FolderRecords.Count}, removedFolders={kdData.RemovedFolders.Count}");
-
             ProcessRemovedFolders(kdData, storage);
             ProcessRemovedFolderRecords(kdData, storage);
             ProcessRemovedRecordLinks(kdData, storage);
             StoreFolders(kdData, storage);
             StoreFolderKeys(kdData, storage);
+            StoreRecords(kdData, storage);
             StoreRecordData(kdData, storage);
             StoreFolderRecords(kdData, storage);
-            StoreRecords(kdData, storage);
             ProcessRevokedFolderAccesses(kdData, storage);
             StoreFolderAccesses(kdData, storage);
             ProcessRevokedRecordAccesses(kdData, storage);
@@ -352,7 +348,7 @@ namespace KeeperSecurity.Vault
             storage.KdRecordSharingStates.PutEntities(states);
         }
 
-        internal static void RebuildKeeperDrive(
+        internal static void RebuildKeeperNSF(
             VaultData vault,
             IAuthContext context,
             byte[] clientKey,
@@ -377,14 +373,14 @@ namespace KeeperSecurity.Vault
                 allFolderRecordUids.Add(fr.RecordUid);
             }
 
-            var orphanedUids = vault.KeeperDriveRecords.Keys
+            var orphanedUids = vault.KeeperNSFRecords.Keys
                 .Where(uid => !allFolderRecordUids.Contains(uid))
                 .ToList();
 
             foreach (var uid in orphanedUids)
             {
-                vault.KeeperDriveRecords.TryRemove(uid, out _);
-                Trace.TraceWarning($"KeeperDrive: Purged orphaned record {uid}");
+                vault.KeeperNSFRecords.TryRemove(uid, out _);
+                Trace.TraceWarning($"KeeperNSF: Purged orphaned record {uid}");
             }
         }
 
@@ -439,7 +435,7 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        Trace.TraceWarning($"KeeperDrive: Could not decrypt folder key for {folderUid}");
+                        Trace.TraceWarning($"KeeperNSF: Could not decrypt folder key for {folderUid}");
                     }
                 }
             }
@@ -493,7 +489,7 @@ namespace KeeperSecurity.Vault
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError($"KeeperDrive: Error decrypting folder access key for {folderUid}: {e.Message}");
+                    Trace.TraceError($"KeeperNSF: Error decrypting folder access key for {folderUid}: {e.Message}");
                 }
             }
 
@@ -547,13 +543,13 @@ namespace KeeperSecurity.Vault
                         return false;
 
                     default:
-                        Trace.TraceWarning($"KeeperDrive: Unknown folder key type {fk.KeyType}");
+                        Trace.TraceWarning($"KeeperNSF: Unknown folder key type {fk.KeyType}");
                         return false;
                 }
             }
             catch (Exception e)
             {
-                Trace.TraceError($"KeeperDrive: Error decrypting folder key for {fk.FolderUid}: {e.Message}");
+                Trace.TraceError($"KeeperNSF: Error decrypting folder key for {fk.FolderUid}: {e.Message}");
                 return false;
             }
         }
@@ -623,12 +619,12 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        Trace.TraceWarning($"KeeperDrive: Could not decrypt record key for {rk.RecordUid}");
+                        Trace.TraceWarning($"KeeperNSF: Could not decrypt record key for {rk.RecordUid}");
                     }
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError($"KeeperDrive: Error decrypting record key for {rk.RecordUid}: {e.Message}");
+                    Trace.TraceError($"KeeperNSF: Error decrypting record key for {rk.RecordUid}: {e.Message}");
                 }
             }
 
@@ -657,7 +653,7 @@ namespace KeeperSecurity.Vault
                             }
                             catch (Exception ex)
                             {
-                                Trace.TraceError($"KeeperDrive: Error decrypting folder data for {kdFolder.FolderUid}: {ex.Message}");
+                                Trace.TraceError($"KeeperNSF: Error decrypting folder data for {kdFolder.FolderUid}: {ex.Message}");
                             }
                         }
                     }
@@ -671,18 +667,18 @@ namespace KeeperSecurity.Vault
                         FolderKey = folderKey,
                     };
 
-                    vault.KeeperDriveFolders[node.FolderUid] = node;
+                    vault.KeeperNSFFolders[node.FolderUid] = node;
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError($"KeeperDrive: Error rebuilding folder {kdFolder.FolderUid}: {e.Message}");
+                    Trace.TraceError($"KeeperNSF: Error rebuilding folder {kdFolder.FolderUid}: {e.Message}");
                 }
             }
 
-            foreach (var node in vault.KeeperDriveFolders.Values)
+            foreach (var node in vault.KeeperNSFFolders.Values)
             {
                 if (!string.IsNullOrEmpty(node.ParentUid) &&
-                    vault.KeeperDriveFolders.TryGetValue(node.ParentUid, out var parent))
+                    vault.KeeperNSFFolders.TryGetValue(node.ParentUid, out var parent))
                 {
                     parent.Subfolders.Add(node.FolderUid);
                 }
@@ -690,7 +686,7 @@ namespace KeeperSecurity.Vault
 
             foreach (var fr in storage.KdFolderRecords.GetAllLinks())
             {
-                if (vault.KeeperDriveFolders.TryGetValue(fr.FolderUid, out var folder))
+                if (vault.KeeperNSFFolders.TryGetValue(fr.FolderUid, out var folder))
                 {
                     folder.Records.Add(fr.RecordUid);
                 }
@@ -709,27 +705,33 @@ namespace KeeperSecurity.Vault
                 {
                     if (!decryptedRecordKeys.TryGetValue(kdRecord.RecordUid, out var recordKey))
                     {
-                        Trace.TraceWarning($"KeeperDrive: No decrypted key for record {kdRecord.RecordUid}");
+                        Trace.TraceWarning($"KeeperNSF: No decrypted key for record {kdRecord.RecordUid}");
                         continue;
                     }
 
                     string recordData = null;
+                    string recordName = null;
                     if (!string.IsNullOrEmpty(kdRecord.Data))
                     {
                         try
                         {
                             var dataBytes = CryptoUtils.DecryptAesV2(kdRecord.Data.Base64UrlDecode(), recordKey);
                             recordData = System.Text.Encoding.UTF8.GetString(dataBytes);
+                            var dataJson = JsonUtils.ParseJson<RecordDataJson>(dataBytes);
+                            recordName = !string.IsNullOrEmpty(dataJson?.title) ? dataJson.title
+                                       : !string.IsNullOrEmpty(dataJson?.name) ? dataJson.name
+                                       : null;
                         }
                         catch (Exception ex)
                         {
-                            Trace.TraceError($"KeeperDrive: Error decrypting record data for {kdRecord.RecordUid}: {ex.Message}");
+                            Trace.TraceError($"KeeperNSF: Error decrypting record data for {kdRecord.RecordUid}: {ex.Message}");
                         }
                     }
 
-                    var entry = new KeeperDriveRecord
+                    var entry = new KeeperNSFRecord
                     {
                         RecordUid = kdRecord.RecordUid,
+                        Name = recordName,
                         Revision = kdRecord.Revision,
                         Version = kdRecord.Version,
                         Shared = kdRecord.Shared,
@@ -740,11 +742,11 @@ namespace KeeperSecurity.Vault
                         DecryptedData = recordData,
                     };
 
-                    vault.KeeperDriveRecords[entry.RecordUid] = entry;
+                    vault.KeeperNSFRecords[entry.RecordUid] = entry;
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError($"KeeperDrive: Error rebuilding record {kdRecord.RecordUid}: {e.Message}");
+                    Trace.TraceError($"KeeperNSF: Error rebuilding record {kdRecord.RecordUid}: {e.Message}");
                 }
             }
         }
@@ -755,18 +757,133 @@ namespace KeeperSecurity.Vault
     {
         [DataMember(Name = "name")]
         public string name { get; set; }
+
+        [DataMember(Name = "color", EmitDefaultValue = false)]
+        public string color { get; set; }
     }
 
-    public class KeeperDriveRecord
+    [DataContract]
+    internal class RecordDataJson
     {
-        public string RecordUid { get; set; }
-        public long Revision { get; set; }
-        public int Version { get; set; }
-        public bool Shared { get; set; }
-        public long ClientModifiedTime { get; set; }
-        public long FileSize { get; set; }
-        public long ThumbnailSize { get; set; }
-        public byte[] RecordKey { get; set; }
-        public string DecryptedData { get; set; }
+        [DataMember(Name = "title")]
+        public string title { get; set; }
+
+        [DataMember(Name = "name")]
+        public string name { get; set; }
+    }
+
+    [DataContract]
+    internal class NsfRecordFieldJson : IExtensibleDataObject
+    {
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string type { get; set; }
+
+        [DataMember(Name = "value", EmitDefaultValue = false)]
+        public string[] value { get; set; }
+
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    [DataContract]
+    internal class NsfRecordDataJson
+    {
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string type { get; set; }
+
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string title { get; set; }
+
+        [DataMember(Name = "notes", EmitDefaultValue = false)]
+        public string notes { get; set; }
+
+        [DataMember(Name = "fields", EmitDefaultValue = false)]
+        public List<NsfRecordFieldJson> fields { get; set; }
+    }
+
+    public class KeeperNSFRecord
+    {
+        public string RecordUid { get; internal set; }
+        public string Name { get; internal set; }
+        public long Revision { get; internal set; }
+        public int Version { get; internal set; }
+        public bool Shared { get; internal set; }
+        public long ClientModifiedTime { get; internal set; }
+        public long FileSize { get; internal set; }
+        public long ThumbnailSize { get; internal set; }
+        public byte[] RecordKey { get; internal set; }
+        public string DecryptedData { get; internal set; }
+    }
+
+    public class KeeperNSFAccessEntry
+    {
+        public string RecordUid { get; internal set; }
+        public string AccessorName { get; internal set; }
+        public string AccessTypeUid { get; internal set; }
+        public bool Owner { get; internal set; }
+        public bool Inherited { get; internal set; }
+        public int AccessRoleType { get; internal set; }
+        public bool CanEdit { get; internal set; }
+        public bool CanView { get; internal set; }
+        public bool CanUpdateAccess { get; internal set; }
+        public bool CanDelete { get; internal set; }
+    }
+
+    public class KeeperNSFPermissionChange
+    {
+        public string RecordUid { get; internal set; }
+        public string Email { get; internal set; }
+        public string CurrentRole { get; internal set; }
+        public string NewRole { get; internal set; }
+        public string ChangeType { get; internal set; }
+        public bool Success { get; internal set; }
+        public string Message { get; internal set; }
+    }
+
+    public class KeeperNSFPermissionResult
+    {
+        public List<KeeperNSFPermissionChange> Grants { get; } = new List<KeeperNSFPermissionChange>();
+        public List<KeeperNSFPermissionChange> Revokes { get; } = new List<KeeperNSFPermissionChange>();
+        public List<KeeperNSFPermissionChange> Skipped { get; } = new List<KeeperNSFPermissionChange>();
+    }
+
+    /// <summary>
+    /// Represents a record that appears in multiple Keeper NSF folders (a "shortcut").
+    /// </summary>
+    public class KeeperNSFShortcutEntry
+    {
+        public string RecordUid { get; internal set; }
+        public string Title { get; internal set; }
+        public List<KeeperNSFShortcutFolder> Folders { get; } = new List<KeeperNSFShortcutFolder>();
+    }
+
+    /// <summary>
+    /// A folder reference within a shortcut entry.
+    /// </summary>
+    public class KeeperNSFShortcutFolder
+    {
+        public string FolderUid { get; internal set; }
+        public string Name { get; internal set; }
+    }
+
+    /// <summary>
+    /// Result of a shortcut-keep operation (keeping a record in one folder, removing from others).
+    /// </summary>
+    public class KeeperNSFShortcutKeepResult
+    {
+        public string RecordUid { get; internal set; }
+        public string KeptFolderUid { get; internal set; }
+        public string KeptFolderName { get; internal set; }
+        public List<KeeperNSFShortcutRemoval> Removals { get; } = new List<KeeperNSFShortcutRemoval>();
+    }
+
+    /// <summary>
+    /// Result of removing a record from a single folder during a shortcut-keep operation.
+    /// </summary>
+    public class KeeperNSFShortcutRemoval
+    {
+        public string FolderUid { get; internal set; }
+        public string FolderName { get; internal set; }
+        public bool Success { get; internal set; }
+        public string Message { get; internal set; }
     }
 }

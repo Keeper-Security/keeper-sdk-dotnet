@@ -235,31 +235,31 @@ namespace KeeperSecurity.Vault
         private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
         private readonly BreachWatchService _breachWatchService;
 
-        internal readonly ConcurrentDictionary<string, FolderNode> KeeperDriveFolders = new();
-        internal readonly ConcurrentDictionary<string, KeeperDriveRecord> KeeperDriveRecords = new();
+        internal readonly ConcurrentDictionary<string, FolderNode> KeeperNSFFolders = new();
+        internal readonly ConcurrentDictionary<string, KeeperNSFRecord> KeeperNSFRecords = new();
 
         /// <inheritdoc/>
-        public int KeeperDriveFolderCount => KeeperDriveFolders.Count;
+        public int KeeperNSFFolderCount => KeeperNSFFolders.Count;
 
         /// <inheritdoc/>
-        public IEnumerable<FolderNode> KeeperDriveFolderNodes => KeeperDriveFolders.Values;
+        public IEnumerable<FolderNode> KeeperNSFFolderNodes => KeeperNSFFolders.Values;
 
         /// <inheritdoc/>
-        public bool TryGetKeeperDriveFolder(string folderUid, out FolderNode folder)
+        public bool TryGetKeeperNSFFolder(string folderUid, out FolderNode folder)
         {
-            return KeeperDriveFolders.TryGetValue(folderUid, out folder);
+            return KeeperNSFFolders.TryGetValue(folderUid, out folder);
         }
 
         /// <inheritdoc/>
-        public int KeeperDriveRecordCount => KeeperDriveRecords.Count;
+        public int KeeperNSFRecordCount => KeeperNSFRecords.Count;
 
         /// <inheritdoc/>
-        public IEnumerable<KeeperDriveRecord> KeeperDriveRecordEntries => KeeperDriveRecords.Values;
+        public IEnumerable<KeeperNSFRecord> KeeperNSFRecordEntries => KeeperNSFRecords.Values;
 
         /// <inheritdoc/>
-        public bool TryGetKeeperDriveRecord(string recordUid, out KeeperDriveRecord record)
+        public bool TryGetKeeperNSFRecord(string recordUid, out KeeperNSFRecord record)
         {
-            return KeeperDriveRecords.TryGetValue(recordUid, out record);
+            return KeeperNSFRecords.TryGetValue(recordUid, out record);
         }
 
         /// <inheritdoc/>

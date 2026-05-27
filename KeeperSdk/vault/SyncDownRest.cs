@@ -721,9 +721,9 @@ namespace KeeperSecurity.Vault
                 {
                     if (rs.CacheStatus == VaultProto.CacheStatus.Clear)
                     {
-                        storage.ClearKeeperDrive();
+                        storage.ClearKeeperNSF();
                     }
-                    KeeperDriveSync.ProcessKeeperDriveData(rs.KeeperDriveData, storage, result);
+                    KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage, result);
                 }
 
                 if (rs.BreachWatchRecords.Count > 0)
@@ -800,11 +800,11 @@ namespace KeeperSecurity.Vault
             vault.RebuildData(result);
             Debug.WriteLine("Rebuild Data: Leave");
 
-            Debug.WriteLine("Rebuild KeeperDrive: Enter");
-            vault.KeeperDriveFolders.Clear();
-            vault.KeeperDriveRecords.Clear();
-            KeeperDriveSync.RebuildKeeperDrive(vault, context, clientKey, result.IsFullSync);
-            Debug.WriteLine("Rebuild KeeperDrive: Leave");
+            Debug.WriteLine("Rebuild KeeperNSF: Enter");
+            vault.KeeperNSFFolders.Clear();
+            vault.KeeperNSFRecords.Clear();
+            KeeperNSFSync.RebuildKeeperNSF(vault, context, clientKey, result.IsFullSync);
+            Debug.WriteLine("Rebuild KeeperNSF: Leave");
         }
 
         private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey,
