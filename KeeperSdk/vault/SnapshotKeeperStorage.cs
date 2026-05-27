@@ -70,8 +70,6 @@ public class SnapshotKeeperStorage : IKeeperStorage
 
     public void Clear()
     {
-        // Clear() is called during full sync, which is not supported with cached storage
-        // because it would require clearing MySQL data (read-only source)
         throw new NotSupportedException(
             "CachedKeeperStorage does not support full sync (Clear operation). " +
             "Full sync requires clearing the backing MySQL storage, which violates the read-only contract. " +
