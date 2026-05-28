@@ -57,6 +57,39 @@ function Get-AccessRoleLabel {
     return 'unknown'
 }
 
+function Get-KdRecordTypeAndTitle {
+    Param($record)
+
+    $dataFields = $null
+    if ($record -and $record.DecryptedData) {
+        try { $dataFields = $record.DecryptedData | ConvertFrom-Json } catch { }
+    }
+
+    if ($dataFields -and $dataFields.type) {
+        $recordType = $dataFields.type
+    }
+    elseif ($record -and $record.Version -eq 4) {
+        $recordType = 'file'
+    }
+    elseif ($record -and $record.Version -eq 5) {
+        $recordType = 'application'
+    }
+    else {
+        $recordType = 'Unknown'
+    }
+
+    $title = ''
+    if ($record -and $record.Name) { $title = $record.Name }
+    elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
+    elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
+
+    return [PSCustomObject]@{
+        Type   = $recordType
+        Title  = $title
+        Fields = $dataFields
+    }
+}
+
 function Get-KeeperNSFFolderList {
     <#
 	.Synopsis
@@ -202,20 +235,12 @@ function Get-KeeperNSFList {
 
     if ($showRecords) {
         foreach ($record in $vault.KeeperNSFRecordEntries) {
-            $recType = ''
-            $title = if ($record.Name) { $record.Name } else { '' }
-            if ($record.DecryptedData) {
-                try {
-                    $df = $record.DecryptedData | ConvertFrom-Json
-                    if (-not $title -and $df.title) { $title = $df.title }
-                    if ($df.type) { $recType = $df.type }
-                } catch { }
-            }
+            $meta = Get-KdRecordTypeAndTitle $record
             $combined.Add(@{
                 ItemType    = 'Record'
                 UID         = $record.RecordUid
-                Title       = $title
-                Type        = $recType
+                Title       = $meta.Title
+                Type        = $meta.Type
                 Description = "Rev: $($record.Revision), Shared: $($record.Shared)"
                 Parent      = ''
             }) | Out-Null
@@ -395,19 +420,10 @@ function Get-KeeperNSFRecord {
 function Show-KdRecordDetail {
     Param($vault, $storage, $record, $currentAccountUid)
 
-    $dataFields = $null
-    if ($record.DecryptedData) {
-        try { $dataFields = $record.DecryptedData | ConvertFrom-Json } catch { }
-    }
-
-    $recordType = 'file'
-    if ($record.Version -eq 3) { $recordType = 'login' }
-    elseif ($dataFields -and $dataFields.type) { $recordType = $dataFields.type }
-
-    $title = ''
-    if ($record.Name) { $title = $record.Name }
-    elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
-    elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
+    $meta = Get-KdRecordTypeAndTitle $record
+    $dataFields = $meta.Fields
+    $recordType = $meta.Type
+    $title = $meta.Title
 
     Write-Host ""
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "UID", $record.RecordUid)
@@ -459,7 +475,7 @@ function Show-KdFolderDetail {
         $rq.FolderUid.Add([Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($folder.FolderUid)))
         $rs = $vault.Auth.ExecuteAuthRest("vault/folders/v3/access", $rq, [Folder.V3.GetFolderAccessResponse]).GetAwaiter().GetResult()
         foreach ($result in $rs.FolderAccessResults) {
-            if ($result.Error -eq $null) {
+            if ($null -eq $result.Error) {
                 $converted = [System.Collections.ArrayList]::new()
                 foreach ($a in $result.Accessors) {
                     $obj = [PSCustomObject]@{
@@ -621,19 +637,9 @@ function Show-KdPermissions {
 function Build-KdRecordJson {
     Param($vault, $storage, $record, $currentAccountUid)
 
-    $dataFields = $null
-    if ($record.DecryptedData) {
-        try { $dataFields = $record.DecryptedData | ConvertFrom-Json } catch { }
-    }
-
-    $recordType = 'file'
-    if ($record.Version -eq 3) { $recordType = 'login' }
-    elseif ($dataFields -and $dataFields.type) { $recordType = $dataFields.type }
-
-    $title = ''
-    if ($record.Name) { $title = $record.Name }
-    elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
-    elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
+    $meta = Get-KdRecordTypeAndTitle $record
+    $recordType = $meta.Type
+    $title = $meta.Title
 
     $permissions = [System.Collections.ArrayList]::new()
     $recordAccesses = @($storage.KdRecordAccesses.GetLinksForSubject($record.RecordUid))
@@ -670,7 +676,7 @@ function Build-KdFolderJson {
         $rq.FolderUid.Add([Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($folder.FolderUid)))
         $rs = $vault.Auth.ExecuteAuthRest("vault/folders/v3/access", $rq, [Folder.V3.GetFolderAccessResponse]).GetAwaiter().GetResult()
         foreach ($result in $rs.FolderAccessResults) {
-            if ($result.Error -eq $null) {
+            if ($null -eq $result.Error) {
                 $storedFolder = $storage.KdFolders.GetEntity($folder.FolderUid)
                 $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
                 $ownerUsername   = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
@@ -711,7 +717,6 @@ function Get-KeeperNSFRecordDetails {
 	.Description
 	Retrieves and displays record metadata for the specified Keeper NSF records.
 	Supports output in table or JSON format.
-	Similar to Commander's 'nsf-record-details' command.
 
 	.Parameter RecordUids
 	One or more record UIDs to retrieve details for.
@@ -757,19 +762,9 @@ function Get-KeeperNSFRecordDetails {
         }
 
         if ($resolved) {
-            $dataFields = $null
-            if ($resolved.DecryptedData) {
-                try { $dataFields = $resolved.DecryptedData | ConvertFrom-Json } catch { }
-            }
-
-            $title = ''
-            if ($resolved.Name) { $title = $resolved.Name }
-            elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
-            elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
-
-            $recordType = ''
-            if ($resolved.Version -eq 3) { $recordType = 'login' }
-            elseif ($dataFields -and $dataFields.type) { $recordType = $dataFields.type }
+            $meta = Get-KdRecordTypeAndTitle $resolved
+            $title = $meta.Title
+            $recordType = $meta.Type
 
             $item = [KdRecordDetailItem]::new()
             $item.RecordUid = $resolved.RecordUid

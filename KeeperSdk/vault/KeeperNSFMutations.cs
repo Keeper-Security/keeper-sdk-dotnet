@@ -92,13 +92,10 @@ namespace KeeperSecurity.Vault
                 {
                     var displayName = folderJson.name;
                     cachedFolder.Name = string.IsNullOrEmpty(displayName)
-                        ? KeeperNSFFolderPlaceholderName
+                        ? KeeperNSFConstants.FolderPlaceholderName
                         : displayName;
                 }
-            }
 
-            if (modifyResult.Status == FolderProto.FolderModifyStatus.Success)
-            {
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
 
@@ -146,7 +143,12 @@ namespace KeeperSecurity.Vault
                 throw new VaultException($"Record \"{record.RecordUid}\" is already linked to this folder.");
             }
 
-            TryGetKeeperNSFRecordKeyType(record.RecordUid, out var recordKeyType);
+            if (!TryGetKeeperNSFRecordKeyType(record.RecordUid, out var recordKeyType))
+            {
+                throw new VaultException(
+                    $"Record key type is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
+            }
+
             var metadata = BuildKeeperNSFRecordMetadata(record.RecordUid, recordKey, recordKeyType, folder.FolderKey);
 
             var request = new FolderProto.FolderRecordUpdateRequest
@@ -211,8 +213,6 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
-        private const string AlreadySharedTransferStatus = "already_shared";
-
         private async Task<KeeperNSFRecordTransferResult> TransferSingleKeeperNSFRecordOwnershipAsync(
             string recordUid,
             byte[] recordKey,
@@ -249,7 +249,7 @@ namespace KeeperSecurity.Vault
                 {
                     RecordUid = recordUid,
                     Username = ownerEmail,
-                    Status = TransferRecordSuccessStatus,
+                    Status = AlreadySharedTransferStatus,
                     Message = "Ownership transferred via record share.",
                     Success = true,
                 };
@@ -261,16 +261,27 @@ namespace KeeperSecurity.Vault
         private void PurgeKeeperNSFRecordFromLocalVault(string recordUid)
         {
             KeeperNSFRecords.TryRemove(recordUid, out _);
-            foreach (var folder in KeeperNSFFolderNodes)
+
+            var folderSnapshot = KeeperNSFFolderNodes?.ToList();
+            if (folderSnapshot != null)
             {
-                folder.Records.Remove(recordUid);
+                foreach (var folder in folderSnapshot)
+                {
+                    folder?.Records?.Remove(recordUid);
+                }
             }
 
             Storage.KdRecords.DeleteUids(new[] { recordUid });
             Storage.KdFolderRecords.DeleteLinksForObjects(new[] { recordUid });
             Storage.KdRecordKeys.DeleteLinksForObjects(new[] { recordUid });
 
-            var accountUid = CryptoUtils.Base64UrlEncode(Auth.AuthContext.AccountUid);
+            var rawAccountUid = Auth?.AuthContext?.AccountUid;
+            if (rawAccountUid == null || rawAccountUid.Length == 0)
+            {
+                return;
+            }
+
+            var accountUid = CryptoUtils.Base64UrlEncode(rawAccountUid);
             var revokedAccess = Storage.KdRecordAccesses.GetLinksForSubject(recordUid)
                 .Where(link => string.Equals(link.AccessTypeUid, accountUid, StringComparison.Ordinal))
                 .Select(link => UidLink.Create(link.RecordUid, link.AccessTypeUid))
@@ -290,10 +301,10 @@ namespace KeeperSecurity.Vault
                 return false;
             }
 
-            if (TryGetKeeperNSFRecord(uidOrTitle, out var kdRecord))
+            if (TryGetKeeperNSFRecord(uidOrTitle, out var kdRecord) && kdRecord != null)
             {
                 record = kdRecord;
-                return record != null;
+                return true;
             }
 
             var lower = uidOrTitle.Trim();
@@ -307,7 +318,7 @@ namespace KeeperSecurity.Vault
                 if (string.Equals(entry.RecordUid, lower, StringComparison.OrdinalIgnoreCase))
                 {
                     record = entry;
-                    return record != null;
+                    return true;
                 }
 
                 var title = TryGetKdRecordTitle(entry.DecryptedData);
@@ -315,7 +326,7 @@ namespace KeeperSecurity.Vault
                     && string.Equals(title, lower, StringComparison.OrdinalIgnoreCase))
                 {
                     record = entry;
-                    return record != null;
+                    return true;
                 }
             }
 
@@ -537,17 +548,18 @@ namespace KeeperSecurity.Vault
         private bool TryGetKeeperNSFRecordKeyType(
             string recordUid, out FolderProto.EncryptedKeyType recordKeyType)
         {
+            recordKeyType = default;
+
             var link = Storage.KdRecordKeys.GetAllLinks()
                 .FirstOrDefault(item => string.Equals(item.RecordUid, recordUid, StringComparison.Ordinal));
 
-            if (link != null)
+            if (link == null)
             {
-                recordKeyType = (FolderProto.EncryptedKeyType)link.RecordKeyType;
-                return true;
+                return false;
             }
 
-            recordKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm;
-            return false;
+            recordKeyType = (FolderProto.EncryptedKeyType)link.RecordKeyType;
+            return true;
         }
 
         private static FolderProto.RecordMetadata BuildKeeperNSFRecordMetadata(
@@ -639,6 +651,7 @@ namespace KeeperSecurity.Vault
         }
 
         private const string TransferRecordSuccessStatus = "transfer_record_success";
+        private const string AlreadySharedTransferStatus = "already_shared";
         private const string KeeperNSFTransferEndpoint = "vault/records/v3/transfer";
 
         private static bool IsKeeperNSFTransferSuccessStatus(string status)
@@ -813,14 +826,11 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        private const string KeeperNSFFolderPlaceholderName = "(Keeper NSF Folder)";
-
         private FolderDataJson BuildKeeperNSFFolderUpdateData(FolderNode folder, string newName, string color)
         {
             var existing = ReadKdFolderData(folder.FolderUid, folder.FolderKey);
             var result = new FolderDataJson();
 
-            // Match Python folder_api._build_update_data: always include name in the payload.
             if (newName != null)
             {
                 result.name = newName;
@@ -832,10 +842,6 @@ namespace KeeperSecurity.Vault
             else if (!string.IsNullOrEmpty(existing?.name))
             {
                 result.name = existing.name;
-            }
-            else
-            {
-                result.name = string.Empty;
             }
 
             if (color != null)
@@ -906,7 +912,7 @@ namespace KeeperSecurity.Vault
             displayName = null;
             if (folder == null
                 || string.IsNullOrEmpty(folder.Name)
-                || string.Equals(folder.Name, KeeperNSFFolderPlaceholderName, StringComparison.Ordinal))
+                || string.Equals(folder.Name, KeeperNSFConstants.FolderPlaceholderName, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -941,20 +947,25 @@ namespace KeeperSecurity.Vault
         }
 
         [DataContract]
-        private class FolderDataJson
-        {
-            [DataMember(Name = "name", EmitDefaultValue = false)]
-            public string name { get; set; }
-
-            [DataMember(Name = "color", EmitDefaultValue = false)]
-            public string color { get; set; }
-        }
-
-        [DataContract]
         private class NsfRecordTitleJson
         {
             [DataMember(Name = "title")]
             public string title { get; set; }
         }
+    }
+
+    [DataContract]
+    internal class FolderDataJson
+    {
+        [DataMember(Name = "name", EmitDefaultValue = false)]
+        public string name { get; set; }
+
+        [DataMember(Name = "color", EmitDefaultValue = false)]
+        public string color { get; set; }
+    }
+
+    internal static class KeeperNSFConstants
+    {
+        public const string FolderPlaceholderName = "(Keeper NSF Folder)";
     }
 }
