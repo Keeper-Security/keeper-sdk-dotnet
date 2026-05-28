@@ -76,9 +76,9 @@ public class SnapshotKeeperStorage : IKeeperStorage
             "Use incremental sync only.");
     }
 
-    public void ClearKeeperDrive()
+    public void ClearKeeperNSF()
     {
         throw new NotSupportedException(
-            "CachedKeeperStorage does not support ClearKeeperDrive operation.");
+            "CachedKeeperStorage does not support ClearKeeperNSF operation.");
     }
 }

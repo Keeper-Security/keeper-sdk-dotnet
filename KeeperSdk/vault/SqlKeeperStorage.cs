@@ -171,7 +171,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public void ClearKeeperDrive()
+        public void ClearKeeperNSF()
         {
             _kdFolders.DeleteAll();
             _kdFolderKeys.DeleteAll();
