@@ -522,7 +522,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="recordUid">Record UID to unshare.</param>
         /// <param name="userEmail">Email of the user to revoke access from.</param>
-        Task UnshareKeeperNSFRecord(string recordUid, string userEmail);
+        Task UnshareKeeperNSFRecord(string recordUid, string userEmail);       
 
         /// <summary>
         /// Bulk grant or revoke record-level sharing permissions for all records in a Keeper NSF folder.

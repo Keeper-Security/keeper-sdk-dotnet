@@ -128,7 +128,6 @@ function Set-KeeperNSFFolderAccess {
 
 New-Alias -Name nsf-share-folder -Value Set-KeeperNSFFolderAccess
 
-# --- NSF folder mutations (sdk-396) ---
 function Write-KeeperNSFRemoveImpact {
     param(
         [Folder.V3.Remove.RemoveResponse]$Response,
