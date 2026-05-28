@@ -589,6 +589,8 @@ namespace Commander
 
             cli.Commands.Add("trash", trashCmd);
 
+            context.AppendKeeperDriveCommands(cli);
+
             cli.Commands.Add("sync-down",
                 new ParseableCommand<SyncDownOptions>
                 {
