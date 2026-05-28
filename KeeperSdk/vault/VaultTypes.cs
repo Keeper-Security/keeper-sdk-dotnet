@@ -550,6 +550,44 @@ namespace KeeperSecurity.Vault
         /// <returns>Result describing what was kept and what was removed.</returns>
         Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid);
 
+        /// <summary>Removes Keeper NSF records (preview/confirm).</summary>
+        Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false);
+
+        /// <summary>Removes Keeper NSF folders (preview/confirm).</summary>
+        Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun = false);
+
+        /// <summary>Renames or recolors a Keeper NSF folder.</summary>
+        Task<Folder.FolderModifyResult> UpdateKeeperNSFFolder(
+            string folderUidOrName, string newName = null, string color = null);
+
+        /// <summary>Links a Keeper NSF record into a Keeper NSF folder (hard-link).</summary>
+        Task<Folder.FolderRecordUpdateResult> LinkKeeperNSFRecordToFolder(
+            string recordUidOrTitle, string folderUidOrName);
+
+        /// <summary>Transfers ownership of Keeper NSF record(s) to another user.</summary>
+        Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnership(
+            IReadOnlyList<string> recordUidOrTitles, string newOwnerEmail);
+
+        /// <summary>Resolves a Keeper NSF record by UID or title.</summary>
+        bool TryResolveKeeperNSFRecord(string uidOrTitle, out KeeperNSFRecord record);
+
+        /// <summary>Resolves a Keeper NSF folder by UID or name.</summary>
+        bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder);
+
+        /// <summary>Gets NSF folder UIDs that contain the specified record.</summary>
+        IEnumerable<string> GetKeeperNSFFoldersForRecord(string recordUid);
+
+        /// <summary>
+        /// Resolves folder context for record removal (explicit folder, first containing folder, or none for owner-trash).
+        /// </summary>
+        bool TryResolveKeeperNSFRecordRemovalFolder(
+            string recordUid,
+            string folderUidOrName,
+            KeeperNSFRecordRemoveOperation operation,
+            out string folderUid);
+
         /// <summary>Enterprise teams for sharing (see also <see cref="SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(IAuthentication)"/> without vault).</summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>
         /// <remarks>
@@ -834,6 +872,93 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="auth">Authenticated session.</param>
         Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth);
+    }
+
+    /// <summary>
+    /// Result of a Keeper NSF removal request (preview and optional confirm).
+    /// </summary>
+    public class KeeperNSFRemoveResult
+    {
+        /// <summary>Preview response from the server.</summary>
+        public Folder.V3.Remove.RemoveResponse PreviewResponse { get; set; }
+
+        /// <summary>True when the removal was confirmed on the server.</summary>
+        public bool Confirmed { get; set; }
+
+        /// <summary>Confirmation token expiration (epoch ms), when preview succeeded.</summary>
+        public long? TokenExpiresAt { get; set; }
+    }
+
+    /// <summary>
+    /// Keeper NSF record removal operation (maps to Folder v3 remove API).
+    /// </summary>
+    public enum KeeperNSFRecordRemoveOperation
+    {
+        /// <summary>Remove from all folders and move to the owner's trash.</summary>
+        OwnerTrash,
+        /// <summary>Remove from the context folder and move to that folder's trash.</summary>
+        FolderTrash,
+        /// <summary>Remove the folder-record link only; record remains in other folders.</summary>
+        Unlink,
+    }
+
+    /// <summary>
+    /// Specifies a Keeper NSF record to remove.
+    /// </summary>
+    public class KeeperNSFRecordRemoval
+    {
+        /// <summary>Record UID.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Context folder UID (required for <see cref="KeeperNSFRecordRemoveOperation.Unlink"/>).</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Removal operation.</summary>
+        public KeeperNSFRecordRemoveOperation Operation { get; set; }
+    }
+
+    /// <summary>
+    /// Keeper NSF folder removal operation (maps to Folder v3 remove API).
+    /// </summary>
+    public enum KeeperNSFFolderRemoveOperation
+    {
+        /// <summary>Move folder to parent's trash (recoverable).</summary>
+        FolderTrash,
+        /// <summary>Permanent cascade delete (irreversible).</summary>
+        DeletePermanent,
+    }
+
+    /// <summary>
+    /// Specifies a Keeper NSF folder to remove.
+    /// </summary>
+    public class KeeperNSFFolderRemoval
+    {
+        /// <summary>Folder UID.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Removal operation.</summary>
+        public KeeperNSFFolderRemoveOperation Operation { get; set; }
+    }
+
+    /// <summary>
+    /// Result of transferring Keeper NSF record ownership.
+    /// </summary>
+    public class KeeperNSFRecordTransferResult
+    {
+        /// <summary>Record UID.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>New owner email.</summary>
+        public string Username { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when transfer succeeded.</summary>
+        public bool Success { get; set; }
     }
 
     /// <summary>

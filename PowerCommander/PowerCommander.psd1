@@ -131,8 +131,9 @@
         'Remove-KeeperEpmCollectionsByType','Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
         'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
         'Get-KeeperNSFList', 'Get-KeeperNSFFolderList', 'Get-KeeperNSFRecordList', 'Get-KeeperNSFRecord', 'Get-KeeperNSFRecordDetails',
-        'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess',
+        'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess', 'Set-KeeperNSFFolder', 'Remove-KeeperNSFFolder',
         'Add-KeeperNSFRecord', 'Edit-KeeperNSFRecord', 'Set-KeeperNSFRecordAccess', 'Set-KeeperNSFRecordPermission',
+        'Remove-KeeperNSFRecord', 'Link-KeeperNSFRecord', 'Transfer-KeeperNSFRecordOwnership',
         'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep'
         #'Test-Keeper',
     )
@@ -162,8 +163,9 @@
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
         'nsf-list', 'nsf-folders', 'nsf-records', 'nsf-get', 'nsf-record-details',
-        'nsf-mkdir', 'nsf-share-folder',
+        'nsf-mkdir', 'nsf-share-folder', 'nsf-rndir', 'nsf-rmdir',
         'nsf-record-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
+        'nsf-rm', 'nsf-ln', 'nsf-transfer-record',
         'nsf-shortcut-list', 'nsf-shortcut-keep')
 
     # List of all modules packaged with this module

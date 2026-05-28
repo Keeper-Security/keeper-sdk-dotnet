@@ -695,3 +695,295 @@ function Set-KeeperNSFShortcutKeep {
 }
 
 New-Alias -Name nsf-shortcut-keep -Value Set-KeeperNSFShortcutKeep
+
+# --- NSF record mutations (sdk-396) ---
+function Remove-KeeperNSFRecord {
+    <#
+	.Synopsis
+	Removes one or more Keeper NSF records (Keeper NSF v3 API).
+
+	.Parameter Record
+	One or more record UIDs or titles.
+
+	.Parameter Folder
+	Folder UID or name that provides context (required for unlink).
+
+	.Parameter Operation
+	Removal operation: owner-trash, folder-trash, or unlink.
+
+	.Parameter Force
+	Skip confirmation after preview.
+
+	.Parameter DryRun
+	Preview only; do not remove records.
+#>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [string[]] $Record,
+
+        [string] $Folder,
+
+        [Alias('o')]
+        [ValidateSet('owner-trash', 'folder-trash', 'unlink')]
+        [string] $Operation = 'owner-trash',
+
+        [Alias('f')]
+        [switch] $Force,
+
+        [switch] $DryRun
+    )
+
+    begin {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
+        $resolvedFolderUid = $null
+
+        if ($Folder) {
+            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+            if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+                Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+                return
+            }
+            $resolvedFolderUid = $folderNode.FolderUid
+        }
+        elseif ($Script:Context.CurrentFolder) {
+            [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
+            if ($vault.TryResolveKeeperNSFFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
+                $resolvedFolderUid = $currentFolder.FolderUid
+            }
+        }
+
+        $op = switch ($Operation) {
+            'owner-trash' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash }
+            'folder-trash' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::FolderTrash }
+            'unlink' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink }
+        }
+
+        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and -not $resolvedFolderUid) {
+            Write-Error -Message "Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder."
+            return
+        }
+    }
+
+    process {
+        foreach ($name in $Record) {
+            [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+            if (-not $vault.TryResolveKeeperNSFRecord($name, [ref]$kdRecord)) {
+                Write-Error -Message "Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+                continue
+            }
+
+            $folderUid = $resolvedFolderUid
+            if (-not $folderUid -and $op -ne [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash) {
+                $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
+                if ($folderUids.Count -eq 0) {
+                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                    continue
+                }
+                $folderUid = $folderUids[0]
+            }
+
+            $removal = New-Object KeeperSecurity.Vault.KeeperNSFRecordRemoval
+            $removal.RecordUid = $kdRecord.RecordUid
+            $removal.FolderUid = $folderUid
+            $removal.Operation = $op
+            $removals.Add($removal)
+        }
+    }
+
+    end {
+        if ($removals.Count -eq 0) {
+            return
+        }
+
+        Write-Host ""
+        Write-Host "=== Keeper NSF Remove Preview ===" -ForegroundColor Cyan
+        $previewResult = $vault.RemoveKeeperNSFRecords($removals, $true).GetAwaiter().GetResult()
+        Write-KeeperNSFRemoveImpact -Response $previewResult.PreviewResponse
+
+        try {
+            [KeeperSecurity.Vault.VaultOnline]::ValidateRemoveResponse($previewResult.PreviewResponse, $false)
+        }
+        catch {
+            Write-Error -Message $_.Exception.Message
+            return
+        }
+
+        if ($DryRun) {
+            Write-Host ""
+            Write-Host "Dry run: no records were removed." -ForegroundColor DarkYellow
+            return
+        }
+
+        $targets = @($removals | ForEach-Object { $_.RecordUid })
+        $shouldRemove = $Force
+        if (-not $shouldRemove) {
+            $shouldRemove = $PSCmdlet.ShouldProcess(
+                ($targets -join ', '),
+                "Remove Keeper NSF record(s) ($Operation)")
+        }
+
+        if (-not $shouldRemove) {
+            Write-Host "Removal cancelled."
+            return
+        }
+
+        if ($previewResult.PreviewResponse.ConfirmationToken.IsEmpty) {
+            Write-Error -Message "Preview did not return a confirmation token."
+            return
+        }
+
+        Write-Host ""
+        Write-Host "Removing records..." -ForegroundColor Cyan
+        $confirmResult = $vault.RemoveKeeperNSFRecords($removals, $false).GetAwaiter().GetResult()
+        if (-not $confirmResult.Confirmed) {
+            Write-Error -Message "Record removal was not confirmed by the server."
+            return
+        }
+
+        $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
+        Write-Host ""
+        Write-Host "Keeper NSF record removal completed." -ForegroundColor Green
+    }
+}
+New-Alias -Name nsf-rm -Value Remove-KeeperNSFRecord
+function Link-KeeperNSFRecord {
+    <#
+	.Synopsis
+	Links a Keeper NSF record into a Keeper NSF folder (Keeper NSF v3 API).
+
+	.Parameter Record
+	Record UID or title.
+
+	.Parameter Folder
+	Destination folder UID, name, or "/" for Keeper NSF root.
+#>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string] $Record,
+
+        [Parameter(Position = 1, Mandatory = $true)]
+        [string] $Folder
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+    if (-not $vault.TryResolveKeeperNSFRecord($Record, [ref]$kdRecord)) {
+        Write-Error -Message "Keeper NSF record `"$Record`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+        Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    $folderLabel = if ([string]::IsNullOrEmpty($folderNode.FolderUid)) { 'root' } else { "$($folderNode.Name) ($($folderNode.FolderUid))" }
+    $target = "$($kdRecord.RecordUid) -> $folderLabel"
+    if (-not $PSCmdlet.ShouldProcess($target, "Link Keeper NSF record into folder")) {
+        return
+    }
+
+    try {
+        $result = $vault.LinkKeeperNSFRecordToFolder($Record, $Folder).GetAwaiter().GetResult()
+        [KeeperSecurity.Vault.VaultOnline]::ValidateFolderRecordUpdateResult($result)
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+        return
+    }
+
+    $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
+    Write-Host "Keeper NSF record linked into folder." -ForegroundColor Green
+}
+New-Alias -Name nsf-ln -Value Link-KeeperNSFRecord
+
+function Transfer-KeeperNSFRecordOwnership {
+    <#
+	.Synopsis
+	Transfers ownership of one or more Keeper NSF records to another user (Keeper NSF v3 API).
+
+	.Description
+	Positional arguments: one or more record UIDs or titles, then the new owner's email address.
+	After a successful transfer you will no longer have access to the record(s).
+
+	.Example
+	nsf-transfer-record rvwIBG_ban2VTH64OsnzLn alice@example.com
+
+	.Example
+	nsf-transfer-record rec1 rec2 rec3 alice@example.com
+#>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    Param(
+        [Parameter(ValueFromRemainingArguments = $true, Mandatory = $true)]
+        [string[]] $ArgumentList,
+
+        [Alias('f')]
+        [switch] $Force
+    )
+
+    if ($ArgumentList.Count -lt 2) {
+        Write-Error -Message "Usage: nsf-transfer-record RECORD [RECORD...] NEW_OWNER_EMAIL"
+        return
+    }
+
+    $newOwnerEmail = $ArgumentList[-1]
+    $recordArgs = @($ArgumentList[0..($ArgumentList.Count - 2)])
+
+    if ($recordArgs.Count -eq 0 -or [string]::IsNullOrWhiteSpace($newOwnerEmail)) {
+        Write-Error -Message "Record UID(s) and new owner email are required."
+        return
+    }
+
+    if ($newOwnerEmail -notmatch '@') {
+        Write-Error -Message "New owner must be an email address: `"$newOwnerEmail`""
+        return
+    }
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $resolvedRecords = New-Object 'System.Collections.Generic.List[string]'
+
+    foreach ($name in $recordArgs) {
+        [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+        if (-not $vault.TryResolveKeeperNSFRecord($name, [ref]$kdRecord)) {
+            Write-Error -Message "Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+            return
+        }
+        $resolvedRecords.Add($kdRecord.RecordUid)
+    }
+
+    $target = "$($resolvedRecords -join ', ') -> $newOwnerEmail"
+    if (-not $Force) {
+        Write-Host ""
+        Write-Host "*** WARNING ***" -ForegroundColor Yellow
+        Write-Host "After ownership is transferred you will no longer have access to the record(s)."
+        Write-Host "Make sure the new owner is correct before continuing."
+        Write-Host ""
+    }
+
+    if (-not $PSCmdlet.ShouldProcess($target, "Transfer Keeper NSF record ownership")) {
+        return
+    }
+
+    try {
+        $results = $vault.TransferKeeperNSFRecordOwnership($resolvedRecords, $newOwnerEmail).GetAwaiter().GetResult()
+        [KeeperSecurity.Vault.VaultOnline]::ValidateKeeperNSFTransferResults($results)
+
+        foreach ($result in $results) {
+            Write-Host "Record '$($result.RecordUid)' ownership transferred to $($result.Username)." -ForegroundColor Green
+            Write-Host "You will no longer have access to this record." -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+        return
+    }
+
+    $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
+}
+New-Alias -Name nsf-transfer-record -Value Transfer-KeeperNSFRecordOwnership
