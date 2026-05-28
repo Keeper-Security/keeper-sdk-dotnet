@@ -268,6 +268,76 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        private const string AlreadySharedTransferStatus = "already_shared";
+
+        private async Task<KeeperNSFRecordTransferResult> TransferSingleKeeperNSFRecordOwnershipAsync(
+            string recordUid,
+            byte[] recordKey,
+            string ownerEmail,
+            RecipientPublicKeyInfo recipientKey)
+        {
+            var request = new RecordsOnwershipTransferRequest();
+            request.TransferRecords.Add(
+                BuildKeeperNSFTransferRecord(recordUid, recordKey, ownerEmail, recipientKey));
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
+                KeeperNSFTransferEndpoint, request).ConfigureAwait(false);
+
+            var result = ParseKeeperNSFTransferResults(response, ownerEmail)
+                .FirstOrDefault(r => string.IsNullOrEmpty(r.RecordUid)
+                    || string.Equals(r.RecordUid, recordUid, StringComparison.Ordinal));
+
+            if (result == null)
+            {
+                throw new VaultException($"Transfer returned no result for record {recordUid}.");
+            }
+
+            if (result.Success)
+            {
+                PurgeKeeperNSFRecordFromLocalVault(recordUid);
+                return result;
+            }
+
+            if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
+            {
+                await this.TransferKeeperNSFRecordOwnershipViaShareInternal(recordUid, ownerEmail).ConfigureAwait(false);
+                PurgeKeeperNSFRecordFromLocalVault(recordUid);
+                return new KeeperNSFRecordTransferResult
+                {
+                    RecordUid = recordUid,
+                    Username = ownerEmail,
+                    Status = TransferRecordSuccessStatus,
+                    Message = "Ownership transferred via record share.",
+                    Success = true,
+                };
+            }
+
+            return result;
+        }
+
+        private void PurgeKeeperNSFRecordFromLocalVault(string recordUid)
+        {
+            KeeperNSFRecords.TryRemove(recordUid, out _);
+            foreach (var folder in KeeperNSFFolderNodes)
+            {
+                folder.Records.Remove(recordUid);
+            }
+
+            Storage.KdRecords.DeleteUids(new[] { recordUid });
+            Storage.KdFolderRecords.DeleteLinksForObjects(new[] { recordUid });
+            Storage.KdRecordKeys.DeleteLinksForObjects(new[] { recordUid });
+
+            var accountUid = CryptoUtils.Base64UrlEncode(Auth.AuthContext.AccountUid);
+            var revokedAccess = Storage.KdRecordAccesses.GetLinksForSubject(recordUid)
+                .Where(link => string.Equals(link.AccessTypeUid, accountUid, StringComparison.Ordinal))
+                .Select(link => UidLink.Create(link.RecordUid, link.AccessTypeUid))
+                .ToArray();
+            if (revokedAccess.Length > 0)
+            {
+                Storage.KdRecordAccesses.DeleteLinks(revokedAccess);
+            }
+        }
+
         /// <inheritdoc/>
         public bool TryResolveKeeperNSFRecord(string uidOrTitle, out KeeperNSFRecord record)
         {
