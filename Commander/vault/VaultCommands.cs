@@ -1,4 +1,4 @@
-﻿using Cli;
+using Cli;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
@@ -588,8 +588,6 @@ namespace Commander
             trashCmd.AddVerb<TrashPurgeOptions>(context.TrashPurgeCommand);
 
             cli.Commands.Add("trash", trashCmd);
-
-            context.AppendKeeperDriveCommands(cli);
 
             cli.Commands.Add("sync-down",
                 new ParseableCommand<SyncDownOptions>

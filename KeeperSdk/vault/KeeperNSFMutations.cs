@@ -184,7 +184,7 @@ namespace KeeperSecurity.Vault
             var ownerEmail = newOwnerEmail.Trim();
             var recipientKey = await GetRecipientPublicKeyAsync(ownerEmail).ConfigureAwait(false);
 
-            var request = new RecordsOnwershipTransferRequest();
+            var results = new List<KeeperNSFRecordTransferResult>();
             foreach (var identifier in recordUidOrTitles)
             {
                 if (!TryResolveKeeperNSFRecord(identifier, out var record))
@@ -198,20 +198,87 @@ namespace KeeperSecurity.Vault
                         $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
                 }
 
-                request.TransferRecords.Add(
-                    BuildKeeperNSFTransferRecord(record.RecordUid, recordKey, ownerEmail, recipientKey));
+                var result = await TransferSingleKeeperNSFRecordOwnershipAsync(
+                    record.RecordUid, recordKey, ownerEmail, recipientKey).ConfigureAwait(false);
+                results.Add(result);
             }
 
-            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
-                "vault/records/v3/transfer", request).ConfigureAwait(false);
-
-            var results = ParseKeeperNSFTransferResults(response, ownerEmail);
             if (results.Any(r => r.Success))
             {
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
 
             return results;
+        }
+
+        private const string AlreadySharedTransferStatus = "already_shared";
+
+        private async Task<KeeperNSFRecordTransferResult> TransferSingleKeeperNSFRecordOwnershipAsync(
+            string recordUid,
+            byte[] recordKey,
+            string ownerEmail,
+            RecipientPublicKeyInfo recipientKey)
+        {
+            var request = new RecordsOnwershipTransferRequest();
+            request.TransferRecords.Add(
+                BuildKeeperNSFTransferRecord(recordUid, recordKey, ownerEmail, recipientKey));
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
+                KeeperNSFTransferEndpoint, request).ConfigureAwait(false);
+
+            var result = ParseKeeperNSFTransferResults(response, ownerEmail)
+                .FirstOrDefault(r => string.IsNullOrEmpty(r.RecordUid)
+                    || string.Equals(r.RecordUid, recordUid, StringComparison.Ordinal));
+
+            if (result == null)
+            {
+                throw new VaultException($"Transfer returned no result for record {recordUid}.");
+            }
+
+            if (result.Success)
+            {
+                PurgeKeeperNSFRecordFromLocalVault(recordUid);
+                return result;
+            }
+
+            if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
+            {
+                await this.TransferKeeperNSFRecordOwnershipViaShareInternal(recordUid, ownerEmail).ConfigureAwait(false);
+                PurgeKeeperNSFRecordFromLocalVault(recordUid);
+                return new KeeperNSFRecordTransferResult
+                {
+                    RecordUid = recordUid,
+                    Username = ownerEmail,
+                    Status = TransferRecordSuccessStatus,
+                    Message = "Ownership transferred via record share.",
+                    Success = true,
+                };
+            }
+
+            return result;
+        }
+
+        private void PurgeKeeperNSFRecordFromLocalVault(string recordUid)
+        {
+            KeeperNSFRecords.TryRemove(recordUid, out _);
+            foreach (var folder in KeeperNSFFolderNodes)
+            {
+                folder.Records.Remove(recordUid);
+            }
+
+            Storage.KdRecords.DeleteUids(new[] { recordUid });
+            Storage.KdFolderRecords.DeleteLinksForObjects(new[] { recordUid });
+            Storage.KdRecordKeys.DeleteLinksForObjects(new[] { recordUid });
+
+            var accountUid = CryptoUtils.Base64UrlEncode(Auth.AuthContext.AccountUid);
+            var revokedAccess = Storage.KdRecordAccesses.GetLinksForSubject(recordUid)
+                .Where(link => string.Equals(link.AccessTypeUid, accountUid, StringComparison.Ordinal))
+                .Select(link => UidLink.Create(link.RecordUid, link.AccessTypeUid))
+                .ToArray();
+            if (revokedAccess.Length > 0)
+            {
+                Storage.KdRecordAccesses.DeleteLinks(revokedAccess);
+            }
         }
 
         /// <inheritdoc/>
@@ -406,9 +473,12 @@ namespace KeeperSecurity.Vault
             var failure = results.FirstOrDefault(r => !r.Success);
             if (failure != null)
             {
-                throw new VaultException(string.IsNullOrEmpty(failure.Message)
-                    ? $"Transfer failed for record {failure.RecordUid} with status {failure.Status}."
-                    : failure.Message);
+                var detail = string.IsNullOrEmpty(failure.Status)
+                    ? failure.Message
+                    : $"[{failure.Status}] {failure.Message}".Trim();
+                throw new VaultException(string.IsNullOrEmpty(detail)
+                    ? $"Transfer failed for record {failure.RecordUid}."
+                    : $"Transfer failed for record {failure.RecordUid}: {detail}");
             }
         }
 
@@ -568,6 +638,14 @@ namespace KeeperSecurity.Vault
             return transfer;
         }
 
+        private const string TransferRecordSuccessStatus = "transfer_record_success";
+        private const string KeeperNSFTransferEndpoint = "vault/records/v3/transfer";
+
+        private static bool IsKeeperNSFTransferSuccessStatus(string status)
+        {
+            return string.Equals(status, TransferRecordSuccessStatus, StringComparison.Ordinal);
+        }
+
         private static IReadOnlyList<KeeperNSFRecordTransferResult> ParseKeeperNSFTransferResults(
             RecordsOnwershipTransferResponse response,
             string username)
@@ -586,8 +664,7 @@ namespace KeeperSecurity.Vault
                     Username = string.IsNullOrEmpty(status.Username) ? username : status.Username,
                     Status = status.Status,
                     Message = status.Message,
-                    Success = !string.IsNullOrEmpty(status.Status)
-                        && status.Status.IndexOf("success", StringComparison.OrdinalIgnoreCase) >= 0,
+                    Success = IsKeeperNSFTransferSuccessStatus(status.Status),
                 })
                 .ToList();
         }

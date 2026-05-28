@@ -1278,6 +1278,58 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Transfers NSF record ownership via v3 share (owner flag). Used when the record is already shared with the recipient.
+        /// </summary>
+        public static async Task TransferKeeperNSFRecordOwnershipViaShareInternal(
+            this VaultOnline vault, string recordUid, string userEmail)
+        {
+            var perm = await BuildKeeperNSFOwnerTransferPermissions(vault, recordUid, userEmail).ConfigureAwait(false);
+
+            var updateRq = new global::Record.V3.Sharing.Request();
+            updateRq.UpdateSharingPermissions.Add(perm);
+            var updateRs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Sharing.Request, global::Record.V3.Sharing.Response>(
+                "vault/records/v3/share", updateRq).ConfigureAwait(false);
+
+            if (updateRs.UpdatedSharingStatus.Any(s => s.Status_ == global::Record.V3.Sharing.SharingStatus.Success))
+            {
+                return;
+            }
+
+            var createRq = new global::Record.V3.Sharing.Request();
+            createRq.CreateSharingPermissions.Add(perm);
+            var createRs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Sharing.Request, global::Record.V3.Sharing.Response>(
+                "vault/records/v3/share", createRq).ConfigureAwait(false);
+
+            if (createRs.CreatedSharingStatus.Any(s => s.Status_ == global::Record.V3.Sharing.SharingStatus.Success))
+            {
+                return;
+            }
+
+            var failure = updateRs.UpdatedSharingStatus.FirstOrDefault()
+                ?? createRs.CreatedSharingStatus.FirstOrDefault();
+            var message = failure?.Message;
+            if (string.IsNullOrEmpty(message))
+            {
+                message = "Failed to transfer ownership via record share.";
+            }
+
+            throw new VaultException(message);
+        }
+
+        private static async Task<global::Record.V3.Sharing.Permissions> BuildKeeperNSFOwnerTransferPermissions(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, "full-manager").ConfigureAwait(false);
+            if (perm.Rules != null)
+            {
+                perm.Rules.Owner = true;
+                perm.Rules.AccessType = global::Folder.AccessType.AtOwner;
+            }
+
+            return perm;
+        }
+
         public static async Task UnshareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail)
         {
             var pkRq = new global::Authentication.GetPublicKeysRequest();
