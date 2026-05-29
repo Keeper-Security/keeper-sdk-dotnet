@@ -13,12 +13,12 @@ class KdFolderListItem {
 class KdRecordListItem {
     [string]$RecordUid
     [string]$Name
+    [string]$Type
     [long]$Revision
     [int]$Version
     [bool]$Shared
     [long]$FileSize
     [long]$ThumbnailSize
-    [string]$Data
 }
 
 class KdRecordDetailItem {
@@ -134,7 +134,7 @@ function Get-KeeperNSFRecordList {
 	Lists all Keeper NSF records.
 
 	.Description
-	Displays all Keeper NSF records synced to the vault, including UID, revision, version, file size, and decrypted data.
+	Displays all Keeper NSF records synced to the vault, including UID, name, record type, revision, version, sharing, and file/thumbnail sizes.
 #>
     [CmdletBinding()]
     Param()
@@ -154,17 +154,16 @@ function Get-KeeperNSFRecordList {
 
     $result = [System.Collections.ArrayList]::new()
     foreach ($record in $records) {
+        $meta = Get-KdRecordTypeAndTitle $record
         $item = [KdRecordListItem]::new()
         $item.RecordUid    = $record.RecordUid
-        $item.Name         = if ($record.Name) { $record.Name } else { '' }
+        $item.Name         = if ($record.Name) { $record.Name } else { $meta.Title }
+        $item.Type         = $meta.Type
         $item.Revision     = $record.Revision
         $item.Version      = $record.Version
         $item.Shared       = $record.Shared
         $item.FileSize     = $record.FileSize
         $item.ThumbnailSize = $record.ThumbnailSize
-        $item.Data         = if ($record.DecryptedData) { 
-                                 $record.DecryptedData.Substring(0, [Math]::Min(80, $record.DecryptedData.Length)) 
-                             } else { '' }
         $result.Add($item) | Out-Null
     }
     $result | Format-Table -AutoSize

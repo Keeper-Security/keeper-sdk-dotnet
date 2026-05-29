@@ -663,7 +663,7 @@ namespace KeeperSecurity.Vault
                         FolderUid = kdFolder.FolderUid,
                         ParentUid = string.IsNullOrEmpty(kdFolder.ParentUid) ? null : kdFolder.ParentUid,
                         FolderType = FolderType.UserFolder,
-                        Name = folderName ?? KeeperNSFConstants.FolderPlaceholderName,
+                        Name = string.IsNullOrEmpty(folderName) ? KeeperNSFConstants.FolderPlaceholderName : folderName,
                         FolderKey = folderKey,
                     };
 

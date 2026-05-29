@@ -843,6 +843,14 @@ namespace KeeperSecurity.Vault
             {
                 result.name = existing.name;
             }
+            else if (!string.IsNullOrEmpty(folder?.Name))
+            {
+                result.name = folder.Name;
+            }
+            else
+            {
+                result.name = KeeperNSFConstants.FolderPlaceholderName;
+            }
 
             if (color != null)
             {
@@ -862,13 +870,6 @@ namespace KeeperSecurity.Vault
                      && !string.Equals(existing.color, "none", StringComparison.OrdinalIgnoreCase))
             {
                 result.color = existing.color;
-            }
-
-            if (string.IsNullOrEmpty(result.name))
-            {
-                throw new VaultException(
-                    $"Cannot update Keeper NSF folder \"{folder.FolderUid}\": folder name is missing. "
-                    + "Pass -Name or run Sync-Keeper after renaming.");
             }
 
             return result;

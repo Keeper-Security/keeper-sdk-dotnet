@@ -205,8 +205,14 @@ function Set-KeeperNSFFolder {
         Write-Error -Message "Specify -Name and/or -Color to update the folder."
         return
     }
+    
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    } catch {
+        Write-Error -Message "Error getting vault: $($_.Exception.Message)"
+        return
+    }
 
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     [KeeperSecurity.Vault.FolderNode]$folderNode = $null
     if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
@@ -218,8 +224,8 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    $nameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { $null }
-    $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { $null }
+    $nameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
+    $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
 
     try {
         $result = $vault.UpdateKeeperNSFFolder($folderNode.FolderUid, $nameArg, $colorArg).GetAwaiter().GetResult()
