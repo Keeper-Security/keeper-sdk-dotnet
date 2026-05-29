@@ -30,8 +30,8 @@ namespace KeeperSecurity.Vault
             StoreRecordData(kdData, storage);
             StoreFolderRecords(kdData, storage);
             ProcessRevokedFolderAccesses(kdData, storage);
-            StoreFolderAccesses(kdData, storage);
             ProcessRevokedRecordAccesses(kdData, storage);
+            StoreFolderAccesses(kdData, storage);
             StoreRecordAccesses(kdData, storage);
             StoreRecordLinks(kdData, storage);
             StoreFolderSharingStates(kdData, storage);
@@ -663,7 +663,7 @@ namespace KeeperSecurity.Vault
                         FolderUid = kdFolder.FolderUid,
                         ParentUid = string.IsNullOrEmpty(kdFolder.ParentUid) ? null : kdFolder.ParentUid,
                         FolderType = FolderType.UserFolder,
-                        Name = folderName ?? "(Keeper Drive Folder)",
+                        Name = folderName ?? KeeperNSFConstants.FolderPlaceholderName,
                         FolderKey = folderKey,
                     };
 
@@ -750,16 +750,6 @@ namespace KeeperSecurity.Vault
                 }
             }
         }
-    }
-
-    [DataContract]
-    internal class FolderDataJson
-    {
-        [DataMember(Name = "name")]
-        public string name { get; set; }
-
-        [DataMember(Name = "color", EmitDefaultValue = false)]
-        public string color { get; set; }
     }
 
     [DataContract]
