@@ -306,7 +306,7 @@ namespace KeeperSecurity.Vault
                 {
                     RecordUid = recordUid,
                     Username = ownerEmail,
-                    Status = TransferRecordSuccessStatus,
+                    Status = AlreadySharedTransferStatus,
                     Message = "Ownership transferred via record share.",
                     Success = true,
                 };
@@ -318,16 +318,27 @@ namespace KeeperSecurity.Vault
         private void PurgeKeeperNSFRecordFromLocalVault(string recordUid)
         {
             KeeperNSFRecords.TryRemove(recordUid, out _);
-            foreach (var folder in KeeperNSFFolderNodes)
+
+            var folderSnapshot = KeeperNSFFolderNodes?.ToList();
+            if (folderSnapshot != null)
             {
-                folder.Records.Remove(recordUid);
+                foreach (var folder in folderSnapshot)
+                {
+                    folder?.Records?.Remove(recordUid);
+                }
             }
 
             Storage.KdRecords.DeleteUids(new[] { recordUid });
             Storage.KdFolderRecords.DeleteLinksForObjects(new[] { recordUid });
             Storage.KdRecordKeys.DeleteLinksForObjects(new[] { recordUid });
 
-            var accountUid = CryptoUtils.Base64UrlEncode(Auth.AuthContext.AccountUid);
+            var rawAccountUid = Auth?.AuthContext?.AccountUid;
+            if (rawAccountUid == null || rawAccountUid.Length == 0)
+            {
+                return;
+            }
+
+            var accountUid = CryptoUtils.Base64UrlEncode(rawAccountUid);
             var revokedAccess = Storage.KdRecordAccesses.GetLinksForSubject(recordUid)
                 .Where(link => string.Equals(link.AccessTypeUid, accountUid, StringComparison.Ordinal))
                 .Select(link => UidLink.Create(link.RecordUid, link.AccessTypeUid))
