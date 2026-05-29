@@ -568,6 +568,27 @@ namespace KeeperSecurity.Vault
             }
 
             var pkRs = pkRss.KeyResponses[0];
+
+            var forbidKeyType2 = Auth.AuthContext.ForbidKeyType2;
+
+            if (forbidKeyType2 && !pkRs.PublicEccKey.IsEmpty)
+            {
+                return new RecipientPublicKeyInfo
+                {
+                    UseEccKey = true,
+                    EcPublicKey = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray()),
+                };
+            }
+
+            if (!forbidKeyType2 && !pkRs.PublicKey.IsEmpty)
+            {
+                return new RecipientPublicKeyInfo
+                {
+                    UseEccKey = false,
+                    RsaPublicKey = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray()),
+                };
+            }
+
             if (!pkRs.PublicEccKey.IsEmpty)
             {
                 return new RecipientPublicKeyInfo

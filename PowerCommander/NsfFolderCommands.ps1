@@ -330,17 +330,17 @@ function Remove-KeeperNSFFolder {
             return
         }
 
-        $targets = @($removals | ForEach-Object { $_.FolderUid })
-        $shouldRemove = $Force
-        if (-not $shouldRemove) {
-            $shouldRemove = $PSCmdlet.ShouldProcess(
-                ($targets -join ', '),
-                "Remove Keeper NSF folder(s) ($Operation)")
-        }
-
-        if (-not $shouldRemove) {
-            Write-Host "Removal cancelled."
-            return
+        if (-not $Force) {
+            $prompt = if ($Operation -eq 'delete-permanent') {
+                "Are you sure you want to permanently delete the folder(s) above? This action cannot be undone. (yes/No)"
+            } else {
+                "Are you sure you want to remove the folder(s) above? (yes/No)"
+            }
+            $confirmation = Read-Host $prompt
+            if ($confirmation -notmatch '^(y|yes)$') {
+                Write-Host "Remove operation cancelled"
+                return
+            }
         }
 
         if ($previewResult.PreviewResponse.ConfirmationToken.IsEmpty) {

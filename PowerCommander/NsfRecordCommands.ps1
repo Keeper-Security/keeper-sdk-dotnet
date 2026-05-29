@@ -373,11 +373,10 @@ function Set-KeeperNSFRecordPermission {
         return
     }
 
-    if (-not $Force.IsPresent) {
-        Write-Host ""
-        $confirm = Read-Host "Type 'YES' to apply the above changes"
-        if ($confirm -ne 'YES') {
-            Write-Host "Aborted." -ForegroundColor Yellow
+    if (-not $Force) {
+        $confirmation = Read-Host "Are you sure you want to apply the above changes? (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Update operation cancelled"
             return
         }
     }
@@ -657,7 +656,7 @@ function Set-KeeperNSFShortcutKeep {
 
     $removeFolders = $entry.Folders | Where-Object { $_.FolderUid -ne $FolderUid }
 
-    if (-not $Force.IsPresent) {
+    if (-not $Force) {
         Write-Host ""
         Write-Host "  Will remove record '$($entry.Title)' ($RecordUid) from:" -ForegroundColor Yellow
         foreach ($rf in $removeFolders) {
@@ -665,9 +664,9 @@ function Set-KeeperNSFShortcutKeep {
         }
         Write-Host "  Keeping in: $($keepFolder.Name) ($($keepFolder.FolderUid))" -ForegroundColor Green
         Write-Host ""
-        $confirm = Read-Host "Type 'YES' to confirm"
-        if ($confirm -ne 'YES') {
-            Write-Host "Aborted." -ForegroundColor Yellow
+        $confirmation = Read-Host "Are you sure you want to keep the record only in '$($keepFolder.Name)' and remove it from the other folder(s) above? (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Shortcut-keep operation cancelled"
             return
         }
     }
@@ -817,17 +816,19 @@ function Remove-KeeperNSFRecord {
             return
         }
 
-        $targets = @($removals | ForEach-Object { $_.RecordUid })
-        $shouldRemove = $Force
-        if (-not $shouldRemove) {
-            $shouldRemove = $PSCmdlet.ShouldProcess(
-                ($targets -join ', '),
-                "Remove Keeper NSF record(s) ($Operation)")
-        }
-
-        if (-not $shouldRemove) {
-            Write-Host "Removal cancelled."
-            return
+        if (-not $Force) {
+            $prompt = if ($Operation -eq 'owner-trash') {
+                "Are you sure you want to move the record(s) above to your trash? (yes/No)"
+            } elseif ($Operation -eq 'folder-trash') {
+                "Are you sure you want to move the record(s) above to folder trash? (yes/No)"
+            } else {
+                "Are you sure you want to unlink the record(s) above from the folder? (yes/No)"
+            }
+            $confirmation = Read-Host $prompt
+            if ($confirmation -notmatch '^(y|yes)$') {
+                Write-Host "Remove operation cancelled"
+                return
+            }
         }
 
         if ($previewResult.PreviewResponse.ConfirmationToken.IsEmpty) {
@@ -957,7 +958,6 @@ function Transfer-KeeperNSFRecordOwnership {
         $resolvedRecords.Add($kdRecord.RecordUid)
     }
 
-    $target = "$($resolvedRecords -join ', ') -> $newOwnerEmail"
     if (-not $Force) {
         Write-Host ""
         Write-Host "*** WARNING ***" -ForegroundColor Yellow
@@ -965,10 +965,11 @@ function Transfer-KeeperNSFRecordOwnership {
         Write-Host "You may still see the record(s) if you retain access via a shared folder or admin role; otherwise they will disappear after sync."
         Write-Host "Make sure the new owner is correct before continuing."
         Write-Host ""
-    }
-
-    if (-not $PSCmdlet.ShouldProcess($target, "Transfer Keeper NSF record ownership")) {
-        return
+        $confirmation = Read-Host "Are you sure you want to transfer ownership to '$newOwnerEmail'? This action cannot be undone. (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Transfer operation cancelled"
+            return
+        }
     }
 
     try {

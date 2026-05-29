@@ -830,9 +830,23 @@ namespace KeeperSecurity.Vault
             }
             else
             {
+                var forbidKeyType2 = vault.Auth.AuthContext.ForbidKeyType2;
+
                 byte[] encryptedFolderKey;
                 global::Folder.EncryptedKeyType keyType;
-                if (!pkRs.PublicEccKey.IsEmpty)
+                if (forbidKeyType2 && !pkRs.PublicEccKey.IsEmpty)
+                {
+                    var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+                    encryptedFolderKey = CryptoUtils.EncryptEc(folderKey, ecPk);
+                    keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKeyEcc;
+                }
+                else if (!forbidKeyType2 && !pkRs.PublicKey.IsEmpty)
+                {
+                    var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                    encryptedFolderKey = CryptoUtils.EncryptRsa(folderKey, rsaPk);
+                    keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKey;
+                }
+                else if (!pkRs.PublicEccKey.IsEmpty)
                 {
                     var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
                     encryptedFolderKey = CryptoUtils.EncryptEc(folderKey, ecPk);
