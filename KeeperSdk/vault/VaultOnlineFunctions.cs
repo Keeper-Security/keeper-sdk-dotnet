@@ -783,41 +783,82 @@ namespace KeeperSecurity.Vault
             if (folderKey == null)
                 throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
 
-            byte[] encryptedFolderKey;
-            global::Folder.EncryptedKeyType keyType;
-            if (!pkRs.PublicKey.IsEmpty)
+            var accessRole = ResolveAccessRole(role);
+            var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+
+            global::Folder.FolderAccessData existingAccess = null;
+            try
             {
-                var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
-                encryptedFolderKey = CryptoUtils.EncryptRsa(folderKey, rsaPk);
-                keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKey;
+                var accessRq = new global::Folder.V3.GetFolderAccessRequest();
+                accessRq.FolderUid.Add(folderUidBytes);
+                var accessRs = await vault.Auth.ExecuteAuthRest<global::Folder.V3.GetFolderAccessRequest, global::Folder.V3.GetFolderAccessResponse>(
+                    "vault/folders/v3/access", accessRq);
+                foreach (var fr in accessRs.FolderAccessResults)
+                {
+                    if (fr.Error != null) continue;
+                    foreach (var accessor in fr.Accessors)
+                    {
+                        if (accessor.AccessType == global::Folder.AccessType.AtUser
+                            && accessor.AccessTypeUid.Equals(pkRs.AccountUid))
+                        {
+                            existingAccess = accessor;
+                            break;
+                        }
+                    }
+                    if (existingAccess != null) break;
+                }
             }
-            else if (!pkRs.PublicEccKey.IsEmpty)
+            catch { }
+
+            var rq = new global::Folder.FolderAccessRequest();
+
+            if (existingAccess != null)
             {
-                var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
-                encryptedFolderKey = CryptoUtils.EncryptEc(folderKey, ecPk);
-                keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKeyEcc;
+                if (existingAccess.AccessRoleType == accessRole)
+                {
+                    return;
+                }
+
+                var updateData = new global::Folder.FolderAccessData
+                {
+                    FolderUid = folderUidBytes,
+                    AccessTypeUid = pkRs.AccountUid,
+                    AccessType = global::Folder.AccessType.AtUser,
+                    AccessRoleType = accessRole,
+                };
+                rq.FolderAccessUpdates.Add(updateData);
             }
             else
             {
-                throw new VaultException($"User '{userEmail}' has no public key available");
+                byte[] encryptedFolderKey;
+                global::Folder.EncryptedKeyType keyType;
+                if (!pkRs.PublicEccKey.IsEmpty)
+                {
+                    var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+                    encryptedFolderKey = CryptoUtils.EncryptEc(folderKey, ecPk);
+                    keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKeyEcc;
+                }
+                else
+                {
+                    var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                    encryptedFolderKey = CryptoUtils.EncryptRsa(folderKey, rsaPk);
+                    keyType = global::Folder.EncryptedKeyType.EncryptedByPublicKey;
+                }
+
+                var addData = new global::Folder.FolderAccessData
+                {
+                    FolderUid = folderUidBytes,
+                    AccessTypeUid = pkRs.AccountUid,
+                    AccessType = global::Folder.AccessType.AtUser,
+                    AccessRoleType = accessRole,
+                };
+                addData.FolderKey = new global::Folder.EncryptedDataKey
+                {
+                    EncryptedKey = ByteString.CopyFrom(encryptedFolderKey),
+                    EncryptedKeyType = keyType,
+                };
+                rq.FolderAccessAdds.Add(addData);
             }
-
-            var accessRole = ResolveAccessRole(role);
-            var accessData = new global::Folder.FolderAccessData
-            {
-                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
-                AccessTypeUid = pkRs.AccountUid,
-                AccessType = global::Folder.AccessType.AtUser,
-                AccessRoleType = accessRole,
-            };
-            accessData.FolderKey = new global::Folder.EncryptedDataKey
-            {
-                EncryptedKey = ByteString.CopyFrom(encryptedFolderKey),
-                EncryptedKeyType = keyType,
-            };
-
-            var rq = new global::Folder.FolderAccessRequest();
-            rq.FolderAccessAdds.Add(accessData);
 
             var rs = await vault.Auth.ExecuteAuthRest<global::Folder.FolderAccessRequest, global::Folder.FolderAccessResponse>(
                 "vault/folders/v3/access_update", rq);
@@ -826,7 +867,8 @@ namespace KeeperSecurity.Vault
             {
                 if (result.Status != global::Folder.FolderModifyStatus.Success)
                 {
-                    throw new VaultException($"Failed to grant access: {result.Message}");
+                    var action = existingAccess != null ? "update" : "grant";
+                    throw new VaultException($"Failed to {action} access: {result.Message}");
                 }
             }
         }
@@ -912,7 +954,7 @@ namespace KeeperSecurity.Vault
                     data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                 }
             }
-            catch { /* ignored */ }
+            catch { }
 
             if (data == null)
             {
@@ -1262,18 +1304,64 @@ namespace KeeperSecurity.Vault
         public static async Task ShareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail, string role)
         {
             var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, role);
+            var recipientUid = perm.RecipientUid;
+            var requestedRole = (int)ResolveAccessRole(role);
 
-            var rq = new global::Record.V3.Sharing.Request();
-            rq.CreateSharingPermissions.Add(perm);
+            bool hasDirectShare = false;
+            try
+            {
+                var detailsRq = new global::Record.V3.Details.RecordAccessRequest();
+                detailsRq.RecordUids.Add(ByteString.CopyFrom(recordUid.Base64UrlDecode()));
+                var detailsRs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Details.RecordAccessRequest, global::Record.V3.Details.RecordAccessResponse>(
+                    "vault/records/v3/details/access", detailsRq);
+                foreach (var ra in detailsRs.RecordAccesses)
+                {
+                    var data = ra?.Data;
+                    if (data == null) continue;
+                    if (data.AccessType != global::Folder.AccessType.AtUser) continue;
+                    if (data.Owner) continue;
+                    if (data.Inherited) continue;
+                    if (!data.AccessTypeUid.Equals(recipientUid)) continue;
 
-            var rs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Sharing.Request, global::Record.V3.Sharing.Response>(
-                "vault/records/v3/share", rq);
+                    if (data.AccessRoleType == (global::Folder.AccessRoleType)requestedRole)
+                    {
+                        return;
+                    }
+                    hasDirectShare = true;
+                    break;
+                }
+            }
+            catch { }
 
-            foreach (var status in rs.CreatedSharingStatus)
+            if (!hasDirectShare)
+            {
+                var createRq = new global::Record.V3.Sharing.Request();
+                createRq.CreateSharingPermissions.Add(perm);
+                var createRs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Sharing.Request, global::Record.V3.Sharing.Response>(
+                    "vault/records/v3/share", createRq);
+
+                var createStatus = createRs.CreatedSharingStatus.FirstOrDefault();
+                if (createStatus != null && createStatus.Status_ == global::Record.V3.Sharing.SharingStatus.Success)
+                {
+                    return;
+                }
+
+                if (createStatus == null || createStatus.Status_ != global::Record.V3.Sharing.SharingStatus.AlreadyShared)
+                {
+                    var msg = createStatus?.Message;
+                    throw new VaultException($"Failed to share record: {(string.IsNullOrEmpty(msg) ? "unknown error" : msg)}");
+                }
+            }
+
+            var updateRq = new global::Record.V3.Sharing.Request();
+            updateRq.UpdateSharingPermissions.Add(perm);
+            var updateRs = await vault.Auth.ExecuteAuthRest<global::Record.V3.Sharing.Request, global::Record.V3.Sharing.Response>(
+                "vault/records/v3/share", updateRq);
+            foreach (var status in updateRs.UpdatedSharingStatus)
             {
                 if (status.Status_ != global::Record.V3.Sharing.SharingStatus.Success)
                 {
-                    throw new VaultException($"Failed to share record: {status.Message}");
+                    throw new VaultException($"Failed to update record share: {status.Message}");
                 }
             }
         }

@@ -1,5 +1,6 @@
 #requires -Version 5.1
 $script:KD_LABEL_WIDTH = 21
+$script:KD_FOLDER_LABEL_WIDTH = 25
 $script:ShareObjectsCache = $null
 
 class KdFolderListItem {
@@ -440,7 +441,36 @@ function Show-KdRecordDetail {
     }
 
     Write-Host ""
-    $recordAccesses = @($storage.KdRecordAccesses.GetLinksForSubject($record.RecordUid))
+
+    $recordAccesses = @()
+    try {
+        $rq = New-Object Record.V3.Details.RecordAccessRequest
+        $rq.RecordUids.Add([Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($record.RecordUid)))
+        $rs = $vault.Auth.ExecuteAuthRest("vault/records/v3/details/access", $rq, [Record.V3.Details.RecordAccessResponse]).GetAwaiter().GetResult()
+        $converted = [System.Collections.ArrayList]::new()
+        foreach ($ra in $rs.RecordAccesses) {
+            $d = $ra.Data
+            if ($null -eq $d) { continue }
+            $emailHint = $null
+            if ($ra.AccessorInfo -and $ra.AccessorInfo.Name) { $emailHint = $ra.AccessorInfo.Name }
+            $obj = [PSCustomObject]@{
+                AccessTypeUid  = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($d.AccessTypeUid.ToByteArray())
+                AccessType     = [int]$d.AccessType
+                AccessRoleType = [int]$d.AccessRoleType
+                Owner          = [bool]$d.Owner
+                Inherited      = [bool]$d.Inherited
+                CanEdit        = [bool]$d.CanEdit
+                CanView        = [bool]$d.CanView
+                CanDelete      = [bool]$d.CanDelete
+                AccessorEmail  = $emailHint
+            }
+            $converted.Add($obj) | Out-Null
+        }
+        $recordAccesses = @($converted)
+    } catch {
+        Write-Verbose "Could not retrieve record access from server: $($_.Exception.Message)"
+        $recordAccesses = @($storage.KdRecordAccesses.GetLinksForSubject($record.RecordUid))
+    }
 
     $shareAdminEmails = [System.Collections.ArrayList]::new()
     try {
@@ -463,8 +493,8 @@ function Show-KdFolderDetail {
     Param($vault, $storage, $folder, $currentAccountUid)
 
     Write-Host ""
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "KeeperNSF Folder UID", $folder.FolderUid)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Name", $folder.Name)
+    Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Nested Share Folder UID", $folder.FolderUid)
+    Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Name", $folder.Name)
 
     Write-Host ""
 
@@ -492,23 +522,11 @@ function Show-KdFolderDetail {
         $folderAccesses = @($storage.KdFolderAccesses.GetLinksForSubject($folder.FolderUid))
     }
 
-    $shareAdminEmails = [System.Collections.ArrayList]::new()
-    try {
-        $rq = New-Object Enterprise.GetSharingAdminsRequest
-        $rq.SharedFolderUid = [Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($folder.FolderUid))
-        $response = $vault.Auth.ExecuteAuthRest("enterprise/get_sharing_admins", $rq, [Enterprise.GetSharingAdminsResponse]).GetAwaiter().GetResult()
-        foreach ($profile in $response.UserProfileExts) {
-            if ($profile.Email) { $shareAdminEmails.Add($profile.Email) | Out-Null }
-        }
-    } catch {
-        Write-Verbose "Could not retrieve share admins: $($_.Exception.Message)"
-    }
-
     $storedFolder = $storage.KdFolders.GetEntity($folder.FolderUid)
     $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
     $ownerUsername = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
 
-    Show-KdPermissions $vault $folderAccesses $shareAdminEmails $currentAccountUid 'folder' $ownerAccountUid $ownerUsername
+    Show-KdPermissions $vault $folderAccesses @() $currentAccountUid 'folder' $ownerAccountUid $ownerUsername
 
     Write-Host ""
 }
@@ -564,7 +582,15 @@ function Show-KdPermissions {
 
     $userPerms = [System.Collections.ArrayList]::new()
     foreach ($access in $directAccesses) {
-        $username = Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid
+        $hint = $null
+        if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
+            $hint = $access.AccessorEmail
+        }
+        if ($hint) {
+            $username = $hint
+        } else {
+            $username = Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid
+        }
         if ($objectType -eq 'record') {
             $isOwner = $access.Owner
         } else {
@@ -579,9 +605,7 @@ function Show-KdPermissions {
         $perm = [KdUserPermission]::new()
         $perm.Username = $username
         $perm.Owner    = $isOwner
-        if ($objectType -eq 'folder') {
-            $perm.Role = Get-AccessRoleLabel $access.AccessRoleType
-        }
+        $perm.Role     = Get-AccessRoleLabel $access.AccessRoleType
         if ($objectType -eq 'record') {
             $perm.CanEdit   = $access.CanEdit
             $perm.CanView   = $access.CanView
@@ -591,24 +615,41 @@ function Show-KdPermissions {
     }
 
     if ($userPerms.Count -gt 0) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}:" -f "User Permissions")
-        Write-Host ""
-        foreach ($perm in $userPerms) {
-            if ($objectType -eq 'record') {
+        if ($objectType -eq 'folder') {
+            Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "User Permissions")
+            foreach ($perm in $userPerms) {
+                $label = if ($perm.Owner) { 'owner' } else { $perm.Role }
+                Write-Host ("{0}: {1}" -f $perm.Username, $label)
+            }
+
+            $owners = @($userPerms | Where-Object { $_.Owner })
+            if ($owners.Count -gt 0) {
+                Write-Host ""
+                Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Share Administrators")
+                foreach ($owner in $owners) {
+                    Write-Host ("{0}: owner" -f $owner.Username)
+                }
+            }
+        }
+        else {
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}:" -f "User Permissions")
+            Write-Host ""
+            foreach ($perm in $userPerms) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "User", $perm.Username)
-                Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Owner", $(if ($perm.Owner) { 'Yes' } else { 'No' }))
+                if ($perm.Owner) {
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Owner", "Yes")
+                }
+                else {
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Role", $perm.Role)
+                }
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Shareable", $(if ($perm.CanEdit -or $perm.Owner) { 'Yes' } else { 'No' }))
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Read-Only", $(if (-not $perm.CanEdit -and -not $perm.Owner) { 'Yes' } else { 'No' }))
                 Write-Host ""
             }
-            else {
-                $label = if ($perm.Owner) { 'owner' } else { $perm.Role }
-                Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $perm.Username, $label)
-            }
         }
     }
 
-    if ($shareAdminEmails -and $shareAdminEmails.Count -gt 0) {
+    if ($objectType -ne 'folder' -and $shareAdminEmails -and $shareAdminEmails.Count -gt 0) {
         $maxShow = 10
         $total = $shareAdminEmails.Count
         Write-Host ""

@@ -961,7 +961,8 @@ function Transfer-KeeperNSFRecordOwnership {
     if (-not $Force) {
         Write-Host ""
         Write-Host "*** WARNING ***" -ForegroundColor Yellow
-        Write-Host "After ownership is transferred you will no longer have access to the record(s)."
+        Write-Host "After ownership is transferred you will lose owner rights on the record(s)."
+        Write-Host "You may still see the record(s) if you retain access via a shared folder or admin role; otherwise they will disappear after sync."
         Write-Host "Make sure the new owner is correct before continuing."
         Write-Host ""
     }
@@ -976,7 +977,7 @@ function Transfer-KeeperNSFRecordOwnership {
 
         foreach ($result in $results) {
             Write-Host "Record '$($result.RecordUid)' ownership transferred to $($result.Username)." -ForegroundColor Green
-            Write-Host "You will no longer have access to this record." -ForegroundColor Yellow
+            Write-Host "You no longer own this record. Run Sync-Keeper to refresh; it will remain visible only if you retain access via a shared folder or admin role." -ForegroundColor Yellow
         }
     }
     catch {

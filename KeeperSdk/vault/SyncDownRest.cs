@@ -723,7 +723,7 @@ namespace KeeperSecurity.Vault
                     {
                         storage.ClearKeeperNSF();
                     }
-                    KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage, result);
+                    KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage);
                 }
 
                 if (rs.BreachWatchRecords.Count > 0)
@@ -803,7 +803,7 @@ namespace KeeperSecurity.Vault
             Debug.WriteLine("Rebuild KeeperNSF: Enter");
             vault.KeeperNSFFolders.Clear();
             vault.KeeperNSFRecords.Clear();
-            KeeperNSFSync.RebuildKeeperNSF(vault, context, clientKey, result.IsFullSync);
+            KeeperNSFSync.RebuildKeeperNSF(vault, context);
             Debug.WriteLine("Rebuild KeeperNSF: Leave");
         }
 

@@ -16,8 +16,7 @@ namespace KeeperSecurity.Vault
     {
         internal static void ProcessKeeperNSFData(
             VaultProto.KeeperDriveData kdData,
-            IKeeperStorage storage,
-            RebuildTask result)
+            IKeeperStorage storage)
         {
             if (kdData == null) return;
 
@@ -350,15 +349,13 @@ namespace KeeperSecurity.Vault
 
         internal static void RebuildKeeperNSF(
             VaultData vault,
-            IAuthContext context,
-            byte[] clientKey,
-            bool fullRebuild)
+            IAuthContext context)
         {
             var storage = vault.Storage;
 
-            var decryptedFolderKeys = DecryptFolderKeys(storage, context, clientKey);
+            var decryptedFolderKeys = DecryptFolderKeys(storage, context);
 
-            var decryptedRecordKeys = DecryptRecordKeys(storage, decryptedFolderKeys, context, clientKey);
+            var decryptedRecordKeys = DecryptRecordKeys(storage, decryptedFolderKeys, context);
 
             RebuildFolderTree(vault, storage, decryptedFolderKeys);
             RebuildRecords(vault, storage, decryptedRecordKeys, decryptedFolderKeys);
@@ -386,8 +383,7 @@ namespace KeeperSecurity.Vault
 
         private static Dictionary<string, byte[]> DecryptFolderKeys(
             IKeeperStorage storage,
-            IAuthContext context,
-            byte[] clientKey)
+            IAuthContext context)
         {
             var decryptedKeys = new Dictionary<string, byte[]>();
             var allKeys = storage.KdFolderKeys.GetAllLinks().ToList();
@@ -413,7 +409,7 @@ namespace KeeperSecurity.Vault
 
                     foreach (var fk in kvp.Value)
                     {
-                        if (TryDecryptFolderKey(fk, context, clientKey, decryptedKeys, out var decryptedKey))
+                        if (TryDecryptFolderKey(fk, context, decryptedKeys, out var decryptedKey))
                         {
                             decryptedKeys[kvp.Key] = decryptedKey;
                             progress = true;
@@ -517,7 +513,6 @@ namespace KeeperSecurity.Vault
         private static bool TryDecryptFolderKey(
             IStorageKdFolderKey fk,
             IAuthContext context,
-            byte[] clientKey,
             Dictionary<string, byte[]> decryptedKeys,
             out byte[] decryptedKey)
         {
@@ -557,8 +552,7 @@ namespace KeeperSecurity.Vault
         private static Dictionary<string, byte[]> DecryptRecordKeys(
             IKeeperStorage storage,
             Dictionary<string, byte[]> decryptedFolderKeys,
-            IAuthContext context,
-            byte[] clientKey)
+            IAuthContext context)
         {
             var decryptedKeys = new Dictionary<string, byte[]>();
 

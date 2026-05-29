@@ -237,14 +237,12 @@ namespace KeeperSecurity.Vault
 
             if (result.Success)
             {
-                PurgeKeeperNSFRecordFromLocalVault(recordUid);
                 return result;
             }
 
             if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
             {
                 await this.TransferKeeperNSFRecordOwnershipViaShareInternal(recordUid, ownerEmail).ConfigureAwait(false);
-                PurgeKeeperNSFRecordFromLocalVault(recordUid);
                 return new KeeperNSFRecordTransferResult
                 {
                     RecordUid = recordUid,
@@ -256,40 +254,6 @@ namespace KeeperSecurity.Vault
             }
 
             return result;
-        }
-
-        private void PurgeKeeperNSFRecordFromLocalVault(string recordUid)
-        {
-            KeeperNSFRecords.TryRemove(recordUid, out _);
-
-            var folderSnapshot = KeeperNSFFolderNodes?.ToList();
-            if (folderSnapshot != null)
-            {
-                foreach (var folder in folderSnapshot)
-                {
-                    folder?.Records?.Remove(recordUid);
-                }
-            }
-
-            Storage.KdRecords.DeleteUids(new[] { recordUid });
-            Storage.KdFolderRecords.DeleteLinksForObjects(new[] { recordUid });
-            Storage.KdRecordKeys.DeleteLinksForObjects(new[] { recordUid });
-
-            var rawAccountUid = Auth?.AuthContext?.AccountUid;
-            if (rawAccountUid == null || rawAccountUid.Length == 0)
-            {
-                return;
-            }
-
-            var accountUid = CryptoUtils.Base64UrlEncode(rawAccountUid);
-            var revokedAccess = Storage.KdRecordAccesses.GetLinksForSubject(recordUid)
-                .Where(link => string.Equals(link.AccessTypeUid, accountUid, StringComparison.Ordinal))
-                .Select(link => UidLink.Create(link.RecordUid, link.AccessTypeUid))
-                .ToArray();
-            if (revokedAccess.Length > 0)
-            {
-                Storage.KdRecordAccesses.DeleteLinks(revokedAccess);
-            }
         }
 
         /// <inheritdoc/>
