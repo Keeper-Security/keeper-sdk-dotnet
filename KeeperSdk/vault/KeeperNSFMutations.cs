@@ -186,24 +186,26 @@ namespace KeeperSecurity.Vault
             var ownerEmail = newOwnerEmail.Trim();
             var recipientKey = await GetRecipientPublicKeyAsync(ownerEmail).ConfigureAwait(false);
 
-            var results = new List<KeeperNSFRecordTransferResult>();
-            foreach (var identifier in recordUidOrTitles)
-            {
-                if (!TryResolveKeeperNSFRecord(identifier, out var record))
+            var transfers = recordUidOrTitles
+                .Select(identifier =>
                 {
-                    throw new VaultException($"Keeper NSF record \"{identifier}\" was not found.");
-                }
+                    if (!TryResolveKeeperNSFRecord(identifier, out var record))
+                    {
+                        throw new VaultException($"Keeper NSF record \"{identifier}\" was not found.");
+                    }
 
-                if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
-                {
-                    throw new VaultException(
-                        $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
-                }
+                    if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
+                    {
+                        throw new VaultException(
+                            $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
+                    }
 
-                var result = await TransferSingleKeeperNSFRecordOwnershipAsync(
-                    record.RecordUid, recordKey, ownerEmail, recipientKey).ConfigureAwait(false);
-                results.Add(result);
-            }
+                    return (RecordUid: record.RecordUid, RecordKey: recordKey);
+                })
+                .ToList();
+
+            var results = await TransferKeeperNSFRecordOwnershipBatchAsync(
+                transfers, ownerEmail, recipientKey).ConfigureAwait(false);
 
             if (results.Any(r => r.Success))
             {
@@ -213,47 +215,57 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
-        private async Task<KeeperNSFRecordTransferResult> TransferSingleKeeperNSFRecordOwnershipAsync(
-            string recordUid,
-            byte[] recordKey,
+        private async Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnershipBatchAsync(
+            IReadOnlyList<(string RecordUid, byte[] RecordKey)> transfers,
             string ownerEmail,
             RecipientPublicKeyInfo recipientKey)
         {
             var request = new RecordsOnwershipTransferRequest();
-            request.TransferRecords.Add(
-                BuildKeeperNSFTransferRecord(recordUid, recordKey, ownerEmail, recipientKey));
+            foreach (var transfer in transfers)
+            {
+                request.TransferRecords.Add(
+                    BuildKeeperNSFTransferRecord(transfer.RecordUid, transfer.RecordKey, ownerEmail, recipientKey));
+            }
 
             var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
                 KeeperNSFTransferEndpoint, request).ConfigureAwait(false);
 
-            var result = ParseKeeperNSFTransferResults(response, ownerEmail)
-                .FirstOrDefault(r => string.IsNullOrEmpty(r.RecordUid)
-                    || string.Equals(r.RecordUid, recordUid, StringComparison.Ordinal));
+            var statusByRecordUid = ParseKeeperNSFTransferResults(response, ownerEmail)
+                .ToDictionary(r => r.RecordUid, StringComparer.Ordinal);
 
-            if (result == null)
+            var results = new List<KeeperNSFRecordTransferResult>(transfers.Count);
+            foreach (var transfer in transfers)
             {
-                throw new VaultException($"Transfer returned no result for record {recordUid}.");
-            }
-
-            if (result.Success)
-            {
-                return result;
-            }
-
-            if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
-            {
-                await this.TransferKeeperNSFRecordOwnershipViaShareInternal(recordUid, ownerEmail).ConfigureAwait(false);
-                return new KeeperNSFRecordTransferResult
+                if (!statusByRecordUid.TryGetValue(transfer.RecordUid, out var result))
                 {
-                    RecordUid = recordUid,
-                    Username = ownerEmail,
-                    Status = AlreadySharedTransferStatus,
-                    Message = "Ownership transferred via record share.",
-                    Success = true,
-                };
+                    throw new VaultException($"Transfer returned no result for record {transfer.RecordUid}.");
+                }
+
+                if (result.Success)
+                {
+                    results.Add(result);
+                    continue;
+                }
+
+                if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
+                {
+                    await this.TransferKeeperNSFRecordOwnershipViaShareInternal(transfer.RecordUid, ownerEmail)
+                        .ConfigureAwait(false);
+                    results.Add(new KeeperNSFRecordTransferResult
+                    {
+                        RecordUid = transfer.RecordUid,
+                        Username = ownerEmail,
+                        Status = AlreadySharedTransferStatus,
+                        Message = "Ownership transferred via record share.",
+                        Success = true,
+                    });
+                    continue;
+                }
+
+                results.Add(result);
             }
 
-            return result;
+            return results;
         }
 
         /// <inheritdoc/>
