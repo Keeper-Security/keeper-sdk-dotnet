@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
@@ -494,8 +495,16 @@ namespace KeeperSecurity.Vault
 
         private static byte[] TryDecryptSymmetric(byte[] encryptedKey, byte[] symmetricKey)
         {
-            try { return CryptoUtils.DecryptAesV2(encryptedKey, symmetricKey); } catch { }
-            try { return CryptoUtils.DecryptAesV1(encryptedKey, symmetricKey); } catch { }
+            try { return CryptoUtils.DecryptAesV2(encryptedKey, symmetricKey); }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: AES-V2 symmetric decrypt probe failed; will try AES-V1: {ex.Message}");
+            }
+            try { return CryptoUtils.DecryptAesV1(encryptedKey, symmetricKey); }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: AES-V1 symmetric decrypt probe failed; caller will log on null: {ex.Message}");
+            }
             return null;
         }
 
@@ -503,10 +512,23 @@ namespace KeeperSecurity.Vault
         {
             var result = TryDecryptSymmetric(encryptedKey, context.DataKey);
             if (result != null) return result;
+
             if (context.PrivateRsaKey != null)
-                try { return CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); } catch { }
+            {
+                try { return CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: RSA decrypt probe failed; will try EC: {ex.Message}");
+                }
+            }
             if (context.PrivateEcKey != null)
-                try { return CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey); } catch { }
+            {
+                try { return CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey); }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: EC decrypt probe failed; caller will log on null: {ex.Message}");
+                }
+            }
             return null;
         }
 
@@ -600,10 +622,8 @@ namespace KeeperSecurity.Vault
                                     recordKey = TryDecryptSymmetric(encryptedKey, context.DataKey);
                             }
 
-                            if (recordKey == null && context.PrivateRsaKey != null)
-                                try { recordKey = CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); } catch { }
-                            if (recordKey == null && context.PrivateEcKey != null)
-                                try { recordKey = CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey); } catch { }
+                            if (recordKey == null)
+                                recordKey = TryDecryptWithUserKeys(encryptedKey, context);
                             break;
                     }
 
@@ -703,29 +723,43 @@ namespace KeeperSecurity.Vault
                         continue;
                     }
 
-                    string recordData = null;
-                    string recordName = null;
+                    NsfRecordData data = null;
                     if (!string.IsNullOrEmpty(kdRecord.Data))
                     {
                         try
                         {
                             var dataBytes = CryptoUtils.DecryptAesV2(kdRecord.Data.Base64UrlDecode(), recordKey);
-                            recordData = System.Text.Encoding.UTF8.GetString(dataBytes);
-                            var dataJson = JsonUtils.ParseJson<RecordDataJson>(dataBytes);
-                            recordName = !string.IsNullOrEmpty(dataJson?.title) ? dataJson.title
-                                       : !string.IsNullOrEmpty(dataJson?.name) ? dataJson.name
-                                       : null;
+                            data = JsonUtils.ParseJson<NsfRecordData>(dataBytes);
                         }
                         catch (Exception ex)
                         {
                             Trace.TraceError($"KeeperNSF: Error decrypting record data for {kdRecord.RecordUid}: {ex.Message}");
                         }
                     }
+                    else
+                    {
+                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} has no encrypted data payload");
+                    }
+
+                    var resolvedTitle = !string.IsNullOrEmpty(data?.Title) ? data.Title : data?.Name;
+                    if (data != null && string.IsNullOrEmpty(resolvedTitle) && string.IsNullOrEmpty(data.Type))
+                    {
+                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} data parsed but has no title/name/type fields");
+                    }
 
                     var entry = new KeeperNSFRecord
                     {
                         RecordUid = kdRecord.RecordUid,
-                        Name = recordName,
+                        Title = resolvedTitle,
+                        Type = data?.Type,
+                        Notes = data?.Notes,
+                        Fields = data?.Fields?
+                            .Select(f => new KeeperNSFField
+                            {
+                                Type = f.Type,
+                                Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
+                            })
+                            .ToList(),
                         Revision = kdRecord.Revision,
                         Version = kdRecord.Version,
                         Shared = kdRecord.Shared,
@@ -733,7 +767,7 @@ namespace KeeperSecurity.Vault
                         FileSize = kdRecord.FileSize,
                         ThumbnailSize = kdRecord.ThumbnailSize,
                         RecordKey = recordKey,
-                        DecryptedData = recordData,
+                        Data = data,
                     };
 
                     vault.KeeperNSFRecords[entry.RecordUid] = entry;
@@ -744,50 +778,80 @@ namespace KeeperSecurity.Vault
                 }
             }
         }
+
+        private static string CoerceFieldValueToString(object value)
+        {
+            if (value == null) return null;
+            if (value is string s) return s;
+            try
+            {
+                return Encoding.UTF8.GetString(JsonUtils.DumpJson(value, indent: false));
+            }
+            catch
+            {
+                return value.ToString();
+            }
+        }
     }
 
     [DataContract]
-    internal class RecordDataJson
-    {
-        [DataMember(Name = "title")]
-        public string title { get; set; }
-
-        [DataMember(Name = "name")]
-        public string name { get; set; }
-    }
-
-    [DataContract]
-    internal class NsfRecordFieldJson : IExtensibleDataObject
+    internal class NsfRecordFieldData : IExtensibleDataObject
     {
         [DataMember(Name = "type", EmitDefaultValue = false)]
-        public string type { get; set; }
+        public string Type { get; set; }
 
         [DataMember(Name = "value", EmitDefaultValue = false)]
-        public string[] value { get; set; }
+        public object[] Value { get; set; }
 
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
-    internal class NsfRecordDataJson
+    internal class NsfRecordData : IExtensibleDataObject
     {
         [DataMember(Name = "type", EmitDefaultValue = false)]
-        public string type { get; set; }
+        public string Type { get; set; }
 
         [DataMember(Name = "title", EmitDefaultValue = false)]
-        public string title { get; set; }
+        public string Title { get; set; }
+
+        [DataMember(Name = "name", EmitDefaultValue = false)]
+        public string Name { get; set; }
 
         [DataMember(Name = "notes", EmitDefaultValue = false)]
-        public string notes { get; set; }
+        public string Notes { get; set; }
 
         [DataMember(Name = "fields", EmitDefaultValue = false)]
-        public List<NsfRecordFieldJson> fields { get; set; }
+        public List<NsfRecordFieldData> Fields { get; set; }
+
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// A typed view of a single field on a Keeper NSF record.
+    /// </summary>
+    public class KeeperNSFField
+    {
+        public string Type { get; internal set; }
+        public IReadOnlyList<string> Value { get; internal set; }
     }
 
     public class KeeperNSFRecord
     {
         public string RecordUid { get; internal set; }
-        public string Name { get; internal set; }
+
+        /// <summary>The resolved display title (data.title, falling back to data.name).</summary>
+        public string Title { get; internal set; }
+
+        /// <summary>The NSF record type (data.type), or null when not specified.</summary>
+        public string Type { get; internal set; }
+
+        /// <summary>Notes attached to the record (data.notes), or null.</summary>
+        public string Notes { get; internal set; }
+
+        /// <summary>Typed projection of the record's fields.</summary>
+        public IReadOnlyList<KeeperNSFField> Fields { get; internal set; }
+
         public long Revision { get; internal set; }
         public int Version { get; internal set; }
         public bool Shared { get; internal set; }
@@ -795,7 +859,9 @@ namespace KeeperSecurity.Vault
         public long FileSize { get; internal set; }
         public long ThumbnailSize { get; internal set; }
         public byte[] RecordKey { get; internal set; }
-        public string DecryptedData { get; internal set; }
+
+        /// <summary>Parsed record data POCO; preserves unknown JSON fields across round-trips.</summary>
+        internal NsfRecordData Data { get; set; }
     }
 
     public class KeeperNSFAccessEntry

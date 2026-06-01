@@ -477,7 +477,7 @@ function Get-KeeperNSFShortcut {
             } else {
                 $foundByTitle = $false
                 foreach ($r in $vault.KeeperNSFRecordEntries) {
-                    if ($r.Name -and $r.Name -ieq $Target) {
+                    if ($r.Title -and $r.Title -ieq $Target) {
                         $recordUid = $r.RecordUid
                         $foundByTitle = $true
                         break
@@ -613,7 +613,7 @@ function Set-KeeperNSFShortcutKeep {
     if (-not $vault.TryGetKeeperNSFRecord($RecordUid, [ref]$tmpRecord)) {
         $found = $false
         foreach ($r in $vault.KeeperNSFRecordEntries) {
-            if ($r.Name -and $r.Name -ieq $RecordUid) {
+            if ($r.Title -and $r.Title -ieq $RecordUid) {
                 $RecordUid = $r.RecordUid
                 $found = $true
                 break

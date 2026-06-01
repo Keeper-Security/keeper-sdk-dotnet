@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using Folder.V3.Remove;
 using FolderProto = Folder;
@@ -285,9 +285,8 @@ namespace KeeperSecurity.Vault
                     return true;
                 }
 
-                var title = TryGetKdRecordTitle(entry.DecryptedData);
-                if (!string.IsNullOrEmpty(title)
-                    && string.Equals(title, lower, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(entry.Title)
+                    && string.Equals(entry.Title, lower, StringComparison.OrdinalIgnoreCase))
                 {
                     record = entry;
                     return true;
@@ -457,13 +456,11 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private const string KeeperDriveRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
-
         private static bool IsKeeperDriveRootFolderIdentifier(string identifier)
         {
             return string.Equals(identifier, "/", StringComparison.Ordinal)
                 || string.Equals(identifier, "root", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(identifier, KeeperDriveRootFolderUid, StringComparison.Ordinal);
+                || string.Equals(identifier, KeeperNSFConstants.KeeperDriveRootFolderUid, StringComparison.Ordinal);
         }
 
         private FolderNode TryCreateKeeperDriveRootFolderNode()
@@ -564,50 +561,57 @@ namespace KeeperSecurity.Vault
 
             if (pkRss?.KeyResponses == null || pkRss.KeyResponses.Count == 0)
             {
-                throw new KeeperApiException("public_key_error", $"Public key not found for user {username}.");
+                throw new KeeperApiException("public_key_error", $"Public key not found for user '{username}'.");
             }
 
             var pkRs = pkRss.KeyResponses[0];
+            if (pkRs == null)
+            {
+                throw new KeeperApiException("public_key_error", $"Empty public key response for user '{username}'.");
+            }
+
+            if (!string.IsNullOrEmpty(pkRs.ErrorCode)
+                && !string.Equals(pkRs.ErrorCode, "success", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new KeeperApiException(pkRs.ErrorCode,
+                    string.IsNullOrEmpty(pkRs.Message)
+                        ? $"Public key lookup failed for user '{username}'."
+                        : pkRs.Message);
+            }
+
+            var hasEcc = pkRs.PublicEccKey != null && !pkRs.PublicEccKey.IsEmpty;
+            var hasRsa = pkRs.PublicKey != null && !pkRs.PublicKey.IsEmpty;
+
+            if (!hasEcc && !hasRsa)
+            {
+                throw new KeeperApiException("public_key_error",
+                    string.IsNullOrEmpty(pkRs.Message)
+                        ? $"User '{username}' has no public key."
+                        : pkRs.Message);
+            }
 
             var forbidKeyType2 = Auth.AuthContext.ForbidKeyType2;
 
-            if (forbidKeyType2 && !pkRs.PublicEccKey.IsEmpty)
+            return (forbidKeyType2, hasEcc, hasRsa) switch
             {
-                return new RecipientPublicKeyInfo
-                {
-                    UseEccKey = true,
-                    EcPublicKey = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray()),
-                };
-            }
+                (true, true, _) => CreateEccInfo(pkRs.PublicEccKey),
+                (false, _, true) => CreateRsaInfo(pkRs.PublicKey),
+                (_, true, _) => CreateEccInfo(pkRs.PublicEccKey),
+                (_, _, true) => CreateRsaInfo(pkRs.PublicKey),
+                _ => throw new KeeperApiException("public_key_error", $"No usable public key for user '{username}'."),
+            };
 
-            if (!forbidKeyType2 && !pkRs.PublicKey.IsEmpty)
+            static RecipientPublicKeyInfo CreateEccInfo(ByteString eccKey) => new RecipientPublicKeyInfo
             {
-                return new RecipientPublicKeyInfo
-                {
-                    UseEccKey = false,
-                    RsaPublicKey = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray()),
-                };
-            }
+                UseEccKey = true,
+                EcPublicKey = CryptoUtils.LoadEcPublicKey(eccKey.ToByteArray()),
+            };
 
-            if (!pkRs.PublicEccKey.IsEmpty)
+            static RecipientPublicKeyInfo CreateRsaInfo(ByteString rsaKey) => new RecipientPublicKeyInfo
             {
-                return new RecipientPublicKeyInfo
-                {
-                    UseEccKey = true,
-                    EcPublicKey = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray()),
-                };
-            }
-
-            if (!pkRs.PublicKey.IsEmpty)
-            {
-                return new RecipientPublicKeyInfo
-                {
-                    UseEccKey = false,
-                    RsaPublicKey = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray()),
-                };
-            }
-
-            throw new KeeperApiException("public_key_error", pkRs.Message);
+                UseEccKey = false,
+                RsaPublicKey = CryptoUtils.LoadRsaPublicKey(rsaKey.ToByteArray()),
+            };
         }
 
         private static TransferRecord BuildKeeperNSFTransferRecord(
@@ -759,15 +763,28 @@ namespace KeeperSecurity.Vault
             var request = new RemoveRecordRequest { Action = action };
             foreach (var removal in removals.Where(r => r != null && !string.IsNullOrEmpty(r.RecordUid)))
             {
+                var recordUidBytes = removal.RecordUid.Base64UrlDecode();
+                if (recordUidBytes == null || recordUidBytes.Length == 0)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Skipping record removal with malformed RecordUid '{removal.RecordUid}'");
+                    continue;
+                }
+
                 var recordRemoval = new RecordRemoval
                 {
-                    RecordUid = ByteString.CopyFrom(removal.RecordUid.Base64UrlDecode()),
+                    RecordUid = ByteString.CopyFrom(recordUidBytes),
                     OperationType = MapRecordOperation(removal.Operation),
                 };
 
                 if (!string.IsNullOrEmpty(removal.FolderUid))
                 {
-                    recordRemoval.FolderUid = ByteString.CopyFrom(removal.FolderUid.Base64UrlDecode());
+                    var folderUidBytes = removal.FolderUid.Base64UrlDecode();
+                    if (folderUidBytes == null || folderUidBytes.Length == 0)
+                    {
+                        Trace.TraceWarning($"KeeperNSF: Skipping record removal for '{removal.RecordUid}'; FolderUid '{removal.FolderUid}' is malformed");
+                        continue;
+                    }
+                    recordRemoval.FolderUid = ByteString.CopyFrom(folderUidBytes);
                 }
 
                 request.Records.Add(recordRemoval);
@@ -782,9 +799,16 @@ namespace KeeperSecurity.Vault
             var request = new RemoveFolderRequest { Action = action };
             foreach (var removal in removals.Where(r => r != null && !string.IsNullOrEmpty(r.FolderUid)))
             {
+                var folderUidBytes = removal.FolderUid.Base64UrlDecode();
+                if (folderUidBytes == null || folderUidBytes.Length == 0)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Skipping folder removal with malformed FolderUid '{removal.FolderUid}'");
+                    continue;
+                }
+
                 request.Folders.Add(new FolderRemoval
                 {
-                    FolderUid = ByteString.CopyFrom(removal.FolderUid.Base64UrlDecode()),
+                    FolderUid = ByteString.CopyFrom(folderUidBytes),
                     OperationType = MapFolderOperation(removal.Operation),
                 });
             }
@@ -873,8 +897,9 @@ namespace KeeperSecurity.Vault
                 var dataBytes = CryptoUtils.DecryptAesV2(storageFolder.Data.Base64UrlDecode(), folderKey);
                 return JsonUtils.ParseJson<FolderDataJson>(dataBytes);
             }
-            catch
+            catch (Exception ex)
             {
+                Trace.TraceWarning($"KeeperNSF: Could not read existing folder data for '{folderUid}'; subsequent update will start from empty data: {ex.Message}");
                 return null;
             }
         }
@@ -907,36 +932,11 @@ namespace KeeperSecurity.Vault
             return true;
         }
 
-        private static string TryGetKdRecordTitle(string decryptedData)
-        {
-            if (string.IsNullOrEmpty(decryptedData))
-            {
-                return null;
-            }
-
-            try
-            {
-                var data = JsonUtils.ParseJson<NsfRecordTitleJson>(Encoding.UTF8.GetBytes(decryptedData));
-                return data?.title;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private sealed class RecipientPublicKeyInfo
         {
             public bool UseEccKey { get; set; }
             public EcPublicKey EcPublicKey { get; set; }
             public RsaPublicKey RsaPublicKey { get; set; }
-        }
-
-        [DataContract]
-        private class NsfRecordTitleJson
-        {
-            [DataMember(Name = "title")]
-            public string title { get; set; }
         }
     }
 
@@ -953,5 +953,6 @@ namespace KeeperSecurity.Vault
     internal static class KeeperNSFConstants
     {
         public const string FolderPlaceholderName = "(Keeper NSF Folder)";
+        public const string KeeperDriveRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
     }
 }

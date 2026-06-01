@@ -324,11 +324,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<string> CreateKeeperNSFFolder(string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
         {
-            if (string.IsNullOrEmpty(folderName))
-            {
-                throw new VaultException("Folder name cannot be empty");
-            }
-
             var folderUid = await this.AddKeeperNSFFolder(folderName, parentFolderUid, color, inheritPermissions);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return folderUid;
@@ -337,13 +332,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer")
         {
-            if (string.IsNullOrEmpty(folderUid))
-                throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(userEmail))
-                throw new VaultException("User email cannot be empty");
-            if (!this.TryGetKeeperNSFFolder(folderUid, out _))
-                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-
             await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
@@ -351,13 +339,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail)
         {
-            if (string.IsNullOrEmpty(folderUid))
-                throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(userEmail))
-                throw new VaultException("User email cannot be empty");
-            if (!this.TryGetKeeperNSFFolder(folderUid, out _))
-                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-
             await this.RevokeKeeperNSFFolderAccessInternal(folderUid, userEmail);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
@@ -373,11 +354,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, string> fields = null)
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (!this.TryGetKeeperNSFRecord(recordUid, out _))
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-
             await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
@@ -385,13 +361,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer")
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (string.IsNullOrEmpty(userEmail))
-                throw new VaultException("User email cannot be empty");
-            if (!this.TryGetKeeperNSFRecord(recordUid, out _))
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-
             await this.ShareKeeperNSFRecordInternal(recordUid, userEmail, role);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
@@ -399,13 +368,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task UnshareKeeperNSFRecord(string recordUid, string userEmail)
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (string.IsNullOrEmpty(userEmail))
-                throw new VaultException("User email cannot be empty");
-            if (!this.TryGetKeeperNSFRecord(recordUid, out _))
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-
             await this.UnshareKeeperNSFRecordInternal(recordUid, userEmail);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
@@ -437,13 +399,6 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid)
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (string.IsNullOrEmpty(keepFolderUid))
-                throw new VaultException("Folder UID to keep the record in cannot be empty");
-            if (!this.TryGetKeeperNSFRecord(recordUid, out _))
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-
             var result = await this.KeepKeeperNSFRecordInFolderInternal(recordUid, keepFolderUid);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return result;

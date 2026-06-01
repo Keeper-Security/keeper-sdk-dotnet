@@ -61,13 +61,8 @@ function Get-AccessRoleLabel {
 function Get-KdRecordTypeAndTitle {
     Param($record)
 
-    $dataFields = $null
-    if ($record -and $record.DecryptedData) {
-        try { $dataFields = $record.DecryptedData | ConvertFrom-Json } catch { }
-    }
-
-    if ($dataFields -and $dataFields.type) {
-        $recordType = $dataFields.type
+    if ($record -and $record.Type) {
+        $recordType = $record.Type
     }
     elseif ($record -and $record.Version -eq 4) {
         $recordType = 'file'
@@ -79,15 +74,12 @@ function Get-KdRecordTypeAndTitle {
         $recordType = 'Unknown'
     }
 
-    $title = ''
-    if ($record -and $record.Name) { $title = $record.Name }
-    elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
-    elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
+    $title = if ($record -and $record.Title) { $record.Title } else { '' }
 
     return [PSCustomObject]@{
         Type   = $recordType
         Title  = $title
-        Fields = $dataFields
+        Fields = if ($record) { $record.Fields } else { $null }
     }
 }
 
@@ -158,7 +150,7 @@ function Get-KeeperNSFRecordList {
         $meta = Get-KdRecordTypeAndTitle $record
         $item = [KdRecordListItem]::new()
         $item.RecordUid    = $record.RecordUid
-        $item.Name         = if ($record.Name) { $record.Name } else { $meta.Title }
+        $item.Name         = if ($record.Title) { $record.Title } else { $meta.Title }
         $item.Type         = $meta.Type
         $item.Revision     = $record.Revision
         $item.Version      = $record.Version
@@ -378,7 +370,7 @@ function Get-KeeperNSFRecord {
         }
         if (-not $kdFolder) {
             foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Name -and $r.Name -ieq $Name) { $kdRecord = $r; break }
+                if ($r.Title -and $r.Title -ieq $Name) { $kdRecord = $r; break }
             }
         }
         if (-not $kdFolder -and -not $kdRecord) {
@@ -388,7 +380,7 @@ function Get-KeeperNSFRecord {
         }
         if (-not $kdFolder -and -not $kdRecord) {
             foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Name -and $r.Name -ilike "*$Name*") { $kdRecord = $r; break }
+                if ($r.Title -and $r.Title -ilike "*$Name*") { $kdRecord = $r; break }
             }
         }
     }
@@ -792,11 +784,11 @@ function Get-KeeperNSFRecordDetails {
         }
         else {
             foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Name -and $r.Name -ieq $uid) { $resolved = $r; break }
+                if ($r.Title -and $r.Title -ieq $uid) { $resolved = $r; break }
             }
             if (-not $resolved) {
                 foreach ($r in $vault.KeeperNSFRecordEntries) {
-                    if ($r.Name -and $r.Name -ilike "*$uid*") { $resolved = $r; break }
+                    if ($r.Title -and $r.Title -ilike "*$uid*") { $resolved = $r; break }
                 }
             }
         }
