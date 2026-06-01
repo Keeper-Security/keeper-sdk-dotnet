@@ -745,6 +745,16 @@ namespace KeeperSecurity.Vault
                     {
                         Trace.TraceWarning($"Failed to parse record data: {kdRecord.RecordUid}. Data has no title/name/type fields");
                     }
+                    else
+                    {
+                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} has no encrypted data payload");
+                    }
+
+                    var resolvedTitle = !string.IsNullOrEmpty(data?.Title) ? data.Title : data?.Name;
+                    if (data != null && string.IsNullOrEmpty(resolvedTitle) && string.IsNullOrEmpty(data.Type))
+                    {
+                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} data parsed but has no title/name/type fields");
+                    }
 
                     var entry = new KeeperNSFRecord
                     {
