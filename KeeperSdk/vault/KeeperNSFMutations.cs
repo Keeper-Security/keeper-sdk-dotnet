@@ -270,47 +270,112 @@ namespace KeeperSecurity.Vault
 
         private const string AlreadySharedTransferStatus = "already_shared";
 
-        private async Task<KeeperNSFRecordTransferResult> TransferSingleKeeperNSFRecordOwnershipAsync(
-            string recordUid,
-            byte[] recordKey,
+        private async Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnershipBatchAsync(
+            IReadOnlyList<(string RecordUid, byte[] RecordKey)> transfers,
             string ownerEmail,
             RecipientPublicKeyInfo recipientKey)
         {
             var request = new RecordsOnwershipTransferRequest();
-            request.TransferRecords.Add(
-                BuildKeeperNSFTransferRecord(recordUid, recordKey, ownerEmail, recipientKey));
+            foreach (var transfer in transfers)
+            {
+                request.TransferRecords.Add(
+                    BuildKeeperNSFTransferRecord(transfer.RecordUid, transfer.RecordKey, ownerEmail, recipientKey));
+            }
 
             var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
                 KeeperNSFTransferEndpoint, request).ConfigureAwait(false);
 
-            var result = ParseKeeperNSFTransferResults(response, ownerEmail)
-                .FirstOrDefault(r => string.IsNullOrEmpty(r.RecordUid)
-                    || string.Equals(r.RecordUid, recordUid, StringComparison.Ordinal));
+            var statusByRecordUid = ParseKeeperNSFTransferResults(response, ownerEmail)
+                .ToDictionary(r => r.RecordUid, StringComparer.Ordinal);
 
-            if (result == null)
+            var results = new List<KeeperNSFRecordTransferResult>(transfers.Count);
+            foreach (var transfer in transfers)
             {
-                throw new VaultException($"Transfer returned no result for record {recordUid}.");
-            }
-
-            if (result.Success)
-            {
-                return result;
-            }
-
-            if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
-            {
-                await this.TransferKeeperNSFRecordOwnershipViaShareInternal(recordUid, ownerEmail).ConfigureAwait(false);
-                return new KeeperNSFRecordTransferResult
+                if (!statusByRecordUid.TryGetValue(transfer.RecordUid, out var result))
                 {
-                    RecordUid = recordUid,
-                    Username = ownerEmail,
-                    Status = AlreadySharedTransferStatus,
-                    Message = "Ownership transferred via record share.",
-                    Success = true,
-                };
+                    throw new VaultException($"Transfer returned no result for record {transfer.RecordUid}.");
+                }
+
+                if (result.Success)
+                {
+                    results.Add(result);
+                    continue;
+                }
+
+                if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
+                {
+                    await this.TransferKeeperNSFRecordOwnershipViaShareInternal(transfer.RecordUid, ownerEmail)
+                        .ConfigureAwait(false);
+                    results.Add(new KeeperNSFRecordTransferResult
+                    {
+                        RecordUid = transfer.RecordUid,
+                        Username = ownerEmail,
+                        Status = AlreadySharedTransferStatus,
+                        Message = "Ownership transferred via record share.",
+                        Success = true,
+                    });
+                    continue;
+                }
+
+                results.Add(result);
             }
 
-            return result;
+            return results;
+        }
+
+        private const string AlreadySharedTransferStatus = "already_shared";
+
+        private async Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnershipBatchAsync(
+            IReadOnlyList<(string RecordUid, byte[] RecordKey)> transfers,
+            string ownerEmail,
+            RecipientPublicKeyInfo recipientKey)
+        {
+            var request = new RecordsOnwershipTransferRequest();
+            foreach (var transfer in transfers)
+            {
+                request.TransferRecords.Add(
+                    BuildKeeperNSFTransferRecord(transfer.RecordUid, transfer.RecordKey, ownerEmail, recipientKey));
+            }
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>(
+                KeeperNSFTransferEndpoint, request).ConfigureAwait(false);
+
+            var statusByRecordUid = ParseKeeperNSFTransferResults(response, ownerEmail)
+                .ToDictionary(r => r.RecordUid, StringComparer.Ordinal);
+
+            var results = new List<KeeperNSFRecordTransferResult>(transfers.Count);
+            foreach (var transfer in transfers)
+            {
+                if (!statusByRecordUid.TryGetValue(transfer.RecordUid, out var result))
+                {
+                    throw new VaultException($"Transfer returned no result for record {transfer.RecordUid}.");
+                }
+
+                if (result.Success)
+                {
+                    results.Add(result);
+                    continue;
+                }
+
+                if (string.Equals(result.Status, AlreadySharedTransferStatus, StringComparison.OrdinalIgnoreCase))
+                {
+                    await this.TransferKeeperNSFRecordOwnershipViaShareInternal(transfer.RecordUid, ownerEmail)
+                        .ConfigureAwait(false);
+                    results.Add(new KeeperNSFRecordTransferResult
+                    {
+                        RecordUid = transfer.RecordUid,
+                        Username = ownerEmail,
+                        Status = AlreadySharedTransferStatus,
+                        Message = "Ownership transferred via record share.",
+                        Success = true,
+                    });
+                    continue;
+                }
+
+                results.Add(result);
+            }
+
+            return results;
         }
 
         /// <inheritdoc/>
