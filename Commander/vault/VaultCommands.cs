@@ -1,4 +1,4 @@
-﻿using Cli;
+using Cli;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
