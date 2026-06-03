@@ -7,7 +7,7 @@ using Records;
 namespace KeeperSecurity.Vault
 {
     /// <summary>
-    /// Time-limited access helpers for rotate-on-expiration (ROE), mirroring Commander <c>vault_extensions</c>.
+    /// Time-limited access helpers for rotate-on-expiration (ROE)</c>.
     /// </summary>
     public static class VaultShareExpirationExtensions
     {
@@ -46,7 +46,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Searches shared folders by optional pattern (name or UID), matching Commander <c>search_shared_folders</c>.
+        /// Searches shared folders by optional pattern (name or UID)<c>search_shared_folders</c>.
         /// </summary>
         public static IEnumerable<SharedFolder> SearchSharedFolders(this VaultOnline vault, string pattern = null)
         {
