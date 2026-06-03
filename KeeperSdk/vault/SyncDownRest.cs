@@ -717,7 +717,15 @@ namespace KeeperSecurity.Vault
 
                 }
 
-                // BreachWatch Records
+                if (rs.KeeperDriveData != null)
+                {
+                    if (rs.CacheStatus == VaultProto.CacheStatus.Clear)
+                    {
+                        storage.ClearKeeperNSF();
+                    }
+                    KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage);
+                }
+
                 if (rs.BreachWatchRecords.Count > 0)
                 {
                     var BreachWatchRecords = new List<IStorageBreachWatchRecord>();
@@ -791,6 +799,12 @@ namespace KeeperSecurity.Vault
             Debug.WriteLine("Rebuild Data: Enter");
             vault.RebuildData(result);
             Debug.WriteLine("Rebuild Data: Leave");
+
+            Debug.WriteLine("Rebuild KeeperNSF: Enter");
+            vault.KeeperNSFFolders.Clear();
+            vault.KeeperNSFRecords.Clear();
+            KeeperNSFSync.RebuildKeeperNSF(vault, context);
+            Debug.WriteLine("Rebuild KeeperNSF: Leave");
         }
 
         private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey,
