@@ -361,6 +361,11 @@ namespace KeeperSecurity.Vault
             out string folderUid)
         {
             folderUid = null;
+            if (operation == KeeperNSFRecordRemoveOperation.OwnerTrash)
+            {
+                return true;
+            }
+
             if (!string.IsNullOrWhiteSpace(folderUidOrName))
             {
                 if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
@@ -369,11 +374,6 @@ namespace KeeperSecurity.Vault
                 }
 
                 folderUid = GetKeeperNSFApiFolderUid(folder);
-                return true;
-            }
-
-            if (operation == KeeperNSFRecordRemoveOperation.OwnerTrash)
-            {
                 return true;
             }
 

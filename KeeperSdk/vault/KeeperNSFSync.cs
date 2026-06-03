@@ -378,7 +378,7 @@ namespace KeeperSecurity.Vault
             foreach (var uid in orphanedUids)
             {
                 vault.KeeperNSFRecords.TryRemove(uid, out _);
-                Trace.TraceWarning($"KeeperNSF: Purged orphaned record {uid}");
+                Trace.TraceWarning($"Orphaned record removed: {uid}");
             }
         }
 
@@ -432,7 +432,7 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        Trace.TraceWarning($"KeeperNSF: Could not decrypt folder key for {folderUid}");
+                        Trace.TraceWarning($"Failed to decrypt folder key: {folderUid}");
                     }
                 }
             }
@@ -498,12 +498,12 @@ namespace KeeperSecurity.Vault
             try { return CryptoUtils.DecryptAesV2(encryptedKey, symmetricKey); }
             catch (Exception ex)
             {
-                Trace.TraceWarning($"KeeperNSF: AES-V2 symmetric decrypt probe failed; will try AES-V1: {ex.Message}");
+                Trace.TraceWarning($"AES-V2 decryption failed: {ex.Message}");
             }
             try { return CryptoUtils.DecryptAesV1(encryptedKey, symmetricKey); }
             catch (Exception ex)
             {
-                Trace.TraceWarning($"KeeperNSF: AES-V1 symmetric decrypt probe failed; caller will log on null: {ex.Message}");
+                Trace.TraceWarning($"AES-V1 decryption failed: {ex.Message}");
             }
             return null;
         }
@@ -518,7 +518,7 @@ namespace KeeperSecurity.Vault
                 try { return CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); }
                 catch (Exception ex)
                 {
-                    Trace.TraceWarning($"KeeperNSF: RSA decrypt probe failed; will try EC: {ex.Message}");
+                    Trace.TraceWarning($"RSA decryption failed: {ex.Message}");
                 }
             }
             if (context.PrivateEcKey != null)
@@ -526,7 +526,7 @@ namespace KeeperSecurity.Vault
                 try { return CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey); }
                 catch (Exception ex)
                 {
-                    Trace.TraceWarning($"KeeperNSF: EC decrypt probe failed; caller will log on null: {ex.Message}");
+                    Trace.TraceWarning($"EC decryption failed: {ex.Message}");
                 }
             }
             return null;
@@ -566,7 +566,7 @@ namespace KeeperSecurity.Vault
             }
             catch (Exception e)
             {
-                Trace.TraceError($"KeeperNSF: Error decrypting folder key for {fk.FolderUid}: {e.Message}");
+                Trace.TraceError($"Failed to decrypt folder key: {fk.FolderUid}. {e.Message}");
                 return false;
             }
         }
@@ -607,23 +607,22 @@ namespace KeeperSecurity.Vault
                             if (!string.IsNullOrEmpty(rk.FolderUid))
                                 decryptedFolderKeys.TryGetValue(rk.FolderUid, out folderKey);
 
-                            if (folderEncType == FolderProto.FolderKeyEncryptionType.EncryptedByUserKey
-                                || string.IsNullOrEmpty(rk.FolderUid))
+                            var keysToTry =
+                                folderEncType == FolderProto.FolderKeyEncryptionType.EncryptedByUserKey
+                                || string.IsNullOrEmpty(rk.FolderUid)
+                                    ? new[] { context.DataKey, folderKey }
+                                    : new[] { folderKey, context.DataKey };
+
+                            foreach (var key in keysToTry)
                             {
-                                recordKey = TryDecryptSymmetric(encryptedKey, context.DataKey);
-                                if (recordKey == null && folderKey != null)
-                                    recordKey = TryDecryptSymmetric(encryptedKey, folderKey);
-                            }
-                            else
-                            {
-                                if (folderKey != null)
-                                    recordKey = TryDecryptSymmetric(encryptedKey, folderKey);
-                                if (recordKey == null)
-                                    recordKey = TryDecryptSymmetric(encryptedKey, context.DataKey);
+                                if (key == null) continue;
+
+                                recordKey = TryDecryptSymmetric(encryptedKey, key);
+                                if (recordKey != null)
+                                    break;
                             }
 
-                            if (recordKey == null)
-                                recordKey = TryDecryptWithUserKeys(encryptedKey, context);
+                            recordKey ??= TryDecryptWithUserKeys(encryptedKey, context);
                             break;
                     }
 
@@ -633,12 +632,12 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        Trace.TraceWarning($"KeeperNSF: Could not decrypt record key for {rk.RecordUid}");
+                        Trace.TraceWarning($"Failed to decrypt record key: {rk.RecordUid}");
                     }
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError($"KeeperNSF: Error decrypting record key for {rk.RecordUid}: {e.Message}");
+                    Trace.TraceError($"Failed to decrypt record key: {rk.RecordUid}. {e.Message}");
                 }
             }
 
@@ -667,7 +666,7 @@ namespace KeeperSecurity.Vault
                             }
                             catch (Exception ex)
                             {
-                                Trace.TraceError($"KeeperNSF: Error decrypting folder data for {kdFolder.FolderUid}: {ex.Message}");
+                                Trace.TraceError($"Failed to decrypt folder data: {kdFolder.FolderUid}. {ex.Message}");
                             }
                         }
                     }
@@ -733,18 +732,18 @@ namespace KeeperSecurity.Vault
                         }
                         catch (Exception ex)
                         {
-                            Trace.TraceError($"KeeperNSF: Error decrypting record data for {kdRecord.RecordUid}: {ex.Message}");
+                            Trace.TraceError($"Failed to decrypt record data: {kdRecord.RecordUid}.{ex.Message}");
                         }
                     }
                     else
                     {
-                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} has no encrypted data payload");
+                        Trace.TraceWarning($"Failed to decrypt record data: {kdRecord.RecordUid}. No encrypted data payload");
                     }
 
                     var resolvedTitle = !string.IsNullOrEmpty(data?.Title) ? data.Title : data?.Name;
                     if (data != null && string.IsNullOrEmpty(resolvedTitle) && string.IsNullOrEmpty(data.Type))
                     {
-                        Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} data parsed but has no title/name/type fields");
+                        Trace.TraceWarning($"Failed to parse record data: {kdRecord.RecordUid}. Data has no title/name/type fields");
                     }
 
                     var entry = new KeeperNSFRecord
