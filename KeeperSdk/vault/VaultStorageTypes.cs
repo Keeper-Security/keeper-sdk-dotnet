@@ -302,4 +302,278 @@ namespace KeeperSecurity.Vault
             Data = source.Data;
         }
     }
+
+    /// <exclude />
+    [SqlTable(Name = "KdFolder", PrimaryKey = new[] { "FolderUid" })]
+    public class StorageKdFolder : IStorageKdFolder, IEntityCopy<IStorageKdFolder>
+    {
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn(Length = 32)] public string ParentUid { get; set; }
+        [SqlColumn] public string Data { get; set; }
+        [SqlColumn] public string FolderKey { get; set; }
+        [SqlColumn] public int KeyType { get; set; }
+        [SqlColumn] public int FolderType { get; set; }
+        [SqlColumn] public int InheritPermissions { get; set; }
+        [SqlColumn(Length = 32)] public string OwnerAccountUid { get; set; }
+        [SqlColumn(Length = 256)] public string OwnerUsername { get; set; }
+        [SqlColumn] public long DateCreated { get; set; }
+        [SqlColumn] public long LastModified { get; set; }
+
+        string IUid.Uid => FolderUid;
+
+        void IEntityCopy<IStorageKdFolder>.CopyFields(IStorageKdFolder source)
+        {
+            FolderUid = source.FolderUid;
+            ParentUid = source.ParentUid;
+            Data = source.Data;
+            FolderKey = source.FolderKey;
+            KeyType = source.KeyType;
+            FolderType = source.FolderType;
+            InheritPermissions = source.InheritPermissions;
+            OwnerAccountUid = source.OwnerAccountUid;
+            OwnerUsername = source.OwnerUsername;
+            DateCreated = source.DateCreated;
+            LastModified = source.LastModified;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdFolderKey", PrimaryKey = new[] { "FolderUid", "ParentUid" },
+        Index1 = new[] { "ParentUid" })]
+    public class StorageKdFolderKey : IStorageKdFolderKey, IEntityCopy<IStorageKdFolderKey>
+    {
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn(Length = 32)] public string ParentUid { get; set; }
+        [SqlColumn] public string EncryptedKey { get; set; }
+        [SqlColumn] public int KeyType { get; set; }
+
+        string IUidLink.SubjectUid => FolderUid;
+        string IUidLink.ObjectUid => ParentUid;
+
+        void IEntityCopy<IStorageKdFolderKey>.CopyFields(IStorageKdFolderKey source)
+        {
+            FolderUid = source.FolderUid;
+            ParentUid = source.ParentUid;
+            EncryptedKey = source.EncryptedKey;
+            KeyType = source.KeyType;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdRecord", PrimaryKey = new[] { "RecordUid" })]
+    public class StorageKdRecord : IStorageKdRecord, IEntityCopy<IStorageKdRecord>
+    {
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+        [SqlColumn] public long Revision { get; set; }
+        [SqlColumn] public int Version { get; set; }
+        [SqlColumn] public bool Shared { get; set; }
+        [SqlColumn] public long ClientModifiedTime { get; set; }
+        [SqlColumn] public long FileSize { get; set; }
+        [SqlColumn] public long ThumbnailSize { get; set; }
+        [SqlColumn] public string Data { get; set; }
+
+        string IUid.Uid => RecordUid;
+
+        void IEntityCopy<IStorageKdRecord>.CopyFields(IStorageKdRecord source)
+        {
+            RecordUid = source.RecordUid;
+            Revision = source.Revision;
+            Version = source.Version;
+            Shared = source.Shared;
+            ClientModifiedTime = source.ClientModifiedTime;
+            FileSize = source.FileSize;
+            ThumbnailSize = source.ThumbnailSize;
+            Data = source.Data;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdRecordKey", PrimaryKey = new[] { "RecordUid", "FolderUid" },
+        Index1 = new[] { "FolderUid" })]
+    public class StorageKdRecordKey : IStorageKdRecordKey, IEntityCopy<IStorageKdRecordKey>
+    {
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn] public string RecordKey { get; set; }
+        [SqlColumn] public int RecordKeyType { get; set; }
+        [SqlColumn] public int FolderKeyEncryptionType { get; set; }
+
+        string IUidLink.SubjectUid => RecordUid;
+        string IUidLink.ObjectUid => FolderUid;
+
+        void IEntityCopy<IStorageKdRecordKey>.CopyFields(IStorageKdRecordKey source)
+        {
+            RecordUid = source.RecordUid;
+            FolderUid = source.FolderUid;
+            RecordKey = source.RecordKey;
+            RecordKeyType = source.RecordKeyType;
+            FolderKeyEncryptionType = source.FolderKeyEncryptionType;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdFolderRecord", PrimaryKey = new[] { "FolderUid", "RecordUid" },
+        Index1 = new[] { "RecordUid" })]
+    public class StorageKdFolderRecord : IStorageKdFolderRecord, IEntityCopy<IStorageKdFolderRecord>
+    {
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+
+        string IUidLink.SubjectUid => FolderUid;
+        string IUidLink.ObjectUid => RecordUid;
+
+        void IEntityCopy<IStorageKdFolderRecord>.CopyFields(IStorageKdFolderRecord source)
+        {
+            FolderUid = source.FolderUid;
+            RecordUid = source.RecordUid;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdFolderAccess", PrimaryKey = new[] { "FolderUid", "AccessTypeUid" },
+        Index1 = new[] { "AccessTypeUid" })]
+    public class StorageKdFolderAccess : IStorageKdFolderAccess, IEntityCopy<IStorageKdFolderAccess>
+    {
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn(Length = 32)] public string AccessTypeUid { get; set; }
+        [SqlColumn] public int AccessType { get; set; }
+        [SqlColumn] public int AccessRoleType { get; set; }
+        [SqlColumn] public bool Inherited { get; set; }
+        [SqlColumn] public bool Hidden { get; set; }
+        [SqlColumn] public bool DeniedAccess { get; set; }
+        [SqlColumn] public string EncryptedFolderKey { get; set; }
+        [SqlColumn] public int FolderKeyType { get; set; }
+        [SqlColumn] public long DateCreated { get; set; }
+        [SqlColumn] public long LastModified { get; set; }
+
+        string IUidLink.SubjectUid => FolderUid;
+        string IUidLink.ObjectUid => AccessTypeUid;
+
+        void IEntityCopy<IStorageKdFolderAccess>.CopyFields(IStorageKdFolderAccess source)
+        {
+            FolderUid = source.FolderUid;
+            AccessTypeUid = source.AccessTypeUid;
+            AccessType = source.AccessType;
+            AccessRoleType = source.AccessRoleType;
+            Inherited = source.Inherited;
+            Hidden = source.Hidden;
+            DeniedAccess = source.DeniedAccess;
+            EncryptedFolderKey = source.EncryptedFolderKey;
+            FolderKeyType = source.FolderKeyType;
+            DateCreated = source.DateCreated;
+            LastModified = source.LastModified;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdRecordAccess", PrimaryKey = new[] { "RecordUid", "AccessTypeUid" },
+        Index1 = new[] { "AccessTypeUid" })]
+    public class StorageKdRecordAccess : IStorageKdRecordAccess, IEntityCopy<IStorageKdRecordAccess>
+    {
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+        [SqlColumn(Length = 32)] public string AccessTypeUid { get; set; }
+        [SqlColumn] public int AccessType { get; set; }
+        [SqlColumn] public int AccessRoleType { get; set; }
+        [SqlColumn] public bool Owner { get; set; }
+        [SqlColumn] public bool Inherited { get; set; }
+        [SqlColumn] public bool Hidden { get; set; }
+        [SqlColumn] public bool DeniedAccess { get; set; }
+        [SqlColumn] public bool CanViewTitle { get; set; }
+        [SqlColumn] public bool CanEdit { get; set; }
+        [SqlColumn] public bool CanView { get; set; }
+        [SqlColumn] public bool CanListAccess { get; set; }
+        [SqlColumn] public bool CanUpdateAccess { get; set; }
+        [SqlColumn] public bool CanDelete { get; set; }
+        [SqlColumn] public bool CanChangeOwnership { get; set; }
+        [SqlColumn] public bool CanRequestAccess { get; set; }
+        [SqlColumn] public bool CanApproveAccess { get; set; }
+        [SqlColumn] public long DateCreated { get; set; }
+        [SqlColumn] public long LastModified { get; set; }
+
+        string IUidLink.SubjectUid => RecordUid;
+        string IUidLink.ObjectUid => AccessTypeUid;
+
+        void IEntityCopy<IStorageKdRecordAccess>.CopyFields(IStorageKdRecordAccess source)
+        {
+            RecordUid = source.RecordUid;
+            AccessTypeUid = source.AccessTypeUid;
+            AccessType = source.AccessType;
+            AccessRoleType = source.AccessRoleType;
+            Owner = source.Owner;
+            Inherited = source.Inherited;
+            Hidden = source.Hidden;
+            DeniedAccess = source.DeniedAccess;
+            CanViewTitle = source.CanViewTitle;
+            CanEdit = source.CanEdit;
+            CanView = source.CanView;
+            CanListAccess = source.CanListAccess;
+            CanUpdateAccess = source.CanUpdateAccess;
+            CanDelete = source.CanDelete;
+            CanChangeOwnership = source.CanChangeOwnership;
+            CanRequestAccess = source.CanRequestAccess;
+            CanApproveAccess = source.CanApproveAccess;
+            DateCreated = source.DateCreated;
+            LastModified = source.LastModified;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdRecordLink", PrimaryKey = new[] { "ParentRecordUid", "ChildRecordUid" },
+        Index1 = new[] { "ChildRecordUid" })]
+    public class StorageKdRecordLink : IStorageKdRecordLink, IEntityCopy<IStorageKdRecordLink>
+    {
+        [SqlColumn(Length = 32)] public string ParentRecordUid { get; set; }
+        [SqlColumn(Length = 32)] public string ChildRecordUid { get; set; }
+        [SqlColumn] public string RecordKey { get; set; }
+        [SqlColumn] public long Revision { get; set; }
+
+        string IUidLink.SubjectUid => ParentRecordUid;
+        string IUidLink.ObjectUid => ChildRecordUid;
+
+        void IEntityCopy<IStorageKdRecordLink>.CopyFields(IStorageKdRecordLink source)
+        {
+            ParentRecordUid = source.ParentRecordUid;
+            ChildRecordUid = source.ChildRecordUid;
+            RecordKey = source.RecordKey;
+            Revision = source.Revision;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdFolderSharingState", PrimaryKey = new[] { "FolderUid" })]
+    public class StorageKdFolderSharingState : IStorageKdFolderSharingState, IEntityCopy<IStorageKdFolderSharingState>
+    {
+        [SqlColumn(Length = 32)] public string FolderUid { get; set; }
+        [SqlColumn] public bool Shared { get; set; }
+        [SqlColumn] public int Count { get; set; }
+
+        string IUid.Uid => FolderUid;
+
+        void IEntityCopy<IStorageKdFolderSharingState>.CopyFields(IStorageKdFolderSharingState source)
+        {
+            FolderUid = source.FolderUid;
+            Shared = source.Shared;
+            Count = source.Count;
+        }
+    }
+
+    /// <exclude />
+    [SqlTable(Name = "KdRecordSharingState", PrimaryKey = new[] { "RecordUid" })]
+    public class StorageKdRecordSharingState : IStorageKdRecordSharingState, IEntityCopy<IStorageKdRecordSharingState>
+    {
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+        [SqlColumn] public bool IsDirectlyShared { get; set; }
+        [SqlColumn] public bool IsIndirectlyShared { get; set; }
+        [SqlColumn] public bool IsShared { get; set; }
+
+        string IUid.Uid => RecordUid;
+
+        void IEntityCopy<IStorageKdRecordSharingState>.CopyFields(IStorageKdRecordSharingState source)
+        {
+            RecordUid = source.RecordUid;
+            IsDirectlyShared = source.IsDirectlyShared;
+            IsIndirectlyShared = source.IsIndirectlyShared;
+            IsShared = source.IsShared;
+        }
+    }
 }

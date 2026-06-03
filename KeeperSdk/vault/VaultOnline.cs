@@ -322,6 +322,89 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<string> CreateKeeperNSFFolder(string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
+        {
+            var folderUid = await this.AddKeeperNSFFolder(folderName, parentFolderUid, color, inheritPermissions);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            return folderUid;
+        }
+
+        /// <inheritdoc/>
+        public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer")
+        {
+            await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail)
+        {
+            await this.RevokeKeeperNSFFolderAccessInternal(folderUid, userEmail);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> CreateKeeperNSFRecord(string title, string recordType = "general", string folderUid = null, string notes = null, IDictionary<string, string> fields = null)
+        {
+            var recordUid = await this.CreateKeeperNSFRecordInternal(title, recordType, folderUid, notes, fields);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            return recordUid;
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, string> fields = null)
+        {
+            await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer")
+        {
+            await this.ShareKeeperNSFRecordInternal(recordUid, userEmail, role);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task UnshareKeeperNSFRecord(string recordUid, string userEmail)
+        {
+            await this.UnshareKeeperNSFRecordInternal(recordUid, userEmail);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task<KeeperNSFPermissionResult> UpdateKeeperNSFRecordPermissions(string folderUid, string action, string role = null, bool recursive = false, bool dryRun = false)
+        {
+            if (string.IsNullOrEmpty(action))
+                throw new VaultException("Action cannot be empty");
+            if (action != "grant" && action != "revoke")
+                throw new VaultException($"Invalid action '{action}'. Must be 'grant' or 'revoke'");
+            if (action == "grant" && string.IsNullOrEmpty(role))
+                throw new VaultException("Role is required for grant action");
+
+            var result = await this.UpdateKeeperNSFRecordPermissionsInternal(folderUid, action, role, recursive, dryRun);
+            if (!dryRun)
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            }
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null)
+        {
+            return this.GetKeeperNSFShortcutsInternal(recordUid, folderUid);
+        }
+
+        /// <inheritdoc/>
+        public async Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid)
+        {
+            var result = await this.KeepKeeperNSFRecordInFolderInternal(recordUid, keepFolderUid);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            return result;
+        }
+
+        /// <inheritdoc/>
         public async Task<IEnumerable<TeamInfo>> GetTeamsForShare()
         {
             var request = new GetAvailableTeamsCommand();
