@@ -71,6 +71,7 @@ namespace KeeperSecurity.Vault
                 {
                     var recordUids = rs.RemovedRecords.Select(x => x.ToByteArray().Base64UrlEncode()).ToArray();
                     result.AddRecords(recordUids);
+                    storage.RecordRotations.DeleteUids(recordUids);
                     storage.RecordKeys.DeleteLinks(recordUids.Select(x => UidLink.Create(x, storage.PersonalScopeUid)));
 
                     // linked records
@@ -736,6 +737,24 @@ namespace KeeperSecurity.Vault
                     var breachWatchRecords = rs.BreachWatchRecords.Select(ToBreachWatchRecord).ToArray();
                     storage.BreachWatchRecords.PutEntities(breachWatchRecords);
                     result.AddBreachWatchRecords(breachWatchRecords.Select(x => x.RecordUid));
+                }
+
+                if (rs.RecordRotations.Count > 0)
+                {
+                    StorageRecordRotation ToRecordRotation(VaultProto.RecordRotation rotation)
+                    {
+                        return new StorageRecordRotation
+                        {
+                            RecordUid = rotation.RecordUid.ToByteArray().Base64UrlEncode(),
+                            Revision = rotation.Revision,
+                            ConfigurationUid = rotation.ConfigurationUid.Length > 0
+                                ? rotation.ConfigurationUid.ToByteArray().Base64UrlEncode()
+                                : null,
+                        };
+                    }
+
+                    var recordRotations = rs.RecordRotations.Select(ToRecordRotation).ToArray();
+                    storage.RecordRotations.PutEntities(recordRotations);
                 }
             }
 

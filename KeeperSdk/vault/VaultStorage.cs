@@ -513,6 +513,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords { get; }
 
+        /// <summary>
+        /// Gets record rotation configuration storage (sync-down record rotation cache).
+        /// </summary>
+        IEntityStorage<IStorageRecordRotation> RecordRotations { get; }
 
         /// <summary>
         /// Clear offline Keeper vault storage.
@@ -588,5 +592,26 @@ namespace KeeperSecurity.Vault
         /// Encrypted record data 
         /// </summary>
         string Data { get; }
+    }
+
+    /// <summary>
+    /// Defines record rotation configuration from vault sync-down.
+    /// </summary>
+    public interface IStorageRecordRotation : IUid
+    {
+        /// <summary>
+        /// Record UID.
+        /// </summary>
+        string RecordUid { get; }
+
+        /// <summary>
+        /// Last revision.
+        /// </summary>
+        long Revision { get; }
+
+        /// <summary>
+        /// Rotation configuration UID when configured.
+        /// </summary>
+        string ConfigurationUid { get; }
     }
 }

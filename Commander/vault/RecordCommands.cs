@@ -783,10 +783,11 @@ namespace Commander
             var record = ResolveKeeperRecord(context, options.RecordName);
             try
             {
-                var shareOptions = new SharedFolderRecordOptions
+                var shareOptions = new RecordShareOptions
                 {
                     CanEdit = options.CanEdit,
                     CanShare = options.CanShare,
+                    RotateOnExpiration = options.RotateOnExpiration,
                 };
                 if (!string.IsNullOrEmpty(options.ExpireAt))
                 {
@@ -1758,6 +1759,12 @@ namespace Commander
 
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
+
+        [Option('r', "rotate-on-expiration", Required = false, Default = false,
+            HelpText = "rotate the password when the share access expires. " +
+                       "Only valid on grant; requires a positive --expire-at/--expire-in " +
+                       "(not \"never\") and a pamUser record with rotation configured.")]
+        public bool RotateOnExpiration { get; set; }
 
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }

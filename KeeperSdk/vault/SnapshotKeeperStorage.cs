@@ -28,6 +28,7 @@ public class SnapshotKeeperStorage : IKeeperStorage
         RecordTypes = new SnapshotEntityStorage<IStorageRecordType>(sourceStorage.RecordTypes);
         UserEmails = new SnapshotLinkStorage<IStorageUserEmail>(sourceStorage.UserEmails);
         BreachWatchRecords = new SnapshotEntityStorage<IStorageBreachWatchRecord>(sourceStorage.BreachWatchRecords);
+        RecordRotations = new SnapshotEntityStorage<IStorageRecordRotation>(sourceStorage.RecordRotations);
     }
 
     public string PersonalScopeUid { get; }
@@ -45,6 +46,7 @@ public class SnapshotKeeperStorage : IKeeperStorage
     public IEntityStorage<IStorageRecordType> RecordTypes { get; }
     public ILinkStorage<IStorageUserEmail> UserEmails { get; }
     public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords { get; }
+    public IEntityStorage<IStorageRecordRotation> RecordRotations { get; }
 
     public void Clear()
     {

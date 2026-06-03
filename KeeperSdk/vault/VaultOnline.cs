@@ -421,6 +421,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options)
         {
+            this.ValidateRotateOnExpirationForRecordGrant(recordUid, options);
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
                 throw new KeeperApiException("not_found", "Record not found");
@@ -471,10 +472,7 @@ namespace KeeperSecurity.Vault
                     }
                     ro.Shareable = options?.CanShare ?? false;
                     ro.Editable = options?.CanEdit ?? false;
-                    if (options?.Expiration != null)
-                    {
-                        ro.Expiration = options.Expiration.Value.ToUnixTimeMilliseconds();
-                    }
+                    VaultShareExpirationExtensions.ApplyShareExpiration(options, ro);
 
                 }
                 request.AddSharedRecord.Add(ro);
@@ -483,10 +481,7 @@ namespace KeeperSecurity.Vault
             {
                 ro.Shareable = options?.CanShare ?? targetPermission.CanShare;
                 ro.Editable = options?.CanEdit ?? targetPermission.CanEdit;
-                if (options?.Expiration != null)
-                {
-                    ro.Expiration = options.Expiration.Value.ToUnixTimeMilliseconds();
-                }
+                VaultShareExpirationExtensions.ApplyShareExpiration(options, ro);
 
                 request.UpdateSharedRecord.Add(ro);
             }

@@ -158,14 +158,17 @@ namespace Commander
                 }
             }
         }
-        public static Task ListSharedFoldersCommand(this VaultContext context, string arguments)
+        public static Task ListSharedFoldersCommand(this VaultContext context, ListSharedFolderOptions options)
         {
             var tab = new Tabulate(4)
             {
                 DumpRowNo = true
             };
             tab.AddHeader(new[] { "Shared Folder UID", "Name", "# Records", "# Users" });
-            foreach (var sf in context.Vault.SharedFolders)
+            var folders = options.RoeEligible
+                ? context.Vault.SearchRoeEligibleSharedFolders(options.Pattern)
+                : context.Vault.SearchSharedFolders(options.Pattern);
+            foreach (var sf in folders)
             {
                 tab.AddRow(new object[] { sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count });
             }
@@ -331,6 +334,8 @@ namespace Commander
                             shareOptions.Expiration = DateTimeOffset.Now + ts;
                         }
 
+                        shareOptions.RotateOnExpiration = options.RotateOnExpiration;
+
                         await context.Vault.PutUserToSharedFolder(sf.Uid, userId, userType, shareOptions);
                     }
                     catch (NoActiveShareWithUserException e)
@@ -467,6 +472,8 @@ namespace Commander
                     shareOptions.Expiration = DateTimeOffset.Now + ts;
                 }
 
+                shareOptions.RotateOnExpiration = options.RotateOnExpiration;
+
                 await context.Vault.ChangeRecordInSharedFolder(sf.Uid, recordUid, shareOptions);
             }
         }
@@ -526,6 +533,17 @@ namespace Commander
         public string DestinationName { get; set; }
     }
 
+    class ListSharedFolderOptions
+    {
+        [Option("roe-eligible", Required = false, Default = false,
+            HelpText = "only list shared folders eligible for --rotate-on-expiration " +
+                       "(contain at least one pamUser record with rotation configured)")]
+        public bool RoeEligible { get; set; }
+
+        [Value(0, Required = false, MetaName = "pattern", HelpText = "search pattern")]
+        public string Pattern { get; set; }
+    }
+
     class ShareFolderRecordPermissionOptions : FolderOptions
     {
         [Option('r', "record", Required = false, Default = null, HelpText = "record name or record uid")]
@@ -542,6 +560,13 @@ namespace Commander
 
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
+
+        [Option('r', "rotate-on-expiration", Required = false, Default = false,
+            HelpText = "rotate the password when the share access expires. " +
+                       "Only valid on grant; requires a positive --expire-at/--expire-in " +
+                       "(not \"never\") and at least one pamUser record with rotation " +
+                       "configured in the folder.")]
+        public bool RotateOnExpiration { get; set; }
     }
 
     class ShareFolderUserPermissionOptions : FolderOptions
@@ -563,6 +588,13 @@ namespace Commander
 
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
+
+        [Option('r', "rotate-on-expiration", Required = false, Default = false,
+            HelpText = "rotate the password when the share access expires. " +
+                       "Only valid on grant; requires a positive --expire-at/--expire-in " +
+                       "(not \"never\") and at least one pamUser record with rotation " +
+                       "configured in the folder.")]
+        public bool RotateOnExpiration { get; set; }
     }
 
 }

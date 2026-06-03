@@ -24,6 +24,23 @@ namespace KeeperSecurity.Vault
         public bool? CanShare { get; set; }
         /// <inheritdoc/>
         public DateTimeOffset? Expiration { get; set; }
+        /// <inheritdoc/>
+        public bool? RotateOnExpiration { get; set; }
+    }
+
+    /// <summary>
+    /// Defines direct record share permissions (share-record).
+    /// </summary>
+    public class RecordShareOptions : IRecordShareOptions
+    {
+        /// <inheritdoc/>
+        public bool? CanEdit { get; set; }
+        /// <inheritdoc/>
+        public bool? CanShare { get; set; }
+        /// <inheritdoc/>
+        public DateTimeOffset? Expiration { get; set; }
+        /// <inheritdoc/>
+        public bool? RotateOnExpiration { get; set; }
     }
 
     /// <summary>
@@ -38,6 +55,8 @@ namespace KeeperSecurity.Vault
         public bool? ManageUsers { get; set; }
         /// <inheritdoc/>
         public DateTimeOffset? Expiration { get; set; }
+        /// <inheritdoc/>
+        public bool? RotateOnExpiration { get; set; }
     }
 
     /// <summary>

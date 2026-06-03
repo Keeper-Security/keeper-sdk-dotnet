@@ -324,7 +324,8 @@ namespace KeeperSecurity.Vault
         {
             if (options == null)
                 return true;
-            return options.ManageUsers == null && options.ManageRecords == null && options.Expiration == null;
+            return options.ManageUsers == null && options.ManageRecords == null
+                   && options.Expiration == null && options.RotateOnExpiration == null;
         }
 
         private static bool IsSharedFolderPutStatusOk(string status)
@@ -457,8 +458,8 @@ namespace KeeperSecurity.Vault
             var sfut = new SharedFolderUpdateTeam
             {
                 TeamUid = ByteString.CopyFrom(teamUid.Base64UrlDecode()),
-                Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
             };
+            VaultShareExpirationExtensions.ApplyShareExpiration(options, sfut);
 
             if (teamIsMember)
             {
@@ -642,8 +643,8 @@ namespace KeeperSecurity.Vault
             var sfUpdateUser = new SharedFolderUpdateUser
             {
                 Username = userId,
-                Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
             };
+            VaultShareExpirationExtensions.ApplyShareExpiration(options, sfUpdateUser);
             if (userIsMember)
             {
                 sfUpdateUser.ManageUsers = options?.ManageUsers == null
