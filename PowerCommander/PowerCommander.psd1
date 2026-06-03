@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.2'
+    ModuleVersion        = '1.1.3'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -72,11 +72,11 @@
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
-        'EPM\Policy.ps1',
-        'EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
+        'EPM\Policy.ps1','EPM\Approval.ps1', 'EPM\Collections.ps1', 'ReportCommands\ComplianceCore.ps1', 'ReportCommands\ComplianceReport.ps1',
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
-        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1'
+        'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
+        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1'
         )
 
     # Functions to export from this module
@@ -129,7 +129,12 @@
         'Get-KeeperEpmCollectionList', 'Get-KeeperEpmCollection', 'Add-KeeperEpmCollection',
         'Update-KeeperEpmCollection', 'Remove-KeeperEpmCollection', 'Connect-KeeperEpmCollection', 'Disconnect-KeeperEpmCollection', 
         'Remove-KeeperEpmCollectionsByType','Get-KeeperEpmPolicyList', 'Get-KeeperEpmPolicy', 'Add-KeeperEpmPolicy',
-        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection'
+        'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
+        'Get-KeeperNSFList', 'Get-KeeperNSFFolderList', 'Get-KeeperNSFRecordList', 'Get-KeeperNSFRecord', 'Get-KeeperNSFRecordDetails',
+        'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess', 'Set-KeeperNSFFolder', 'Remove-KeeperNSFFolder',
+        'Add-KeeperNSFRecord', 'Edit-KeeperNSFRecord', 'Set-KeeperNSFRecordAccess', 'Set-KeeperNSFRecordPermission',
+        'Remove-KeeperNSFRecord', 'Link-KeeperNSFRecord', 'Transfer-KeeperNSFRecordOwnership',
+        'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep'
         #'Test-Keeper',
     )
 
@@ -156,7 +161,12 @@
         'external-shares-report', 'aging-report','kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
         'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign',
         'kepm-collection-list', 'kepm-collection-view', 'kepm-collection-add', 'kepm-collection-edit',
-        'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout')
+        'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
+        'nsf-list', 'nsf-folders', 'nsf-records', 'nsf-get', 'nsf-record-details',
+        'nsf-mkdir', 'nsf-share-folder', 'nsf-rndir', 'nsf-rmdir',
+        'nsf-record-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
+        'nsf-rm', 'nsf-ln', 'nsf-transfer-record',
+        'nsf-shortcut-list', 'nsf-shortcut-keep')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -172,53 +182,23 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = @(
-                'Add-KeeperRecord -GeneratePassword switch for generating passwords on add/update',
-                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync 
-                    - Get-KeeperSharedFolderDetailsSkipSync: fetch shared folder metadata by UID
-                    - Get-KeeperSharedFolderRecordUidsSkipSync: list record UIDs in a shared folder
-                    - Get-KeeperSharedFolderRecordsSkipSync: fetch decrypted records in a shared folder
-                    - Get-KeeperRecordDetailsByUidSkipSync: load record details by one or more record UIDs
-                    - Get-KeeperAvailableTeamsSkipSync: list teams available for shared-folder sharing
-                    - Get-KeeperTeamUidSkipSync: resolve team name to team UID
-                    - Grant-KeeperSharedFolderUserSkipSync: add or update user access on a shared folder
-                    - Revoke-KeeperSharedFolderUserSkipSync: remove user access from a shared folder
-                    - Grant-KeeperSharedFolderTeamSkipSync: add or update team access on a shared folder
-                    - Revoke-KeeperSharedFolderTeamSkipSync: remove team access from a shared folder
+                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync
+                    - Get-KeeperRecordHistory (krh): view, diff, and restore record revision history
                 ',
-                'Compliance reports:
-                    - Get-KeeperComplianceReport: record-level compliance report
-                    - Get-KeeperComplianceTeamReport: team access to shared folders
-                    - Get-KeeperComplianceRecordAccessReport: record access history or vault visibility by user
-                    - Get-KeeperComplianceSummaryReport: aggregated compliance counts by owner
-                    - Get-KeeperComplianceSharedFolderReport: shared-folder access report for users and teams
-                    - Get-KeeperExternalSharesReport: external direct and shared-folder shares
-                    - Get-KeeperAgingReport: passwords older than period or cutoff date
-                ',
-                'Audit:
-                    - Get-KeeperUserReport (user-report): enterprise user status report
-                    - Export-KeeperAuditLog (audit-log): export audit events to file or SIEM targets
-                    - Get-KeeperAuditAlert (audit-alert): list and manage audit alert rules
-                    - Get-KeeperAuditReport (audit-report): query enterprise audit trail events
-                ',
-                'Security summary:
-                    - Get-KeeperSecurityAuditReport (security-audit-report): enterprise password strength/security score report
-                    - Get-KeeperBreachWatchReport (breach-watch-report): enterprise BreachWatch user summary
-                    - Get-KeeperBreachWatchReportSummary (breach-watch-report-summary): compact BreachWatch totals
-                ',
-                'Import-KeeperVault (kimport) - import vault data from file (import-vault)',
-                'Activity and sharing visibility:
-                    - Get-KeeperActionReport (action-report): identify inactive/locked users and optional admin actions
-                    - Get-KeeperShareReport (share-report): shared records and shared-folder visibility report
-                    - Get-KeeperSharedRecordsReport (shared-records-report): flat report of shared records and recipients
-                ',
-                'Get-KeeperRiskManagementReport (risk-report) - risk dashboard: 
-                    - enterprise-stat (enterprise-stat) - enterprise statistics
-                    - enterprise-stat-details (enterprise-stat-details) - enterprise statistics details
-                    - security alerts (security-alerts) - security alerts
-                    - benchmarks (benchmarks) - benchmarks
-                ',
-                'MSP:
-                    - Get-KeeperMspLegacyReport (msp-legacy-report): legacy license adjustment log with date filters
+                'Endpoint Privilege Management (EPM):
+                    - Sync-KeeperEpm (kepm-sync): sync EPM data from the server
+                    - Deployments: Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,
+                      Update-KeeperEpmDeployment, Remove-KeeperEpmDeployment, Get-KeeperEpmDeploymentDownload
+                    - Approvals: Get-KeeperEpmApprovalList, Get-KeeperEpmApproval, Approve-KeeperEpmApproval,
+                      Deny-KeeperEpmApproval, Remove-KeeperEpmApproval
+                    - Agents: Get-KeeperEpmAgentList, Get-KeeperEpmAgent, Update-KeeperEpmAgent,
+                      Remove-KeeperEpmAgent, Get-KeeperEpmAgentCollection
+                    - Collections: Get-KeeperEpmCollectionList, Get-KeeperEpmCollection, Add-KeeperEpmCollection,
+                      Update-KeeperEpmCollection, Remove-KeeperEpmCollection, Connect-KeeperEpmCollection,
+                      Disconnect-KeeperEpmCollection, Remove-KeeperEpmCollectionsByType
+                    - Policies: Get-KeeperEpmPolicyList, Get-KeeperEpmPolicy, Add-KeeperEpmPolicy,
+                      Update-KeeperEpmPolicy, Remove-KeeperEpmPolicy, Get-KeeperEpmPolicyAgent,
+                      Add-KeeperEpmPolicyCollection
                 '
             )
         }

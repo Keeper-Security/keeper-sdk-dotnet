@@ -235,6 +235,33 @@ namespace KeeperSecurity.Vault
         private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
         private readonly BreachWatchService _breachWatchService;
 
+        internal readonly ConcurrentDictionary<string, FolderNode> KeeperNSFFolders = new();
+        internal readonly ConcurrentDictionary<string, KeeperNSFRecord> KeeperNSFRecords = new();
+
+        /// <inheritdoc/>
+        public int KeeperNSFFolderCount => KeeperNSFFolders.Count;
+
+        /// <inheritdoc/>
+        public IEnumerable<FolderNode> KeeperNSFFolderNodes => KeeperNSFFolders.Values;
+
+        /// <inheritdoc/>
+        public bool TryGetKeeperNSFFolder(string folderUid, out FolderNode folder)
+        {
+            return KeeperNSFFolders.TryGetValue(folderUid, out folder);
+        }
+
+        /// <inheritdoc/>
+        public int KeeperNSFRecordCount => KeeperNSFRecords.Count;
+
+        /// <inheritdoc/>
+        public IEnumerable<KeeperNSFRecord> KeeperNSFRecordEntries => KeeperNSFRecords.Values;
+
+        /// <inheritdoc/>
+        public bool TryGetKeeperNSFRecord(string recordUid, out KeeperNSFRecord record)
+        {
+            return KeeperNSFRecords.TryGetValue(recordUid, out record);
+        }
+
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
 

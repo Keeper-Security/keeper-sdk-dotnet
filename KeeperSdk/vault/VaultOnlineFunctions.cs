@@ -63,7 +63,7 @@ namespace KeeperSecurity.Vault
         public bool? ManageRecords { get; set; }
     }
 
-    internal static class VaultOnlineFunctions
+    internal static partial class VaultOnlineFunctions
     {
         public static async Task<KeeperRecord> AddRecordToFolder(this VaultOnline vault, KeeperRecord record,
             string folderUid = null)
@@ -713,7 +713,7 @@ namespace KeeperSecurity.Vault
                     data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                 }
             }
-            catch { /* ignored */ }
+            catch { }
 
             if (data == null)
             {
