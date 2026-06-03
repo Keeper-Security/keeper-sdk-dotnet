@@ -706,6 +706,27 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        private static (string FolderUid, string FolderName) ResolvePrimaryFolder(
+            VaultData vault,
+            IKeeperStorage storage,
+            string recordUid)
+        {
+            var link = storage.KdFolderRecords.GetLinksForObject(recordUid).FirstOrDefault();
+            if (link == null)
+            {
+                return (null, null);
+            }
+
+            var folderUid = link.FolderUid;
+            string folderName = null;
+            if (vault.KeeperNSFFolders.TryGetValue(folderUid, out var folder))
+            {
+                folderName = folder.Name;
+            }
+
+            return (folderUid, folderName);
+        }
+
         private static void RebuildRecords(
             VaultData vault,
             IKeeperStorage storage,
@@ -756,6 +777,8 @@ namespace KeeperSecurity.Vault
                         Trace.TraceWarning($"KeeperNSF: Record {kdRecord.RecordUid} data parsed but has no title/name/type fields");
                     }
 
+                    var (folderUid, folderName) = ResolvePrimaryFolder(vault, storage, kdRecord.RecordUid);
+
                     var entry = new KeeperNSFRecord
                     {
                         RecordUid = kdRecord.RecordUid,
@@ -769,6 +792,8 @@ namespace KeeperSecurity.Vault
                                 Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
                             })
                             .ToList(),
+                        FolderUid = folderUid,
+                        FolderName = folderName,
                         Revision = kdRecord.Revision,
                         Version = kdRecord.Version,
                         Shared = kdRecord.Shared,
@@ -860,6 +885,15 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Typed projection of the record's fields.</summary>
         public IReadOnlyList<KeeperNSFField> Fields { get; internal set; }
+
+        /// <summary>
+        /// UID of the first folder this record is linked to (from sync-down folder-record links),
+        /// or null when the record is not in a folder or only at drive root.
+        /// </summary>
+        public string FolderUid { get; internal set; }
+
+        /// <summary>Display name of <see cref="FolderUid"/>, when known from the cached folder tree.</summary>
+        public string FolderName { get; internal set; }
 
         public long Revision { get; internal set; }
         public int Version { get; internal set; }
