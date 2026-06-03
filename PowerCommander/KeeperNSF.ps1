@@ -314,7 +314,6 @@ function Get-KeeperNSFRecord {
 	.Description
 	Retrieves and displays detailed information about a specific Keeper NSF record or folder by UID or name.
 	Shows metadata, user permissions, and share administrators.
-	Similar to Commander's 'nsf-get' command.
 
 	.Parameter Uid
 	Record or folder UID to look up.
@@ -699,6 +698,32 @@ function Build-KdRecordJson {
     }
 }
 
+function Get-KdFolderPath {
+    Param(
+        $vault,
+        $folder
+    )
+
+    $components = @()
+    $current = $folder
+    while ($current) {
+        if ($current.Name) {
+            $components += $current.Name
+        }
+        if (-not $current.ParentUid) {
+            break
+        }
+        $current = $vault.KeeperNSFFolderNodes | Where-Object { $_.FolderUid -eq $current.ParentUid } | Select-Object -First 1
+    }
+
+    if ($components.Count -eq 0) {
+        return '/'
+    }
+
+    [Array]::Reverse($components)
+    return '/' + ($components -join '/')
+}
+
 function Build-KdFolderJson {
     Param($vault, $storage, $folder, $currentAccountUid)
 
@@ -729,12 +754,34 @@ function Build-KdFolderJson {
         }
     } catch { }
 
+    $records = [System.Collections.ArrayList]::new()
+    foreach ($recordUid in $folder.Records) {
+        [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+        $recordName = $recordUid
+        if ($vault.TryGetKeeperNSFRecord($recordUid, [ref]$kdRecord)) {
+            if ($kdRecord.Title) {
+                $recordName = $kdRecord.Title
+            }
+            else {
+                $meta = Get-KdRecordTypeAndTitle $kdRecord
+                $recordName = $meta.Title
+            }
+        }
+        $records.Add([ordered]@{
+            record_uid  = $recordUid
+            record_name = $recordName
+        }) | Out-Null
+    }
+
+    $folderPath = Get-KdFolderPath $vault $folder
+
     return [ordered]@{
-        uid         = $folder.FolderUid
-        name        = $folder.Name
-        parent      = if ($folder.ParentUid) { $folder.ParentUid } else { $null }
-        subfolders  = $folder.Subfolders.Count
-        records     = $folder.Records.Count
+        folder_uid = $folder.FolderUid
+        type       = 'nested_share_folder'
+        name       = $folder.Name
+        parent_uid = if ($folder.ParentUid) { $folder.ParentUid } else { $null }
+        folder     = [ordered]@{ uid = $folder.ParentUid; path = $folderPath }
+        records    = $records
         permissions = $permissions
     }
 }

@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
@@ -17,6 +20,156 @@ namespace KeeperSecurity.Vault
 {
     internal static partial class VaultOnlineFunctions
     {
+        internal static byte[] SerializeNsfRecordData(NsfRecordData data)
+        {
+            var sb = new StringBuilder();
+            sb.Append('{');
+            var first = true;
+            AppendStringProperty(sb, ref first, "type", data.Type);
+            AppendStringProperty(sb, ref first, "title", data.Title);
+            AppendStringProperty(sb, ref first, "name", data.Name);
+            AppendStringProperty(sb, ref first, "notes", data.Notes);
+
+            if (data.Fields != null)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                AppendJsonString(sb, "fields");
+                sb.Append(":[");
+                var firstField = true;
+                foreach (var f in data.Fields)
+                {
+                    if (!firstField) sb.Append(',');
+                    sb.Append('{');
+                    var firstFieldProp = true;
+                    AppendStringProperty(sb, ref firstFieldProp, "type", f.Type);
+                    if (f.Value != null)
+                    {
+                        if (!firstFieldProp) sb.Append(',');
+                        firstFieldProp = false;
+                        AppendJsonString(sb, "value");
+                        sb.Append(":[");
+                        var firstVal = true;
+                        foreach (var v in f.Value)
+                        {
+                            if (!firstVal) sb.Append(',');
+                            AppendJsonValue(sb, v);
+                            firstVal = false;
+                        }
+                        sb.Append(']');
+                    }
+                    sb.Append('}');
+                    firstField = false;
+                }
+                sb.Append(']');
+            }
+            sb.Append('}');
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        private static void AppendStringProperty(StringBuilder sb, ref bool first, string name, string value)
+        {
+            if (value == null) return;
+            if (!first) sb.Append(',');
+            AppendJsonString(sb, name);
+            sb.Append(':');
+            AppendJsonString(sb, value);
+            first = false;
+        }
+
+        private static void AppendJsonValue(StringBuilder sb, object value)
+        {
+            if (value == null) { sb.Append("null"); return; }
+            switch (value)
+            {
+                case string s:
+                    AppendJsonString(sb, s);
+                    return;
+                case bool b:
+                    sb.Append(b ? "true" : "false");
+                    return;
+                case sbyte _:
+                case byte _:
+                case short _:
+                case ushort _:
+                case int _:
+                case uint _:
+                case long _:
+                    sb.Append(Convert.ToInt64(value, CultureInfo.InvariantCulture)
+                        .ToString(CultureInfo.InvariantCulture));
+                    return;
+                case ulong u:
+                    sb.Append(u.ToString(CultureInfo.InvariantCulture));
+                    return;
+                case float f:
+                    sb.Append(f.ToString("R", CultureInfo.InvariantCulture));
+                    return;
+                case double d:
+                    sb.Append(d.ToString("R", CultureInfo.InvariantCulture));
+                    return;
+                case decimal m:
+                    sb.Append(m.ToString(CultureInfo.InvariantCulture));
+                    return;
+                case IDictionary dict:
+                    sb.Append('{');
+                    var firstEntry = true;
+                    foreach (DictionaryEntry kvp in dict)
+                    {
+                        if (!firstEntry) sb.Append(',');
+                        AppendJsonString(sb, kvp.Key?.ToString() ?? string.Empty);
+                        sb.Append(':');
+                        AppendJsonValue(sb, kvp.Value);
+                        firstEntry = false;
+                    }
+                    sb.Append('}');
+                    return;
+                case IEnumerable e:
+                    sb.Append('[');
+                    var firstItem = true;
+                    foreach (var item in e)
+                    {
+                        if (!firstItem) sb.Append(',');
+                        AppendJsonValue(sb, item);
+                        firstItem = false;
+                    }
+                    sb.Append(']');
+                    return;
+                default:
+                    AppendJsonString(sb, Convert.ToString(value, CultureInfo.InvariantCulture));
+                    return;
+            }
+        }
+
+        private static void AppendJsonString(StringBuilder sb, string s)
+        {
+            if (s == null) { sb.Append("null"); return; }
+            sb.Append('"');
+            foreach (var ch in s)
+            {
+                switch (ch)
+                {
+                    case '"':  sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    default:
+                        if (ch < ' ' || ch == '\u2028' || ch == '\u2029')
+                        {
+                            sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
+                        }
+                        else
+                        {
+                            sb.Append(ch);
+                        }
+                        break;
+                }
+            }
+            sb.Append('"');
+        }
+
         public static async Task<string> AddKeeperNSFFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -285,7 +438,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, string> fields)
+        public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(title))
                 throw new VaultException("Record title cannot be empty");
@@ -331,7 +484,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var jsonData = JsonUtils.DumpJson(dataObj, false);
+            var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
             var encryptedRecordKey = CryptoUtils.EncryptAesV2(recordKey, encryptionKey);
@@ -369,7 +522,7 @@ namespace KeeperSecurity.Vault
             return recordUid;
         }
 
-        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, string> fields)
+        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(recordUid))
                 throw new VaultException("Record UID cannot be empty");
@@ -413,7 +566,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var jsonData = JsonUtils.DumpJson(dataObj, false);
+            var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, record.RecordKey);
 

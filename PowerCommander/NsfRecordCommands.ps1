@@ -1,5 +1,72 @@
 #requires -Version 5.1
 
+function Script:ConvertTo-NSFJsonValue {
+    Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
+
+    if ($null -eq $InputObject) { return $null }
+
+    $base = $InputObject
+    if ($InputObject -is [System.Management.Automation.PSObject] -and $null -ne $InputObject.PSObject) {
+        $bo = $InputObject.PSObject.BaseObject
+        if ($null -ne $bo) { $base = $bo }
+    }
+
+    if ($base -is [string] -or $base -is [System.ValueType]) {
+        return $base
+    }
+
+    if ($base -is [System.Collections.IDictionary]) {
+        $ht = New-Object 'System.Collections.Hashtable'
+        foreach ($key in $base.Keys) {
+            $ht[$key] = ConvertTo-NSFJsonValue -InputObject $base[$key]
+        }
+        return $ht
+    }
+
+    if ($base -is [System.Collections.IEnumerable]) {
+        $list = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($item in $base) {
+            $list.Add((ConvertTo-NSFJsonValue -InputObject $item)) | Out-Null
+        }
+        return $list.ToArray()
+    }
+
+    if ($null -ne $InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
+        $ht = New-Object 'System.Collections.Hashtable'
+        foreach ($prop in $InputObject.PSObject.Properties) {
+            $ht[$prop.Name] = ConvertTo-NSFJsonValue -InputObject $prop.Value
+        }
+        return $ht
+    }
+
+    return $base
+}
+
+function Script:Resolve-KeeperNSFFieldValue {
+    Param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $RawValue
+    )
+
+    if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
+
+    if ($RawValue -clike '$JSON:*') {
+        $jsonStr = $RawValue.Substring(6)
+        if ([string]::IsNullOrEmpty($jsonStr)) {
+            Write-Warning "JSON value cannot be empty. Format: `$JSON:<json_object>"
+            return $RawValue
+        }
+        try {
+            $parsed = $jsonStr | ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Write-Warning "Invalid JSON value: $($_.Exception.Message)"
+            return $RawValue
+        }
+        return (ConvertTo-NSFJsonValue -InputObject $parsed)
+    }
+
+    return $RawValue
+}
+
 function Add-KeeperNSFRecord {
     <#
 	.Synopsis
@@ -23,6 +90,15 @@ function Add-KeeperNSFRecord {
 
 	.Parameter Fields
 	Optional field values as key=value pairs (e.g. login=admin password=secret url=https://example.com).
+
+	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
+	e.g. for a `databaseCredentials` record's `host` field:
+	  'host=$JSON:{"hostName":"1.2.3.4","port":"1234"}'
+	NOTE: single-quote the spec so PowerShell does not parse $JSON: as a drive-qualified variable.
+
+	.Parameter GeneratePassword
+	When present, generates a random password via CryptoUtils.GeneratePassword and stores it on the
+	'password' field, overriding any explicit password=... value supplied in -Fields.
 #>
     [CmdletBinding()]
     Param (
@@ -38,6 +114,9 @@ function Add-KeeperNSFRecord {
         [Parameter()]
         [string] $Notes,
 
+        [Parameter()]
+        [switch] $GeneratePassword,
+
         [Parameter(ValueFromRemainingArguments = $true)]
         [string[]] $Fields
     )
@@ -50,17 +129,26 @@ function Add-KeeperNSFRecord {
     }
 
     $fieldDict = $null
-    if ($Fields -and $Fields.Count -gt 0) {
-        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,string]'
-        foreach ($f in $Fields) {
-            $eqIdx = $f.IndexOf('=')
-            if ($eqIdx -gt 0) {
-                $key = $f.Substring(0, $eqIdx).Trim()
-                $val = $f.Substring($eqIdx + 1).Trim()
-                $fieldDict[$key] = $val
-            } else {
-                Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+    if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent) {
+        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        if ($Fields) {
+            foreach ($f in $Fields) {
+                $eqIdx = $f.IndexOf('=')
+                if ($eqIdx -gt 0) {
+                    $key = $f.Substring(0, $eqIdx).Trim()
+                    $val = $f.Substring($eqIdx + 1).Trim()
+                    $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+                    if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
+                        $resolved = $resolved.PSObject.BaseObject
+                    }
+                    $fieldDict[$key] = $resolved
+                } else {
+                    Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+                }
             }
+        }
+        if ($GeneratePassword.IsPresent) {
+            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
         }
     }
 
@@ -99,6 +187,15 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+
+	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
+	e.g. updating a `databaseCredentials` record's `host` field:
+	  nsf-record-update <UID> -RecordType databaseCredentials 'host=$JSON:{"hostName":"1.2.3.4","port":"1234"}'
+	NOTE: single-quote the spec so PowerShell does not parse $JSON: as a drive-qualified variable.
+
+	.Parameter GeneratePassword
+	When present, generates a random password via CryptoUtils.GeneratePassword and stores it on the
+	'password' field, overriding any explicit password=... value supplied in -Fields.
 #>
     [CmdletBinding()]
     Param (
@@ -114,6 +211,9 @@ function Edit-KeeperNSFRecord {
         [Parameter()]
         [string] $Notes,
 
+        [Parameter()]
+        [switch] $GeneratePassword,
+
         [Parameter(ValueFromRemainingArguments = $true)]
         [string[]] $Fields
     )
@@ -123,8 +223,8 @@ function Edit-KeeperNSFRecord {
     $hasNotes = $PSBoundParameters.ContainsKey('Notes')
     $hasFields = $Fields -and $Fields.Count -gt 0
 
-    if (-not $hasTitle -and -not $hasType -and -not $hasNotes -and -not $hasFields) {
-        Write-Host "Error: At least one of -Title, -RecordType, -Notes, or field values must be specified." -ForegroundColor Red
+    if (-not $hasTitle -and -not $hasType -and -not $hasNotes -and -not $hasFields -and -not $GeneratePassword.IsPresent) {
+        Write-Host "Error: At least one of -Title, -RecordType, -Notes, -GeneratePassword, or field values must be specified." -ForegroundColor Red
         return
     }
 
@@ -140,17 +240,26 @@ function Edit-KeeperNSFRecord {
     $notesParam = if ($hasNotes) { $Notes }      else { [NullString]::Value }
 
     $fieldDict = $null
-    if ($hasFields) {
-        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,string]'
-        foreach ($f in $Fields) {
-            $eqIdx = $f.IndexOf('=')
-            if ($eqIdx -gt 0) {
-                $key = $f.Substring(0, $eqIdx).Trim()
-                $val = $f.Substring($eqIdx + 1).Trim()
-                $fieldDict[$key] = $val
-            } else {
-                Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+    if ($hasFields -or $GeneratePassword.IsPresent) {
+        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        if ($hasFields) {
+            foreach ($f in $Fields) {
+                $eqIdx = $f.IndexOf('=')
+                if ($eqIdx -gt 0) {
+                    $key = $f.Substring(0, $eqIdx).Trim()
+                    $val = $f.Substring($eqIdx + 1).Trim()
+                    $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+                    if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
+                        $resolved = $resolved.PSObject.BaseObject
+                    }
+                    $fieldDict[$key] = $resolved
+                } else {
+                    Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+                }
             }
+        }
+        if ($GeneratePassword.IsPresent) {
+            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
         }
     }
 
