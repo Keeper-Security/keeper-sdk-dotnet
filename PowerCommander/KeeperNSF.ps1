@@ -62,22 +62,6 @@ $script:KeeperVaultCategoryClassic = 'Classic'
 $script:KeeperVaultCategoryNestedRecord = 'Nested'
 $script:KeeperVaultCategoryNestedFolder = 'Nested Shared Folder'
 
-function Get-KeeperVaultItemCategory {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory)][ValidateSet('Folder', 'Record')][string] $ItemType,
-        [Parameter(Mandatory)][bool] $IsNestedShared
-    )
-
-    if (-not $IsNestedShared) {
-        return $script:KeeperVaultCategoryClassic
-    }
-    if ($ItemType -eq 'Record') {
-        return $script:KeeperVaultCategoryNestedRecord
-    }
-    return $script:KeeperVaultCategoryNestedFolder
-}
-
 function Test-KeeperNSFFolderByIdentifier {
     Param(
         [Parameter(Mandatory = $true)][string] $Identifier,
@@ -105,7 +89,12 @@ function Test-KeeperNSFRecordByIdentifier {
         return $record
     }
 
-    if ($Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
+    $titleMatch = @($Vault.KeeperNSFRecordEntries | Where-Object {
+            $_.Title -and $_.Title -ieq $Identifier
+        })
+    if ($titleMatch.Count -eq 1) { return $titleMatch[0] }
+
+    if ($titleMatch.Count -eq 0 -and $Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
         return $record
     }
 
@@ -193,56 +182,105 @@ function Find-KeeperVaultItemByName {
 
     if (-not $AllowPartialMatch) { return $null }
 
-    $nsfFolder = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ilike "*$Name*" } | Select-Object -First 1)
-    if ($nsfFolder) {
+    $nsfFolderMatches = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ilike "*$Name*" })
+    if ($nsfFolderMatches.Count -gt 1) {
+        Write-Warning "Multiple nested shared folders match '$Name'. Use -Uid or a more specific -Name."
+    }
+    if ($nsfFolderMatches.Count -ge 1) {
         return [PSCustomObject]@{
             Category  = $script:KeeperVaultCategoryNestedFolder
             ItemType  = 'Folder'
-            NsfFolder = $nsfFolder[0]
+            NsfFolder = $nsfFolderMatches[0]
         }
     }
 
-    $nsfRecord = @($Vault.KeeperNSFRecordEntries | Where-Object {
-            ($_.Name -and $_.Name -ilike "*$Name*") -or ($_.RecordUid -ilike "*$Name*")
-        } | Select-Object -First 1)
-    if ($nsfRecord) {
+    $nsfRecordMatches = @($Vault.KeeperNSFRecordEntries | Where-Object {
+            ($_.Title -and $_.Title -ilike "*$Name*") -or ($_.RecordUid -ilike "*$Name*")
+        })
+    if ($nsfRecordMatches.Count -gt 1) {
+        Write-Warning "Multiple nested records match '$Name'. Use -Uid or a more specific -Name."
+    }
+    if ($nsfRecordMatches.Count -ge 1) {
         return [PSCustomObject]@{
             Category   = $script:KeeperVaultCategoryNestedRecord
             ItemType   = 'Record'
-            NsfRecord  = $nsfRecord[0]
+            NsfRecord  = $nsfRecordMatches[0]
         }
     }
 
-    $classicFolder = @($Vault.Folders | Where-Object {
+    $classicFolderMatches = @($Vault.Folders | Where-Object {
             -not [string]::IsNullOrEmpty($_.FolderUid) -and $_.Name -and $_.Name -ilike "*$Name*"
-        } | Select-Object -First 1)
-    if ($classicFolder) {
+        })
+    if ($classicFolderMatches.Count -gt 1) {
+        Write-Warning "Multiple classic folders match '$Name'. Use -Uid or a more specific -Name."
+    }
+    if ($classicFolderMatches.Count -ge 1) {
         return [PSCustomObject]@{
             Category      = $script:KeeperVaultCategoryClassic
             ItemType      = 'Folder'
-            ClassicFolder = $classicFolder[0]
+            ClassicFolder = $classicFolderMatches[0]
         }
     }
 
-    $classicRecord = @($Vault.KeeperRecords | Where-Object {
+    $classicRecordMatches = @($Vault.KeeperRecords | Where-Object {
             $_.Title -and $_.Title -ilike "*$Name*" -and ($_.Version -eq 2 -or $_.Version -eq 3)
-        } | Select-Object -First 1)
-    if ($classicRecord) {
+        })
+    if ($classicRecordMatches.Count -gt 1) {
+        Write-Warning "Multiple classic records match '$Name'. Use -Uid or a more specific -Name."
+    }
+    if ($classicRecordMatches.Count -ge 1) {
         return [PSCustomObject]@{
             Category      = $script:KeeperVaultCategoryClassic
             ItemType      = 'Record'
-            ClassicRecord = $classicRecord[0]
+            ClassicRecord = $classicRecordMatches[0]
         }
     }
 
     return $null
 }
 
+function Get-KeeperVaultAmbiguousNameMessage {
+    Param(
+        [Parameter(Mandatory = $true)][string] $Name,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    $parts = [System.Collections.ArrayList]::new()
+
+    $nsfFolders = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Name })
+    if ($nsfFolders.Count -gt 1) {
+        $parts.Add("$($nsfFolders.Count) nested shared folders") | Out-Null
+    }
+
+    $nsfRecords = @($Vault.KeeperNSFRecordEntries | Where-Object { $_.Title -and $_.Title -ieq $Name })
+    if ($nsfRecords.Count -gt 1) {
+        $parts.Add("$($nsfRecords.Count) nested records") | Out-Null
+    }
+
+    $classicFolders = @($Vault.Folders | Where-Object {
+            -not [string]::IsNullOrEmpty($_.FolderUid) -and $_.Name -and $_.Name -ieq $Name
+        })
+    if ($classicFolders.Count -gt 1) {
+        $parts.Add("$($classicFolders.Count) classic folders") | Out-Null
+    }
+
+    $classicRecords = @($Vault.KeeperRecords | Where-Object {
+            $_.Title -and $_.Title -ieq $Name -and ($_.Version -eq 2 -or $_.Version -eq 3)
+        })
+    if ($classicRecords.Count -gt 1) {
+        $parts.Add("$($classicRecords.Count) classic records") | Out-Null
+    }
+
+    if ($parts.Count -eq 0) { return $null }
+    return "Multiple vault items named '$Name' ($($parts -join '; ')). Use -Uid to specify the correct one."
+}
+
 function Resolve-KeeperVaultItem {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
         [string] $Uid,
-        [string] $Name
+        [string] $Name,
+        [Parameter()][switch] $AllowPartialMatch
     )
 
     if ($Uid) {
@@ -286,7 +324,7 @@ function Resolve-KeeperVaultItem {
     }
 
     if ($Name) {
-        return Find-KeeperVaultItemByName -Name $Name -Vault $Vault -AllowPartialMatch
+        return Find-KeeperVaultItemByName -Name $Name -Vault $Vault -AllowPartialMatch:$AllowPartialMatch
     }
 
     return $null
@@ -324,6 +362,9 @@ function Get-KdRecordTypeAndTitle {
 
     if ($dataFields -and $dataFields.type) {
         $recordType = $dataFields.type
+    }
+    elseif ($record -and $record.Type) {
+        $recordType = $record.Type
     }
     elseif ($record -and $record.Version -eq 4) {
         $recordType = 'file'
@@ -618,7 +659,10 @@ function Get-KeeperNSFRecord {
 	Record or folder UID to look up.
 
 	.Parameter Name
-	Record or folder name to search for (case-insensitive).
+	Record or folder name to search for (case-insensitive exact match).
+
+	.Parameter Partial
+	Allow substring name matching when no exact match is found (first match wins).
 
 	.Parameter Format
 	Output format: detail (default) or json.
@@ -627,6 +671,9 @@ function Get-KeeperNSFRecord {
     Param (
         [string] $Uid,
         [string] $Name,
+
+        [Parameter()]
+        [switch] $Partial,
 
         [Parameter()]
         [ValidateSet('detail', 'json')]
@@ -643,14 +690,28 @@ function Get-KeeperNSFRecord {
         Write-Host "Please provide either -Uid or -Name parameter." -ForegroundColor Red
         return
     }
-  
+
+    if ($Uid -and $Name) {
+        Write-Warning "Both -Uid and -Name were provided; using -Uid only."
+    }
+
     $storage = $vault.Storage
     $currentAccountUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($vault.Auth.AuthContext.AccountUid)
 
-    $resolved = Resolve-KeeperVaultItem -Vault $vault -Uid $Uid -Name $Name
+    $resolved = Resolve-KeeperVaultItem -Vault $vault -Uid $Uid -Name $Name -AllowPartialMatch:$Partial.IsPresent
     if (-not $resolved) {
+        if ($Name -and -not $Uid) {
+            $ambiguous = Get-KeeperVaultAmbiguousNameMessage -Name $Name -Vault $vault
+            if ($ambiguous) {
+                Write-Host $ambiguous -ForegroundColor Red
+                return
+            }
+        }
         $id = if ($Uid) { $Uid } else { $Name }
         Write-Host "Vault item with identifier '$id' not found or not accessible." -ForegroundColor Red
+        if ($Name -and -not $Partial.IsPresent) {
+            Write-Host "Tip: use -Partial for substring name matching, or -Uid from nsf-list." -ForegroundColor DarkYellow
+        }
         return
     }
 
