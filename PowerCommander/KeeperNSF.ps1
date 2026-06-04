@@ -2,6 +2,7 @@
 $script:KD_LABEL_WIDTH = 21
 $script:KD_FOLDER_LABEL_WIDTH = 25
 $script:ShareObjectsCache = $null
+$script:ShareObjectsCacheAccountUid = $null
 
 class KdFolderListItem {
     [string]$FolderUid
@@ -50,6 +51,25 @@ $script:AccessRoleLabels = @{
     7 = 'unresolved'
 }
 
+$script:KdSecretFieldTypes = @('password', 'secret', 'privateKey', 'passkey', 'otp')
+
+$script:KdFieldLabels = @{
+    name     = 'File Name'
+    url      = 'URL'
+    otp      = 'OTP'
+    login    = 'Login'
+    password = 'Password'
+    host     = 'Host'
+    notes    = 'Notes'
+    phone    = 'Phone'
+    address  = 'Address'
+}
+
+function Reset-KdShareObjectsCache {
+    $script:ShareObjectsCache = $null
+    $script:ShareObjectsCacheAccountUid = $null
+}
+
 function Get-AccessRoleLabel {
     Param([int]$roleType)
     if ($script:AccessRoleLabels.ContainsKey($roleType)) {
@@ -77,10 +97,124 @@ function Get-KdRecordTypeAndTitle {
     $title = if ($record -and $record.Title) { $record.Title } else { '' }
 
     return [PSCustomObject]@{
-        Type   = $recordType
-        Title  = $title
-        Fields = if ($record) { $record.Fields } else { $null }
+        Type  = $recordType
+        Title = $title
     }
+}
+
+function New-KdFolderListItems {
+    Param($vault)
+
+    $result = [System.Collections.ArrayList]::new()
+    foreach ($folder in $vault.KeeperNSFFolderNodes) {
+        $item = [KdFolderListItem]::new()
+        $item.FolderUid  = $folder.FolderUid
+        $item.Name       = $folder.Name
+        $item.ParentUid  = if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }
+        $item.Subfolders = $folder.Subfolders.Count
+        $item.Records    = $folder.Records.Count
+        $result.Add($item) | Out-Null
+    }
+    return $result
+}
+
+function New-KdRecordListItems {
+    Param($vault)
+
+    $result = [System.Collections.ArrayList]::new()
+    foreach ($record in $vault.KeeperNSFRecordEntries) {
+        $meta = Get-KdRecordTypeAndTitle $record
+        $item = [KdRecordListItem]::new()
+        $item.RecordUid     = $record.RecordUid
+        $item.Name          = if ($record.Title) { $record.Title } else { $meta.Title }
+        $item.Type          = $meta.Type
+        $item.Revision      = $record.Revision
+        $item.Version       = $record.Version
+        $item.Shared        = $record.Shared
+        $item.FileSize      = $record.FileSize
+        $item.ThumbnailSize = $record.ThumbnailSize
+        $result.Add($item) | Out-Null
+    }
+    return $result
+}
+
+function Resolve-KdNsfObject {
+    Param(
+        $vault,
+        [string]$Uid,
+        [string]$Name
+    )
+
+    if ($Uid) {
+        [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
+        if ($vault.TryGetKeeperNSFFolder($Uid, [ref]$tmpFolder)) {
+            return [PSCustomObject]@{ Record = $null; Folder = $tmpFolder }
+        }
+
+        [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
+        if ($vault.TryGetKeeperNSFRecord($Uid, [ref]$tmpRecord)) {
+            return [PSCustomObject]@{ Record = $tmpRecord; Folder = $null }
+        }
+
+        return [PSCustomObject]@{ Record = $null; Folder = $null }
+    }
+
+    if ($Name) {
+        foreach ($f in $vault.KeeperNSFFolderNodes) {
+            if ($f.Name -and $f.Name -ieq $Name) {
+                return [PSCustomObject]@{ Record = $null; Folder = $f }
+            }
+        }
+        foreach ($r in $vault.KeeperNSFRecordEntries) {
+            if ($r.Title -and $r.Title -ieq $Name) {
+                return [PSCustomObject]@{ Record = $r; Folder = $null }
+            }
+        }
+        foreach ($f in $vault.KeeperNSFFolderNodes) {
+            if ($f.Name -and $f.Name -ilike "*$Name*") {
+                return [PSCustomObject]@{ Record = $null; Folder = $f }
+            }
+        }
+        foreach ($r in $vault.KeeperNSFRecordEntries) {
+            if ($r.Title -and $r.Title -ilike "*$Name*") {
+                return [PSCustomObject]@{ Record = $r; Folder = $null }
+            }
+        }
+    }
+
+    return [PSCustomObject]@{ Record = $null; Folder = $null }
+}
+
+function Resolve-KdNsfRecord {
+    Param(
+        $vault,
+        [string]$Identifier
+    )
+
+    [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
+    if ($vault.TryGetKeeperNSFRecord($Identifier, [ref]$tmpRecord)) {
+        return $tmpRecord
+    }
+
+    foreach ($r in $vault.KeeperNSFRecordEntries) {
+        if ($r.Title -and $r.Title -ieq $Identifier) { return $r }
+    }
+    foreach ($r in $vault.KeeperNSFRecordEntries) {
+        if ($r.Title -and $r.Title -ilike "*$Identifier*") { return $r }
+    }
+    return $null
+}
+
+function Get-KdFolderNodeMap {
+    Param($vault)
+
+    $map = @{}
+    foreach ($node in $vault.KeeperNSFFolderNodes) {
+        if ($node.FolderUid) {
+            $map[$node.FolderUid] = $node
+        }
+    }
+    return $map
 }
 
 function Get-KeeperNSFFolderList {
@@ -92,31 +226,26 @@ function Get-KeeperNSFFolderList {
 	Displays all Keeper NSF folders synced to the vault, including UID, name, parent, and subfolder/record counts.
 #>
     [CmdletBinding()]
-    Param()
+    Param(
+        [Parameter(DontShow = $true)]
+        $Vault
+    )
 
-    try{
-        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    } catch {
-        Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
-        return
+    if (-not $Vault) {
+        try {
+            [KeeperSecurity.Vault.VaultOnline]$Vault = getVault
+        } catch {
+            Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
     }
 
-    $folders = $vault.KeeperNSFFolderNodes
-    if (-not $folders) {
+    if (-not $Vault.KeeperNSFFolderNodes) {
         Write-Host "No Keeper NSF folders found."
         return
     }
 
-    $result = [System.Collections.ArrayList]::new()
-    foreach ($folder in $folders) {
-        $item = [KdFolderListItem]::new()
-        $item.FolderUid  = $folder.FolderUid
-        $item.Name       = $folder.Name
-        $item.ParentUid  = if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }
-        $item.Subfolders = $folder.Subfolders.Count
-        $item.Records    = $folder.Records.Count
-        $result.Add($item) | Out-Null
-    }
+    $result = New-KdFolderListItems $Vault
     $result | Format-Table -AutoSize
 }
 New-Alias -Name nsf-folders -Value Get-KeeperNSFFolderList
@@ -130,35 +259,26 @@ function Get-KeeperNSFRecordList {
 	Displays all Keeper NSF records synced to the vault, including UID, name, record type, revision, version, sharing, and file/thumbnail sizes.
 #>
     [CmdletBinding()]
-    Param()
+    Param(
+        [Parameter(DontShow = $true)]
+        $Vault
+    )
 
-    try{
-        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    } catch {
-        Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
-        return
+    if (-not $Vault) {
+        try {
+            [KeeperSecurity.Vault.VaultOnline]$Vault = getVault
+        } catch {
+            Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
     }
 
-    $records = $vault.KeeperNSFRecordEntries
-    if (-not $records) {
+    if (-not $Vault.KeeperNSFRecordEntries) {
         Write-Host "No Keeper NSF records found."
         return
     }
 
-    $result = [System.Collections.ArrayList]::new()
-    foreach ($record in $records) {
-        $meta = Get-KdRecordTypeAndTitle $record
-        $item = [KdRecordListItem]::new()
-        $item.RecordUid    = $record.RecordUid
-        $item.Name         = if ($record.Title) { $record.Title } else { $meta.Title }
-        $item.Type         = $meta.Type
-        $item.Revision     = $record.Revision
-        $item.Version      = $record.Version
-        $item.Shared       = $record.Shared
-        $item.FileSize     = $record.FileSize
-        $item.ThumbnailSize = $record.ThumbnailSize
-        $result.Add($item) | Out-Null
-    }
+    $result = New-KdRecordListItems $Vault
     $result | Format-Table -AutoSize
 }
 New-Alias -Name nsf-records -Value Get-KeeperNSFRecordList
@@ -200,7 +320,7 @@ function Get-KeeperNSFList {
         [string] $Output
     )
 
-    try{
+    try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     } catch {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
@@ -211,29 +331,32 @@ function Get-KeeperNSFList {
     $showRecords = -not $Folders.IsPresent -or $Records.IsPresent
 
     $combined = [System.Collections.ArrayList]::new()
+    $folderItems = $null
+    $recordItems = $null
 
     if ($showFolders) {
-        foreach ($folder in $vault.KeeperNSFFolderNodes) {
+        $folderItems = New-KdFolderListItems $vault
+        foreach ($item in $folderItems) {
             $combined.Add(@{
                 ItemType    = 'Folder'
-                UID         = $folder.FolderUid
-                Title       = if ($folder.Name) { $folder.Name } else { '' }
+                UID         = $item.FolderUid
+                Title       = if ($item.Name) { $item.Name } else { '' }
                 Type        = 'folder'
-                Description = "Subfolders: $($folder.Subfolders.Count), Records: $($folder.Records.Count)"
-                Parent      = if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }
+                Description = "Subfolders: $($item.Subfolders), Records: $($item.Records)"
+                Parent      = $item.ParentUid
             }) | Out-Null
         }
     }
 
     if ($showRecords) {
-        foreach ($record in $vault.KeeperNSFRecordEntries) {
-            $meta = Get-KdRecordTypeAndTitle $record
+        $recordItems = New-KdRecordListItems $vault
+        foreach ($item in $recordItems) {
             $combined.Add(@{
                 ItemType    = 'Record'
-                UID         = $record.RecordUid
-                Title       = $meta.Title
-                Type        = $meta.Type
-                Description = "Rev: $($record.Revision), Shared: $($record.Shared)"
+                UID         = $item.RecordUid
+                Title       = $item.Name
+                Type        = $item.Type
+                Description = "Rev: $($item.Revision), Shared: $($item.Shared)"
                 Parent      = ''
             }) | Out-Null
         }
@@ -296,12 +419,12 @@ function Get-KeeperNSFList {
 
     if ($showFolders -and $folderCount -gt 0) {
         Write-Host "--- Folders ---" -ForegroundColor Yellow
-        Get-KeeperNSFFolderList
+        $folderItems | Format-Table -AutoSize
     }
 
     if ($showRecords -and $recordCount -gt 0) {
         Write-Host "--- Records ---" -ForegroundColor Yellow
-        Get-KeeperNSFRecordList
+        $recordItems | Format-Table -AutoSize
     }
 }
 New-Alias -Name nsf-list -Value Get-KeeperNSFList
@@ -333,7 +456,7 @@ function Get-KeeperNSFRecord {
         [ValidateSet('detail', 'json')]
         [string] $Format = 'detail'
     )
-    try{
+    try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     } catch {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
@@ -344,45 +467,13 @@ function Get-KeeperNSFRecord {
         Write-Host "Please provide either -Uid or -Name parameter." -ForegroundColor Red
         return
     }
-  
+
     $storage = $vault.Storage
     $currentAccountUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($vault.Auth.AuthContext.AccountUid)
 
-    $kdRecord = $null
-    $kdFolder = $null
-
-    if ($Uid) {
-        [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-        if ($vault.TryGetKeeperNSFFolder($Uid, [ref]$tmpFolder)) {
-            $kdFolder = $tmpFolder
-        }
-        else {
-            [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-            if ($vault.TryGetKeeperNSFRecord($Uid, [ref]$tmpRecord)) {
-                $kdRecord = $tmpRecord
-            }
-        }
-    }
-    elseif ($Name) {
-        foreach ($f in $vault.KeeperNSFFolderNodes) {
-            if ($f.Name -and $f.Name -ieq $Name) { $kdFolder = $f; break }
-        }
-        if (-not $kdFolder) {
-            foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Title -and $r.Title -ieq $Name) { $kdRecord = $r; break }
-            }
-        }
-        if (-not $kdFolder -and -not $kdRecord) {
-            foreach ($f in $vault.KeeperNSFFolderNodes) {
-                if ($f.Name -and $f.Name -ilike "*$Name*") { $kdFolder = $f; break }
-            }
-        }
-        if (-not $kdFolder -and -not $kdRecord) {
-            foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Title -and $r.Title -ilike "*$Name*") { $kdRecord = $r; break }
-            }
-        }
-    }
+    $resolved = Resolve-KdNsfObject -vault $vault -Uid $Uid -Name $Name
+    $kdRecord = $resolved.Record
+    $kdFolder = $resolved.Folder
 
     if (-not $kdRecord -and -not $kdFolder) {
         $id = if ($Uid) { $Uid } else { $Name }
@@ -408,6 +499,271 @@ function Get-KeeperNSFRecord {
     }
 }
 
+function Get-KdNsfDecryptedRecordData {
+    Param($record, $storage)
+
+    if (-not $record -or -not $record.RecordKey) { return $null }
+
+    $storageRecord = $storage.KdRecords.GetEntity($record.RecordUid)
+    if (-not $storageRecord -or [string]::IsNullOrEmpty($storageRecord.Data)) { return $null }
+
+    try {
+        $encrypted = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($storageRecord.Data)
+        $decrypted = [KeeperSecurity.Utils.CryptoUtils]::DecryptAesV2($encrypted, $record.RecordKey)
+        $jsonText = [System.Text.Encoding]::UTF8.GetString($decrypted)
+        return ($jsonText | ConvertFrom-Json -ErrorAction Stop)
+    }
+    catch {
+        Write-Verbose "Could not decrypt NSF record data for $($record.RecordUid): $($_.Exception.Message)"
+        return $null
+    }
+}
+
+function Get-KdNsfRecordFields {
+    Param($record, $storage)
+
+    $data = Get-KdNsfDecryptedRecordData -record $record -storage $storage
+    if ($data -and $data.fields) {
+        $fields = [System.Collections.ArrayList]::new()
+        foreach ($f in @($data.fields)) {
+            if (-not $f -or [string]::IsNullOrWhiteSpace($f.type)) { continue }
+
+            $values = [System.Collections.ArrayList]::new()
+            if ($null -ne $f.value) {
+                foreach ($v in @($f.value)) {
+                    if ($null -ne $v) {
+                        $values.Add($v) | Out-Null
+                    }
+                }
+            }
+
+            $fields.Add([PSCustomObject]@{
+                Type  = [string]$f.type
+                Value = @($values)
+            }) | Out-Null
+        }
+        return @($fields)
+    }
+
+    if ($record.Fields) {
+        return @($record.Fields)
+    }
+    return @()
+}
+
+function ConvertFrom-KdNsfFieldJson {
+    Param([string]$RawValue)
+
+    if ([string]::IsNullOrWhiteSpace($RawValue)) { return $null }
+
+    $trimmed = $RawValue.Trim()
+    if (-not ($trimmed.StartsWith('{') -or $trimmed.StartsWith('['))) {
+        return $RawValue
+    }
+
+    try {
+        return ($trimmed | ConvertFrom-Json -ErrorAction Stop)
+    }
+    catch {
+        return $RawValue
+    }
+}
+
+function Get-KdNsfJsonProperty {
+    Param($Object, [string]$Name)
+
+    if ($null -eq $Object) { return $null }
+
+    if ($Object -is [hashtable]) {
+        foreach ($key in $Object.Keys) {
+            if ($key -ieq $Name) { return $Object[$key] }
+        }
+        return $null
+    }
+
+    $prop = $Object.PSObject.Properties | Where-Object { $_.Name -ieq $Name } | Select-Object -First 1
+    if ($prop) { return $prop.Value }
+    return $null
+}
+
+function Format-KdNsfHostDisplayValue {
+    Param($Value)
+
+    if ($null -eq $Value) { return $null }
+
+    if ($Value -is [string]) {
+        $parsed = ConvertFrom-KdNsfFieldJson -RawValue $Value
+        if ($parsed -ne $Value) {
+            return Format-KdNsfHostDisplayValue -Value $parsed
+        }
+        if (-not [string]::IsNullOrWhiteSpace($Value)) {
+            return $Value.Trim()
+        }
+        return $null
+    }
+
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $entries = @()
+        foreach ($item in @($Value)) {
+            $formatted = Format-KdNsfHostDisplayValue -Value $item
+            if ($formatted) { $entries += $formatted }
+        }
+        if ($entries.Count -gt 0) {
+            return ($entries -join '; ')
+        }
+        return $null
+    }
+
+    $hostName = Get-KdNsfJsonProperty -Object $Value -Name 'hostName'
+    if (-not $hostName) { $hostName = Get-KdNsfJsonProperty -Object $Value -Name 'host' }
+    $port = Get-KdNsfJsonProperty -Object $Value -Name 'port'
+
+    if ($hostName -or $port) {
+        $parts = @()
+        if ($hostName) { $parts += "hostName: $hostName" }
+        if ($port) { $parts += "port: $port" }
+        return ($parts -join ', ')
+    }
+    return $null
+}
+
+function Test-KdNsfSecretField {
+    Param([string]$FieldType)
+
+    return $script:KdSecretFieldTypes -contains $FieldType
+}
+
+function Format-KdNsfDateFieldValue {
+    Param($Value)
+
+    if ($Value -match '^\d+$') {
+        try {
+            $timestamp = [long]$Value
+            if ($timestamp -le 0) { return $Value }
+            if ($timestamp -gt 9999999999) {
+                return [DateTimeOffset]::FromUnixTimeMilliseconds($timestamp).ToString('yyyy-MM-dd')
+            }
+            return [DateTimeOffset]::FromUnixTimeSeconds($timestamp).ToString('yyyy-MM-dd')
+        } catch { }
+    }
+    return $Value
+}
+
+function Format-KdNsfComplexFieldValue {
+    Param(
+        [string]$FieldType,
+        $Value
+    )
+
+    if ($Value -isnot [System.Management.Automation.PSCustomObject]) {
+        if ($FieldType -eq 'date') {
+            return Format-KdNsfDateFieldValue -Value $Value
+        }
+        return $Value
+    }
+
+    switch ($FieldType) {
+        'name' {
+            $parts = @(
+                (Get-KdNsfJsonProperty -Object $Value -Name 'first'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'middle'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'last')
+            ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            if ($parts.Count -gt 0) { return ($parts -join ' ') }
+            return $null
+        }
+        'address' {
+            $parts = @(
+                (Get-KdNsfJsonProperty -Object $Value -Name 'street1'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'street2'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'city'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'state'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'zip'),
+                (Get-KdNsfJsonProperty -Object $Value -Name 'country')
+            ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            if ($parts.Count -gt 0) { return ($parts -join ', ') }
+            return $null
+        }
+        'phone' {
+            $number = Get-KdNsfJsonProperty -Object $Value -Name 'number'
+            if (-not $number) { return $null }
+            $result = $number
+            $ext = Get-KdNsfJsonProperty -Object $Value -Name 'ext'
+            if ($ext) { $result += " ext. $ext" }
+            $type = Get-KdNsfJsonProperty -Object $Value -Name 'type'
+            if ($type) { $result += " ($type)" }
+            return $result
+        }
+        default {
+            $parts = @($Value.PSObject.Properties | ForEach-Object {
+                if ($null -ne $_.Value -and "$($_.Value)" -ne '') {
+                    "$($_.Name): $($_.Value)"
+                }
+            })
+            if ($parts.Count -gt 0) { return ($parts -join ', ') }
+            return ($Value | ConvertTo-Json -Compress -Depth 10)
+        }
+    }
+}
+
+function Format-KdNsfFieldDisplayValue {
+    Param(
+        [string]$FieldType,
+        $RawValue
+    )
+
+    if ($null -eq $RawValue) { return $null }
+    if ($RawValue -is [string] -and [string]::IsNullOrWhiteSpace($RawValue)) { return $null }
+
+    if ((Test-KdNsfSecretField -FieldType $FieldType) -and -not (Get-KeeperPasswordVisible)) {
+        return '********'
+    }
+
+    if ($FieldType -eq 'host') {
+        return Format-KdNsfHostDisplayValue -Value $RawValue
+    }
+
+    if ($RawValue -is [System.Management.Automation.PSCustomObject] -or $RawValue -is [hashtable]) {
+        return Format-KdNsfComplexFieldValue -FieldType $FieldType -Value $RawValue
+    }
+
+    $parsed = ConvertFrom-KdNsfFieldJson -RawValue ([string]$RawValue)
+
+    if ($parsed -is [System.Management.Automation.PSCustomObject] -or $parsed -is [hashtable]) {
+        return Format-KdNsfComplexFieldValue -FieldType $FieldType -Value $parsed
+    }
+
+    if ($parsed -is [System.Collections.IEnumerable] -and $parsed -isnot [string]) {
+        $items = @()
+        foreach ($item in @($parsed)) {
+            $formatted = Format-KdNsfFieldDisplayValue -FieldType $FieldType -RawValue $item
+            if ($formatted) { $items += $formatted }
+        }
+        if ($items.Count -gt 0) {
+            return ($items -join '; ')
+        }
+        return $null
+    }
+
+    if ($FieldType -eq 'date') {
+        return Format-KdNsfDateFieldValue -Value ([string]$RawValue)
+    }
+
+    return [string]$RawValue
+}
+
+function Get-KdNsfFieldLabel {
+    Param([string]$FieldType)
+
+    if ($script:KdFieldLabels.ContainsKey($FieldType)) {
+        return $script:KdFieldLabels[$FieldType]
+    }
+    if ([string]::IsNullOrWhiteSpace($FieldType)) {
+        return $FieldType
+    }
+    return (Get-Culture).TextInfo.ToTitleCase($FieldType.ToLower())
+}
+
 function Show-KdRecordDetail {
     Param($vault, $storage, $record, $currentAccountUid)
 
@@ -420,22 +776,51 @@ function Show-KdRecordDetail {
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $title)
 
-    $pathLabel = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid } else { '/' }
+    if ($record.Notes) {
+        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
+    }
+
+    $recordFields = Get-KdNsfRecordFields -record $record -storage $storage
+    if ($recordFields.Count -gt 0) {
+        foreach ($field in $recordFields) {
+            if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
+
+            $rawValues = @($field.Value) | Where-Object { $null -ne $_ }
+            if ($rawValues.Count -eq 0) { continue }
+
+            if ($field.Type -eq 'name') {
+                $nameValue = Format-KdNsfFieldDisplayValue -FieldType 'name' -RawValue $rawValues[0]
+                if ($nameValue -eq $title) { continue }
+            }
+
+            $displayValues = @()
+            foreach ($raw in $rawValues) {
+                $formatted = Format-KdNsfFieldDisplayValue -FieldType $field.Type -RawValue $raw
+                if ($formatted) { $displayValues += $formatted }
+            }
+            if ($displayValues.Count -eq 0) { continue }
+
+            $label = Get-KdNsfFieldLabel -FieldType $field.Type
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $label, $displayValues[0])
+            for ($i = 1; $i -lt $displayValues.Count; $i++) {
+                Write-Host ("{0,$script:KD_LABEL_WIDTH}  {1}" -f "", $displayValues[$i])
+            }
+        }
+    }
+
+    $folderMap = Get-KdFolderNodeMap $vault
+    $pathLabel = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid $folderMap } else { '/' }
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder UID", $(if ($record.FolderUid) { $record.FolderUid } else { '(root)' }))
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder Name", $(if ($record.FolderName) { $record.FolderName } else { '(unknown)' }))
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder Path", $pathLabel)
 
     foreach ($folderUid in @($vault.GetKeeperNSFFoldersForRecord($record.RecordUid))) {
         if ($folderUid -eq $record.FolderUid) { continue }
-        $node = $vault.KeeperNSFFolderNodes | Where-Object { $_.FolderUid -eq $folderUid } | Select-Object -First 1
+        $node = if ($folderMap.ContainsKey($folderUid)) { $folderMap[$folderUid] } else { $null }
         $name = if ($node -and $node.Name) { $node.Name } else { '(unknown)' }
         Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Also in folder", "$name ($folderUid)")
     }
 
-    $nameField = $record.Fields | Where-Object { $_.Type -eq 'name' } | Select-Object -First 1
-    if ($nameField -and $nameField.Value -and $nameField.Value.Count -gt 0 -and $nameField.Value[0] -ne $title) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "File Name", $nameField.Value[0])
-    }
     if ($record.FileSize -gt 0) {
         Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "File Size", ("{0:N0}" -f $record.FileSize))
     }
@@ -491,7 +876,11 @@ function Resolve-KdUsername {
         }
     } catch { }
 
-    if (-not $script:ShareObjectsCache) {
+    if ($script:ShareObjectsCacheAccountUid -and $script:ShareObjectsCacheAccountUid -ne $currentAccountUid) {
+        Reset-KdShareObjectsCache
+    }
+
+    if ($null -eq $script:ShareObjectsCache) {
         try {
             $rq = New-Object Records.GetShareObjectsRequest
             $rs = $vault.Auth.ExecuteAuthRest("vault/get_share_objects", $rq, [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
@@ -507,8 +896,10 @@ function Resolve-KdUsername {
                 }
             }
             $script:ShareObjectsCache = $cache
+            $script:ShareObjectsCacheAccountUid = $currentAccountUid
         } catch {
-            $script:ShareObjectsCache = @{}
+            Write-Verbose "Could not load share objects cache: $($_.Exception.Message)"
+            return $accessTypeUid
         }
     }
 
@@ -677,7 +1068,7 @@ function Show-KdPermissions {
             $owners = @($userPerms | Where-Object { $_.Owner })
             if ($owners.Count -gt 0) {
                 Write-Host ""
-                Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Share Administrators")
+                Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Folder Owners")
                 foreach ($owner in $owners) {
                     Write-Host ("{0}: owner" -f $owner.Username)
                 }
@@ -740,14 +1131,24 @@ function Build-KdRecordFieldsJson {
                     $values.Add($null) | Out-Null
                     continue
                 }
-                $trimmed = $v.ToString().Trim()
-                if ($trimmed.StartsWith('{') -or $trimmed.StartsWith('[')) {
-                    try {
-                        $values.Add(($trimmed | ConvertFrom-Json -ErrorAction Stop)) | Out-Null
-                        continue
-                    } catch { }
+
+                if ((Test-KdNsfSecretField -FieldType $f.Type) -and -not (Get-KeeperPasswordVisible)) {
+                    $values.Add('********') | Out-Null
+                    continue
                 }
-                $values.Add($v) | Out-Null
+
+                if ($v -is [string]) {
+                    $parsed = ConvertFrom-KdNsfFieldJson -RawValue $v.Trim()
+                    if ($parsed -isnot [string]) {
+                        $values.Add($parsed) | Out-Null
+                    }
+                    else {
+                        $values.Add($v) | Out-Null
+                    }
+                }
+                else {
+                    $values.Add($v) | Out-Null
+                }
             }
         }
         $result.Add([ordered]@{
@@ -770,7 +1171,8 @@ function Build-KdRecordJson {
     $userPerms = Get-KdUserPermissions $vault $recordAccesses $currentAccountUid 'record'
     $permissions = ConvertTo-KdPermissionsJson $userPerms 'record'
 
-    $folderPath = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid } else { '/' }
+    $folderMap = Get-KdFolderNodeMap $vault
+    $folderPath = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid $folderMap } else { '/' }
 
     return [ordered]@{
         uid            = $record.RecordUid
@@ -782,7 +1184,7 @@ function Build-KdRecordJson {
             name = $record.FolderName
             path = $folderPath
         }
-        fields         = (Build-KdRecordFieldsJson $record.Fields)
+        fields         = (Build-KdRecordFieldsJson (Get-KdNsfRecordFields $record $storage))
         file_size      = $record.FileSize
         thumbnail_size = $record.ThumbnailSize
         version        = $record.Version
@@ -796,11 +1198,16 @@ function Build-KdRecordJson {
 function Get-KdFolderPath {
     Param(
         $vault,
-        $folder
+        $folder,
+        $folderMap
     )
 
+    if (-not $folderMap) {
+        $folderMap = Get-KdFolderNodeMap $vault
+    }
+
     if ($folder -is [string]) {
-        $node = $vault.KeeperNSFFolderNodes | Where-Object { $_.FolderUid -eq $folder } | Select-Object -First 1
+        $node = if ($folderMap.ContainsKey($folder)) { $folderMap[$folder] } else { $null }
         if ($node) { $folder = $node }
         elseif ([string]::IsNullOrEmpty($folder)) { return '/' }
         else { return $null }
@@ -815,7 +1222,12 @@ function Get-KdFolderPath {
         if (-not $current.ParentUid) {
             break
         }
-        $current = $vault.KeeperNSFFolderNodes | Where-Object { $_.FolderUid -eq $current.ParentUid } | Select-Object -First 1
+        if ($folderMap.ContainsKey($current.ParentUid)) {
+            $current = $folderMap[$current.ParentUid]
+        }
+        else {
+            break
+        }
     }
 
     if ($components.Count -eq 0) {
@@ -855,7 +1267,7 @@ function Build-KdFolderJson {
         }) | Out-Null
     }
 
-    $folderPath = Get-KdFolderPath $vault $folder
+    $folderPath = Get-KdFolderPath $vault $folder (Get-KdFolderNodeMap $vault)
 
     return [ordered]@{
         folder_uid = $folder.FolderUid
@@ -877,10 +1289,11 @@ function Get-KeeperNSFRecordDetails {
 
 	.Description
 	Retrieves and displays record metadata for the specified Keeper NSF records.
+	Each identifier may be a record UID or an exact/partial title match.
 	Supports output in table or JSON format.
 
 	.Parameter RecordUids
-	One or more record UIDs to retrieve details for.
+	One or more record UIDs or titles to retrieve metadata for.
 
 	.Parameter Format
 	Output format: 'table' (default) or 'json'.
@@ -894,55 +1307,37 @@ function Get-KeeperNSFRecordDetails {
         [ValidateSet('table', 'json')]
         [string] $Format = 'table'
     )
-    try{
+    try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     } catch {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
-    }   
+    }
     $results = [System.Collections.ArrayList]::new()
-    $forbidden = [System.Collections.ArrayList]::new()
+    $notFound = [System.Collections.ArrayList]::new()
 
     foreach ($uid in $RecordUids) {
         $uid = $uid.Trim()
-        $resolved = $null
-
-        [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-        if ($vault.TryGetKeeperNSFRecord($uid, [ref]$tmpRecord)) {
-            $resolved = $tmpRecord
-        }
-        else {
-            foreach ($r in $vault.KeeperNSFRecordEntries) {
-                if ($r.Title -and $r.Title -ieq $uid) { $resolved = $r; break }
-            }
-            if (-not $resolved) {
-                foreach ($r in $vault.KeeperNSFRecordEntries) {
-                    if ($r.Title -and $r.Title -ilike "*$uid*") { $resolved = $r; break }
-                }
-            }
-        }
+        $resolved = Resolve-KdNsfRecord -vault $vault -Identifier $uid
 
         if ($resolved) {
             $meta = Get-KdRecordTypeAndTitle $resolved
-            $title = $meta.Title
-            $recordType = $meta.Type
-
             $item = [KdRecordDetailItem]::new()
             $item.RecordUid = $resolved.RecordUid
-            $item.Title     = $title
-            $item.Type      = $recordType
+            $item.Title     = $meta.Title
+            $item.Type      = $meta.Type
             $item.Version   = $resolved.Version
             $item.Revision  = $resolved.Revision
             $results.Add($item) | Out-Null
         }
         else {
-            $forbidden.Add($uid) | Out-Null
+            $notFound.Add($uid) | Out-Null
         }
     }
 
     if ($Format -eq 'json') {
         $output = @{ data = $results }
-        if ($forbidden.Count -gt 0) { $output.forbidden_records = $forbidden }
+        if ($notFound.Count -gt 0) { $output.not_found = $notFound }
         $output | ConvertTo-Json -Depth 5
     }
     else {
@@ -954,9 +1349,9 @@ function Get-KeeperNSFRecordDetails {
             Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Revision", $r.Revision)
             Write-Host ""
         }
-        if ($forbidden.Count -gt 0) {
-            Write-Host "Forbidden records: $($forbidden.Count)" -ForegroundColor Yellow
-            foreach ($uid in $forbidden) {
+        if ($notFound.Count -gt 0) {
+            Write-Host "Records not found: $($notFound.Count)" -ForegroundColor Yellow
+            foreach ($uid in $notFound) {
                 Write-Host "  $uid"
             }
         }
