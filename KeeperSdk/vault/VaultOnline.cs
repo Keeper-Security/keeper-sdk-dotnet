@@ -22,10 +22,22 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="auth">Keeper authentication.</param>
         /// <param name="storage">Keeper offline storage.</param>
-        public VaultOnline(IAuthentication auth, IKeeperStorage storage = null)
+        /// <param name="autoKeepAlive">When <c>true</c>, enables periodic session keep-alive on <paramref name="auth"/>.</param>
+        /// <param name="usePushNotifications">When <c>true</c>, opens push notifications for vault sync.</param>
+        public VaultOnline(IAuthentication auth, IKeeperStorage storage = null, bool autoKeepAlive = false,
+            bool usePushNotifications = false)
             : base(auth.AuthContext.ClientKey, storage ?? new InMemoryKeeperStorage())
         {
             Auth = auth;
+            if (autoKeepAlive)
+            {
+                auth.AutoKeepAlive = true;
+            }
+
+            if (usePushNotifications)
+            {
+                auth.ConnectPushNotifications();
+            }
         }
 
         /// <summary>
