@@ -538,6 +538,12 @@ function Connect-Keeper {
 
    .Parameter SkipSync
     After a successful login, do not call SyncDown. The authenticated session and VaultOnline instance are available. The local vault stays empty until you run Sync-Keeper. AutoSync is disabled until then.
+
+    .Parameter KeepAlive
+    Enable automatic session keep-alive during login.
+
+    .Parameter PushNotifications
+    Enable push notifications during login.
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -551,7 +557,9 @@ function Connect-Keeper {
         [Parameter()][string] $Config,
         [Parameter()][switch] $UseOfflineStorage,
         [Parameter()][string] $VaultDatabasePath,
-        [Parameter()][switch] $SkipSync
+        [Parameter()][switch] $SkipSync,
+        [Parameter()][switch] $KeepAlive,
+        [Parameter()][switch] $PushNotifications
     )
 
     Disconnect-Keeper -Resume | Out-Null
@@ -579,6 +587,8 @@ function Connect-Keeper {
 
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
     $authFlow.NoNewDevice = $deviceTokenOnly
+    $authFlow.AutoKeepAlive = $KeepAlive.IsPresent
+    $authFlow.UsePushNotifications = $PushNotifications.IsPresent
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
         if (-not $Username) {

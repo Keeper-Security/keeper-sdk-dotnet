@@ -31,13 +31,21 @@ namespace Sample
         /// Performs login and returns the authentication object. Does not create or sync the vault.
         /// </summary>
         /// <param name="enablePersistentLogin">Enable, disable, or leave unchanged persistent login.</param>
+        /// <param name="autoKeepAlive">When a new login is required, enable automatic session keep-alive (on vault creation, or on auth for auth-only flows).</param>
+        /// <param name="usePushNotifications">When a new login is required, enable push notifications (on vault creation, or via <see cref="IAuthentication.ConnectPushNotifications"/> for auth-only flows).</param>
         /// <returns>The authenticated <see cref="IAuthentication"/> or null if authentication failed.</returns>
-        Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null);
+        Task<IAuthentication> GetAuthAsync(
+            bool? enablePersistentLogin = null,
+            bool autoKeepAlive = false,
+            bool usePushNotifications = false);
 
         /// <summary>
         /// Performs login (if needed) and returns a vault, optionally syncing it.
         /// </summary>
-        Task<VaultOnline> GetVaultAsync(bool? enablePersistentLogin = null);
+        Task<VaultOnline> GetVaultAsync(
+            bool? enablePersistentLogin = null,
+            bool autoKeepAlive = false,
+            bool usePushNotifications = false);
 
         /// <summary>
         /// Returns the given vault, or authenticates and gets the vault if null.
@@ -103,26 +111,38 @@ namespace Sample
         /// Use for samples that call Keeper APIs directly (e.g. <see cref="SharedFolderSkipSyncDown"/>).
         /// </summary>
         /// <param name="enablePersistentLogin">When a new login is required, pass <c>true</c>/<c>false</c> to enable or disable persistent login; <c>null</c> leaves the setting unchanged.</param>
+        /// <param name="autoKeepAlive">When a new login is required, enable automatic session keep-alive (on vault creation, or on auth for auth-only flows).</param>
+        /// <param name="usePushNotifications">When a new login is required, enable push notifications (on vault creation, or via <see cref="IAuthentication.ConnectPushNotifications"/> for auth-only flows).</param>
         public static async Task<IAuthentication> ResolveAuthAsync(
-            bool? enablePersistentLogin = null)
+            bool? enablePersistentLogin = null,
+            bool autoKeepAlive = false,
+            bool usePushNotifications = false)
         {
             if (_cachedAuth != null && _cachedAuth.IsAuthenticated()) return _cachedAuth;
             if (_cachedVault != null) return _cachedVault.Auth;
-            return await GetAuthAsync(enablePersistentLogin).ConfigureAwait(false);
+            return await GetAuthAsync(enablePersistentLogin, autoKeepAlive, usePushNotifications).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Interactive login only — no <see cref="VaultOnline"/> and no <c>sync_down</c>. Same prompts as <see cref="GetVault"/>.
         /// Reuses the same authenticated session in-process when <see cref="GetVault"/> (or a prior <c>GetAuthAsync</c>) already ran.
         /// </summary>
-        public static async Task<IAuthentication> GetAuthAsync(bool? enablePersistentLogin = null)
+        public static async Task<IAuthentication> GetAuthAsync(
+            bool? enablePersistentLogin = null,
+            bool autoKeepAlive = false,
+            bool usePushNotifications = false)
         {
             if (_cachedAuth != null && _cachedAuth.IsAuthenticated())
                 return _cachedAuth;
 
             var configurationStorage = new JsonConfigurationStorage("config.json");
             var inputManager = new SimpleInputManager();
-            return await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
+            return await TryAuthenticateKeeperAsync(
+                configurationStorage,
+                inputManager,
+                enablePersistentLogin,
+                autoKeepAlive,
+                usePushNotifications).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -161,30 +181,45 @@ namespace Sample
             return string.IsNullOrEmpty(input) ? null : input;
         }
 
-        public static async Task<VaultOnline> GetVault(bool? enablePersistentLogin = null)
+        public static async Task<VaultOnline> GetVault(
+            bool? enablePersistentLogin = null,
+            bool autoKeepAlive = false,
+            bool usePushNotifications = false)
         {
             if (_cachedVault != null)
                 return _cachedVault;
 
             if (_cachedAuth != null && _cachedAuth.IsAuthenticated())
             {
-                _cachedVault = new VaultOnline(_cachedAuth);
+                _cachedVault = new VaultOnline(_cachedAuth, autoKeepAlive: autoKeepAlive,
+                    usePushNotifications: usePushNotifications);
                 await _cachedVault.SyncDown().ConfigureAwait(false);
                 return _cachedVault;
             }
 
             var configurationStorage = new JsonConfigurationStorage("config.json");
             var inputManager = new SimpleInputManager();
-            var authFlow = await TryAuthenticateKeeperAsync(configurationStorage, inputManager, enablePersistentLogin).ConfigureAwait(false);
+            var authFlow = await TryAuthenticateKeeperAsync(
+                configurationStorage,
+                inputManager,
+                enablePersistentLogin,
+                autoKeepAlive,
+                usePushNotifications).ConfigureAwait(false);
             if (authFlow == null)
                 return null;
 
-            _cachedVault = new VaultOnline(authFlow);
+            _cachedVault = new VaultOnline(authFlow, autoKeepAlive: autoKeepAlive,
+                usePushNotifications: usePushNotifications);
             await _cachedVault.SyncDown().ConfigureAwait(false);
             return _cachedVault;
         }
 
-        private static async Task<AuthSync> TryAuthenticateKeeperAsync(JsonConfigurationStorage configurationStorage, IInputManager inputManager, bool? enablePersistentLogin)
+        private static async Task<AuthSync> TryAuthenticateKeeperAsync(
+            JsonConfigurationStorage configurationStorage,
+            IInputManager inputManager,
+            bool? enablePersistentLogin,
+            bool autoKeepAlive,
+            bool usePushNotifications)
         {
             var configuration = configurationStorage.Get();
 
@@ -243,6 +278,12 @@ namespace Sample
                 ClearSessionCache();
                 return null;
             }
+
+            if (autoKeepAlive)
+                authFlow.AutoKeepAlive = true;
+
+            if (usePushNotifications)
+                authFlow.ConnectPushNotifications();
 
             if (enablePersistentLogin == true)
                 await SetupPersistentLogin(authFlow).ConfigureAwait(false);

@@ -315,32 +315,9 @@ namespace KeeperSecurity.Authentication.Sync
             this.StoreConfigurationIfChangedV3(_loginContext);
             SetPushNotifications(null);
 
-            if (authContext.SessionTokenRestriction == 0 && UsePushNotifications)
+            if (UsePushNotifications)
             {
-                var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
-                var messageSessionUid = _loginContext.MessageSessionUid;
-
-                async Task<Uri> PrepareWssUrl(byte[] transmissionKey)
-                {
-                    await ExecuteAuthRest("keep_alive", null);
-                    var connectionRequest = new WssConnectionRequest
-                    {
-                        EncryptedDeviceToken = ByteString.CopyFrom(DeviceToken),
-                        MessageSessionUid = ByteString.CopyFrom(messageSessionUid),
-                        DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                    };
-                    var apiRequest = Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
-                    var builder = new UriBuilder
-                    {
-                        Scheme = "wss",
-                        Host = Endpoint.PushServer(),
-                        Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
-                    };
-                    return builder.Uri;
-                }
-
-                pushNotifications.ConnectToPushServer(PrepareWssUrl, context.SessionToken);
-                SetPushNotifications(pushNotifications);
+                ConnectPushNotifications(_loginContext.MessageSessionUid);
             }
 
             try
