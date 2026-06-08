@@ -300,7 +300,7 @@ function Get-KeeperFolders {
     if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
         $folders | Format-Table -Property @(
             @{Label='UID'; Expression={$_.FolderUid}; Width=25},
-            @{Label='Name'; Expression={$_.Name}; Width=30},
+            @{Label='Name'; Expression={$_.Name}; Width=35},
             @{Label='Type'; Expression={$_.FolderType}; Width=20},
             @{Label='Category'; Expression={$_.Category}; Width=22},
             @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
@@ -310,7 +310,7 @@ function Get-KeeperFolders {
     } else {
         $folders | Format-Table -Property @(
             @{Label='UID'; Expression={$_.FolderUid}; Width=25},
-            @{Label='Name'; Expression={$_.Name}; Width=30},
+            @{Label='Name'; Expression={$_.Name}; Width=35},
             @{Label='Type'; Expression={$_.FolderType}; Width=20},
             @{Label='Category'; Expression={$_.Category}; Width=22},
             @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
