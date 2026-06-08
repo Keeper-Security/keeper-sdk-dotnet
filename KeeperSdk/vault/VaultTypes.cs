@@ -229,6 +229,11 @@ namespace KeeperSecurity.Vault
         /// Share expiration time.
         /// </summary>
         DateTimeOffset? Expiration { get; }
+
+        /// <summary>
+        /// Rotate the password when share access expires (requires pamUser with rotation configured).
+        /// </summary>
+        bool? RotateOnExpiration { get; }
     }
 
     /// <summary>
@@ -250,6 +255,11 @@ namespace KeeperSecurity.Vault
         /// Share expiration time.
         /// </summary>
         DateTimeOffset? Expiration { get; }
+
+        /// <summary>
+        /// Rotate the password when share access expires (requires pamUser with rotation configured).
+        /// </summary>
+        bool? RotateOnExpiration { get; }
     }
 
     /// <summary>
