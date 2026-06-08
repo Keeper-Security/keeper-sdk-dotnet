@@ -1,5 +1,17 @@
 #requires -Version 5.1
 
+class KeeperFolderListItem {
+    [string]$FolderUid
+    [string]$Name
+    [string]$FolderType
+    [string]$Category
+    [string]$ParentUid
+    [string]$SharedFolderUid
+    [int]$SubfolderCount
+    [int]$RecordCount
+    [string]$Path
+}
+
 function Add-KeeperFolder {
     <#
 	.Synopsis
@@ -221,22 +233,22 @@ function Get-KeeperFolders {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-    $folders = @()
+    $folders = [System.Collections.Generic.List[KeeperFolderListItem]]::new()
 
     if (-not $ClassicOnly.IsPresent -and $Type -eq 'All') {
         foreach ($nsfFolder in $vault.KeeperNSFFolderNodes) {
             if ($Filter -and -not ($nsfFolder.Name -like $Filter)) { continue }
-            $folders += [PSCustomObject]@{
-                FolderUid       = $nsfFolder.FolderUid
-                Name            = $nsfFolder.Name
-                FolderType      = 'folder'
-                Category        = 'Nested Shared Folder'
-                ParentUid       = $nsfFolder.ParentUid
-                SharedFolderUid = $null
-                SubfolderCount  = $nsfFolder.Subfolders.Count
-                RecordCount     = $nsfFolder.Records.Count
-                Path            = $null
-            }
+            $item = [KeeperFolderListItem]::new()
+            $item.FolderUid       = $nsfFolder.FolderUid
+            $item.Name            = $nsfFolder.Name
+            $item.FolderType      = 'folder'
+            $item.Category        = 'Nested Shared Folder'
+            $item.ParentUid       = $nsfFolder.ParentUid
+            $item.SharedFolderUid = $null
+            $item.SubfolderCount  = $nsfFolder.Subfolders.Count
+            $item.RecordCount     = $nsfFolder.Records.Count
+            $item.Path            = $null
+            $folders.Add($item) | Out-Null
         }
     }
 
@@ -263,26 +275,25 @@ function Get-KeeperFolders {
             }
         }
         
-        $folderInfo = [PSCustomObject]@{
-            FolderUid       = $folder.FolderUid
-            Name            = $folder.Name
-            FolderType      = $folder.FolderType.ToString()
-            Category        = 'Classic'
-            ParentUid       = $folder.ParentUid
-            SharedFolderUid = $folder.SharedFolderUid
-            SubfolderCount  = $folder.Subfolders.Count
-            RecordCount     = $folder.Records.Count
-            Path            = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-                getVaultFolderPath $vault $folder.FolderUid
-            } else {
-                $null
-            }
+        $folderInfo = [KeeperFolderListItem]::new()
+        $folderInfo.FolderUid       = $folder.FolderUid
+        $folderInfo.Name            = $folder.Name
+        $folderInfo.FolderType      = $folder.FolderType.ToString()
+        $folderInfo.Category        = 'Classic'
+        $folderInfo.ParentUid       = $folder.ParentUid
+        $folderInfo.SharedFolderUid = $folder.SharedFolderUid
+        $folderInfo.SubfolderCount  = $folder.Subfolders.Count
+        $folderInfo.RecordCount     = $folder.Records.Count
+        $folderInfo.Path            = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            getVaultFolderPath $vault $folder.FolderUid
+        } else {
+            $null
         }
-        
-        $folders += $folderInfo
+
+        $folders.Add($folderInfo) | Out-Null
     }
-    
-    $folders = $folders | Sort-Object Name
+
+    $folders = @($folders | Sort-Object Name)
     
     if ($folders.Count -eq 0) {
         Write-Host "No folders found matching criteria."
