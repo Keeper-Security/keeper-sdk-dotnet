@@ -12,6 +12,45 @@ function getVault {
     $Script:Context.Vault
 }
 
+function resolveKeeperNSFFolder {
+    Param(
+        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    [KeeperSecurity.Vault.FolderNode]$folder = $null
+    if ($Vault.TryGetKeeperNSFFolder($Identifier, [ref]$folder)) {
+        return $folder
+    }
+
+    $match = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Identifier })
+    if ($match.Count -eq 1) { return $match[0] }
+    return $null
+}
+
+function resolveKeeperNSFRecord {
+    Param(
+        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    [KeeperSecurity.Vault.KeeperNSFRecord]$record = $null
+    if ($Vault.TryGetKeeperNSFRecord($Identifier, [ref]$record)) {
+        return $record
+    }
+
+    $titleMatch = @($Vault.KeeperNSFRecordEntries | Where-Object {
+            $_.Title -and $_.Title -ieq $Identifier
+        })
+    if ($titleMatch.Count -eq 1) { return $titleMatch[0] }
+
+    if ($titleMatch.Count -eq 0 -and $Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
+        return $record
+    }
+
+    return $null
+}
+
 function Get-KeeperLocation {
     <#
 	.Synopsis
@@ -500,6 +539,29 @@ function Get-KeeperObject {
                     else {
                         $teamInfo
                     }
+                    continue
+                }
+            }
+
+            if ($testRecord) {
+                $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
+                if ($nsfRecord) {
+                    if ($PropertyName) {
+                        $mp = $nsfRecord | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
+                        if ($mp) { $nsfRecord | Select-Object -ExpandProperty $PropertyName }
+                    }
+                    else { $nsfRecord }
+                    continue
+                }
+            }
+            if ($testFolder) {
+                $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
+                if ($nsfFolder) {
+                    if ($PropertyName) {
+                        $mp = $nsfFolder | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
+                        if ($mp) { $nsfFolder | Select-Object -ExpandProperty $PropertyName }
+                    }
+                    else { $nsfFolder }
                     continue
                 }
             }
