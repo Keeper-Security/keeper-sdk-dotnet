@@ -205,6 +205,7 @@ namespace KeeperSecurity.Vault
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID is required.", nameof(userId));
+            VaultShareExpirationExtensions.EnsureRotateOnExpirationRequiresSyncedVault(options?.RotateOnExpiration);
             await ShareSharedFolderToUser(auth, sharedFolderUid, userId, options).ConfigureAwait(false);
         }
 
@@ -231,6 +232,7 @@ namespace KeeperSecurity.Vault
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
             if (string.IsNullOrEmpty(teamUid))
                 throw new ArgumentException("Team UID is required.", nameof(teamUid));
+            VaultShareExpirationExtensions.EnsureRotateOnExpirationRequiresSyncedVault(options?.RotateOnExpiration);
             await ShareSharedFolderToTeam(auth, sharedFolderUid, teamUid, options).ConfigureAwait(false);
         }
 

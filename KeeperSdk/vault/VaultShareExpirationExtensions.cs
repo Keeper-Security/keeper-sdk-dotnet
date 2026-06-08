@@ -241,5 +241,17 @@ namespace KeeperSecurity.Vault
         {
             return options?.RotateOnExpiration == true;
         }
+
+        /// <summary>
+        /// Skip-sync share paths cannot validate pamUser rotation eligibility without a synced vault.
+        /// </summary>
+        internal static void EnsureRotateOnExpirationRequiresSyncedVault(bool? rotateOnExpiration)
+        {
+            if (rotateOnExpiration == true)
+            {
+                throw new VaultException(
+                    "Rotate on expiration requires a synced vault. Use VaultOnline share methods after sync-down.");
+            }
+        }
     }
 }
