@@ -513,7 +513,6 @@ namespace KeeperSecurity.Vault
         /// </summary>
         IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords { get; }
 
-
         /// <summary>
         /// Clear offline Keeper vault storage.
         /// </summary>

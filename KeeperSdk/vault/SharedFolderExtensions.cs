@@ -17,6 +17,7 @@ namespace KeeperSecurity.Vault
             UserType userType,
             IUserShareOptions options)
         {
+            this.ValidateRotateOnExpirationForFolderGrant(sharedFolderUid, options);
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
 
             var request = new SharedFolderUpdateV3Request
@@ -37,8 +38,8 @@ namespace KeeperSecurity.Vault
                 var sfuu = new SharedFolderUpdateUser
                 {
                     Username = userId,
-                    Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 };
+                VaultShareExpirationExtensions.ApplyShareExpiration(options, sfuu);
                 if (existingPermission != null)
                 {
                     sfuu.ManageUsers = options?.ManageUsers == null
@@ -104,8 +105,8 @@ namespace KeeperSecurity.Vault
                 var sfut = new SharedFolderUpdateTeam
                 {
                     TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
-                    Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 };
+                VaultShareExpirationExtensions.ApplyShareExpiration(options, sfut);
 
                 if (existingPermission != null)
                 {
@@ -253,6 +254,8 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>>
         public async Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, IRecordShareOptions options)
         {
+            this.ValidateRotateOnExpirationForSharedFolderRecord(sharedFolderUid, options);
+
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
 
             _ = this.GetRecord(recordUid);
@@ -273,15 +276,16 @@ namespace KeeperSecurity.Vault
                         request.FromTeamUid = ByteString.CopyFrom(perm.Uid.Base64UrlDecode());
                     }
                 }
-                request.SharedFolderUpdateRecord.Add(new SharedFolderUpdateRecord
+                var sfur = new SharedFolderUpdateRecord
                 {
                     RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                     CanEdit = options.CanEdit == null ? SetBooleanValue.BooleanNoChange
                     : options.CanEdit.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                     CanShare = options.CanShare == null ? SetBooleanValue.BooleanNoChange
                     : options.CanShare.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
-                    Expiration = options.Expiration?.ToUnixTimeMilliseconds() ?? 0,
-                });
+                };
+                VaultShareExpirationExtensions.ApplyShareExpiration(options, sfur);
+                request.SharedFolderUpdateRecord.Add(sfur);
 
                 var response = await Auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request);
                 foreach (var arr in new[] { response.SharedFolderUpdateRecordStatus })

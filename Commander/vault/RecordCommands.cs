@@ -787,6 +787,7 @@ namespace Commander
                 {
                     CanEdit = options.CanEdit,
                     CanShare = options.CanShare,
+                    RotateOnExpiration = options.RotateOnExpiration,
                 };
                 if (!string.IsNullOrEmpty(options.ExpireAt))
                 {
@@ -1758,6 +1759,11 @@ namespace Commander
 
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
+
+        [Option("rotate-on-expiration", Required = false, Default = false,
+            HelpText = "Rotate the password when the share access expires. " +
+                       "Requires a future expiration and a pamUser record with rotation configured.")]
+        public bool RotateOnExpiration { get; set; }
 
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }

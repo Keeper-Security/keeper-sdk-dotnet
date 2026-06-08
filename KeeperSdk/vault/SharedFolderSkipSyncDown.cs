@@ -205,6 +205,7 @@ namespace KeeperSecurity.Vault
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID is required.", nameof(userId));
+            VaultShareExpirationExtensions.EnsureRotateOnExpirationRequiresSyncedVault(options?.RotateOnExpiration);
             await ShareSharedFolderToUser(auth, sharedFolderUid, userId, options).ConfigureAwait(false);
         }
 
@@ -231,6 +232,7 @@ namespace KeeperSecurity.Vault
                 throw new ArgumentException("Shared folder UID is required.", nameof(sharedFolderUid));
             if (string.IsNullOrEmpty(teamUid))
                 throw new ArgumentException("Team UID is required.", nameof(teamUid));
+            VaultShareExpirationExtensions.EnsureRotateOnExpirationRequiresSyncedVault(options?.RotateOnExpiration);
             await ShareSharedFolderToTeam(auth, sharedFolderUid, teamUid, options).ConfigureAwait(false);
         }
 
@@ -324,7 +326,8 @@ namespace KeeperSecurity.Vault
         {
             if (options == null)
                 return true;
-            return options.ManageUsers == null && options.ManageRecords == null && options.Expiration == null;
+            return options.ManageUsers == null && options.ManageRecords == null
+                   && options.Expiration == null && options.RotateOnExpiration == null;
         }
 
         private static bool IsSharedFolderPutStatusOk(string status)
@@ -457,8 +460,8 @@ namespace KeeperSecurity.Vault
             var sfut = new SharedFolderUpdateTeam
             {
                 TeamUid = ByteString.CopyFrom(teamUid.Base64UrlDecode()),
-                Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
             };
+            VaultShareExpirationExtensions.ApplyShareExpiration(options, sfut);
 
             if (teamIsMember)
             {
@@ -642,8 +645,8 @@ namespace KeeperSecurity.Vault
             var sfUpdateUser = new SharedFolderUpdateUser
             {
                 Username = userId,
-                Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
             };
+            VaultShareExpirationExtensions.ApplyShareExpiration(options, sfUpdateUser);
             if (userIsMember)
             {
                 sfUpdateUser.ManageUsers = options?.ManageUsers == null
