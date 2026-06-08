@@ -44,6 +44,12 @@ namespace Commander
             [Option("alt", Required = false, HelpText = "login using sso master password")]
             public bool IsSsoPassword { get; set; }
 
+            [Option("keep-alive", Required = false, HelpText = "enable automatic session keep-alive")]
+            public bool KeepAlive { get; set; }
+
+            [Option("push-notifications", Required = false, HelpText = "enable push notifications")]
+            public bool PushNotifications { get; set; }
+
             [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
             public string Username { get; set; }
         }
@@ -291,6 +297,9 @@ namespace Commander
             }
 
             if (string.IsNullOrEmpty(username)) return;
+
+            _auth.AutoKeepAlive = options.KeepAlive;
+            _auth.UsePushNotifications = options.PushNotifications;
 
             try
             {

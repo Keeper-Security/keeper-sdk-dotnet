@@ -29,27 +29,27 @@ namespace Sample
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
             try
             {
-                // // Authenticate once from Main - all examples share this vault
-                // var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true);
-                // // var vault = await AuthenticateAndGetVault.GetVault();
-                // if (vault == null)
-                // {
-                //     Console.WriteLine("Could not authenticate. Exiting.");
-                //     return;
-                // }
+                // Authenticate once from Main - all examples share this vault
+                var vault = await AuthenticateAndGetVault.GetVault(enablePersistentLogin: true, autoKeepAlive: false, usePushNotifications: true);
+                // var vault = await AuthenticateAndGetVault.GetVault();
+                if (vault == null)
+                {
+                    Console.WriteLine("Could not authenticate. Exiting.");
+                    return;
+                }
 
                 // var getRecords = new GetRecordsExample();
                 // await getRecords.GetRecordsWithName( "Google");
 
-                // Shared folder without full sync: use ResolveAuthAsync so auth matches a prior GetVault in the same run.
-                var authStep = await AuthenticateAndGetVault.ResolveAuthAsync(enablePersistentLogin: true);
-                await SharedFolderExamples.ShareFolderSkipSyncExample.PutTeamToSharedFolder(
-                    authStep, "<shared_folder_uid>", "<team_name_or_uid>", new SharedFolderUserOptions
-                    {
-                        ManageRecords = false,
-                        ManageUsers = true,
-                        Expiration = DateTimeOffset.Now.AddMinutes(10)
-                    });
+                // // Shared folder without full sync: use ResolveAuthAsync so auth matches a prior GetVault in the same run.
+                // var authStep = await AuthenticateAndGetVault.ResolveAuthAsync(enablePersistentLogin: true, autoKeepAlive: true, usePushNotifications : false);
+                // await SharedFolderExamples.ShareFolderSkipSyncExample.PutTeamToSharedFolder(
+                //     authStep, "<shared_folder_uid>", "<team_name_or_uid>", new SharedFolderUserOptions
+                //     {
+                //         ManageRecords = false,
+                //         ManageUsers = true,
+                //         Expiration = DateTimeOffset.Now.AddMinutes(10)
+                //     });
 
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");
@@ -65,8 +65,8 @@ namespace Sample
                 // // Delete Record Example
                 // await DeleteRecordExample.DeleteRecord(vault, recordUid: "<recordUid_here>");
 
-                // // List Records Example
-                // await ListRecordExample.ListAllRecords(vault);
+                // List Records Example
+                await ListRecordExample.ListAllRecords(vault);
 
                 // // Get Record Details Example
                 // var getRecord = new GetRecordExample();

@@ -18,6 +18,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using PasswordRule = KeeperSecurity.Commands.PasswordRule;
+using Push;
 
 namespace KeeperSecurity.Authentication
 {
@@ -61,7 +62,7 @@ namespace KeeperSecurity.Authentication
         IKeeperEndpoint Endpoint { get; }
 
         /// <summary>
-        /// Enables or Disables push notifications
+        /// Enables or disables push notifications.
         /// </summary>
         bool UsePushNotifications { get; set; }
 
@@ -249,9 +250,16 @@ namespace KeeperSecurity.Authentication
         Task Logout();
 
         /// <summary>
-        /// Gets or Sets automatic keep session alive flag 
+        /// Gets or sets automatic keep session alive flag.
         /// </summary>
         bool AutoKeepAlive { get; set; }
+
+        /// <summary>
+        /// Opens the push notification WebSocket for the authenticated session.
+        /// No-op if push is already connected or the session does not support it.
+        /// </summary>
+        /// <param name="messageSessionUid">Optional message session UID from login; a new UID is generated if omitted.</param>
+        void ConnectPushNotifications(byte[] messageSessionUid = null);
 
         /// <summary>
         /// Gets logout timeout 
@@ -428,7 +436,7 @@ namespace KeeperSecurity.Authentication
         /// <inheritdoc/>
         public IAuthContext AuthContext => authContext;
 
-        private bool _autoKeepAlive = true; 
+        private bool _autoKeepAlive;
         /// <inheritdoc/>
         public bool AutoKeepAlive
         {
@@ -440,7 +448,7 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        public bool UsePushNotifications { get; set; } = true;
+        public bool UsePushNotifications { get; set; }
 
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get; private set; }
@@ -556,6 +564,43 @@ namespace KeeperSecurity.Authentication
             
             PushNotifications?.Dispose();
             PushNotifications = pushNotifications;
+        }
+
+        /// <inheritdoc/>
+        public void ConnectPushNotifications(byte[] messageSessionUid = null)
+        {
+            if (PushNotifications != null) return;
+            if (authContext?.SessionToken == null || authContext.SessionTokenRestriction != 0) return;
+            if (DeviceToken == null || DeviceToken.Length == 0) return;
+
+            UsePushNotifications = true;
+            messageSessionUid ??= CryptoUtils.GetRandomBytes(16);
+
+            var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
+            var sessionToken = authContext.SessionToken;
+            var deviceToken = DeviceToken;
+
+            async Task<Uri> PrepareWssUrl(byte[] transmissionKey)
+            {
+                await ExecuteAuthRest("keep_alive", null);
+                var connectionRequest = new WssConnectionRequest
+                {
+                    EncryptedDeviceToken = ByteString.CopyFrom(deviceToken),
+                    MessageSessionUid = ByteString.CopyFrom(messageSessionUid),
+                    DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                };
+                var apiRequest = Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
+                var builder = new UriBuilder
+                {
+                    Scheme = "wss",
+                    Host = Endpoint.PushServer(),
+                    Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode(),
+                };
+                return builder.Uri;
+            }
+
+            pushNotifications.ConnectToPushServer(PrepareWssUrl, sessionToken);
+            SetPushNotifications(pushNotifications);
         }
 
         private static IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
