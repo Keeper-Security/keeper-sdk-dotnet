@@ -497,7 +497,7 @@ namespace KeeperSecurity.Vault
         /// <param name="notes">Optional notes.</param>
         /// <param name="fields">Optional fields as key-value pairs. Values may be strings (plain scalars) or complex objects (e.g. host = { hostName, port } on a databaseCredentials record).</param>
         /// <returns>The new record UID.</returns>
-        Task<string> CreateKeeperNSFRecord(string title, string recordType = "general", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
+        Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
         /// Updates an existing Keeper NSF record.

@@ -132,7 +132,7 @@ function Add-KeeperNSFRecord {
 	Title for the new record.
 
 	.Parameter RecordType
-	Record type (e.g. login, general). Defaults to 'general'.
+	Record type (e.g. login, general). Defaults to 'login'.
 
 	.Parameter FolderUid
 	Optional folder UID to place the record in.
@@ -158,7 +158,7 @@ function Add-KeeperNSFRecord {
         [string] $Title,
 
         [Parameter()]
-        [string] $RecordType = 'general',
+        [string] $RecordType = 'login',
 
         [Parameter()]
         [string] $FolderUid,

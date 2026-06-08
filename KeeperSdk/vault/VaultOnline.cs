@@ -356,7 +356,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public async Task<string> CreateKeeperNSFRecord(string title, string recordType = "general", string folderUid = null, string notes = null, IDictionary<string, object> fields = null)
+        public async Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null)
         {
             var recordUid = await this.CreateKeeperNSFRecordInternal(title, recordType, folderUid, notes, fields);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
