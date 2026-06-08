@@ -495,9 +495,9 @@ namespace KeeperSecurity.Vault
         /// <param name="recordType">Record type (e.g. "login", "general").</param>
         /// <param name="folderUid">Optional folder UID to place the record in.</param>
         /// <param name="notes">Optional notes.</param>
-        /// <param name="fields">Optional fields as key-value pairs.</param>
+        /// <param name="fields">Optional fields as key-value pairs. Values may be strings (plain scalars) or complex objects (e.g. host = { hostName, port } on a databaseCredentials record).</param>
         /// <returns>The new record UID.</returns>
-        Task<string> CreateKeeperNSFRecord(string title, string recordType = "general", string folderUid = null, string notes = null, IDictionary<string, string> fields = null);
+        Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
         /// Updates an existing Keeper NSF record.
@@ -506,8 +506,8 @@ namespace KeeperSecurity.Vault
         /// <param name="title">New title (null to keep existing).</param>
         /// <param name="recordType">New record type (null to keep existing).</param>
         /// <param name="notes">New notes (null to keep existing).</param>
-        /// <param name="fields">Fields to add or update.</param>
-        Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, string> fields = null);
+        /// <param name="fields">Fields to add or update. Values may be strings (plain scalars) or complex objects (e.g. host = { hostName, port } on a databaseCredentials record).</param>
+        Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
         /// Grants a user access to a Keeper NSF record by sharing the record key.
