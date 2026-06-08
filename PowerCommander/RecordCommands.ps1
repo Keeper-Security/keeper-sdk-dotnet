@@ -24,6 +24,9 @@ function Get-KeeperRecord {
         if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
             $record
         }
+        elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
+            Get-KeeperNSFRecord -Uid $Uid
+        }
     }
     else {
         foreach ($record in $vault.KeeperRecords) {
