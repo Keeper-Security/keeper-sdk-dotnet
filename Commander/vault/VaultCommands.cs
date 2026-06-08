@@ -456,7 +456,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("sf-list",
-                new ParseableCommand<ListSharedFolderOptions>
+                new SimpleCommand
                 {
                     Order = 30,
                     Description = "List shared folders",

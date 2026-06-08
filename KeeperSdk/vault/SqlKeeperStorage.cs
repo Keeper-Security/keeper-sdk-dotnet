@@ -23,7 +23,6 @@ namespace KeeperSecurity.Vault
         private readonly SqlEntityStorage<IStorageRecordType, StorageRecordType> _recordTypes;
         private readonly SqlLinkStorage<IStorageUserEmail, StorageUserEmail> _userEmails;
         private readonly SqlEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord> _breachWatchRecords;
-        private readonly SqlEntityStorage<IStorageRecordRotation, StorageRecordRotation> _recordRotations;
 
         /// <summary>
         /// Constructor with custom SQL dialect.
@@ -67,9 +66,6 @@ namespace KeeperSecurity.Vault
             _breachWatchRecords =
                 new SqlEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord>(getConnection, dialect,
                     OwnerColumnName, ownerId);
-            _recordRotations =
-                new SqlEntityStorage<IStorageRecordRotation, StorageRecordRotation>(getConnection, dialect,
-                    OwnerColumnName, ownerId);
         }
 
         public IEnumerable<SqlStorage> GetStorages()
@@ -87,7 +83,6 @@ namespace KeeperSecurity.Vault
             yield return _recordTypes;
             yield return _userEmails;
             yield return _breachWatchRecords;
-            yield return _recordRotations;
         }
 
         public string PersonalScopeUid { get; }
@@ -105,7 +100,6 @@ namespace KeeperSecurity.Vault
         public IEntityStorage<IStorageRecordType> RecordTypes => _recordTypes;
         public ILinkStorage<IStorageUserEmail> UserEmails => _userEmails;
         public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords => _breachWatchRecords;
-        public IEntityStorage<IStorageRecordRotation> RecordRotations => _recordRotations;
 
         public void Clear()
         {

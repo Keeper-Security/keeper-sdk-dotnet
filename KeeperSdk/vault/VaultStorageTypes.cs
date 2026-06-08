@@ -302,22 +302,4 @@ namespace KeeperSecurity.Vault
             Data = source.Data;
         }
     }
-
-    /// <exclude />
-    [SqlTable(Name = "RecordRotation", PrimaryKey = new[] { "RecordUid" })]
-    public class StorageRecordRotation : IStorageRecordRotation, IEntityCopy<IStorageRecordRotation>
-    {
-        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
-        [SqlColumn] public long Revision { get; set; }
-        [SqlColumn(Length = 32)] public string ConfigurationUid { get; set; }
-
-        string IUid.Uid => RecordUid;
-
-        void IEntityCopy<IStorageRecordRotation>.CopyFields(IStorageRecordRotation source)
-        {
-            RecordUid = source.RecordUid;
-            Revision = source.Revision;
-            ConfigurationUid = source.ConfigurationUid;
-        }
-    }
 }

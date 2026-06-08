@@ -60,6 +60,7 @@ namespace KeeperSecurity.Vault
                 if (rs.CacheStatus == VaultProto.CacheStatus.Clear)
                 {
                     vault.RecordTypesLoaded = false;
+                    vault.ClearRecordRotationCache();
                     storage.Clear();
                     if (!result.IsFullSync)
                     {
@@ -71,7 +72,7 @@ namespace KeeperSecurity.Vault
                 {
                     var recordUids = rs.RemovedRecords.Select(x => x.ToByteArray().Base64UrlEncode()).ToArray();
                     result.AddRecords(recordUids);
-                    storage.RecordRotations.DeleteUids(recordUids);
+                    vault.RemoveFromRecordRotationCache(recordUids);
                     storage.RecordKeys.DeleteLinks(recordUids.Select(x => UidLink.Create(x, storage.PersonalScopeUid)));
 
                     // linked records
@@ -741,20 +742,7 @@ namespace KeeperSecurity.Vault
 
                 if (rs.RecordRotations.Count > 0)
                 {
-                    StorageRecordRotation ToRecordRotation(VaultProto.RecordRotation rotation)
-                    {
-                        return new StorageRecordRotation
-                        {
-                            RecordUid = rotation.RecordUid.ToByteArray().Base64UrlEncode(),
-                            Revision = rotation.Revision,
-                            ConfigurationUid = rotation.ConfigurationUid.Length > 0
-                                ? rotation.ConfigurationUid.ToByteArray().Base64UrlEncode()
-                                : null,
-                        };
-                    }
-
-                    var recordRotations = rs.RecordRotations.Select(ToRecordRotation).ToArray();
-                    storage.RecordRotations.PutEntities(recordRotations);
+                    vault.UpdateRecordRotationCache(rs.RecordRotations);
                 }
             }
 

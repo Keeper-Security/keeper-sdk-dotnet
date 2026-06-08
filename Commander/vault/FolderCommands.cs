@@ -158,16 +158,43 @@ namespace Commander
                 }
             }
         }
-        public static Task ListSharedFoldersCommand(this VaultContext context, ListSharedFolderOptions options)
+        public static Task ListSharedFoldersCommand(this VaultContext context, string arguments)
+        {
+            var roeEligible = false;
+            string pattern = null;
+            if (!string.IsNullOrWhiteSpace(arguments))
+            {
+                var remaining = new List<string>();
+                foreach (var part in arguments.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (string.Equals(part, "--roe-eligible", StringComparison.OrdinalIgnoreCase))
+                        roeEligible = true;
+                    else
+                        remaining.Add(part);
+                }
+
+                if (remaining.Count > 0)
+                    pattern = string.Join(" ", remaining);
+            }
+
+            IEnumerable<SharedFolder> folders;
+            if (roeEligible)
+                folders = context.Vault.SearchRoeEligibleSharedFolders(pattern);
+            else if (!string.IsNullOrEmpty(pattern))
+                folders = context.Vault.SearchSharedFolders(pattern);
+            else
+                folders = context.Vault.SharedFolders;
+
+            return Task.FromResult(DumpSharedFolders(folders));
+        }
+
+        private static bool DumpSharedFolders(IEnumerable<SharedFolder> folders)
         {
             var tab = new Tabulate(4)
             {
                 DumpRowNo = true
             };
             tab.AddHeader(new[] { "Shared Folder UID", "Name", "# Records", "# Users" });
-            var folders = options.RoeEligible
-                ? context.Vault.SearchRoeEligibleSharedFolders(options.Pattern)
-                : context.Vault.SearchSharedFolders(options.Pattern);
             foreach (var sf in folders)
             {
                 tab.AddRow(new object[] { sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count });
@@ -175,8 +202,7 @@ namespace Commander
 
             tab.Sort(1);
             tab.Dump();
-
-            return Task.FromResult(true);
+            return true;
         }
 
         private const string EmailPattern = @"(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,}$";
@@ -533,17 +559,6 @@ namespace Commander
         public string DestinationName { get; set; }
     }
 
-    class ListSharedFolderOptions
-    {
-        [Option("roe-eligible", Required = false, Default = false,
-            HelpText = "only list shared folders eligible for --rotate-on-expiration " +
-                       "(contain at least one pamUser record with rotation configured)")]
-        public bool RoeEligible { get; set; }
-
-        [Value(0, Required = false, MetaName = "pattern", HelpText = "search pattern")]
-        public string Pattern { get; set; }
-    }
-
     class ShareFolderRecordPermissionOptions : FolderOptions
     {
         [Option('r', "record", Required = false, Default = null, HelpText = "record name or record uid")]
@@ -561,11 +576,9 @@ namespace Commander
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
 
-        [Option('r', "rotate-on-expiration", Required = false, Default = false,
-            HelpText = "rotate the password when the share access expires. " +
-                       "Only valid on grant; requires a positive --expire-at/--expire-in " +
-                       "(not \"never\") and at least one pamUser record with rotation " +
-                       "configured in the folder.")]
+        [Option("rotate-on-expiration", Required = false, Default = false,
+            HelpText = "Rotate the password when the share access expires. " +
+                       "Requires a future expiration and a pamUser record with rotation configured in the folder.")]
         public bool RotateOnExpiration { get; set; }
     }
 
@@ -589,11 +602,9 @@ namespace Commander
         [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
         public string ExpireIn { get; set; }
 
-        [Option('r', "rotate-on-expiration", Required = false, Default = false,
-            HelpText = "rotate the password when the share access expires. " +
-                       "Only valid on grant; requires a positive --expire-at/--expire-in " +
-                       "(not \"never\") and at least one pamUser record with rotation " +
-                       "configured in the folder.")]
+        [Option("rotate-on-expiration", Required = false, Default = false,
+            HelpText = "Rotate the password when the share access expires. " +
+                       "Requires a future expiration and a pamUser record with rotation configured in the folder.")]
         public bool RotateOnExpiration { get; set; }
     }
 

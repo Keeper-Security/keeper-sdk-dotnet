@@ -7,7 +7,7 @@ using Records;
 namespace KeeperSecurity.Vault
 {
     /// <summary>
-    /// Time-limited access helpers for rotate-on-expiration (ROE)</c>.
+    /// Time-limited access helpers for rotate-on-expiration (ROE).
     /// </summary>
     public static class VaultShareExpirationExtensions
     {
@@ -16,9 +16,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public static bool RecordHasRotationConfigured(this VaultOnline vault, string recordUid)
         {
-            if (string.IsNullOrEmpty(recordUid) || vault?.Storage?.RecordRotations == null)
-                return false;
-            return vault.Storage.RecordRotations.GetEntity(recordUid) != null;
+            return vault != null && vault.HasRecordRotationConfigured(recordUid);
         }
 
         /// <summary>
@@ -46,7 +44,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Searches shared folders by optional pattern (name or UID)<c>search_shared_folders</c>.
+        /// Searches shared folders by optional pattern (name or UID)
         /// </summary>
         public static IEnumerable<SharedFolder> SearchSharedFolders(this VaultOnline vault, string pattern = null)
         {
@@ -60,7 +58,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Shared folders eligible for <c>--rotate-on-expiration</c> (list-sf --roe-eligible).
+        /// Shared folders eligible for rotate on expiration (contain a pamUser record with rotation configured).
         /// </summary>
         public static IEnumerable<SharedFolder> SearchRoeEligibleSharedFolders(this VaultOnline vault, string pattern = null)
         {
@@ -83,14 +81,13 @@ namespace KeeperSecurity.Vault
             if (expirationMs <= 0)
             {
                 throw new VaultException(
-                    "--rotate-on-expiration requires a positive --expire-at / --expire-in (cannot be \"never\").");
+                    "Rotate on expiration requires a future share expiration date.");
             }
 
             if (!vault.SharedFolderHasPamUserWithRotation(sharedFolderUid))
             {
                 throw new VaultException(
-                    "--rotate-on-expiration requires the folder to contain at least one pamUser record " +
-                    "with rotation configured. Ineligible folder(s): " + sharedFolderUid);
+                    "Rotate on expiration requires a shared folder with a pamUser record that has rotation configured.");
             }
         }
 
@@ -128,7 +125,7 @@ namespace KeeperSecurity.Vault
             if (expirationMs <= 0)
             {
                 throw new VaultException(
-                    "--rotate-on-expiration requires a positive --expire-at / --expire-in (cannot be \"never\").");
+                    "Rotate on expiration requires a future share expiration date.");
             }
 
             if (!vault.TryGetKeeperRecord(recordUid, out var record)
@@ -137,8 +134,7 @@ namespace KeeperSecurity.Vault
                 || !vault.RecordHasRotationConfigured(recordUid))
             {
                 throw new VaultException(
-                    "--rotate-on-expiration requires a pamUser record with rotation configured. " +
-                    "Ineligible record(s): " + recordUid);
+                    "Rotate on expiration requires a pamUser record with rotation configured.");
             }
         }
 

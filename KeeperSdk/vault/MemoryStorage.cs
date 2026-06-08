@@ -21,7 +21,6 @@ namespace KeeperSecurity.Vault
         private readonly InMemoryEntityStorage<IStorageRecordType> _recordTypeStorage = new();
         private readonly InMemoryLinkStorage<IStorageUserEmail> _userEmailStorage = new();
         private readonly InMemoryEntityStorage<IStorageBreachWatchRecord> _breachWatchRecordStorage = new();
-        private readonly InMemoryEntityStorage<IStorageRecordRotation> _recordRotationStorage = new();
 
         /// <inheritdoc/>
         public string PersonalScopeUid => "PersonalScopeUid";
@@ -66,9 +65,6 @@ namespace KeeperSecurity.Vault
         public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords => _breachWatchRecordStorage;
 
         /// <inheritdoc/>
-        public IEntityStorage<IStorageRecordRotation> RecordRotations => _recordRotationStorage;
-
-        /// <inheritdoc/>
         public void Clear()
         {
             _vaultSettings.Clear();
@@ -84,7 +80,6 @@ namespace KeeperSecurity.Vault
             _recordStorage.Clear();
             _userEmailStorage.Clear();
             _breachWatchRecordStorage.Clear();
-            _recordRotationStorage.Clear();
         }
     }
 }
