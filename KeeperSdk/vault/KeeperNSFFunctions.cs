@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +18,117 @@ namespace KeeperSecurity.Vault
 {
     internal static partial class VaultOnlineFunctions
     {
+        internal static byte[] SerializeNsfRecordData(NsfRecordData data)
+        {
+            if (data == null)
+            {
+                return JsonUtils.DumpJson(new NsfRecordData(), indent: false);
+            }
+
+            var payload = new NsfRecordData
+            {
+                Type = data.Type,
+                Title = data.Title,
+                Name = data.Name,
+                Notes = data.Notes,
+                ExtensionData = data.ExtensionData,
+                Fields = data.Fields?
+                    .Select(CloneNsfFieldForJson)
+                    .Where(f => f != null)
+                    .ToList(),
+            };
+
+            return JsonUtils.DumpJson(payload, indent: false);
+        }
+
+        private static NsfRecordFieldData CloneNsfFieldForJson(NsfRecordFieldData field)
+        {
+            if (field == null || string.IsNullOrEmpty(field.Type))
+            {
+                return null;
+            }
+
+            return new NsfRecordFieldData
+            {
+                Type = field.Type,
+                Value = field.Value?.Select(v => CoerceNsfFieldValue(field.Type, v)).ToArray(),
+            };
+        }
+
+        private static NsfRecordData BuildNsfRecordData(
+            string recordType,
+            string title,
+            string notes,
+            IDictionary<string, object> fields)
+        {
+            var data = new NsfRecordData
+            {
+                Type = string.IsNullOrEmpty(recordType) ? "login" : recordType,
+                Title = title,
+                Notes = notes,
+                Fields = new List<NsfRecordFieldData>(),
+            };
+
+            if (fields == null)
+            {
+                return data;
+            }
+
+            foreach (var pair in fields)
+            {
+                if (pair.Value == null || string.IsNullOrEmpty(pair.Key))
+                {
+                    continue;
+                }
+
+                data.Fields.Add(new NsfRecordFieldData
+                {
+                    Type = pair.Key,
+                    Value = ToNsfFieldValues(pair.Key, pair.Value),
+                });
+            }
+
+            return data;
+        }
+
+        private static object[] ToNsfFieldValues(string fieldType, object value)
+        {
+            if (value is object[] values)
+            {
+                return values.Select(v => CoerceNsfFieldValue(fieldType, v)).ToArray();
+            }
+
+            return new[] { CoerceNsfFieldValue(fieldType, value) };
+        }
+
+        private static object CoerceNsfFieldValue(string fieldType, object value)
+        {
+            if (value is not IDictionary dict
+                || !RecordTypesConstants.TryGetRecordField(fieldType, out var recordField)
+                || !typeof(IFieldTypeSerialize).IsAssignableFrom(recordField.Type.Type))
+            {
+                return value;
+            }
+
+            var coerced = Activator.CreateInstance(recordField.Type.Type);
+            if (coerced is not IFieldTypeSerialize serializer)
+            {
+                return value;
+            }
+
+            foreach (var key in dict.Keys)
+            {
+                if (key is not string element)
+                {
+                    continue;
+                }
+
+                serializer.SetElementValue(element, dict[key]?.ToString() ?? string.Empty);
+            }
+
+            return coerced;
+        }
+
         public static async Task<string> AddKeeperNSFFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -285,7 +397,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, string> fields)
+        public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(title))
                 throw new VaultException("Record title cannot be empty");
@@ -311,27 +423,8 @@ namespace KeeperSecurity.Vault
                 keyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByUserKey;
             }
 
-            var dataObj = new NsfRecordData
-            {
-                Type = recordType ?? "general",
-                Title = title,
-                Notes = notes,
-                Fields = new List<NsfRecordFieldData>()
-            };
-
-            if (fields != null)
-            {
-                foreach (var kvp in fields)
-                {
-                    dataObj.Fields.Add(new NsfRecordFieldData
-                    {
-                        Type = kvp.Key,
-                        Value = new[] { kvp.Value }
-                    });
-                }
-            }
-
-            var jsonData = JsonUtils.DumpJson(dataObj, false);
+            var dataObj = BuildNsfRecordData(recordType, title, notes, fields);
+            var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
             var encryptedRecordKey = CryptoUtils.EncryptAesV2(recordKey, encryptionKey);
@@ -369,7 +462,7 @@ namespace KeeperSecurity.Vault
             return recordUid;
         }
 
-        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, string> fields)
+        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(recordUid))
                 throw new VaultException("Record UID cannot be empty");
@@ -400,20 +493,20 @@ namespace KeeperSecurity.Vault
                     var existing = dataObj.Fields.FirstOrDefault(f => f.Type == kvp.Key);
                     if (existing != null)
                     {
-                        existing.Value = new[] { kvp.Value };
+                        existing.Value = ToNsfFieldValues(kvp.Key, kvp.Value);
                     }
                     else
                     {
                         dataObj.Fields.Add(new NsfRecordFieldData
                         {
                             Type = kvp.Key,
-                            Value = new[] { kvp.Value },
+                            Value = ToNsfFieldValues(kvp.Key, kvp.Value),
                         });
                     }
                 }
             }
 
-            var jsonData = JsonUtils.DumpJson(dataObj, false);
+            var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, record.RecordKey);
 
