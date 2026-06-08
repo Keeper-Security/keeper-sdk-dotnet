@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
@@ -20,154 +19,209 @@ namespace KeeperSecurity.Vault
 {
     internal static partial class VaultOnlineFunctions
     {
+        /// <summary>
+        /// Serializes NSF record data to JSON bytes with proper escaping and type handling.
+        /// </summary>
+        /// <param name="data">The record data to serialize.</param>
+        /// <returns>UTF-8 encoded JSON bytes.</returns>
         internal static byte[] SerializeNsfRecordData(NsfRecordData data)
         {
-            var sb = new StringBuilder();
-            sb.Append('{');
-            var first = true;
-            AppendStringProperty(sb, ref first, "type", data.Type);
-            AppendStringProperty(sb, ref first, "title", data.Title);
-            AppendStringProperty(sb, ref first, "name", data.Name);
-            AppendStringProperty(sb, ref first, "notes", data.Notes);
+            return JsonUtils.DumpJson(ToTypedRecord(data).ExtractRecordV3Data(), indent: false);
+        }
 
-            if (data.Fields != null)
+        private static TypedRecord BuildNsfTypedRecord(
+            string recordType,
+            string title,
+            string notes,
+            IDictionary<string, object> fields)
+        {
+            var typedRecord = new TypedRecord(recordType ?? "general")
             {
-                if (!first) sb.Append(',');
-                first = false;
-                AppendJsonString(sb, "fields");
-                sb.Append(":[");
-                var firstField = true;
-                foreach (var f in data.Fields)
+                Title = title,
+                Notes = notes,
+            };
+            AddNsfFieldsToTypedRecord(typedRecord, fields);
+            return typedRecord;
+        }
+
+        private static TypedRecord ToTypedRecord(NsfRecordData data)
+        {
+            if (data == null)
+            {
+                return new TypedRecord("general");
+            }
+
+            var typedRecord = new TypedRecord(data.Type ?? "general")
+            {
+                Title = data.Title ?? data.Name ?? "",
+                Notes = data.Notes,
+            };
+
+            if (data.Fields == null)
+            {
+                return typedRecord;
+            }
+
+            foreach (var field in data.Fields)
+            {
+                if (string.IsNullOrEmpty(field.Type))
                 {
-                    if (!firstField) sb.Append(',');
-                    sb.Append('{');
-                    var firstFieldProp = true;
-                    AppendStringProperty(sb, ref firstFieldProp, "type", f.Type);
-                    if (f.Value != null)
-                    {
-                        if (!firstFieldProp) sb.Append(',');
-                        firstFieldProp = false;
-                        AppendJsonString(sb, "value");
-                        sb.Append(":[");
-                        var firstVal = true;
-                        foreach (var v in f.Value)
-                        {
-                            if (!firstVal) sb.Append(',');
-                            AppendJsonValue(sb, v);
-                            firstVal = false;
-                        }
-                        sb.Append(']');
-                    }
-                    sb.Append('}');
-                    firstField = false;
+                    continue;
                 }
-                sb.Append(']');
-            }
-            sb.Append('}');
-            return Encoding.UTF8.GetBytes(sb.ToString());
-        }
 
-        private static void AppendStringProperty(StringBuilder sb, ref bool first, string name, string value)
-        {
-            if (value == null) return;
-            if (!first) sb.Append(',');
-            AppendJsonString(sb, name);
-            sb.Append(':');
-            AppendJsonString(sb, value);
-            first = false;
-        }
-
-        private static void AppendJsonValue(StringBuilder sb, object value)
-        {
-            if (value == null) { sb.Append("null"); return; }
-            switch (value)
-            {
-                case string s:
-                    AppendJsonString(sb, s);
-                    return;
-                case bool b:
-                    sb.Append(b ? "true" : "false");
-                    return;
-                case sbyte _:
-                case byte _:
-                case short _:
-                case ushort _:
-                case int _:
-                case uint _:
-                case long _:
-                    sb.Append(Convert.ToInt64(value, CultureInfo.InvariantCulture)
-                        .ToString(CultureInfo.InvariantCulture));
-                    return;
-                case ulong u:
-                    sb.Append(u.ToString(CultureInfo.InvariantCulture));
-                    return;
-                case float f:
-                    sb.Append(f.ToString("R", CultureInfo.InvariantCulture));
-                    return;
-                case double d:
-                    sb.Append(d.ToString("R", CultureInfo.InvariantCulture));
-                    return;
-                case decimal m:
-                    sb.Append(m.ToString(CultureInfo.InvariantCulture));
-                    return;
-                case IDictionary dict:
-                    sb.Append('{');
-                    var firstEntry = true;
-                    foreach (DictionaryEntry kvp in dict)
-                    {
-                        if (!firstEntry) sb.Append(',');
-                        AppendJsonString(sb, kvp.Key?.ToString() ?? string.Empty);
-                        sb.Append(':');
-                        AppendJsonValue(sb, kvp.Value);
-                        firstEntry = false;
-                    }
-                    sb.Append('}');
-                    return;
-                case IEnumerable e:
-                    sb.Append('[');
-                    var firstItem = true;
-                    foreach (var item in e)
-                    {
-                        if (!firstItem) sb.Append(',');
-                        AppendJsonValue(sb, item);
-                        firstItem = false;
-                    }
-                    sb.Append(']');
-                    return;
-                default:
-                    AppendJsonString(sb, Convert.ToString(value, CultureInfo.InvariantCulture));
-                    return;
-            }
-        }
-
-        private static void AppendJsonString(StringBuilder sb, string s)
-        {
-            if (s == null) { sb.Append("null"); return; }
-            sb.Append('"');
-            foreach (var ch in s)
-            {
-                switch (ch)
+                try
                 {
-                    case '"':  sb.Append("\\\""); break;
-                    case '\\': sb.Append("\\\\"); break;
-                    case '\b': sb.Append("\\b"); break;
-                    case '\f': sb.Append("\\f"); break;
-                    case '\n': sb.Append("\\n"); break;
-                    case '\r': sb.Append("\\r"); break;
-                    case '\t': sb.Append("\\t"); break;
-                    default:
-                        if (ch < ' ' || ch == '\u2028' || ch == '\u2029')
+                    var typedField = CreateNsfRecordTypeField(field.Type).CreateTypedField();
+                    if (field.Value != null && field.Value.Length > 0)
+                    {
+                        typedField.AssignValueToField(field.Value.Length == 1 ? field.Value[0] : field.Value);
+                    }
+
+                    typedRecord.Fields.Add(typedField);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError($"KeeperNSF: Create field \"{field.Type}\" error: {e.Message}");
+                }
+            }
+
+            return typedRecord;
+        }
+
+        private static void AddNsfFieldsToTypedRecord(TypedRecord typedRecord, IDictionary<string, object> fields)
+        {
+            if (fields == null)
+            {
+                return;
+            }
+
+            foreach (var pair in fields)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var typedField = CreateNsfRecordTypeField(pair.Key).CreateTypedField();
+                    typedField.AssignValueToField(pair.Value);
+                    typedRecord.Fields.Add(typedField);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError($"KeeperNSF: Create field \"{pair.Key}\" error: {e.Message}");
+                }
+            }
+        }
+
+        private static RecordTypeField CreateNsfRecordTypeField(string fieldType)
+        {
+            if (string.IsNullOrEmpty(fieldType))
+            {
+                return new RecordTypeField("text");
+            }
+
+            if (RecordTypesConstants.TryGetRecordField(fieldType, out _))
+            {
+                return new RecordTypeField(fieldType);
+            }
+
+            return new RecordTypeField("text", fieldType);
+        }
+
+        private static void AssignValueToField(this ITypedField field, object value)
+        {
+            if (value is string str && field is ISerializeTypedField serializer)
+            {
+                serializer.ImportTypedField(str);
+                return;
+            }
+
+            foreach (var item in EnumerateImportFieldValues(value))
+            {
+                switch (item)
+                {
+                    case string sv when field is TypedField<string> stringField:
+                        if (!string.IsNullOrEmpty(sv))
                         {
-                            sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
+                            stringField.Values.Add(sv);
+                        }
+
+                        break;
+                    case bool bv when field is TypedField<bool> boolField:
+                        boolField.Values.Add(bv);
+                        break;
+                    case IConvertible convertible when field is TypedField<long> longField:
+                    {
+                        var longValue = convertible.ToInt64(CultureInfo.InvariantCulture);
+                        if (longValue > 0)
+                        {
+                            longField.Values.Add(longValue);
+                        }
+
+                        break;
+                    }
+                    case IDictionary dict:
+                    {
+                        var complexValue = field.AppendValue();
+                        if (complexValue is IFieldTypeSerialize fieldSerializer)
+                        {
+                            foreach (var key in dict.Keys)
+                            {
+                                if (key is not string element)
+                                {
+                                    continue;
+                                }
+
+                                var elementValue = dict[key] is IDictionary nestedDict
+                                    ? System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(nestedDict))
+                                    : dict[key]?.ToString();
+
+                                if (!string.IsNullOrEmpty(elementValue)
+                                    && !fieldSerializer.SetElementValue(element, elementValue))
+                                {
+                                    Trace.TraceWarning(
+                                        $"KeeperNSF field \"{field.FieldName}.{field.FieldLabel}\": unsupported element \"{element}\"");
+                                }
+                            }
                         }
                         else
                         {
-                            sb.Append(ch);
+                            Trace.TraceWarning($"KeeperNSF: unsupported complex field '{field.FieldName}'");
                         }
+
+                        break;
+                    }
+                    default:
+                        Trace.TraceWarning($"KeeperNSF: unsupported value for field '{field.FieldName}'");
                         break;
                 }
             }
-            sb.Append('"');
+        }
+
+        private static IEnumerable<object> EnumerateImportFieldValues(object value)
+        {
+            if (value == null)
+            {
+                yield break;
+            }
+
+            if (value is Array arr)
+            {
+                for (var i = 0; i < arr.Length; i++)
+                {
+                    var element = arr.GetValue(i);
+                    if (element != null)
+                    {
+                        yield return element;
+                    }
+                }
+
+                yield break;
+            }
+
+            yield return value;
         }
 
         public static async Task<string> AddKeeperNSFFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
@@ -464,27 +518,8 @@ namespace KeeperSecurity.Vault
                 keyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByUserKey;
             }
 
-            var dataObj = new NsfRecordData
-            {
-                Type = recordType ?? "general",
-                Title = title,
-                Notes = notes,
-                Fields = new List<NsfRecordFieldData>()
-            };
-
-            if (fields != null)
-            {
-                foreach (var kvp in fields)
-                {
-                    dataObj.Fields.Add(new NsfRecordFieldData
-                    {
-                        Type = kvp.Key,
-                        Value = new[] { kvp.Value }
-                    });
-                }
-            }
-
-            var jsonData = SerializeNsfRecordData(dataObj);
+            var typedRecord = BuildNsfTypedRecord(recordType ?? "general", title, notes, fields);
+            var jsonData = JsonUtils.DumpJson(typedRecord.ExtractRecordV3Data(), indent: false);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
             var encryptedRecordKey = CryptoUtils.EncryptAesV2(recordKey, encryptionKey);

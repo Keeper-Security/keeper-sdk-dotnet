@@ -67,6 +67,58 @@ function Script:Resolve-KeeperNSFFieldValue {
     return $RawValue
 }
 
+function Script:Parse-KeeperNSFFieldSpecs {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [string[]] $FieldSpecs
+    )
+
+    $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    $skipped = New-Object 'System.Collections.Generic.List[string]'
+
+    foreach ($f in $FieldSpecs) {
+        if ([string]::IsNullOrWhiteSpace($f)) { continue }
+
+        $key = $null
+        $val = $null
+        $eqIdx = $f.IndexOf('=')
+        if ($eqIdx -gt 0) {
+            $key = $f.Substring(0, $eqIdx).Trim()
+            $val = $f.Substring($eqIdx + 1).Trim()
+        }
+        else {
+            $colonIdx = $f.IndexOf(':')
+            if ($colonIdx -gt 0) {
+                $key = $f.Substring(0, $colonIdx).Trim()
+                $val = $f.Substring($colonIdx + 1).Trim()
+                if ($val.Length -ge 2 -and $val[0] -eq '"' -and $val[$val.Length - 1] -eq '"') {
+                    $val = $val.Substring(1, $val.Length - 2)
+                }
+                Write-Host "Warning: Field '$f' uses ':' as delimiter; prefer key=value (e.g. ${key}=${val})." -ForegroundColor Yellow
+            }
+        }
+
+        if ([string]::IsNullOrEmpty($key)) {
+            $skipped.Add($f) | Out-Null
+            Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+            continue
+        }
+
+        $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+        if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
+            $resolved = $resolved.PSObject.BaseObject
+        }
+        $fieldDict[$key] = $resolved
+    }
+
+    return [PSCustomObject]@{
+        Dictionary = $fieldDict
+        Skipped    = $skipped
+        ParsedCount = $fieldDict.Count
+    }
+}
+
 function Add-KeeperNSFRecord {
     <#
 	.Synopsis
@@ -132,19 +184,9 @@ function Add-KeeperNSFRecord {
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($Fields) {
-            foreach ($f in $Fields) {
-                $eqIdx = $f.IndexOf('=')
-                if ($eqIdx -gt 0) {
-                    $key = $f.Substring(0, $eqIdx).Trim()
-                    $val = $f.Substring($eqIdx + 1).Trim()
-                    $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
-                    if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
-                        $resolved = $resolved.PSObject.BaseObject
-                    }
-                    $fieldDict[$key] = $resolved
-                } else {
-                    Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
-                }
+            $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            foreach ($key in $parsed.Dictionary.Keys) {
+                $fieldDict[$key] = $parsed.Dictionary[$key]
             }
         }
         if ($GeneratePassword.IsPresent) {
@@ -243,19 +285,13 @@ function Edit-KeeperNSFRecord {
     if ($hasFields -or $GeneratePassword.IsPresent) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($hasFields) {
-            foreach ($f in $Fields) {
-                $eqIdx = $f.IndexOf('=')
-                if ($eqIdx -gt 0) {
-                    $key = $f.Substring(0, $eqIdx).Trim()
-                    $val = $f.Substring($eqIdx + 1).Trim()
-                    $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
-                    if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
-                        $resolved = $resolved.PSObject.BaseObject
-                    }
-                    $fieldDict[$key] = $resolved
-                } else {
-                    Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
-                }
+            $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            foreach ($key in $parsed.Dictionary.Keys) {
+                $fieldDict[$key] = $parsed.Dictionary[$key]
+            }
+            if ($parsed.ParsedCount -eq 0 -and -not $GeneratePassword.IsPresent) {
+                Write-Host "Error: No valid field values were parsed. Use key=value (e.g. login=a12)." -ForegroundColor Red
+                return
             }
         }
         if ($GeneratePassword.IsPresent) {
