@@ -58,312 +58,10 @@ function Get-AccessRoleLabel {
     return 'unknown'
 }
 
-$script:KeeperVaultCategoryClassic = 'Classic'
-$script:KeeperVaultCategoryNestedRecord = 'Nested'
-$script:KeeperVaultCategoryNestedFolder = 'Nested Shared Folder'
-
-function Test-KeeperNSFFolderByIdentifier {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
-    )
-
-    [KeeperSecurity.Vault.FolderNode]$folder = $null
-    if ($Vault.TryGetKeeperNSFFolder($Identifier, [ref]$folder)) {
-        return $folder
-    }
-
-    $match = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Identifier })
-    if ($match.Count -eq 1) { return $match[0] }
-    return $null
-}
-
-function Test-KeeperNSFRecordByIdentifier {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
-    )
-
-    [KeeperSecurity.Vault.KeeperNSFRecord]$record = $null
-    if ($Vault.TryGetKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
-    }
-
-    $titleMatch = @($Vault.KeeperNSFRecordEntries | Where-Object {
-            $_.Title -and $_.Title -ieq $Identifier
-        })
-    if ($titleMatch.Count -eq 1) { return $titleMatch[0] }
-
-    if ($titleMatch.Count -eq 0 -and $Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
-    }
-
-    return $null
-}
-
-function Test-KeeperClassicFolderByIdentifier {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
-    )
-
-    [KeeperSecurity.Vault.FolderNode]$folder = $null
-    if ($Vault.TryGetFolder($Identifier, [ref]$folder)) {
-        return $folder
-    }
-
-    $match = @($Vault.Folders | Where-Object {
-            -not [string]::IsNullOrEmpty($_.FolderUid) -and $_.Name -and $_.Name -ieq $Identifier
-        })
-    if ($match.Count -eq 1) { return $match[0] }
-    return $null
-}
-
-function Test-KeeperClassicRecordByIdentifier {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
-    )
-
-    [KeeperSecurity.Vault.KeeperRecord]$record = $null
-    if ($Vault.TryGetKeeperRecord($Identifier, [ref]$record)) {
-        return $record
-    }
-
-    $match = @($Vault.KeeperRecords | Where-Object {
-            $_.Title -and $_.Title -ieq $Identifier -and ($_.Version -eq 2 -or $_.Version -eq 3)
-        })
-    if ($match.Count -eq 1) { return $match[0] }
-    return $null
-}
-
-function Find-KeeperVaultItemByName {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Name,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
-        [Parameter()][switch] $AllowPartialMatch
-    )
-
-    $nsfFolder = Test-KeeperNSFFolderByIdentifier -Identifier $Name -Vault $Vault
-    if ($nsfFolder) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryNestedFolder
-            ItemType      = 'Folder'
-            NsfFolder     = $nsfFolder
-        }
-    }
-
-    $nsfRecord = Test-KeeperNSFRecordByIdentifier -Identifier $Name -Vault $Vault
-    if ($nsfRecord) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryNestedRecord
-            ItemType      = 'Record'
-            NsfRecord     = $nsfRecord
-        }
-    }
-
-    $classicFolder = Test-KeeperClassicFolderByIdentifier -Identifier $Name -Vault $Vault
-    if ($classicFolder) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryClassic
-            ItemType      = 'Folder'
-            ClassicFolder = $classicFolder
-        }
-    }
-
-    $classicRecord = Test-KeeperClassicRecordByIdentifier -Identifier $Name -Vault $Vault
-    if ($classicRecord) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryClassic
-            ItemType      = 'Record'
-            ClassicRecord = $classicRecord
-        }
-    }
-
-    if (-not $AllowPartialMatch) { return $null }
-
-    $nsfFolderMatches = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ilike "*$Name*" })
-    if ($nsfFolderMatches.Count -gt 1) {
-        Write-Warning "Multiple nested shared folders match '$Name'. Use -Uid or a more specific -Name."
-    }
-    if ($nsfFolderMatches.Count -ge 1) {
-        return [PSCustomObject]@{
-            Category  = $script:KeeperVaultCategoryNestedFolder
-            ItemType  = 'Folder'
-            NsfFolder = $nsfFolderMatches[0]
-        }
-    }
-
-    $nsfRecordMatches = @($Vault.KeeperNSFRecordEntries | Where-Object {
-            ($_.Title -and $_.Title -ilike "*$Name*") -or ($_.RecordUid -ilike "*$Name*")
-        })
-    if ($nsfRecordMatches.Count -gt 1) {
-        Write-Warning "Multiple nested records match '$Name'. Use -Uid or a more specific -Name."
-    }
-    if ($nsfRecordMatches.Count -ge 1) {
-        return [PSCustomObject]@{
-            Category   = $script:KeeperVaultCategoryNestedRecord
-            ItemType   = 'Record'
-            NsfRecord  = $nsfRecordMatches[0]
-        }
-    }
-
-    $classicFolderMatches = @($Vault.Folders | Where-Object {
-            -not [string]::IsNullOrEmpty($_.FolderUid) -and $_.Name -and $_.Name -ilike "*$Name*"
-        })
-    if ($classicFolderMatches.Count -gt 1) {
-        Write-Warning "Multiple classic folders match '$Name'. Use -Uid or a more specific -Name."
-    }
-    if ($classicFolderMatches.Count -ge 1) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryClassic
-            ItemType      = 'Folder'
-            ClassicFolder = $classicFolderMatches[0]
-        }
-    }
-
-    $classicRecordMatches = @($Vault.KeeperRecords | Where-Object {
-            $_.Title -and $_.Title -ilike "*$Name*" -and ($_.Version -eq 2 -or $_.Version -eq 3)
-        })
-    if ($classicRecordMatches.Count -gt 1) {
-        Write-Warning "Multiple classic records match '$Name'. Use -Uid or a more specific -Name."
-    }
-    if ($classicRecordMatches.Count -ge 1) {
-        return [PSCustomObject]@{
-            Category      = $script:KeeperVaultCategoryClassic
-            ItemType      = 'Record'
-            ClassicRecord = $classicRecordMatches[0]
-        }
-    }
-
-    return $null
-}
-
-function Get-KeeperVaultAmbiguousNameMessage {
-    Param(
-        [Parameter(Mandatory = $true)][string] $Name,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
-    )
-
-    $parts = [System.Collections.ArrayList]::new()
-
-    $nsfFolders = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Name })
-    if ($nsfFolders.Count -gt 1) {
-        $parts.Add("$($nsfFolders.Count) nested shared folders") | Out-Null
-    }
-
-    $nsfRecords = @($Vault.KeeperNSFRecordEntries | Where-Object { $_.Title -and $_.Title -ieq $Name })
-    if ($nsfRecords.Count -gt 1) {
-        $parts.Add("$($nsfRecords.Count) nested records") | Out-Null
-    }
-
-    $classicFolders = @($Vault.Folders | Where-Object {
-            -not [string]::IsNullOrEmpty($_.FolderUid) -and $_.Name -and $_.Name -ieq $Name
-        })
-    if ($classicFolders.Count -gt 1) {
-        $parts.Add("$($classicFolders.Count) classic folders") | Out-Null
-    }
-
-    $classicRecords = @($Vault.KeeperRecords | Where-Object {
-            $_.Title -and $_.Title -ieq $Name -and ($_.Version -eq 2 -or $_.Version -eq 3)
-        })
-    if ($classicRecords.Count -gt 1) {
-        $parts.Add("$($classicRecords.Count) classic records") | Out-Null
-    }
-
-    if ($parts.Count -eq 0) { return $null }
-    return "Multiple vault items named '$Name' ($($parts -join '; ')). Use -Uid to specify the correct one."
-}
-
-function Resolve-KeeperVaultItem {
-    Param(
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
-        [string] $Uid,
-        [string] $Name,
-        [Parameter()][switch] $AllowPartialMatch
-    )
-
-    if ($Uid) {
-        $nsfFolder = Test-KeeperNSFFolderByIdentifier -Identifier $Uid -Vault $Vault
-        if ($nsfFolder) {
-            return [PSCustomObject]@{
-                Category  = $script:KeeperVaultCategoryNestedFolder
-                ItemType  = 'Folder'
-                NsfFolder = $nsfFolder
-            }
-        }
-
-        $nsfRecord = Test-KeeperNSFRecordByIdentifier -Identifier $Uid -Vault $Vault
-        if ($nsfRecord) {
-            return [PSCustomObject]@{
-                Category   = $script:KeeperVaultCategoryNestedRecord
-                ItemType   = 'Record'
-                NsfRecord  = $nsfRecord
-            }
-        }
-
-        $classicFolder = Test-KeeperClassicFolderByIdentifier -Identifier $Uid -Vault $Vault
-        if ($classicFolder) {
-            return [PSCustomObject]@{
-                Category      = $script:KeeperVaultCategoryClassic
-                ItemType      = 'Folder'
-                ClassicFolder = $classicFolder
-            }
-        }
-
-        $classicRecord = Test-KeeperClassicRecordByIdentifier -Identifier $Uid -Vault $Vault
-        if ($classicRecord) {
-            return [PSCustomObject]@{
-                Category      = $script:KeeperVaultCategoryClassic
-                ItemType      = 'Record'
-                ClassicRecord = $classicRecord
-            }
-        }
-
-        return $null
-    }
-
-    if ($Name) {
-        return Find-KeeperVaultItemByName -Name $Name -Vault $Vault -AllowPartialMatch:$AllowPartialMatch
-    }
-
-    return $null
-}
-
-function New-KeeperVaultListRow {
-    Param(
-        [string] $ItemType,
-        [string] $Uid,
-        [string] $Title,
-        [string] $Type,
-        [string] $Category,
-        [string] $Description,
-        [string] $Parent = ''
-    )
-
-    return [PSCustomObject]@{
-        ItemType    = $ItemType
-        UID         = $Uid
-        Title       = $Title
-        Type        = $Type
-        Category    = $Category
-        Description = $Description
-        Parent      = $Parent
-    }
-}
-
 function Get-KdRecordTypeAndTitle {
     Param($record)
 
-    $dataFields = $null
-    if ($record -and $record.DecryptedData) {
-        try { $dataFields = $record.DecryptedData | ConvertFrom-Json } catch { }
-    }
-
-    if ($dataFields -and $dataFields.type) {
-        $recordType = $dataFields.type
-    }
-    elseif ($record -and $record.Type) {
+    if ($record -and $record.Type) {
         $recordType = $record.Type
     }
     elseif ($record -and $record.Version -eq 4) {
@@ -376,15 +74,12 @@ function Get-KdRecordTypeAndTitle {
         $recordType = 'Unknown'
     }
 
-    $title = ''
-    if ($record -and $record.Title) { $title = $record.Title }
-    elseif ($dataFields -and $dataFields.title) { $title = $dataFields.title }
-    elseif ($dataFields -and $dataFields.name) { $title = $dataFields.name }
+    $title = if ($record -and $record.Title) { $record.Title } else { '' }
 
     return [PSCustomObject]@{
         Type   = $recordType
         Title  = $title
-        Fields = $dataFields
+        Fields = if ($record) { $record.Fields } else { $null }
     }
 }
 
@@ -471,12 +166,11 @@ New-Alias -Name nsf-records -Value Get-KeeperNSFRecordList
 function Get-KeeperNSFList {
     <#
 	.Synopsis
-	Lists classic vault and nested shared folder (NSF) folders and records.
+	Lists all Keeper NSF folders and records.
 
 	.Description
-	Displays classic and nested shared folder items with a Category column:
-	Classic, Nested (records), or Nested Shared Folder (folders).
-	Supports table, csv, and json output formats. Use -Folders or -Records to filter.
+	Displays Keeper NSF folders and records. Supports table, csv, and json output formats.
+	Use -Folders or -Records to show only folders or records.
 
 	.Parameter Folders
 	Show only folders.
@@ -520,54 +214,33 @@ function Get-KeeperNSFList {
 
     if ($showFolders) {
         foreach ($folder in $vault.KeeperNSFFolderNodes) {
-            $combined.Add((New-KeeperVaultListRow `
-                -ItemType 'Folder' `
-                -Uid $folder.FolderUid `
-                -Title $(if ($folder.Name) { $folder.Name } else { '' }) `
-                -Type 'folder' `
-                -Category $script:KeeperVaultCategoryNestedFolder `
-                -Description "Subfolders: $($folder.Subfolders.Count), Records: $($folder.Records.Count)" `
-                -Parent $(if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }))) | Out-Null
-        }
-        foreach ($folder in $vault.Folders) {
-            if ([string]::IsNullOrEmpty($folder.FolderUid)) { continue }
-            $combined.Add((New-KeeperVaultListRow `
-                -ItemType 'Folder' `
-                -Uid $folder.FolderUid `
-                -Title $(if ($folder.Name) { $folder.Name } else { '' }) `
-                -Type ([string]$folder.FolderType) `
-                -Category $script:KeeperVaultCategoryClassic `
-                -Description "Subfolders: $($folder.Subfolders.Count), Records: $($folder.Records.Count)" `
-                -Parent $(if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }))) | Out-Null
+            $combined.Add(@{
+                ItemType    = 'Folder'
+                UID         = $folder.FolderUid
+                Title       = if ($folder.Name) { $folder.Name } else { '' }
+                Type        = 'folder'
+                Description = "Subfolders: $($folder.Subfolders.Count), Records: $($folder.Records.Count)"
+                Parent      = if ($folder.ParentUid) { $folder.ParentUid } else { '(root)' }
+            }) | Out-Null
         }
     }
 
     if ($showRecords) {
         foreach ($record in $vault.KeeperNSFRecordEntries) {
             $meta = Get-KdRecordTypeAndTitle $record
-            $combined.Add((New-KeeperVaultListRow `
-                -ItemType 'Record' `
-                -Uid $record.RecordUid `
-                -Title $meta.Title `
-                -Type $meta.Type `
-                -Category $script:KeeperVaultCategoryNestedRecord `
-                -Description "Rev: $($record.Revision), Shared: $($record.Shared)")) | Out-Null
-        }
-        foreach ($record in $vault.KeeperRecords) {
-            if ($record.Version -ne 2 -and $record.Version -ne 3) { continue }
-            $recType = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
-            $combined.Add((New-KeeperVaultListRow `
-                -ItemType 'Record' `
-                -Uid $record.Uid `
-                -Title $(if ($record.Title) { $record.Title } else { '' }) `
-                -Type $recType `
-                -Category $script:KeeperVaultCategoryClassic `
-                -Description "Version: $($record.Version), Shared: $($record.Shared)")) | Out-Null
+            $combined.Add(@{
+                ItemType    = 'Record'
+                UID         = $record.RecordUid
+                Title       = $meta.Title
+                Type        = $meta.Type
+                Description = "Rev: $($record.Revision), Shared: $($record.Shared)"
+                Parent      = ''
+            }) | Out-Null
         }
     }
 
     if ($combined.Count -eq 0) {
-        Write-Host "No vault folders or records found. Run Sync-Keeper to refresh." -ForegroundColor DarkYellow
+        Write-Host "No Keeper NSF data found. Run Sync-Keeper to refresh." -ForegroundColor DarkYellow
         return
     }
 
@@ -578,7 +251,6 @@ function Get-KeeperNSFList {
                 uid         = $_.UID
                 title       = $_.Title
                 type        = $_.Type
-                category    = $_.Category
                 description = $_.Description
                 parent      = $_.Parent
             }
@@ -594,7 +266,16 @@ function Get-KeeperNSFList {
     }
 
     if ($Format -eq 'csv') {
-        $csvData = $combined | Select-Object ItemType, UID, Title, Type, Category, Description, Parent
+        $csvData = $combined | ForEach-Object {
+            [PSCustomObject]@{
+                ItemType    = $_.ItemType
+                UID         = $_.UID
+                Title       = $_.Title
+                Type        = $_.Type
+                Description = $_.Description
+                Parent      = $_.Parent
+            }
+        }
         if ($Output) {
             $csvData | Export-Csv -Path $Output -NoTypeInformation -Encoding utf8
             Write-Host "CSV output written to '$Output' ($($combined.Count) items)." -ForegroundColor Green
@@ -606,63 +287,40 @@ function Get-KeeperNSFList {
 
     $folderCount = @($combined | Where-Object { $_.ItemType -eq 'Folder' }).Count
     $recordCount = @($combined | Where-Object { $_.ItemType -eq 'Record' }).Count
-    $nestedCount = @($combined | Where-Object {
-            $_.Category -eq $script:KeeperVaultCategoryNestedFolder `
-                -or $_.Category -eq $script:KeeperVaultCategoryNestedRecord
-        }).Count
-    $classicCount = @($combined | Where-Object { $_.Category -eq $script:KeeperVaultCategoryClassic }).Count
-    $vaultNestedFolders = $vault.KeeperNSFFolderCount
-    $vaultNestedRecords = $vault.KeeperNSFRecordCount
 
     Write-Host ""
-    Write-Host "=== Vault Summary (Classic + Nested Shared) ===" -ForegroundColor Cyan
-    Write-Host "  Listed folders: $folderCount, records: $recordCount"
-    Write-Host "  Listed by category — Classic: $classicCount, Nested: $nestedCount"
-    Write-Host "  Nested shared store (KeeperDrive sync) — folders: $vaultNestedFolders, records: $vaultNestedRecords" -ForegroundColor DarkGray
-    if ($vaultNestedFolders -eq 0 -and $vaultNestedRecords -eq 0) {
-        Write-Host "  Tip: Create nested data with nsf-mkdir / nsf-record-add, then Sync-Keeper." -ForegroundColor DarkYellow
-    }
+    Write-Host "=== Keeper NSF Summary ===" -ForegroundColor Cyan
+    Write-Host "  Folders: $folderCount"
+    Write-Host "  Records: $recordCount"
     Write-Host ""
 
-    $tableRows = $combined | Select-Object ItemType, UID, Title, Type, Category, @{
-        Name = 'Summary'
-        Expression = {
-            $d = $_.Description
-            if ($d.Length -gt 42) { $d.Substring(0, 39) + '...' } else { $d }
-        }
-    }, Parent
+    if ($showFolders -and $folderCount -gt 0) {
+        Write-Host "--- Folders ---" -ForegroundColor Yellow
+        Get-KeeperNSFFolderList
+    }
 
-    if ($showFolders -and $showRecords) {
-        $tableRows | Format-Table -AutoSize
+    if ($showRecords -and $recordCount -gt 0) {
+        Write-Host "--- Records ---" -ForegroundColor Yellow
+        Get-KeeperNSFRecordList
     }
-    elseif ($showFolders) {
-        $tableRows | Where-Object { $_.ItemType -eq 'Folder' } | Format-Table -AutoSize
-    }
-    else {
-        $tableRows | Where-Object { $_.ItemType -eq 'Record' } | Format-Table -AutoSize
-    }
-    Write-Host "Full Description/Parent: use nsf-list -Format json or -Format csv" -ForegroundColor DarkGray
 }
 New-Alias -Name nsf-list -Value Get-KeeperNSFList
 
 function Get-KeeperNSFRecord {
     <#
 	.Synopsis
-	Get detailed information about a classic or nested shared folder/record.
+	Get detailed information about a Keeper NSF record or folder.
 
 	.Description
-	Retrieves metadata, permissions, and share administrators by UID or name.
-	Category is Classic, Nested (record), or Nested Shared Folder (folder).
+	Retrieves and displays detailed information about a specific Keeper NSF record or folder by UID or name.
+	Shows metadata, user permissions, and share administrators.
 	Similar to Commander's 'nsf-get' command.
 
 	.Parameter Uid
 	Record or folder UID to look up.
 
 	.Parameter Name
-	Record or folder name to search for (case-insensitive exact match).
-
-	.Parameter Partial
-	Allow substring name matching when no exact match is found (first match wins).
+	Record or folder name to search for (case-insensitive).
 
 	.Parameter Format
 	Output format: detail (default) or json.
@@ -671,9 +329,6 @@ function Get-KeeperNSFRecord {
     Param (
         [string] $Uid,
         [string] $Name,
-
-        [Parameter()]
-        [switch] $Partial,
 
         [Parameter()]
         [ValidateSet('detail', 'json')]
@@ -690,133 +345,72 @@ function Get-KeeperNSFRecord {
         Write-Host "Please provide either -Uid or -Name parameter." -ForegroundColor Red
         return
     }
-
-    if ($Uid -and $Name) {
-        Write-Warning "Both -Uid and -Name were provided; using -Uid only."
-    }
-
+  
     $storage = $vault.Storage
     $currentAccountUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($vault.Auth.AuthContext.AccountUid)
 
-    $resolved = Resolve-KeeperVaultItem -Vault $vault -Uid $Uid -Name $Name -AllowPartialMatch:$Partial.IsPresent
-    if (-not $resolved) {
-        if ($Name -and -not $Uid) {
-            $ambiguous = Get-KeeperVaultAmbiguousNameMessage -Name $Name -Vault $vault
-            if ($ambiguous) {
-                Write-Host $ambiguous -ForegroundColor Red
-                return
+    $kdRecord = $null
+    $kdFolder = $null
+
+    if ($Uid) {
+        [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
+        if ($vault.TryGetKeeperNSFFolder($Uid, [ref]$tmpFolder)) {
+            $kdFolder = $tmpFolder
+        }
+        else {
+            [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
+            if ($vault.TryGetKeeperNSFRecord($Uid, [ref]$tmpRecord)) {
+                $kdRecord = $tmpRecord
             }
         }
-        $id = if ($Uid) { $Uid } else { $Name }
-        Write-Host "Vault item with identifier '$id' not found or not accessible." -ForegroundColor Red
-        if ($Name -and -not $Partial.IsPresent) {
-            Write-Host "Tip: use -Partial for substring name matching, or -Uid from nsf-list." -ForegroundColor DarkYellow
+    }
+    elseif ($Name) {
+        foreach ($f in $vault.KeeperNSFFolderNodes) {
+            if ($f.Name -and $f.Name -ieq $Name) { $kdFolder = $f; break }
         }
+        if (-not $kdFolder) {
+            foreach ($r in $vault.KeeperNSFRecordEntries) {
+                if ($r.Title -and $r.Title -ieq $Name) { $kdRecord = $r; break }
+            }
+        }
+        if (-not $kdFolder -and -not $kdRecord) {
+            foreach ($f in $vault.KeeperNSFFolderNodes) {
+                if ($f.Name -and $f.Name -ilike "*$Name*") { $kdFolder = $f; break }
+            }
+        }
+        if (-not $kdFolder -and -not $kdRecord) {
+            foreach ($r in $vault.KeeperNSFRecordEntries) {
+                if ($r.Title -and $r.Title -ilike "*$Name*") { $kdRecord = $r; break }
+            }
+        }
+    }
+
+    if (-not $kdRecord -and -not $kdFolder) {
+        $id = if ($Uid) { $Uid } else { $Name }
+        Write-Host "Keeper NSF object with identifier '$id' not found." -ForegroundColor Red
         return
     }
 
     if ($Format -eq 'json') {
-        if ($resolved.NsfRecord) {
-            $jsonObj = Build-KdRecordJson $vault $storage $resolved.NsfRecord $currentAccountUid $resolved.Category
-        }
-        elseif ($resolved.NsfFolder) {
-            $jsonObj = Build-KdFolderJson $vault $storage $resolved.NsfFolder $currentAccountUid $resolved.Category
-        }
-        elseif ($resolved.ClassicRecord) {
-            $jsonObj = Build-ClassicRecordJson $resolved.ClassicRecord
-        }
-        else {
-            $jsonObj = Build-ClassicFolderJson $vault $resolved.ClassicFolder
+        if ($kdRecord) {
+            $jsonObj = Build-KdRecordJson $vault $storage $kdRecord $currentAccountUid
+        } else {
+            $jsonObj = Build-KdFolderJson $vault $storage $kdFolder $currentAccountUid
         }
         $jsonObj | ConvertTo-Json -Depth 5
         return
     }
 
-    if ($resolved.NsfRecord) {
-        Show-KdRecordDetail $vault $storage $resolved.NsfRecord $currentAccountUid $resolved.Category
-    }
-    elseif ($resolved.NsfFolder) {
-        Show-KdFolderDetail $vault $storage $resolved.NsfFolder $currentAccountUid $resolved.Category
-    }
-    elseif ($resolved.ClassicRecord) {
-        Show-ClassicRecordDetail $resolved.ClassicRecord $resolved.Category
+    if ($kdRecord) {
+        Show-KdRecordDetail $vault $storage $kdRecord $currentAccountUid
     }
     else {
-        Show-ClassicFolderDetail $vault $resolved.ClassicFolder $resolved.Category
-    }
-}
-
-function Show-ClassicRecordDetail {
-    Param(
-        [KeeperSecurity.Vault.KeeperRecord] $Record,
-        [string] $Category = $script:KeeperVaultCategoryClassic
-    )
-
-    $recordType = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($Record)
-    Write-Host ""
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "UID", $Record.Uid)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Category", $Category)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $Record.Title)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Version", $Record.Version)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Shared", $(if ($Record.Shared) { 'Yes' } else { 'No' }))
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Owner", $(if ($Record.Owner) { 'Yes' } else { 'No' }))
-    Write-Host ""
-}
-
-function Show-ClassicFolderDetail {
-    Param(
-        $Vault,
-        [KeeperSecurity.Vault.FolderNode] $Folder,
-        [string] $Category = $script:KeeperVaultCategoryClassic
-    )
-
-    $path = getVaultFolderPath $Vault $Folder.FolderUid
-    Write-Host ""
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder UID", $Folder.FolderUid)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Name", $Folder.Name)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder Type", $Folder.FolderType)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Category", $Category)
-    if ($Folder.ParentUid) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Parent Folder UID", $Folder.ParentUid)
-    }
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Full Path", $path)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Subfolders", $Folder.Subfolders.Count)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Records", $Folder.Records.Count)
-    Write-Host ""
-}
-
-function Build-ClassicRecordJson {
-    Param([KeeperSecurity.Vault.KeeperRecord] $Record)
-
-    return [ordered]@{
-        uid      = $Record.Uid
-        type     = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($Record)
-        category = $script:KeeperVaultCategoryClassic
-        title    = $Record.Title
-        version  = $Record.Version
-        shared   = [bool]$Record.Shared
-        owner    = [bool]$Record.Owner
-    }
-}
-
-function Build-ClassicFolderJson {
-    Param($Vault, [KeeperSecurity.Vault.FolderNode] $Folder)
-
-    return [ordered]@{
-        uid         = $Folder.FolderUid
-        name        = $Folder.Name
-        folder_type = [string]$Folder.FolderType
-        category    = $script:KeeperVaultCategoryClassic
-        parent      = if ($Folder.ParentUid) { $Folder.ParentUid } else { $null }
-        full_path   = getVaultFolderPath $Vault $Folder.FolderUid
-        subfolders  = $Folder.Subfolders.Count
-        records     = $Folder.Records.Count
+        Show-KdFolderDetail $vault $storage $kdFolder $currentAccountUid
     }
 }
 
 function Show-KdRecordDetail {
-    Param($vault, $storage, $record, $currentAccountUid, [string] $Category = $script:KeeperVaultCategoryNestedRecord)
+    Param($vault, $storage, $record, $currentAccountUid)
 
     $meta = Get-KdRecordTypeAndTitle $record
     $dataFields = $meta.Fields
@@ -826,7 +420,6 @@ function Show-KdRecordDetail {
     Write-Host ""
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "UID", $record.RecordUid)
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Category", $Category)
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $title)
 
     if ($dataFields -and $dataFields.name -and $dataFields.name -ne $title) {
@@ -889,12 +482,11 @@ function Show-KdRecordDetail {
 }
 
 function Show-KdFolderDetail {
-    Param($vault, $storage, $folder, $currentAccountUid, [string] $Category = $script:KeeperVaultCategoryNestedFolder)
+    Param($vault, $storage, $folder, $currentAccountUid)
 
     Write-Host ""
     Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Nested Share Folder UID", $folder.FolderUid)
     Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Name", $folder.Name)
-    Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Category", $Category)
 
     Write-Host ""
 
@@ -1075,7 +667,7 @@ function Show-KdPermissions {
 }
 
 function Build-KdRecordJson {
-    Param($vault, $storage, $record, $currentAccountUid, [string] $Category = $script:KeeperVaultCategoryNestedRecord)
+    Param($vault, $storage, $record, $currentAccountUid)
 
     $meta = Get-KdRecordTypeAndTitle $record
     $recordType = $meta.Type
@@ -1095,10 +687,9 @@ function Build-KdRecordJson {
     }
 
     return [ordered]@{
-        uid            = $record.RecordUid
-        type           = $recordType
-        category       = $Category
-        title          = $title
+        uid         = $record.RecordUid
+        type        = $recordType
+        title       = $title
         file_size   = $record.FileSize
         thumbnail_size = $record.ThumbnailSize
         version     = $record.Version
@@ -1109,7 +700,7 @@ function Build-KdRecordJson {
 }
 
 function Build-KdFolderJson {
-    Param($vault, $storage, $folder, $currentAccountUid, [string] $Category = $script:KeeperVaultCategoryNestedFolder)
+    Param($vault, $storage, $folder, $currentAccountUid)
 
     $permissions = [System.Collections.ArrayList]::new()
     try {
@@ -1141,7 +732,6 @@ function Build-KdFolderJson {
     return [ordered]@{
         uid         = $folder.FolderUid
         name        = $folder.Name
-        category    = $Category
         parent      = if ($folder.ParentUid) { $folder.ParentUid } else { $null }
         subfolders  = $folder.Subfolders.Count
         records     = $folder.Records.Count

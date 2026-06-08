@@ -96,19 +96,54 @@ function Remove-KeeperFolder {
 }
 New-Alias -Name krmdir -Value Remove-KeeperFolder
 
+function tryResolveKeeperFolder {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter()][switch] $SupportPaths
+    )
+
+    [KeeperSecurity.Vault.FolderNode]$folder = $null
+
+    if ($Vault.TryGetFolder($Identifier, [ref]$folder)) {
+        return $folder
+    }
+
+    if ($SupportPaths.IsPresent) {
+        [KeeperSecurity.Vault.FolderNode]$currentDir = $null
+        if (-not $Vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentDir)) {
+            $currentDir = $Vault.RootFolder
+        }
+
+        $components = splitKeeperPath $Identifier
+        $rs = parseKeeperPath $components $Vault $currentDir
+        if ($rs -is [array] -and -not $rs[1]) {
+            return $rs[0]
+        }
+    }
+
+    $objs = @(Get-KeeperChildItem -ObjectType Folder -Recursive | Where-Object Name -eq $Identifier)
+    if ($objs.Count -eq 0) {
+        return $null
+    }
+    if ($objs.Count -gt 1) {
+        Write-Error -Message "There are more than one folders with name `"$Identifier`". Use Folder UID$(if ($SupportPaths.IsPresent) { ' or full path' }) to specify the correct one using UID" -ErrorAction Stop
+    }
+
+    $folderUid = $objs[0].Uid
+    if ($Vault.TryGetFolder($folderUid, [ref]$folder)) {
+        return $folder
+    }
+
+    return $null
+}
+
 function resolveKeeperFolder {
     <#
     .Synopsis
-    Internal helper function to resolve a folder by UID, name, or path
-
-    .Parameter Identifier
-    Folder UID, Name, or Path
-
-    .Parameter Vault
-    VaultOnline instance
-
-    .Parameter SupportPaths
-    Whether to support path resolution (e.g., /Shared Folder/SubFolder)
+    Internal helper function to resolve a classic folder by UID, name, or path.
+    Throws if the identifier is a nested shared folder (use NSF cmdlets) or not found.
     #>
     [CmdletBinding()]
     Param (
@@ -117,38 +152,16 @@ function resolveKeeperFolder {
         [Parameter()][switch] $SupportPaths
     )
 
-    $folder = $null
-    
-    if ($Vault.TryGetFolder($Identifier, [ref]$folder)) {
+    $folder = tryResolveKeeperFolder -Identifier $Identifier -Vault $Vault -SupportPaths:$SupportPaths
+    if ($folder) {
         return $folder
     }
-    
-    if ($SupportPaths.IsPresent) {
-        [KeeperSecurity.Vault.FolderNode]$currentDir = $null
-        if (-not $Vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentDir)) {
-            $currentDir = $Vault.RootFolder
-        }
-        
-        $components = splitKeeperPath $Identifier
-        $rs = parseKeeperPath $components $Vault $currentDir
-        if ($rs -is [array] -and -not $rs[1]) {
-            return $rs[0]
-        }
+
+    $nsfFolder = resolveKeeperNSFFolder -Identifier $Identifier -Vault $Vault
+    if ($nsfFolder) {
+        Write-Error -Message "The specified identifier `"$Identifier`" corresponds to a Nested Shared Folder. Use Set-KeeperNSFFolder (nsf-rndir) to edit Nested Shared Folders." -ErrorAction Stop
     }
-    
-    $objs = Get-KeeperChildItem -ObjectType Folder -Recursive | Where-Object Name -eq $Identifier
-    if (-not $objs) {
-        Write-Error -Message "Folder `"$Identifier`" does not exist" -ErrorAction Stop
-    }
-    if ($objs -is [array] -and $objs.Length -gt 1) {
-        Write-Error -Message "There are more than one folders with name `"$Identifier`". Use Folder UID$(if ($SupportPaths.IsPresent) {' or full path'}) to specify the correct one using UID" -ErrorAction Stop
-    }
-    
-    $folderUid = if ($objs -is [array]) { $objs[0].Uid } else { $objs.Uid }
-    if ($Vault.TryGetFolder($folderUid, [ref]$folder)) {
-        return $folder
-    }
-    
+
     Write-Error -Message "Folder `"$Identifier`" not found or not accessible" -ErrorAction Stop
 }
 
@@ -176,6 +189,9 @@ function Get-KeeperFolders {
 	.Parameter AsObject
 	Return the folders as objects instead of displaying formatted information
 
+	.Parameter ClassicOnly
+	Exclude nested shared (NSF) folders from KeeperDrive sync.
+
 	.Example
 	Get-KeeperFolders
 	Lists all folders in the vault
@@ -199,13 +215,31 @@ function Get-KeeperFolders {
         [Parameter()][ValidateSet('All', 'User', 'Shared')]
         [string] $Type = 'All',
         [Parameter()][switch] $IncludeRoot,
-        [Parameter()][switch] $AsObject
+        [Parameter()][switch] $AsObject,
+        [Parameter()][switch] $ClassicOnly
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     $folders = @()
-    
+
+    if (-not $ClassicOnly.IsPresent -and $Type -eq 'All') {
+        foreach ($nsfFolder in $vault.KeeperNSFFolderNodes) {
+            if ($Filter -and -not ($nsfFolder.Name -like $Filter)) { continue }
+            $folders += [PSCustomObject]@{
+                FolderUid       = $nsfFolder.FolderUid
+                Name            = $nsfFolder.Name
+                FolderType      = 'folder'
+                Category        = 'Nested Shared Folder'
+                ParentUid       = $nsfFolder.ParentUid
+                SharedFolderUid = $null
+                SubfolderCount  = $nsfFolder.Subfolders.Count
+                RecordCount     = $nsfFolder.Records.Count
+                Path            = $null
+            }
+        }
+    }
+
     foreach ($folder in $vault.Folders) {
         if ([string]::IsNullOrEmpty($folder.FolderUid) -and -not $IncludeRoot.IsPresent) {
             continue
@@ -230,17 +264,18 @@ function Get-KeeperFolders {
         }
         
         $folderInfo = [PSCustomObject]@{
-            FolderUid     = $folder.FolderUid
-            Name          = $folder.Name
-            FolderType    = $folder.FolderType.ToString()
-            ParentUid     = $folder.ParentUid
+            FolderUid       = $folder.FolderUid
+            Name            = $folder.Name
+            FolderType      = $folder.FolderType.ToString()
+            Category        = 'Classic'
+            ParentUid       = $folder.ParentUid
             SharedFolderUid = $folder.SharedFolderUid
-            SubfolderCount = $folder.Subfolders.Count
-            RecordCount   = $folder.Records.Count
-            Path          = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { 
-                getVaultFolderPath $vault $folder.FolderUid 
-            } else { 
-                $null 
+            SubfolderCount  = $folder.Subfolders.Count
+            RecordCount     = $folder.Records.Count
+            Path            = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+                getVaultFolderPath $vault $folder.FolderUid
+            } else {
+                $null
             }
         }
         
@@ -267,6 +302,7 @@ function Get-KeeperFolders {
             @{Label='UID'; Expression={$_.FolderUid}; Width=25},
             @{Label='Name'; Expression={$_.Name}; Width=30},
             @{Label='Type'; Expression={$_.FolderType}; Width=20},
+            @{Label='Category'; Expression={$_.Category}; Width=22},
             @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
             @{Label='Records'; Expression={$_.RecordCount}; Width=8; Align='Right'},
             @{Label='Path'; Expression={$_.Path}}
@@ -274,8 +310,9 @@ function Get-KeeperFolders {
     } else {
         $folders | Format-Table -Property @(
             @{Label='UID'; Expression={$_.FolderUid}; Width=25},
-            @{Label='Name'; Expression={$_.Name}; Width=35},
+            @{Label='Name'; Expression={$_.Name}; Width=30},
             @{Label='Type'; Expression={$_.FolderType}; Width=20},
+            @{Label='Category'; Expression={$_.Category}; Width=22},
             @{Label='Subfolders'; Expression={$_.SubfolderCount}; Width=10; Align='Right'},
             @{Label='Records'; Expression={$_.RecordCount}; Width=8; Align='Right'}
         ) -AutoSize
@@ -304,8 +341,17 @@ function Get-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    
-    $folder = resolveKeeperFolder -Identifier $Uid -Vault $vault -SupportPaths
+
+    $folder = tryResolveKeeperFolder -Identifier $Uid -Vault $vault -SupportPaths
+    if (-not $folder) {
+        $nsfFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
+        if ($nsfFolder) {
+            if ($AsObject.IsPresent) { return $nsfFolder }
+            Get-KeeperNSFRecord -Uid $Uid
+            return
+        }
+        Write-Error -Message "Folder `"$Uid`" not found or not accessible" -ErrorAction Stop
+    }
 
     if ($AsObject.IsPresent) {
         return $folder
