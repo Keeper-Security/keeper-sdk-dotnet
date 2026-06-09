@@ -113,6 +113,22 @@ namespace KeeperSecurity.Vault
             _recordStorage.Clear();
             _userEmailStorage.Clear();
             _breachWatchRecordStorage.Clear();
+             ClearKeeperNSF();
+        }
+
+        /// <inheritdoc/>
+        public void ClearKeeperNSF()
+        {
+            _kdFolderStorage.Clear();
+            _kdFolderKeyStorage.Clear();
+            _kdRecordStorage.Clear();
+            _kdRecordKeyStorage.Clear();
+            _kdFolderRecordStorage.Clear();
+            _kdFolderAccessStorage.Clear();
+            _kdRecordAccessStorage.Clear();
+            _kdRecordLinkStorage.Clear();
+            _kdFolderSharingStateStorage.Clear();
+            _kdRecordSharingStateStorage.Clear();
         }
     }
 }
