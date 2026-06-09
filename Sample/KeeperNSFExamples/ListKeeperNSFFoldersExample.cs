@@ -5,7 +5,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class ListKeeperNSFFolders
+    public static class ListKeeperNSFFoldersExample
     {
         public static async Task ListAll(VaultOnline vault = null)
         {

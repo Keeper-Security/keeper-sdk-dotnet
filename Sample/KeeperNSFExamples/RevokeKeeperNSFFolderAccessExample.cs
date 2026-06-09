@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class RevokeKeeperNSFFolderAccess
+    public static class RevokeKeeperNSFFolderAccessExample
     {
         public static async Task Revoke(VaultOnline vault, string folderUid, string userEmail)
         {

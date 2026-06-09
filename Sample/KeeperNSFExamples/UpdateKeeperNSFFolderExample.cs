@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class UpdateKeeperNSFFolder
+    public static class UpdateKeeperNSFFolderExample
     {
         public static async Task RenameOrRecolor(
             VaultOnline vault,

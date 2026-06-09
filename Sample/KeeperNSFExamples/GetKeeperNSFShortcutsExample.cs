@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class GetKeeperNSFShortcuts
+    public static class GetKeeperNSFShortcutsExample
     {
         public static async Task ListShortcuts(
             VaultOnline vault = null,

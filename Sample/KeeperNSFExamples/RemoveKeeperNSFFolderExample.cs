@@ -5,7 +5,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class RemoveKeeperNSFFolder
+    public static class RemoveKeeperNSFFolderExample
     {
         /// <summary>
         /// Previews or removes a Keeper NSF folder. Set <paramref name="dryRun"/> to false only after reviewing the preview.

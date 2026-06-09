@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class ShareKeeperNSFRecord
+    public static class ShareKeeperNSFRecordExample
     {
         public static async Task Share(
             VaultOnline vault,

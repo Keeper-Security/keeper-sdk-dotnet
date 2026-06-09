@@ -5,28 +5,42 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class CreateKeeperNSFRecord
+    public static class CreateKeeperNSFRecordExample
     {
         public static async Task Create(
             VaultOnline vault,
             string title,
-            string recordType = "general",
+            string recordType = "login",
             string folderUid = null,
             string notes = null,
-            IDictionary<string, string> fields = null)
+            IDictionary<string, object> fields = null)
         {
             vault = await AuthenticateAndGetVault.ResolveVaultAsync(vault);
             if (vault == null) return;
 
             try
             {
-                var recordUid = await vault.CreateKeeperNSFRecord(title, recordType, folderUid, notes, fields);
+                var recordUid = await vault.CreateKeeperNSFRecord(
+                    title, recordType, folderUid, notes, ToStringFields(fields));
                 Console.WriteLine($"Keeper NSF record '{title}' created (UID: {recordUid}).");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating Keeper NSF record: {ex.Message}");
             }
+        }
+
+        private static IDictionary<string, string> ToStringFields(IDictionary<string, object> fields)
+        {
+            if (fields == null) return null;
+
+            var result = new Dictionary<string, string>();
+            foreach (var kvp in fields)
+            {
+                result[kvp.Key] = kvp.Value?.ToString();
+            }
+
+            return result;
         }
     }
 }

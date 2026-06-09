@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class UpdateKeeperNSFRecordPermissions
+    public static class UpdateKeeperNSFRecordPermissionsExample
     {
         /// <param name="action">grant or revoke</param>
         /// <param name="role">Required when action is grant (e.g. viewer, content-manager)</param>

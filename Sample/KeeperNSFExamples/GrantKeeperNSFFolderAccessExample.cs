@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class GrantKeeperNSFFolderAccess
+    public static class GrantKeeperNSFFolderAccessExample
     {
         /// <param name="role">viewer, shared-manager, content-manager, content-share-manager, or full-manager</param>
         public static async Task Grant(

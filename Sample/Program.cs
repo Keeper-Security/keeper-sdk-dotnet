@@ -134,63 +134,63 @@ namespace Sample
                 // // List Shared Folders Example
                 // await SharedFolderExamples.ListSharedFolder.ListAllSharedFolders(vault);
 
-                // await KeeperNSFExamples.ListKeeperNSFFolders.ListAll(vault);
-                // await KeeperNSFExamples.ListKeeperNSFRecords.ListAll(vault);
-                // await KeeperNSFExamples.GetKeeperNSFRecord.ShowDetails(vault, recordUidOrTitle: "<recordUid_or_title>");
+                // await KeeperNSFExamples.ListKeeperNSFFoldersExample.ListAll(vault);
+                // await KeeperNSFExamples.ListKeeperNSFRecordsExample.ListAll(vault);
+                // await KeeperNSFExamples.GetKeeperNSFRecordExample.ShowDetails(vault, recordUidOrTitle: "<recordUid_or_title>");
 
-                // await KeeperNSFExamples.CreateKeeperNSFFolder.Create(
+                // await KeeperNSFExamples.CreateKeeperNSFFolderExample.Create(
                 //     vault,
                 //     folderName: "<folderName_here>",
                 //     parentFolderUid: "<parentFolderUid_here>",
                 //     color: null);
 
-                // await KeeperNSFExamples.UpdateKeeperNSFFolder.RenameOrRecolor(
+                // await KeeperNSFExamples.UpdateKeeperNSFFolderExample.RenameOrRecolor(
                 //     vault,
                 //     folderUidOrName: "<folderUid_or_name>",
                 //     newName: "<newName_here>");
 
-                // await KeeperNSFExamples.GrantKeeperNSFFolderAccess.Grant(
+                // await KeeperNSFExamples.GrantKeeperNSFFolderAccessExample.Grant(
                 //     vault,
                 //     folderUid: "<folderUid_here>",
                 //     userEmail: "<userEmail_here>",
                 //     role: "viewer");
 
-                // await KeeperNSFExamples.RevokeKeeperNSFFolderAccess.Revoke(
+                // await KeeperNSFExamples.RevokeKeeperNSFFolderAccessExample.Revoke(
                 //     vault,
                 //     folderUid: "<folderUid_here>",
                 //     userEmail: "<userEmail_here>");
 
-                // await KeeperNSFExamples.RemoveKeeperNSFFolder.Remove(
+                // await KeeperNSFExamples.RemoveKeeperNSFFolderExample.Remove(
                 //     vault,
                 //     folderUidOrName: "<folderUid_or_name>",
                 //     operation: KeeperNSFFolderRemoveOperation.FolderTrash,
                 //     dryRun: true);
 
-                // await KeeperNSFExamples.CreateKeeperNSFRecord.Create(
+                // await KeeperNSFExamples.CreateKeeperNSFRecordExample.Create(
                 //     vault,
                 //     title: "<recordTitle_here>",
                 //     recordType: "login",
                 //     folderUid: "<folderUid_here>",
                 //     notes: null,
-                //     fields: new Dictionary<string, string> { { "login", "user" }, { "password", "secret" } });
+                //     fields: new Dictionary<string, object> { { "login", "user" }, { "password", "secret" } });
 
-                // await KeeperNSFExamples.UpdateKeeperNSFRecord.Update(
+                // await KeeperNSFExamples.UpdateKeeperNSFRecordExample.Update(
                 //     vault,
                 //     recordUid: "<recordUid_here>",
                 //     title: "<newTitle_here>");
 
-                // await KeeperNSFExamples.ShareKeeperNSFRecord.Share(
+                // await KeeperNSFExamples.ShareKeeperNSFRecordExample.Share(
                 //     vault,
                 //     recordUid: "<recordUid_here>",
                 //     userEmail: "<userEmail_here>",
                 //     role: "viewer");
 
-                // await KeeperNSFExamples.UnshareKeeperNSFRecord.Unshare(
+                // await KeeperNSFExamples.UnshareKeeperNSFRecordExample.Unshare(
                 //     vault,
                 //     recordUid: "<recordUid_here>",
                 //     userEmail: "<userEmail_here>");
 
-                // await KeeperNSFExamples.UpdateKeeperNSFRecordPermissions.UpdatePermissions(
+                // await KeeperNSFExamples.UpdateKeeperNSFRecordPermissionsExample.UpdatePermissions(
                 //     vault,
                 //     folderUid: "<folderUid_here>",
                 //     action: "grant",
@@ -198,28 +198,28 @@ namespace Sample
                 //     recursive: false,
                 //     dryRun: true);
 
-                // await KeeperNSFExamples.LinkKeeperNSFRecordToFolder.Link(
+                // await KeeperNSFExamples.LinkKeeperNSFRecordToFolderExample.Link(
                 //     vault,
                 //     recordUidOrTitle: "<recordUid_or_title>",
                 //     folderUidOrName: "<folderUid_or_name>");
 
-                // await KeeperNSFExamples.RemoveKeeperNSFRecord.Remove(
+                // await KeeperNSFExamples.RemoveKeeperNSFRecordExample.Remove(
                 //     vault,
                 //     recordUidOrTitle: "<recordUid_or_title>",
                 //     folderUidOrName: "<folderUid_or_name>",
                 //     operation: KeeperNSFRecordRemoveOperation.FolderTrash,
                 //     dryRun: true);
 
-                // await KeeperNSFExamples.TransferKeeperNSFRecordOwnership.Transfer(
+                // await KeeperNSFExamples.TransferKeeperNSFRecordOwnershipExample.Transfer(
                 //     vault,
                 //     recordUidOrTitles: new[] { "<recordUid_or_title>" },
                 //     newOwnerEmail: "<userEmail_here>");
 
-                // await KeeperNSFExamples.GetKeeperNSFShortcuts.ListShortcuts(vault);
-                // await KeeperNSFExamples.GetKeeperNSFShortcuts.ListShortcuts(vault, recordUid: "<recordUid_here>");
-                // await KeeperNSFExamples.GetKeeperNSFShortcuts.ListShortcuts(vault, folderUid: "<folderUid_here>");
+                // await KeeperNSFExamples.GetKeeperNSFShortcutsExample.ListShortcuts(vault);
+                // await KeeperNSFExamples.GetKeeperNSFShortcutsExample.ListShortcuts(vault, recordUid: "<recordUid_here>");
+                // await KeeperNSFExamples.GetKeeperNSFShortcutsExample.ListShortcuts(vault, folderUid: "<folderUid_here>");
 
-                // await KeeperNSFExamples.KeepKeeperNSFRecordInFolder.KeepInFolder(
+                // await KeeperNSFExamples.KeepKeeperNSFRecordInFolderExample.KeepInFolder(
                 //     vault,
                 //     recordUid: "<recordUid_here>",
                 //     keepFolderUid: "<folderUid_here>");

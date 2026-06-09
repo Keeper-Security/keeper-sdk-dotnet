@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class UnshareKeeperNSFRecord
+    public static class UnshareKeeperNSFRecordExample
     {
         public static async Task Unshare(VaultOnline vault, string recordUid, string userEmail)
         {

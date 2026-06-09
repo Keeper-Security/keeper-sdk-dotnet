@@ -4,7 +4,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class LinkKeeperNSFRecordToFolder
+    public static class LinkKeeperNSFRecordToFolderExample
     {
         public static async Task Link(
             VaultOnline vault,

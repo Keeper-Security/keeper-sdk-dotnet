@@ -5,7 +5,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample.KeeperNSFExamples
 {
-    public static class TransferKeeperNSFRecordOwnership
+    public static class TransferKeeperNSFRecordOwnershipExample
     {
         public static async Task Transfer(
             VaultOnline vault,
