@@ -1,21 +1,119 @@
 #requires -Version 5.1
 
+class KeeperRecordListItem {
+    [string]$RecordUid
+    [string]$Name
+    [string]$Type
+    [string]$Category
+    [string]$Description
+    [int]$Version
+    [long]$Revision
+    [bool]$Shared
+}
+
+function Get-KeeperRecordListItems {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter()][switch] $ClassicOnly,
+        [string] $Filter
+    )
+
+    $records = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+
+    if (-not $ClassicOnly.IsPresent) {
+        foreach ($record in $Vault.KeeperNSFRecordEntries) {
+            $name = if ($record.Title) { $record.Title } else { '' }
+            $type = if ($record.Type) { $record.Type } else { 'Unknown' }
+            if (Get-Command Get-KdRecordTypeAndTitle -ErrorAction SilentlyContinue) {
+                $meta = Get-KdRecordTypeAndTitle $record
+                $type = $meta.Type
+                if (-not $name) { $name = $meta.Title }
+            }
+
+            if ($Filter) {
+                $match = $($record.RecordUid, $name, $type) | Select-String $Filter | Select-Object -First 1
+                if (-not $match) { continue }
+            }
+
+            $item = [KeeperRecordListItem]::new()
+            $item.RecordUid = $record.RecordUid
+            $item.Name      = $name
+            $item.Type      = $type
+            $item.Category    = 'Nested'
+            $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
+            $item.Version     = $record.Version
+            $item.Revision    = $record.Revision
+            $item.Shared      = $record.Shared
+            $records.Add($item) | Out-Null
+        }
+    }
+
+    foreach ($record in $Vault.KeeperRecords) {
+        if ($record.Version -ne 2 -and $record.Version -ne 3) { continue }
+
+        if ($Filter) {
+            $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
+            if (-not $match) { continue }
+        }
+
+        $item = [KeeperRecordListItem]::new()
+        $item.RecordUid = $record.Uid
+        $item.Name      = if ($record.Title) { $record.Title } else { '' }
+        $item.Type      = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+        $item.Category    = 'Classic'
+        $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
+        $item.Version     = $record.Version
+        $item.Revision    = 0
+        $item.Shared      = $record.Shared
+        $records.Add($item) | Out-Null
+    }
+
+    return $records
+}
+
+function Test-KeeperRecordFormattedListOutput {
+    Param(
+        [Parameter(Mandatory = $true)][System.Management.Automation.InvocationInfo] $Invocation
+    )
+
+    if ([Console]::IsOutputRedirected) { return $false }
+
+    $line = $Invocation.Line
+    if ([string]::IsNullOrWhiteSpace($line)) { return $true }
+
+    if ($line -match '(?<![\w-])(kr|Get-KeeperRecord)\b[^;\r\n]*\|\s*\S') { return $false }
+    if ($line -match '=\s*(kr\b|Get-KeeperRecord\b)') { return $false }
+
+    return $true
+}
+
 function Get-KeeperRecord {
     <#
 	.Synopsis
 	Get Keeper Records
 
+	.Description
+	Lists classic and nested records with Category and Description.
+
 	.Parameter Uid
 	Record UID
 
 	.Parameter Filter
-	Return matching records only
+	Return matching classic records only as KeeperRecord objects
+
+	.Parameter AsObject
+	Return unified list rows (KeeperRecordListItem) for scripting
+
+	.Parameter ClassicOnly
+	Exclude nested shared (NSF) records from the interactive list
 #>
     [CmdletBinding()]
     [OutputType([KeeperSecurity.Vault.KeeperRecord[]])]
     Param (
         [string] $Uid,
-        [string] $Filter
+        [string] $Filter,
+        [Parameter()][switch] $AsObject,
+        [Parameter()][switch] $ClassicOnly
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -28,14 +126,53 @@ function Get-KeeperRecord {
             Get-KeeperNSFRecord -Uid $Uid
         }
     }
-    else {
+    elseif ($Filter) {
         foreach ($record in $vault.KeeperRecords) {
-            if ($Filter) {
-                $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
-                if (-not $match) {
-                    continue
-                }
+            $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
+            if (-not $match) {
+                continue
             }
+            $record
+        }
+    }
+    else {
+        if ($AsObject.IsPresent) {
+            $items = @(Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
+            return @($items | Sort-Object Name)
+        }
+
+        if (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation) {
+            $items = @(Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
+
+            if ($items.Count -eq 0) {
+                Write-Host "No records found."
+                return
+            }
+
+            $items = @($items | Sort-Object Name)
+
+            Write-Host ""
+            Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
+            Write-Host ""
+
+            $items | Format-Table -Property @(
+                @{Label='UID'; Expression={$_.RecordUid}; Width=25},
+                @{Label='Name'; Expression={$_.Name}; Width=28},
+                @{Label='Type'; Expression={$_.Type}; Width=16},
+                @{Label='Category'; Expression={$_.Category}; Width=22},
+                @{Label='Description'; Expression={
+                    if ([string]::IsNullOrEmpty($_.Description)) { return '' }
+                    $d = ($_.Description -replace '\s+', ' ').Trim()
+                    if ($d.Length -gt 36) { $d.Substring(0, 33) + '...' } else { $d }
+                }; Width=36},
+                @{Label='Version'; Expression={$_.Version}; Width=8; Align='Right'},
+                @{Label='Revision'; Expression={$_.Revision}; Width=8; Align='Right'},
+                @{Label='Shared'; Expression={$_.Shared}; Width=8}
+            ) -AutoSize
+            return
+        }
+
+        foreach ($record in $vault.KeeperRecords) {
             $record
         }
     }
