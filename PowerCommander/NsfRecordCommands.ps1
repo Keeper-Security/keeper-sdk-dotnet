@@ -881,21 +881,13 @@ function Remove-KeeperNSFRecord {
     begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
-        $resolvedFolderUid = $null
+        $folderHint = $null
 
         if ($Folder) {
-            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-            if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
-                Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
-                return
-            }
-            $resolvedFolderUid = $folderNode.FolderUid
+            $folderHint = $Folder
         }
-        elseif ($Script:Context.CurrentFolder) {
-            [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
-            if ($vault.TryResolveKeeperNSFFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
-                $resolvedFolderUid = $currentFolder.FolderUid
-            }
+        elseif ($Operation -ne 'owner-trash' -and $Script:Context.CurrentFolder) {
+            $folderHint = $Script:Context.CurrentFolder
         }
 
         $op = switch ($Operation) {
@@ -904,7 +896,7 @@ function Remove-KeeperNSFRecord {
             'unlink' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink }
         }
 
-        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and -not $resolvedFolderUid) {
+        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
             Write-Error -Message "Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder."
             return
         }
@@ -918,14 +910,10 @@ function Remove-KeeperNSFRecord {
                 continue
             }
 
-            $folderUid = $resolvedFolderUid
-            if (-not $folderUid -and $op -ne [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash) {
-                $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
-                if ($folderUids.Count -eq 0) {
-                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
-                    continue
-                }
-                $folderUid = $folderUids[0]
+            [string]$folderUid = $null
+            if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
+                Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                continue
             }
 
             $removal = New-Object KeeperSecurity.Vault.KeeperNSFRecordRemoval
@@ -945,6 +933,15 @@ function Remove-KeeperNSFRecord {
         Write-Host "=== Keeper NSF Remove Preview ===" -ForegroundColor Cyan
         $previewResult = $vault.RemoveKeeperNSFRecords($removals, $true).GetAwaiter().GetResult()
         Write-KeeperNSFRemoveImpact -Response $previewResult.PreviewResponse
+
+        $previewErrors = @($previewResult.PreviewResponse.Results | Where-Object {
+                $_.Error -and -not [string]::IsNullOrWhiteSpace($_.Error.Message)
+            })
+        if ($previewErrors.Count -gt 0) {
+            Write-Host ""
+            Write-Host "One or more records could not be previewed. Aborting." -ForegroundColor Yellow
+            return
+        }
 
         try {
             [KeeperSecurity.Vault.VaultOnline]::ValidateRemoveResponse($previewResult.PreviewResponse, $false)
