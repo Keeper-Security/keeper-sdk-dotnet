@@ -18,6 +18,11 @@ function Get-KeeperRecordListItems {
         [string] $Filter
     )
 
+    if (-not $Vault) {
+        Write-Error -Message "Not connected to Keeper. Please run Connect-Keeper first."
+        return @()
+    }
+
     $records = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
 
     if (-not $ClassicOnly.IsPresent) {
