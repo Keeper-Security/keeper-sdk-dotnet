@@ -63,7 +63,7 @@ function Get-KeeperRecordListItems {
         $item.Category    = 'Classic'
         $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
         $item.Version     = $record.Version
-        $item.Revision    = 0
+        $item.Revision    = $record.Revision
         $item.Shared      = $record.Shared
         $records.Add($item) | Out-Null
     }
