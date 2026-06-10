@@ -307,6 +307,27 @@ namespace KeeperSecurity.Utils
             return ms1.ToArray();
         }
 
+        /// <summary>
+        ///     Attempts to decrypt data with AES CBC.
+        /// </summary>
+        /// <param name="data">Encrypted data.</param>
+        /// <param name="key">AES encryption key.</param>
+        /// <param name="plain">Plain data when decryption succeeds.</param>
+        /// <returns><c>true</c> if decryption succeeded; otherwise <c>false</c>.</returns>
+        public static bool TryDecryptAesV1(byte[] data, byte[] key, out byte[] plain)
+        {
+            plain = null;
+            try
+            {
+                plain = DecryptAesV1(data, key);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         /// <exclude/>
         public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce)
         {
@@ -390,6 +411,45 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
+        ///     Attempts to decrypt data with AES GCM.
+        /// </summary>
+        /// <param name="data">Encrypted data.</param>
+        /// <param name="key">AES encryption key.</param>
+        /// <param name="plain">Plain data when decryption succeeds.</param>
+        /// <param name="nonceLength">Nonce length. Optional. Default: 12 bytes.</param>
+        /// <returns><c>true</c> if decryption succeeded; otherwise <c>false</c>.</returns>
+        public static bool TryDecryptAesV2(byte[] data, byte[] key, out byte[] plain, int nonceLength = AesGcmNonceSize)
+        {
+            plain = null;
+            try
+            {
+                plain = DecryptAesV2(data, key, nonceLength);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Attempts AES GCM decryption, then falls back to AES CBC.
+        /// </summary>
+        /// <param name="data">Encrypted data.</param>
+        /// <param name="key">AES encryption key.</param>
+        /// <param name="plain">Plain data when decryption succeeds.</param>
+        /// <returns><c>true</c> if decryption succeeded; otherwise <c>false</c>.</returns>
+        public static bool TryDecryptSymmetric(byte[] data, byte[] key, out byte[] plain)
+        {
+            if (TryDecryptAesV2(data, key, out plain))
+            {
+                return true;
+            }
+
+            return TryDecryptAesV1(data, key, out plain);
+        }
+
+        /// <summary>
         ///     Encrypts data with RSA public key.
         /// </summary>
         /// <param name="data">Plain data</param>
@@ -422,6 +482,27 @@ namespace KeeperSecurity.Utils
             encryptEngine.Init(false, privateKey);
             return encryptEngine.ProcessBlock(data, 0, data.Length);
 #endif
+        }
+
+        /// <summary>
+        ///     Attempts to decrypt data with RSA private key.
+        /// </summary>
+        /// <param name="data">Encrypted data.</param>
+        /// <param name="privateKey">RSA private key.</param>
+        /// <param name="plain">Plain data when decryption succeeds.</param>
+        /// <returns><c>true</c> if decryption succeeded; otherwise <c>false</c>.</returns>
+        public static bool TryDecryptRsa(byte[] data, RsaPrivateKey privateKey, out byte[] plain)
+        {
+            plain = null;
+            try
+            {
+                plain = DecryptRsa(data, privateKey);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -773,6 +854,27 @@ namespace KeeperSecurity.Utils
             var encryptionKey = DeriveEcdhKey(ePublicKey, privateKey);
 #endif
             return DecryptAesV2(data.Skip(65).ToArray(), encryptionKey);
+        }
+
+        /// <summary>
+        ///     Attempts to decrypt data with EC cryptography.
+        /// </summary>
+        /// <param name="data">Encrypted data.</param>
+        /// <param name="privateKey">Private key.</param>
+        /// <param name="plain">Plain data when decryption succeeds.</param>
+        /// <returns><c>true</c> if decryption succeeded; otherwise <c>false</c>.</returns>
+        public static bool TryDecryptEc(byte[] data, EcPrivateKey privateKey, out byte[] plain)
+        {
+            plain = null;
+            try
+            {
+                plain = DecryptEc(data, privateKey);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         internal static byte[] Base32ToBytes(string base32)

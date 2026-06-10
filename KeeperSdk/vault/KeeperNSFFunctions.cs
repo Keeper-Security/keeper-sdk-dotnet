@@ -1166,17 +1166,14 @@ namespace KeeperSecurity.Vault
                 return false;
             }
 
-            try
+            if (!CryptoUtils.TryDecryptAesV2(recordData.EncryptedRecordData.Base64UrlDecode(), recordKey, out var decryptedBytes))
             {
-                var decryptedBytes = CryptoUtils.DecryptAesV2(recordData.EncryptedRecordData.Base64UrlDecode(), recordKey);
-                data = JsonUtils.ParseJson<NsfRecordData>(decryptedBytes);
-                return data != null;
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceWarning($"KeeperNSF: Failed to decrypt record details for {recordUid}: {ex.Message}");
+                Trace.TraceWarning($"KeeperNSF: Failed to decrypt record details for {recordUid}");
                 return false;
             }
+
+            data = JsonUtils.ParseJson<NsfRecordData>(decryptedBytes);
+            return data != null;
         }
 
         private static byte[] TryDecryptKeeperNSFRecordKeyFromDetails(
@@ -1199,53 +1196,33 @@ namespace KeeperSecurity.Vault
             switch (recordData.RecordKeyType)
             {
                 case Records.RecordKeyType.EncryptedByDataKey:
-                    try
+                    if (!CryptoUtils.TryDecryptAesV1(encryptedKey, context.DataKey, out recordKey))
                     {
-                        recordKey = CryptoUtils.DecryptAesV1(encryptedKey, context.DataKey);
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.TraceWarning($"KeeperNSF: AES v1 record key decrypt failed for {recordUid}: {ex.Message}");
+                        Trace.TraceWarning($"KeeperNSF: AES v1 record key decrypt failed for {recordUid}");
                     }
 
                     break;
                 case Records.RecordKeyType.EncryptedByDataKeyGcm:
                 case Records.RecordKeyType.NoKey:
-                    try
+                    if (!CryptoUtils.TryDecryptAesV2(encryptedKey, context.DataKey, out recordKey))
                     {
-                        recordKey = CryptoUtils.DecryptAesV2(encryptedKey, context.DataKey);
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.TraceWarning($"KeeperNSF: AES v2 record key decrypt failed for {recordUid}: {ex.Message}");
+                        Trace.TraceWarning($"KeeperNSF: AES v2 record key decrypt failed for {recordUid}");
                     }
 
                     break;
                 case Records.RecordKeyType.EncryptedByPublicKey:
-                    if (context.PrivateRsaKey != null)
+                    if (context.PrivateRsaKey != null
+                        && !CryptoUtils.TryDecryptRsa(encryptedKey, context.PrivateRsaKey, out recordKey))
                     {
-                        try
-                        {
-                            recordKey = CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey);
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.TraceWarning($"KeeperNSF: RSA record key decrypt failed for {recordUid}: {ex.Message}");
-                        }
+                        Trace.TraceWarning($"KeeperNSF: RSA record key decrypt failed for {recordUid}");
                     }
 
                     break;
                 case Records.RecordKeyType.EncryptedByPublicKeyEcc:
-                    if (context.PrivateEcKey != null)
+                    if (context.PrivateEcKey != null
+                        && !CryptoUtils.TryDecryptEc(encryptedKey, context.PrivateEcKey, out recordKey))
                     {
-                        try
-                        {
-                            recordKey = CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey);
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.TraceWarning($"KeeperNSF: ECC record key decrypt failed for {recordUid}: {ex.Message}");
-                        }
+                        Trace.TraceWarning($"KeeperNSF: ECC record key decrypt failed for {recordUid}");
                     }
 
                     break;
@@ -1267,28 +1244,8 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                try
-                {
-                    recordKey = CryptoUtils.DecryptAesV2(encryptedKey, folder.FolderKey);
-                }
-                catch
-                {
-                    recordKey = null;
-                }
-
-                if (recordKey == null || recordKey.Length == 0)
-                {
-                    try
-                    {
-                        recordKey = CryptoUtils.DecryptAesV1(encryptedKey, folder.FolderKey);
-                    }
-                    catch
-                    {
-                        recordKey = null;
-                    }
-                }
-
-                if (recordKey != null && recordKey.Length > 0)
+                if (CryptoUtils.TryDecryptSymmetric(encryptedKey, folder.FolderKey, out recordKey)
+                    && recordKey.Length > 0)
                 {
                     return recordKey;
                 }

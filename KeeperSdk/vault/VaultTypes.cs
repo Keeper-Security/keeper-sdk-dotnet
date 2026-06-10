@@ -553,7 +553,7 @@ namespace KeeperSecurity.Vault
         IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null);
 
         /// <summary>
-        /// Fetches Keeper NSF record metadata via <c>vault/records/v3/details/data</c>.
+        /// Fetches Keeper NSF record metadata
         /// </summary>
         /// <param name="recordUids">Record UIDs to query.</param>
         /// <returns>Record metadata and any UIDs the server refused to return.</returns>
