@@ -287,6 +287,26 @@ function Grant-KeeperRecordAccess {
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
+function Parse-KeeperSharePeriod {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Period
+    )
+
+    if ($Period -match '^(\d+)(mi|minutes?|h|hours?|d|days?|mo|months?|y|years?)$') {
+        $num = [int]$Matches[1]
+        switch -Regex ($Matches[2]) {
+            '^(mi|minutes?)$' { return [TimeSpan]::FromMinutes($num) }
+            '^(h|hours?)$' { return [TimeSpan]::FromHours($num) }
+            '^(d|days?)$' { return [TimeSpan]::FromDays($num) }
+            '^(mo|months?)$' { return [TimeSpan]::FromDays($num * 30) }
+            '^(y|years?)$' { return [TimeSpan]::FromDays($num * 365) }
+        }
+    }
+
+    throw "Cannot parse period '$Period'. Valid units: mi, h, d, mo, y (e.g. 30d, 6mo, 1y)."
+}
+
 function Get-ExpirationDate {
     param(
         [object]$ExpireIn,
@@ -309,10 +329,15 @@ function Get-ExpirationDate {
             }
             else {
                 try {
-                    $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                    $expireOffset = Parse-KeeperSharePeriod -Period $ExpireIn
                 }
                 catch {
-                    throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number or valid TimeSpan string."
+                    try {
+                        $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                    }
+                    catch {
+                        throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number, period (e.g. 30d, 1h), or valid TimeSpan string."
+                    }
                 }
             }
         }

@@ -331,6 +331,13 @@ function Set-KeeperNSFRecordAccess {
 	.Parameter Role
 	Access role for grant action: viewer (default), share-manager, content-manager,
 	content-share-manager, full-manager.
+
+	.Parameter ExpireIn
+	Optional. Share expiration period from now (e.g. 30d, 6mo, 1y, 24h, 30mi), integer minutes,
+	or a TimeSpan. Same as Grant-KeeperRecordAccess.
+
+	.Parameter ExpireAt
+	Optional. Absolute share expiration as ISO datetime (e.g. 2027-01-01T00:00:00Z).
 #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
@@ -347,7 +354,15 @@ function Set-KeeperNSFRecordAccess {
 
         [Parameter()]
         [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
-        [string] $Role = 'viewer'
+        [string] $Role = 'viewer',
+
+        [Alias('expire-in')]
+        [Parameter()]
+        [System.Object] $ExpireIn,
+
+        [Alias('expire-at')]
+        [Parameter()]
+        [string] $ExpireAt
     )
 
     try {
@@ -363,11 +378,27 @@ function Set-KeeperNSFRecordAccess {
         return
     }
 
+    $shareOptions = $null
+    if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
+        try {
+            $expirationDto = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        }
+        catch {
+            Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
+        $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
+        $shareOptions.Expiration = $expirationDto
+    }
+
     foreach ($user in $Email) {
         try {
             if ($Action -eq 'grant') {
-                [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role).GetAwaiter().GetResult()
-                Write-Host "Granted '$Role' access to '$user' on record '$RecordUid'." -ForegroundColor Green
+                [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role, $shareOptions).GetAwaiter().GetResult()
+                $expireMsg = if ($shareOptions -and $shareOptions.Expiration) {
+                    " (expires $($shareOptions.Expiration.LocalDateTime.ToString('g')))"
+                } else { '' }
+                Write-Host "Granted '$Role' access to '$user' on record '$RecordUid'$expireMsg." -ForegroundColor Green
             }
             else {
                 [void]$vault.UnshareKeeperNSFRecord($RecordUid, $user).GetAwaiter().GetResult()
