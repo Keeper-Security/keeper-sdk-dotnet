@@ -884,6 +884,11 @@ function Remove-KeeperNSFRecord {
         $folderHint = $null
 
         if ($Folder) {
+            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+            if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+                Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+                return
+            }
             $folderHint = $Folder
         }
         elseif ($Operation -ne 'owner-trash' -and $Script:Context.CurrentFolder) {
@@ -912,7 +917,12 @@ function Remove-KeeperNSFRecord {
 
             [string]$folderUid = $null
             if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
-                Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                if ($Folder) {
+                    Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+                }
+                else {
+                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                }
                 continue
             }
 
