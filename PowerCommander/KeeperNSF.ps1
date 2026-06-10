@@ -40,6 +40,8 @@ class KdUserPermission {
     [bool]$CanDelete
 }
 
+$script:KdRootFolderUid = 'AAAAAAAAAAAAAAAAAPmtNA'
+
 $script:AccessRoleLabels = @{
     0 = 'contributor'   # Navigator
     1 = 'contributor'   # Requestor
@@ -49,6 +51,16 @@ $script:AccessRoleLabels = @{
     5 = 'content-share-manager'
     6 = 'full-manager'
     7 = 'unresolved'
+}
+
+$script:AccessTypeLabels = @{
+    0 = 'AT_UNKNOWN'
+    1 = 'AT_OWNER'
+    2 = 'AT_USER'
+    3 = 'AT_TEAM'
+    4 = 'AT_ENTERPRISE'
+    5 = 'AT_FOLDER'
+    6 = 'AT_APPLICATION'
 }
 
 $script:KdSecretFieldTypes = @('password', 'secret', 'privateKey', 'passkey', 'otp')
@@ -808,19 +820,6 @@ function Show-KdRecordDetail {
         }
     }
 
-    $folderMap = Get-KdFolderNodeMap $vault
-    $pathLabel = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid $folderMap } else { '/' }
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder UID", $(if ($record.FolderUid) { $record.FolderUid } else { '(root)' }))
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder Name", $(if ($record.FolderName) { $record.FolderName } else { '(unknown)' }))
-    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Folder Path", $pathLabel)
-
-    foreach ($folderUid in @($vault.GetKeeperNSFFoldersForRecord($record.RecordUid))) {
-        if ($folderUid -eq $record.FolderUid) { continue }
-        $node = if ($folderMap.ContainsKey($folderUid)) { $folderMap[$folderUid] } else { $null }
-        $name = if ($node -and $node.Name) { $node.Name } else { '(unknown)' }
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Also in folder", "$name ($folderUid)")
-    }
-
     if ($record.FileSize -gt 0) {
         Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "File Size", ("{0:N0}" -f $record.FileSize))
     }
@@ -845,17 +844,12 @@ function Show-KdFolderDetail {
     Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Nested Share Folder UID", $folder.FolderUid)
     Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f "Name", $folder.Name)
 
-    Write-Host ""
-
-    $folderAccesses = Get-KdFolderAccesses $vault $storage $folder
-
     $storedFolder = $storage.KdFolders.GetEntity($folder.FolderUid)
     $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
     $ownerUsername = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
 
-    Show-KdPermissions $vault $folderAccesses @() $currentAccountUid 'folder' $ownerAccountUid $ownerUsername
-
-    Write-Host ""
+    $folderAccesses = Get-KdFolderAccesses $vault $storage $folder
+    Show-KdFolderPermissions $vault $folderAccesses $currentAccountUid $ownerAccountUid $ownerUsername
 }
 
 function Resolve-KdUsername {
@@ -910,6 +904,18 @@ function Resolve-KdUsername {
     return $accessTypeUid
 }
 
+function Test-KdIsFolderOwner {
+    Param($access, $username, $ownerAccountUid, $ownerUsername)
+
+    if ($ownerAccountUid -and $access.AccessTypeUid -eq $ownerAccountUid) {
+        return $true
+    }
+    if ($ownerUsername -and $username -and $username.ToLower() -eq $ownerUsername.ToLower()) {
+        return $true
+    }
+    return $false
+}
+
 function Get-KdUserPermissions {
     Param($vault, $directAccesses, $currentAccountUid, $objectType, $ownerAccountUid, $ownerUsername)
 
@@ -927,12 +933,7 @@ function Get-KdUserPermissions {
         if ($objectType -eq 'record') {
             $isOwner = $access.Owner
         } else {
-            $isOwner = $false
-            if ($ownerAccountUid -and $access.AccessTypeUid -eq $ownerAccountUid) {
-                $isOwner = $true
-            } elseif ($ownerUsername -and $username -and $username.ToLower() -eq $ownerUsername.ToLower()) {
-                $isOwner = $true
-            }
+            $isOwner = Test-KdIsFolderOwner $access $username $ownerAccountUid $ownerUsername
         }
 
         $perm = [KdUserPermission]::new()
@@ -963,15 +964,80 @@ function ConvertTo-KdPermissionsJson {
             if ($perm.Owner) { $entry.owner = 'Yes' } else { $entry.role = $perm.Role }
             $result.Add($entry) | Out-Null
         }
-        else {
-            $result.Add([ordered]@{
-                user  = $perm.Username
-                owner = [bool]$perm.Owner
-                role  = $(if ($perm.Owner) { 'owner' } else { $perm.Role })
-            }) | Out-Null
-        }
     }
     return $result
+}
+
+function Resolve-KdFolderParentUid {
+    Param($rawParent, $folderMap)
+
+    if ([string]::IsNullOrEmpty($rawParent) -or $rawParent -eq $script:KdRootFolderUid -or -not $folderMap.ContainsKey($rawParent)) {
+        return $null
+    }
+    return $rawParent
+}
+
+function Format-KdNsfFolderPath {
+    Param($path)
+
+    if ([string]::IsNullOrEmpty($path) -or $path -eq '/') {
+        return '/'
+    }
+    return $path.TrimStart('/')
+}
+
+function ConvertTo-KdFolderPermissionsJson {
+    Param($vault, $folderAccesses, $currentAccountUid, $ownerAccountUid, $ownerUsername)
+
+    $userPerms = [System.Collections.ArrayList]::new()
+    $teamPerms = [System.Collections.ArrayList]::new()
+    $shareAdmins = [System.Collections.ArrayList]::new()
+
+    foreach ($access in $folderAccesses) {
+        $hint = $null
+        if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
+            $hint = $access.AccessorEmail
+        }
+        $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
+
+        $atInt = [int]$access.AccessType
+        $atLabel = if ($script:AccessTypeLabels.ContainsKey($atInt)) { $script:AccessTypeLabels[$atInt] } else { 'AT_UNKNOWN' }
+        $accessor = if ($username) { $username } else { $access.AccessTypeUid }
+
+        $isOwner = Test-KdIsFolderOwner $access $username $ownerAccountUid $ownerUsername
+
+        $roleInt = [int]$access.AccessRoleType
+        $roleLabel = if ($isOwner) { 'owner' } else { (Get-AccessRoleLabel $roleInt) }
+
+        $inherited = $false
+        if ($access.PSObject.Properties.Match('Inherited').Count -gt 0) {
+            $inherited = [bool]$access.Inherited
+        }
+
+        $entry = [ordered]@{
+            accessor    = $accessor
+            access_type = $atLabel
+            role        = $roleLabel
+            inherited   = $inherited
+        }
+
+        if ($atLabel -eq 'AT_TEAM') {
+            $teamPerms.Add($entry) | Out-Null
+        }
+        else {
+            $userPerms.Add($entry) | Out-Null
+        }
+
+        if ($roleInt -eq 6) {
+            $shareAdmins.Add($accessor) | Out-Null
+        }
+    }
+
+    return @{
+        user_permissions = @($userPerms)
+        team_permissions = @($teamPerms)
+        share_admins     = @($shareAdmins | Select-Object -Unique)
+    }
 }
 
 function Get-KdRecordAccesses {
@@ -1040,6 +1106,7 @@ function Get-KdFolderAccesses {
                         AccessTypeUid  = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($a.AccessTypeUid.ToByteArray())
                         AccessType     = [int]$a.AccessType
                         AccessRoleType = [int]$a.AccessRoleType
+                        Inherited      = [bool]$a.Inherited
                     }) | Out-Null
                 }
                 return @($converted)
@@ -1049,7 +1116,91 @@ function Get-KdFolderAccesses {
     catch {
         Write-Verbose "Could not retrieve folder access: $($_.Exception.Message)"
     }
-    return @($storage.KdFolderAccesses.GetLinksForSubject($folder.FolderUid))
+
+    $cached = [System.Collections.ArrayList]::new()
+    foreach ($a in $storage.KdFolderAccesses.GetLinksForSubject($folder.FolderUid)) {
+        $cached.Add([PSCustomObject]@{
+            AccessTypeUid  = $a.AccessTypeUid
+            AccessType     = $a.AccessType
+            AccessRoleType = $a.AccessRoleType
+            Inherited      = [bool]$a.Inherited
+        }) | Out-Null
+    }
+    return @($cached)
+}
+
+function Show-KdFolderPermissions {
+    Param($vault, $folderAccesses, $currentAccountUid, $ownerAccountUid, $ownerUsername)
+
+    if (-not $folderAccesses -or $folderAccesses.Count -eq 0) {
+        Write-Host "No permissions found for this folder."
+        Write-Host ""
+        return
+    }
+
+    $users = [System.Collections.ArrayList]::new()
+    $teams = [System.Collections.ArrayList]::new()
+    $shareAdmins = [System.Collections.ArrayList]::new()
+
+    foreach ($access in $folderAccesses) {
+        $hint = $null
+        if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
+            $hint = $access.AccessorEmail
+        }
+        $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
+
+        $atInt = [int]$access.AccessType
+        $atLabel = if ($script:AccessTypeLabels.ContainsKey($atInt)) { $script:AccessTypeLabels[$atInt] } else { 'AT_UNKNOWN' }
+        $accessor = if ($username) { $username } else { $access.AccessTypeUid }
+
+        $isOwner = Test-KdIsFolderOwner $access $username $ownerAccountUid $ownerUsername
+        $roleInt = [int]$access.AccessRoleType
+        $roleLabel = if ($isOwner) { 'owner' } else { (Get-AccessRoleLabel $roleInt) }
+
+        $entry = [PSCustomObject]@{
+            Accessor = $accessor
+            RoleLabel = $roleLabel
+            IsOwner = $isOwner
+        }
+
+        if ($atLabel -eq 'AT_TEAM') {
+            $teams.Add($entry) | Out-Null
+        }
+        else {
+            $users.Add($entry) | Out-Null
+        }
+
+        if ($roleInt -eq 6) {
+            $shareAdmins.Add($entry) | Out-Null
+        }
+    }
+
+    if ($users.Count -gt 0) {
+        Write-Host ""
+        Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "User Permissions")
+        foreach ($entry in $users) {
+            Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f $entry.Accessor, $entry.RoleLabel)
+        }
+    }
+
+    if ($teams.Count -gt 0) {
+        Write-Host ""
+        Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Team Permissions")
+        foreach ($entry in $teams) {
+            Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f $entry.Accessor, $entry.RoleLabel)
+        }
+    }
+
+    if ($shareAdmins.Count -gt 0) {
+        Write-Host ""
+        Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Share Administrators")
+        foreach ($entry in $shareAdmins) {
+            $adminRole = if ($entry.IsOwner) { 'owner' } else { 'full-manager' }
+            Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}: {1}" -f $entry.Accessor, $adminRole)
+        }
+    }
+
+    Write-Host ""
 }
 
 function Show-KdPermissions {
@@ -1058,23 +1209,7 @@ function Show-KdPermissions {
     $userPerms = Get-KdUserPermissions $vault $directAccesses $currentAccountUid $objectType $ownerAccountUid $ownerUsername
 
     if ($userPerms.Count -gt 0) {
-        if ($objectType -eq 'folder') {
-            Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "User Permissions")
-            foreach ($perm in $userPerms) {
-                $label = if ($perm.Owner) { 'owner' } else { $perm.Role }
-                Write-Host ("{0}: {1}" -f $perm.Username, $label)
-            }
-
-            $owners = @($userPerms | Where-Object { $_.Owner })
-            if ($owners.Count -gt 0) {
-                Write-Host ""
-                Write-Host ("{0,$script:KD_FOLDER_LABEL_WIDTH}:" -f "Folder Owners")
-                foreach ($owner in $owners) {
-                    Write-Host ("{0}: owner" -f $owner.Username)
-                }
-            }
-        }
-        else {
+        if ($objectType -ne 'folder') {
             Write-Host ("{0,$script:KD_LABEL_WIDTH}:" -f "User Permissions")
             Write-Host ""
             foreach ($perm in $userPerms) {
@@ -1208,20 +1343,35 @@ function Get-KdFolderPath {
 
     if ($folder -is [string]) {
         $node = if ($folderMap.ContainsKey($folder)) { $folderMap[$folder] } else { $null }
-        if ($node) { $folder = $node }
-        elseif ([string]::IsNullOrEmpty($folder)) { return '/' }
-        else { return $null }
+        if ($node) {
+            $folder = $node
+        }
+        elseif ([string]::IsNullOrEmpty($folder)) {
+            return '/'
+        }
+        else {
+            return $null
+        }
     }
 
     $components = @()
-    $current = $folder
+
+    $current = if ($folder.ParentUid -and $folderMap.ContainsKey($folder.ParentUid)) {
+        $folderMap[$folder.ParentUid]
+    }
+    else {
+        $null
+    }
+
     while ($current) {
         if ($current.Name) {
             $components += $current.Name
         }
+
         if (-not $current.ParentUid) {
             break
         }
+
         if ($folderMap.ContainsKey($current.ParentUid)) {
             $current = $folderMap[$current.ParentUid]
         }
@@ -1245,8 +1395,7 @@ function Build-KdFolderJson {
     $storedFolder = $storage.KdFolders.GetEntity($folder.FolderUid)
     $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
     $ownerUsername   = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
-    $userPerms = Get-KdUserPermissions $vault $folderAccesses $currentAccountUid 'folder' $ownerAccountUid $ownerUsername
-    $permissions = ConvertTo-KdPermissionsJson $userPerms 'folder'
+    $permJson = ConvertTo-KdFolderPermissionsJson $vault $folderAccesses $currentAccountUid $ownerAccountUid $ownerUsername
 
     $records = [System.Collections.ArrayList]::new()
     foreach ($recordUid in $folder.Records) {
@@ -1267,17 +1416,36 @@ function Build-KdFolderJson {
         }) | Out-Null
     }
 
-    $folderPath = Get-KdFolderPath $vault $folder (Get-KdFolderNodeMap $vault)
+    $folderMap = Get-KdFolderNodeMap $vault
+    $parentUid = Resolve-KdFolderParentUid $folder.ParentUid $folderMap
+    $parentPath = if ($parentUid) {
+        Format-KdNsfFolderPath (Get-KdFolderPath $vault $parentUid $folderMap)
+    }
+    else {
+        '/'
+    }
 
-    return [ordered]@{
+    $json = [ordered]@{
         folder_uid = $folder.FolderUid
         type       = 'nested_share_folder'
         name       = $folder.Name
-        parent_uid = if ($folder.ParentUid) { $folder.ParentUid } else { $null }
-        folder     = [ordered]@{ uid = $folder.ParentUid; path = $folderPath }
+        parent_uid = $parentUid
+        folder     = [ordered]@{ uid = $parentUid; path = $parentPath }
         records    = $records
-        permissions = $permissions
     }
+    if ($ownerUsername) {
+        $json['owner'] = $ownerUsername
+    }
+    if ($permJson.user_permissions.Count -gt 0) {
+        $json['user_permissions'] = $permJson.user_permissions
+    }
+    if ($permJson.team_permissions.Count -gt 0) {
+        $json['team_permissions'] = $permJson.team_permissions
+    }
+    if ($permJson.share_admins.Count -gt 0) {
+        $json['share_admins'] = $permJson.share_admins
+    }
+    return $json
 }
 
 New-Alias -Name nsf-get -Value Get-KeeperNSFRecord
@@ -1300,7 +1468,7 @@ function Get-KeeperNSFRecordDetails {
 #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments = $true)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromRemainingArguments = $true)]
         [string[]] $RecordUids,
 
         [Parameter()]
@@ -1313,49 +1481,63 @@ function Get-KeeperNSFRecordDetails {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
-    $results = [System.Collections.ArrayList]::new()
-    $notFound = [System.Collections.ArrayList]::new()
+    if (-not $RecordUids -or $RecordUids.Count -eq 0) {
+        Write-Host 'At least one record UID or title is required.' -ForegroundColor Red
+        return
+    }
 
+    $resolvedUids = [System.Collections.Generic.List[string]]::new()
     foreach ($uid in $RecordUids) {
         $uid = $uid.Trim()
+        if ([string]::IsNullOrEmpty($uid)) { continue }
         $resolved = Resolve-KdNsfRecord -vault $vault -Identifier $uid
+        $resolvedUids.Add($(if ($resolved) { $resolved.RecordUid } else { $uid })) | Out-Null
+    }
 
-        if ($resolved) {
-            $meta = Get-KdRecordTypeAndTitle $resolved
-            $item = [KdRecordDetailItem]::new()
-            $item.RecordUid = $resolved.RecordUid
-            $item.Title     = $meta.Title
-            $item.Type      = $meta.Type
-            $item.Version   = $resolved.Version
-            $item.Revision  = $resolved.Revision
-            $results.Add($item) | Out-Null
-        }
-        else {
-            $notFound.Add($uid) | Out-Null
-        }
+    if ($resolvedUids.Count -eq 0) {
+        Write-Host 'At least one record UID or title is required.' -ForegroundColor Red
+        return
+    }
+
+    try {
+        $details = $vault.GetKeeperNSFRecordDetails([string[]]$resolvedUids.ToArray()).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        return
     }
 
     if ($Format -eq 'json') {
-        $output = @{ data = $results }
-        if ($notFound.Count -gt 0) { $output.not_found = $notFound }
-        $output | ConvertTo-Json -Depth 5
+        $data = foreach ($entry in $details.Data) {
+            [ordered]@{
+                record_uid = $entry.RecordUid
+                title      = $entry.Title
+                type       = $entry.Type
+                version    = $entry.Version
+                revision   = $entry.Revision
+            }
+        }
+        @{
+            data              = @($data)
+            forbidden_records = @($details.ForbiddenRecords)
+        } | ConvertTo-Json -Depth 5
     }
     else {
-        foreach ($r in $results) {
-            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Record UID", $r.RecordUid)
-            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $r.Title)
-            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $r.Type)
-            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Version", $r.Version)
-            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Revision", $r.Revision)
+        foreach ($entry in $details.Data) {
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Record UID", $entry.RecordUid)
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $entry.Title)
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $entry.Type)
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Version", $entry.Version)
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Revision", $entry.Revision)
             Write-Host ""
         }
-        if ($notFound.Count -gt 0) {
-            Write-Host "Records not found: $($notFound.Count)" -ForegroundColor Yellow
-            foreach ($uid in $notFound) {
+        if ($details.ForbiddenRecords.Count -gt 0) {
+            Write-Host "Forbidden records: $($details.ForbiddenRecords.Count)" -ForegroundColor Yellow
+            foreach ($uid in $details.ForbiddenRecords) {
                 Write-Host "  $uid"
             }
         }
-        Write-Host "Total records retrieved: $($results.Count)"
+        Write-Host "Total records retrieved: $($details.Data.Count)"
     }
 }
 New-Alias -Name nsf-record-details -Value Get-KeeperNSFRecordDetails

@@ -486,7 +486,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="folderUid">Folder UID to share.</param>
         /// <param name="userEmail">Email address of the user to grant access.</param>
-        /// <param name="role">Access role: viewer, shared-manager, content-manager, content-share-manager, full-manager.</param>
+        /// <param name="role">Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.</param>
         /// <returns>Awaitable task.</returns>
         Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer");
 
@@ -524,7 +524,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="recordUid">Record UID to share.</param>
         /// <param name="userEmail">Email of the user to grant access.</param>
-        /// <param name="role">Access role: viewer, shared-manager, content-manager, content-share-manager, full-manager.</param>
+        /// <param name="role">Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.</param>
         Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer");
 
         /// <summary>
@@ -551,6 +551,13 @@ namespace KeeperSecurity.Vault
         /// <param name="folderUid">Optional folder UID to filter results to records in that folder.</param>
         /// <returns>A list of shortcut entries.</returns>
         IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null);
+
+        /// <summary>
+        /// Fetches Keeper NSF record metadata via <c>vault/records/v3/details/data</c>.
+        /// </summary>
+        /// <param name="recordUids">Record UIDs to query.</param>
+        /// <returns>Record metadata and any UIDs the server refused to return.</returns>
+        Task<KeeperNSFRecordDetailsResult> GetKeeperNSFRecordDetails(IReadOnlyList<string> recordUids);
 
         /// <summary>
         /// Keeps a Keeper NSF record in exactly one folder and removes it from all other folders.
@@ -882,6 +889,27 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="auth">Authenticated session.</param>
         Task<IEnumerable<TeamInfo>> GetAvailableTeamsForShareAsync(IAuthentication auth);
+    }
+
+    /// <summary>
+    /// Metadata entry returned by <see cref="IVault.GetKeeperNSFRecordDetails"/>.
+    /// </summary>
+    public class KeeperNSFRecordDetailEntry
+    {
+        public string RecordUid { get; set; }
+        public string Title { get; set; }
+        public string Type { get; set; }
+        public int Version { get; set; }
+        public long Revision { get; set; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.GetKeeperNSFRecordDetails"/>.
+    /// </summary>
+    public class KeeperNSFRecordDetailsResult
+    {
+        public List<KeeperNSFRecordDetailEntry> Data { get; } = new List<KeeperNSFRecordDetailEntry>();
+        public List<string> ForbiddenRecords { get; } = new List<string>();
     }
 
     /// <summary>

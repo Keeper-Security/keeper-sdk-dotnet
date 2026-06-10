@@ -75,7 +75,7 @@ function Set-KeeperNSFFolderAccess {
 	One or more user email addresses to grant/revoke access.
 
 	.Parameter Role
-	Access role for grant action: viewer (default), shared-manager, content-manager,
+	Access role for grant action: viewer (default), share-manager, content-manager,
 	content-share-manager, full-manager.
 #>
     [CmdletBinding()]
@@ -92,7 +92,7 @@ function Set-KeeperNSFFolderAccess {
         [string[]] $Email,
 
         [Parameter()]
-        [ValidateSet('viewer', 'shared-manager', 'content-manager', 'content-share-manager', 'full-manager')]
+        [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
         [string] $Role = 'viewer'
     )
 

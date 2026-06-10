@@ -217,12 +217,12 @@ namespace KeeperSecurity.Vault
             switch (role?.ToLowerInvariant())
             {
                 case "viewer": return FolderProto.AccessRoleType.Viewer;
-                case "shared-manager": return FolderProto.AccessRoleType.SharedManager;
+                case "share-manager": return FolderProto.AccessRoleType.SharedManager;
                 case "content-manager": return FolderProto.AccessRoleType.ContentManager;
                 case "content-share-manager": return FolderProto.AccessRoleType.ContentShareManager;
                 case "full-manager": return FolderProto.AccessRoleType.Manager;
                 default:
-                    throw new ArgumentException($"Unknown access role '{role}'. Valid roles: viewer, shared-manager, content-manager, content-share-manager, full-manager");
+                    throw new ArgumentException($"Unknown access role '{role}'. Valid roles: viewer, share-manager, content-manager, content-share-manager, full-manager");
             }
         }
 
@@ -761,7 +761,7 @@ namespace KeeperSecurity.Vault
                 case FolderProto.AccessRoleType.Navigator: return "contributor";
                 case FolderProto.AccessRoleType.Requestor: return "contributor";
                 case FolderProto.AccessRoleType.Viewer: return "viewer";
-                case FolderProto.AccessRoleType.SharedManager: return "shared-manager";
+                case FolderProto.AccessRoleType.SharedManager: return "share-manager";
                 case FolderProto.AccessRoleType.ContentManager: return "content-manager";
                 case FolderProto.AccessRoleType.ContentShareManager: return "content-share-manager";
                 case FolderProto.AccessRoleType.Manager: return "full-manager";
@@ -1057,6 +1057,244 @@ namespace KeeperSecurity.Vault
             if (vault.TryGetKeeperNSFFolder(folderUid, out var folder) && !string.IsNullOrEmpty(folder.Name))
                 return folder.Name;
             return folderUid;
+        }
+
+        public static async Task<KeeperNSFRecordDetailsResult> GetKeeperNSFRecordDetailsInternal(
+            this VaultOnline vault, IReadOnlyList<string> recordUids)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "at least one record UID required");
+            }
+
+            var request = new RecordDetailsProto.RecordDataRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+
+            foreach (var uid in recordUids.Where(u => !string.IsNullOrWhiteSpace(u)))
+            {
+                var uidBytes = uid.Trim().Base64UrlDecode();
+                if (uidBytes == null || uidBytes.Length == 0)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Skipping record details request with malformed UID '{uid}'");
+                    continue;
+                }
+
+                request.RecordUids.Add(ByteString.CopyFrom(uidBytes));
+            }
+
+            if (request.RecordUids.Count == 0)
+            {
+                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "no valid record UIDs");
+            }
+
+            var response = await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordDataRequest, RecordDetailsProto.RecordDataResponse>(
+                "vault/records/v3/details/data", request).ConfigureAwait(false);
+
+            var result = new KeeperNSFRecordDetailsResult();
+            foreach (var forbiddenUid in response.ForbiddenRecords)
+            {
+                result.ForbiddenRecords.Add(CryptoUtils.Base64UrlEncode(forbiddenUid.ToByteArray()));
+            }
+
+            foreach (var recordData in response.Data)
+            {
+                var recordUid = CryptoUtils.Base64UrlEncode(recordData.RecordUid.ToByteArray());
+                var title = "Unknown";
+                var type = "Unknown";
+
+                if (TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var decrypted))
+                {
+                    title = !string.IsNullOrEmpty(decrypted?.Title)
+                        ? decrypted.Title
+                        : !string.IsNullOrEmpty(decrypted?.Name) ? decrypted.Name : "Unknown";
+                    type = !string.IsNullOrEmpty(decrypted?.Type) ? decrypted.Type : "Unknown";
+                }
+                else if (vault.TryGetKeeperNSFRecord(recordUid, out var cached))
+                {
+                    ResolveKeeperNSFRecordTitleAndType(cached, out title, out type);
+                }
+
+                result.Data.Add(new KeeperNSFRecordDetailEntry
+                {
+                    RecordUid = recordUid,
+                    Title = title,
+                    Type = type,
+                    Version = recordData.Version,
+                    Revision = recordData.Revision,
+                });
+            }
+
+            return result;
+        }
+
+        private static void ResolveKeeperNSFRecordTitleAndType(KeeperNSFRecord record, out string title, out string type)
+        {
+            if (!string.IsNullOrEmpty(record?.Type))
+            {
+                type = record.Type;
+            }
+            else if (record?.Version == 4)
+            {
+                type = "file";
+            }
+            else if (record?.Version == 5)
+            {
+                type = "application";
+            }
+            else
+            {
+                type = "Unknown";
+            }
+
+            title = !string.IsNullOrEmpty(record?.Title) ? record.Title : "Unknown";
+        }
+
+        private static bool TryDecryptKeeperNSFRecordDetailsData(
+            VaultOnline vault, Records.RecordData recordData, string recordUid, out NsfRecordData data)
+        {
+            data = null;
+            var recordKey = TryDecryptKeeperNSFRecordKeyFromDetails(vault, recordData, recordUid);
+            if (recordKey == null || recordKey.Length == 0)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(recordData.EncryptedRecordData))
+            {
+                return false;
+            }
+
+            try
+            {
+                var decryptedBytes = CryptoUtils.DecryptAesV2(recordData.EncryptedRecordData.Base64UrlDecode(), recordKey);
+                data = JsonUtils.ParseJson<NsfRecordData>(decryptedBytes);
+                return data != null;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Failed to decrypt record details for {recordUid}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static byte[] TryDecryptKeeperNSFRecordKeyFromDetails(
+            VaultOnline vault, Records.RecordData recordData, string recordUid)
+        {
+            if (vault.TryGetKeeperNSFRecord(recordUid, out var cached) && cached.RecordKey?.Length > 0)
+            {
+                return cached.RecordKey;
+            }
+
+            if (recordData.RecordKey == null || recordData.RecordKey.IsEmpty)
+            {
+                return null;
+            }
+
+            var encryptedKey = recordData.RecordKey.ToByteArray();
+            var context = vault.Auth.AuthContext;
+            byte[] recordKey = null;
+
+            switch (recordData.RecordKeyType)
+            {
+                case Records.RecordKeyType.EncryptedByDataKey:
+                    try
+                    {
+                        recordKey = CryptoUtils.DecryptAesV1(encryptedKey, context.DataKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceWarning($"KeeperNSF: AES v1 record key decrypt failed for {recordUid}: {ex.Message}");
+                    }
+
+                    break;
+                case Records.RecordKeyType.EncryptedByDataKeyGcm:
+                case Records.RecordKeyType.NoKey:
+                    try
+                    {
+                        recordKey = CryptoUtils.DecryptAesV2(encryptedKey, context.DataKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceWarning($"KeeperNSF: AES v2 record key decrypt failed for {recordUid}: {ex.Message}");
+                    }
+
+                    break;
+                case Records.RecordKeyType.EncryptedByPublicKey:
+                    if (context.PrivateRsaKey != null)
+                    {
+                        try
+                        {
+                            recordKey = CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.TraceWarning($"KeeperNSF: RSA record key decrypt failed for {recordUid}: {ex.Message}");
+                        }
+                    }
+
+                    break;
+                case Records.RecordKeyType.EncryptedByPublicKeyEcc:
+                    if (context.PrivateEcKey != null)
+                    {
+                        try
+                        {
+                            recordKey = CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.TraceWarning($"KeeperNSF: ECC record key decrypt failed for {recordUid}: {ex.Message}");
+                        }
+                    }
+
+                    break;
+            }
+
+            if (recordKey != null && recordKey.Length > 0)
+            {
+                return recordKey;
+            }
+
+            foreach (var link in vault.Storage.KdRecordKeys.GetAllLinks()
+                .Where(item => string.Equals(item.RecordUid, recordUid, StringComparison.Ordinal)))
+            {
+                if (string.IsNullOrEmpty(link.FolderUid)
+                    || !vault.TryGetKeeperNSFFolder(link.FolderUid, out var folder)
+                    || folder.FolderKey == null
+                    || folder.FolderKey.Length == 0)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    recordKey = CryptoUtils.DecryptAesV2(encryptedKey, folder.FolderKey);
+                }
+                catch
+                {
+                    recordKey = null;
+                }
+
+                if (recordKey == null || recordKey.Length == 0)
+                {
+                    try
+                    {
+                        recordKey = CryptoUtils.DecryptAesV1(encryptedKey, folder.FolderKey);
+                    }
+                    catch
+                    {
+                        recordKey = null;
+                    }
+                }
+
+                if (recordKey != null && recordKey.Length > 0)
+                {
+                    return recordKey;
+                }
+            }
+
+            return null;
         }
 
         public static IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcutsInternal(
