@@ -4,42 +4,6 @@ $script:KD_FOLDER_LABEL_WIDTH = 25
 $script:ShareObjectsCache = $null
 $script:ShareObjectsCacheAccountUid = $null
 
-class KdFolderListItem {
-    [string]$FolderUid
-    [string]$Name
-    [string]$ParentUid
-    [int]$Subfolders
-    [int]$Records
-}
-
-class KdRecordListItem {
-    [string]$RecordUid
-    [string]$Name
-    [string]$Type
-    [long]$Revision
-    [int]$Version
-    [bool]$Shared
-    [long]$FileSize
-    [long]$ThumbnailSize
-}
-
-class KdRecordDetailItem {
-    [string]$RecordUid
-    [string]$Title
-    [string]$Type
-    [int]$Version
-    [long]$Revision
-}
-
-class KdUserPermission {
-    [string]$Username
-    [bool]$Owner
-    [string]$Role
-    [bool]$CanEdit
-    [bool]$CanView
-    [bool]$CanDelete
-}
-
 $script:KdRootFolderUid = 'AAAAAAAAAAAAAAAAAPmtNA'
 
 $script:AccessRoleLabels = @{
@@ -75,6 +39,42 @@ $script:KdFieldLabels = @{
     notes    = 'Notes'
     phone    = 'Phone'
     address  = 'Address'
+}
+
+class KdFolderListItem {
+    [string]$FolderUid
+    [string]$Name
+    [string]$ParentUid
+    [int]$Subfolders
+    [int]$Records
+}
+
+class KdRecordListItem {
+    [string]$RecordUid
+    [string]$Name
+    [string]$Type
+    [long]$Revision
+    [int]$Version
+    [bool]$Shared
+    [long]$FileSize
+    [long]$ThumbnailSize
+}
+
+class KdRecordDetailItem {
+    [string]$RecordUid
+    [string]$Title
+    [string]$Type
+    [int]$Version
+    [long]$Revision
+}
+
+class KdUserPermission {
+    [string]$Username
+    [bool]$Owner
+    [string]$Role
+    [bool]$CanEdit
+    [bool]$CanView
+    [bool]$CanDelete
 }
 
 function Reset-KdShareObjectsCache {
