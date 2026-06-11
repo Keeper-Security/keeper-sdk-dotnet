@@ -409,6 +409,12 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public Task<KeeperNSFRecordDetailsResult> GetKeeperNSFRecordDetails(IReadOnlyList<string> recordUids)
+        {
+            return this.GetKeeperNSFRecordDetailsInternal(recordUids);
+        }
+
+        /// <inheritdoc/>
         public async Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid)
         {
             var result = await this.KeepKeeperNSFRecordInFolderInternal(recordUid, keepFolderUid);

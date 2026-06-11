@@ -495,40 +495,28 @@ namespace KeeperSecurity.Vault
 
         private static byte[] TryDecryptSymmetric(byte[] encryptedKey, byte[] symmetricKey)
         {
-            try { return CryptoUtils.DecryptAesV2(encryptedKey, symmetricKey); }
-            catch (Exception ex)
-            {
-                Trace.TraceWarning($"AES-V2 decryption failed: {ex.Message}");
-            }
-            try { return CryptoUtils.DecryptAesV1(encryptedKey, symmetricKey); }
-            catch (Exception ex)
-            {
-                Trace.TraceWarning($"AES-V1 decryption failed: {ex.Message}");
-            }
-            return null;
+            return CryptoUtils.TryDecryptSymmetric(encryptedKey, symmetricKey, out var plain) ? plain : null;
         }
 
         private static byte[] TryDecryptWithUserKeys(byte[] encryptedKey, IAuthContext context)
         {
-            var result = TryDecryptSymmetric(encryptedKey, context.DataKey);
-            if (result != null) return result;
+            if (CryptoUtils.TryDecryptSymmetric(encryptedKey, context.DataKey, out var result))
+            {
+                return result;
+            }
 
-            if (context.PrivateRsaKey != null)
+            if (context.PrivateRsaKey != null
+                && CryptoUtils.TryDecryptRsa(encryptedKey, context.PrivateRsaKey, out result))
             {
-                try { return CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey); }
-                catch (Exception ex)
-                {
-                    Trace.TraceWarning($"RSA decryption failed: {ex.Message}");
-                }
+                return result;
             }
-            if (context.PrivateEcKey != null)
+
+            if (context.PrivateEcKey != null
+                && CryptoUtils.TryDecryptEc(encryptedKey, context.PrivateEcKey, out result))
             {
-                try { return CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey); }
-                catch (Exception ex)
-                {
-                    Trace.TraceWarning($"EC decryption failed: {ex.Message}");
-                }
+                return result;
             }
+
             return null;
         }
 
