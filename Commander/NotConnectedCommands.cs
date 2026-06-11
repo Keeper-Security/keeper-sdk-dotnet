@@ -61,7 +61,7 @@ namespace Commander
 
             _auth = new AuthSync(storage)
             {
-                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.2.0" }
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c18.0.0" }
             };
 
 #if NET472_OR_GREATER
