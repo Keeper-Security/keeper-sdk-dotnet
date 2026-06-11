@@ -76,6 +76,20 @@ function Get-KeeperRecordListItems {
     return $records
 }
 
+function Sort-KeeperRecordListItems {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [System.Collections.Generic.List[KeeperRecordListItem]] $Items
+    )
+
+    $sorted = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+    foreach ($item in ($Items | Sort-Object -Property Name)) {
+        $sorted.Add($item) | Out-Null
+    }
+
+    return $sorted
+}
+
 function Test-KeeperRecordFormattedListOutput {
     Param(
         [Parameter(Mandatory = $true)][System.Management.Automation.InvocationInfo] $Invocation
@@ -142,39 +156,22 @@ function Get-KeeperRecord {
     }
     else {
         if ($AsObject.IsPresent) {
-            $items = @(Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
-            return @($items | Sort-Object Name)
+            return (Sort-KeeperRecordListItems -Items (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent))
         }
 
         if (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation) {
-            $items = @(Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
+            $items = Sort-KeeperRecordListItems -Items (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
 
             if ($items.Count -eq 0) {
                 Write-Host "No records found."
                 return
             }
 
-            $items = @($items | Sort-Object Name)
-
             Write-Host ""
             Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
             Write-Host ""
 
-            $items | Format-Table -Property @(
-                @{Label='UID'; Expression={$_.RecordUid}; Width=25},
-                @{Label='Name'; Expression={$_.Name}; Width=28},
-                @{Label='Type'; Expression={$_.Type}; Width=16},
-                @{Label='Category'; Expression={$_.Category}; Width=22},
-                @{Label='Description'; Expression={
-                    if ([string]::IsNullOrEmpty($_.Description)) { return '' }
-                    $d = ($_.Description -replace '\s+', ' ').Trim()
-                    if ($d.Length -gt 36) { $d.Substring(0, 33) + '...' } else { $d }
-                }; Width=36},
-                @{Label='Version'; Expression={$_.Version}; Width=8; Align='Right'},
-                @{Label='Revision'; Expression={$_.Revision}; Width=8; Align='Right'},
-                @{Label='Shared'; Expression={$_.Shared}; Width=8}
-            ) -AutoSize
-            return
+            return $items
         }
 
         foreach ($record in $vault.KeeperRecords) {
