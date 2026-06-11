@@ -76,20 +76,6 @@ function Get-KeeperRecordListItems {
     return $records
 }
 
-function Sort-KeeperRecordListItems {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [System.Collections.Generic.List[KeeperRecordListItem]] $Items
-    )
-
-    $sorted = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
-    foreach ($item in ($Items | Sort-Object -Property Name)) {
-        $sorted.Add($item) | Out-Null
-    }
-
-    return $sorted
-}
-
 function Test-KeeperRecordFormattedListOutput {
     Param(
         [Parameter(Mandatory = $true)][System.Management.Automation.InvocationInfo] $Invocation
@@ -156,11 +142,18 @@ function Get-KeeperRecord {
     }
     else {
         if ($AsObject.IsPresent) {
-            return (Sort-KeeperRecordListItems -Items (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent))
+            $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+            foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
+                $items.Add($item) | Out-Null
+            }
+            return $items
         }
 
         if (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation) {
-            $items = Sort-KeeperRecordListItems -Items (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent)
+            $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+            foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
+                $items.Add($item) | Out-Null
+            }
 
             if ($items.Count -eq 0) {
                 Write-Host "No records found."
