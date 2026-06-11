@@ -293,6 +293,8 @@ function Parse-KeeperSharePeriod {
         [string] $Period
     )
 
+    $Period = $Period.Trim().ToLowerInvariant()
+
     if ($Period -match '^(\d+)(mi|minutes?|h|hours?|d|days?|mo|months?|y|years?)$') {
         $num = [int]$Matches[1]
         switch -Regex ($Matches[2]) {
