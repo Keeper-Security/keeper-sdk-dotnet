@@ -589,6 +589,8 @@ namespace Commander
 
             cli.Commands.Add("trash", trashCmd);
 
+            context.AppendNsfCommands(cli);
+
             cli.Commands.Add("sync-down",
                 new ParseableCommand<SyncDownOptions>
                 {

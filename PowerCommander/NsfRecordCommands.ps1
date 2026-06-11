@@ -329,7 +329,7 @@ function Set-KeeperNSFRecordAccess {
 	One or more user email addresses to grant/revoke access.
 
 	.Parameter Role
-	Access role for grant action: viewer (default), shared-manager, content-manager,
+	Access role for grant action: viewer (default), share-manager, content-manager,
 	content-share-manager, full-manager.
 #>
     [CmdletBinding()]
@@ -346,7 +346,7 @@ function Set-KeeperNSFRecordAccess {
         [string[]] $Email,
 
         [Parameter()]
-        [ValidateSet('viewer', 'shared-manager', 'content-manager', 'content-share-manager', 'full-manager')]
+        [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
         [string] $Role = 'viewer'
     )
 
@@ -399,7 +399,7 @@ function Set-KeeperNSFRecordPermission {
 	Action to perform: 'grant' or 'revoke'.
 
 	.Parameter Role
-	Access role: viewer, shared-manager, content-manager, content-share-manager, full-manager.
+	Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.
 	Required for grant action. For revoke, if specified, only revokes users with that role.
 
 	.Parameter Recursive
@@ -422,7 +422,7 @@ function Set-KeeperNSFRecordPermission {
         [string] $Action,
 
         [Parameter()]
-        [ValidateSet('viewer', 'shared-manager', 'content-manager', 'content-share-manager', 'full-manager')]
+        [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
         [string] $Role,
 
         [Parameter()]
@@ -840,7 +840,6 @@ function Set-KeeperNSFShortcutKeep {
 
 New-Alias -Name nsf-shortcut-keep -Value Set-KeeperNSFShortcutKeep
 
-# --- NSF record mutations (sdk-396) ---
 function Remove-KeeperNSFRecord {
     <#
 	.Synopsis
