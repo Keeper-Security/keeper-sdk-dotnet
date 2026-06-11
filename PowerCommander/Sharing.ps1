@@ -313,6 +313,15 @@ function Get-ExpirationDate {
         [string]$ExpireAt
     )
 
+    if ($ExpireAt) {
+        try {
+            return [DateTimeOffset]::Parse($ExpireAt)
+        }
+        catch {
+            throw "Cannot parse ExpireAt: '$ExpireAt'. Must be a valid ISO 8601 or RFC 1123 string."
+        }
+    }
+
     $expireOffset = $null
 
     if ($ExpireIn) {
@@ -347,17 +356,8 @@ function Get-ExpirationDate {
 
         return [DateTimeOffset]::UtcNow.Add($expireOffset)
     }
-    elseif ($ExpireAt) {
-        try {
-            return [DateTimeOffset]::Parse($ExpireAt)
-        }
-        catch {
-            throw "Cannot parse ExpireAt: '$ExpireAt'. Must be a valid ISO 8601 or RFC 1123 string."
-        }
-    }
-    else {
-        return $null  # No expiration
-    }
+
+    return $null  # No expiration
 }
 
 function Revoke-KeeperRecordAccess {
