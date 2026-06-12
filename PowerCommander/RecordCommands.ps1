@@ -14,13 +14,12 @@ class KeeperRecordListItem {
 function Get-KeeperRecordListItems {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
-        [Parameter()][switch] $ClassicOnly,
-        [string] $Filter
+        [Parameter()][switch] $ClassicOnly
     )
 
     if (-not $Vault) {
         Write-Error -Message "Not connected to Keeper. Please run Connect-Keeper first."
-        return @()
+        return [System.Collections.Generic.List[KeeperRecordListItem]]::new()
     }
 
     $records = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
@@ -33,11 +32,6 @@ function Get-KeeperRecordListItems {
                 $meta = Get-KdRecordTypeAndTitle $record
                 $type = $meta.Type
                 if (-not $name) { $name = $meta.Title }
-            }
-
-            if ($Filter) {
-                $match = $($record.RecordUid, $name, $type) | Select-String $Filter | Select-Object -First 1
-                if (-not $match) { continue }
             }
 
             $item = [KeeperRecordListItem]::new()
@@ -55,11 +49,6 @@ function Get-KeeperRecordListItems {
 
     foreach ($record in $Vault.KeeperRecords) {
         if ($record.Version -ne 2 -and $record.Version -ne 3) { continue }
-
-        if ($Filter) {
-            $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
-            if (-not $match) { continue }
-        }
 
         $item = [KeeperRecordListItem]::new()
         $item.RecordUid = $record.Uid
@@ -141,28 +130,39 @@ function Get-KeeperRecord {
         }
     }
     else {
-        if ($AsObject.IsPresent) {
-            $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
-            foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
-                $items.Add($item) | Out-Null
-            }
-            return $items
-        }
-
-        if (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation) {
+        $useListOutput = $AsObject.IsPresent -or (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation)
+        if ($useListOutput) {
             $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
             foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
                 $items.Add($item) | Out-Null
             }
 
-            if ($items.Count -eq 0) {
-                Write-Host "No records found."
+            if (-not $AsObject.IsPresent) {
+                if ($items.Count -eq 0) {
+                    Write-Host "No records found."
+                    return
+                }
+
+                Write-Host ""
+                Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
+                Write-Host ""
+
+                $items | Format-Table -Property @(
+                    @{Label='UID'; Expression={$_.RecordUid}; Width=25},
+                    @{Label='Name'; Expression={$_.Name}; Width=28},
+                    @{Label='Type'; Expression={$_.Type}; Width=16},
+                    @{Label='Category'; Expression={$_.Category}; Width=22},
+                    @{Label='Description'; Expression={
+                        if ([string]::IsNullOrEmpty($_.Description)) { return '' }
+                        $d = ($_.Description -replace '\s+', ' ').Trim()
+                        if ($d.Length -gt 36) { $d.Substring(0, 33) + '...' } else { $d }
+                    }; Width=36},
+                    @{Label='Version'; Expression={$_.Version}; Width=8; Align='Right'},
+                    @{Label='Revision'; Expression={$_.Revision}; Width=8; Align='Right'},
+                    @{Label='Shared'; Expression={$_.Shared}; Width=8}
+                ) -AutoSize
                 return
             }
-
-            Write-Host ""
-            Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
-            Write-Host ""
 
             return $items
         }
