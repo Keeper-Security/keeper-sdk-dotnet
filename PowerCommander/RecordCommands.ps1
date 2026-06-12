@@ -1,21 +1,113 @@
 #requires -Version 5.1
 
+class KeeperRecordListItem {
+    [string]$RecordUid
+    [string]$Name
+    [string]$Type
+    [string]$Category
+    [string]$Description
+    [int]$Version
+    [long]$Revision
+    [bool]$Shared
+}
+
+function Get-KeeperRecordListItems {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter()][switch] $ClassicOnly
+    )
+
+    if (-not $Vault) {
+        Write-Error -Message "Not connected to Keeper. Please run Connect-Keeper first."
+        return [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+    }
+
+    $records = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+
+    if (-not $ClassicOnly.IsPresent) {
+        foreach ($record in $Vault.KeeperNSFRecordEntries) {
+            $name = if ($record.Title) { $record.Title } else { '' }
+            $type = if ($record.Type) { $record.Type } else { 'Unknown' }
+            if (Get-Command Get-KdRecordTypeAndTitle -ErrorAction SilentlyContinue) {
+                $meta = Get-KdRecordTypeAndTitle $record
+                $type = $meta.Type
+                if (-not $name) { $name = $meta.Title }
+            }
+
+            $item = [KeeperRecordListItem]::new()
+            $item.RecordUid = $record.RecordUid
+            $item.Name      = $name
+            $item.Type      = $type
+            $item.Category    = 'nested'
+            $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
+            $item.Version     = $record.Version
+            $item.Revision    = $record.Revision
+            $item.Shared      = $record.Shared
+            $records.Add($item) | Out-Null
+        }
+    }
+
+    foreach ($record in $Vault.KeeperRecords) {
+        if ($record.Version -ne 2 -and $record.Version -ne 3) { continue }
+
+        $item = [KeeperRecordListItem]::new()
+        $item.RecordUid = $record.Uid
+        $item.Name      = if ($record.Title) { $record.Title } else { '' }
+        $item.Type      = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+        $item.Category    = 'classic'
+        $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
+        $item.Version     = $record.Version
+        $item.Revision    = $record.Revision
+        $item.Shared      = $record.Shared
+        $records.Add($item) | Out-Null
+    }
+
+    return $records
+}
+
+function Test-KeeperRecordFormattedListOutput {
+    Param(
+        [Parameter(Mandatory = $true)][System.Management.Automation.InvocationInfo] $Invocation
+    )
+
+    if ([Console]::IsOutputRedirected) { return $false }
+
+    $line = $Invocation.Line
+    if ([string]::IsNullOrWhiteSpace($line)) { return $true }
+
+    if ($line -match '(?<![\w-])(kr|Get-KeeperRecord)\b[^;\r\n]*\|\s*\S') { return $false }
+    if ($line -match '=\s*(kr\b|Get-KeeperRecord\b)') { return $false }
+
+    return $true
+}
+
 function Get-KeeperRecord {
     <#
 	.Synopsis
 	Get Keeper Records
 
+	.Description
+	Lists classic and nested records with Category and Description.
+
 	.Parameter Uid
 	Record UID
 
 	.Parameter Filter
-	Return matching records only
+	Return matching classic records only as KeeperRecord objects
+
+	.Parameter AsObject
+	Return unified list rows (KeeperRecordListItem) for scripting
+
+	.Parameter ClassicOnly
+	Exclude nested shared (NSF) records from the interactive list
 #>
     [CmdletBinding()]
     [OutputType([KeeperSecurity.Vault.KeeperRecord[]])]
     Param (
         [string] $Uid,
-        [string] $Filter
+        [string] $Filter,
+        [Parameter()][switch] $AsObject,
+        [Parameter()][switch] $ClassicOnly
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -28,14 +120,57 @@ function Get-KeeperRecord {
             Get-KeeperNSFRecord -Uid $Uid
         }
     }
-    else {
+    elseif ($Filter) {
         foreach ($record in $vault.KeeperRecords) {
-            if ($Filter) {
-                $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
-                if (-not $match) {
-                    continue
-                }
+            $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
+            if (-not $match) {
+                continue
             }
+            $record
+        }
+    }
+    else {
+        $useListOutput = $AsObject.IsPresent -or (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation)
+        if ($useListOutput) {
+            $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
+            foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
+                $items.Add($item) | Out-Null
+            }
+
+            if (-not $AsObject.IsPresent) {
+                if ($items.Count -eq 0) {
+                    Write-Host "No records found."
+                    return
+                }
+
+                Write-Host ""
+                Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
+                Write-Host ""
+
+                $rows = foreach ($item in $items) {
+                    $desc = $item.Description
+                    if (-not [string]::IsNullOrEmpty($desc)) {
+                        $desc = ($desc -replace '\s+', ' ').Trim()
+                        if ($desc.Length -gt 36) { $desc = $desc.Substring(0, 33) + '...' }
+                    }
+                    [PSCustomObject]@{
+                        UID         = $item.RecordUid
+                        Name        = $item.Name
+                        Type        = $item.Type
+                        Category    = $item.Category
+                        Description = $desc
+                        Version     = $item.Version
+                        Revision    = $item.Revision
+                        Shared      = $item.Shared
+                    }
+                }
+                return $rows
+            }
+
+            return $items
+        }
+
+        foreach ($record in $vault.KeeperRecords) {
             $record
         }
     }
