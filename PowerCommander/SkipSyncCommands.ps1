@@ -61,7 +61,8 @@ function __NewSharedFolderUserOptionsSkipSync {
     param(
         [System.Nullable[bool]] $ManageRecords,
         [System.Nullable[bool]] $ManageUsers,
-        [System.Nullable[DateTimeOffset]] $Expiration
+        [System.Nullable[DateTimeOffset]] $Expiration,
+        [switch] $RotateOnExpiration
     )
     $options = New-Object KeeperSecurity.Vault.SharedFolderUserOptions
     if ($null -ne $ManageRecords) {
@@ -78,6 +79,9 @@ function __NewSharedFolderUserOptionsSkipSync {
         $options.Expiration = $Expiration
     } else {
         $options.Expiration = $null
+    }
+    if ($RotateOnExpiration.IsPresent) {
+        $options.RotateOnExpiration = $true
     }
     return $options
 }
@@ -647,6 +651,10 @@ function Grant-KeeperSharedFolderUserSkipSync {
 
     .PARAMETER ExpireAt
     Optional. Absolute expiration as ISO 8601 or RFC 1123 (e.g. "2025-05-23T08:59:11Z").
+
+    .PARAMETER RotateOnExpiration
+    Rotate the password when share access expires. Requires expiration and a pamUser record
+    with rotation configured in the folder.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     Param(
@@ -656,6 +664,8 @@ function Grant-KeeperSharedFolderUserSkipSync {
         [Parameter()][System.Nullable[bool]] $ManageUsers,
         [Parameter()][System.Object] $ExpireIn,
         [Parameter()][string] $ExpireAt,
+        [Alias('roe', 'rotate-on-expiration')]
+        [Parameter()][switch] $RotateOnExpiration,
         [Parameter()][switch] $ShowDetail,
         [Parameter()][switch] $PassThru
     )
@@ -668,7 +678,7 @@ function Grant-KeeperSharedFolderUserSkipSync {
         Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
         throw
     }
-    $options = __NewSharedFolderUserOptionsSkipSync -ManageRecords $ManageRecords -ManageUsers $ManageUsers -Expiration $expirationDto
+    $options = __NewSharedFolderUserOptionsSkipSync -ManageRecords $ManageRecords -ManageUsers $ManageUsers -Expiration $expirationDto -RotateOnExpiration:$RotateOnExpiration.IsPresent
     $didGrant = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to $email")) {
         $auth = getKeeperAuth
@@ -743,6 +753,10 @@ function Grant-KeeperSharedFolderTeamSkipSync {
 
     .PARAMETER ExpireAt
     Optional. Absolute expiration (ISO 8601 or RFC 1123).
+
+    .PARAMETER RotateOnExpiration
+    Rotate the password when share access expires. Requires expiration and a pamUser record
+    with rotation configured in the folder.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     Param(
@@ -752,6 +766,8 @@ function Grant-KeeperSharedFolderTeamSkipSync {
         [Parameter()][System.Nullable[bool]] $ManageUsers,
         [Parameter()][System.Object] $ExpireIn,
         [Parameter()][string] $ExpireAt,
+        [Alias('roe', 'rotate-on-expiration')]
+        [Parameter()][switch] $RotateOnExpiration,
         [Parameter()][switch] $ShowDetail,
         [Parameter()][switch] $PassThru
     )
@@ -764,7 +780,7 @@ function Grant-KeeperSharedFolderTeamSkipSync {
         Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
         throw
     }
-    $options = __NewSharedFolderUserOptionsSkipSync -ManageRecords $ManageRecords -ManageUsers $ManageUsers -Expiration $expirationDto
+    $options = __NewSharedFolderUserOptionsSkipSync -ManageRecords $ManageRecords -ManageUsers $ManageUsers -Expiration $expirationDto -RotateOnExpiration:$RotateOnExpiration.IsPresent
     $didGrant = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to team $Team")) {
         $auth = getKeeperAuth

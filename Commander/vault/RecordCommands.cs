@@ -813,7 +813,7 @@ namespace Commander
                     shareOptions.Expiration = DateTimeOffset.Now + ts;
                 }
                 await context.Vault.ShareRecordWithUser(record.Uid, options.Email, shareOptions);
-                Console.WriteLine("Successfuly shared the record {record.Uid} with user {options.Email}");
+                Console.WriteLine($"Successfully shared the record {record.Uid} with user {options.Email}");
             }
             catch (NoActiveShareWithUserException e)
             {
