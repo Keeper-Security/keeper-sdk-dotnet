@@ -147,21 +147,24 @@ function Get-KeeperRecord {
                 Write-Host "Found $($items.Count) record(s)" -ForegroundColor Green
                 Write-Host ""
 
-                $items | Format-Table -Property @(
-                    @{Label='UID'; Expression={$_.RecordUid}; Width=25},
-                    @{Label='Name'; Expression={$_.Name}; Width=28},
-                    @{Label='Type'; Expression={$_.Type}; Width=16},
-                    @{Label='Category'; Expression={$_.Category}; Width=22},
-                    @{Label='Description'; Expression={
-                        if ([string]::IsNullOrEmpty($_.Description)) { return '' }
-                        $d = ($_.Description -replace '\s+', ' ').Trim()
-                        if ($d.Length -gt 36) { $d.Substring(0, 33) + '...' } else { $d }
-                    }; Width=36},
-                    @{Label='Version'; Expression={$_.Version}; Width=8; Align='Right'},
-                    @{Label='Revision'; Expression={$_.Revision}; Width=8; Align='Right'},
-                    @{Label='Shared'; Expression={$_.Shared}; Width=8}
-                ) -AutoSize
-                return
+                $rows = foreach ($item in $items) {
+                    $desc = $item.Description
+                    if (-not [string]::IsNullOrEmpty($desc)) {
+                        $desc = ($desc -replace '\s+', ' ').Trim()
+                        if ($desc.Length -gt 36) { $desc = $desc.Substring(0, 33) + '...' }
+                    }
+                    [PSCustomObject]@{
+                        UID         = $item.RecordUid
+                        Name        = $item.Name
+                        Type        = $item.Type
+                        Category    = $item.Category
+                        Description = $desc
+                        Version     = $item.Version
+                        Revision    = $item.Revision
+                        Shared      = $item.Shared
+                    }
+                }
+                return $rows
             }
 
             return $items
