@@ -363,6 +363,20 @@ namespace KeeperSecurity.Vault
             folderUid = null;
             if (operation == KeeperNSFRecordRemoveOperation.OwnerTrash)
             {
+                if (!string.IsNullOrWhiteSpace(folderUidOrName))
+                {
+                    if (!TryResolveKeeperNSFFolder(folderUidOrName, out var ownerTrashFolder))
+                    {
+                        return false;
+                    }
+
+                    folderUid = GetKeeperNSFApiFolderUid(ownerTrashFolder);
+                }
+                else
+                {
+                    folderUid = GetKeeperNSFFoldersForRecord(recordUid).FirstOrDefault();
+                }
+
                 return true;
             }
 
