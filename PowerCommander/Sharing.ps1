@@ -199,6 +199,10 @@ function Grant-KeeperRecordAccess {
         .PARAMETER ExpireAt
             Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
 
+        .PARAMETER RotateOnExpiration
+            Rotate the password when share access expires. Requires a future expiration and a pamUser
+            record with rotation configured.
+
         .EXAMPLE
             Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
 
@@ -228,7 +232,9 @@ function Grant-KeeperRecordAccess {
         [Parameter()][switch]$CanEdit,
         [Parameter()][switch]$CanShare,
         [Parameter()][System.Object]$ExpireIn,
-        [Parameter()][string]$ExpireAt
+        [Parameter()][string]$ExpireAt,
+        [Alias('roe', 'rotate-on-expiration')]
+        [Parameter()][switch]$RotateOnExpiration
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -252,6 +258,9 @@ function Grant-KeeperRecordAccess {
         $options.CanEdit = $CanEdit.IsPresent
         $options.CanShare = $CanShare.IsPresent
         $options.Expiration = $expiration
+        if ($RotateOnExpiration.IsPresent) {
+            $options.RotateOnExpiration = $true
+        }
     }catch  {
         Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
         throw
@@ -268,7 +277,7 @@ function Grant-KeeperRecordAccess {
         if ($rec) {
             try {
                 $vault.ShareRecordWithUser($rec.Uid, $User, $options).GetAwaiter().GetResult() | Out-Null
-                Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
+                Write-Output "Successfully shared the record $($rec.Uid) with user $User"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
                 Write-Output $_
@@ -287,11 +296,42 @@ function Grant-KeeperRecordAccess {
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
+function Parse-KeeperSharePeriod {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Period
+    )
+
+    $Period = $Period.Trim().ToLowerInvariant()
+
+    if ($Period -match '^(\d+)(mi|minutes?|h|hours?|d|days?|mo|months?|y|years?)$') {
+        $num = [int]$Matches[1]
+        switch -Regex ($Matches[2]) {
+            '^(mi|minutes?)$' { return [TimeSpan]::FromMinutes($num) }
+            '^(h|hours?)$' { return [TimeSpan]::FromHours($num) }
+            '^(d|days?)$' { return [TimeSpan]::FromDays($num) }
+            '^(mo|months?)$' { return [TimeSpan]::FromDays($num * 30) }
+            '^(y|years?)$' { return [TimeSpan]::FromDays($num * 365) }
+        }
+    }
+
+    throw "Cannot parse period '$Period'. Valid units: mi, h, d, mo, y (e.g. 30d, 6mo, 1y)."
+}
+
 function Get-ExpirationDate {
     param(
         [object]$ExpireIn,
         [string]$ExpireAt
     )
+
+    if ($ExpireAt) {
+        try {
+            return [DateTimeOffset]::Parse($ExpireAt)
+        }
+        catch {
+            throw "Cannot parse ExpireAt: '$ExpireAt'. Must be a valid ISO 8601 or RFC 1123 string."
+        }
+    }
 
     $expireOffset = $null
 
@@ -309,10 +349,15 @@ function Get-ExpirationDate {
             }
             else {
                 try {
-                    $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                    $expireOffset = Parse-KeeperSharePeriod -Period $ExpireIn
                 }
                 catch {
-                    throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number or valid TimeSpan string."
+                    try {
+                        $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                    }
+                    catch {
+                        throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number, period (e.g. 30d, 1h), or valid TimeSpan string."
+                    }
                 }
             }
         }
@@ -322,17 +367,8 @@ function Get-ExpirationDate {
 
         return [DateTimeOffset]::UtcNow.Add($expireOffset)
     }
-    elseif ($ExpireAt) {
-        try {
-            return [DateTimeOffset]::Parse($ExpireAt)
-        }
-        catch {
-            throw "Cannot parse ExpireAt: '$ExpireAt'. Must be a valid ISO 8601 or RFC 1123 string."
-        }
-    }
-    else {
-        return $null  # No expiration
-    }
+
+    return $null  # No expiration
 }
 
 function Revoke-KeeperRecordAccess {
@@ -450,6 +486,16 @@ function Grant-KeeperSharedFolderAccess {
         .Parameter ManageUsers
         Grant Manage Users permission
 
+        .Parameter ExpireIn
+        Optional. Share expiration period from now (e.g. 30d, 1h, 30mi).
+
+        .Parameter ExpireAt
+        Optional. Absolute share expiration as ISO datetime.
+
+        .Parameter RotateOnExpiration
+        Rotate the password when share access expires. Requires expiration and a pamUser
+        record with rotation configured in the folder.
+
     #>
 
     [CmdletBinding()]
@@ -458,7 +504,11 @@ function Grant-KeeperSharedFolderAccess {
         [Parameter(Mandatory = $true, ParameterSetName='user')]$User,
         [Parameter(Mandatory = $true, ParameterSetName='team')]$Team,
         [Parameter()][switch]$ManageRecords,
-        [Parameter()][switch]$ManageUsers
+        [Parameter()][switch]$ManageUsers,
+        [Parameter()][System.Object]$ExpireIn,
+        [Parameter()][string]$ExpireAt,
+        [Alias('roe', 'rotate-on-expiration')]
+        [Parameter()][switch]$RotateOnExpiration
     )
 
     [KeeperSecurity.Vault.VaultOnline]$private:vault = getVault
@@ -529,6 +579,12 @@ function Grant-KeeperSharedFolderAccess {
         $options = New-Object KeeperSecurity.Vault.SharedFolderUserOptions
         $options.ManageRecords = $ManageRecords.IsPresent
         $options.ManageUsers = $ManageUsers.IsPresent
+        if ($ExpireIn -or $ExpireAt) {
+            $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        }
+        if ($RotateOnExpiration.IsPresent) {
+            $options.RotateOnExpiration = $true
+        }
         $vault.PutUserToSharedFolder($sf.Uid, $userId, $userType, $options).GetAwaiter().GetResult() | Out-Null
         Write-Output "${userType} `"$($userName)`" has been added to shared folder `"$($sf.Name)`""
     }
