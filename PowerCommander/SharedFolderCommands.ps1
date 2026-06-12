@@ -10,12 +10,17 @@ function Get-KeeperSharedFolder {
 
 	.Parameter Filter
 	Return matching shared folders only
+
+	.Parameter RoeEligible
+	If set, only return shared folders eligible for rotate-on-expiration (contain a pamUser
+	record with rotation configured).
 #>
     [CmdletBinding()]
     [OutputType([KeeperSecurity.Vault.SharedFolder[]])]
     Param (
         [string] $Uid,
-        [string] $Filter
+        [string] $Filter,
+        [switch] $RoeEligible
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -23,11 +28,18 @@ function Get-KeeperSharedFolder {
     [KeeperSecurity.Vault.SharedFolder] $sharedFolder = $null
     if ($Uid) {
         if ($vault.TryGetSharedFolder($uid, [ref]$sharedFolder)) {
-            $sharedFolder
+            if (-not $RoeEligible.IsPresent -or [KeeperSecurity.Vault.VaultShareExpirationExtensions]::SharedFolderHasPamUserWithRotation($vault, $sharedFolder.Uid)) {
+                $sharedFolder
+            }
         }
     }
     else {
-        foreach ($sharedFolder in $vault.SharedFolders) {
+        $folders = if ($RoeEligible.IsPresent) {
+            [KeeperSecurity.Vault.VaultShareExpirationExtensions]::SearchRoeEligibleSharedFolders($vault, $Filter)
+        } else {
+            $vault.SharedFolders
+        }
+        foreach ($sharedFolder in $folders) {
             if ($Filter) {
                 $match = $($sharedFolder.Uid, $sharedFolder.Name) | Select-String $Filter | Select-Object -First 1
                 if (-not $match) {

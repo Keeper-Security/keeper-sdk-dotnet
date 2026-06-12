@@ -331,6 +331,13 @@ function Set-KeeperNSFRecordAccess {
 	.Parameter Role
 	Access role for grant action: viewer (default), share-manager, content-manager,
 	content-share-manager, full-manager.
+
+	.Parameter ExpireIn
+	Optional. Share expiration period from now (e.g. 30d, 6mo, 1y, 24h, 30mi), integer minutes,
+	or a TimeSpan. Same as Grant-KeeperRecordAccess.
+
+	.Parameter ExpireAt
+	Optional. Absolute share expiration as ISO datetime (e.g. 2027-01-01T00:00:00Z).
 #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
@@ -347,7 +354,15 @@ function Set-KeeperNSFRecordAccess {
 
         [Parameter()]
         [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
-        [string] $Role = 'viewer'
+        [string] $Role = 'viewer',
+
+        [Alias('expire-in')]
+        [Parameter()]
+        [System.Object] $ExpireIn,
+
+        [Alias('expire-at')]
+        [Parameter()]
+        [string] $ExpireAt
     )
 
     try {
@@ -363,11 +378,27 @@ function Set-KeeperNSFRecordAccess {
         return
     }
 
+    $shareOptions = $null
+    if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
+        try {
+            $expirationDto = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        }
+        catch {
+            Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
+        $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
+        $shareOptions.Expiration = $expirationDto
+    }
+
     foreach ($user in $Email) {
         try {
             if ($Action -eq 'grant') {
-                [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role).GetAwaiter().GetResult()
-                Write-Host "Granted '$Role' access to '$user' on record '$RecordUid'." -ForegroundColor Green
+                [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role, $shareOptions).GetAwaiter().GetResult()
+                $expireMsg = if ($shareOptions -and $shareOptions.Expiration) {
+                    " (expires $($shareOptions.Expiration.LocalDateTime.ToString('g')))"
+                } else { '' }
+                Write-Host "Granted '$Role' access to '$user' on record '$RecordUid'$expireMsg." -ForegroundColor Green
             }
             else {
                 [void]$vault.UnshareKeeperNSFRecord($RecordUid, $user).GetAwaiter().GetResult()
@@ -881,7 +912,7 @@ function Remove-KeeperNSFRecord {
     begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
-        $resolvedFolderUid = $null
+        $folderHint = $null
 
         if ($Folder) {
             [KeeperSecurity.Vault.FolderNode]$folderNode = $null
@@ -889,13 +920,10 @@ function Remove-KeeperNSFRecord {
                 Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
                 return
             }
-            $resolvedFolderUid = $folderNode.FolderUid
+            $folderHint = $Folder
         }
-        elseif ($Script:Context.CurrentFolder) {
-            [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
-            if ($vault.TryResolveKeeperNSFFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
-                $resolvedFolderUid = $currentFolder.FolderUid
-            }
+        elseif ($Operation -ne 'owner-trash' -and $Script:Context.CurrentFolder) {
+            $folderHint = $Script:Context.CurrentFolder
         }
 
         $op = switch ($Operation) {
@@ -904,7 +932,7 @@ function Remove-KeeperNSFRecord {
             'unlink' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink }
         }
 
-        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and -not $resolvedFolderUid) {
+        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
             Write-Error -Message "Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder."
             return
         }
@@ -918,14 +946,15 @@ function Remove-KeeperNSFRecord {
                 continue
             }
 
-            $folderUid = $resolvedFolderUid
-            if (-not $folderUid -and $op -ne [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash) {
-                $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
-                if ($folderUids.Count -eq 0) {
-                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
-                    continue
+            [string]$folderUid = $null
+            if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
+                if ($Folder) {
+                    Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
                 }
-                $folderUid = $folderUids[0]
+                else {
+                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                }
+                continue
             }
 
             $removal = New-Object KeeperSecurity.Vault.KeeperNSFRecordRemoval
@@ -945,6 +974,15 @@ function Remove-KeeperNSFRecord {
         Write-Host "=== Keeper NSF Remove Preview ===" -ForegroundColor Cyan
         $previewResult = $vault.RemoveKeeperNSFRecords($removals, $true).GetAwaiter().GetResult()
         Write-KeeperNSFRemoveImpact -Response $previewResult.PreviewResponse
+
+        $previewErrors = @($previewResult.PreviewResponse.Results | Where-Object {
+                $_.Error -and -not [string]::IsNullOrWhiteSpace($_.Error.Message)
+            })
+        if ($previewErrors.Count -gt 0) {
+            Write-Host ""
+            Write-Host "One or more records could not be previewed. Aborting." -ForegroundColor Yellow
+            return
+        }
 
         try {
             [KeeperSecurity.Vault.VaultOnline]::ValidateRemoveResponse($previewResult.PreviewResponse, $false)
