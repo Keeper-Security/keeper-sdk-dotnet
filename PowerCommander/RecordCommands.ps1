@@ -38,7 +38,7 @@ function Get-KeeperRecordListItems {
             $item.RecordUid = $record.RecordUid
             $item.Name      = $name
             $item.Type      = $type
-            $item.Category    = 'Nested'
+            $item.Category    = 'nested'
             $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
             $item.Version     = $record.Version
             $item.Revision    = $record.Revision
@@ -54,7 +54,7 @@ function Get-KeeperRecordListItems {
         $item.RecordUid = $record.Uid
         $item.Name      = if ($record.Title) { $record.Title } else { '' }
         $item.Type      = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
-        $item.Category    = 'Classic'
+        $item.Category    = 'classic'
         $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
         $item.Version     = $record.Version
         $item.Revision    = $record.Revision
