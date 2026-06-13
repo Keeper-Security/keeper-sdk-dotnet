@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.3'
+    ModuleVersion        = '1.1.4'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -181,26 +181,26 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = @(
-                'Skip sync (local SQLite cache): shared-folder and record detail cmdlets without full vault sync
-                    - Get-KeeperRecordHistory (krh): view, diff, and restore record revision history
-                ',
-                'Endpoint Privilege Management (EPM):
-                    - Sync-KeeperEpm (kepm-sync): sync EPM data from the server
-                    - Deployments: Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,
-                      Update-KeeperEpmDeployment, Remove-KeeperEpmDeployment, Get-KeeperEpmDeploymentDownload
-                    - Approvals: Get-KeeperEpmApprovalList, Get-KeeperEpmApproval, Approve-KeeperEpmApproval,
-                      Deny-KeeperEpmApproval, Remove-KeeperEpmApproval
-                    - Agents: Get-KeeperEpmAgentList, Get-KeeperEpmAgent, Update-KeeperEpmAgent,
-                      Remove-KeeperEpmAgent, Get-KeeperEpmAgentCollection
-                    - Collections: Get-KeeperEpmCollectionList, Get-KeeperEpmCollection, Add-KeeperEpmCollection,
-                      Update-KeeperEpmCollection, Remove-KeeperEpmCollection, Connect-KeeperEpmCollection,
-                      Disconnect-KeeperEpmCollection, Remove-KeeperEpmCollectionsByType
-                    - Policies: Get-KeeperEpmPolicyList, Get-KeeperEpmPolicy, Add-KeeperEpmPolicy,
-                      Update-KeeperEpmPolicy, Remove-KeeperEpmPolicy, Get-KeeperEpmPolicyAgent,
-                      Add-KeeperEpmPolicyCollection
+            ReleaseNotes = 'Keeper Drive (NSF - Non-Shared Folders):
+                    - Get-KeeperNSFList (nsf-list): list all Keeper Drive folders and records
+                    - Get-KeeperNSFFolderList (nsf-folders): list Keeper Drive folders
+                    - Get-KeeperNSFRecordList (nsf-records): list records in a Keeper Drive folder
+                    - Get-KeeperNSFRecord (nsf-get): get a Keeper Drive record by UID or title
+                    - Get-KeeperNSFRecordDetails (nsf-record-details): fetch full record details
+                    - New-KeeperNSFFolder (nsf-mkdir): create a new Keeper Drive folder
+                    - Set-KeeperNSFFolder (nsf-rndir): rename a Keeper Drive folder
+                    - Remove-KeeperNSFFolder (nsf-rmdir): remove a Keeper Drive folder
+                    - Set-KeeperNSFFolderAccess (nsf-share-folder): grant or revoke user access to a folder
+                    - Add-KeeperNSFRecord (nsf-record-add): create a new record in a Keeper Drive folder
+                    - Edit-KeeperNSFRecord (nsf-record-update): update an existing Keeper Drive record
+                    - Set-KeeperNSFRecordAccess (nsf-share-record): share a record with a user
+                    - Set-KeeperNSFRecordPermission (nsf-record-permission): update sharing permissions on a record
+                    - Remove-KeeperNSFRecord (nsf-rm): remove a Keeper Drive record
+                    - Link-KeeperNSFRecord (nsf-ln): link a record into an additional folder
+                    - Transfer-KeeperNSFRecordOwnership (nsf-transfer-record): transfer record ownership to another user
+                    - Get-KeeperNSFShortcut (nsf-shortcut-list): list folder shortcuts for a record
+                    - Set-KeeperNSFShortcutKeep (nsf-shortcut-keep): keep or remove a folder shortcut
                 '
-            )
         }
     }
 
