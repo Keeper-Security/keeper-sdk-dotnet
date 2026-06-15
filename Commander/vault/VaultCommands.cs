@@ -333,10 +333,11 @@ namespace Commander
                 });
 
             cli.Commands.Add("ls",
-                new ParseableCommand<ListCommandOptions>
+                new ValidatingParseableCommand<ListCommandOptions>
                 {
                     Order = 11,
                     Description = "List folder content",
+                    Validate = ValidateListCommandArgs,
                     Action = context.ListCommand
                 });
 
@@ -754,6 +755,52 @@ namespace Commander
             return Task.FromResult(true);
         }
 
+        private static string ValidateListCommandArgs(IReadOnlyList<string> tokens)
+        {
+            if (ListOptionMissingValue(tokens, "--filter", "-f", "pattern", out var error)
+                || ListOptionMissingValue(tokens, "--sort", "-s", "name|date", out error))
+            {
+                return error;
+            }
+
+            return null;
+        }
+
+        private static bool ListOptionMissingValue(
+            IReadOnlyList<string> tokens,
+            string longOption,
+            string shortOption,
+            string exampleValue,
+            out string error)
+        {
+            error = null;
+            foreach (var option in new[] { longOption, shortOption })
+            {
+                var index = -1;
+                for (var i = 0; i < tokens.Count; i++)
+                {
+                    if (tokens[i] == option)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index < 0)
+                {
+                    continue;
+                }
+
+                if (index == tokens.Count - 1 || tokens[index + 1].StartsWith("-", StringComparison.Ordinal))
+                {
+                    error = $"Missing value for {longOption}. Example: ls {longOption} {exampleValue}";
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static Task ListCommand(this VaultContext context, ListCommandOptions options)
         {
             FolderNode node = null;
@@ -767,100 +814,194 @@ namespace Commander
                 node = context.Vault.RootFolder;
             }
 
+            var sortByDate = string.Equals(options.Sort, "date", StringComparison.OrdinalIgnoreCase);
+            if (!string.IsNullOrEmpty(options.Sort)
+                && !sortByDate
+                && !string.Equals(options.Sort, "name", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Unknown sort field '{options.Sort}'. Supported values: name, date.");
+                return Task.CompletedTask;
+            }
+
+            var filterPattern = options.Filter ?? options.Pattern;
+            var nameFilter = CreateListNameFilter(filterPattern);
+            if (!string.IsNullOrEmpty(filterPattern) && nameFilter == null)
+            {
+                return Task.CompletedTask;
+            }
+            var folders = new List<FolderNode>();
+            foreach (var uid in node.Subfolders)
+            {
+                if (!context.Vault.TryGetFolder(uid, out var folder))
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(filterPattern) || ListFolderMatchesFilter(folder, nameFilter))
+                {
+                    folders.Add(folder);
+                }
+            }
+
+            folders = SortListFolders(folders, options.Reverse).ToList();
+
+            var records = new List<KeeperRecord>();
+            foreach (var uid in node.Records)
+            {
+                if (!context.Vault.TryGetKeeperRecord(uid, out var record))
+                {
+                    continue;
+                }
+
+                if (!options.All)
+                {
+                    if (record.Version != 2 && record.Version != 3)
+                    {
+                        continue;
+                    }
+
+                    if (IsListRecordHidden(context.Vault, uid))
+                    {
+                        continue;
+                    }
+                }
+
+                if (ListRecordMatchesFilter(record, nameFilter))
+                {
+                    records.Add(record);
+                }
+            }
+
+            records = SortListRecords(records, sortByDate, options.Reverse).ToList();
+
+            if (folders.Count == 0 && records.Count == 0)
+            {
+                if (!string.IsNullOrEmpty(filterPattern))
+                {
+                    Console.WriteLine($"No folders or records match filter '{filterPattern}'.");
+                }
+
+                return Task.CompletedTask;
+            }
+
             if (options.Details)
             {
-                if (node.Subfolders.Count > 0)
+                if (folders.Count > 0)
                 {
-                    var tab = new Tabulate(2)
-                    {
-                        DumpRowNo = true
-                    };
+                    var tab = new Tabulate(2) { DumpRowNo = true };
                     tab.AddHeader("Folder UID", "Name");
-                    foreach (var uid in node.Subfolders)
+                    foreach (var folder in folders)
                     {
-                        if (context.Vault.TryGetFolder(uid, out var f))
-                        {
-                            tab.AddRow(f.FolderUid, f.Name);
-                        }
+                        tab.AddRow(folder.FolderUid, folder.Name);
                     }
 
-                    tab.Sort(1);
+                    if (string.IsNullOrEmpty(options.Sort) && !options.Reverse)
+                    {
+                        tab.Sort(1);
+                    }
+
                     tab.Dump();
                 }
 
-                if (node.Records.Count > 0)
+                if (records.Count > 0)
                 {
-                    var tab = new Tabulate(4)
-                    {
-                        DumpRowNo = true
-                    };
+                    var tab = new Tabulate(4) { DumpRowNo = true };
                     tab.AddHeader("Record UID", "Title", "Type", "Info");
-                    foreach (var uid in node.Records)
+                    foreach (var record in records)
                     {
-                        if (context.Vault.TryGetKeeperRecord(uid, out var r))
-                        {
-                            tab.AddRow(r.Uid, r.Title, r.KeeperRecordType(), r.KeeperRecordPublicInformation());
-                        }
+                        tab.AddRow(
+                            record.Uid,
+                            record.Title,
+                            record.KeeperRecordType(),
+                            record.KeeperRecordPublicInformation());
                     }
 
-                    tab.Sort(1);
+                    if (string.IsNullOrEmpty(options.Sort) && !options.Reverse)
+                    {
+                        tab.Sort(1);
+                    }
+
                     tab.Dump();
                 }
+
+                return Task.CompletedTask;
             }
-            else
+
+            foreach (var name in folders.Select(f => (f.Name ?? f.FolderUid) + "/")
+                         .Concat(records.Select(r => string.IsNullOrEmpty(r.Title) ? r.Uid : r.Title)))
             {
-                var names = new List<string>();
-                foreach (var uid in node.Subfolders)
-                {
-                    if (context.Vault.TryGetFolder(uid, out var subNode))
-                    {
-                        names.Add(subNode.Name + "/");
-                    }
-                }
-
-                names.Sort(StringComparer.InvariantCultureIgnoreCase);
-
-                var len = names.Count;
-                foreach (var uid in node.Records)
-                {
-                    if (context.Vault.TryGetKeeperRecord(uid, out var r))
-                    {
-                        if (r.Version == 2 || r.Version == 3)
-                        {
-                            names.Add(string.IsNullOrEmpty(r.Title) ? r.Uid : r.Title);
-                        }
-                    }
-                }
-
-                if (names.Count <= 0) return Task.FromResult(true);
-                names.Sort(len, names.Count - len, StringComparer.InvariantCultureIgnoreCase);
-
-                len = names.Select(x => x.Length).Max();
-                if (len < 16)
-                {
-                    len = 16;
-                }
-
-                len += 2;
-                var columns = Console.BufferWidth / len;
-                if (columns < 1)
-                {
-                    columns = 1;
-                }
-
-                var columnWidth = Console.BufferWidth / columns;
-                var colNo = 0;
-                foreach (var t in names)
-                {
-                    Console.Write(t.PadRight(columnWidth - 1));
-                    colNo++;
-                    if (colNo < columns) continue;
-                    Console.WriteLine();
-                    colNo = 0;
-                }
+                Console.WriteLine(name);
             }
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
+        }
+
+        private static IEnumerable<FolderNode> SortListFolders(
+            IEnumerable<FolderNode> folders,
+            bool reverse)
+        {
+            var ordered = folders.OrderBy(f => f.Name, StringComparer.InvariantCultureIgnoreCase);
+            return reverse ? ordered.Reverse() : ordered;
+        }
+
+        private static IEnumerable<KeeperRecord> SortListRecords(
+            IEnumerable<KeeperRecord> records,
+            bool sortByDate,
+            bool reverse)
+        {
+            IEnumerable<KeeperRecord> ordered = sortByDate
+                ? records
+                    .OrderBy(r => r.ClientModified)
+                    .ThenBy(r => r.Title, StringComparer.InvariantCultureIgnoreCase)
+                : records.OrderBy(r => r.Title, StringComparer.InvariantCultureIgnoreCase);
+            return reverse ? ordered.Reverse() : ordered;
+        }
+
+        private static bool ListFolderMatchesFilter(FolderNode folder, Regex pattern)
+        {
+            return pattern == null
+                || TextMatchesFilter(folder.Name, pattern)
+                || TextMatchesFilter(folder.FolderUid, pattern);
+        }
+
+        private static bool IsListRecordHidden(VaultOnline vault, string recordUid)
+        {
+            return vault.Storage.KdRecordAccesses
+                .GetLinksForSubject(recordUid)
+                .Any(access => access.Hidden);
+        }
+
+        private static bool ListRecordMatchesFilter(KeeperRecord record, Regex pattern)
+        {
+            return pattern == null
+                || TextMatchesFilter(record.Title, pattern)
+                || TextMatchesFilter(record.Uid, pattern);
+        }
+
+        private static bool TextMatchesFilter(string text, Regex pattern)
+        {
+            return !string.IsNullOrEmpty(text) && pattern.IsMatch(text);
+        }
+
+        private static Regex CreateListNameFilter(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern))
+            {
+                return null;
+            }
+
+            try
+            {
+                var regexPattern = Regex.Escape(pattern)
+                    .Replace(@"\*", ".*")
+                    .Replace(@"\?", ".");
+                return new Regex(regexPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Warning: Invalid filter pattern: {ex.Message}");
+                return null;
+            }
         }
 
         private static Task ChangeDirectoryCommand(this VaultContext context, string name)
@@ -1484,8 +1625,27 @@ namespace Commander
 
     class ListCommandOptions
     {
-        [Option('l', "list", Required = false, Default = false, HelpText = "detailed output")]
+        [Option('l', "list", Required = false, Default = false, HelpText = "show detailed table output")]
         public bool Details { get; set; }
+
+        [Option('a', "all", Required = false, Default = false,
+            HelpText = "show all records, including hidden ones and non-standard record versions")]
+        public bool All { get; set; }
+
+        [Option('f', "filter", Required = false,
+            HelpText = "filter records by name (wildcards * ?). Example: ls --filter \"Test*\"")]
+        public string Filter { get; set; }
+
+        [Option('s', "sort", Required = false,
+            HelpText = "sort records by field: name (default) or date. Example: ls --sort date")]
+        public string Sort { get; set; }
+
+        [Option('r', "reverse", Required = false, Default = false, HelpText = "reverse the sort order")]
+        public bool Reverse { get; set; }
+
+        [Value(0, Required = false, MetaName = "pattern",
+            HelpText = "optional filter pattern (wildcards * ?). Example: ls \"Test*\"")]
+        public string Pattern { get; set; }
     }
 
     internal class TreeCommandOptions
