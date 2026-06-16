@@ -191,8 +191,8 @@
                     - Set-KeeperNSFFolder (nsf-rndir): rename a Keeper Drive folder
                     - Remove-KeeperNSFFolder (nsf-rmdir): remove a Keeper Drive folder
                     - Set-KeeperNSFFolderAccess (nsf-share-folder): grant or revoke user access to a folder
-                    - Add-KeeperNSFRecord (nsf-record-add): create a new record in a Keeper Drive folder
-                    - Edit-KeeperNSFRecord (nsf-record-update): update an existing Keeper Drive record
+                    - Add-KeeperNSFRecord (nsf-record-add): create a new record in a Keeper Drive folder (-GeneratePassphrase)
+                    - Edit-KeeperNSFRecord (nsf-record-update): update an existing Keeper Drive record (-GeneratePassphrase)
                     - Set-KeeperNSFRecordAccess (nsf-share-record): share a record with a user
                     - Set-KeeperNSFRecordPermission (nsf-record-permission): update sharing permissions on a record
                     - Remove-KeeperNSFRecord (nsf-rm): remove a Keeper Drive record

@@ -119,6 +119,88 @@ function Script:Parse-KeeperNSFFieldSpecs {
     }
 }
 
+function Script:New-KeeperPassphraseOptions {
+    Param(
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyCollection()]
+        [string[]] $PassphraseRuleValues = @()
+    )
+
+    $options = New-Object KeeperSecurity.Utils.PassphraseGenerationOptions
+
+    if (-not $PassphraseRuleValues -or $PassphraseRuleValues.Count -eq 0) {
+        return $options
+    }
+
+    $parts = if ($PassphraseRuleValues.Count -eq 1 -and $PassphraseRuleValues[0].Contains(',')) {
+        $PassphraseRuleValues[0].Split(',')
+    } else {
+        $PassphraseRuleValues
+    }
+
+    if ($parts.Count -gt 4) {
+        throw "PassphraseRuleValues accepts at most 4 values: WordCount,Separator,UseCaps,UseDigits. Got $($parts.Count)."
+    }
+
+    if ($parts.Count -ge 1 -and -not [string]::IsNullOrWhiteSpace($parts[0])) {
+        $wordCount = 0
+        if (-not [int]::TryParse($parts[0].Trim(), [ref]$wordCount) -or $wordCount -lt 5 -or $wordCount -gt 9) {
+            throw "PassphraseRuleValues WordCount must be between 5 and 9. Got '$($parts[0])'."
+        }
+        $options.WordCount = $wordCount
+    }
+
+    if ($parts.Count -ge 2) {
+        # Do not Trim — a space separator is a single ' ' character and Trim would erase it.
+        $options.Separator = [KeeperSecurity.Utils.PassphraseGenerator]::ValidateSeparator($parts[1])
+    }
+
+    if ($parts.Count -ge 3) {
+        switch ($parts[2].Trim().ToLower()) {
+            { $_ -in '1', 'true', 'yes', 'y' } { $options.UseCaps = $true; break }
+            { $_ -in '0', 'false', 'no', 'n', '' } { $options.UseCaps = $false; break }
+            default { throw "PassphraseRuleValues UseCaps must be true or false. Got '$($parts[2])'." }
+        }
+    }
+
+    if ($parts.Count -ge 4) {
+        switch ($parts[3].Trim().ToLower()) {
+            { $_ -in '1', 'true', 'yes', 'y' } { $options.UseDigits = $true; break }
+            { $_ -in '0', 'false', 'no', 'n', '' } { $options.UseDigits = $false; break }
+            default { throw "PassphraseRuleValues UseDigits must be true or false. Got '$($parts[3])'." }
+        }
+    }
+
+    return $options
+}
+
+function Script:Set-KeeperNsfPassphraseField {
+    Param(
+        [Parameter(Mandatory = $true)]
+        $FieldDict,
+
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyCollection()]
+        [string[]] $PassphraseRuleValues
+    )
+
+    try {
+        # Do not assign @() from if/else — PowerShell treats empty array output as $null.
+        if ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0) {
+            $passphraseOptions = New-KeeperPassphraseOptions -PassphraseRuleValues $PassphraseRuleValues
+        } else {
+            $passphraseOptions = New-KeeperPassphraseOptions
+        }
+        $FieldDict['password'] = [KeeperSecurity.Utils.PassphraseGenerator]::GeneratePassphrase($passphraseOptions)
+        return $true
+    } catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
 function Add-KeeperNSFRecord {
     <#
 	.Synopsis
@@ -151,6 +233,24 @@ function Add-KeeperNSFRecord {
 	.Parameter GeneratePassword
 	When present, generates a random password via CryptoUtils.GeneratePassword and stores it on the
 	'password' field, overriding any explicit password=... value supplied in -Fields.
+
+	.Parameter GeneratePassphrase
+	Generate a random passphrase and store it on the 'password' field, overriding any explicit
+	password=... value supplied in -Fields. Cannot be used together with -GeneratePassword.
+	When used alone, defaults are: 5 words, "-" separator, useCaps=true, useDigits=true.
+	Alias: PassphraseRules.
+
+	.Parameter PassphraseRuleValues
+	Optional values for passphrase rules. Supplying values alone (without -GeneratePassphrase) also
+	triggers passphrase generation.
+	Up to 4 values: WordCount,Separator,UseCaps,UseDigits.
+	WordCount must be between 5 and 9.
+	Allowed separators: '-', '.', '_', '!', '?', ' ' (space).
+	Examples:
+	  -GeneratePassphrase -PassphraseRuleValues 5,-,true,true
+	  -PassphraseRuleValues 7,-,false,false
+	  -PassphraseRuleValues "5, ,true,false"
+	  -PassphraseRuleValues 5,' ',true,false
 #>
     [CmdletBinding()]
     Param (
@@ -169,9 +269,24 @@ function Add-KeeperNSFRecord {
         [Parameter()]
         [switch] $GeneratePassword,
 
+        [Parameter()]
+        [Alias('PassphraseRules')]
+        [switch] $GeneratePassphrase,
+
+        [Parameter()]
+        [AllowEmptyCollection()]
+        [string[]] $PassphraseRuleValues,
+
         [Parameter(ValueFromRemainingArguments = $true)]
         [string[]] $Fields
     )
+
+    $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
+
+    if ($GeneratePassword.IsPresent -and $generatePassphrase) {
+        Write-Host "Error: -GeneratePassword and -GeneratePassphrase cannot be used together." -ForegroundColor Red
+        return
+    }
 
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -181,7 +296,7 @@ function Add-KeeperNSFRecord {
     }
 
     $fieldDict = $null
-    if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent) {
+    if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($Fields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
@@ -191,6 +306,11 @@ function Add-KeeperNSFRecord {
         }
         if ($GeneratePassword.IsPresent) {
             $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        }
+        elseif ($generatePassphrase) {
+            if (-not (Set-KeeperNsfPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
+                return
+            }
         }
     }
 
@@ -238,6 +358,24 @@ function Edit-KeeperNSFRecord {
 	.Parameter GeneratePassword
 	When present, generates a random password via CryptoUtils.GeneratePassword and stores it on the
 	'password' field, overriding any explicit password=... value supplied in -Fields.
+
+	.Parameter GeneratePassphrase
+	Generate a random passphrase and store it on the 'password' field, overriding any explicit
+	password=... value supplied in -Fields. Cannot be used together with -GeneratePassword.
+	When used alone, defaults are: 5 words, "-" separator, useCaps=true, useDigits=true.
+	Alias: PassphraseRules.
+
+	.Parameter PassphraseRuleValues
+	Optional values for passphrase rules. Supplying values alone (without -GeneratePassphrase) also
+	triggers passphrase generation.
+	Up to 4 values: WordCount,Separator,UseCaps,UseDigits.
+	WordCount must be between 5 and 9.
+	Allowed separators: '-', '.', '_', '!', '?', ' ' (space).
+	Examples:
+	  -GeneratePassphrase -PassphraseRuleValues 5,-,true,true
+	  -PassphraseRuleValues 7,-,false,false
+	  -PassphraseRuleValues "5, ,true,false"
+	  -PassphraseRuleValues 5,' ',true,false
 #>
     [CmdletBinding()]
     Param (
@@ -256,6 +394,14 @@ function Edit-KeeperNSFRecord {
         [Parameter()]
         [switch] $GeneratePassword,
 
+        [Parameter()]
+        [Alias('PassphraseRules')]
+        [switch] $GeneratePassphrase,
+
+        [Parameter()]
+        [AllowEmptyCollection()]
+        [string[]] $PassphraseRuleValues,
+
         [Parameter(ValueFromRemainingArguments = $true)]
         [string[]] $Fields
     )
@@ -264,9 +410,15 @@ function Edit-KeeperNSFRecord {
     $hasType  = $PSBoundParameters.ContainsKey('RecordType')
     $hasNotes = $PSBoundParameters.ContainsKey('Notes')
     $hasFields = $Fields -and $Fields.Count -gt 0
+    $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
 
-    if (-not $hasTitle -and -not $hasType -and -not $hasNotes -and -not $hasFields -and -not $GeneratePassword.IsPresent) {
-        Write-Host "Error: At least one of -Title, -RecordType, -Notes, -GeneratePassword, or field values must be specified." -ForegroundColor Red
+    if ($GeneratePassword.IsPresent -and $generatePassphrase) {
+        Write-Host "Error: -GeneratePassword and -GeneratePassphrase cannot be used together." -ForegroundColor Red
+        return
+    }
+
+    if (-not $hasTitle -and -not $hasType -and -not $hasNotes -and -not $hasFields -and -not $GeneratePassword.IsPresent -and -not $generatePassphrase) {
+        Write-Host "Error: At least one of -Title, -RecordType, -Notes, -GeneratePassword, -GeneratePassphrase, or field values must be specified." -ForegroundColor Red
         return
     }
 
@@ -282,20 +434,25 @@ function Edit-KeeperNSFRecord {
     $notesParam = if ($hasNotes) { $Notes }      else { [NullString]::Value }
 
     $fieldDict = $null
-    if ($hasFields -or $GeneratePassword.IsPresent) {
+    if ($hasFields -or $GeneratePassword.IsPresent -or $generatePassphrase) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($hasFields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
             foreach ($key in $parsed.Dictionary.Keys) {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
-            if ($parsed.ParsedCount -eq 0 -and -not $GeneratePassword.IsPresent) {
+            if ($parsed.ParsedCount -eq 0 -and -not $GeneratePassword.IsPresent -and -not $generatePassphrase) {
                 Write-Host "Error: No valid field values were parsed. Use key=value (e.g. login=a12)." -ForegroundColor Red
                 return
             }
         }
         if ($GeneratePassword.IsPresent) {
             $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        }
+        elseif ($generatePassphrase) {
+            if (-not (Set-KeeperNsfPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
+                return
+            }
         }
     }
 
