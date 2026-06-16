@@ -1,14 +1,37 @@
 function New-KeeperEnterpriseTeam {
     <#
-        .Synopsis
+        .SYNOPSIS
         Create an enterprise team
 
-    .PARAMETER ParentNode
-    Parent Node name or ID
+        .DESCRIPTION
+        Creates a new Keeper Enterprise Team under the specified parent node.
 
-    .PARAMETER Team
-        Team name
+        .PARAMETER TeamName
+        Team name (required)
 
+        .PARAMETER ParentNode
+        Parent node name or ID. Defaults to the enterprise root node.
+
+        .PARAMETER RestrictView
+        Disable password viewing/copying for team members.
+
+        .PARAMETER RestrictEdit
+        Disable record editing for team members.
+
+        .PARAMETER RestrictShare
+        Disable record re-sharing for team members.
+
+        .EXAMPLE
+        New-KeeperEnterpriseTeam -TeamName "Backend Team"
+        Creates a team under the enterprise root node.
+
+        .EXAMPLE
+        New-KeeperEnterpriseTeam -TeamName "Support" -ParentNode 12345 -RestrictView
+        Creates a team under node 12345 with restrict view enabled.
+
+        .EXAMPLE
+        keta "Frontend Team" -ParentNode "Engineering" -RestrictEdit -RestrictShare
+        Creates a team using the keta alias with restrict edit and share enabled.
     #>
     [CmdletBinding()]
     Param (
@@ -44,6 +67,162 @@ function New-KeeperEnterpriseTeam {
     $t
 }
 New-Alias -Name keta -Value New-KeeperEnterpriseTeam
+
+function Update-KeeperEnterpriseTeam {
+    <#
+        .SYNOPSIS
+        Updates an existing enterprise team
+
+        .DESCRIPTION
+        Updates enterprise team properties including name, parent node, and restrict flags.
+        Only specified parameters are changed; omitted parameters retain their current values.
+
+        .PARAMETER Team
+        Team UID or team name to update.
+
+        .PARAMETER TeamName
+        New team display name.
+
+        .PARAMETER ParentNode
+        Parent node name or ID to move the team under.
+
+        .PARAMETER RestrictView
+        Disable or enable password viewing/copying: ON or OFF.
+
+        .PARAMETER RestrictEdit
+        Disable or enable record editing: ON or OFF.
+
+        .PARAMETER RestrictShare
+        Disable or enable record re-sharing: ON or OFF.
+
+        .EXAMPLE
+        Update-KeeperEnterpriseTeam -Team "Developers" -RestrictEdit ON
+        Enables restrict edit for the Developers team.
+
+        .EXAMPLE
+        Update-KeeperEnterpriseTeam -Team "1P7A8XZ9K3J9H" -RestrictShare OFF -RestrictView ON
+        Updates restrict flags for a team identified by UID.
+
+        .EXAMPLE
+        Update-KeeperEnterpriseTeam -Team "Developers" -TeamName "Engineering" -ParentNode "IT" -RestrictShare OFF
+        Renames the team, moves it to the IT node, and disables restrict share.
+
+        .EXAMPLE
+        kete "Developers" -RestrictEdit ON
+        Updates a team using the kete alias.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string] $Team,
+        [Parameter()][string] $TeamName,
+        [Parameter()][string] $ParentNode,
+        [Parameter()][ValidateSet('ON', 'OFF')][string] $RestrictView,
+        [Parameter()][ValidateSet('ON', 'OFF')][string] $RestrictEdit,
+        [Parameter()][ValidateSet('ON', 'OFF')][string] $RestrictShare
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $teamObject = resolveTeam $enterprise.enterpriseData $Team
+    if (-not $teamObject) {
+        return
+    }
+
+    $hasChanges = $false
+    if (-not [string]::IsNullOrWhiteSpace($TeamName)) {
+        $teamObject.Name = $TeamName
+        $hasChanges = $true
+    }
+    if ($ParentNode) {
+        $parent = resolveSingleNode $ParentNode
+        $teamObject.ParentNodeId = $parent.Id
+        $hasChanges = $true
+    }
+    if ($RestrictView) {
+        $teamObject.RestrictView = ($RestrictView -eq 'ON')
+        $hasChanges = $true
+    }
+    if ($RestrictEdit) {
+        $teamObject.RestrictEdit = ($RestrictEdit -eq 'ON')
+        $hasChanges = $true
+    }
+    if ($RestrictShare) {
+        $teamObject.RestrictSharing = ($RestrictShare -eq 'ON')
+        $hasChanges = $true
+    }
+
+    if (-not $hasChanges) {
+        Write-Warning "No changes specified. Use -TeamName, -ParentNode, or restrict flags to update the team."
+        return
+    }
+
+    try {
+        $updated = $enterprise.enterpriseData.UpdateTeam($teamObject).GetAwaiter().GetResult()
+        Write-Output "Team `"$($updated.Name)`" updated."
+        return $updated
+    }
+    catch {
+        Write-Error "Failed to update team `"$($teamObject.Name)`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Update-KeeperEnterpriseTeam -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+New-Alias -Name kete -Value Update-KeeperEnterpriseTeam
+
+function Remove-KeeperEnterpriseTeam {
+    <#
+        .SYNOPSIS
+        Deletes an enterprise team
+
+        .DESCRIPTION
+        Permanently deletes an enterprise team by name or UID. This operation cannot be undone.
+        Use -Force to skip the confirmation prompt.
+
+        .PARAMETER Team
+        Team UID or team name to delete.
+
+        .PARAMETER Force
+        Do not prompt for confirmation before deleting the team.
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseTeam -Team "Old Team"
+        Deletes the team after confirmation.
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseTeam -Team "1P7A8XZ9K3J9H" -Force
+        Deletes the team identified by UID without prompting for confirmation.
+
+        .EXAMPLE
+        ketdel "Old Team" -Force
+        Deletes a team using the ketdel alias without confirmation.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)][string] $Team,
+        [Parameter()][switch] $Force
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $teamObject = resolveTeam $enterprise.enterpriseData $Team
+    if (-not $teamObject) {
+        return
+    }
+
+    $teamName = $teamObject.Name
+    $teamUid = $teamObject.Uid
+
+    if (-not $Force -and -not $PSCmdlet.ShouldProcess($teamName, "Delete Enterprise Team")) {
+        return
+    }
+
+    try {
+        $enterprise.enterpriseData.DeleteTeam($teamUid).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Team `"$teamName`" deleted successfully."
+    }
+    catch {
+        Write-Error "Failed to delete team `"$teamName`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeam -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+New-Alias -Name ketdel -Value Remove-KeeperEnterpriseTeam
 
 function Get-KeeperEnterpriseTeamUser {
     <#
