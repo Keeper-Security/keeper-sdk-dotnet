@@ -487,8 +487,9 @@ namespace KeeperSecurity.Vault
         /// <param name="folderUid">Folder UID to share.</param>
         /// <param name="userEmail">Email address of the user to grant access.</param>
         /// <param name="role">Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.</param>
+        /// <param name="options">Optional share options such as expiration.</param>
         /// <returns>Awaitable task.</returns>
-        Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer");
+        Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer", SharedFolderUserOptions options = null);
 
         /// <summary>
         /// Revokes a user's access from a Keeper NSF folder.
@@ -525,7 +526,8 @@ namespace KeeperSecurity.Vault
         /// <param name="recordUid">Record UID to share.</param>
         /// <param name="userEmail">Email of the user to grant access.</param>
         /// <param name="role">Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.</param>
-        Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer");
+        /// <param name="options">Optional share options such as expiration.</param>
+        Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer", SharedFolderRecordOptions options = null);
 
         /// <summary>
         /// Revokes a user's access from a Keeper NSF record.

@@ -226,7 +226,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task GrantKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string userEmail, string role)
+        public static async Task GrantKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string userEmail, string role, SharedFolderUserOptions options = null)
         {
             if (string.IsNullOrEmpty(folderUid))
                 throw new VaultException("Folder UID cannot be empty");
@@ -251,6 +251,7 @@ namespace KeeperSecurity.Vault
 
             var accessRole = ResolveAccessRole(role);
             var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
 
             FolderProto.FolderAccessData existingAccess = null;
             try
@@ -283,7 +284,7 @@ namespace KeeperSecurity.Vault
 
             if (existingAccess != null)
             {
-                if (existingAccess.AccessRoleType == accessRole)
+                if (existingAccess.AccessRoleType == accessRole && tlaProperties == null)
                 {
                     return;
                 }
@@ -295,6 +296,8 @@ namespace KeeperSecurity.Vault
                     AccessType = FolderProto.AccessType.AtUser,
                     AccessRoleType = accessRole,
                 };
+                if (tlaProperties != null)
+                    updateData.TlaProperties = tlaProperties;
                 rq.FolderAccessUpdates.Add(updateData);
             }
             else
@@ -340,6 +343,8 @@ namespace KeeperSecurity.Vault
                     EncryptedKey = ByteString.CopyFrom(encryptedFolderKey),
                     EncryptedKeyType = keyType,
                 };
+                if (tlaProperties != null)
+                    addData.TlaProperties = tlaProperties;
                 rq.FolderAccessAdds.Add(addData);
             }
 
@@ -535,7 +540,7 @@ namespace KeeperSecurity.Vault
         }
 
         private static async Task<RecordSharingProto.Permissions> BuildRecordSharePermissions(
-            VaultOnline vault, string recordUid, string userEmail, string role)
+            VaultOnline vault, string recordUid, string userEmail, string role, SharedFolderRecordOptions options = null)
         {
             if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
                 throw new VaultException($"Keeper NSF record '{recordUid}' not found");
@@ -574,7 +579,7 @@ namespace KeeperSecurity.Vault
                 RecordKey = ByteString.CopyFrom(encryptedRecordKey),
                 UseEccKey = useEcc,
             };
-            perm.Rules = new FolderProto.RecordAccessData
+            var rules = new FolderProto.RecordAccessData
             {
                 AccessTypeUid = pkRs.AccountUid,
                 AccessType = FolderProto.AccessType.AtUser,
@@ -582,19 +587,24 @@ namespace KeeperSecurity.Vault
                 Owner = false,
                 AccessRoleType = accessRole,
             };
+            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
+            if (tlaProperties != null)
+                rules.TlaProperties = tlaProperties;
+            perm.Rules = rules;
             return perm;
         }
 
-        public static async Task ShareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail, string role)
+        public static async Task ShareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail, string role, SharedFolderRecordOptions options = null)
         {
             if (string.IsNullOrEmpty(recordUid))
                 throw new VaultException("Record UID cannot be empty");
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, role);
+            var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, role, options);
             var recipientUid = perm.RecipientUid;
             var requestedRole = (int)ResolveAccessRole(role);
+            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
 
             bool hasDirectShare = false;
             try
@@ -612,7 +622,7 @@ namespace KeeperSecurity.Vault
                     if (data.Inherited) continue;
                     if (!data.AccessTypeUid.Equals(recipientUid)) continue;
 
-                    if (data.AccessRoleType == (FolderProto.AccessRoleType)requestedRole)
+                    if (data.AccessRoleType == (FolderProto.AccessRoleType)requestedRole && tlaProperties == null)
                     {
                         return;
                     }
