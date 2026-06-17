@@ -26,9 +26,6 @@ namespace KeeperSecurity.Utils
         /// </summary>
         public static readonly string[] AllowedSeparators = { "-", ".", "_", "!", "?", " " };
 
-        private static readonly Lazy<Task<IReadOnlyList<string>>> _wordListLoader =
-            new(() => LoadWordListAsync());
-
         /// <summary>
         /// Validates the number of words in a passphrase.
         /// </summary>
@@ -79,8 +76,7 @@ namespace KeeperSecurity.Utils
         /// </summary>
         public static string GeneratePassphrase(PassphraseGenerationOptions options = null)
         {
-            var wordList = _wordListLoader.Value.GetAwaiter().GetResult();
-            return GeneratePassphrase(wordList, options);
+            return GeneratePassphrase(PassphraseWordList.Words, options);
         }
 
         /// <summary>
@@ -139,90 +135,9 @@ namespace KeeperSecurity.Utils
             ValidateWordCount(options.WordCount);
 
             var wordList = loadWordList != null
-                ? await loadWordList() 
-                : await _wordListLoader.Value;
+                ? await loadWordList()
+                : PassphraseWordList.Words;
             return GeneratePassphrase(wordList, options);
-        }
-
-        private static Task<IReadOnlyList<string>> LoadWordListAsync()
-        {
-            var decodedBytes = Convert.FromBase64String(PassphraseWordList.Base64);
-            var jsonString = Encoding.UTF8.GetString(decodedBytes);
-            var words = ParseJsonStringArray(jsonString);
-
-            if (words.Count == 0)
-            {
-                throw new InvalidOperationException("Passphrase word list is empty or invalid.");
-            }
-
-            return Task.FromResult((IReadOnlyList<string>)words.AsReadOnly());
-        }
-
-        private static List<string> ParseJsonStringArray(string json)
-        {
-            var words = new List<string>();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return words;
-            }
-
-            var index = 0;
-            SkipWhitespace(json, ref index);
-            if (index >= json.Length || json[index] != '[')
-            {
-                return words;
-            }
-
-            index++;
-            while (index < json.Length)
-            {
-                SkipWhitespace(json, ref index);
-                if (index < json.Length && json[index] == ']')
-                {
-                    break;
-                }
-
-                if (index >= json.Length || json[index] != '"')
-                {
-                    break;
-                }
-
-                index++;
-                var start = index;
-                while (index < json.Length)
-                {
-                    if (json[index] == '\\')
-                    {
-                        index += 2;
-                        continue;
-                    }
-
-                    if (json[index] == '"')
-                    {
-                        words.Add(json.Substring(start, index - start));
-                        index++;
-                        break;
-                    }
-
-                    index++;
-                }
-
-                SkipWhitespace(json, ref index);
-                if (index < json.Length && json[index] == ',')
-                {
-                    index++;
-                }
-            }
-
-            return words;
-        }
-
-        private static void SkipWhitespace(string value, ref int index)
-        {
-            while (index < value.Length && char.IsWhiteSpace(value[index]))
-            {
-                index++;
-            }
         }
 
         private static int RandomIntInclusive(int min, int max)

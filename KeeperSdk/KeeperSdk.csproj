@@ -39,4 +39,8 @@
     <ItemGroup>
         <None Include="README.md" Pack="True" PackagePath="\" />
     </ItemGroup> 
+
+    <ItemGroup>
+    <EmbeddedResource Include="utils\eff_words.txt.gz" />
+  </ItemGroup>
 </Project>
