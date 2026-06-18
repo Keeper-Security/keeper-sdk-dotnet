@@ -342,9 +342,9 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer")
+        public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer", SharedFolderUserOptions options = null)
         {
-            await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role);
+            await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role, options);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 
@@ -371,9 +371,9 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public async Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer")
+        public async Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer", SharedFolderRecordOptions options = null)
         {
-            await this.ShareKeeperNSFRecordInternal(recordUid, userEmail, role);
+            await this.ShareKeeperNSFRecordInternal(recordUid, userEmail, role, options);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 

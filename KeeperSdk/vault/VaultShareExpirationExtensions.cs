@@ -253,5 +253,30 @@ namespace KeeperSecurity.Vault
                     "Rotate on expiration requires a synced vault. Use VaultOnline share methods after sync-down.");
             }
         }
+
+        internal static Common.Tla.TLAProperties CreateNsfTlaProperties(IUserShareOptions options)
+        {
+            return CreateNsfTlaProperties(GetShareExpirationMilliseconds(options), GetRotateOnExpiration(options));
+        }
+
+        internal static Common.Tla.TLAProperties CreateNsfTlaProperties(IRecordShareOptions options)
+        {
+            return CreateNsfTlaProperties(GetShareExpirationMilliseconds(options), GetRotateOnExpiration(options));
+        }
+
+        private static Common.Tla.TLAProperties CreateNsfTlaProperties(long expirationMs, bool rotateOnExpiration)
+        {
+            if (expirationMs == 0 && !rotateOnExpiration)
+                return null;
+
+            var tla = new Common.Tla.TLAProperties();
+            ApplyShareExpirationCore(
+                expirationMs,
+                rotateOnExpiration,
+                ms => tla.Expiration = ms,
+                n => tla.TimerNotificationType = (Common.Tla.TimerNotificationType)(int)n,
+                ro => tla.RotateOnExpiration = ro);
+            return tla;
+        }
     }
 }
