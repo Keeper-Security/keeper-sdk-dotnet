@@ -307,6 +307,14 @@ namespace Commander
     {
         internal static void AppendVaultCommands(this VaultContext context, CliCommands cli)
         {
+            cli.Commands.Add("get",
+                new ParseableCommand<GetObjectOptions>
+                {
+                    Order = 9,
+                    Description = "Get information about any Keeper object (record, folder, team, etc.)",
+                    Action = async options => await context.GetCommand(options),
+                });
+
             cli.Commands.Add("search",
                 new ParseableCommand<SearchCommandOptions>
                 {
