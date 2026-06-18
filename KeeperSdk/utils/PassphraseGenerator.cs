@@ -92,15 +92,29 @@ namespace KeeperSecurity.Utils
                 throw new ArgumentException("Word list is empty.", nameof(wordList));
             }
 
+            if (options.WordCount > wordList.Count)
+            {
+                throw new ArgumentException(
+                    $"Cannot generate a passphrase with {options.WordCount} unique words from a list of {wordList.Count}.",
+                    nameof(wordList));
+            }
+
             var separator = ValidateSeparator(options.Separator);
             var digitWordIndex = options.UseDigits ? RandomIntInclusive(0, options.WordCount - 1) : -1;
 
             var result = new StringBuilder();
             var first = true;
+            var usedWordIndices = new HashSet<int>();
 
             for (var i = 0; i < options.WordCount; i++)
             {
-                var word = wordList[RandomIntInclusive(0, wordList.Count - 1)];
+                int wordIndex;
+                do
+                {
+                    wordIndex = RandomIntInclusive(0, wordList.Count - 1);
+                } while (!usedWordIndices.Add(wordIndex));
+
+                var word = wordList[wordIndex];
 
                 if (options.UseCaps && word.Length > 0)
                 {

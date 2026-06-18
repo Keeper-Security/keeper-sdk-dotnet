@@ -143,12 +143,19 @@ function Script:New-KeeperPassphraseOptions {
         throw "PassphraseRuleValues accepts at most 4 values: WordCount,Separator,UseCaps,UseDigits. Got $($parts.Count)."
     }
 
+    $minWordCount = [KeeperSecurity.Utils.PassphraseGenerator]::MinWordCount
+    $maxWordCount = [KeeperSecurity.Utils.PassphraseGenerator]::MaxWordCount
+
     if ($parts.Count -ge 1 -and -not [string]::IsNullOrWhiteSpace($parts[0])) {
         $wordCount = 0
-        if (-not [int]::TryParse($parts[0].Trim(), [ref]$wordCount) -or $wordCount -lt 5 -or $wordCount -gt 9) {
-            throw "PassphraseRuleValues WordCount must be between 5 and 9. Got '$($parts[0])'."
+        if (-not [int]::TryParse($parts[0].Trim(), [ref]$wordCount)) {
+            throw "PassphraseRuleValues WordCount must be between $minWordCount and $maxWordCount. Got '$($parts[0])'."
         }
-        $options.WordCount = $wordCount
+        try {
+            $options.WordCount = [KeeperSecurity.Utils.PassphraseGenerator]::ValidateWordCount($wordCount)
+        } catch {
+            throw "PassphraseRuleValues WordCount must be between $minWordCount and $maxWordCount. Got '$($parts[0])'."
+        }
     }
 
     if ($parts.Count -ge 2) {
@@ -187,7 +194,6 @@ function Script:Set-KeeperNsfPassphraseField {
     )
 
     try {
-        # Do not assign @() from if/else — PowerShell treats empty array output as $null.
         if ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0) {
             $passphraseOptions = New-KeeperPassphraseOptions -PassphraseRuleValues $PassphraseRuleValues
         } else {
