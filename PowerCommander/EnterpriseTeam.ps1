@@ -127,30 +127,32 @@ function Update-KeeperEnterpriseTeam {
         return
     }
 
-    $hasChanges = $false
-    if (-not [string]::IsNullOrWhiteSpace($TeamName)) {
-        $teamObject.Name = $TeamName
-        $hasChanges = $true
+    if ($PSBoundParameters.ContainsKey('TeamName')) {
+        if ([string]::IsNullOrWhiteSpace($TeamName)) {
+            Write-Error "TeamName cannot be empty." -ErrorAction Stop
+        }
+        $teamObject.Name = $TeamName.Trim()
     }
-    if ($ParentNode) {
+    if ($PSBoundParameters.ContainsKey('ParentNode')) {
+        if ([string]::IsNullOrWhiteSpace($ParentNode)) {
+            Write-Error "ParentNode cannot be empty." -ErrorAction Stop
+        }
         $parent = resolveSingleNode $ParentNode
         $teamObject.ParentNodeId = $parent.Id
-        $hasChanges = $true
     }
-    if ($RestrictView) {
+    if ($PSBoundParameters.ContainsKey('RestrictView')) {
         $teamObject.RestrictView = ($RestrictView -eq 'ON')
-        $hasChanges = $true
     }
-    if ($RestrictEdit) {
+    if ($PSBoundParameters.ContainsKey('RestrictEdit')) {
         $teamObject.RestrictEdit = ($RestrictEdit -eq 'ON')
-        $hasChanges = $true
     }
-    if ($RestrictShare) {
+    if ($PSBoundParameters.ContainsKey('RestrictShare')) {
         $teamObject.RestrictSharing = ($RestrictShare -eq 'ON')
-        $hasChanges = $true
     }
 
-    if (-not $hasChanges) {
+    $updateFields = @('TeamName', 'ParentNode', 'RestrictView', 'RestrictEdit', 'RestrictShare') |
+        Where-Object { $PSBoundParameters.ContainsKey($_) }
+    if ($updateFields.Count -eq 0) {
         Write-Warning "No changes specified. Use -TeamName, -ParentNode, or restrict flags to update the team."
         return
     }
