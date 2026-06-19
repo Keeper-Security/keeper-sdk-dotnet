@@ -934,6 +934,22 @@ function Add-KeeperRecord {
 	  Uses only the characters "!@#$%^&" as the special character set.
 	  If omitted, the default set is used: !@#$%()+;<>=?[]{}^.,
 
+	.Parameter GeneratePassphrase
+	Generate a random passphrase and store it on the 'password' field, overriding any explicit
+	password value supplied in field arguments. Cannot be used together with -GeneratePassword.
+	When used alone, defaults are: 5 words, "-" separator, useCaps=true, useDigits=true.
+	Alias: PassphraseRules.
+
+	.Parameter PassphraseRuleValues
+	Optional values for passphrase rules. Supplying values alone (without -GeneratePassphrase) also
+	triggers passphrase generation.
+	Up to 4 values: WordCount,Separator,UseCaps,UseDigits.
+	WordCount must be between 5 and 9.
+	Allowed separators: '-', '.', '_', '!', '?', ' ' (space).
+	Examples:
+	  -GeneratePassphrase -PassphraseRuleValues 5,-,true,true
+	  -PassphraseRuleValues 7,-,false,false
+
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
     Month is considered as 30 days
@@ -1015,6 +1031,8 @@ function Add-KeeperRecord {
         [Parameter()] [switch] $GeneratePassword,
         [Parameter()] [int[]] $PasswordRules,
         [Parameter()] [string] $SpecialChars,
+        [Parameter()] [Alias('PassphraseRules')] [switch] $GeneratePassphrase,
+        [Parameter()] [AllowEmptyCollection()] [string[]] $PassphraseRuleValues,
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
@@ -1054,6 +1072,12 @@ function Add-KeeperRecord {
     }
 
     Process {
+        $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
+        if ($GeneratePassword.IsPresent -and $generatePassphrase) {
+            Write-Error "-GeneratePassword and -GeneratePassphrase cannot be used together."
+            return
+        }
+
         if ($Uid) {
             if (-not $vault.TryGetKeeperRecord($Uid, [ref]$record)) {
                 $objs = Get-KeeperChildItem -ObjectType Record | Where-Object Name -eq $Uid
@@ -1127,6 +1151,11 @@ function Add-KeeperRecord {
             $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
 
             $fields['password'] = $generatedPassword
+        }
+        elseif ($generatePassphrase) {
+            if (-not (Set-KeeperPassphraseField -FieldDict $fields -PassphraseRuleValues $PassphraseRuleValues)) {
+                return
+            }
         }
 
         foreach ($fieldName in $fields.Keys) {
