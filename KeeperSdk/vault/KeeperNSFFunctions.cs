@@ -529,7 +529,13 @@ namespace KeeperSecurity.Vault
                 var result = rs.Records[0];
                 if (result.Status != RecordModifyResult.RsSuccess)
                 {
-                    throw new VaultException($"Failed to update record: {result.Message}");
+                    var status = Enum.GetName(typeof(RecordModifyResult), result.Status) ?? "";
+                    if (status.StartsWith("Rs", StringComparison.Ordinal))
+                    {
+                        status = status.Substring(2);
+                    }
+
+                    throw new KeeperApiException(status.ToSnakeCase(), result.Message ?? "Failed to update record");
                 }
             }
         }

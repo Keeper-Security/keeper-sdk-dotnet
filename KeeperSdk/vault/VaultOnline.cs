@@ -187,9 +187,61 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<TryUpdateRecordResult> TryUpdateRecord(KeeperRecord record, bool skipExtra = true)
+        {
+            try
+            {
+                var recordUpdated = await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+                return new TryUpdateRecordResult(true, recordUpdated, null);
+            }
+            catch (Exception e)
+            {
+                return new TryUpdateRecordResult(false, null, FormatUpdateErrorReason(e));
+            }
+        }
+
+        /// <inheritdoc/>
         public Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true)
         {
-            return this.PutRecord(record, skipExtra);
+            return UpdateRecordAsync(record, skipExtra);
+        }
+
+        private async Task<KeeperRecord> UpdateRecordAsync(KeeperRecord record, bool skipExtra)
+        {
+            try
+            {
+                return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+            }
+            catch (KeeperApiException e) when (IsRecordOutOfSync(e))
+            {
+                if (string.IsNullOrEmpty(record?.Uid))
+                {
+                    throw;
+                }
+
+                var refreshed = await RecordSkipSyncDown
+                    .GetOwnedRecordsAsync(Auth, new[] { record.Uid })
+                    .ConfigureAwait(false);
+                if (refreshed.Records.Count == 0)
+                {
+                    throw;
+                }
+
+                return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+            }
+        }
+
+        private static bool IsRecordOutOfSync(KeeperApiException e)
+        {
+            return string.Equals(e.Code, "out_of_sync", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(e.Code, "RS_OUT_OF_SYNC", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FormatUpdateErrorReason(Exception e)
+        {
+            return e is KeeperApiException kae && !string.IsNullOrEmpty(kae.Code)
+                ? $"{kae.Code}: {kae.Message}"
+                : e.Message;
         }
 
         /// <inheritdoc/>
@@ -364,10 +416,49 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<TryUpdateKeeperNSFRecordResult> TryUpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null)
+        {
+            try
+            {
+                await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
+                return new TryUpdateKeeperNSFRecordResult(true, recordUid, null);
+            }
+            catch (Exception e)
+            {
+                return new TryUpdateKeeperNSFRecordResult(false, null, FormatUpdateErrorReason(e));
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null)
         {
-            await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields);
+            await UpdateKeeperNSFRecordAsync(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        private async Task UpdateKeeperNSFRecordAsync(string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)
+        {
+            try
+            {
+                await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
+            }
+            catch (KeeperApiException e) when (IsRecordOutOfSync(e))
+            {
+                if (string.IsNullOrEmpty(recordUid))
+                {
+                    throw;
+                }
+
+                var details = await this.GetKeeperNSFRecordDetailsInternal(new[] { recordUid }).ConfigureAwait(false);
+                var entry = details.Data.FirstOrDefault(x =>
+                    string.Equals(x.RecordUid, recordUid, StringComparison.OrdinalIgnoreCase));
+                if (entry == null)
+                {
+                    throw;
+                }
+
+                await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc/>
