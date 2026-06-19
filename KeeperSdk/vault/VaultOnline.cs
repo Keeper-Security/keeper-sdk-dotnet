@@ -227,7 +227,8 @@ namespace KeeperSecurity.Vault
                     throw;
                 }
 
-                return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+                var refreshedRecord = refreshed.Records[0];
+                return await this.PutRecord(refreshedRecord, skipExtra).ConfigureAwait(false);
             }
         }
 
@@ -449,15 +450,13 @@ namespace KeeperSecurity.Vault
                     throw;
                 }
 
-                var details = await this.GetKeeperNSFRecordDetailsInternal(new[] { recordUid }).ConfigureAwait(false);
-                var entry = details.Data.FirstOrDefault(x =>
-                    string.Equals(x.RecordUid, recordUid, StringComparison.OrdinalIgnoreCase));
-                if (entry == null)
+                var refreshedRecord = await this.GetRefreshedKeeperNSFRecordAsync(recordUid).ConfigureAwait(false);
+                if (refreshedRecord == null)
                 {
                     throw;
                 }
 
-                await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
+                await this.UpdateKeeperNSFRecordInternal(refreshedRecord, title, recordType, notes, fields).ConfigureAwait(false);
             }
         }
 
