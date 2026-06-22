@@ -385,6 +385,14 @@ namespace KeeperSecurity.Vault
         Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true);
 
         /// <summary>
+        /// Attempts to modify a password record without throwing.
+        /// </summary>
+        /// <param name="record">Keeper Record.</param>
+        /// <param name="skipExtra">Do not update file attachment information on the record.</param>
+        /// <returns>A task returning success with the updated record, or failure with an error reason.</returns>
+        Task<TryUpdateRecordResult> TryUpdateRecord(KeeperRecord record, bool skipExtra = true);
+
+        /// <summary>
         /// Modifies multiple password records.
         /// </summary>
         /// <param name="records">Keeper Records.</param>
@@ -518,6 +526,17 @@ namespace KeeperSecurity.Vault
         /// <param name="notes">New notes (null to keep existing).</param>
         /// <param name="fields">Fields to add or update. Values may be strings (plain scalars) or complex objects (e.g. host = { hostName, port } on a databaseCredentials record).</param>
         Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null);
+
+        /// <summary>
+        /// Attempts to update a Keeper NSF record without throwing.
+        /// </summary>
+        /// <param name="recordUid">Record UID to update.</param>
+        /// <param name="title">New title (null to keep existing).</param>
+        /// <param name="recordType">New record type (null to keep existing).</param>
+        /// <param name="notes">New notes (null to keep existing).</param>
+        /// <param name="fields">Fields to add or update.</param>
+        /// <returns>A task returning success with the record UID, or failure with an error reason.</returns>
+        Task<TryUpdateKeeperNSFRecordResult> TryUpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
         /// Grants a user access to a Keeper NSF record by sharing the record key.
@@ -1146,6 +1165,52 @@ namespace KeeperSecurity.Vault
         public VaultException(string message) : base(message)
         {
         }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.TryUpdateRecord"/>.
+    /// </summary>
+    public sealed class TryUpdateRecordResult
+    {
+        /// <exclude/>
+        public TryUpdateRecordResult(bool success, KeeperRecord record, string reason)
+        {
+            Success = success;
+            Record = record;
+            Reason = reason;
+        }
+
+        /// <summary><c>true</c> when the record was updated successfully.</summary>
+        public bool Success { get; }
+
+        /// <summary>Updated record when <see cref="Success"/> is <c>true</c>.</summary>
+        public KeeperRecord Record { get; }
+
+        /// <summary>Error reason when <see cref="Success"/> is <c>false</c>.</summary>
+        public string Reason { get; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.TryUpdateKeeperNSFRecord"/>.
+    /// </summary>
+    public sealed class TryUpdateKeeperNSFRecordResult
+    {
+        /// <exclude/>
+        public TryUpdateKeeperNSFRecordResult(bool success, string recordUid, string reason)
+        {
+            Success = success;
+            RecordUid = recordUid;
+            Reason = reason;
+        }
+
+        /// <summary><c>true</c> when the record was updated successfully.</summary>
+        public bool Success { get; }
+
+        /// <summary>Updated record UID when <see cref="Success"/> is <c>true</c>.</summary>
+        public string RecordUid { get; }
+
+        /// <summary>Error reason when <see cref="Success"/> is <c>false</c>.</summary>
+        public string Reason { get; }
     }
 
     /// <summary>
