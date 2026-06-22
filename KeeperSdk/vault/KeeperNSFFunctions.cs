@@ -470,6 +470,18 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
                 throw new VaultException($"Keeper NSF record '{recordUid}' not found");
 
+            await vault.UpdateKeeperNSFRecordInternal(record, title, recordType, notes, fields).ConfigureAwait(false);
+        }
+
+        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, KeeperNSFRecord record, string title, string recordType, string notes, IDictionary<string, object> fields)
+        {
+            if (record == null)
+                throw new ArgumentNullException(nameof(record));
+
+            var recordUid = record.RecordUid;
+            if (string.IsNullOrEmpty(recordUid))
+                throw new VaultException("Record UID cannot be empty");
+
             if (record.RecordKey == null)
                 throw new VaultException($"Record key not available for record '{recordUid}'");
 
@@ -529,7 +541,13 @@ namespace KeeperSecurity.Vault
                 var result = rs.Records[0];
                 if (result.Status != RecordModifyResult.RsSuccess)
                 {
-                    throw new VaultException($"Failed to update record: {result.Message}");
+                    var status = Enum.GetName(typeof(RecordModifyResult), result.Status) ?? "";
+                    if (status.StartsWith("Rs", StringComparison.Ordinal))
+                    {
+                        status = status.Substring(2);
+                    }
+
+                    throw new KeeperApiException(status.ToSnakeCase(), result.Message ?? "Failed to update record");
                 }
             }
         }
@@ -1062,35 +1080,7 @@ namespace KeeperSecurity.Vault
         public static async Task<KeeperNSFRecordDetailsResult> GetKeeperNSFRecordDetailsInternal(
             this VaultOnline vault, IReadOnlyList<string> recordUids)
         {
-            if (recordUids == null || recordUids.Count == 0)
-            {
-                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "at least one record UID required");
-            }
-
-            var request = new RecordDetailsProto.RecordDataRequest
-            {
-                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            };
-
-            foreach (var uid in recordUids.Where(u => !string.IsNullOrWhiteSpace(u)))
-            {
-                var uidBytes = uid.Trim().Base64UrlDecode();
-                if (uidBytes == null || uidBytes.Length == 0)
-                {
-                    Trace.TraceWarning($"KeeperNSF: Skipping record details request with malformed UID '{uid}'");
-                    continue;
-                }
-
-                request.RecordUids.Add(ByteString.CopyFrom(uidBytes));
-            }
-
-            if (request.RecordUids.Count == 0)
-            {
-                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "no valid record UIDs");
-            }
-
-            var response = await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordDataRequest, RecordDetailsProto.RecordDataResponse>(
-                "vault/records/v3/details/data", request).ConfigureAwait(false);
+            var response = await vault.FetchKeeperNSFRecordDetailsDataAsync(recordUids).ConfigureAwait(false);
 
             var result = new KeeperNSFRecordDetailsResult();
             foreach (var forbiddenUid in response.ForbiddenRecords)
@@ -1127,6 +1117,98 @@ namespace KeeperSecurity.Vault
             }
 
             return result;
+        }
+
+        private static async Task<RecordDetailsProto.RecordDataResponse> FetchKeeperNSFRecordDetailsDataAsync(
+            this VaultOnline vault, IReadOnlyList<string> recordUids)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "at least one record UID required");
+            }
+
+            var request = new RecordDetailsProto.RecordDataRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+
+            foreach (var uid in recordUids.Where(u => !string.IsNullOrWhiteSpace(u)))
+            {
+                var uidBytes = uid.Trim().Base64UrlDecode();
+                if (uidBytes == null || uidBytes.Length == 0)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Skipping record details request with malformed UID '{uid}'");
+                    continue;
+                }
+
+                request.RecordUids.Add(ByteString.CopyFrom(uidBytes));
+            }
+
+            if (request.RecordUids.Count == 0)
+            {
+                throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "no valid record UIDs");
+            }
+
+            return await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordDataRequest, RecordDetailsProto.RecordDataResponse>(
+                "vault/records/v3/details/data", request).ConfigureAwait(false);
+        }
+
+        internal static async Task<KeeperNSFRecord> GetRefreshedKeeperNSFRecordAsync(this VaultOnline vault, string recordUid)
+        {
+            if (string.IsNullOrWhiteSpace(recordUid))
+                return null;
+
+            var trimmedUid = recordUid.Trim();
+            var response = await vault.FetchKeeperNSFRecordDetailsDataAsync(new[] { trimmedUid }).ConfigureAwait(false);
+
+            var recordData = (response.Data ?? Enumerable.Empty<Records.RecordData>())
+                .FirstOrDefault(x =>
+                {
+                    if (x.RecordUid == null || x.RecordUid.IsEmpty)
+                        return false;
+                    var uid = CryptoUtils.Base64UrlEncode(x.RecordUid.ToByteArray());
+                    return string.Equals(uid, trimmedUid, StringComparison.OrdinalIgnoreCase);
+                });
+
+            return recordData != null && TryBuildKeeperNSFRecordFromDetailsData(vault, recordData, trimmedUid, out var record)
+                ? record
+                : null;
+        }
+
+        private static bool TryBuildKeeperNSFRecordFromDetailsData(
+            VaultOnline vault, Records.RecordData recordData, string recordUid, out KeeperNSFRecord record)
+        {
+            record = null;
+            if (recordData == null || string.IsNullOrWhiteSpace(recordUid))
+                return false;
+
+            if (!TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var data))
+                return false;
+
+            var recordKey = TryDecryptKeeperNSFRecordKeyFromDetails(vault, recordData, recordUid);
+            if (recordKey == null || recordKey.Length == 0)
+                return false;
+
+            vault.TryGetKeeperNSFRecord(recordUid, out var cached);
+
+            record = new KeeperNSFRecord
+            {
+                RecordUid = recordUid,
+                Title = !string.IsNullOrEmpty(data?.Title) ? data.Title : data?.Name,
+                Type = data?.Type,
+                Notes = data?.Notes,
+                Revision = recordData.Revision,
+                Version = recordData.Version,
+                Shared = cached?.Shared ?? false,
+                ClientModifiedTime = cached?.ClientModifiedTime ?? 0,
+                FileSize = cached?.FileSize ?? 0,
+                ThumbnailSize = cached?.ThumbnailSize ?? 0,
+                FolderUid = cached?.FolderUid,
+                FolderName = cached?.FolderName,
+                RecordKey = recordKey,
+                Data = data,
+            };
+            return true;
         }
 
         private static void ResolveKeeperNSFRecordTitleAndType(KeeperNSFRecord record, out string title, out string type)
