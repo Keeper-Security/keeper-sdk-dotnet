@@ -814,20 +814,25 @@ namespace Commander
                 node = context.Vault.RootFolder;
             }
 
-            var sortByDate = string.Equals(options.Sort, "date", StringComparison.OrdinalIgnoreCase);
+            var validSortFields = new[] { "name", "date" };
             if (!string.IsNullOrEmpty(options.Sort)
-                && !sortByDate
-                && !string.Equals(options.Sort, "name", StringComparison.OrdinalIgnoreCase))
+                && !validSortFields.Contains(options.Sort, StringComparer.OrdinalIgnoreCase))
             {
                 Console.WriteLine($"Unknown sort field '{options.Sort}'. Supported values: name, date.");
                 return Task.CompletedTask;
             }
 
+            var sortByDate = string.Equals(options.Sort, "date", StringComparison.OrdinalIgnoreCase);
+
             var filterPattern = options.Filter ?? options.Pattern;
-            var nameFilter = CreateListNameFilter(filterPattern);
-            if (!string.IsNullOrEmpty(filterPattern) && nameFilter == null)
+            Regex nameFilter = null;
+            if (!string.IsNullOrEmpty(filterPattern))
             {
-                return Task.CompletedTask;
+                nameFilter = CreateListNameFilter(filterPattern);
+                if (nameFilter == null)
+                {
+                    return Task.CompletedTask;
+                }
             }
             var folders = new List<FolderNode>();
             foreach (var uid in node.Subfolders)
@@ -837,7 +842,7 @@ namespace Commander
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(filterPattern) || ListFolderMatchesFilter(folder, nameFilter))
+                if (nameFilter == null || ListFolderMatchesFilter(folder, nameFilter))
                 {
                     folders.Add(folder);
                 }
