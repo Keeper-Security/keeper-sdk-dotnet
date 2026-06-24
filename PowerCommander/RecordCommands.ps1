@@ -1045,6 +1045,7 @@ function Add-KeeperRecord {
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         [KeeperSecurity.Vault.KeeperRecord]$record = $null
+        $saveRecord = $false
 
         $fields = @{}
         $fieldName = $null
@@ -1093,6 +1094,7 @@ function Add-KeeperRecord {
         else {
             if (!$Title) {
                 Write-Error -Message "-Title parameter is required" -ErrorAction Stop
+                return
             }
             if (-not $RecordType -or $RecordType -eq 'legacy') {
                 $record = New-Object KeeperSecurity.Vault.PasswordRecord
@@ -1226,8 +1228,12 @@ function Add-KeeperRecord {
                 }
             }
         }
+        $saveRecord = $true
     }
     End {
+        if (-not $saveRecord -or -not $record) {
+            return
+        }
         if ($record.Uid) {
             $task = $vault.UpdateRecord($record)
             $task.GetAwaiter().GetResult()
