@@ -825,7 +825,7 @@ namespace KeeperSecurity.Vault
         /// <returns>Tuple: Client Device, Client Key</returns>
         Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
             string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
-            int? accessExpiresInMinutes = null, string name = null);
+            int? accessExpiresInMinutes = null, string name = null, global::Enterprise.AppClientType? appClientType = null);
 
         /// <summary>
         /// Creates SecretsManager Configuration Storage

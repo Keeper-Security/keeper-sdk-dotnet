@@ -18,6 +18,8 @@ using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
 using KeeperSecurity.Plugins.EPM;
 using Commander.EPM;
+using Commander.PAM;
+using KeeperSecurity.Plugins.PAM;
 using KeeperSecurity.Utils;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
@@ -48,6 +50,7 @@ namespace Commander
     internal static class IEnterpriseContextExtensions
     {
         private static readonly Dictionary<IEnterpriseContext, IEpmAdmin> _epmPlugins = new Dictionary<IEnterpriseContext, IEpmAdmin>();
+        private static readonly Dictionary<IEnterpriseContext, IPamPlugin> _pamPlugins = new Dictionary<IEnterpriseContext, IPamPlugin>();
 
         internal static IEpmAdmin GetEpmPlugin(this IEnterpriseContext context)
         {
@@ -66,6 +69,30 @@ namespace Commander
                 var epmPlugin = new EpmPlugin(context.Enterprise);
                 _epmPlugins[context] = epmPlugin;
                 return epmPlugin;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        internal static IPamPlugin GetPamPlugin(this IEnterpriseContext context)
+        {
+            if (!context.Enterprise?.Auth?.AuthContext?.IsEnterpriseAdmin ?? true)
+            {
+                return null;
+            }
+
+            if (_pamPlugins.TryGetValue(context, out var plugin))
+            {
+                return plugin;
+            }
+
+            try
+            {
+                var pamPlugin = new PamPlugin(context.Enterprise);
+                _pamPlugins[context] = pamPlugin;
+                return pamPlugin;
             }
             catch
             {
@@ -217,6 +244,26 @@ namespace Commander
                     Description = "Manage EPM approvals",
                     Action = async options => { await epmApproval.ExecuteAsync(options); },
                 });
+
+            var pamSyncDown = new PamSyncDownCommand(context);
+            cli.Commands.Add("pam-sync-down",
+                new ParseableCommand<PamSyncDownOptions>
+                {
+                    Order = 86,
+                    Description = "Sync PAM gateway data from server",
+                    Action = async options => { await pamSyncDown.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-sync"] = "pam-sync-down";
+
+            var pamGateway = new PamGatewayCommand(context);
+            cli.Commands.Add("pam-gateway",
+                new ParseableCommand<PamGatewayOptions>
+                {
+                    Order = 87,
+                    Description = "Manage PAM gateways",
+                    Action = async options => { await pamGateway.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-gw"] = "pam-gateway";
 
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>

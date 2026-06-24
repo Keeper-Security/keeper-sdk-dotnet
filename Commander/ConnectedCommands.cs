@@ -22,6 +22,7 @@ namespace Commander
     public partial class ConnectedContext : StateCommands
     {
         private readonly VaultContext _vaultContext;
+        internal VaultOnline Vault => _vaultContext.Vault;
         private readonly AuthCommon _auth;
         private AccountSummaryElements _accountSummary;
         public ConnectedContext(AuthCommon auth)
