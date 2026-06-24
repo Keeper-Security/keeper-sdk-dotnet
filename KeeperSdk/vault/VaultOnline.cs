@@ -227,8 +227,8 @@ namespace KeeperSecurity.Vault
                     throw;
                 }
 
-                var refreshedRecord = refreshed.Records[0];
-                return await this.PutRecord(refreshedRecord, skipExtra).ConfigureAwait(false);
+                record.Revision = refreshed.Records[0].Revision;
+                return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
             }
         }
 

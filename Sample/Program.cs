@@ -54,6 +54,18 @@ namespace Sample
                 // // Add Record Example
                 // await AddRecordExample.AddRecord(vault, name: "<recordName_here>", type: "bankCard", folderUid: "<folderUid_here>");
 
+                // // Passphrase Example (SDK PassphraseGenerator + UpdateRecord)
+                // await PassphraseRecordExample.UpdateRecordPassphrase(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     options: new PassphraseGenerationOptions
+                //     {
+                //         WordCount = 5,
+                //         Separator = "-",
+                //         UseCaps = true,
+                //         UseDigits = true
+                //     });
+
                 // // Update Record Example
                 // await UpdateRecordExample.UpdateRecord(
                 //     vault,
