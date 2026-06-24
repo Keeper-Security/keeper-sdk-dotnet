@@ -169,6 +169,18 @@ function Add-KeeperNSFRecord {
 	  -PassphraseRuleValues 7,-,false,false
 	  -PassphraseRuleValues "5, ,true,false"
 	  -PassphraseRuleValues 5,' ',true,false
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecord "Test NSF Record" -RecordType login -GeneratePassphrase login=admin
+	Creates a login record with a generated passphrase (default: 5 words, "-" separator, caps and digits on).
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecord "Test NSF Record" -PassphraseRuleValues 5,-,true,true login=admin url=https://example.com
+	Creates a login record with a custom passphrase and sets login/url fields.
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecord "Test NSF Record" -PassphraseRuleValues "5, ,true,false" login=admin
+	Creates a record with a 5-word space-separated passphrase (no caps, no digits).
 #>
     [CmdletBinding()]
     Param (
@@ -294,6 +306,18 @@ function Edit-KeeperNSFRecord {
 	  -PassphraseRuleValues 7,-,false,false
 	  -PassphraseRuleValues "5, ,true,false"
 	  -PassphraseRuleValues 5,' ',true,false
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecord <recordUid> -GeneratePassphrase
+	Regenerates the password field on an existing NSF record using default passphrase rules.
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecord <recordUid> -PassphraseRuleValues 7,-,false,true
+	Regenerates the password field with a 7-word passphrase ("-" separator, no caps, digits on).
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecord <recordUid> -PassphraseRuleValues 6,.,true,false login=newuser
+	Updates login and regenerates password with a 6-word "."-separated passphrase (caps on, digits off).
 #>
     [CmdletBinding()]
     Param (
