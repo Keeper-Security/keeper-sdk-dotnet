@@ -69,15 +69,15 @@ Add-KeeperEnterpriseRolePrivilege, Remove-KeeperEnterpriseRolePrivilege, Copy-Ke
 Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Remove-KeeperEnterpriseRoleEnforcement
 
 
-Export-ModuleMember -Function New-KeeperEnterpriseTeam, Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, 
-Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
+Export-ModuleMember -Function New-KeeperEnterpriseTeam, Update-KeeperEnterpriseTeam, Remove-KeeperEnterpriseTeam,
+Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
 Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo,
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
+Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report, kal, audit-alert
 

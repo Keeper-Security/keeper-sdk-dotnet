@@ -86,7 +86,7 @@
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
         'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName', 'Get-KeeperNodePath', 'Get-KeeperRoleName', 
-        'New-KeeperEnterpriseTeam','Get-KeeperEnterpriseInfoTree', 'Get-KeeperEnterpriseInfoNode', 'Get-KeeperEnterpriseInfoUser',
+        'New-KeeperEnterpriseTeam', 'Update-KeeperEnterpriseTeam', 'Remove-KeeperEnterpriseTeam', 'Get-KeeperEnterpriseInfoTree', 'Get-KeeperEnterpriseInfoNode', 'Get-KeeperEnterpriseInfoUser',
         'Get-KeeperEnterpriseInfoTeam', 'Get-KeeperEnterpriseInfoRole', 'Get-KeeperEnterpriseInfoManagedCompany',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
         'Remove-KeeperEnterpriseUser', 'Invoke-ResendKeeperEnterpriseInvite', 'Set-KeeperEnterpriseUserMasterPasswordExpire', 
@@ -146,7 +146,7 @@
 
     # Aliases to export from this module
     AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
-        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert',
+        'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'kete', 'ketdel', 'ketu', 'keru', 'kert',
         'kepm-sync','kepm-deployment-list', 'kepm-deployment-view', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
         'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
         'kepm-agent-list', 'kepm-agent-view', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
