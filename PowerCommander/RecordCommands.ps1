@@ -949,6 +949,8 @@ function Add-KeeperRecord {
 	Examples:
 	  -GeneratePassphrase -PassphraseRuleValues 5,-,true,true
 	  -PassphraseRuleValues 7,-,false,false
+	  -PassphraseRuleValues "5, ,true,false"
+	  -PassphraseRuleValues 5,' ',true,false
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
@@ -1024,6 +1026,22 @@ function Add-KeeperRecord {
     .EXAMPLE
     PS> Add-KeeperRecord -Title "Temp Record" -RecordType login login=user@example.com password=secret123 -SelfDestruct 5m
     Creates a record with a 5-minute self-destruct timer and returns a share URL.
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Title "TestClassicRecord-Pass" -RecordType login -GeneratePassphrase login=admin
+    Creates a login record with a generated passphrase (default: 5 words, "-" separator, caps and digits on).
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Title "TestClassicRecord-Pass" -RecordType login -PassphraseRuleValues 5,-,true,true login=admin
+    Creates a login record with a custom passphrase (5 words, "-" separator, caps and digits on).
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Uid <recordUid> -GeneratePassphrase
+    Updates an existing record's password field with a new generated passphrase (default rules).
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Uid <recordUid> -PassphraseRuleValues 7,.,false,true
+    Updates an existing record's password with a 7-word passphrase ("." separator, no caps, digits on).
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
