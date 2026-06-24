@@ -32,6 +32,44 @@ namespace Cli
         }
     }
 
+    public class ValidatingParseableCommand<T> : ParseableCommandMeta<T>, ICommand where T : class
+    {
+        public Func<T, Task> Action { get; set; }
+
+        public Func<IReadOnlyList<string>, string> Validate { get; set; }
+
+        public Task ExecuteCommand(string args)
+        {
+            var tokens = args.TokenizeArguments().ToList();
+            var validationError = Validate?.Invoke(tokens);
+            if (!string.IsNullOrEmpty(validationError))
+            {
+                Console.WriteLine(validationError);
+                return Task.CompletedTask;
+            }
+
+            T options = null;
+            var res = CommandExtensions.DefaultParser.ParseArguments<T>(tokens);
+            res.WithParsed(o => { options = o; });
+            if (options == null)
+            {
+                res.WithNotParsed(errors =>
+                {
+                    foreach (var error in errors)
+                    {
+                        if (error.Tag != ErrorType.HelpRequestedError
+                            && error.Tag != ErrorType.VersionRequestedError)
+                        {
+                            Console.Error.WriteLine(error);
+                        }
+                    }
+                });
+            }
+
+            return options != null ? Action?.Invoke(options) : Task.CompletedTask;
+        }
+    }
+
     public sealed class ParsebleVerbCommand : ICommandMeta, ICommand
     {
         private readonly List<Tuple<Type, Func<object, Task>>> _verbs = new List<Tuple<Type, Func<object, Task>>>();
