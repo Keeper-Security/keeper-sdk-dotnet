@@ -635,6 +635,13 @@ namespace KeeperSecurity.Vault
         Task<IEnumerable<TeamInfo>> GetTeamsForShare();
 
         /// <summary>
+        /// Retrieves team members for the given team UID via vault/get_team_members.
+        /// Returns an empty list when the team has no members.
+        /// </summary>
+        /// <param name="teamUid">Team UID (base64url).</param>
+        Task<IReadOnlyList<TeamMemberInfo>> GetTeamMembers(string teamUid);
+
+        /// <summary>
         /// Retrieves all known users for sharing
         /// </summary>
         /// <returns></returns>
@@ -2360,6 +2367,32 @@ namespace KeeperSecurity.Vault
         /// Shared Folder key.
         /// </summary>
         public byte[] SharedFolderKey { get; set; }
+    }
+
+    /// <summary>
+    /// Team member details returned by <c>vault/get_team_members</c>.
+    /// </summary>
+    public class TeamMemberInfo
+    {
+        /// <summary>
+        /// Enterprise user ID.
+        /// </summary>
+        public long EnterpriseUserId { get; set; }
+
+        /// <summary>
+        /// Team member email.
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Enterprise username in plain text.
+        /// </summary>
+        public string EnterpriseUsername { get; set; }
+
+        /// <summary>
+        /// Whether the user is a share admin.
+        /// </summary>
+        public bool IsShareAdmin { get; set; }
     }
 
     /// <summary>

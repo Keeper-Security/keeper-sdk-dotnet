@@ -227,38 +227,7 @@ namespace Commander
                 tab.AddRow("User Shares:", "");
                 foreach (var rs in shareInfo.UserPermissions)
                 {
-                    string status;
-                    if (rs.Owner)
-                    {
-                        status = "Owner";
-                    }
-                    else if (rs.AwaitingApproval)
-                    {
-                        status = "Awaiting Approval";
-                    }
-                    else if (!rs.CanEdit && !rs.CanShare)
-                    {
-                        status = "Read Only";
-                    }
-                    else if (rs.CanEdit && rs.CanShare)
-                    {
-                        status = "Can Edit & Share";
-                    }
-                    else if (rs.CanEdit)
-                    {
-                        status = "Can Edit";
-                    }
-                    else
-                    {
-                        status = "Can Share";
-                    }
-
-                    if (rs.Expiration.HasValue)
-                    {
-                        status += $" (Expires: {rs.Expiration.Value.LocalDateTime:g})";
-                    }
-
-                    tab.AddRow(rs.Username, status);
+                    tab.AddRow(rs.Username, FormatUserRecordShareStatus(rs));
                 }
             }
 
@@ -268,35 +237,76 @@ namespace Commander
                 tab.AddRow("Shared Folders:", "");
                 foreach (var sfs in shareInfo.SharedFolderPermissions)
                 {
-                    string status;
-                    if (!sfs.CanEdit && !sfs.CanShare)
-                    {
-                        status = "Read Only";
-                    }
-                    else if (sfs.CanEdit && sfs.CanShare)
-                    {
-                        status = "Can Edit & Share";
-                    }
-                    else if (sfs.CanEdit)
-                    {
-                        status = "Can Edit";
-                    }
-                    else
-                    {
-                        status = "Can Share";
-                    }
-
                     var name = sfs.SharedFolderUid;
                     if (context.Vault.TryGetSharedFolder(sfs.SharedFolderUid, out var sf))
                     {
                         name = sf.Name;
                     }
 
-                    tab.AddRow(name, status);
+                    tab.AddRow(name, FormatCanEditShareStatus(sfs.CanEdit, sfs.CanShare));
                 }
             }
 
             context.Vault.AuditLogRecordOpen(record.Uid);
+        }
+
+        private static string FormatUserRecordShareStatus(UserRecordPermissions permission)
+        {
+            string status;
+            if (permission.Owner)
+            {
+                status = "Owner";
+            }
+            else if (permission.AwaitingApproval)
+            {
+                status = "Awaiting Approval";
+            }
+            else
+            {
+                status = FormatCanEditShareStatus(permission.CanEdit, permission.CanShare);
+            }
+
+            if (permission.Expiration.HasValue)
+            {
+                status += $" (Expires: {permission.Expiration.Value.LocalDateTime:g})";
+            }
+
+            return status;
+        }
+
+        private static string FormatCanEditShareStatus(bool canEdit, bool canShare)
+        {
+            if (!canEdit && !canShare)
+            {
+                return "Read Only";
+            }
+
+            if (canEdit && canShare)
+            {
+                return "Can Edit & Share";
+            }
+
+            return canEdit ? "Can Edit" : "Can Share";
+        }
+
+        private static string FormatSharedFolderRecordPermission(bool canEdit, bool canShare)
+        {
+            if (canEdit && canShare)
+            {
+                return "Can Edit & Share";
+            }
+
+            if (canEdit)
+            {
+                return "Can Edit";
+            }
+
+            if (canShare)
+            {
+                return "Can Share";
+            }
+
+            return "View Only";
         }
 
         private static void DisplaySharedFolderInfo(VaultContext context, SharedFolder sf, Tabulate tab)
@@ -314,25 +324,7 @@ namespace Commander
                 tab.AddRow("Record Permissions:");
                 foreach (var r in sf.RecordPermissions)
                 {
-                    string permission;
-                    if (r.CanEdit && r.CanShare)
-                    {
-                        permission = "Can Edit & Share";
-                    }
-                    else if (r.CanEdit)
-                    {
-                        permission = "Can Edit";
-                    }
-                    else if (r.CanShare)
-                    {
-                        permission = "Can Share";
-                    }
-                    else
-                    {
-                        permission = "View Only";
-                    }
-
-                    tab.AddRow(r.RecordUid + ":", permission);
+                    tab.AddRow(r.RecordUid + ":", FormatSharedFolderRecordPermission(r.CanEdit, r.CanShare));
                 }
             }
 

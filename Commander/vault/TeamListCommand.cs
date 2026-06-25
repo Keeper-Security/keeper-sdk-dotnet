@@ -195,8 +195,16 @@ namespace Commander
             string teamUid,
             Action<Severity, string> logger)
         {
-            var members = await TeamMemberExtensions.FetchTeamMembers(vault, teamUid, logger);
-            return members.Select(m => m.Email).Where(e => !string.IsNullOrEmpty(e)).ToList();
+            try
+            {
+                var members = await vault.GetTeamMembers(teamUid);
+                return members.Select(m => m.Email).Where(e => !string.IsNullOrEmpty(e)).ToList();
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke(Severity.Warning, $"Error fetching team members for {teamUid}: {ex.Message}");
+                return new List<string>();
+            }
         }
 
         private static List<TeamListItem> SortTeams(List<TeamListItem> teams, string sortBy)

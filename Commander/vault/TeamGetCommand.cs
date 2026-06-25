@@ -1,6 +1,4 @@
 using Cli;
-using Google.Protobuf;
-using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
@@ -9,66 +7,6 @@ using System.Threading.Tasks;
 
 namespace Commander
 {
-    /// <summary>
-    /// Team member details returned by vault/get_team_members.
-    /// </summary>
-    public class TeamMemberInfo
-    {
-        public long EnterpriseUserId { get; set; }
-        public string Email { get; set; }
-        public string EnterpriseUsername { get; set; }
-        public bool IsShareAdmin { get; set; }
-    }
-
-    internal static class TeamMemberExtensions
-    {
-        /// <summary>
-        /// Fetches team members from vault/get_team_members.
-        /// An empty member list is returned when the team has no members or the response is empty.
-        /// </summary>
-        public static async Task<List<TeamMemberInfo>> FetchTeamMembers(
-            VaultOnline vault,
-            string teamUid,
-            Action<Severity, string> logger = null)
-        {
-            if (vault == null) throw new ArgumentNullException(nameof(vault));
-            if (string.IsNullOrEmpty(teamUid)) return new List<TeamMemberInfo>();
-
-            try
-            {
-                var request = new global::Enterprise.GetTeamMemberRequest
-                {
-                    TeamUid = ByteString.CopyFrom(teamUid.Base64UrlDecode())
-                };
-
-                var response = (global::Enterprise.GetTeamMemberResponse)await vault.Auth.ExecuteAuthRest(
-                    "vault/get_team_members",
-                    request,
-                    typeof(global::Enterprise.GetTeamMemberResponse));
-
-                if (response?.EnterpriseUser == null || response.EnterpriseUser.Count == 0)
-                {
-                    return new List<TeamMemberInfo>();
-                }
-
-                return response.EnterpriseUser
-                    .Select(u => new TeamMemberInfo
-                    {
-                        EnterpriseUserId = u.EnterpriseUserId,
-                        Email = u.Email ?? "",
-                        EnterpriseUsername = u.EnterpriseUsername ?? "",
-                        IsShareAdmin = u.IsShareAdmin
-                    })
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                logger?.Invoke(Severity.Warning, $"Error fetching team members for {teamUid}: {ex.Message}");
-                return new List<TeamMemberInfo>();
-            }
-        }
-    }
-
     internal static class TeamGetCommandExtensions
     {
         public static async Task<bool> TryGetTeamCommand(this VaultContext context, string identifier, bool teamOnly)
@@ -155,7 +93,16 @@ namespace Commander
                 infoTab.AddRow("Team UID:", teamUid);
             }
 
-            var members = await TeamMemberExtensions.FetchTeamMembers(context.Vault, teamUid);
+            IReadOnlyList<TeamMemberInfo> members;
+            try
+            {
+                members = await context.Vault.GetTeamMembers(teamUid);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching team members for {teamUid}: {ex.Message}");
+                members = Array.Empty<TeamMemberInfo>();
+            }
 
             Console.WriteLine();
             infoTab.SetColumnRightAlign(0, true);
