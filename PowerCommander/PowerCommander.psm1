@@ -7,6 +7,7 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.QueuedTeamData] $queuedTeamData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
     [KeeperSecurity.Enterprise.DeviceApprovalData] $deviceApproval
+    [KeeperSecurity.Enterprise.UserAliasData] $userAliasData
     [hashtable] $ManagedCompanies = $null
 }
 
@@ -57,7 +58,8 @@ Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog, Get-KeeperAu
 
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
-Set-KeeperEnterpriseUserMasterPasswordExpire, Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
+Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Remove-KeeperEnterpriseUserAlias,
+Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
 
@@ -79,7 +81,7 @@ Invoke-KeeperEnterpriseNodeWipeOut
 
 Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
-lock-user, unlock-user, transfer-user, delete-user, list-team, kar, user-report, kal, audit-alert
+lock-user, unlock-user, transfer-user, delete-user, add-user-alias, remove-user-alias, list-team, kar, user-report, kal, audit-alert
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Get-KeeperMspLegacyReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
