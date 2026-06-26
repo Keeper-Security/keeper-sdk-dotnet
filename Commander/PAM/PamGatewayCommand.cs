@@ -8,7 +8,6 @@ using Commander;
 using CommandLine;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Plugins.PAM;
-using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using PamProto = PAM;
 using ZeroDep;
@@ -28,7 +27,7 @@ namespace Commander.PAM
         {
             if (options == null)
             {
-                return;
+               throw new ArgumentNullException(nameof(options), "Invalid pam gateway command arguments. Available commands: list, new, edit, remove, set-max-instances");
             }
 
             var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
@@ -68,7 +67,12 @@ namespace Commander.PAM
                 return;
             }
 
-            var vault = GetVault();
+            var vault = Context.GetVault();
+            if (vault == null)
+            {
+                throw new VaultException("Vault is not available. Gateway listing requires a connected vault session.");
+            }
+
             var routerDown = false;
             PamProto.PAMOnlineControllers onlineControllers = null;
 
@@ -91,7 +95,7 @@ namespace Commander.PAM
             var controllers = Plugin.Controllers.GetAll().ToList();
             if (controllers.Count == 0)
             {
-                if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                if (options.isFormatOutputJSON)
                 {
                     Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
                     {
@@ -101,26 +105,57 @@ namespace Commander.PAM
                 }
                 else
                 {
-                    Console.WriteLine("This Enterprise does not have Gateways yet. To create a new Gateway, use: pam-gateway --command=new");
+                    Console.WriteLine("This Enterprise does not have Gateways yet. To create a new Gateway, use: pam gateway new");
                 }
 
                 return;
             }
 
-            var summaries = GatewayUtils.BuildGatewaySummaries(controllers, onlineControllers, routerDown, vault);
-            if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+            var allSummaries = GatewayUtils.BuildGatewaySummaries(controllers, onlineControllers, routerDown, vault);
+            var counts = ComputeGatewayCounts(allSummaries, routerDown);
+            var displaySummaries = options.Online
+                ? allSummaries.Where(s => !routerDown && s.OnlineInstanceCount > 0).ToList()
+                : allSummaries;
+
+            if (options.isFormatOutputJSON)
             {
-                DumpJsonGateways(summaries, options.Verbose);
+                DumpJsonGateways(displaySummaries, options.Verbose, options.Online ? counts : null);
                 return;
             }
 
-            DumpTableGateways(summaries, options.Verbose);
+            DumpTableGateways(displaySummaries, options.Verbose, options.Online ? counts : null);
         }
 
-        private void DumpJsonGateways(IList<PamGatewaySummary> summaries, bool verbose)
+        private static (int Online, int Offline, int Total) ComputeGatewayCounts(
+            IList<PamGatewaySummary> summaries,
+            bool routerDown)
+        {
+            var total = summaries.Count;
+            if (routerDown)
+            {
+                return (0, 0, total);
+            }
+
+            var online = summaries.Count(s => s.OnlineInstanceCount > 0);
+            return (online, total - online, total);
+        }
+
+        private void DumpJsonGateways(
+            IList<PamGatewaySummary> summaries,
+            bool verbose,
+            (int Online, int Offline, int Total)? counts = null)
         {
             var gateways = summaries.Select(summary => BuildGatewayJson(summary, verbose)).ToList();
             var result = new Dictionary<string, object> { ["gateways"] = gateways };
+            if (counts.HasValue)
+            {
+                result["gateway_counts"] = new Dictionary<string, object>
+                {
+                    ["online"] = counts.Value.Online,
+                    ["offline"] = counts.Value.Offline,
+                    ["total"] = counts.Value.Total,
+                };
+            }
             if (verbose)
             {
                 var routerHost = GetRouterHost();
@@ -153,7 +188,7 @@ namespace Commander.PAM
                     var instanceItem = new Dictionary<string, object>
                     {
                         ["instance_number"] = index + 1,
-                        ["status"] = "ONLINE",
+                        ["status"] = PamGatewayStatus.Online,
                         ["gateway_version"] = instance.Version,
                         ["ip_address"] = instance.IpAddress,
                         ["connected_on"] = FormatTimestamp(instance.ConnectedOn),
@@ -193,7 +228,10 @@ namespace Commander.PAM
             item["os_version"] = systemInfo.OsVersion;
         }
 
-        private void DumpTableGateways(IList<PamGatewaySummary> summaries, bool verbose)
+        private void DumpTableGateways(
+            IList<PamGatewaySummary> summaries,
+            bool verbose,
+            (int Online, int Offline, int Total)? counts = null)
         {
             if (verbose)
             {
@@ -269,7 +307,7 @@ namespace Commander.PAM
                                 "",
                                 $"  |- Instance {index} (connected: {connectedOn})",
                                 instance.IpAddress,
-                                "ONLINE",
+                                PamGatewayStatus.Online,
                                 instance.Version,
                                 "", "",
                                 connectedOn,
@@ -286,7 +324,7 @@ namespace Commander.PAM
                                 "",
                                 $"  |- Instance {index} (connected: {connectedOn})",
                                 instance.IpAddress,
-                                "ONLINE",
+                                PamGatewayStatus.Online,
                                 instance.Version);
                         }
 
@@ -296,40 +334,46 @@ namespace Commander.PAM
             }
 
             tab.Dump();
+
+            if (counts.HasValue)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"Gateways: Online: {counts.Value.Online}, Offline: {counts.Value.Offline}, Total: {counts.Value.Total}");
+            }
         }
 
         private async Task NewGatewayAsync(PamGatewayOptions options)
         {
-            var vault = GetVault();
+            if (!await EnsurePluginAsync())
+            {
+                return;
+            }
+
+            var vault = Context.GetVault();
             if (vault == null)
             {
-                Console.WriteLine("Vault is not available. Gateway creation requires a connected vault session.");
-                return;
+                throw new VaultException("Vault is not available. Gateway creation requires a connected vault session.");
             }
 
             if (string.IsNullOrWhiteSpace(options.Name))
             {
-                Console.WriteLine("--name is required");
-                return;
+                throw new PamGatewayException("--name is required");
             }
 
             if (string.IsNullOrWhiteSpace(options.Application))
             {
-                Console.WriteLine("--application is required");
-                return;
+                throw new PamGatewayException("--application is required");
             }
 
             var tokenExpire = options.TokenExpiresInMin > 0 ? options.TokenExpiresInMin : DefaultTokenExpirationMin;
             if (tokenExpire < 1)
             {
-                Console.WriteLine("--token-expires-in-min must be at least 1");
-                return;
+                throw new ArgumentException("--token-expires-in-min must be at least 1");
             }
 
             if (tokenExpire > MaxTokenExpirationMin)
             {
-                Console.WriteLine($"--token-expires-in-min cannot exceed {MaxTokenExpirationMin} minutes");
-                return;
+                throw new PamGatewayException($"--token-expires-in-min cannot exceed {MaxTokenExpirationMin} minutes");
             }
 
             if (!TryResolveKsmApplication(vault, options.Application, out var application))
@@ -340,18 +384,20 @@ namespace Commander.PAM
             string token;
             try
             {
-                token = await GatewayUtils.CreateGatewayAsync(vault, options.Name.Trim(), application.Uid, tokenExpire);
+                token = await GatewayUtils.CreateGatewayAsync(
+                    vault,
+                    options.Name.Trim(),
+                    application.Uid,
+                    tokenExpire,
+                    options.ConfigInit);
             }
-            catch (Exception ex)
+            catch (PamException ex)
             {
                 Console.WriteLine($"Failed to create gateway: {ex.Message}");
                 return;
             }
 
-            if (await EnsurePluginAsync(syncIfNeeded: false))
-            {
-                await SyncPamAsync();
-            }
+            await SyncPamAsync();
 
             if (options.ReturnValue)
             {
@@ -363,7 +409,15 @@ namespace Commander.PAM
             Console.WriteLine();
             Console.WriteLine($"The new Gateway named {options.Name} will show up in the gateway list once it is initialized.");
             Console.WriteLine();
-            Console.WriteLine($"Following one time token will expire in {tokenExpire} minutes.");
+            if (!string.IsNullOrWhiteSpace(options.ConfigInit))
+            {
+                Console.WriteLine("Use the following initialized config in the Gateway:");
+            }
+            else
+            {
+                Console.WriteLine($"Following one time token will expire in {tokenExpire} minutes:");
+            }
+
             Console.WriteLine("-----------------------------------------------");
             Console.WriteLine(token);
             Console.WriteLine("-----------------------------------------------");
@@ -378,21 +432,18 @@ namespace Commander.PAM
 
             if (string.IsNullOrWhiteSpace(options.Gateway))
             {
-                Console.WriteLine("--gateway is required");
-                return;
+                throw new ArgumentNullException(nameof(options.Gateway), "--gateway is required");
             }
 
             var controller = ResolveGateway(options.Gateway);
             if (controller == null)
             {
-                Console.WriteLine($"Gateway '{options.Gateway}' not found");
-                return;
+                throw new PamGatewayNotFoundException(options.Gateway);
             }
 
             if (string.IsNullOrWhiteSpace(options.Name) && string.IsNullOrWhiteSpace(options.NodeId))
             {
-                Console.WriteLine("Nothing to do. Provide --name and/or --node-id to edit the gateway.");
-                return;
+                throw new PamGatewayException("Nothing to do. Provide --name and/or --node-id to edit the gateway.");
             }
 
             long nodeId = controller.NodeId;
@@ -405,8 +456,7 @@ namespace Commander.PAM
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
-                    return;
+                    throw new PamGatewayException(ex.Message, ex);
                 }
             }
 
@@ -415,10 +465,13 @@ namespace Commander.PAM
             {
                 await GatewayUtils.EditGatewayAsync(Context.Enterprise.Auth, controller.ControllerUid, gatewayName, nodeId);
             }
+            catch (PamException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to edit gateway: {ex.Message}");
-                return;
+                throw new PamGatewayException($"Failed to edit gateway: {ex.Message}", ex);
             }
 
             await SyncPamAsync();
@@ -434,25 +487,26 @@ namespace Commander.PAM
 
             if (string.IsNullOrWhiteSpace(options.Gateway))
             {
-                Console.WriteLine("--gateway is required");
-                return;
+                throw new ArgumentNullException(nameof(options.Gateway), "--gateway is required");
             }
 
             var controller = ResolveGateway(options.Gateway);
             if (controller == null)
             {
-                Console.WriteLine($"Gateway '{options.Gateway}' not found");
-                return;
+                throw new PamGatewayNotFoundException(options.Gateway);
             }
 
             try
             {
                 await GatewayUtils.RemoveGatewayAsync(Context.Enterprise.Auth, controller.ControllerUid);
             }
+            catch (PamException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to remove gateway: {ex.Message}");
-                return;
+                throw new PamGatewayException($"Failed to remove gateway: {ex.Message}", ex);
             }
 
             await SyncPamAsync();
@@ -468,21 +522,18 @@ namespace Commander.PAM
 
             if (string.IsNullOrWhiteSpace(options.Gateway))
             {
-                Console.WriteLine("--gateway is required");
-                return;
+                throw new ArgumentNullException(nameof(options.Gateway), "--gateway is required");
             }
 
             if (options.MaxInstances < 1)
             {
-                Console.WriteLine("--max-instances must be at least 1");
-                return;
+                throw new PamGatewayException("--max-instances must be at least 1");
             }
 
             var controller = ResolveGateway(options.Gateway);
             if (controller == null)
             {
-                Console.WriteLine($"Gateway '{options.Gateway}' not found");
-                return;
+                throw new PamGatewayNotFoundException(options.Gateway);
             }
 
             try
@@ -492,10 +543,13 @@ namespace Commander.PAM
                     controller.ControllerUid,
                     options.MaxInstances);
             }
+            catch (PamException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to set max instances: {ex.Message}");
-                return;
+                throw new PamGatewayException($"Failed to set max instances: {ex.Message}", ex);
             }
 
             await SyncPamAsync();
@@ -507,8 +561,7 @@ namespace Commander.PAM
             application = null;
             if (string.IsNullOrWhiteSpace(identifier))
             {
-                Console.WriteLine("--application is required");
-                return false;
+                throw new PamGatewayException("--application is required");
             }
 
             var trimmed = identifier.Trim();
@@ -525,15 +578,13 @@ namespace Commander.PAM
                 .ToList();
             if (byTitle.Count > 1)
             {
-                Console.WriteLine($"Multiple Secret Manager Applications match \"{trimmed}\". Please specify application UID.");
-                return false;
+                throw new PamGatewayAmbiguousException(trimmed);
             }
 
             application = byTitle.FirstOrDefault();
             if (application == null)
             {
-                Console.WriteLine($"Cannot find Secret Manager Application: {trimmed}");
-                return false;
+                throw new PamApplicationNotFoundException(trimmed);
             }
 
             return true;
@@ -570,6 +621,7 @@ namespace Commander.PAM
 
             return DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
+
     }
 
     internal class PamGatewayOptions : EnterpriseGenericOptions
@@ -595,6 +647,9 @@ namespace Commander.PAM
         [Option('m', "max-instances", Required = false, HelpText = "Maximum gateway instances (for set-max-instances)")]
         public int MaxInstances { get; set; }
 
+        [Option('o', "online", Required = false, HelpText = "Show only online gateways (for list)")]
+        public bool Online { get; set; }
+
         [Option('v', "verbose", Required = false, HelpText = "Verbose output")]
         public bool Verbose { get; set; }
 
@@ -603,5 +658,10 @@ namespace Commander.PAM
 
         [Option('r', "return-value", Required = false, HelpText = "Return one-time token only (for new)")]
         public bool ReturnValue { get; set; }
+
+        [Option('c', "config-init", Required = false, HelpText = "Initialize client config and return configuration string: json or b64 (for new)")]
+        public string ConfigInit { get; set; }
+
+        internal bool isFormatOutputJSON => string.Equals(Format, "json", StringComparison.OrdinalIgnoreCase);
     }
 }

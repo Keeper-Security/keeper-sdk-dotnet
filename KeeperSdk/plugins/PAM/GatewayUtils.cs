@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Enterprise;
 using Google.Protobuf;
@@ -33,7 +34,8 @@ namespace KeeperSecurity.Plugins.PAM
       VaultOnline vault,
       string gatewayName,
       string ksmAppUid,
-      int ottExpireInMinutes = DefaultOttExpireMinutes)
+      int ottExpireInMinutes = DefaultOttExpireMinutes,
+      string configInit = null)
     {
       if (vault == null)
       {
@@ -57,7 +59,41 @@ namespace KeeperSecurity.Plugins.PAM
         name: gatewayName,
         appClientType: AppClientType.DiscoveryAndRotationController);
 
-      return result?.Item2 ?? throw new InvalidOperationException("Gateway one-time token was not returned");
+      var oneTimeToken = result?.Item2 ?? throw new InvalidOperationException("Gateway one-time token was not returned");
+      if (string.IsNullOrWhiteSpace(configInit))
+      {
+        return oneTimeToken;
+      }
+
+      return await FormatGatewayConfigAsync(vault, oneTimeToken, configInit);
+    }
+
+    public static async Task<string> FormatGatewayConfigAsync(
+      VaultOnline vault,
+      string oneTimeToken,
+      string configInit)
+    {
+      if (vault == null)
+      {
+        throw new ArgumentNullException(nameof(vault));
+      }
+
+      if (string.IsNullOrWhiteSpace(oneTimeToken))
+      {
+        throw new ArgumentException("One-time token is required", nameof(oneTimeToken));
+      }
+
+      var format = configInit?.Trim().ToLowerInvariant();
+      if (format != "json" && format != "b64")
+      {
+        throw new ArgumentException("configInit must be json or b64", nameof(configInit));
+      }
+
+      var configuration = await vault.GetConfiguration(oneTimeToken);
+      var configData = JsonUtils.DumpJson(configuration);
+      return format == "b64"
+        ? Convert.ToBase64String(configData)
+        : Encoding.UTF8.GetString(configData);
     }
 
     public static async Task RemoveGatewayAsync(IAuthentication auth, string gatewayUid)
@@ -73,7 +109,12 @@ namespace KeeperSecurity.Plugins.PAM
         request,
         typeof(PamProto.PAMRemoveControllerResponse));
 
-      HandleRemoveControllerResponse(response, uidBytes);
+      var controller = response?.Controllers?.FirstOrDefault(x =>
+        x.ControllerUid != null && x.ControllerUid.ToByteArray().SequenceEqual(uidBytes));
+      if (controller != null)
+      {
+        throw new KeeperApiException("remove_controller", controller.Message);
+      }
     }
 
     public static async Task SetGatewayMaxInstancesAsync(IAuthentication auth, string gatewayUid, int maxInstanceCount)
@@ -115,15 +156,6 @@ namespace KeeperSecurity.Plugins.PAM
 
     public static PamController FindGateway(IEnumerable<PamController> controllers, string identifier)
     {
-      return FindGateway(controllers, identifier, out _);
-    }
-
-    public static PamController FindGateway(
-      IEnumerable<PamController> controllers,
-      string identifier,
-      out string errorMessage)
-    {
-      errorMessage = null;
       if (controllers == null || string.IsNullOrWhiteSpace(identifier))
       {
         return null;
@@ -142,7 +174,6 @@ namespace KeeperSecurity.Plugins.PAM
         .ToList();
       if (byName.Count > 1)
       {
-        errorMessage = $"Multiple gateways match name \"{trimmed}\". Please specify Gateway UID.";
         return null;
       }
 
@@ -198,10 +229,7 @@ namespace KeeperSecurity.Plugins.PAM
         summaries.Add(summary);
       }
 
-      return summaries
-        .OrderBy(x => x.Status)
-        .ThenBy(x => x.KsmAppName, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+      return summaries;
     }
 
     private static PamGatewayOnlineInstance ToOnlineInstance(PamProto.PAMOnlineController online)
@@ -239,15 +267,15 @@ namespace KeeperSecurity.Plugins.PAM
     {
       if (routerDown)
       {
-        return "UNKNOWN";
+        return PamGatewayStatus.Unknown;
       }
 
       if (onlineCount > 1)
       {
-        return $"ONLINE ({onlineCount} instances)";
+        return string.Format(PamGatewayStatus.OnlineMultipleInstancesFormat, onlineCount);
       }
 
-      return onlineCount > 0 ? "ONLINE" : "OFFLINE";
+      return onlineCount > 0 ? PamGatewayStatus.Online : PamGatewayStatus.Offline;
     }
 
     public static PamGatewayVersionInfo ParseGatewayVersionInfo(string version)
@@ -293,19 +321,5 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-    private static void HandleRemoveControllerResponse(PamProto.PAMRemoveControllerResponse response, byte[] gatewayUid)
-    {
-      if (response?.Controllers == null || response.Controllers.Count == 0)
-      {
-        return;
-      }
-
-      var controller = response.Controllers.FirstOrDefault(x =>
-        x.ControllerUid != null && x.ControllerUid.ToByteArray().SequenceEqual(gatewayUid));
-      if (controller != null && !string.IsNullOrEmpty(controller.Message))
-      {
-        throw new InvalidOperationException(controller.Message);
-      }
-    }
   }
 }

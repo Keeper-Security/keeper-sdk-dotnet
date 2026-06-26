@@ -70,17 +70,20 @@ namespace KeeperSecurity.Plugins.PAM
         return;
       }
 
-      _controllers.PutEntities(controllers.Select(FromProto));
+      _controllers.PutEntities(
+        controllers
+          .Where(c => c?.ControllerUid != null && !c.ControllerUid.IsEmpty)
+          .Select(FromProto));
     }
 
     private static PamController FromProto(PamProto.PAMController controller)
     {
       return new PamController
       {
-        ControllerUid = controller.ControllerUid?.ToByteArray().Base64UrlEncode() ?? "",
-        ControllerName = controller.ControllerName ?? "",
-        DeviceToken = controller.DeviceToken ?? "",
-        DeviceName = controller.DeviceName ?? "",
+        ControllerUid = controller.ControllerUid.ToByteArray().Base64UrlEncode(),
+        ControllerName = controller.ControllerName,
+        DeviceToken = controller.DeviceToken,
+        DeviceName = controller.DeviceName,
         NodeId = controller.NodeId,
         Created = controller.Created,
         LastModified = controller.LastModified,

@@ -128,6 +128,148 @@ namespace Sample
                 //     folderUid: "<folderUid_here>"
                 // );
 
+                // // List Keeper NSF Records Example
+                // await KeeperNSFExamples.ListKeeperNSFRecordsExample.ListAll(vault);
+
+                // // Get Keeper NSF Record Example
+                // await KeeperNSFExamples.GetKeeperNSFRecordExample.ShowDetails(
+                //     vault,
+                //     recordUidOrTitle: "<recordUid_or_title_here>"
+                // );
+
+                // // Create Keeper NSF Record Example
+                // await KeeperNSFExamples.CreateKeeperNSFRecordExample.Create(
+                //     vault,
+                //     title: "TestNSFrec1",
+                //     recordType: "login",
+                //     folderUid: "",
+                //     notes: "hello1",
+                //     fields: new Dictionary<string, object>
+                //     {
+                //         { "login", "a1@examples" },
+                //         { "password", "A123" }
+                //     }
+                // );
+
+                // // Update Keeper NSF Record Example
+                // await KeeperNSFExamples.UpdateKeeperNSFRecordExample.Update(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     title: "<newTitle_here>",
+                //     recordType: "login",
+                //     notes: "<newNotes_here>",
+                //     fields: new Dictionary<string, object>
+                //     {
+                //         { "login", "<updatedUsername_here>" },
+                //         { "password", "<updatedPassword_here>" }
+                //     }
+                // );
+
+                // // Remove Keeper NSF Record Example (dryRun defaults to true — set false to confirm)
+                // await KeeperNSFExamples.RemoveKeeperNSFRecordExample.Remove(
+                //     vault,
+                //     recordUidOrTitle: "<recordUid_or_title_here>",
+                //     folderUidOrName: "<folderUid_or_name_here>",
+                //     operation: KeeperNSFRecordRemoveOperation.FolderTrash,
+                //     dryRun: true
+                // );
+
+                // // List Keeper NSF Folders Example
+                // await KeeperNSFExamples.ListKeeperNSFFoldersExample.ListAll(vault);
+
+                // // Create Keeper NSF Folder Example
+                // await KeeperNSFExamples.CreateKeeperNSFFolderExample.Create(
+                //     vault,
+                //     folderName: "<folderName_here>",
+                //     parentFolderUid: "<parentFolderUid_here>",
+                //     color: "#FF5733",
+                //     inheritPermissions: true
+                // );
+
+                // // Update Keeper NSF Folder Example
+                // await KeeperNSFExamples.UpdateKeeperNSFFolderExample.RenameOrRecolor(
+                //     vault,
+                //     folderUidOrName: "<folderUid_or_name_here>",
+                //     newName: "<newFolderName_here>",
+                //     color: "#33FF57"
+                // );
+
+                // // Remove Keeper NSF Folder Example (dryRun defaults to true — set false to confirm)
+                // await KeeperNSFExamples.RemoveKeeperNSFFolderExample.Remove(
+                //     vault,
+                //     folderUidOrName: "<folderUid_or_name_here>",
+                //     operation: KeeperNSFFolderRemoveOperation.FolderTrash,
+                //     dryRun: true
+                // );
+
+                // // Link Keeper NSF Record to Folder Example
+                // await KeeperNSFExamples.LinkKeeperNSFRecordToFolderExample.Link(
+                //     vault,
+                //     recordUidOrTitle: "<recordUid_or_title_here>",
+                //     folderUidOrName: "<folderUid_or_name_here>"
+                // );
+
+                // // Keep Keeper NSF Record in Folder Example
+                // await KeeperNSFExamples.KeepKeeperNSFRecordInFolderExample.KeepInFolder(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     keepFolderUid: "<folderUid_here>"
+                // );
+
+                // // Get Keeper NSF Shortcuts Example
+                // await KeeperNSFExamples.GetKeeperNSFShortcutsExample.ListShortcuts(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     folderUid: "<folderUid_here>"
+                // );
+
+                // // Share Keeper NSF Record Example
+                // await KeeperNSFExamples.ShareKeeperNSFRecordExample.Share(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     userEmail: "<userEmail_here>",
+                //     role: "viewer"
+                // );
+
+                // // Unshare Keeper NSF Record Example
+                // await KeeperNSFExamples.UnshareKeeperNSFRecordExample.Unshare(
+                //     vault,
+                //     recordUid: "<recordUid_here>",
+                //     userEmail: "<userEmail_here>"
+                // );
+
+                // // Transfer Keeper NSF Record Ownership Example
+                // await KeeperNSFExamples.TransferKeeperNSFRecordOwnershipExample.Transfer(
+                //     vault,
+                //     recordUidOrTitles: new[] { "<recordUid_or_title_here>" },
+                //     newOwnerEmail: "<newOwnerEmail_here>"
+                // );
+
+                // // Grant Keeper NSF Folder Access Example
+                // await KeeperNSFExamples.GrantKeeperNSFFolderAccessExample.Grant(
+                //     vault,
+                //     folderUid: "<folderUid_here>",
+                //     userEmail: "<userEmail_here>",
+                //     role: "viewer"
+                // );
+
+                // // Revoke Keeper NSF Folder Access Example
+                // await KeeperNSFExamples.RevokeKeeperNSFFolderAccessExample.Revoke(
+                //     vault,
+                //     folderUid: "<folderUid_here>",
+                //     userEmail: "<userEmail_here>"
+                // );
+
+                // // Update Keeper NSF Record Permissions Example (dryRun defaults to true — set false to apply)
+                // await KeeperNSFExamples.UpdateKeeperNSFRecordPermissionsExample.UpdatePermissions(
+                //     vault,
+                //     folderUid: "<folderUid_here>",
+                //     action: "grant",
+                //     role: "viewer",
+                //     recursive: false,
+                //     dryRun: true
+                // );
+
                 // // Create Shared Folder Example
                 // var options = new SharedFolderOptions
                 // {
@@ -433,9 +575,20 @@ namespace Sample
                 //     vault,
                 //     applicationId: "<appUid_here>",
                 //     unlockIp: true,
-                //     firstAccessExpireInMinutes: 10,
-                //     accessExpiresInMinutes: 60,
-                //     name: "Test Client Added 2"
+                //     firstAccessExpireInMinutes: 60,
+                //     accessExpiresInMinutes: null,
+                //     name: "<clientName_here>",
+                //     appClientType: Enterprise.AppClientType.General
+                // );
+
+                // // Add PAM Gateway Client Example (DiscoveryAndRotationController)
+                // await SecretManagerExamples.AddClientExample.AddClient(
+                //     vault,
+                //     applicationId: "<ksmAppUid_here>",
+                //     unlockIp: true,
+                //     firstAccessExpireInMinutes: 60,
+                //     name: "<gatewayName_here>",
+                //     appClientType: Enterprise.AppClientType.DiscoveryAndRotationController
                 // );
 
                 // // Remove Client Example

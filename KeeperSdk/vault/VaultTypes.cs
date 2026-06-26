@@ -9,6 +9,7 @@ using KeeperSecurity.Utils;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using Enterprise;
 
 namespace KeeperSecurity.Vault
 {
@@ -825,7 +826,7 @@ namespace KeeperSecurity.Vault
         /// <returns>Tuple: Client Device, Client Key</returns>
         Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
             string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
-            int? accessExpiresInMinutes = null, string name = null, global::Enterprise.AppClientType? appClientType = null);
+            int? accessExpiresInMinutes = null, string name = null, AppClientType? appClientType = null);
 
         /// <summary>
         /// Creates SecretsManager Configuration Storage

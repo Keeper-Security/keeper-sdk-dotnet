@@ -15,6 +15,7 @@ namespace Commander.PAM
         {
             if (options == null)
             {
+                Console.WriteLine("Invalid PAM sync-down command arguments.");
                 return;
             }
 
@@ -24,8 +25,15 @@ namespace Commander.PAM
             }
 
             Console.WriteLine(options.Reload ? "Performing full PAM sync..." : "Syncing PAM data...");
-            await Plugin.SyncDownAsync(options.Reload);
-            Console.WriteLine("PAM sync completed.");
+            try
+            {
+                await Plugin.SyncDownAsync(options.Reload);
+                Console.WriteLine("PAM sync completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error syncing PAM data: {ex.Message}");
+            }
         }
     }
 

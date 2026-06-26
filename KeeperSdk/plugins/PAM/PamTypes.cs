@@ -4,12 +4,20 @@ using KeeperSecurity.Storage;
 
 namespace KeeperSecurity.Plugins.PAM
 {
+  public static class PamGatewayStatus
+  {
+    public const string Unknown = "UNKNOWN";
+    public const string Online = "ONLINE";
+    public const string Offline = "OFFLINE";
+    public const string OnlineMultipleInstancesFormat = "ONLINE ({0} instances)";
+  }
+
   public class PamController : IUid
   {
-    public string ControllerUid { get; set; } = "";
-    public string ControllerName { get; set; } = "";
-    public string DeviceToken { get; set; } = "";
-    public string DeviceName { get; set; } = "";
+    public string ControllerUid { get; set; }
+    public string ControllerName { get; set; }
+    public string DeviceToken { get; set; }
+    public string DeviceName { get; set; }
     public long NodeId { get; set; }
     public long Created { get; set; }
     public long LastModified { get; set; }
@@ -45,7 +53,7 @@ namespace KeeperSecurity.Plugins.PAM
   public class PamGatewaySummary
   {
     public PamController Controller { get; set; }
-    public string Status { get; set; } = "OFFLINE";
+    public string Status { get; set; } = PamGatewayStatus.Offline;
     public int OnlineInstanceCount { get; set; }
     public string GatewayVersion { get; set; } = "";
     public PamGatewaySystemInfo SystemInfo { get; set; } = new PamGatewaySystemInfo();

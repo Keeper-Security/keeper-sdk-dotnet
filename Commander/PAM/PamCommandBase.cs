@@ -10,21 +10,16 @@ namespace Commander.PAM
     internal abstract class PamCommandBase
     {
         protected IEnterpriseContext Context { get; }
-        protected PamPlugin Plugin { get; private set; }
+        protected IPamPlugin Plugin { get; private set; }
 
         protected PamCommandBase(IEnterpriseContext context)
         {
-            Context = context;
-        }
-
-        protected VaultOnline GetVault()
-        {
-            return (Context as ConnectedContext)?.Vault;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         protected async Task<bool> EnsurePluginAsync(bool syncIfNeeded = true)
         {
-            Plugin = Context.GetPamPlugin() as PamPlugin;
+            Plugin = Context.GetPamPlugin();
             if (Plugin == null)
             {
                 Console.WriteLine("PAM plugin is not available. Enterprise admin access is required.");
@@ -42,20 +37,34 @@ namespace Commander.PAM
 
         protected PamController ResolveGateway(string identifier)
         {
-            var controller = GatewayUtils.FindGateway(Plugin.Controllers.GetAll(), identifier, out var errorMessage);
-            if (!string.IsNullOrEmpty(errorMessage))
+            if (string.IsNullOrWhiteSpace(identifier))
             {
-                Console.WriteLine(errorMessage);
+                return null;
             }
 
-            return controller;
+            var controllers = Plugin.Controllers.GetAll();
+            var controller = GatewayUtils.FindGateway(controllers, identifier);
+            if (controller != null)
+            {
+                return controller;
+            }
+
+            var trimmed = identifier.Trim();
+            var nameMatches = controllers
+                .Count(c => string.Equals(c.ControllerName, trimmed, StringComparison.OrdinalIgnoreCase));
+            if (nameMatches > 1)
+            {
+                throw new PamGatewayAmbiguousException(trimmed);
+            }
+
+            return null;
         }
 
         protected async Task SyncPamAsync()
         {
             if (Plugin == null)
             {
-                Plugin = Context.GetPamPlugin() as PamPlugin;
+                Plugin = Context.GetPamPlugin();
             }
 
             if (Plugin != null)

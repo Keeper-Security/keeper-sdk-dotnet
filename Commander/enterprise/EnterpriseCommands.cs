@@ -52,6 +52,16 @@ namespace Commander
         private static readonly Dictionary<IEnterpriseContext, IEpmAdmin> _epmPlugins = new Dictionary<IEnterpriseContext, IEpmAdmin>();
         private static readonly Dictionary<IEnterpriseContext, IPamPlugin> _pamPlugins = new Dictionary<IEnterpriseContext, IPamPlugin>();
 
+        internal static KeeperSecurity.Vault.VaultOnline GetVault(this IEnterpriseContext context)
+        {
+            if (context is ConnectedContext connected)
+            {
+                return connected._vaultContext.Vault;
+            }
+
+            return null;
+        }
+
         internal static IEpmAdmin GetEpmPlugin(this IEnterpriseContext context)
         {
             if (!context.Enterprise?.Auth?.AuthContext?.IsEnterpriseAdmin ?? true)
