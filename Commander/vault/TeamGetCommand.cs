@@ -1,4 +1,5 @@
 using Cli;
+using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
@@ -73,10 +74,16 @@ namespace Commander
                 MaxColumnWidth = 1000
             };
 
+            var nodePath = ResolveTeamNodePath(context, teamUid);
+
             if (vaultTeam != null)
             {
                 infoTab.AddRow("Team UID:", vaultTeam.TeamUid);
                 infoTab.AddRow("Name:", vaultTeam.Name);
+                if (!string.IsNullOrEmpty(nodePath))
+                {
+                    infoTab.AddRow("Node:", nodePath);
+                }
                 infoTab.AddRow("Access Level:", "Full member access");
                 infoTab.AddRow("Restrict Edit:", vaultTeam.RestrictEdit.ToString());
                 infoTab.AddRow("Restrict Share:", vaultTeam.RestrictShare.ToString());
@@ -86,11 +93,19 @@ namespace Commander
             {
                 infoTab.AddRow("Team UID:", availableTeam.TeamUid);
                 infoTab.AddRow("Name:", availableTeam.Name);
+                if (!string.IsNullOrEmpty(nodePath))
+                {
+                    infoTab.AddRow("Node:", nodePath);
+                }
                 infoTab.AddRow("Access Level:", "Available for sharing");
             }
             else
             {
                 infoTab.AddRow("Team UID:", teamUid);
+                if (!string.IsNullOrEmpty(nodePath))
+                {
+                    infoTab.AddRow("Node:", nodePath);
+                }
             }
 
             IReadOnlyList<TeamMemberInfo> members;
@@ -111,6 +126,39 @@ namespace Commander
 
             Console.WriteLine();
             DisplayTeamMembers(members);
+        }
+
+        private static string ResolveTeamNodePath(VaultContext context, string teamUid)
+        {
+            var enterpriseData = context.EnterpriseData;
+            if (enterpriseData == null)
+            {
+                return null;
+            }
+
+            if (!enterpriseData.TryGetTeam(teamUid, out var team))
+            {
+                return null;
+            }
+
+            EnterpriseNode node = null;
+            if (team.ParentNodeId > 0)
+            {
+                enterpriseData.TryGetNode(team.ParentNodeId, out node);
+            }
+            else
+            {
+                node = enterpriseData.RootNode;
+            }
+
+            if (node == null)
+            {
+                return null;
+            }
+
+            var nodes = enterpriseData.GetNodePath(node).ToArray();
+            Array.Reverse(nodes);
+            return string.Join(" -> ", nodes);
         }
 
         private static void DisplayTeamMembers(IReadOnlyList<TeamMemberInfo> members)
