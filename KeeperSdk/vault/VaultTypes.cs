@@ -635,7 +635,7 @@ namespace KeeperSecurity.Vault
         Task<IEnumerable<TeamInfo>> GetTeamsForShare();
 
         /// <summary>
-        /// Retrieves team members for the given team UID via vault/get_team_members.
+        /// Retrieves team members for the given team UID.
         /// Returns an empty list when the team has no members.
         /// </summary>
         /// <param name="teamUid">Team UID (base64url).</param>
@@ -2370,7 +2370,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Team member details returned by <c>vault/get_team_members</c>.
+    /// Team member details returned.
     /// </summary>
     public class TeamMemberInfo
     {
