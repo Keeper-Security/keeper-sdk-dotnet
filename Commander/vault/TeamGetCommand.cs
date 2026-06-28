@@ -12,7 +12,13 @@ namespace Commander
     {
         public static async Task<bool> TryGetTeamCommand(this VaultContext context, string identifier, bool teamOnly)
         {
-            var teamResult = await TryResolveTeam(context, identifier);
+            var teamResult = TryResolveTeam(context, identifier);
+            if (teamResult.multipleFound)
+            {
+                Console.WriteLine($"Multiple teams found with name '{identifier}'. Please use team UID.");
+                return true;
+            }
+
             if (teamResult.teamUid == null)
             {
                 if (teamOnly)
@@ -23,50 +29,63 @@ namespace Commander
                 return false;
             }
 
-            await DisplayTeamInfo(context, teamResult.vaultTeam, teamResult.availableTeam, teamResult.teamUid);
+            await DisplayTeamInfo(context, teamResult.vaultTeam, teamResult.enterpriseTeam, teamResult.teamUid);
             return true;
         }
 
-        private static async Task<(Team vaultTeam, TeamInfo availableTeam, string teamUid)> TryResolveTeam(
+        private static (Team vaultTeam, EnterpriseTeam enterpriseTeam, string teamUid, bool multipleFound) TryResolveTeam(
             VaultContext context,
             string identifier)
         {
             if (context.Vault.TryGetTeam(identifier, out var team))
             {
-                return (team, null, team.TeamUid);
+                return (team, null, team.TeamUid, false);
             }
 
-            var teamByName = context.Vault.Teams.FirstOrDefault(x =>
-                string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
-            if (teamByName != null)
+            var teamsByName = context.Vault.Teams
+                .Where(x => string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0)
+                .ToList();
+            if (teamsByName.Count > 1)
             {
-                return (teamByName, null, teamByName.TeamUid);
+                return (null, null, null, true);
             }
 
-            try
+            if (teamsByName.Count == 1)
             {
-                var availableTeams = await context.GetAvailableTeams();
-                var availableTeam = availableTeams.FirstOrDefault(x =>
-                    string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0 ||
-                    string.CompareOrdinal(x.TeamUid, identifier) == 0);
-
-                if (availableTeam != null)
-                {
-                    return (null, availableTeam, availableTeam.TeamUid);
-                }
+                return (teamsByName[0], null, teamsByName[0].TeamUid, false);
             }
-            catch (Exception ex)
+
+            var enterpriseData = context.EnterpriseData;
+            if (enterpriseData == null || !context.Vault.Auth.AuthContext.IsEnterpriseAdmin)
             {
-                Console.WriteLine($"Failed to retrieve available teams: {ex.Message}");
+                return (null, null, null, false);
             }
 
-            return (null, null, null);
+            if (enterpriseData.TryGetTeam(identifier, out var enterpriseTeamByUid))
+            {
+                return (null, enterpriseTeamByUid, enterpriseTeamByUid.Uid, false);
+            }
+
+            var enterpriseTeamsByName = enterpriseData.Teams
+                .Where(x => string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0)
+                .ToList();
+            if (enterpriseTeamsByName.Count > 1)
+            {
+                return (null, null, null, true);
+            }
+
+            if (enterpriseTeamsByName.Count == 1)
+            {
+                return (null, enterpriseTeamsByName[0], enterpriseTeamsByName[0].Uid, false);
+            }
+
+            return (null, null, null, false);
         }
 
         private static async Task DisplayTeamInfo(
             VaultContext context,
             Team vaultTeam,
-            TeamInfo availableTeam,
+            EnterpriseTeam enterpriseTeam,
             string teamUid)
         {
             var infoTab = new Tabulate(3)
@@ -89,23 +108,18 @@ namespace Commander
                 infoTab.AddRow("Restrict Share:", vaultTeam.RestrictShare.ToString());
                 infoTab.AddRow("Restrict View:", vaultTeam.RestrictView.ToString());
             }
-            else if (availableTeam != null)
+            else if (enterpriseTeam != null)
             {
-                infoTab.AddRow("Team UID:", availableTeam.TeamUid);
-                infoTab.AddRow("Name:", availableTeam.Name);
+                infoTab.AddRow("Team UID:", enterpriseTeam.Uid);
+                infoTab.AddRow("Name:", enterpriseTeam.Name);
                 if (!string.IsNullOrEmpty(nodePath))
                 {
                     infoTab.AddRow("Node:", nodePath);
                 }
-                infoTab.AddRow("Access Level:", "Available for sharing");
-            }
-            else
-            {
-                infoTab.AddRow("Team UID:", teamUid);
-                if (!string.IsNullOrEmpty(nodePath))
-                {
-                    infoTab.AddRow("Node:", nodePath);
-                }
+                infoTab.AddRow("Access Level:", "Enterprise administrative access");
+                infoTab.AddRow("Restrict Edit:", enterpriseTeam.RestrictEdit.ToString());
+                infoTab.AddRow("Restrict Share:", enterpriseTeam.RestrictSharing.ToString());
+                infoTab.AddRow("Restrict View:", enterpriseTeam.RestrictView.ToString());
             }
 
             IReadOnlyList<TeamMemberInfo> members;
@@ -163,6 +177,12 @@ namespace Commander
 
         private static void DisplayTeamMembers(IReadOnlyList<TeamMemberInfo> members)
         {
+            if (members == null || members.Count == 0)
+            {
+                Console.WriteLine("No team members found.");
+                return;
+            }
+
             var memberTab = new Tabulate(4)
             {
                 DumpRowNo = false,
@@ -170,12 +190,6 @@ namespace Commander
             };
 
             memberTab.AddHeader("Enterprise User ID", "Email", "Enterprise Username", "Share Admin");
-
-            if (members == null || members.Count == 0)
-            {
-                Console.WriteLine("No team members found.");
-                return;
-            }
 
             foreach (var member in members)
             {

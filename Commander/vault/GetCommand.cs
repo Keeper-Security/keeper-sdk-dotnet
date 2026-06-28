@@ -31,7 +31,13 @@ namespace Commander
 
             if (checkRecords)
             {
-                var record = TryResolveRecord(context, identifier);
+                var record = TryResolveRecord(context, identifier, out var multipleFound);
+                if (multipleFound)
+                {
+                    Console.WriteLine($"Multiple records found with title '{identifier}'. Please use UID.");
+                    return;
+                }
+
                 if (record != null)
                 {
                     await DisplayRecordInfo(context, record, tab);
@@ -71,7 +77,13 @@ namespace Commander
 
             if (checkFolders)
             {
-                var folder = TryResolveFolder(context, identifier);
+                var folder = TryResolveFolder(context, identifier, out var multipleFound);
+                if (multipleFound)
+                {
+                    Console.WriteLine($"Multiple folders found with name '{identifier}'. Please use UID.");
+                    return;
+                }
+
                 if (folder != null)
                 {
                     DisplayFolderInfo(folder, tab);
@@ -105,25 +117,49 @@ namespace Commander
             Console.WriteLine($"Object with name or UID '{identifier}' not found or not accessible.");
         }
 
-        private static KeeperRecord TryResolveRecord(VaultContext context, string identifier)
+        private static KeeperRecord TryResolveRecord(VaultContext context, string identifier, out bool multipleFound)
         {
+            multipleFound = false;
             if (context.Vault.TryGetKeeperRecord(identifier, out var record))
             {
                 return record;
             }
 
-            return context.Vault.KeeperRecords
-                .FirstOrDefault(r => string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase));
+            var matches = context.Vault.KeeperRecords
+                .Where(r => string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (matches.Count > 1)
+            {
+                multipleFound = true;
+                return null;
+            }
+
+            return matches.FirstOrDefault();
         }
 
-        private static FolderNode TryResolveFolder(VaultContext context, string identifier)
+        private static FolderNode TryResolveFolder(VaultContext context, string identifier, out bool multipleFound)
         {
+            multipleFound = false;
             if (context.Vault.TryGetFolder(identifier, out var folder))
             {
                 return folder;
             }
 
-            return context.TryResolvePath(identifier, out var folderByPath) ? folderByPath : null;
+            if (context.TryResolvePath(identifier, out var folderByPath))
+            {
+                return folderByPath;
+            }
+
+            var matches = context.Vault.Folders
+                .Where(f => string.Equals(f.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (matches.Count > 1)
+            {
+                multipleFound = true;
+                return null;
+            }
+
+            return matches.FirstOrDefault();
         }
 
         private static SharedFolder TryResolveSharedFolder(VaultContext context, string identifier)
