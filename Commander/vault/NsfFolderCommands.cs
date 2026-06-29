@@ -180,24 +180,26 @@ namespace Commander
             }
 
             var action = options.Action ?? "grant";
-            foreach (var user in options.Email ?? Array.Empty<string>())
+            foreach (var recipient in options.Email ?? Array.Empty<string>())
             {
                 try
                 {
+                    var label = await vault.ResolveKeeperNSFShareRecipientLabel(recipient).ConfigureAwait(false);
+
                     if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
                     {
-                        await vault.GrantKeeperNSFFolderAccess(options.FolderUid, user, options.Role ?? "viewer");
-                        Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{user}' on folder '{options.FolderUid}'.");
+                        await vault.GrantKeeperNSFFolderAccess(options.FolderUid, recipient, options.Role ?? "viewer");
+                        Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{label}' on folder '{options.FolderUid}'.");
                     }
                     else
                     {
-                        await vault.RevokeKeeperNSFFolderAccess(options.FolderUid, user);
-                        Console.WriteLine($"Revoked access for '{user}' from folder '{options.FolderUid}'.");
+                        await vault.RevokeKeeperNSFFolderAccess(options.FolderUid, recipient);
+                        Console.WriteLine($"Revoked access for '{label}' from folder '{options.FolderUid}'.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error {action}ing access for '{user}': {ex.Message}");
+                    Console.WriteLine($"Error {action}ing access for '{recipient}': {ex.Message}");
                 }
             }
         }
@@ -253,7 +255,7 @@ namespace Commander
         [Option("action", Required = false, Default = "grant", HelpText = "grant or remove")]
         public string Action { get; set; }
 
-        [Option("email", Required = true, HelpText = "User email(s)")]
+        [Option("email", Required = true, HelpText = "User email(s), team name(s), or team UID(s)")]
         public IEnumerable<string> Email { get; set; }
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]

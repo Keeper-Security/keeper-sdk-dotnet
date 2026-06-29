@@ -59,11 +59,12 @@ New-Alias -Name nsf-mkdir -Value New-KeeperNSFFolder
 function Set-KeeperNSFFolderAccess {
     <#
 	.Synopsis
-	Grant or revoke user access to a Keeper NSF folder.
+	Grant or revoke user or team access to a Keeper NSF folder.
 
 	.Description
 	Changes the sharing permissions of a Keeper NSF folder using the v3 API.
 	Supports granting access with a specified role, or revoking access entirely.
+	Recipients may be user emails, team names, or team UIDs.
 
 	.Parameter FolderUid
 	UID of the folder to share. 
@@ -72,7 +73,7 @@ function Set-KeeperNSFFolderAccess {
 	Action to perform: 'grant' (default) or 'remove'.
 
 	.Parameter Email
-	One or more user email addresses to grant/revoke access.
+	One or more user email addresses, team names, or team UIDs to grant/revoke access.
 
 	.Parameter Role
 	Access role for grant action: viewer (default), share-manager, content-manager,
