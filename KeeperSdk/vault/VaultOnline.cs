@@ -7,6 +7,7 @@ using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using Enterprise;
 using Records;
 using AuthProto = Authentication;
 
@@ -522,6 +523,38 @@ namespace KeeperSecurity.Vault
                 TeamUid = x.teamUid,
                 Name = x.teamName,
             });
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<TeamMemberInfo>> GetTeamMembers(string teamUid)
+        {
+            if (string.IsNullOrEmpty(teamUid))
+            {
+                return Array.Empty<TeamMemberInfo>();
+            }
+
+            var request = new GetTeamMemberRequest
+            {
+                TeamUid = ByteString.CopyFrom(teamUid.Base64UrlDecode())
+            };
+
+            var response = await Auth.ExecuteAuthRest<GetTeamMemberRequest, GetTeamMemberResponse>(
+                "vault/get_team_members", request);
+
+            if (response?.EnterpriseUser == null || response.EnterpriseUser.Count == 0)
+            {
+                return Array.Empty<TeamMemberInfo>();
+            }
+
+            return response.EnterpriseUser
+                .Select(u => new TeamMemberInfo
+                {
+                    EnterpriseUserId = u.EnterpriseUserId,
+                    Email = u.Email ?? "",
+                    EnterpriseUsername = u.EnterpriseUsername ?? "",
+                    IsShareAdmin = u.IsShareAdmin
+                })
+                .ToList();
         }
 
         /// <inheritdoc/>
