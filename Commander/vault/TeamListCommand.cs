@@ -197,18 +197,8 @@ namespace Commander
         {
             try
             {
-                var request = new global::Enterprise.GetTeamMemberRequest
-                {
-                    TeamUid = Google.Protobuf.ByteString.CopyFrom(teamUid.Base64UrlDecode())
-                };
-
-                var response = (global::Enterprise.GetTeamMemberResponse)await vault.Auth.ExecuteAuthRest(
-                    "vault/get_team_members",
-                    request,
-                    typeof(global::Enterprise.GetTeamMemberResponse));
-
-                var members = response.EnterpriseUser?.Select(u => u.Email).ToList() ?? new List<string>();
-                return members;
+                var members = await vault.GetTeamMembers(teamUid);
+                return members.Select(m => m.Email).Where(e => !string.IsNullOrEmpty(e)).ToList();
             }
             catch (Exception ex)
             {
