@@ -1,4 +1,5 @@
 using Cli;
+using KeeperSecurity.Enterprise;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace Commander
     {
         internal readonly VaultOnline Vault;
         internal string CurrentFolder;
+        internal EnterpriseData EnterpriseData { get; set; }
 
         public VaultContext(VaultOnline vault)
         {
@@ -307,6 +309,14 @@ namespace Commander
     {
         internal static void AppendVaultCommands(this VaultContext context, CliCommands cli)
         {
+            cli.Commands.Add("get",
+                new ParseableCommand<GetObjectOptions>
+                {
+                    Order = 9,
+                    Description = "Get information about any Keeper object (record, folder, team, etc.)",
+                    Action = async options => await context.GetCommand(options),
+                });
+
             cli.Commands.Add("search",
                 new ParseableCommand<SearchCommandOptions>
                 {
