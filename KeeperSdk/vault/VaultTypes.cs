@@ -494,7 +494,7 @@ namespace KeeperSecurity.Vault
         /// Grants a user access to a Keeper NSF folder.
         /// </summary>
         /// <param name="folderUid">Folder UID to share.</param>
-        /// <param name="userEmail">Email address of the user to grant access.</param>
+        /// <param name="userEmail">User email, team name, or team UID to grant access.</param>
         /// <param name="role">Access role: viewer, share-manager, content-manager, content-share-manager, full-manager.</param>
         /// <param name="options">Optional share options such as expiration.</param>
         /// <returns>Awaitable task.</returns>
@@ -504,7 +504,7 @@ namespace KeeperSecurity.Vault
         /// Revokes a user's access from a Keeper NSF folder.
         /// </summary>
         /// <param name="folderUid">Folder UID to revoke access from.</param>
-        /// <param name="userEmail">Email address of the user to revoke.</param>
+        /// <param name="userEmail">User email, team name, or team UID to revoke.</param>
         /// <returns>Awaitable task.</returns>
         Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail);
 

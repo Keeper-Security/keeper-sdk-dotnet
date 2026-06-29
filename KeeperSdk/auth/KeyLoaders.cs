@@ -1,5 +1,6 @@
 ﻿using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -33,21 +34,23 @@ namespace KeeperSecurity.Authentication
                 var tkRs = await this.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(tkRq);
                 foreach (var key in tkRs.keys)
                 {
-                    if (string.IsNullOrEmpty(key.key))
+                    if (key.key == null && string.IsNullOrEmpty(key.teamPublicKey))
                     {
                         if (skipped == null)
                         {
                             skipped = new List<string>();
                         }
                         skipped.Add(key.teamUid);
+                        continue;
                     }
-                    else
+
+                    try
                     {
-                        try
+                        byte[] aes = null;
+                        byte[] rsa = null;
+                        byte[] ec = null;
+                        if (!string.IsNullOrEmpty(key.key))
                         {
-                            byte[] aes = null;
-                            byte[] rsa = null;
-                            byte[] ec = null;
                             var encryptedKey = key.key.Base64UrlDecode();
                             switch (key.keyType)
                             {
@@ -72,16 +75,80 @@ namespace KeeperSecurity.Authentication
                                 default:
                                     throw new Exception($"Team key type {key.keyType} is not supported");
                             }
-                            _keyCache[key.teamUid] = new UserKeys(aes: aes, rsa: rsa, ec: ec);
                         }
-                        catch (Exception e)
+
+                        TeamKeyParser.ParseTeamAsymmetricKeyEntry(key, out var pubRsa, out var pubEc);
+                        if (pubRsa != null && pubRsa.Length > 0)
                         {
-                            Trace.TraceError(e.Message);
+                            rsa = pubRsa;
                         }
+                        if (pubEc != null && pubEc.Length > 0)
+                        {
+                            ec = pubEc;
+                        }
+
+                        _keyCache[key.teamUid] = new UserKeys(aes: aes, rsa: rsa, ec: ec);
+                    }
+                    catch (Exception e)
+                    {
+                        Trace.TraceError(e.Message);
                     }
                 }
             }
             return skipped ?? Enumerable.Empty<string>();
+        }
+
+        /// <summary>
+        /// Returns cached team keys, loading asymmetric keys via <c>team_get_keys</c> fallback when needed.
+        /// </summary>
+        internal async Task<UserKeys> GetTeamKeysForSharing(string teamUid)
+        {
+            await LoadTeamKeys(new[] { teamUid }).ConfigureAwait(false);
+            if (TryGetTeamKeys(teamUid, out var keys) && HasAsymmetricTeamKeys(keys))
+            {
+                return keys;
+            }
+
+            var existingAes = keys?.AesKey;
+            try
+            {
+                var tkRq = new TeamGetKeysCommand { teams = new[] { teamUid } };
+                var tkRs = await this.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(tkRq)
+                    .ConfigureAwait(false);
+                foreach (var tk in tkRs.keys ?? Enumerable.Empty<TeamKeyObject>())
+                {
+                    if (!string.Equals(tk.teamUid, teamUid, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    TeamKeyParser.ParseTeamAsymmetricKeyEntry(tk, out var rsa, out var ec);
+                    if ((rsa != null && rsa.Length > 0) || (ec != null && ec.Length > 0))
+                    {
+                        keys = new UserKeys(aes: existingAes, rsa: rsa, ec: ec);
+                        _keyCache[teamUid] = keys;
+                        return keys;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"team_get_keys fallback failed for {teamUid}: {e.Message}");
+            }
+
+            if (!TryGetTeamKeys(teamUid, out keys))
+            {
+                throw new VaultException($"Team key not found for team {teamUid}");
+            }
+
+            return keys;
+        }
+
+        private static bool HasAsymmetricTeamKeys(UserKeys keys)
+        {
+            return keys != null
+                   && ((keys.RsaPublicKey != null && keys.RsaPublicKey.Length > 0)
+                       || (keys.EcPublicKey != null && keys.EcPublicKey.Length > 0));
         }
 
         /// <inheritdoc/>
@@ -130,6 +197,19 @@ namespace KeeperSecurity.Authentication
         public bool TryGetUserKeys(string username, out UserKeys keys)
         {
             return _keyCache.TryGetValue(username, out keys);
+        }
+    }
+
+    internal static class TeamKeyLoaderExtensions
+    {
+        public static Task<UserKeys> GetTeamKeysForSharingAsync(this IAuthentication auth, string teamUid)
+        {
+            if (auth is AuthCommon common)
+            {
+                return common.GetTeamKeysForSharing(teamUid);
+            }
+
+            throw new VaultException("Authentication provider does not support team key loading.");
         }
     }
 }
