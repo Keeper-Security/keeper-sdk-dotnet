@@ -13,13 +13,13 @@ namespace Commander
         public static async Task<bool> TryGetTeamCommand(this VaultContext context, string identifier, bool teamOnly)
         {
             var teamResult = TryResolveTeam(context, identifier);
-            if (teamResult.multipleFound)
+            if (teamResult.MultipleFound)
             {
                 Console.WriteLine($"Multiple teams found with name '{identifier}'. Please use team UID.");
                 return true;
             }
 
-            if (teamResult.teamUid == null)
+            if (teamResult.TeamUid == null)
             {
                 if (teamOnly)
                 {
@@ -29,17 +29,19 @@ namespace Commander
                 return false;
             }
 
-            await DisplayTeamInfo(context, teamResult.vaultTeam, teamResult.enterpriseTeam, teamResult.teamUid);
+            await DisplayTeamInfo(context, teamResult.VaultTeam, teamResult.EnterpriseTeam, teamResult.TeamUid);
             return true;
         }
 
-        private static (Team vaultTeam, EnterpriseTeam enterpriseTeam, string teamUid, bool multipleFound) TryResolveTeam(
-            VaultContext context,
-            string identifier)
+        private static TeamResolveResult TryResolveTeam(VaultContext context, string identifier)
         {
             if (context.Vault.TryGetTeam(identifier, out var team))
             {
-                return (team, null, team.TeamUid, false);
+                return new TeamResolveResult
+                {
+                    VaultTeam = team,
+                    TeamUid = team.TeamUid
+                };
             }
 
             var teamsByName = context.Vault.Teams
@@ -47,23 +49,31 @@ namespace Commander
                 .ToList();
             if (teamsByName.Count > 1)
             {
-                return (null, null, null, true);
+                return new TeamResolveResult { MultipleFound = true };
             }
 
             if (teamsByName.Count == 1)
             {
-                return (teamsByName[0], null, teamsByName[0].TeamUid, false);
+                return new TeamResolveResult
+                {
+                    VaultTeam = teamsByName[0],
+                    TeamUid = teamsByName[0].TeamUid
+                };
             }
 
             var enterpriseData = context.EnterpriseData;
             if (enterpriseData == null || !context.Vault.Auth.AuthContext.IsEnterpriseAdmin)
             {
-                return (null, null, null, false);
+                return new TeamResolveResult();
             }
 
             if (enterpriseData.TryGetTeam(identifier, out var enterpriseTeamByUid))
             {
-                return (null, enterpriseTeamByUid, enterpriseTeamByUid.Uid, false);
+                return new TeamResolveResult
+                {
+                    EnterpriseTeam = enterpriseTeamByUid,
+                    TeamUid = enterpriseTeamByUid.Uid
+                };
             }
 
             var enterpriseTeamsByName = enterpriseData.Teams
@@ -71,15 +81,19 @@ namespace Commander
                 .ToList();
             if (enterpriseTeamsByName.Count > 1)
             {
-                return (null, null, null, true);
+                return new TeamResolveResult { MultipleFound = true };
             }
 
             if (enterpriseTeamsByName.Count == 1)
             {
-                return (null, enterpriseTeamsByName[0], enterpriseTeamsByName[0].Uid, false);
+                return new TeamResolveResult
+                {
+                    EnterpriseTeam = enterpriseTeamsByName[0],
+                    TeamUid = enterpriseTeamsByName[0].Uid
+                };
             }
 
-            return (null, null, null, false);
+            return new TeamResolveResult();
         }
 
         private static async Task DisplayTeamInfo(
@@ -201,6 +215,14 @@ namespace Commander
             }
 
             memberTab.Dump();
+        }
+
+        private sealed class TeamResolveResult
+        {
+            public Team VaultTeam { get; set; }
+            public EnterpriseTeam EnterpriseTeam { get; set; }
+            public string TeamUid { get; set; }
+            public bool MultipleFound { get; set; }
         }
     }
 }

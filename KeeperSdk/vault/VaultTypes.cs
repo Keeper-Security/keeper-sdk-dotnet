@@ -638,7 +638,7 @@ namespace KeeperSecurity.Vault
         /// Retrieves team members for the given team UID.
         /// Returns an empty list when the team has no members.
         /// </summary>
-        /// <param name="teamUid">Team UID (base64url).</param>
+        /// <param name="teamUid">Team UID.</param>
         Task<IReadOnlyList<TeamMemberInfo>> GetTeamMembers(string teamUid);
 
         /// <summary>
