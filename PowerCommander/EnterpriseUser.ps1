@@ -243,8 +243,8 @@ function Invoke-ResendKeeperEnterpriseInvite {
         # here user is found by email
         Write-Debug "User `"$User`" found by email"
     }
-    elseif ($User -is [long] -or ($User -is [string] -and $User -match '^\d+$')) {
-        $userId = if ($User -is [long]) { $User } else { [long]$User }
+    elseif ($User -match '^\d+$') {
+        $userId = [long]$User
         if (-not $enterprise.enterpriseData.TryGetUserById($userId, [ref]$userObject)) {
             Write-Error "User `"$User`" not found" -ErrorAction Stop
             return
@@ -316,6 +316,31 @@ function Set-KeeperEnterpriseUserMasterPasswordExpire {
 }
 Register-ArgumentCompleter -CommandName Set-KeeperEnterpriseUserMasterPasswordExpire -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
 
+function Get-MatchingEnterpriseUserAlias {
+    param(
+        [Parameter(Mandatory)][string[]]$Aliases,
+        [Parameter(Mandatory)][string]$Alias
+    )
+    $needle = $Alias.Trim().ToLowerInvariant()
+    foreach ($candidate in $Aliases) {
+        if ($candidate.ToLowerInvariant() -eq $needle) { return $candidate }
+    }
+    return $null
+}
+
+function Sync-EnterpriseUserAliasCache {
+    param(
+        [Parameter(Mandatory)][Enterprise]$Enterprise,
+        [Parameter(Mandatory)][string]$Operation
+    )
+    try {
+        $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+        Write-Warning "$Operation succeeded but enterprise data reload failed: $($_.Exception.Message)"
+    }
+}
+
 function Add-KeeperEnterpriseUserAlias {
     <#
         .SYNOPSIS
@@ -326,7 +351,7 @@ function Add-KeeperEnterpriseUserAlias {
         it is set as the primary alias.
 
         .PARAMETER User
-        User email address or enterprise user ID
+        User email address, alias email address, or enterprise user ID
 
         .PARAMETER Alias
         Alias email address to add
@@ -336,8 +361,8 @@ function Add-KeeperEnterpriseUserAlias {
         Adds alias@example.com as an alias for user@example.com
 
         .EXAMPLE
-        add-user-alias "user@example.com" "alias@example.com"
-        Adds an alias using the add-user-alias alias
+        kuser-alias-add "user@example.com" "alias@example.com"
+        Adds an alias using the kuser-alias-add alias
     #>
     [CmdletBinding()]
     Param (
@@ -350,26 +375,27 @@ function Add-KeeperEnterpriseUserAlias {
         return
     }
 
+    $aliasEmail = $Alias.Trim().ToLowerInvariant()
+
     [Enterprise]$enterprise = getEnterprise
-    $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
-        return
-    }
+    $userObject = resolveUser $enterprise.enterpriseData $User $enterprise.userAliasData
+
+    $aliases = @($enterprise.userAliasData.GetAliasesForUser($userObject.Id))
+    $existingAlias = Get-MatchingEnterpriseUserAlias -Aliases $aliases -Alias $aliasEmail
 
     try {
-        $aliases = @($enterprise.userAliasData.GetAliasesForUser($userObject.Id))
-        if ($aliases -contains $Alias) {
+        if ($existingAlias) {
             $rq = New-Object Authentication.EnterpriseUserAliasRequest
             $rq.EnterpriseUserId = $userObject.Id
-            $rq.Alias = $Alias
+            $rq.Alias = $existingAlias
             $enterprise.loader.Auth.ExecuteAuthRest("enterprise/enterprise_user_set_primary_alias", $rq).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Alias `"$Alias`" set as primary for user `"$($userObject.Email)`"."
+            Write-Output "Alias `"$existingAlias`" set as primary for user `"$($userObject.Email)`"."
         }
         else {
             $addRq = New-Object Authentication.EnterpriseUserAddAliasRequest
             $addRq.Primary = $true
             $addRq.EnterpriseUserId = $userObject.Id
-            $addRq.Alias = $Alias
+            $addRq.Alias = $aliasEmail
 
             $rq = New-Object Authentication.EnterpriseUserAddAliasRequestV2
             [void]$rq.EnterpriseUserAddAliasRequest.Add($addRq)
@@ -381,22 +407,27 @@ function Add-KeeperEnterpriseUserAlias {
                 1
             ).GetAwaiter().GetResult()
 
-            foreach ($st in $rs.Status) {
+            $statusList = @($rs.Status)
+            if ($statusList.Count -eq 0) {
+                Write-Error "Failed to add alias: no status returned from server." -ErrorAction Stop
+            }
+
+            foreach ($st in $statusList) {
                 if ($st.Status -ne 'success') {
                     Write-Error "Failed to add alias for user $($st.EnterpriseUserId): $($st.Status)" -ErrorAction Stop
                 }
             }
-            Write-Output "Alias `"$Alias`" added for user `"$($userObject.Email)`"."
+            Write-Output "Alias `"$aliasEmail`" added for user `"$($userObject.Email)`"."
         }
-
-        $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
     }
     catch {
         Write-Error "Failed to add alias: $($_.Exception.Message)" -ErrorAction Stop
     }
+
+    Sync-EnterpriseUserAliasCache -Enterprise $enterprise -Operation 'Alias add'
 }
 Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseUserAlias -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
-New-Alias -Name add-user-alias -Value Add-KeeperEnterpriseUserAlias
+New-Alias -Name kuser-alias-add -Value Add-KeeperEnterpriseUserAlias
 
 function Remove-KeeperEnterpriseUserAlias {
     <#
@@ -407,18 +438,25 @@ function Remove-KeeperEnterpriseUserAlias {
         Removes an alternate email alias from an enterprise user.
 
         .PARAMETER User
-        User email address or enterprise user ID
+        User email address, alias email address, or enterprise user ID
 
         .PARAMETER Alias
-        Alias email address to remove
+        Alias email address to remove. Cannot be the user's current primary email.
+
+        .PARAMETER Force
+        Skip confirmation prompt and remove the alias
 
         .EXAMPLE
         Remove-KeeperEnterpriseUserAlias -User "user@example.com" -Alias "alias@example.com"
         Removes alias@example.com from user@example.com
 
         .EXAMPLE
-        remove-user-alias "user@example.com" "alias@example.com"
-        Removes an alias using the remove-user-alias alias
+        Remove-KeeperEnterpriseUserAlias -User "user@example.com" -Alias "alias@example.com" -Force
+        Removes the alias without a confirmation prompt
+
+        .EXAMPLE
+        kuser-alias-remove "user@example.com" "alias@example.com"
+        Removes an alias using the kuser-alias-remove alias
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param (
@@ -432,30 +470,42 @@ function Remove-KeeperEnterpriseUserAlias {
         return
     }
 
+    $aliasEmail = $Alias.Trim().ToLowerInvariant()
+
     [Enterprise]$enterprise = getEnterprise
-    $userObject = resolveUser $enterprise.enterpriseData $User
-    if (-not $userObject) {
+    $userObject = resolveUser $enterprise.enterpriseData $User $enterprise.userAliasData
+
+    if ($userObject.Email.ToLowerInvariant() -eq $aliasEmail) {
+        Write-Error "Cannot remove the user's primary email address `"$($userObject.Email)`". Set another alias as primary first." -ErrorAction Stop
         return
     }
 
-    if (-not $Force -and -not $PSCmdlet.ShouldProcess("$($userObject.Email) -> $Alias", "Remove Enterprise User Alias")) {
-        return
-    }
+    if ($Force -or $PSCmdlet.ShouldProcess("$($userObject.Email) -> $aliasEmail", "Remove Enterprise User Alias")) {
+        $aliases = @($enterprise.userAliasData.GetAliasesForUser($userObject.Id))
+        $canonicalAlias = Get-MatchingEnterpriseUserAlias -Aliases $aliases -Alias $aliasEmail
+        if (-not $canonicalAlias) {
+            $canonicalAlias = $aliasEmail
+        }
 
-    try {
-        $rq = New-Object Authentication.EnterpriseUserAliasRequest
-        $rq.EnterpriseUserId = $userObject.Id
-        $rq.Alias = $Alias
-        $enterprise.loader.Auth.ExecuteAuthRest("enterprise/enterprise_user_delete_alias", $rq).GetAwaiter().GetResult() | Out-Null
-        $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
-        Write-Output "Alias `"$Alias`" removed from user `"$($userObject.Email)`"."
+        try {
+            $rq = New-Object Authentication.EnterpriseUserAliasRequest
+            $rq.EnterpriseUserId = $userObject.Id
+            $rq.Alias = $canonicalAlias
+            $enterprise.loader.Auth.ExecuteAuthRest("enterprise/enterprise_user_delete_alias", $rq).GetAwaiter().GetResult() | Out-Null
+            Write-Output "Alias `"$canonicalAlias`" removed from user `"$($userObject.Email)`"."
+        }
+        catch {
+            Write-Error "Failed to remove alias: $($_.Exception.Message)" -ErrorAction Stop
+        }
+
+        Sync-EnterpriseUserAliasCache -Enterprise $enterprise -Operation 'Alias remove'
     }
-    catch {
-        Write-Error "Failed to remove alias: $($_.Exception.Message)" -ErrorAction Stop
+    else {
+        Write-Output "Alias removal cancelled."
     }
 }
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseUserAlias -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
-New-Alias -Name remove-user-alias -Value Remove-KeeperEnterpriseUserAlias
+New-Alias -Name kuser-alias-remove -Value Remove-KeeperEnterpriseUserAlias
 
 function Update-KeeperEnterpriseTeamUser {
     <#

@@ -152,7 +152,7 @@
         'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
         'kepm-agent-list', 'kepm-agent-view', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
-        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'add-user-alias', 'remove-user-alias', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
+        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kuser-alias-add', 'kuser-alias-remove', 'kshrsh', 'kshr', 'kushr', 'kcancelshare', 'kshf',
         'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
         'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',

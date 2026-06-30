@@ -81,7 +81,7 @@ Invoke-KeeperEnterpriseNodeWipeOut
 
 Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
-lock-user, unlock-user, transfer-user, delete-user, add-user-alias, remove-user-alias, list-team, kar, user-report, kal, audit-alert
+lock-user, unlock-user, transfer-user, delete-user, kuser-alias-add, kuser-alias-remove, list-team, kar, user-report, kal, audit-alert
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Get-KeeperMspLegacyReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
