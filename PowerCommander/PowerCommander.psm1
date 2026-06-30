@@ -59,6 +59,7 @@ Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog, Get-KeeperAu
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
 Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Remove-KeeperEnterpriseUserAlias,
+Get-KeeperEnterpriseUserTeam, Add-KeeperEnterpriseUserTeam, Remove-KeeperEnterpriseUserTeam,
 Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
@@ -72,14 +73,16 @@ Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Rem
 
 
 Export-ModuleMember -Function New-KeeperEnterpriseTeam, Update-KeeperEnterpriseTeam, Remove-KeeperEnterpriseTeam,
-Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
+Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember,
+Get-KeeperEnterpriseTeamRole, Add-KeeperEnterpriseTeamRole, Remove-KeeperEnterpriseTeamRole,
+Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
 Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo,
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
+Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ketr, keut, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers,
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, kuser-alias-add, kuser-alias-remove, list-team, kar, user-report, kal, audit-alert
 

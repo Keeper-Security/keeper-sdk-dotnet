@@ -280,52 +280,67 @@ function Add-KeeperEnterpriseTeamMember {
         Adds existing enterprise users to a Keeper team.
 
         .DESCRIPTION
-        Adds one or more users (by email) to an existing Keeper Enterprise Team. The users must already exist in the enterprise.
+        Matches Commander enterprise-team -au/--add-user. Adds one or more users by email
+        or enterprise user ID. Use -HideSharedFolders (on/off) for team admin types.
+        Inactive users are queued to the team.
 
         .PARAMETER Team
         Team UID or Team Name.
 
+        .PARAMETER User
+        User email address or enterprise user ID. Accepts multiple values.
+
         .PARAMETER Emails
-        Array of email addresses of users to add to the team.
+        Deprecated alias for -User.
+
+        .PARAMETER HideSharedFolders
+        on = Admin Only (no shared folders). off = Admin with shared folder access.
+        Applies only when adding users (-au).
 
         .EXAMPLE
-        Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
+        Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "alice@example.com", "bob@example.com"
 
         .EXAMPLE
-        Add-KeeperEnterpriseTeamMember -Team "1P7A8XZ9K3J9H" -Emails "eve@example.com", "frank@example.com"
+        Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "user@example.com" -HideSharedFolders on
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
-        [Parameter(Mandatory = $true)]
-        [string] $Team,
-
-        [Parameter(Mandatory = $true)]
-        [string[]] $Emails
+        [Parameter(Mandatory = $true)][string] $Team,
+        [Parameter()][Alias('Emails')][string[]] $User,
+        [ValidateSet('on', 'off')][string]$HideSharedFolders
     )
 
-    [Enterprise]$enterprise = GetEnterprise
-    try {
-        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
-        
-        if (-not $selectedTeam) {
-            Write-Warning "No matching team found for input: $Team"
-        }
-        if ($Emails.Count -eq 0) {
-            Write-Warning "No email addresses provided to add."
-            return
-        }
-    
-        $enterprise.enterpriseData.AddUsersToTeams(
-            $Emails, 
-            @($selectedTeam.Uid)
-        ).GetAwaiter().GetResult() | Out-Null
-        Write-Output "Requested addition of $($Emails.Count) user(s) to team '$($selectedTeam.Name)'."
+    if (-not $User -or $User.Count -eq 0) {
+        Write-Error "At least one user must be specified via -User." -ErrorAction Stop
     }
-    catch {
-        Write-Warning "Failed to add users to team '$Team': $($_.Exception.Message)"
+
+    [Enterprise]$enterprise = GetEnterprise
+    $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
+    if (-not $teamTarget) { return }
+
+    foreach ($userInput in $User) {
+        if ([string]::IsNullOrWhiteSpace($userInput)) { continue }
+        try {
+            $userObject = resolveUser $enterprise.enterpriseData $userInput.Trim()
+        }
+        catch {
+            Write-Warning $_.Exception.Message
+            continue
+        }
+
+        if ($PSCmdlet.ShouldProcess("User `"$($userObject.Email)`" to team `"$($teamTarget.Name)`"", 'Add')) {
+            try {
+                Add-EnterpriseUserToTeamMembership -Enterprise $enterprise -User $userObject -TeamTarget $teamTarget -HideSharedFolders $HideSharedFolders | Out-Null
+            }
+            catch {
+                Write-Error "Failed to add user `"$($userObject.Email)`" to team `"$($teamTarget.Name)`": $($_.Exception.Message)" -ErrorAction Stop
+            }
+        }
     }
 }
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
 
 function Remove-KeeperEnterpriseTeamMember {
     <#
@@ -333,56 +348,228 @@ function Remove-KeeperEnterpriseTeamMember {
         Removes existing enterprise users from a Keeper team.
 
         .DESCRIPTION
-        Removes one or more users (by email) from an existing Keeper Enterprise Team. 
-        The specified users must already exist in the enterprise and must be members of the team.
+        Matches Commander enterprise-team -ru/--remove-user.
 
         .PARAMETER Team
         Team UID or Team Name from which the users will be removed.
 
+        .PARAMETER User
+        User email address or enterprise user ID. Accepts multiple values.
+
         .PARAMETER Emails
-        Array of email addresses of users to remove from the team.
+        Deprecated alias for -User.
 
         .EXAMPLE
-        Remove-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
-
-        .EXAMPLE
-        Remove-KeeperEnterpriseTeamMember -Team "1P7A8XZ9K3J9H" -Emails "eve@example.com", "frank@example.com"
-
-        This command removes the specified users from the given team.
+        Remove-KeeperEnterpriseTeamMember -Team "Engineering" -User "alice@example.com", "bob@example.com"
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
-        [Parameter(Mandatory = $true)]
-        [string] $Team,
-
-        [Parameter(Mandatory = $true)]
-        [string[]] $Emails
+        [Parameter(Mandatory = $true)][string] $Team,
+        [Parameter()][Alias('Emails')][string[]] $User
     )
 
-    [Enterprise]$enterprise = GetEnterprise
-    try {
-        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
-    
-        if (-not $selectedTeam) {
-            Write-Warning "No matching team found for input: $Team"
-            return
-        }
-        if ($Emails.Count -eq 0) {
-            Write-Warning "No email addresses provided to remove."
-            return
-        }
-    
-        $enterprise.enterpriseData.RemoveUsersFromTeams(
-            $Emails, 
-            @($selectedTeam.Uid)
-        ).GetAwaiter().GetResult() | Out-Null
-        Write-Output "Requested removal of $($Emails.Count) user(s) from team '$($selectedTeam.Name)'."
+    if (-not $User -or $User.Count -eq 0) {
+        Write-Error "At least one user must be specified via -User." -ErrorAction Stop
     }
-    catch {
-        Write-Warning "Failed to remove users from team '$Team': $($_.Exception.Message)"
+
+    [Enterprise]$enterprise = GetEnterprise
+    $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
+    if (-not $teamTarget) { return }
+
+    $emails = [System.Collections.Generic.List[string]]::new()
+    foreach ($userInput in $User) {
+        if ([string]::IsNullOrWhiteSpace($userInput)) { continue }
+        try {
+            $userObject = resolveUser $enterprise.enterpriseData $userInput.Trim()
+            [void]$emails.Add($userObject.Email)
+        }
+        catch { Write-Warning $_.Exception.Message }
+    }
+
+    if ($emails.Count -eq 0) {
+        Write-Warning "No valid users found to remove."
+        return
+    }
+
+    if ($PSCmdlet.ShouldProcess("Remove $($emails.Count) user(s) from team `"$($teamTarget.Name)`"", 'Remove')) {
+        try {
+            $warnings = [System.Collections.Generic.List[string]]::new()
+            $enterprise.enterpriseData.RemoveUsersFromTeams(
+                $emails.ToArray(),
+                @($teamTarget.Uid),
+                { param($m) [void]$warnings.Add($m) }
+            ).GetAwaiter().GetResult() | Out-Null
+            foreach ($warning in $warnings) { Write-Warning $warning }
+            Write-Output "Removed $($emails.Count) user(s) from team '$($teamTarget.Name)'."
+        }
+        catch {
+            Write-Error "Failed to remove users from team '$($teamTarget.Name)': $($_.Exception.Message)" -ErrorAction Stop
+        }
     }
 }
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+
+function Get-KeeperEnterpriseTeamRole {
+    <#
+        .SYNOPSIS
+        Gets enterprise roles assigned to a team.
+
+        .DESCRIPTION
+        Read-only query matching enterprise-team role membership (used by -ar/-rr).
+
+        .PARAMETER Team
+        Team name, UID, or EnterpriseTeam object.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseTeamRole -Team "Engineering"
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Team
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $teamObject = resolveTeam $enterprise.enterpriseData $Team
+    $roleIds = @($enterprise.roleData.GetRolesForTeam($teamObject.Uid))
+    if ($roleIds.Count -eq 0) { return @() }
+
+    $roles = foreach ($roleId in $roleIds) {
+        $role = $null
+        if ($enterprise.roleData.TryGetRole($roleId, [ref]$role)) { $role }
+    }
+    return @($roles | Sort-Object { $_.DisplayName })
+}
+Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseTeamRole -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+New-Alias -Name ketr -Value Get-KeeperEnterpriseTeamRole
+
+function Add-KeeperEnterpriseTeamRole {
+    <#
+        .SYNOPSIS
+        Adds one or more roles to an enterprise team.
+
+        .DESCRIPTION
+        Matches Commander enterprise-team -ar/--add-role. Administrative roles cannot
+        be assigned to teams.
+
+        .PARAMETER Team
+        Team name, UID, or EnterpriseTeam object.
+
+        .PARAMETER Role
+        One or more role names or IDs.
+
+        .EXAMPLE
+        Add-KeeperEnterpriseTeamRole -Team "Engineering" -Role "Employee"
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]$Team,
+        [Parameter(Position = 1, Mandatory = $true)][string[]]$Role
+    )
+
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $enterpriseData = $enterprise.enterpriseData
+        $teamObjects = [System.Collections.Generic.List[KeeperSecurity.Enterprise.EnterpriseTeam]]::new()
+    }
+    process {
+        $teamObject = resolveTeam $enterpriseData $Team
+        if ($teamObject) { [void]$teamObjects.Add($teamObject) }
+    }
+    end {
+        if ($teamObjects.Count -eq 0) { Write-Error "No valid team specified." -ErrorAction Stop }
+        if ($Role.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $Role
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to add."
+            return
+        }
+
+        foreach ($teamObject in $teamObjects) {
+            foreach ($roleObject in $roleObjects) {
+                if (Test-EnterpriseRoleIsAdmin -RoleData $roleData -RoleId $roleObject.Id) {
+                    Write-Warning "Teams cannot be assigned to role `"$($roleObject.DisplayName)`". Skipping."
+                    continue
+                }
+                if ($PSCmdlet.ShouldProcess("Role `"$($roleObject.DisplayName)`" to team `"$($teamObject.Name)`"", 'Add')) {
+                    try {
+                        $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                        Write-Output "Role `"$($roleObject.DisplayName)`" added to team `"$($teamObject.Name)`"."
+                    }
+                    catch {
+                        Write-Error "Failed to add role `"$($roleObject.DisplayName)`" to team `"$($teamObject.Name)`": $($_.Exception.Message)" -ErrorAction Stop
+                    }
+                }
+            }
+        }
+    }
+}
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamRole -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamRole -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+
+function Remove-KeeperEnterpriseTeamRole {
+    <#
+        .SYNOPSIS
+        Removes one or more roles from an enterprise team.
+
+        .DESCRIPTION
+        Matches Commander enterprise-team -rr/--remove-role.
+
+        .PARAMETER Team
+        Team name, UID, or EnterpriseTeam object.
+
+        .PARAMETER Role
+        One or more role names or IDs.
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseTeamRole -Team "Engineering" -Role "Employee"
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]$Team,
+        [Parameter(Position = 1, Mandatory = $true)][string[]]$Role
+    )
+
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $enterpriseData = $enterprise.enterpriseData
+        $teamObjects = [System.Collections.Generic.List[KeeperSecurity.Enterprise.EnterpriseTeam]]::new()
+    }
+    process {
+        $teamObject = resolveTeam $enterpriseData $Team
+        if ($teamObject) { [void]$teamObjects.Add($teamObject) }
+    }
+    end {
+        if ($teamObjects.Count -eq 0) { Write-Error "No valid team specified." -ErrorAction Stop }
+        if ($Role.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $Role
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to remove."
+            return
+        }
+
+        foreach ($teamObject in $teamObjects) {
+            foreach ($roleObject in $roleObjects) {
+                if ($PSCmdlet.ShouldProcess("Role `"$($roleObject.DisplayName)`" from team `"$($teamObject.Name)`"", 'Remove')) {
+                    try {
+                        $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                        Write-Output "Role `"$($roleObject.DisplayName)`" removed from team `"$($teamObject.Name)`"."
+                    }
+                    catch {
+                        Write-Error "Failed to remove role `"$($roleObject.DisplayName)`" from team `"$($teamObject.Name)`": $($_.Exception.Message)" -ErrorAction Stop
+                    }
+                }
+            }
+        }
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamRole -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamRole -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
 
 function Get-TeamMembersBatch {
     <#

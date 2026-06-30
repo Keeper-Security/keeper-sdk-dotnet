@@ -162,6 +162,11 @@ function resolveUser {
             return $u
         }
     }
+    elseif ($user -is [int]) {
+        if ($enterpriseData.TryGetUserById([long]$user, [ref]$u)) {
+            return $u
+        }
+    }
     elseif ($user -is [string]) {
         if ($enterpriseData.TryGetUserByEmail($user, [ref]$u)) {
             return $u
@@ -389,6 +394,131 @@ function Get-KeeperTeamByNameOrUid {
         }
     }
     return $null
+}
+
+function Resolve-EnterpriseTeamTarget {
+    param (
+        [Parameter(Mandatory = $true)][Enterprise]$Enterprise,
+        [Parameter(Mandatory = $true)][string]$TeamInput
+    )
+
+    if ([string]::IsNullOrWhiteSpace($TeamInput)) { return $null }
+
+    $key = $TeamInput.Trim()
+    $ed = $Enterprise.enterpriseData
+    [KeeperSecurity.Enterprise.EnterpriseTeam]$team = $null
+
+    if ($ed.TryGetTeam($key, [ref]$team)) {
+        return [PSCustomObject]@{ Team = $team; QueuedTeam = $null; Uid = $team.Uid; Name = $team.Name }
+    }
+
+    $nameMatches = @($ed.Teams | Where-Object { $_.Name -ieq $key })
+    if ($nameMatches.Count -eq 1) {
+        return [PSCustomObject]@{
+            Team = $nameMatches[0]; QueuedTeam = $null
+            Uid = $nameMatches[0].Uid; Name = $nameMatches[0].Name
+        }
+    }
+    if ($nameMatches.Count -gt 1) {
+        Write-Warning "Team name `"$key`" is not unique. Use Team UID."
+        return $null
+    }
+
+    $queuedMatches = @(
+        $Enterprise.queuedTeamData.QueuedTeams |
+        Where-Object { $_.Uid -ceq $key -or $_.Name -ieq $key }
+    )
+    if ($queuedMatches.Count -eq 1) {
+        return [PSCustomObject]@{
+            Team = $null; QueuedTeam = $queuedMatches[0]
+            Uid = $queuedMatches[0].Uid; Name = $queuedMatches[0].Name
+        }
+    }
+    if ($queuedMatches.Count -gt 1) {
+        Write-Warning "Queued team name `"$key`" is not unique. Use Team UID."
+        return $null
+    }
+
+    Write-Warning "Team `"$key`" not found."
+    return $null
+}
+
+function Resolve-EnterpriseRoleList {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][string[]]$Roles
+    )
+
+    $resolved = [System.Collections.Generic.List[KeeperSecurity.Enterprise.EnterpriseRole]]::new()
+    foreach ($roleInput in ($Roles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+        try {
+            $role = resolveRole $RoleData $roleInput.Trim()
+            if ($role) { [void]$resolved.Add($role) }
+        }
+        catch { Write-Warning $_.Exception.Message }
+    }
+    return $resolved
+}
+
+function Test-EnterpriseRoleIsAdmin {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][long]$RoleId
+    )
+    return @($RoleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $RoleId }).Count -gt 0
+}
+
+function Add-EnterpriseUserToTeamMembership {
+    param (
+        [Parameter(Mandatory = $true)][Enterprise]$Enterprise,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Enterprise.EnterpriseUser]$User,
+        [Parameter(Mandatory = $true)]$TeamTarget,
+        [ValidateSet('on', 'off')][string]$HideSharedFolders
+    )
+
+    $ed = $Enterprise.enterpriseData
+    $teamUid = $TeamTarget.Uid
+    $teamName = $TeamTarget.Name
+    $teamObject = $TeamTarget.Team
+
+    if ($User.UserStatus -eq [KeeperSecurity.Enterprise.UserStatus]::Active) {
+        if (-not $teamObject) {
+            Write-Warning "Team `"$teamName`" is queued only. Active users cannot be added until the team is approved."
+            return $false
+        }
+
+        $existingMember = @($ed.GetUsersForTeam($teamUid)) -contains $User.Id
+        if ($existingMember) {
+            if ($HideSharedFolders) {
+                $userType = if ($HideSharedFolders -eq 'on') { 2 } else { 1 }
+                $ed.TeamEnterpriseUserUpdate($teamObject, $User, $userType).GetAwaiter().GetResult() | Out-Null
+                Write-Output "User `"$($User.Email)`" team role updated in `"$teamName`"."
+                return $true
+            }
+            Write-Warning "User `"$($User.Email)`" is already a member of team `"$teamName`"."
+            return $false
+        }
+
+        $warnings = [System.Collections.Generic.List[string]]::new()
+        $ed.AddUsersToTeams(@($User.Email), @($teamUid), { param($m) [void]$warnings.Add($m) }).GetAwaiter().GetResult() | Out-Null
+        foreach ($warning in $warnings) { Write-Warning $warning }
+
+        if ($HideSharedFolders) {
+            $userType = if ($HideSharedFolders -eq 'on') { 2 } else { 1 }
+            $ed.TeamEnterpriseUserUpdate($teamObject, $User, $userType).GetAwaiter().GetResult() | Out-Null
+        }
+
+        Write-Output "User `"$($User.Email)`" added to team `"$teamName`"."
+        return $true
+    }
+
+    $rq = New-Object KeeperSecurity.Commands.TeamQueueUserCommand
+    $rq.TeamUid = $teamUid
+    $rq.EnterpriseUserId = $User.Id
+    $Enterprise.loader.Auth.ExecuteAuthCommand($rq).GetAwaiter().GetResult() | Out-Null
+    $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+    Write-Output "User `"$($User.Email)`" queued to team `"$teamName`"."
+    return $true
 }
 
 
