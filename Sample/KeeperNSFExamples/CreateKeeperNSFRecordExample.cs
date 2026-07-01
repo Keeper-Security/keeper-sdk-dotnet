@@ -30,11 +30,11 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
-        private static IDictionary<string, string> ToStringFields(IDictionary<string, object> fields)
+        private static IDictionary<string, object> ToStringFields(IDictionary<string, object> fields)
         {
             if (fields == null) return null;
 
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, object>();
             foreach (var kvp in fields)
             {
                 result[kvp.Key] = kvp.Value?.ToString();
