@@ -301,7 +301,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
             string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
-            int? accessExpiresInMinutes = null, string name = null)
+            int? accessExpiresInMinutes = null, string name = null, EnterpriseProto.AppClientType? appClientType = null)
         {
             if (!TryGetKeeperRecord(applicationId, out var record))
             {
@@ -327,7 +327,7 @@ namespace KeeperSecurity.Vault
                 LockIp = !unlockIp ?? true,
                 FirstAccessExpireOn = DateTimeOffset.UtcNow.AddMinutes(
                     firstAccessExpireInMinutes ?? 60).ToUnixTimeMilliseconds(),
-                AppClientType = EnterpriseProto.AppClientType.General,
+                AppClientType = appClientType ?? EnterpriseProto.AppClientType.General,
             };
             if (accessExpiresInMinutes.HasValue)
             {
