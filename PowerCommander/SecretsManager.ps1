@@ -253,13 +253,29 @@ function Add-KeeperSecretManagerClient {
         Client or Device Name
 
         .Parameter UnlockIP
-        Enable write access to shared secrets
+        Do not lock the client to the first IP address that connects
+
+        .Parameter FirstAccessExpireInMinutes
+        One-time token expiration in minutes (default: 60)
+
+        .Parameter AccessExpireInMinutes
+        Client access expiration in minutes (default: never)
+
+        .Parameter AppClientType
+        Client type: General (default) or DiscoveryAndRotationController (PAM Gateway)
+
+        .Parameter B64
+        Return base64-encoded KSM configuration instead of the one-time token
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)][string]$App,
         [Parameter()][string]$Name,
         [Parameter()][switch]$UnlockIP,
+        [Parameter()][int]$FirstAccessExpireInMinutes,
+        [Parameter()][int]$AccessExpireInMinutes,
+        [ValidateSet('General', 'DiscoveryAndRotationController')]
+        [Parameter()][string]$AppClientType = 'General',
         [Parameter()][switch]$B64
     )
 
@@ -270,20 +286,41 @@ function Add-KeeperSecretManagerClient {
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
 
-    $rs = $vault.AddSecretManagerClient($application.Uid, $UnlockIP.IsPresent, $null, $null, $name).GetAwaiter().GetResult()
-    if ($rs) {
-        if ($B64.IsPresent) {
-            $configuration = $vault.GetConfiguration($rs.Item2).GetAwaiter().GetResult()
-            if ($configuration) {
-                $configData = [KeeperSecurity.Utils.JsonUtils]::DumpJson($configuration, $true)
-                [System.Convert]::ToBase64String($configData)
-        
-            }
+    $firstAccess = if ($FirstAccessExpireInMinutes -gt 0) { $FirstAccessExpireInMinutes } else { $null }
+    $accessExpire = if ($AccessExpireInMinutes -gt 0) { $AccessExpireInMinutes } else { $null }
+    $clientType = [Enterprise.AppClientType]::$AppClientType
+
+    $rs = $vault.AddSecretManagerClient(
+        $application.Uid,
+        $UnlockIP.IsPresent,
+        $firstAccess,
+        $accessExpire,
+        $Name,
+        $clientType).GetAwaiter().GetResult()
+
+    if (-not $rs) {
+        return
+    }
+
+    $device = $rs.Item1
+    $clientKey = $rs.Item2
+
+    if ($B64.IsPresent) {
+        $configuration = $vault.GetConfiguration($clientKey).GetAwaiter().GetResult()
+        if ($configuration) {
+            $configData = [KeeperSecurity.Utils.JsonUtils]::DumpJson($configuration, $true)
+            [System.Convert]::ToBase64String($configData)
         }
-        else {
-            $rs.Item2
+    }
+    else {
+        Write-Output $clientKey
+        Write-Information -MessageData "IP Lock: $(if ($device.LockIp) { 'Enabled' } else { 'Disabled' })"
+        if ($device.FirstAccessExpireOn) {
+            Write-Information -MessageData "Token Expires On: $($device.FirstAccessExpireOn.ToString('G'))"
         }
-    
+        if ($device.AccessExpireOn) {
+            Write-Information -MessageData "App Access Expires On: $($device.AccessExpireOn.ToString('G'))"
+        }
     }
 }
 Register-ArgumentCompleter -CommandName Add-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
