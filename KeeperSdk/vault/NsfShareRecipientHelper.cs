@@ -182,15 +182,12 @@ namespace KeeperSecurity.Vault
                 // fall through to available teams lookup
             }
 
-            if (teamsMap.Count >= 500)
+            foreach (var team in await SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(vault.Auth)
+                         .ConfigureAwait(false))
             {
-                foreach (var team in await SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(vault.Auth)
-                             .ConfigureAwait(false))
+                if (!string.IsNullOrEmpty(team.TeamUid) && !teamsMap.ContainsKey(team.TeamUid))
                 {
-                    if (!string.IsNullOrEmpty(team.TeamUid) && !teamsMap.ContainsKey(team.TeamUid))
-                    {
-                        teamsMap[team.TeamUid] = team.Name ?? string.Empty;
-                    }
+                    teamsMap[team.TeamUid] = team.Name ?? string.Empty;
                 }
             }
 

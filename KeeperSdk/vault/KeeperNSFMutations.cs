@@ -161,6 +161,9 @@ namespace KeeperSecurity.Vault
                 throw new VaultException($"Keeper NSF folder \"{folderUidOrName}\" was not found.");
             }
 
+            await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(this, folder.FolderUid)
+                .ConfigureAwait(false);
+
             if (folder.FolderKey == null || folder.FolderKey.Length == 0)
             {
                 throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
@@ -221,26 +224,28 @@ namespace KeeperSecurity.Vault
             var ownerEmail = newOwnerEmail.Trim();
             var recipientKey = await GetRecipientPublicKeyAsync(ownerEmail).ConfigureAwait(false);
 
-            var transfers = recordUidOrTitles
-                .Select(identifier =>
+            var transferPayload = new List<(string RecordUid, byte[] RecordKey)>();
+            foreach (var identifier in recordUidOrTitles)
+            {
+                if (!TryResolveKeeperNSFRecord(identifier, out var record))
                 {
-                    if (!TryResolveKeeperNSFRecord(identifier, out var record))
-                    {
-                        throw new VaultException($"Keeper NSF record \"{identifier}\" was not found.");
-                    }
+                    throw new VaultException($"Keeper NSF record \"{identifier}\" was not found.");
+                }
 
-                    if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
-                    {
-                        throw new VaultException(
-                            $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
-                    }
+                await KeeperNSFAccessHelpers.RequireKeeperNSFRecordOwnershipPermissionAsync(this, record.RecordUid)
+                    .ConfigureAwait(false);
 
-                    return (RecordUid: record.RecordUid, RecordKey: recordKey);
-                })
-                .ToList();
+                if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
+                {
+                    throw new VaultException(
+                        $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.");
+                }
+
+                transferPayload.Add((record.RecordUid, recordKey));
+            }
 
             var results = await TransferKeeperNSFRecordOwnershipBatchAsync(
-                transfers, ownerEmail, recipientKey).ConfigureAwait(false);
+                transferPayload, ownerEmail, recipientKey).ConfigureAwait(false);
 
             if (results.Any(r => r.Success))
             {
