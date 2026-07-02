@@ -445,6 +445,7 @@ namespace KeeperSecurity.Vault
         [SqlColumn] public int FolderKeyType { get; set; }
         [SqlColumn] public long DateCreated { get; set; }
         [SqlColumn] public long LastModified { get; set; }
+        [SqlColumn] public string PermissionsJson { get; set; }
 
         string IUidLink.SubjectUid => FolderUid;
         string IUidLink.ObjectUid => AccessTypeUid;
@@ -462,6 +463,7 @@ namespace KeeperSecurity.Vault
             FolderKeyType = source.FolderKeyType;
             DateCreated = source.DateCreated;
             LastModified = source.LastModified;
+            PermissionsJson = source.PermissionsJson;
         }
     }
 

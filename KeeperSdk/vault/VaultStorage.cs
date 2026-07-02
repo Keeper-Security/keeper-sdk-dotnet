@@ -670,6 +670,7 @@ namespace KeeperSecurity.Vault
         int FolderKeyType { get; }
         long DateCreated { get; }
         long LastModified { get; }
+        string PermissionsJson { get; }
     }
 
     /// <summary>
