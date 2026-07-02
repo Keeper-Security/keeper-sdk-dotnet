@@ -914,6 +914,7 @@ namespace KeeperSecurity.Vault
     {
         public List<KeeperNSFPermissionChange> Grants { get; } = new List<KeeperNSFPermissionChange>();
         public List<KeeperNSFPermissionChange> Revokes { get; } = new List<KeeperNSFPermissionChange>();
+        public List<KeeperNSFPermissionChange> Denies { get; } = new List<KeeperNSFPermissionChange>();
         public List<KeeperNSFPermissionChange> Skipped { get; } = new List<KeeperNSFPermissionChange>();
     }
 

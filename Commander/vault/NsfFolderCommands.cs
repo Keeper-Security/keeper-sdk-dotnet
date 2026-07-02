@@ -28,9 +28,9 @@ namespace Commander
 
         public static async Task NsfRndirCommand(this VaultContext context, NsfRndirOptions options)
         {
-            if (options.Name == null && options.Color == null)
+            if (options.Name == null && options.Color == null && !options.InheritPermissions && !options.NoInheritPermissions)
             {
-                Console.WriteLine("Specify --name and/or --color to update the folder.");
+                Console.WriteLine("Specify --name, --color, --inherit, and/or --no-inherit to update the folder.");
                 return;
             }
 
@@ -40,9 +40,22 @@ namespace Commander
                 return;
             }
 
+            if (options.InheritPermissions && options.NoInheritPermissions)
+            {
+                Console.WriteLine("Specify either --inherit or --no-inherit, not both.");
+                return;
+            }
+
+            bool? inheritPermissions = null;
+            if (options.InheritPermissions)
+                inheritPermissions = true;
+            else if (options.NoInheritPermissions)
+                inheritPermissions = false;
+
             try
             {
-                var result = await context.Vault.UpdateKeeperNSFFolder(folderNode.FolderUid, options.Name, options.Color);
+                var result = await context.Vault.UpdateKeeperNSFFolder(
+                    folderNode.FolderUid, options.Name, options.Color, inheritPermissions);
                 VaultOnline.ValidateFolderModifyResult(result);
                 await context.Vault.SyncDown(false);
                 Console.WriteLine("Keeper NSF folder updated.");
@@ -230,6 +243,12 @@ namespace Commander
 
         [Option("color", Required = false, HelpText = "Folder color (none, red, orange, yellow, green, blue, gray)")]
         public string Color { get; set; }
+
+        [Option("inherit", Required = false, HelpText = "Inherit parent folder permissions")]
+        public bool InheritPermissions { get; set; }
+
+        [Option("no-inherit", Required = false, HelpText = "Do not inherit parent folder permissions")]
+        public bool NoInheritPermissions { get; set; }
     }
 
     class NsfRmdirOptions

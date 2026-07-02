@@ -600,7 +600,7 @@ function Set-KeeperNSFRecordPermission {
         return
     }
 
-    $hasChanges = ($permResult.Grants.Count -gt 0) -or ($permResult.Revokes.Count -gt 0)
+    $hasChanges = ($permResult.Grants.Count -gt 0) -or ($permResult.Revokes.Count -gt 0) -or ($permResult.Denies.Count -gt 0)
 
     if ($permResult.Skipped.Count -gt 0) {
         Write-Host ""
@@ -629,6 +629,15 @@ function Set-KeeperNSFRecordPermission {
         }
     }
 
+    if ($permResult.Denies.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  PLANNED DENIES ($($permResult.Denies.Count)):" -ForegroundColor Magenta
+        foreach ($d in $permResult.Denies) {
+            $inherited = if ($d.ChangeType -eq 'deny') { ' (inherited override)' } else { '' }
+            Write-Host "    $($d.RecordUid)  $($d.Email)  [$($d.CurrentRole)]$inherited"
+        }
+    }
+
     if (-not $hasChanges -and $permResult.Skipped.Count -eq 0) {
         Write-Host "No permission changes are needed." -ForegroundColor DarkYellow
         return
@@ -637,7 +646,7 @@ function Set-KeeperNSFRecordPermission {
     if ($DryRun.IsPresent) {
         Write-Host ""
         Write-Host "[Dry-run mode - no changes were made]" -ForegroundColor Yellow
-        $planTotal = $permResult.Grants.Count + $permResult.Revokes.Count
+        $planTotal = $permResult.Grants.Count + $permResult.Revokes.Count + $permResult.Denies.Count
         Write-Host "Summary: $planTotal planned, $($permResult.Skipped.Count) skipped" -ForegroundColor Cyan
         return
     }
@@ -691,8 +700,22 @@ function Set-KeeperNSFRecordPermission {
         }
     }
 
-    $successCount = ($permResult.Grants | Where-Object { $_.Success }).Count + ($permResult.Revokes | Where-Object { $_.Success }).Count
-    $failCount = ($permResult.Grants | Where-Object { -not $_.Success }).Count + ($permResult.Revokes | Where-Object { -not $_.Success }).Count
+    if ($permResult.Denies.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  DENY ($($permResult.Denies.Count)):" -ForegroundColor Magenta
+        foreach ($d in $permResult.Denies) {
+            $statusIcon = if ($d.Success) { '[OK]' } else { '[FAIL]' }
+            $statusColor = if ($d.Success) { 'Green' } else { 'Red' }
+            $inherited = if ($d.ChangeType -eq 'deny') { ' (inherited override)' } else { '' }
+            Write-Host "    $statusIcon $($d.RecordUid)  $($d.Email)  [$($d.CurrentRole)]$inherited" -ForegroundColor $statusColor
+            if (-not $d.Success -and $d.Message) {
+                Write-Host "         Error: $($d.Message)" -ForegroundColor Red
+            }
+        }
+    }
+
+    $successCount = ($permResult.Grants | Where-Object { $_.Success }).Count + ($permResult.Revokes | Where-Object { $_.Success }).Count + ($permResult.Denies | Where-Object { $_.Success }).Count
+    $failCount = ($permResult.Grants | Where-Object { -not $_.Success }).Count + ($permResult.Revokes | Where-Object { -not $_.Success }).Count + ($permResult.Denies | Where-Object { -not $_.Success }).Count
     Write-Host ""
     Write-Host "Summary: $successCount succeeded, $failCount failed, $($permResult.Skipped.Count) skipped" -ForegroundColor Cyan
 }

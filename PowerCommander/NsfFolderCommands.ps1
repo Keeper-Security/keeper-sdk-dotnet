@@ -209,7 +209,7 @@ function Write-KeeperNSFRemoveImpact {
 function Set-KeeperNSFFolder {
     <#
 	.Synopsis
-	Renames or recolors a Keeper NSF folder (Keeper NSF v3 API).
+	Renames, recolors, or updates permission inheritance for a Keeper NSF folder (Keeper NSF v3 API).
 
 	.Parameter Folder
 	Folder UID or name.
@@ -219,6 +219,12 @@ function Set-KeeperNSFFolder {
 
 	.Parameter Color
 	Optional folder color, or "none" to clear.
+
+	.Parameter Inherit
+	Inherit parent folder permissions.
+
+	.Parameter NoInheritPermissions
+	Do not inherit parent folder permissions.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
     Param(
@@ -230,11 +236,22 @@ function Set-KeeperNSFFolder {
         [string] $Name,
 
         [ValidateSet('none', 'red', 'orange', 'yellow', 'green', 'blue', 'gray', 'grey')]
-        [string] $Color
+        [string] $Color,
+
+        [Parameter()]
+        [switch] $Inherit,
+
+        [Parameter()]
+        [switch] $NoInheritPermissions
     )
 
-    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color')) {
-        Write-Error -Message "Specify -Name and/or -Color to update the folder."
+    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color') -and -not $Inherit.IsPresent -and -not $NoInheritPermissions.IsPresent) {
+        Write-Error -Message "Specify -Name, -Color, -Inherit, and/or -NoInheritPermissions to update the folder."
+        return
+    }
+
+    if ($Inherit.IsPresent -and $NoInheritPermissions.IsPresent) {
+        Write-Error -Message "Specify either -Inherit or -NoInheritPermissions, not both."
         return
     }
     
@@ -258,9 +275,10 @@ function Set-KeeperNSFFolder {
 
     $nameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
     $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
+    $inheritArg = if ($Inherit.IsPresent) { $true } elseif ($NoInheritPermissions.IsPresent) { $false } else { $null }
 
     try {
-        $result = $vault.UpdateKeeperNSFFolder($folderNode.FolderUid, $nameArg, $colorArg).GetAwaiter().GetResult()
+        $result = $vault.UpdateKeeperNSFFolder($folderNode.FolderUid, $nameArg, $colorArg, $inheritArg).GetAwaiter().GetResult()
         [KeeperSecurity.Vault.VaultOnline]::ValidateFolderModifyResult($result)
     }
     catch {
