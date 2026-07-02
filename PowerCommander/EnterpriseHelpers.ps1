@@ -473,8 +473,17 @@ function Add-EnterpriseUserToTeamMembership {
         [Parameter(Mandatory = $true)][Enterprise]$Enterprise,
         [Parameter(Mandatory = $true)][KeeperSecurity.Enterprise.EnterpriseUser]$User,
         [Parameter(Mandatory = $true)]$TeamTarget,
-        [ValidateSet('on', 'off')][string]$HideSharedFolders
+        [Parameter()][string]$HideSharedFolders
     )
+
+    if ($PSBoundParameters.ContainsKey('HideSharedFolders') -and -not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
+        if ($HideSharedFolders -notin @('on', 'off')) {
+            throw "HideSharedFolders must be 'on' or 'off'."
+        }
+    }
+    else {
+        $HideSharedFolders = $null
+    }
 
     $ed = $Enterprise.enterpriseData
     $teamUid = $TeamTarget.Uid
@@ -499,9 +508,7 @@ function Add-EnterpriseUserToTeamMembership {
             return $false
         }
 
-        $warnings = [System.Collections.Generic.List[string]]::new()
-        $ed.AddUsersToTeams(@($User.Email), @($teamUid), { param($m) [void]$warnings.Add($m) }).GetAwaiter().GetResult() | Out-Null
-        foreach ($warning in $warnings) { Write-Warning $warning }
+        $ed.AddUsersToTeams(@($User.Email), @($teamUid), [System.Console]::WriteLine).GetAwaiter().GetResult() | Out-Null
 
         if ($HideSharedFolders) {
             $userType = if ($HideSharedFolders -eq 'on') { 2 } else { 1 }

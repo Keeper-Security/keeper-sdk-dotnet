@@ -462,21 +462,23 @@ function Grant-KeeperEnterpriseRoleToTeam {
         Adds a team to an Enterprise Role
 
         .DESCRIPTION
-        Assigns an existing enterprise team to an enterprise role.
+        Assigns an existing enterprise team to an enterprise role. Matches Commander
+        enterprise-role -at/--add-team and enterprise-team -ar/--add-role (team-first syntax).
+        Administrative roles cannot be assigned to teams.
 
         .PARAMETER Role
-        Role Name, ID, or EnterpriseRole object
+        One or more role names, IDs, or EnterpriseRole objects
 
         .PARAMETER Team
         Team UID, Name, or EnterpriseTeam object
 
         .EXAMPLE
         Grant-KeeperEnterpriseRoleToTeam -Role "MyRole" -Team "Engineering"
-        Adds the team to the role
+        Adds the team to the role (enterprise-role -at)
 
         .EXAMPLE
-        Grant-KeeperEnterpriseRoleToTeam -Role "MyRole" -Team "1P7A8XZ9K3J9H"
-        Adds the team using Team UID
+        Grant-KeeperEnterpriseRoleToTeam -Team "Engineering" -Role "Employee", "Contractor"
+        Adds multiple roles to the team (enterprise-team -ar)
 
         .EXAMPLE
         Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToTeam -Team "Engineering"
@@ -488,29 +490,50 @@ function Grant-KeeperEnterpriseRoleToTeam {
         [Parameter(Position = 1, Mandatory = $true)]$Team
     )
 
-    [Enterprise]$enterprise = getEnterprise
-    $roleData = $enterprise.roleData
-    $enterpriseData = $enterprise.enterpriseData
-
-    $roleObject = resolveRole $roleData $Role
-    if (-not $roleObject) {
-        return
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $teamObject = resolveTeam $enterprise.enterpriseData $Team
+        if (-not $teamObject) { return }
+        $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
-
-    $teamObject = resolveTeam $enterpriseData $Team
-    if (-not $teamObject) {
-        return
-    }
-
-    $roleName = $roleObject.DisplayName
-    $teamName = $teamObject.Name
-    if ($PSCmdlet.ShouldProcess("Team `"$teamName`" to Role `"$roleName`"", "Add")) {
-        try {
-            $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Team `"$teamName`" added to role `"$roleName`""
+    process {
+        foreach ($roleInput in @($Role)) {
+            if ($null -eq $roleInput) { continue }
+            if ($roleInput -is [KeeperSecurity.Enterprise.EnterpriseRole]) {
+                [void]$roleInputs.Add([string]$roleInput.Id)
+            }
+            else {
+                [void]$roleInputs.Add([string]$roleInput)
+            }
         }
-        catch {
-            Write-Error "Failed to add team `"$teamName`" to role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+    end {
+        if (-not $teamObject) { return }
+        if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to add."
+            return
+        }
+
+        foreach ($roleObject in $roleObjects) {
+            if (Test-EnterpriseRoleIsAdmin -RoleData $roleData -RoleId $roleObject.Id) {
+                Write-Warning "Teams cannot be assigned to role `"$($roleObject.DisplayName)`". Skipping."
+                continue
+            }
+            $roleName = $roleObject.DisplayName
+            $teamName = $teamObject.Name
+            if ($PSCmdlet.ShouldProcess("Team `"$teamName`" to Role `"$roleName`"", "Add")) {
+                try {
+                    $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                    Write-Output "Team `"$teamName`" added to role `"$roleName`""
+                }
+                catch {
+                    Write-Error "Failed to add team `"$teamName`" to role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+                }
+            }
         }
     }
 }
@@ -524,21 +547,22 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes a team from an Enterprise Role
 
         .DESCRIPTION
-        Removes an enterprise team from an enterprise role.
+        Removes an enterprise team from an enterprise role. Matches Commander
+        enterprise-role -rt/--remove-team and enterprise-team -rr/--remove-role.
 
         .PARAMETER Role
-        Role Name, ID, or EnterpriseRole object
+        One or more role names, IDs, or EnterpriseRole objects
 
         .PARAMETER Team
         Team UID, Name, or EnterpriseTeam object
 
         .EXAMPLE
         Revoke-KeeperEnterpriseRoleFromTeam -Role "MyRole" -Team "Engineering"
-        Removes the team from the role
+        Removes the team from the role (enterprise-role -rt)
 
         .EXAMPLE
-        Revoke-KeeperEnterpriseRoleFromTeam -Role "MyRole" -Team "1P7A8XZ9K3J9H"
-        Removes the team using Team UID
+        Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering" -Role "Employee", "Contractor"
+        Removes multiple roles from the team (enterprise-team -rr)
 
         .EXAMPLE
         Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering"
@@ -550,29 +574,46 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         [Parameter(Position = 1, Mandatory = $true)]$Team
     )
 
-    [Enterprise]$enterprise = getEnterprise
-    $roleData = $enterprise.roleData
-    $enterpriseData = $enterprise.enterpriseData
-
-    $roleObject = resolveRole $roleData $Role
-    if (-not $roleObject) {
-        return
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $teamObject = resolveTeam $enterprise.enterpriseData $Team
+        if (-not $teamObject) { return }
+        $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
-
-    $teamObject = resolveTeam $enterpriseData $Team
-    if (-not $teamObject) {
-        return
-    }
-
-    $roleName = $roleObject.DisplayName
-    $teamName = $teamObject.Name
-    if ($PSCmdlet.ShouldProcess("Team `"$teamName`" from Role `"$roleName`"", "Remove")) {
-        try {
-            $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Team `"$teamName`" removed from role `"$roleName`""
+    process {
+        foreach ($roleInput in @($Role)) {
+            if ($null -eq $roleInput) { continue }
+            if ($roleInput -is [KeeperSecurity.Enterprise.EnterpriseRole]) {
+                [void]$roleInputs.Add([string]$roleInput.Id)
+            }
+            else {
+                [void]$roleInputs.Add([string]$roleInput)
+            }
         }
-        catch {
-            Write-Error "Failed to remove team `"$teamName`" from role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+    end {
+        if (-not $teamObject) { return }
+        if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to remove."
+            return
+        }
+
+        foreach ($roleObject in $roleObjects) {
+            $roleName = $roleObject.DisplayName
+            $teamName = $teamObject.Name
+            if ($PSCmdlet.ShouldProcess("Team `"$teamName`" from Role `"$roleName`"", "Remove")) {
+                try {
+                    $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                    Write-Output "Team `"$teamName`" removed from role `"$roleName`""
+                }
+                catch {
+                    Write-Error "Failed to remove team `"$teamName`" from role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+                }
+            }
         }
     }
 }
