@@ -23,6 +23,13 @@ class KeeperContext {
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
+# Import-Module -Force redefines the Enterprise class; a cached instance from the prior load
+# is a different type identity and breaks [Enterprise] parameter binding.
+if ($null -ne $Script:Context.Enterprise -and -not ($Script:Context.Enterprise -is [Enterprise])) {
+    $Script:Context.Enterprise = $null
+    $Script:Context.ManagedCompanyId = 0
+}
+
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
 Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
 Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
@@ -59,7 +66,7 @@ Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog, Get-KeeperAu
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
 Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Remove-KeeperEnterpriseUserAlias,
-Get-KeeperEnterpriseUserTeam, Add-KeeperEnterpriseUserTeam, Remove-KeeperEnterpriseUserTeam,
+Get-KeeperEnterpriseUserTeam,
 Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
@@ -74,7 +81,7 @@ Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Rem
 
 Export-ModuleMember -Function New-KeeperEnterpriseTeam, Update-KeeperEnterpriseTeam, Remove-KeeperEnterpriseTeam,
 Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember,
-Get-KeeperEnterpriseTeamRole, Add-KeeperEnterpriseTeamRole, Remove-KeeperEnterpriseTeamRole,
+Get-KeeperEnterpriseTeamRole,
 Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
