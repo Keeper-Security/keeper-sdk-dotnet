@@ -597,9 +597,10 @@ namespace KeeperSecurity.Vault
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolders(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun = false);
 
-        /// <summary>Renames or recolors a Keeper NSF folder.</summary>
+        /// <summary>Renames, recolors, or updates permission inheritance for a Keeper NSF folder.</summary>
+        /// <param name="inheritPermissions">When set, controls whether the folder inherits parent folder permissions.</param>
         Task<Folder.FolderModifyResult> UpdateKeeperNSFFolder(
-            string folderUidOrName, string newName = null, string color = null);
+            string folderUidOrName, string newName = null, string color = null, bool? inheritPermissions = null);
 
         /// <summary>Links a Keeper NSF record into a Keeper NSF folder (hard-link).</summary>
         Task<Folder.FolderRecordUpdateResult> LinkKeeperNSFRecordToFolder(

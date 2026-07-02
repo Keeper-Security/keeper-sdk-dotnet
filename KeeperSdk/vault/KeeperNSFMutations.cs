@@ -45,16 +45,23 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public async Task<FolderProto.FolderModifyResult> UpdateKeeperNSFFolder(
-            string folderUidOrName, string newName = null, string color = null)
+            string folderUidOrName, string newName = null, string color = null, bool? inheritPermissions = null)
+        {
+            return await UpdateKeeperNSFFolderCore(
+                folderUidOrName, newName, color, inheritPermissions, requestSync: true).ConfigureAwait(false);
+        }
+
+        internal async Task<FolderProto.FolderModifyResult> UpdateKeeperNSFFolderCore(
+            string folderUidOrName, string newName, string color, bool? inheritPermissions, bool requestSync)
         {
             if (string.IsNullOrWhiteSpace(folderUidOrName))
             {
                 throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), nameof(folderUidOrName), folderUidOrName, "required");
             }
 
-            if (newName == null && color == null)
+            if (newName == null && color == null && !inheritPermissions.HasValue)
             {
-                throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), "newName/color", "", "at least one field required");
+                throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), "newName/color/inheritPermissions", "", "at least one field required");
             }
 
             if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
@@ -75,6 +82,12 @@ namespace KeeperSecurity.Vault
                 FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
                 Data = ByteString.CopyFrom(encryptedData),
             };
+            if (inheritPermissions.HasValue)
+            {
+                folderData.InheritUserPermissions = inheritPermissions.Value
+                    ? FolderProto.SetBooleanValue.BooleanTrue
+                    : FolderProto.SetBooleanValue.BooleanFalse;
+            }
 
             var request = new FolderProto.FolderUpdateRequest();
             request.FolderData.Add(folderData);
@@ -88,6 +101,11 @@ namespace KeeperSecurity.Vault
             if (modifyResult.Status == FolderProto.FolderModifyStatus.Success)
             {
                 PersistKdFolderData(folder.FolderUid, folder.FolderKey, encryptedData);
+                if (inheritPermissions.HasValue)
+                {
+                    PersistKdFolderInheritPermissions(folder.FolderUid, inheritPermissions.Value);
+                }
+
                 if (KeeperNSFFolders.TryGetValue(folder.FolderUid, out var cachedFolder))
                 {
                     var displayName = folderJson.name;
@@ -96,10 +114,27 @@ namespace KeeperSecurity.Vault
                         : displayName;
                 }
 
-                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                if (requestSync)
+                {
+                    await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                }
             }
 
             return modifyResult;
+        }
+
+        private void PersistKdFolderInheritPermissions(string folderUid, bool inheritPermissions)
+        {
+            var row = Storage.KdFolders.GetEntity(folderUid) as StorageKdFolder;
+            if (row == null)
+            {
+                return;
+            }
+
+            row.InheritPermissions = inheritPermissions
+                ? (int)FolderProto.SetBooleanValue.BooleanTrue
+                : (int)FolderProto.SetBooleanValue.BooleanFalse;
+            Storage.KdFolders.PutEntities(new IStorageKdFolder[] { row });
         }
 
         /// <inheritdoc/>
