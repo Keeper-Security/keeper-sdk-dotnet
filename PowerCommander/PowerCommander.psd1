@@ -76,7 +76,8 @@
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
-        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1'
+        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
+        'PAM\SyncDown.ps1', 'PAM\Gateway.ps1'
         )
 
     # Functions to export from this module
@@ -138,7 +139,9 @@
         'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess', 'Set-KeeperNSFFolder', 'Remove-KeeperNSFFolder',
         'Add-KeeperNSFRecord', 'Edit-KeeperNSFRecord', 'Set-KeeperNSFRecordAccess', 'Set-KeeperNSFRecordPermission',
         'Remove-KeeperNSFRecord', 'Link-KeeperNSFRecord', 'Transfer-KeeperNSFRecordOwnership',
-        'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep'
+        'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep',
+        'Sync-KeeperPam', 'Get-KeeperPamGatewayList', 'New-KeeperPamGateway',
+        'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances'
         #'Test-Keeper',
     )
 
@@ -170,7 +173,10 @@
         'nsf-mkdir', 'nsf-share-folder', 'nsf-rndir', 'nsf-rmdir',
         'nsf-record-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
         'nsf-rm', 'nsf-ln', 'nsf-transfer-record',
-        'nsf-shortcut-list', 'nsf-shortcut-keep')
+        'nsf-shortcut-list', 'nsf-shortcut-keep',
+        'kpam-sync', 'kpam-gateway-list', 'kpam-gw-list', 'kpam-gateway-new', 'kpam-gw-new',
+        'kpam-gateway-edit', 'kpam-gw-edit', 'kpam-gateway-remove', 'kpam-gw-remove', 'kpam-gateway-rm',
+        'kpam-gateway-set-max-instances', 'kpam-gw-set-max-instances')
 
     # List of all modules packaged with this module
     # ModuleList = @()
