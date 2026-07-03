@@ -136,9 +136,9 @@ namespace KeeperSecurity.Authentication
                 Trace.TraceError($"team_get_keys fallback failed for {teamUid}: {e.Message}");
             }
 
-            if (!TryGetTeamKeys(teamUid, out keys))
+            if (!TryGetTeamKeys(teamUid, out keys) || !HasAsymmetricTeamKeys(keys))
             {
-                throw new VaultException($"Team key not found for team {teamUid}");
+                throw new VaultException($"Team asymmetric key not found for team {teamUid}");
             }
 
             return keys;

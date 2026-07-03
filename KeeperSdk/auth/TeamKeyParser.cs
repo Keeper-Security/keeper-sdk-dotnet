@@ -1,6 +1,7 @@
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System;
+using System.Diagnostics;
 
 namespace KeeperSecurity.Authentication
 {
@@ -35,9 +36,10 @@ namespace KeeperSecurity.Authentication
                             break;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // ignore malformed key material
+                    Trace.TraceWarning(
+                        $"Failed to decode team_public_key for team '{entry.teamUid}': {ex.Message}");
                 }
             }
 
@@ -59,9 +61,10 @@ namespace KeeperSecurity.Authentication
                                 rsa = keyBytes;
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            // ignore malformed key material
+                            Trace.TraceWarning(
+                                $"Failed to decode legacy team key for team '{entry.teamUid}': {ex.Message}");
                         }
                         break;
                 }

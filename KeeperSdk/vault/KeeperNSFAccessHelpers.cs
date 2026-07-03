@@ -150,6 +150,7 @@ namespace KeeperSecurity.Vault
 
             var accountUidB64 = GetCurrentUserAccountUidB64(vault);
             var (ownerUsername, ownerAccountUid) = GetFolderOwnerInfo(vault, folderUid);
+            var foundCurrentUser = false;
 
             foreach (var accessor in accessors)
             {
@@ -157,6 +158,8 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                foundCurrentUser = true;
 
                 if (accessor.DeniedAccess)
                 {
@@ -174,8 +177,11 @@ namespace KeeperSecurity.Vault
                 {
                     return;
                 }
+            }
 
-                throw new VaultException(errorMessage);
+            if (!foundCurrentUser)
+            {
+                throw new VaultException($"No accessors data found for folder {folderUid}.");
             }
 
             throw new VaultException(errorMessage);
@@ -194,6 +200,7 @@ namespace KeeperSecurity.Vault
             }
 
             var accountUidB64 = GetCurrentUserAccountUidB64(vault);
+            var foundCurrentUser = false;
 
             foreach (var accessor in accessors)
             {
@@ -201,6 +208,8 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                foundCurrentUser = true;
 
                 if (accessor.DeniedAccess)
                 {
@@ -216,8 +225,11 @@ namespace KeeperSecurity.Vault
                 {
                     return;
                 }
+            }
 
-                throw new VaultException(errorMessage);
+            if (!foundCurrentUser)
+            {
+                throw new VaultException($"No accessors data found for record {recordUid}.");
             }
 
             throw new VaultException(errorMessage);

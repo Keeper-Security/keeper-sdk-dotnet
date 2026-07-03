@@ -31,13 +31,17 @@ namespace KeeperSecurity.Vault
 
     internal static class NsfShareRecipientHelper
     {
+        private static readonly object ShareTeamCacheLock = new();
         private static Dictionary<string, string> _shareTeamCache;
         private static string _shareTeamCacheAccountUid;
 
         internal static void ResetShareTeamCache()
         {
-            _shareTeamCache = null;
-            _shareTeamCacheAccountUid = null;
+            lock (ShareTeamCacheLock)
+            {
+                _shareTeamCache = null;
+                _shareTeamCacheAccountUid = null;
+            }
         }
 
         /// <summary>
@@ -69,7 +73,30 @@ namespace KeeperSecurity.Vault
                 return new NsfShareRecipient(NsfShareRecipientKind.Team, matches[0]);
             }
 
-            return null;
+            if (matches.Count > 1)
+            {
+                var details = matches
+                    .Select(uid => teamsMap.TryGetValue(uid, out var name) && !string.IsNullOrEmpty(name)
+                        ? $"{name} ({uid})"
+                        : uid)
+                    .ToList();
+                throw new VaultException(
+                    $"Multiple teams match \"{trimmed}\": {string.Join(", ", details)}. Please specify Team UID.");
+            }
+
+            try
+            {
+                var teamUid = await ResolveTeamUidAsync(vault.Auth, trimmed).ConfigureAwait(false);
+                return new NsfShareRecipient(NsfShareRecipientKind.Team, teamUid);
+            }
+            catch (VaultException)
+            {
+                return null;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         public static async Task<string> ResolveTeamDisplayNameAsync(VaultOnline vault, string teamUid)
@@ -148,14 +175,18 @@ namespace KeeperSecurity.Vault
         private static async Task<Dictionary<string, string>> GetShareTeamsMapAsync(VaultOnline vault)
         {
             var currentAccountUid = vault.Auth.AuthContext.AccountUid.Base64UrlEncode();
-            if (_shareTeamCacheAccountUid != null && _shareTeamCacheAccountUid != currentAccountUid)
+            lock (ShareTeamCacheLock)
             {
-                ResetShareTeamCache();
-            }
+                if (_shareTeamCacheAccountUid != null && _shareTeamCacheAccountUid != currentAccountUid)
+                {
+                    _shareTeamCache = null;
+                    _shareTeamCacheAccountUid = null;
+                }
 
-            if (_shareTeamCache != null)
-            {
-                return _shareTeamCache;
+                if (_shareTeamCache != null)
+                {
+                    return _shareTeamCache;
+                }
             }
 
             var teamsMap = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -191,8 +222,12 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            _shareTeamCache = teamsMap;
-            _shareTeamCacheAccountUid = currentAccountUid;
+            lock (ShareTeamCacheLock)
+            {
+                _shareTeamCache = teamsMap;
+                _shareTeamCacheAccountUid = currentAccountUid;
+            }
+
             return teamsMap;
         }
     }
