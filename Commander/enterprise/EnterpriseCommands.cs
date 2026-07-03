@@ -260,7 +260,7 @@ namespace Commander
                 new ParseableCommand<PamSyncDownOptions>
                 {
                     Order = 86,
-                    Description = "Sync PAM gateway data from server",
+                    Description = "Sync PAM data from server",
                     Action = async options => { await pamSyncDown.ExecuteAsync(options); },
                 });
             cli.Aliases["pam-sync"] = "pam-sync-down";
@@ -274,6 +274,16 @@ namespace Commander
                     Action = async options => { await pamGateway.ExecuteAsync(options); },
                 });
             cli.Aliases["pam-gw"] = "pam-gateway";
+
+            var pamRotation = new PamRotationCommand(context);
+            cli.Commands.Add("pam-rotation",
+                new ParseableCommand<PamRotationOptions>
+                {
+                    Order = 88,
+                    Description = "Manage PAM record rotation schedules",
+                    Action = async options => { await pamRotation.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-rot"] = "pam-rotation";
 
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>

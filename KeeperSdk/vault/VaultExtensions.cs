@@ -128,20 +128,12 @@ namespace KeeperSecurity.Vault
                 ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, typed.RecordKey));
 
             var existingRefs = new HashSet<string>();
-            var currentRefs = new HashSet<string>();
-
             if (existingRecordData.Load(typed.RecordKey) is TypedRecord existingRecord)
             {
-                existingRefs.UnionWith(existingRecord.Fields.Concat(existingRecord.Custom)
-                    .Where(x => x.FieldName.EndsWith("Ref"))
-                    .OfType<TypedField<string>>()
-                    .SelectMany(x => x.Values, (_, s) => s));
+                existingRefs.UnionWith(existingRecord.ExtractTypedRecordRefs());
             }
 
-            currentRefs = new HashSet<string>(typed.Fields.Concat(typed.Custom)
-                .Where(x => x.FieldName.EndsWith("Ref"))
-                .OfType<TypedField<string>>()
-                .SelectMany(x => x.Values, (_, s) => s));
+            var currentRefs = typed.ExtractTypedRecordRefs();
 
             foreach (var newRef in currentRefs.Except(existingRefs))
             {
@@ -410,6 +402,36 @@ namespace KeeperSecurity.Vault
             }
 
             return auditData;
+        }
+
+        internal static HashSet<string> ExtractTypedRecordRefs(this TypedRecord record)
+        {
+            var refs = new HashSet<string>();
+            foreach (var field in record.Fields.Concat(record.Custom))
+            {
+                if (field.FieldName.EndsWith("Ref") && field is TypedField<string> refField)
+                {
+                    foreach (var refUid in refField.Values)
+                    {
+                        if (!string.IsNullOrEmpty(refUid))
+                        {
+                            refs.Add(refUid);
+                        }
+                    }
+                }
+                else if (field.FieldName == "script" && field is TypedField<FieldScript> scriptField)
+                {
+                    foreach (var script in scriptField.Values)
+                    {
+                        if (!string.IsNullOrEmpty(script?.FileRef))
+                        {
+                            refs.Add(script.FileRef);
+                        }
+                    }
+                }
+            }
+
+            return refs;
         }
 
         internal static RecordTypeData ExtractRecordV3Data(this TypedRecord typedRecord)

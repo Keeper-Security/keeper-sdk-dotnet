@@ -83,9 +83,9 @@ namespace Commander.PAM
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or KeeperApiException)
             {
                 routerDown = true;
-                if (!options.Force)
+                if (!options.IgnoreRouterDown)
                 {
-                    Console.WriteLine("Router is unavailable. Use --force to list registered gateways without online status.");
+                    Console.WriteLine("Router is unavailable. Use --ignore-router to list registered gateways without online status.");
                     return;
                 }
 
@@ -105,7 +105,7 @@ namespace Commander.PAM
                 }
                 else
                 {
-                    Console.WriteLine("This Enterprise does not have Gateways yet. To create a new Gateway, use: pam gateway new");
+                    Console.WriteLine("This Enterprise does not have Gateways yet. To create a new Gateway, use: pam-gateway new");
                 }
 
                 return;
@@ -397,7 +397,7 @@ namespace Commander.PAM
                 return;
             }
 
-            await SyncPamAsync();
+            await SyncPamAsync(reload: true);
 
             if (options.ReturnValue)
             {
@@ -474,7 +474,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to edit gateway: {ex.Message}", ex);
             }
 
-            await SyncPamAsync();
+            await SyncPamAsync(reload: true);
             Console.WriteLine($"Gateway {gatewayName} has been edited.");
         }
 
@@ -509,7 +509,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to remove gateway: {ex.Message}", ex);
             }
 
-            await SyncPamAsync();
+            await SyncPamAsync(reload: true);
             Console.WriteLine($"Gateway {controller.ControllerName} has been removed.");
         }
 
@@ -552,7 +552,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to set max instances: {ex.Message}", ex);
             }
 
-            await SyncPamAsync();
+            await SyncPamAsync(reload: true);
             Console.WriteLine($"{controller.ControllerName}: max instance count set to {options.MaxInstances}");
         }
 
@@ -624,7 +624,7 @@ namespace Commander.PAM
 
     }
 
-    internal class PamGatewayOptions : EnterpriseGenericOptions
+    internal class PamGatewayOptions
     {
         [Value(0, Required = false, HelpText = "Command: list, new, edit, remove, set-max-instances")]
         public string Command { get; set; }
@@ -649,6 +649,9 @@ namespace Commander.PAM
 
         [Option('o', "online", Required = false, HelpText = "Show only online gateways (for list)")]
         public bool Online { get; set; }
+
+        [Option("ignore-router", Required = false, HelpText = "List registered gateways when router is unavailable (for list)")]
+        public bool IgnoreRouterDown { get; set; }
 
         [Option('v', "verbose", Required = false, HelpText = "Verbose output")]
         public bool Verbose { get; set; }
