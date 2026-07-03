@@ -397,7 +397,7 @@ namespace Commander.PAM
                 return;
             }
 
-            await SyncPamAsync(reload: true);
+            await SyncPamAsync();
 
             if (options.ReturnValue)
             {
@@ -474,7 +474,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to edit gateway: {ex.Message}", ex);
             }
 
-            await SyncPamAsync(reload: true);
+            await SyncPamAsync();
             Console.WriteLine($"Gateway {gatewayName} has been edited.");
         }
 
@@ -509,7 +509,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to remove gateway: {ex.Message}", ex);
             }
 
-            await SyncPamAsync(reload: true);
+            await SyncPamAsync();
             Console.WriteLine($"Gateway {controller.ControllerName} has been removed.");
         }
 
@@ -552,7 +552,7 @@ namespace Commander.PAM
                 throw new PamGatewayException($"Failed to set max instances: {ex.Message}", ex);
             }
 
-            await SyncPamAsync(reload: true);
+            await SyncPamAsync();
             Console.WriteLine($"{controller.ControllerName}: max instance count set to {options.MaxInstances}");
         }
 

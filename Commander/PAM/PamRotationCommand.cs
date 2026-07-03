@@ -845,7 +845,7 @@ namespace Commander.PAM
         [Option("format", Required = false, HelpText = "Output format: table, json (info command)")]
         public string Format { get; set; }
 
-        [Option("script-command", Required = false, HelpText = "Script run command (Python parity) or subcommand if list/add/edit/delete")]
+        [Option("script-command", Required = false, HelpText = "Script run command or subcommand if list/add/edit/delete")]
         public string ScriptCommand { get; set; }
 
         [Option("script", Required = false, HelpText = "Script file path (add) or script UID/name (edit/delete)")]

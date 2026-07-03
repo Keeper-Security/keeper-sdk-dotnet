@@ -84,7 +84,6 @@ namespace KeeperSecurity.Plugins.PAM
       if (reload)
       {
         Storage.Reset();
-        _controllers.Clear();
         _recordRotations.Clear();
       }
 
@@ -103,15 +102,7 @@ namespace KeeperSecurity.Plugins.PAM
         domainRows.Add(domainRow);
       }
 
-      if (storageRows.Count > 0)
-      {
-        Storage.Controllers.PutEntities(storageRows);
-      }
-
-      if (domainRows.Count > 0)
-      {
-        _controllers.PutEntities(domainRows);
-      }
+      ApplyGatewayEntities(storageRows, domainRows);
 
       if (!reload)
       {
@@ -169,6 +160,36 @@ namespace KeeperSecurity.Plugins.PAM
       var rows = merged.Values.ToList();
       Storage.RecordRotations.PutEntities(rows);
       _recordRotations.PutEntities(rows.Select(PamStorageMapper.ToDomainRotation));
+    }
+
+    private void ApplyGatewayEntities(
+      IReadOnlyList<IPamStorageController> storageRows,
+      IReadOnlyList<PamController> domainRows)
+    {
+      var serverUids = new HashSet<string>(
+        domainRows.Select(c => c.Uid),
+        StringComparer.Ordinal);
+
+      var staleUids = _controllers.GetAll()
+        .Select(c => c.Uid)
+        .Where(uid => !serverUids.Contains(uid))
+        .ToList();
+
+      if (staleUids.Count > 0)
+      {
+        _controllers.DeleteUids(staleUids);
+        Storage.Controllers.DeleteUids(staleUids);
+      }
+
+      if (storageRows.Count > 0)
+      {
+        Storage.Controllers.PutEntities(storageRows);
+      }
+
+      if (domainRows.Count > 0)
+      {
+        _controllers.PutEntities(domainRows);
+      }
     }
   }
 }

@@ -24,9 +24,7 @@ namespace Commander.PAM
                 return;
             }
 
-            Console.WriteLine(options.Reload
-                ? "Performing full PAM sync (gateways and record rotations)..."
-                : "Syncing PAM gateway data...");
+            Console.WriteLine(options.Reload ? "Performing full PAM sync..." : "Syncing PAM data...");
             try
             {
                 await Plugin.SyncDownAsync(options.Reload);
@@ -41,8 +39,7 @@ namespace Commander.PAM
 
     internal class PamSyncDownOptions
     {
-        [Option('r', "reload", Required = false, Default = false,
-            HelpText = "Also reload record rotation metadata from vault (default syncs gateways only)")]
+        [Option('r', "reload", Required = false, Default = false, HelpText = "Perform full sync instead of incremental")]
         public bool Reload { get; set; }
     }
 }
