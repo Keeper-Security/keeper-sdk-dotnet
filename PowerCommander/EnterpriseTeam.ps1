@@ -299,7 +299,8 @@ function Add-KeeperEnterpriseTeamMember {
 
         .PARAMETER HideSharedFolders
         on = Admin Only (no shared folders). off = Admin with shared folder access.
-        Applies only when adding users (-au).
+        Applies when adding active users (-au). Not applied when queueing inactive users
+        (matches Commander team_queue_user; set admin type after user activation).
 
         .EXAMPLE
         Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "alice@example.com", "bob@example.com"
@@ -319,7 +320,7 @@ function Add-KeeperEnterpriseTeamMember {
         Write-Error "At least one user must be specified via -User." -ErrorAction Stop
     }
 
-    [Enterprise]$enterprise = GetEnterprise
+    [Enterprise]$enterprise = getEnterprise
     $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
     if (-not $teamTarget) { return }
 
@@ -383,7 +384,7 @@ function Remove-KeeperEnterpriseTeamMember {
         Write-Error "At least one user must be specified via -User." -ErrorAction Stop
     }
 
-    [Enterprise]$enterprise = GetEnterprise
+    [Enterprise]$enterprise = getEnterprise
     $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
     if (-not $teamTarget) { return }
 
@@ -424,6 +425,7 @@ function Get-KeeperEnterpriseTeamRole {
 
         .DESCRIPTION
         Read-only query matching enterprise-team role membership (used by -ar/-rr).
+        Only approved teams are supported; queued-only teams return an empty list.
 
         .PARAMETER Team
         Team name, UID, or EnterpriseTeam object.
@@ -437,10 +439,19 @@ function Get-KeeperEnterpriseTeamRole {
     )
 
     [Enterprise]$enterprise = getEnterprise
-    $teamObject = resolveTeam $enterprise.enterpriseData $Team
-    if (-not $teamObject) { return @() }
+    $teamInput = if ($Team -is [string]) { $Team }
+    elseif ($null -ne $Team.Uid) { [string]$Team.Uid }
+    elseif ($Team.Name) { [string]$Team.Name }
+    else { [string]$Team }
 
-    $roleIds = @($enterprise.roleData.GetRolesForTeam($teamObject.Uid))
+    $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $teamInput
+    if (-not $teamTarget) { return @() }
+    if (-not $teamTarget.Team) {
+        Write-Warning "Team `"$($teamTarget.Name)`" is queued only. Roles are listed after the team is approved."
+        return @()
+    }
+
+    $roleIds = @($enterprise.roleData.GetRolesForTeam($teamTarget.Uid))
     if ($roleIds.Count -eq 0) { return @() }
 
     $roles = foreach ($roleId in $roleIds) {

@@ -519,6 +519,12 @@ function Add-EnterpriseUserToTeamMembership {
         return $true
     }
 
+    # Commander queues inactive users via team_queue_user (no admin-type field on that API).
+    # HideSharedFolders applies after the user is active and on the team (TeamEnterpriseUserUpdate).
+    if ($HideSharedFolders) {
+        Write-Warning "HideSharedFolders is not applied when queueing inactive user `"$($User.Email)`" to team `"$teamName`". Set admin type after the user is active."
+    }
+
     $rq = New-Object KeeperSecurity.Commands.TeamQueueUserCommand
     $rq.TeamUid = $teamUid
     $rq.EnterpriseUserId = $User.Id

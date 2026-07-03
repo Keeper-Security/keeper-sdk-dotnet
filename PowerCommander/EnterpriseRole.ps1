@@ -464,7 +464,8 @@ function Grant-KeeperEnterpriseRoleToTeam {
         .DESCRIPTION
         Assigns an existing enterprise team to an enterprise role. Matches Commander
         enterprise-role -at/--add-team and enterprise-team -ar/--add-role (team-first syntax).
-        Administrative roles cannot be assigned to teams.
+        Administrative roles cannot be assigned to teams. When multiple roles are specified,
+        each role is attempted independently; failures are collected and reported as warnings.
 
         .PARAMETER Role
         One or more role names, IDs, or EnterpriseRole objects
@@ -518,6 +519,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
             return
         }
 
+        $failures = [System.Collections.Generic.List[string]]::new()
         foreach ($roleObject in $roleObjects) {
             if (Test-EnterpriseRoleIsAdmin -RoleData $roleData -RoleId $roleObject.Id) {
                 Write-Warning "Teams cannot be assigned to role `"$($roleObject.DisplayName)`". Skipping."
@@ -531,9 +533,12 @@ function Grant-KeeperEnterpriseRoleToTeam {
                     Write-Output "Team `"$teamName`" added to role `"$roleName`""
                 }
                 catch {
-                    Write-Error "Failed to add team `"$teamName`" to role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+                    [void]$failures.Add("$roleName`: $($_.Exception.Message)")
                 }
             }
+        }
+        if ($failures.Count -gt 0) {
+            Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))
         }
     }
 }
@@ -549,6 +554,8 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         .DESCRIPTION
         Removes an enterprise team from an enterprise role. Matches Commander
         enterprise-role -rt/--remove-team and enterprise-team -rr/--remove-role.
+        When multiple roles are specified, each role is attempted independently;
+        failures are collected and reported as warnings.
 
         .PARAMETER Role
         One or more role names, IDs, or EnterpriseRole objects
@@ -602,6 +609,7 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
             return
         }
 
+        $failures = [System.Collections.Generic.List[string]]::new()
         foreach ($roleObject in $roleObjects) {
             $roleName = $roleObject.DisplayName
             $teamName = $teamObject.Name
@@ -611,9 +619,12 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
                     Write-Output "Team `"$teamName`" removed from role `"$roleName`""
                 }
                 catch {
-                    Write-Error "Failed to remove team `"$teamName`" from role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+                    [void]$failures.Add("$roleName`: $($_.Exception.Message)")
                 }
             }
+        }
+        if ($failures.Count -gt 0) {
+            Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))
         }
     }
 }
