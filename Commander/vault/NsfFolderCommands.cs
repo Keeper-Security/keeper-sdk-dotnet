@@ -197,7 +197,15 @@ namespace Commander
             {
                 try
                 {
-                    var label = await vault.ResolveKeeperNSFShareRecipientLabel(recipient).ConfigureAwait(false);
+                    var label = recipient;
+                    try
+                    {
+                        label = await vault.ResolveKeeperNSFShareRecipientLabel(recipient).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Label resolution is display-only; proceed with the raw recipient.
+                    }
 
                     if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
                     {

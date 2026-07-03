@@ -265,6 +265,9 @@ namespace KeeperSecurity.Vault
                 return;
             }
 
+            System.Diagnostics.Trace.TraceInformation(
+                $"KeeperNSF: Disabled folder inheritance for '{folderUid}' to apply direct permissions.");
+
             var updateResult = await vault.UpdateKeeperNSFFolderCore(
                 folderUid, null, null, inheritPermissions: false, requestSync: false).ConfigureAwait(false);
             VaultOnline.ValidateFolderModifyResult(updateResult);
