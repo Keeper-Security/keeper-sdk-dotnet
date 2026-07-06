@@ -39,6 +39,7 @@ Describe 'Enterprise team/user/role exports' {
         (Get-Command Remove-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Emails') | Should -Be $true
         (Get-Command Add-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Users') | Should -Be $true
         (Get-Command Add-KeeperEnterpriseTeamMember).Parameters['Users'].Aliases | Should -Contain 'User'
+        (Get-Command Remove-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Users') | Should -Be $true
     }
 
     It 'Defines EnterpriseTeamTarget and EnterpriseTeamMembershipRequest types' {
@@ -72,6 +73,41 @@ Describe 'Enterprise helper functions' {
         }
     }
 
+    It 'Get-EnterpriseTeamMemberInputs deduplicates the same email in -Emails and -User' {
+        InModuleScope PowerCommander {
+            $inputs = Get-EnterpriseTeamMemberInputs -EmailInputs @('a@example.com') -UserInputs @('a@example.com')
+            $inputs.Count | Should -Be 1
+            $inputs[0] | Should -Be 'a@example.com'
+        }
+    }
+
+    It 'Get-EnterpriseDistinctUserIdsForTeam returns each user ID once' {
+        InModuleScope PowerCommander {
+            $ed = [PSCustomObject]@{}
+            $ed | Add-Member -MemberType ScriptMethod -Name GetUsersForTeam -Value {
+                param($teamUid)
+                if ($teamUid -eq 'team1') { return @([long]42, [long]42, [long]99) }
+                return @()
+            }
+            $ids = Get-EnterpriseDistinctUserIdsForTeam -EnterpriseData $ed -TeamUid 'team1'
+            $ids.Count | Should -Be 2
+            $ids | Should -Be @([long]42, [long]99)
+        }
+    }
+
+    It 'Test-EnterpriseUserOnTeam uses GetUsersForTeam membership' {
+        InModuleScope PowerCommander {
+            $ed = [PSCustomObject]@{}
+            $ed | Add-Member -MemberType ScriptMethod -Name GetUsersForTeam -Value {
+                param($teamUid)
+                if ($teamUid -eq 'team1') { return @([long]42) }
+                return @()
+            }
+            Test-EnterpriseUserOnTeam -EnterpriseData $ed -TeamUid 'team1' -UserId 42 | Should -Be $true
+            Test-EnterpriseUserOnTeam -EnterpriseData $ed -TeamUid 'team1' -UserId 99 | Should -Be $false
+        }
+    }
+
     It 'Resolve-EnterpriseTeamTarget returns EnterpriseTeamTarget instances' {
         $content = Get-Content (Join-Path $PSScriptRoot 'EnterpriseHelpers.ps1') -Raw
         $content | Should -Match '\[EnterpriseTeamTarget\]::FromActiveTeam'
@@ -84,6 +120,19 @@ Describe 'Enterprise helper functions' {
                 Should -Be ([int][Enterprise.TeamUserType]::AdminOnly)
             Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders 'off' |
                 Should -Be ([int][Enterprise.TeamUserType]::Admin)
+        }
+    }
+
+    It 'Test-EnterpriseTeamOnRole uses GetTeamsForRole membership' {
+        InModuleScope PowerCommander {
+            $roleData = [PSCustomObject]@{}
+            $roleData | Add-Member -MemberType ScriptMethod -Name GetTeamsForRole -Value {
+                param($roleId)
+                if ($roleId -eq 7) { return @('team-uid-1') }
+                return @()
+            }
+            Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId 7 -TeamUid 'team-uid-1' | Should -Be $true
+            Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId 7 -TeamUid 'other' | Should -Be $false
         }
     }
 

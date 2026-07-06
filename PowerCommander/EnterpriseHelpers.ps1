@@ -467,6 +467,7 @@ function Get-EnterpriseTeamMemberInputs {
     )
 
     $memberInputsList = [System.Collections.Generic.List[string]]::new()
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
     if ($null -ne $EmailInputs) {
         foreach ($email in $EmailInputs) {
@@ -474,7 +475,10 @@ function Get-EnterpriseTeamMemberInputs {
                 Write-Warning "Skipping empty email value."
                 continue
             }
-            [void]$memberInputsList.Add($email.Trim())
+            $trimmed = $email.Trim()
+            if ($seen.Add($trimmed)) {
+                [void]$memberInputsList.Add($trimmed)
+            }
         }
     }
 
@@ -484,7 +488,10 @@ function Get-EnterpriseTeamMemberInputs {
                 Write-Warning "Skipping empty user value."
                 continue
             }
-            [void]$memberInputsList.Add($userInput.Trim())
+            $trimmed = $userInput.Trim()
+            if ($seen.Add($trimmed)) {
+                [void]$memberInputsList.Add($trimmed)
+            }
         }
     }
 
@@ -519,6 +526,49 @@ function Test-EnterpriseRoleIsAdmin {
         [Parameter(Mandatory = $true)][long]$RoleId
     )
     return @($RoleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $RoleId }).Count -gt 0
+}
+
+function Get-EnterpriseDistinctUserIdsForTeam {
+    param (
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string]$TeamUid
+    )
+
+    $seen = [System.Collections.Generic.HashSet[long]]::new()
+    $userIds = [System.Collections.Generic.List[long]]::new()
+    foreach ($userId in @($EnterpriseData.GetUsersForTeam($TeamUid))) {
+        if ($seen.Add($userId)) {
+            [void]$userIds.Add($userId)
+        }
+    }
+    return $userIds
+}
+
+function Test-EnterpriseUserOnTeam {
+    param (
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string]$TeamUid,
+        [Parameter(Mandatory = $true)][long]$UserId
+    )
+    return @(Get-EnterpriseDistinctUserIdsForTeam -EnterpriseData $EnterpriseData -TeamUid $TeamUid) -contains $UserId
+}
+
+function Test-EnterpriseTeamOnRole {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][long]$RoleId,
+        [Parameter(Mandatory = $true)][string]$TeamUid
+    )
+    return @($RoleData.GetTeamsForRole($RoleId)) -contains $TeamUid
+}
+
+function Test-EnterpriseUserQueuedForTeam {
+    param (
+        [Parameter(Mandatory = $true)]$QueuedTeamData,
+        [Parameter(Mandatory = $true)][string]$TeamUid,
+        [Parameter(Mandatory = $true)][long]$UserId
+    )
+    return @($QueuedTeamData.GetQueuedUsersForTeam($TeamUid)) -contains $UserId
 }
 
 function Get-EnterpriseSdkWarningCallback {
@@ -595,22 +645,22 @@ function Add-EnterpriseUserToTeamMembership {
     if ($User.UserStatus -eq [KeeperSecurity.Enterprise.UserStatus]::Active) {
         if (-not $teamObject) {
             Write-Warning "Team `"$teamName`" is queued only. Active users cannot be added until the team is approved."
-            return $false
+            return
         }
 
-        $existingMember = @($ed.GetUsersForTeam($teamUid)) -contains $User.Id
+        $existingMember = Test-EnterpriseUserOnTeam -EnterpriseData $ed -TeamUid $teamUid -UserId $User.Id
         if ($existingMember) {
+            Write-Warning "User `"$($User.Email)`" is already a member of team `"$teamName`"."
             if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
                 $userType = Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders $HideSharedFolders
                 $ed.TeamEnterpriseUserUpdate($teamObject, $User, $userType).GetAwaiter().GetResult() | Out-Null
-                Write-Output "User `"$($User.Email)`" team role updated in `"$teamName`"."
-                return $true
+                Write-Output "Admin type updated for user `"$($User.Email)`" in team `"$teamName`"."
             }
-            Write-Warning "User `"$($User.Email)`" is already a member of team `"$teamName`"."
-            return $false
+            return
         }
 
         Invoke-EnterpriseAddUsersToTeams -EnterpriseData $ed -Emails @($User.Email) -TeamUids @($teamUid)
+        $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
 
         if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
             $userType = Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders $HideSharedFolders
@@ -618,11 +668,16 @@ function Add-EnterpriseUserToTeamMembership {
         }
 
         Write-Output "User `"$($User.Email)`" added to team `"$teamName`"."
-        return $true
+        return
     }
 
     # Commander queues inactive users via team_queue_user (no admin-type field on that API).
     # HideSharedFolders applies after the user is active and on the team (TeamEnterpriseUserUpdate).
+    if (Test-EnterpriseUserQueuedForTeam -QueuedTeamData $Enterprise.queuedTeamData -TeamUid $teamUid -UserId $User.Id) {
+        Write-Warning "User `"$($User.Email)`" is already queued for team `"$teamName`"."
+        return
+    }
+
     if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
         Write-Warning "HideSharedFolders is not applied when queueing inactive user `"$($User.Email)`" to team `"$teamName`". Set admin type after the user is active."
     }
@@ -633,7 +688,6 @@ function Add-EnterpriseUserToTeamMembership {
     $Enterprise.loader.Auth.ExecuteAuthCommand($rq).GetAwaiter().GetResult() | Out-Null
     $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
     Write-Output "User `"$($User.Email)`" queued to team `"$teamName`"."
-    return $true
 }
 
 
