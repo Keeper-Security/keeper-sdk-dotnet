@@ -34,6 +34,8 @@ namespace KeeperSecurity.Authentication
                         case -3:
                             rsa = pubBytes;
                             break;
+                        default:
+                            break;
                     }
                 }
                 catch (Exception ex)

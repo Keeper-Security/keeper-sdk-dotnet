@@ -28,42 +28,69 @@ namespace Commander
 
         public static async Task NsfRndirCommand(this VaultContext context, NsfRndirOptions options)
         {
-            if (options.Name == null && options.Color == null && !options.InheritPermissions && !options.NoInheritPermissions)
+            if (options.Name == null && options.Color == null && !options.NoInheritPermissions)
             {
-                Console.WriteLine("Specify --name, --color, --inherit, and/or --no-inherit to update the folder.");
+                Console.WriteLine("Specify --name, --color, and/or --no-inherit to update the folder.");
                 return;
             }
 
-            if (!context.Vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
-            {
-                Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
-                return;
-            }
-
-            if (options.InheritPermissions && options.NoInheritPermissions)
-            {
-                Console.WriteLine("Specify either --inherit or --no-inherit, not both.");
-                return;
-            }
-
-            bool? inheritPermissions = null;
-            if (options.InheritPermissions)
-                inheritPermissions = true;
-            else if (options.NoInheritPermissions)
-                inheritPermissions = false;
+            bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : (bool?)true;
 
             try
-            {
-                var result = await context.Vault.UpdateKeeperNSFFolder(
-                    folderNode.FolderUid, options.Name, options.Color, inheritPermissions);
-                VaultOnline.ValidateFolderModifyResult(result);
-                await context.Vault.SyncDown(false);
-                Console.WriteLine("Keeper NSF folder updated.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating folder: {ex.Message}");
-            }
+                {
+                    var folders = options.Folder?.ToList() ?? new List<string>();
+                    if (folders.Count == 0)
+                    {
+                        Console.WriteLine("At least one folder UID or name is required.");
+                        return;
+                    }
+
+                    var updatesList = new List<(string FolderUidOrName, string NewName, string Color, bool? InheritPermissions)>();
+                    foreach (var name in folders)
+                    {
+                        if (!context.Vault.TryResolveKeeperNSFFolder(name, out var folderNode))
+                        {
+                            Console.WriteLine($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
+                            continue;
+                        }
+
+                        updatesList.Add((folderNode.FolderUid, options.Name, options.Color, inheritPermissions));
+                    }
+
+                    if (updatesList.Count == 0)
+                    {
+                        Console.WriteLine("No valid folders to update.");
+                        return;
+                    }
+
+                    var results = await context.Vault.UpdateKeeperNSFFolders(updatesList).ConfigureAwait(false);
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        var res = results[i];
+                        var target = updatesList[i].FolderUidOrName;
+                        if (res == null)
+                        {
+                            Console.WriteLine($"No result returned for '{target}'.");
+                            continue;
+                        }
+
+                        try
+                        {
+                            VaultOnline.ValidateFolderModifyResult(res);
+                            Console.WriteLine($"Folder '{target}' updated.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to update '{target}': {ex.Message}");
+                        }
+                    }
+
+                    await context.Vault.SyncDown(false).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error updating folder(s): {ex.Message}");
+                }
         }
 
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
@@ -243,17 +270,14 @@ namespace Commander
 
     class NsfRndirOptions
     {
-        [Value(0, Required = true, HelpText = "Folder UID or name")]
-        public string Folder { get; set; }
+        [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]
+        public IEnumerable<string> Folder { get; set; }
 
         [Option('n', "name", Required = false, HelpText = "New folder name")]
         public string Name { get; set; }
 
         [Option("color", Required = false, HelpText = "Folder color (none, red, orange, yellow, green, blue, gray)")]
         public string Color { get; set; }
-
-        [Option("inherit", Required = false, HelpText = "Inherit parent folder permissions")]
-        public bool InheritPermissions { get; set; }
 
         [Option("no-inherit", Required = false, HelpText = "Do not inherit parent folder permissions")]
         public bool NoInheritPermissions { get; set; }

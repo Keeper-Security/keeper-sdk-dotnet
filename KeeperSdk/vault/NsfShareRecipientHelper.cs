@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,12 +90,14 @@ namespace KeeperSecurity.Vault
                 var teamUid = await ResolveTeamUidAsync(vault.Auth, trimmed).ConfigureAwait(false);
                 return new NsfShareRecipient(NsfShareRecipientKind.Team, teamUid);
             }
-            catch (VaultException)
+            catch (VaultException ex)
             {
+                Trace.TraceWarning($"NsfShareRecipientHelper: ResolveTeamUidAsync('{trimmed}') VaultException: {ex.Message}");
                 return null;
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                Trace.TraceWarning($"NsfShareRecipientHelper: ResolveTeamUidAsync('{trimmed}') ArgumentException: {ex.Message}");
                 return null;
             }
         }
