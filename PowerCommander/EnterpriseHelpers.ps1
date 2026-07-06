@@ -172,11 +172,11 @@ function resolveUser {
             }
         }
         if ($userAliasData) {
-            $needle = $user.Trim().ToLowerInvariant()
-            foreach ($candidate in $enterpriseData.Users) {
-                foreach ($alias in @($userAliasData.GetAliasesForUser($candidate.Id))) {
-                    if ($alias.ToLowerInvariant() -eq $needle) {
-                        if ($enterpriseData.TryGetUserById($candidate.Id, [ref]$u)) {
+            $normalizedUserEmail = $user.Trim().ToLowerInvariant()
+            foreach ($enterpriseUser in $enterpriseData.Users) {
+                foreach ($alias in $userAliasData.GetAliasesForUser($enterpriseUser.Id)) {
+                    if ($alias.ToLowerInvariant() -eq $normalizedUserEmail) {
+                        if ($enterpriseData.TryGetUserById($enterpriseUser.Id, [ref]$u)) {
                             return $u
                         }
                     }
