@@ -475,7 +475,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
 
         .EXAMPLE
         Grant-KeeperEnterpriseRoleToTeam -Role "MyRole" -Team "Engineering"
-        Adds the team to the role (enterprise-role -at)
+        Adds the team to the role
 
         .EXAMPLE
         Grant-KeeperEnterpriseRoleToTeam -Team "Engineering" -Role "Employee", "Contractor"
@@ -495,7 +495,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
         [Enterprise]$enterprise = getEnterprise
         $roleData = $enterprise.roleData
         $teamObject = resolveTeam $enterprise.enterpriseData $Team
-        if (-not $teamObject) { return }
+        $skipOperation = -not $teamObject
         $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
     process {
@@ -510,7 +510,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
         }
     }
     end {
-        if (-not $teamObject) { return }
+        if ($skipOperation) { return }
         if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
 
         $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
@@ -552,10 +552,7 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes a team from an Enterprise Role
 
         .DESCRIPTION
-        Removes an enterprise team from an enterprise role. Matches Commander
-        enterprise-role -rt/--remove-team and enterprise-team -rr/--remove-role.
-        When multiple roles are specified, each role is attempted independently;
-        failures are collected and reported as warnings.
+        Removes an enterprise team from an enterprise role.
 
         .PARAMETER Role
         One or more role names, IDs, or EnterpriseRole objects
@@ -565,11 +562,11 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
 
         .EXAMPLE
         Revoke-KeeperEnterpriseRoleFromTeam -Role "MyRole" -Team "Engineering"
-        Removes the team from the role (enterprise-role -rt)
+        Removes the team from the role
 
         .EXAMPLE
         Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering" -Role "Employee", "Contractor"
-        Removes multiple roles from the team (enterprise-team -rr)
+        Removes multiple roles from the team
 
         .EXAMPLE
         Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering"
@@ -585,7 +582,7 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         [Enterprise]$enterprise = getEnterprise
         $roleData = $enterprise.roleData
         $teamObject = resolveTeam $enterprise.enterpriseData $Team
-        if (-not $teamObject) { return }
+        $skipOperation = -not $teamObject
         $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
     process {
@@ -600,7 +597,7 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         }
     }
     end {
-        if (-not $teamObject) { return }
+        if ($skipOperation) { return }
         if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
 
         $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
