@@ -462,10 +462,8 @@ function Grant-KeeperEnterpriseRoleToTeam {
         Adds a team to an Enterprise Role
 
         .DESCRIPTION
-        Assigns an existing enterprise team to an enterprise role. Matches Commander
-        enterprise-role -at/--add-team and enterprise-team -ar/--add-role (team-first syntax).
-        Administrative roles cannot be assigned to teams. When multiple roles are specified,
-        each role is attempted independently; failures are collected and reported as warnings.
+        Assigns an existing enterprise team to an enterprise role. When the team is already
+        on a role, a warning is shown and that role is skipped.
 
         .PARAMETER Role
         One or more role names, IDs, or EnterpriseRole objects
@@ -520,6 +518,7 @@ function Grant-KeeperEnterpriseRoleToTeam {
         }
 
         $failures = [System.Collections.Generic.List[string]]::new()
+        $addedCount = 0
         foreach ($roleObject in $roleObjects) {
             if (Test-EnterpriseRoleIsAdmin -RoleData $roleData -RoleId $roleObject.Id) {
                 Write-Warning "Teams cannot be assigned to role `"$($roleObject.DisplayName)`". Skipping."
@@ -527,15 +526,23 @@ function Grant-KeeperEnterpriseRoleToTeam {
             }
             $roleName = $roleObject.DisplayName
             $teamName = $teamObject.Name
+            if (Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId $roleObject.Id -TeamUid $teamObject.Uid) {
+                Write-Warning "Team `"$teamName`" is already assigned to role `"$roleName`"."
+                continue
+            }
             if ($PSCmdlet.ShouldProcess("Team `"$teamName`" to Role `"$roleName`"", "Add")) {
                 try {
                     $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
                     Write-Output "Team `"$teamName`" added to role `"$roleName`""
+                    $addedCount++
                 }
                 catch {
                     [void]$failures.Add("$roleName`: $($_.Exception.Message)")
                 }
             }
+        }
+        if ($addedCount -eq 0 -and $failures.Count -eq 0) {
+            Write-Warning "No new role assignments were added for team `"$($teamObject.Name)`"."
         }
         if ($failures.Count -gt 0) {
             Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))
@@ -552,7 +559,8 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes a team from an Enterprise Role
 
         .DESCRIPTION
-        Removes an enterprise team from an enterprise role.
+        Removes an enterprise team from an enterprise role. When the team is not on a role,
+        a warning is shown and that role is skipped.
 
         .PARAMETER Role
         One or more role names, IDs, or EnterpriseRole objects
@@ -607,18 +615,27 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         }
 
         $failures = [System.Collections.Generic.List[string]]::new()
+        $removedCount = 0
         foreach ($roleObject in $roleObjects) {
             $roleName = $roleObject.DisplayName
             $teamName = $teamObject.Name
+            if (-not (Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId $roleObject.Id -TeamUid $teamObject.Uid)) {
+                Write-Warning "Team `"$teamName`" is not assigned to role `"$roleName`"."
+                continue
+            }
             if ($PSCmdlet.ShouldProcess("Team `"$teamName`" from Role `"$roleName`"", "Remove")) {
                 try {
                     $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
                     Write-Output "Team `"$teamName`" removed from role `"$roleName`""
+                    $removedCount++
                 }
                 catch {
                     [void]$failures.Add("$roleName`: $($_.Exception.Message)")
                 }
             }
+        }
+        if ($removedCount -eq 0 -and $failures.Count -eq 0) {
+            Write-Warning "No role assignments were removed for team `"$($teamObject.Name)`"."
         }
         if ($failures.Count -gt 0) {
             Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))

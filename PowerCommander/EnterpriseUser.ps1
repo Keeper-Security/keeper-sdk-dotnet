@@ -615,7 +615,7 @@ function Get-KeeperEnterpriseUserTeam {
     $userObject = resolveUser $enterprise.enterpriseData $User
     if (-not $userObject) { return @() }
 
-    $teamUids = @($enterprise.enterpriseData.GetTeamsForUser($userObject.Id))
+    $teamUids = @($enterprise.enterpriseData.GetTeamsForUser($userObject.Id) | Select-Object -Unique)
     if ($teamUids.Count -eq 0) { return @() }
 
     $teams = foreach ($teamUid in $teamUids) {
