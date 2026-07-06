@@ -269,6 +269,23 @@ namespace KeeperSecurity.Vault
             });
         }
 
+        private static bool HasAnyTeamKey(UserKeys teamKeys)
+        {
+            if (teamKeys == null)
+                return false;
+
+            if (teamKeys.AesKey != null && teamKeys.AesKey.Length > 0)
+                return true;
+
+            if (teamKeys.RsaPublicKey != null && teamKeys.RsaPublicKey.Length > 0)
+                return true;
+
+            if (teamKeys.EcPublicKey != null && teamKeys.EcPublicKey.Length > 0)
+                return true;
+
+            return false;
+        }
+
         /// <summary>Resolve team display name to UID (null if none; throws if ambiguous).</summary>
         public static async Task<string> GetTeamUidFromNameAsync(IAuthentication auth, string teamName)
         {
@@ -478,10 +495,7 @@ namespace KeeperSecurity.Vault
                 var keyType = EncryptedKeyType.NoKey;
 
                 await auth.LoadTeamKeys(Enumerable.Repeat(teamUid, 1)).ConfigureAwait(false);
-                if (!auth.TryGetTeamKeys(teamUid, out var teamKeys)
-                    || ((teamKeys.AesKey == null || teamKeys.AesKey.Length == 0)
-                        && (teamKeys.RsaPublicKey == null || teamKeys.RsaPublicKey.Length == 0)
-                        && (teamKeys.EcPublicKey == null || teamKeys.EcPublicKey.Length == 0)))
+                if (!auth.TryGetTeamKeys(teamUid, out var teamKeys) || !HasAnyTeamKey(teamKeys))
                 {
                     teamKeys = await auth.GetTeamKeysForSharingAsync(teamUid).ConfigureAwait(false);
                 }

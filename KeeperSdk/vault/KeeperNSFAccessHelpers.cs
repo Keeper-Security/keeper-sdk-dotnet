@@ -29,7 +29,7 @@ namespace KeeperSecurity.Vault
     /// </summary>
     internal static class KeeperNSFAccessHelpers
     {
-        private static readonly Dictionary<string, string> PermissionCamelKeys = new(StringComparer.Ordinal)
+        private static readonly IReadOnlyDictionary<string, string> PermissionKeyAliases = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["can_update_access"] = "canUpdateAccess",
             ["can_update_setting"] = "canUpdateSetting",
@@ -59,26 +59,98 @@ namespace KeeperSecurity.Vault
             return Encoding.UTF8.GetString(JsonUtils.DumpJson(payload, indent: false));
         }
 
-        internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
+        /// <summary>
+        /// Fetch folder accessors for a single folder UID. This calls the batch overload.
+        /// </summary>
+        internal static Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
             VaultOnline vault,
             string folderUid)
         {
-            var rq = new FolderProto.V3.GetFolderAccessRequest();
-            rq.FolderUid.Add(ByteString.CopyFrom(folderUid.Base64UrlDecode()));
-            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.V3.GetFolderAccessRequest, FolderProto.V3.GetFolderAccessResponse>(
-                "vault/folders/v3/access", rq).ConfigureAwait(false);
+            return FetchFolderAccessDataAsync(vault, new[] { folderUid }, pageSize: 100);
+        }
 
-            foreach (var result in rs.FolderAccessResults)
+        /// <summary>
+        /// Fetch folder accessors for one or more folder UIDs.
+        /// Supports batching up to 100 folder UIDs per request and cursor-based pagination via continuation tokens.
+        /// </summary>
+        internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids,
+            int pageSize = 100)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+            if (folderUids == null) throw new ArgumentNullException(nameof(folderUids));
+
+            var allAccessors = new List<FolderProto.FolderAccessData>();
+
+            // Normalize pageSize with server limits: default 100, max 1000
+            if (pageSize <= 0) pageSize = 100;
+            if (pageSize > 1000) pageSize = 1000;
+
+            // The API accepts up to 100 folder UIDs per request. Batch if we have more.
+            var foldersList = folderUids.Where(f => !string.IsNullOrEmpty(f)).ToList();
+            const int MaxFoldersPerRequest = 100;
+            for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)
             {
-                if (result.Error != null)
-                {
-                    continue;
-                }
+                var batch = foldersList.Skip(i).Take(MaxFoldersPerRequest).ToList();
+                FolderProto.V3.ContinuationToken continuationToken = null;
 
-                return result.Accessors.ToList();
+                do
+                {
+                    var rq = new FolderProto.V3.GetFolderAccessRequest();
+                    foreach (var f in batch)
+                    {
+                        rq.FolderUid.Add(ByteString.CopyFrom(f.Base64UrlDecode()));
+                    }
+
+                    if (continuationToken != null)
+                    {
+                        rq.ContinuationToken = continuationToken;
+                    }
+
+                    rq.PageSize = pageSize;
+
+                    var rs = await vault.Auth.ExecuteAuthRest<FolderProto.V3.GetFolderAccessRequest, FolderProto.V3.GetFolderAccessResponse>(
+                        "vault/folders/v3/access", rq).ConfigureAwait(false);
+
+                    if (rs == null)
+                    {
+                        throw new VaultException("GetFolderAccessResponse was null from server.");
+                    }
+
+                    if (rs.HasMore && rs.ContinuationToken == null)
+                    {
+                        throw new VaultException("Server indicated more results but did not provide a continuation token.");
+                    }
+
+                    if (rs.FolderAccessResults != null)
+                    {
+                        foreach (var result in rs.FolderAccessResults)
+                        {
+                            if (result == null)
+                            {
+                                continue;
+                            }
+
+                            if (result.Error != null)
+                            {
+                                System.Diagnostics.Trace.TraceWarning($"GetFolderAccessResult error: {result.Error}");
+                                continue;
+                            }
+
+                            if (result.Accessors != null && result.Accessors.Count > 0)
+                            {
+                                allAccessors.AddRange(result.Accessors);
+                            }
+                        }
+                    }
+
+                    continuationToken = rs.HasMore ? rs.ContinuationToken : null;
+                }
+                while (continuationToken != null);
             }
 
-            return Array.Empty<FolderProto.FolderAccessData>();
+            return allAccessors;
         }
 
         internal static async Task<RecordDetailsProto.RecordAccessResponse> FetchRecordAccessDetailsAsync(
@@ -486,10 +558,9 @@ namespace KeeperSecurity.Vault
                 return direct;
             }
 
-            if (PermissionCamelKeys.TryGetValue(key, out var camelKey)
-                && permissions.TryGetValue(camelKey, out var camelValue))
+            if (PermissionKeyAliases.TryGetValue(key, out var aliasKey) && permissions.TryGetValue(aliasKey, out var aliasValue))
             {
-                return camelValue;
+                return aliasValue;
             }
 
             return false;
