@@ -1,3 +1,5 @@
+#requires -Version 5.1
+
 function script:getPamPlugin {
     <#
         .Synopsis
@@ -100,4 +102,4 @@ function Sync-KeeperPam {
     }
 }
 
-New-Alias -Name kpam-sync -Value Sync-KeeperPam -ErrorAction SilentlyContinue
+New-Alias -Name pam-sync -Value Sync-KeeperPam -ErrorAction SilentlyContinue

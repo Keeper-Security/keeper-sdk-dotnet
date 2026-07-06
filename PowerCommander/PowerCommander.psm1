@@ -204,9 +204,9 @@ kepm-policy-delete, kepm-policy-remove, kepm-policy-agents, kepm-policy-assign
 
 Export-ModuleMember -Function Sync-KeeperPam, Get-KeeperPamGatewayList, New-KeeperPamGateway,
 Set-KeeperPamGateway, Remove-KeeperPamGateway, Set-KeeperPamGatewayMaxInstances
-Export-ModuleMember -Alias kpam-sync, kpam-gateway-list, kpam-gw-list, kpam-gateway-new, kpam-gw-new,
-kpam-gateway-edit, kpam-gw-edit, kpam-gateway-remove, kpam-gw-remove, kpam-gateway-rm,
-kpam-gateway-set-max-instances, kpam-gw-set-max-instances
+Export-ModuleMember -Alias pam-sync, pam-gateway-list, pam-gw-list, pam-gateway-new, pam-gw-new,
+pam-gateway-edit, pam-gw-edit, pam-gateway-remove, pam-gw-remove, pam-gateway-rm,
+pam-gateway-set-max-instances, pam-gw-set-max-instances
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (

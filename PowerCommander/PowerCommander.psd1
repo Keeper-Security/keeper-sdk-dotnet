@@ -174,9 +174,9 @@
         'nsf-record-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
         'nsf-rm', 'nsf-ln', 'nsf-transfer-record',
         'nsf-shortcut-list', 'nsf-shortcut-keep',
-        'kpam-sync', 'kpam-gateway-list', 'kpam-gw-list', 'kpam-gateway-new', 'kpam-gw-new',
-        'kpam-gateway-edit', 'kpam-gw-edit', 'kpam-gateway-remove', 'kpam-gw-remove', 'kpam-gateway-rm',
-        'kpam-gateway-set-max-instances', 'kpam-gw-set-max-instances')
+        'pam-sync', 'pam-gateway-list', 'pam-gw-list', 'pam-gateway-new', 'pam-gw-new',
+        'pam-gateway-edit', 'pam-gw-edit', 'pam-gateway-remove', 'pam-gw-remove', 'pam-gateway-rm',
+        'pam-gateway-set-max-instances', 'pam-gw-set-max-instances')
 
     # List of all modules packaged with this module
     # ModuleList = @()

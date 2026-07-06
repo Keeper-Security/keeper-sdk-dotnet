@@ -161,7 +161,7 @@ function script:buildPamGatewayJsonItem {
     }
 
     if ($Summary.OnlineInstanceCount -gt 1) {
-        $instances = [System.Collections.Generic.List[object]]::new()
+        $instances = New-Object 'System.Collections.Generic.List[object]'
         $index = 1
         foreach ($instance in $Summary.OnlineInstances) {
             $instanceItem = [ordered]@{
@@ -207,7 +207,7 @@ function script:getPamGatewayTableRows {
         [bool] $VerboseOutput
     )
 
-    $rows = [System.Collections.Generic.List[object]]::new()
+    $rows = New-Object 'System.Collections.Generic.List[object]'
     foreach ($summary in $Summaries) {
         $controller = $summary.Controller
         $ksmApp = if ($summary.KsmAppAccessible) {
@@ -222,7 +222,7 @@ function script:getPamGatewayTableRows {
 
         if ($VerboseOutput) {
             $systemInfo = if ($isPool) {
-                [KeeperSecurity.Plugins.PAM.PamGatewaySystemInfo]::new()
+                New-Object KeeperSecurity.Plugins.PAM.PamGatewaySystemInfo
             }
             else {
                 $summary.SystemInfo
@@ -352,7 +352,15 @@ function Get-KeeperPamGatewayList {
     try {
         $onlineControllers = [KeeperSecurity.Plugins.PAM.RouterUtils]::GetConnectedGatewaysAsync($auth).GetAwaiter().GetResult()
     }
-    catch [System.Net.Http.HttpRequestException], [System.Threading.Tasks.TaskCanceledException] {
+    catch [System.Net.Http.HttpRequestException] {
+        $routerDown = $true
+        if (-not $Force) {
+            Write-Output "Router is unavailable. Use -Force to list registered gateways without online status."
+            return
+        }
+        Write-Output "Router is unavailable. Showing registered gateways with UNKNOWN status."
+    }
+    catch [System.Threading.Tasks.TaskCanceledException] {
         $routerDown = $true
         if (-not $Force) {
             Write-Output "Router is unavailable. Use -Force to list registered gateways without online status."
@@ -383,7 +391,7 @@ function Get-KeeperPamGatewayList {
             } | ConvertTo-Json -Depth 6
         }
         else {
-            Write-Output 'This Enterprise does not have Gateways yet. To create a new Gateway, use: pam gateway new'
+            Write-Output 'This Enterprise does not have Gateways yet. To create a new Gateway, use: pam-gateway-new'
         }
         return
     }
@@ -774,17 +782,17 @@ function Set-KeeperPamGatewayMaxInstances {
     Write-Output "$($controller.ControllerName): max instance count set to $MaxInstances"
 }
 
-New-Alias -Name kpam-gateway-list -Value Get-KeeperPamGatewayList -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gw-list -Value Get-KeeperPamGatewayList -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gateway-new -Value New-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gw-new -Value New-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gateway-edit -Value Set-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gw-edit -Value Set-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gateway-remove -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gw-remove -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gateway-rm -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gateway-set-max-instances -Value Set-KeeperPamGatewayMaxInstances -ErrorAction SilentlyContinue
-New-Alias -Name kpam-gw-set-max-instances -Value Set-KeeperPamGatewayMaxInstances -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-list -Value Get-KeeperPamGatewayList -ErrorAction SilentlyContinue
+New-Alias -Name pam-gw-list -Value Get-KeeperPamGatewayList -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-new -Value New-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gw-new -Value New-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-edit -Value Set-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gw-edit -Value Set-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-remove -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gw-remove -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-rm -Value Remove-KeeperPamGateway -ErrorAction SilentlyContinue
+New-Alias -Name pam-gateway-set-max-instances -Value Set-KeeperPamGatewayMaxInstances -ErrorAction SilentlyContinue
+New-Alias -Name pam-gw-set-max-instances -Value Set-KeeperPamGatewayMaxInstances -ErrorAction SilentlyContinue
 
 if (Get-Variable -Name Keeper_KSMAppCompleter -Scope Script -ErrorAction SilentlyContinue) {
     Register-ArgumentCompleter -CommandName New-KeeperPamGateway -ParameterName Application -ScriptBlock $Keeper_KSMAppCompleter
