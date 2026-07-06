@@ -74,7 +74,7 @@ function Sync-KeeperEnterprise {
     #>
 
     [CmdletBinding()]
-    $enterprise = getEnterprise
+    [Enterprise]$enterprise = getEnterprise
     $task = $enterprise.loader.Load()
     $task.GetAwaiter().GetResult() | Out-Null
 }

@@ -11,6 +11,36 @@ Class Enterprise {
     [hashtable] $ManagedCompanies = $null
 }
 
+Class EnterpriseTeamTarget {
+    [KeeperSecurity.Enterprise.EnterpriseTeam]$Team
+    [KeeperSecurity.Enterprise.EnterpriseQueuedTeam]$QueuedTeam
+    [string]$Uid
+    [string]$Name
+
+    static [EnterpriseTeamTarget] FromActiveTeam([KeeperSecurity.Enterprise.EnterpriseTeam]$team) {
+        $target = [EnterpriseTeamTarget]::new()
+        $target.Team = $team
+        $target.Uid = $team.Uid
+        $target.Name = $team.Name
+        return $target
+    }
+
+    static [EnterpriseTeamTarget] FromQueuedTeam([KeeperSecurity.Enterprise.EnterpriseQueuedTeam]$queuedTeam) {
+        $target = [EnterpriseTeamTarget]::new()
+        $target.QueuedTeam = $queuedTeam
+        $target.Uid = $queuedTeam.Uid
+        $target.Name = $queuedTeam.Name
+        return $target
+    }
+}
+
+Class EnterpriseTeamMembershipRequest {
+    [Enterprise]$Enterprise
+    [KeeperSecurity.Enterprise.EnterpriseUser]$User
+    [EnterpriseTeamTarget]$TeamTarget
+    [string]$HideSharedFolders
+}
+
 class KeeperContext {
     [KeeperSecurity.Authentication.IAuth] $Auth = $null
     [KeeperSecurity.Vault.VaultOnline] $Vault = $null

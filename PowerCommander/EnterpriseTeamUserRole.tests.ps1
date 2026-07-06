@@ -34,8 +34,18 @@ Describe 'Enterprise team/user/role exports' {
         (Get-Alias ketdel -ErrorAction SilentlyContinue).Definition | Should -Be 'Remove-KeeperEnterpriseTeam'
     }
 
-    It 'Preserves -Emails alias on Add-KeeperEnterpriseTeamMember' {
-        (Get-Command Add-KeeperEnterpriseTeamMember).Parameters['User'].Aliases | Should -Contain 'Emails'
+    It 'Keeps -Emails as a first-class parameter on team member cmdlets' {
+        (Get-Command Add-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Emails') | Should -Be $true
+        (Get-Command Remove-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Emails') | Should -Be $true
+        (Get-Command Add-KeeperEnterpriseTeamMember).Parameters.ContainsKey('Users') | Should -Be $true
+        (Get-Command Add-KeeperEnterpriseTeamMember).Parameters['Users'].Aliases | Should -Contain 'User'
+    }
+
+    It 'Defines EnterpriseTeamTarget and EnterpriseTeamMembershipRequest types' {
+        InModuleScope PowerCommander {
+            [EnterpriseTeamTarget] | Should -Not -BeNullOrEmpty
+            [EnterpriseTeamMembershipRequest] | Should -Not -BeNullOrEmpty
+        }
     }
 }
 
@@ -44,6 +54,45 @@ Describe 'Enterprise helper functions' {
         $content = Get-Content (Join-Path $PSScriptRoot 'EnterpriseHelpers.ps1') -Raw
         $content | Should -Match '\$user -is \[int\]'
         $content | Should -Match '\$user -match ''\^\\d\+\$'''
+    }
+
+    It 'Get-EnterpriseTeamMemberInputs merges -Emails and -User' {
+        InModuleScope PowerCommander {
+            $inputs = Get-EnterpriseTeamMemberInputs -EmailInputs @('a@example.com') -UserInputs @('42')
+            $inputs.Count | Should -Be 2
+            $inputs[0] | Should -Be 'a@example.com'
+            $inputs[1] | Should -Be '42'
+        }
+    }
+
+    It 'Get-EnterpriseTeamMemberInputs does not warn when only -Emails is provided' {
+        InModuleScope PowerCommander {
+            $inputs = Get-EnterpriseTeamMemberInputs -EmailInputs @('a@example.com') -WarningAction SilentlyContinue
+            $inputs | Should -Be @('a@example.com')
+        }
+    }
+
+    It 'Resolve-EnterpriseTeamTarget returns EnterpriseTeamTarget instances' {
+        $content = Get-Content (Join-Path $PSScriptRoot 'EnterpriseHelpers.ps1') -Raw
+        $content | Should -Match '\[EnterpriseTeamTarget\]::FromActiveTeam'
+        $content | Should -Match '\[EnterpriseTeamTarget\]::FromQueuedTeam'
+    }
+
+    It 'Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders maps to SDK TeamUserType' {
+        InModuleScope PowerCommander {
+            Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders 'on' |
+                Should -Be ([int][Enterprise.TeamUserType]::AdminOnly)
+            Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders 'off' |
+                Should -Be ([int][Enterprise.TeamUserType]::Admin)
+        }
+    }
+
+    It 'Get-EnterpriseSdkWarningCallback returns Action[string] for PS 5.1 SDK calls' {
+        InModuleScope PowerCommander {
+            $cb = Get-EnterpriseSdkWarningCallback
+            $cb | Should -Not -BeNullOrEmpty
+            $cb.GetType().FullName | Should -Match 'Action`1\[\[System\.String'
+        }
     }
 
     It 'Test-EnterpriseRoleIsAdmin is true when role has a managed node' {

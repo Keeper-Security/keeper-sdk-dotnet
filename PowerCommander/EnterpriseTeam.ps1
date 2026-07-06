@@ -285,17 +285,18 @@ function Add-KeeperEnterpriseTeamMember {
         for team admin types. Inactive users are queued to the team.
 
         Named parameters allow user-first or team-first syntax:
-        Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "user@example.com"
+        Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "user@example.com"
         Add-KeeperEnterpriseTeamMember -User "user@example.com" -Team "Engineering"
 
         .PARAMETER Team
         Team UID or Team Name.
 
+        .PARAMETER Emails
+        Array of email addresses of users to add to the team.
+
         .PARAMETER User
         User email address or enterprise user ID. Accepts multiple values.
-
-        .PARAMETER Emails
-        Deprecated alias for -User.
+        Optional alternative to -Emails for user ID or user-first syntax.
 
         .PARAMETER HideSharedFolders
         on = Admin Only (no shared folders). off = Admin with shared folder access.
@@ -303,7 +304,7 @@ function Add-KeeperEnterpriseTeamMember {
         (matches Commander team_queue_user; set admin type after user activation).
 
         .EXAMPLE
-        Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "alice@example.com", "bob@example.com"
+        Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
 
         .EXAMPLE
         Add-KeeperEnterpriseTeamMember -Team "Engineering" -User "user@example.com" -HideSharedFolders on
@@ -312,22 +313,25 @@ function Add-KeeperEnterpriseTeamMember {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)][string] $Team,
-        [Parameter(Mandatory = $true)][Alias('Emails')][string[]] $User,
+        [Parameter()][string[]] $Emails,
+        [Parameter()][Alias('User')][string[]] $Users,
         [ValidateSet('on', 'off')][string]$HideSharedFolders
     )
 
-    if (-not $User -or $User.Count -eq 0) {
-        Write-Error "At least one user must be specified via -User." -ErrorAction Stop
+    try {
+        $userInputs = Get-EnterpriseTeamMemberInputs -EmailInputs $Emails -UserInputs $Users
+    }
+    catch {
+        Write-Error $_.Exception.Message -ErrorAction Stop
     }
 
     [Enterprise]$enterprise = getEnterprise
     $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
     if (-not $teamTarget) { return }
 
-    foreach ($userInput in $User) {
-        if ([string]::IsNullOrWhiteSpace($userInput)) { continue }
+    foreach ($userInput in @($userInputs)) {
         try {
-            $userObject = resolveUser $enterprise.enterpriseData $userInput.Trim()
+            $userObject = resolveUser $enterprise.enterpriseData $userInput
         }
         catch {
             Write-Warning $_.Exception.Message
@@ -335,15 +339,14 @@ function Add-KeeperEnterpriseTeamMember {
         }
 
         try {
-            $membershipParams = @{
-                Enterprise = $enterprise
-                User       = $userObject
-                TeamTarget = $teamTarget
-            }
+            $request = [EnterpriseTeamMembershipRequest]::new()
+            $request.Enterprise = $enterprise
+            $request.User = $userObject
+            $request.TeamTarget = $teamTarget
             if ($PSBoundParameters.ContainsKey('HideSharedFolders')) {
-                $membershipParams['HideSharedFolders'] = $HideSharedFolders
+                $request.HideSharedFolders = $HideSharedFolders
             }
-            Add-EnterpriseUserToTeamMembership @membershipParams | Out-Null
+            Add-EnterpriseUserToTeamMembership -Request $request | Out-Null
         }
         catch {
             Write-Warning "Failed to add user `"$($userObject.Email)`" to team `"$($teamTarget.Name)`": $($_.Exception.Message)"
@@ -351,7 +354,9 @@ function Add-KeeperEnterpriseTeamMember {
     }
 }
 Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName Emails -ScriptBlock $Keeper_EnterpriseUserCompleter
 Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+Register-ArgumentCompleter -CommandName Add-KeeperEnterpriseTeamMember -ParameterName Users -ScriptBlock $Keeper_EnterpriseUserCompleter
 
 function Remove-KeeperEnterpriseTeamMember {
     <#
@@ -364,59 +369,61 @@ function Remove-KeeperEnterpriseTeamMember {
         .PARAMETER Team
         Team UID or Team Name from which the users will be removed.
 
+        .PARAMETER Emails
+        Array of email addresses of users to remove from the team.
+
         .PARAMETER User
         User email address or enterprise user ID. Accepts multiple values.
-
-        .PARAMETER Emails
-        Deprecated alias for -User.
+        Optional alternative to -Emails for user ID or user-first syntax.
 
         .EXAMPLE
-        Remove-KeeperEnterpriseTeamMember -Team "Engineering" -User "alice@example.com", "bob@example.com"
+        Remove-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
     #>
 
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)][string] $Team,
-        [Parameter(Mandatory = $true)][Alias('Emails')][string[]] $User
+        [Parameter()][string[]] $Emails,
+        [Parameter()][Alias('User')][string[]] $Users
     )
 
-    if (-not $User -or $User.Count -eq 0) {
-        Write-Error "At least one user must be specified via -User." -ErrorAction Stop
+    try {
+        $userInputs = Get-EnterpriseTeamMemberInputs -EmailInputs $Emails -UserInputs $Users
+    }
+    catch {
+        Write-Error $_.Exception.Message -ErrorAction Stop
     }
 
     [Enterprise]$enterprise = getEnterprise
     $teamTarget = Resolve-EnterpriseTeamTarget -Enterprise $enterprise -TeamInput $Team
     if (-not $teamTarget) { return }
 
-    $emails = [System.Collections.Generic.List[string]]::new()
-    foreach ($userInput in $User) {
-        if ([string]::IsNullOrWhiteSpace($userInput)) { continue }
+    $emailList = [System.Collections.Generic.List[string]]::new()
+    foreach ($userInput in @($userInputs)) {
         try {
-            $userObject = resolveUser $enterprise.enterpriseData $userInput.Trim()
-            [void]$emails.Add($userObject.Email)
+            $userObject = resolveUser $enterprise.enterpriseData $userInput
+            [void]$emailList.Add($userObject.Email)
         }
         catch { Write-Warning $_.Exception.Message }
     }
 
-    if ($emails.Count -eq 0) {
+    if ($emailList.Count -eq 0) {
         Write-Warning "No valid users found to remove."
         return
     }
 
     try {
-        $enterprise.enterpriseData.RemoveUsersFromTeams(
-            $emails.ToArray(),
-            @($teamTarget.Uid),
-            [System.Console]::WriteLine
-        ).GetAwaiter().GetResult() | Out-Null
-        Write-Output "Removed $($emails.Count) user(s) from team '$($teamTarget.Name)'."
+        Invoke-EnterpriseRemoveUsersFromTeams -EnterpriseData $enterprise.enterpriseData -Emails $emailList.ToArray() -TeamUids @($teamTarget.Uid)
+        Write-Output "Removed $($emailList.Count) user(s) from team '$($teamTarget.Name)'."
     }
     catch {
         Write-Warning "Failed to remove users from team '$($teamTarget.Name)': $($_.Exception.Message)"
     }
 }
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName Emails -ScriptBlock $Keeper_EnterpriseUserCompleter
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseTeamMember -ParameterName Users -ScriptBlock $Keeper_EnterpriseUserCompleter
 
 function Get-KeeperEnterpriseTeamRole {
     <#
