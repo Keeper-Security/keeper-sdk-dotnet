@@ -8,9 +8,7 @@ namespace KeeperSecurity.Authentication
     internal static class TeamKeyParser
     {
         /// <summary>
-        /// Returns RSA/EC public key bytes from a <c>team_get_keys</c> entry.
-        /// Supports the legacy format (<c>type</c> -1/-3 with key in <c>key</c>) and the
-        /// newer format (<c>team_public_key</c> + <c>team_public_key_type</c>).
+        /// Parse the asymmetric keys from a <c>team_get_keys</c> response entry.
         /// </summary>
         public static void ParseTeamAsymmetricKeyEntry(TeamKeyObject entry, out byte[] rsa, out byte[] ec)
         {

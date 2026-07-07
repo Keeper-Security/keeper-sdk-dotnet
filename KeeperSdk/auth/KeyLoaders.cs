@@ -99,7 +99,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Returns cached team keys, loading asymmetric keys via <c>team_get_keys</c> fallback when needed.
+        /// Get the team keys for sharing. This method will attempt to load the team keys if they are not already cached.
         /// </summary>
         internal async Task<UserKeys> GetTeamKeysForSharing(string teamUid)
         {
@@ -133,7 +133,7 @@ namespace KeeperSecurity.Authentication
             }
             catch (Exception e)
             {
-                Trace.TraceError($"team_get_keys fallback failed for {teamUid}: {e.Message}");
+                Trace.TraceError($"Failed to load asymmetric keys for team {teamUid}: {e.Message}");
             }
 
             if (!TryGetTeamKeys(teamUid, out keys) || !HasAsymmetricTeamKeys(keys))

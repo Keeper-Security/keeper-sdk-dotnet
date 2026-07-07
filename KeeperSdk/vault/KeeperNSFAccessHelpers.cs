@@ -71,7 +71,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Fetch folder accessors for one or more folder UIDs.
-        /// Supports batching up to 100 folder UIDs per request and cursor-based pagination via continuation tokens.
+        /// Supports batching up to 100 folder UIDs per request.
         /// </summary>
         internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
             VaultOnline vault,
@@ -83,11 +83,9 @@ namespace KeeperSecurity.Vault
 
             var allAccessors = new List<FolderProto.FolderAccessData>();
 
-            // Normalize pageSize with server limits: default 100, max 1000
             if (pageSize <= 0) pageSize = 100;
             if (pageSize > 1000) pageSize = 1000;
 
-            // The API accepts up to 100 folder UIDs per request. Batch if we have more.
             var foldersList = folderUids.Where(f => !string.IsNullOrEmpty(f)).ToList();
             const int MaxFoldersPerRequest = 100;
             for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)

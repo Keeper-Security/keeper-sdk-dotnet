@@ -74,7 +74,6 @@ namespace KeeperSecurity.Vault
                 var batchFolderNodes = new List<FolderNode>(batch.Count);
                 var batchFolderUids = new List<string>(batch.Count);
 
-                // Prepare folder data for each update in the batch
                 foreach (var item in batch)
                 {
                     if (!TryResolveKeeperNSFFolder(item.FolderUidOrName, out var folder))
@@ -151,7 +150,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Convenience overload that accepts a simple DTO usable from PowerShell.
+        /// Accepts a simple DTO that can be used from PowerShell.
         /// </summary>
         public async Task<IReadOnlyList<FolderProto.FolderModifyResult>> UpdateKeeperNSFFolders(
             IEnumerable<KeeperNSFFolderUpdate> updates)
