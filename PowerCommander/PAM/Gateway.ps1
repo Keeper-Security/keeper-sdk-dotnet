@@ -36,29 +36,21 @@ function script:resolvePamKsmApplication {
         throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayException('--application is required'))
     }
 
-    $comparison = [System.StringComparison]::OrdinalIgnoreCase
-    $applications = [System.Linq.Enumerable]::ToArray(
-        [System.Linq.Enumerable]::OfType[KeeperSecurity.Vault.ApplicationRecord]($Vault.KeeperRecords))
+    $applications = @($Vault.KeeperRecords | Where-Object { $null -ne $_ -and $_.Type -eq 'app' })
 
-    $byUid = [System.Linq.Enumerable]::FirstOrDefault(
-        $applications,
-        [Func[KeeperSecurity.Vault.ApplicationRecord, bool]] {
-            param($app)
-            return [string]::Equals($app.Uid, $trimmed, $comparison)
+    foreach ($app in $applications) {
+        if ([string]::Equals($app.Uid, $trimmed, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $app
+        }
+    }
+
+    $byTitle = @($applications | Where-Object {
+            [string]::Equals($_.Title, $trimmed, [System.StringComparison]::OrdinalIgnoreCase)
         })
-    if ($byUid) { return $byUid }
-
-    $byTitle = [System.Linq.Enumerable]::ToArray(
-        [System.Linq.Enumerable]::Where(
-            $applications,
-            [Func[KeeperSecurity.Vault.ApplicationRecord, bool]] {
-                param($app)
-                return [string]::Equals($app.Title, $trimmed, $comparison)
-            }))
-    if ($byTitle.Length -gt 1) {
+    if ($byTitle.Count -gt 1) {
         throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayAmbiguousException($trimmed))
     }
-    if ($byTitle.Length -eq 1) {
+    if ($byTitle.Count -eq 1) {
         return $byTitle[0]
     }
 
