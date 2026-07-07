@@ -15,8 +15,9 @@ function getEnterprise {
         $enterprise.queuedTeamData = New-Object KeeperSecurity.Enterprise.QueuedTeamData
         $enterprise.mspData = New-Object KeeperSecurity.Enterprise.ManagedCompanyData
         $enterprise.deviceApproval = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
+        $enterprise.userAliasData = New-Object KeeperSecurity.Enterprise.UserAliasData
 
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.roleData, $enterprise.queuedTeamData, $enterprise.mspData, $enterprise.deviceApproval
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.roleData, $enterprise.queuedTeamData, $enterprise.mspData, $enterprise.deviceApproval, $enterprise.userAliasData
 
         $enterprise.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($auth, $plugins)
         $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
@@ -48,8 +49,9 @@ function getEnterprise {
         $enterpriseMc.roleData = New-Object KeeperSecurity.Enterprise.RoleData
         $enterpriseMc.queuedTeamData = New-Object KeeperSecurity.Enterprise.QueuedTeamData
         $enterpriseMc.deviceApproval = New-Object KeeperSecurity.Enterprise.DeviceApprovalData
+        $enterpriseMc.userAliasData = New-Object KeeperSecurity.Enterprise.UserAliasData
 
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData, $enterpriseMc.queuedTeamData, $enterpriseMc.deviceApproval
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData, $enterpriseMc.queuedTeamData, $enterpriseMc.deviceApproval, $enterpriseMc.userAliasData
 
         $enterpriseMc.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
         $enterpriseMc.loader.Load().GetAwaiter().GetResult() | Out-Null

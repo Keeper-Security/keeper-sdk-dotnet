@@ -152,7 +152,8 @@ $Script:Keeper_RoleNameCompleter = {
 function resolveUser {
     Param (
         $enterpriseData,
-        $user
+        $user,
+        $userAliasData = $null
     )
     [KeeperSecurity.Enterprise.EnterpriseUser] $u = $null
 
@@ -164,6 +165,23 @@ function resolveUser {
     elseif ($user -is [string]) {
         if ($enterpriseData.TryGetUserByEmail($user, [ref]$u)) {
             return $u
+        }
+        if ($user -match '^\d+$') {
+            if ($enterpriseData.TryGetUserById([long]$user, [ref]$u)) {
+                return $u
+            }
+        }
+        if ($userAliasData) {
+            $normalizedUserEmail = $user.Trim().ToLowerInvariant()
+            foreach ($enterpriseUser in $enterpriseData.Users) {
+                foreach ($alias in $userAliasData.GetAliasesForUser($enterpriseUser.Id)) {
+                    if ($alias.ToLowerInvariant() -eq $normalizedUserEmail) {
+                        if ($enterpriseData.TryGetUserById($enterpriseUser.Id, [ref]$u)) {
+                            return $u
+                        }
+                    }
+                }
+            }
         }
     }
     elseif ($user -is [KeeperSecurity.Enterprise.EnterpriseUser]) {
