@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -231,7 +232,7 @@ namespace Commander
                     }
                     catch
                     {
-                        // Label resolution is display-only; proceed with the raw recipient.
+                       Trace.TraceInformation($"Could not resolve the label for recipient '{recipient}'. Using the original identifier.");
                     }
 
                     if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
