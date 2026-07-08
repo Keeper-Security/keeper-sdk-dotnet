@@ -220,9 +220,6 @@ function Set-KeeperNSFFolder {
 	.Parameter Color
 	Optional folder color, or "none" to clear.
 
-	.Parameter Inherit
-	Inherit parent folder permissions.
-
 	.Parameter NoInheritPermissions
 	Do not inherit parent folder permissions.
 #>
@@ -256,25 +253,27 @@ function Set-KeeperNSFFolder {
 
     
 
+    $newNameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
+    $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
+    $inheritVal = if ($NoInheritPermissions.IsPresent) { $false } else { $null }
+
     # Build updates for one or more folders
-    $updates = @()
-    foreach ($name in $Folder) {
+    $updates = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderUpdate]'
+    foreach ($folderRef in $Folder) {
         [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolder($name, [ref]$folderNode)) {
-            Write-Error -Message "Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+        if (-not $vault.TryResolveKeeperNSFFolder($folderRef, [ref]$folderNode)) {
+            Write-Error -Message "Keeper NSF folder `"$folderRef`" was not found. Run Sync-Keeper or nsf-list first."
             continue
         }
 
-        $nameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
-        $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
-        $inheritVal = -not $NoInheritPermissions.IsPresent
-
         $upd = New-Object KeeperSecurity.Vault.KeeperNSFFolderUpdate
         $upd.FolderUidOrName = $folderNode.FolderUid
-        $upd.NewName = $nameArg
+        $upd.NewName = $newNameArg
         $upd.Color = $colorArg
-        $upd.InheritPermissions = $inheritVal
-        $updates += $upd
+        if ($null -ne $inheritVal) {
+            $upd.InheritPermissions = $inheritVal
+        }
+        [void]$updates.Add($upd)
     }
 
     if ($updates.Count -eq 0) {
@@ -294,15 +293,16 @@ function Set-KeeperNSFFolder {
         $res = $results[$i]
         $target = $updates[$i].FolderUidOrName
         if ($res -eq $null) {
-            Write-Host "No result for $target" -ForegroundColor Yellow
+            Write-Host "No result returned for '$target'." -ForegroundColor Yellow
             continue
         }
 
-        if ($res.Status -eq [Folder.V3.Modify.FolderModifyStatus]::Success) {
+        try {
+            [KeeperSecurity.Vault.VaultOnline]::ValidateFolderModifyResult($res)
             Write-Host "Folder '$target' updated." -ForegroundColor Green
         }
-        else {
-            Write-Host "Failed to update '$target': $($res.Message)" -ForegroundColor Red
+        catch {
+            Write-Host "Failed to update '$target': $($_.Exception.Message)" -ForegroundColor Red
         }
     }
 

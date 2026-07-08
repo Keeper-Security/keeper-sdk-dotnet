@@ -35,7 +35,7 @@ namespace Commander
                 return;
             }
 
-            bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : (bool?)true;
+            bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : null;
 
             try
                 {
