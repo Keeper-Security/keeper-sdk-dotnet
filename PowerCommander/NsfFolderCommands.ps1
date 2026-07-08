@@ -59,11 +59,12 @@ New-Alias -Name nsf-mkdir -Value New-KeeperNSFFolder
 function Set-KeeperNSFFolderAccess {
     <#
 	.Synopsis
-	Grant or revoke user access to a Keeper NSF folder.
+	Grant or revoke user or team access to a Keeper NSF folder.
 
 	.Description
 	Changes the sharing permissions of a Keeper NSF folder using the v3 API.
 	Supports granting access with a specified role, or revoking access entirely.
+	Recipients may be user emails, team names, or team UIDs.
 
 	.Parameter FolderUid
 	UID of the folder to share. 
@@ -72,7 +73,7 @@ function Set-KeeperNSFFolderAccess {
 	Action to perform: 'grant' (default) or 'remove'.
 
 	.Parameter Email
-	One or more user email addresses to grant/revoke access.
+	One or more user email addresses, team names, or team UIDs to grant/revoke access.
 
 	.Parameter Role
 	Access role for grant action: viewer (default), share-manager, content-manager,
@@ -208,32 +209,38 @@ function Write-KeeperNSFRemoveImpact {
 function Set-KeeperNSFFolder {
     <#
 	.Synopsis
-	Renames or recolors a Keeper NSF folder (Keeper NSF v3 API).
+	Renames, recolors, or updates permission inheritance for a Keeper NSF folder (Keeper NSF v3 API).
 
-	.Parameter Folder
-	Folder UID or name.
+    .Parameter Folder
+    One or more folder UIDs or names.
 
 	.Parameter Name
 	New folder name.
 
 	.Parameter Color
 	Optional folder color, or "none" to clear.
+
+	.Parameter NoInheritPermissions
+	Do not inherit parent folder permissions.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
     Param(
-        [Parameter(Position = 0, Mandatory = $true)]
-        [string] $Folder,
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+        [string[]] $Folder,
 
         [Alias('n')]
         [Parameter(ParameterSetName = 'Default')]
         [string] $Name,
 
         [ValidateSet('none', 'red', 'orange', 'yellow', 'green', 'blue', 'gray', 'grey')]
-        [string] $Color
+        [string] $Color,
+
+        [Parameter()]
+        [switch] $NoInheritPermissions
     )
 
-    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color')) {
-        Write-Error -Message "Specify -Name and/or -Color to update the folder."
+    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color') -and -not $NoInheritPermissions.IsPresent) {
+        Write-Error -Message "Specify -Name, -Color, and/or -NoInheritPermissions to update the folder(s)."
         return
     }
     
@@ -244,31 +251,62 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
-        Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
-        return
-    }
+    
 
-    $target = "$($folderNode.Name) ($($folderNode.FolderUid))"
-    if (-not $PSCmdlet.ShouldProcess($target, "Update Keeper NSF folder")) {
-        return
-    }
-
-    $nameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
+    $newNameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
     $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
+    $inheritVal = if ($NoInheritPermissions.IsPresent) { $false } else { $null }
+
+    # Build updates for one or more folders
+    $updates = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderUpdate]'
+    foreach ($folderRef in $Folder) {
+        [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+        if (-not $vault.TryResolveKeeperNSFFolder($folderRef, [ref]$folderNode)) {
+            Write-Error -Message "Keeper NSF folder `"$folderRef`" was not found. Run Sync-Keeper or nsf-list first."
+            continue
+        }
+
+        $upd = New-Object KeeperSecurity.Vault.KeeperNSFFolderUpdate
+        $upd.FolderUidOrName = $folderNode.FolderUid
+        $upd.NewName = $newNameArg
+        $upd.Color = $colorArg
+        if ($null -ne $inheritVal) {
+            $upd.InheritPermissions = $inheritVal
+        }
+        [void]$updates.Add($upd)
+    }
+
+    if ($updates.Count -eq 0) {
+        Write-Error -Message "No valid folders to update."
+        return
+    }
 
     try {
-        $result = $vault.UpdateKeeperNSFFolder($folderNode.FolderUid, $nameArg, $colorArg).GetAwaiter().GetResult()
-        [KeeperSecurity.Vault.VaultOnline]::ValidateFolderModifyResult($result)
+        $results = $vault.UpdateKeeperNSFFolders($updates).GetAwaiter().GetResult()
     }
     catch {
         Write-Error -Message $_.Exception.Message
         return
     }
 
+    for ($i = 0; $i -lt $results.Count; $i++) {
+        $res = $results[$i]
+        $target = $updates[$i].FolderUidOrName
+        if ($res -eq $null) {
+            Write-Host "No result returned for '$target'." -ForegroundColor Yellow
+            continue
+        }
+
+        try {
+            [KeeperSecurity.Vault.VaultOnline]::ValidateFolderModifyResult($res)
+            Write-Host "Folder '$target' updated." -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed to update '$target': $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+
     $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
-    Write-Host "Keeper NSF folder updated." -ForegroundColor Green
 }
 New-Alias -Name nsf-rndir -Value Set-KeeperNSFFolder
 
