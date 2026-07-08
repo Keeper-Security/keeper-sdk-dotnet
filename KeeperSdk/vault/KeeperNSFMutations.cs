@@ -86,6 +86,12 @@ namespace KeeperSecurity.Vault
                         throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
                     }
 
+                    if (item.InheritPermissions.HasValue)
+                    {
+                        await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(this, folder.FolderUid)
+                            .ConfigureAwait(false);
+                    }
+
                     var folderJson = BuildKeeperNSFFolderUpdateData(folder, item.NewName, item.Color);
                     var encryptedData = CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(folderJson), folder.FolderKey);
 
@@ -181,6 +187,12 @@ namespace KeeperSecurity.Vault
             if (folder.FolderKey == null || folder.FolderKey.Length == 0)
             {
                 throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
+            }
+
+            if (inheritPermissions.HasValue)
+            {
+                await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(this, folder.FolderUid)
+                    .ConfigureAwait(false);
             }
 
             var folderJson = BuildKeeperNSFFolderUpdateData(folder, newName, color);
