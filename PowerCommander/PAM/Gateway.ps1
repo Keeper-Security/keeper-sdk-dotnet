@@ -454,6 +454,21 @@ function New-KeeperPamGateway {
         .Synopsis
         Create a PAM gateway (Commander: pam gateway new).
 
+        .Description
+        Creates a PAM gateway in a KSM application and returns a one-time token or initialized
+        gateway configuration for deployment.
+
+        -Name (-n)
+            Gateway name.
+        -Application (-a)
+            KSM application UID or title.
+        -TokenExpiresInMinutes (-e)
+            One-time token expiration in minutes. Default 60, maximum 1440.
+        -ConfigInit (-c) {json,b64}
+            Initialize client config and return the configuration string instead of a raw token.
+        -ReturnValue (-r)
+            Return only the token or config string.
+
         .Parameter Name
         Commander: --name, -n.
 
@@ -464,7 +479,7 @@ function New-KeeperPamGateway {
         Commander: --token-expires-in-min, -e. Default 60, max 1440.
 
         .Parameter ConfigInit
-        Commander: --config-init, -c. Values: json or b64.
+        Commander: --config-init, -c {json,b64}. Initialize client config and return configuration string.
 
         .Parameter ReturnValue
         Commander: --return_value, -r. Return token/config only.
@@ -472,6 +487,8 @@ function New-KeeperPamGateway {
         .Example
         New-KeeperPamGateway -Name "Prod Gateway" -Application "My KSM App"
         New-KeeperPamGateway -n "Prod Gateway" -a "My KSM App" -r
+        New-KeeperPamGateway -n "Prod Gateway" -a "My KSM App" -ConfigInit json
+        New-KeeperPamGateway -n "Prod Gateway" -a "My KSM App" -c b64 -r
     #>
     [CmdletBinding()]
     Param (
