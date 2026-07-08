@@ -280,7 +280,6 @@ function Add-KeeperEnterpriseTeamMember {
         Adds existing enterprise users to a Keeper team.
 
         .DESCRIPTION
-        Matches Commander enterprise-team -au/--add-user and enterprise-user --add-team.
         Adds one or more users by email (-Emails) or by email / enterprise user ID.
         At least one of -Emails or -User must be specified. Use -HideSharedFolders (on/off) for team
         admin types. Inactive users are queued to the team.
@@ -300,8 +299,8 @@ function Add-KeeperEnterpriseTeamMember {
 
         .PARAMETER HideSharedFolders
         on = Admin Only (no shared folders). off = Admin with shared folder access.
-        Applies when adding active users (-au). Not applied when queueing inactive users
-        (matches Commander team_queue_user; set admin type after user activation).
+        Applies when adding active users. Not applied when queueing inactive users
+        (set admin type after the user is active).
 
         .EXAMPLE
         Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
@@ -373,8 +372,7 @@ function Remove-KeeperEnterpriseTeamMember {
         Removes existing enterprise users from a Keeper team.
 
         .DESCRIPTION
-        Matches Commander enterprise-team -ru/--remove-user and enterprise-user --remove-team.
-        Removes one or more users by email (-Emails) or by email / enterprise user ID.
+        Removes one or more users by email (-Emails) or by email / enterprise user ID (-User or -Users).
         At least one of -Emails or -User must be specified.
 
         If the user is not on the team, a warning is shown and no remove request is sent.
