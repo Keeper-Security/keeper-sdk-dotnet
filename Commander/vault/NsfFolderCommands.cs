@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,29 +29,69 @@ namespace Commander
 
         public static async Task NsfRndirCommand(this VaultContext context, NsfRndirOptions options)
         {
-            if (options.Name == null && options.Color == null)
+            if (options.Name == null && options.Color == null && !options.NoInheritPermissions)
             {
-                Console.WriteLine("Specify --name and/or --color to update the folder.");
+                Console.WriteLine("Specify --name, --color, and/or --no-inherit to update the folder.");
                 return;
             }
 
-            if (!context.Vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
-            {
-                Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
-                return;
-            }
+            bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : null;
 
             try
-            {
-                var result = await context.Vault.UpdateKeeperNSFFolder(folderNode.FolderUid, options.Name, options.Color);
-                VaultOnline.ValidateFolderModifyResult(result);
-                await context.Vault.SyncDown(false);
-                Console.WriteLine("Keeper NSF folder updated.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating folder: {ex.Message}");
-            }
+                {
+                    var folders = options.Folder?.ToList() ?? new List<string>();
+                    if (folders.Count == 0)
+                    {
+                        Console.WriteLine("At least one folder UID or name is required.");
+                        return;
+                    }
+
+                    var updatesList = new List<(string FolderUidOrName, string NewName, string Color, bool? InheritPermissions)>();
+                    foreach (var name in folders)
+                    {
+                        if (!context.Vault.TryResolveKeeperNSFFolder(name, out var folderNode))
+                        {
+                            Console.WriteLine($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
+                            continue;
+                        }
+
+                        updatesList.Add((folderNode.FolderUid, options.Name, options.Color, inheritPermissions));
+                    }
+
+                    if (updatesList.Count == 0)
+                    {
+                        Console.WriteLine("No valid folders to update.");
+                        return;
+                    }
+
+                    var results = await context.Vault.UpdateKeeperNSFFolders(updatesList).ConfigureAwait(false);
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        var res = results[i];
+                        var target = updatesList[i].FolderUidOrName;
+                        if (res == null)
+                        {
+                            Console.WriteLine($"No result returned for '{target}'.");
+                            continue;
+                        }
+
+                        try
+                        {
+                            VaultOnline.ValidateFolderModifyResult(res);
+                            Console.WriteLine($"Folder '{target}' updated.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to update '{target}': {ex.Message}");
+                        }
+                    }
+
+                    await context.Vault.SyncDown(false).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error updating folder(s): {ex.Message}");
+                }
         }
 
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
@@ -180,24 +221,34 @@ namespace Commander
             }
 
             var action = options.Action ?? "grant";
-            foreach (var user in options.Email ?? Array.Empty<string>())
+            foreach (var recipient in options.Email ?? Array.Empty<string>())
             {
                 try
                 {
+                    var label = recipient;
+                    try
+                    {
+                        label = await vault.ResolveKeeperNSFShareRecipientLabel(recipient).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                       Trace.TraceInformation($"Could not resolve the label for recipient '{recipient}'. Using the original identifier.");
+                    }
+
                     if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
                     {
-                        await vault.GrantKeeperNSFFolderAccess(options.FolderUid, user, options.Role ?? "viewer");
-                        Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{user}' on folder '{options.FolderUid}'.");
+                        await vault.GrantKeeperNSFFolderAccess(options.FolderUid, recipient, options.Role ?? "viewer");
+                        Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{label}' on folder '{options.FolderUid}'.");
                     }
                     else
                     {
-                        await vault.RevokeKeeperNSFFolderAccess(options.FolderUid, user);
-                        Console.WriteLine($"Revoked access for '{user}' from folder '{options.FolderUid}'.");
+                        await vault.RevokeKeeperNSFFolderAccess(options.FolderUid, recipient);
+                        Console.WriteLine($"Revoked access for '{label}' from folder '{options.FolderUid}'.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error {action}ing access for '{user}': {ex.Message}");
+                    Console.WriteLine($"Error {action}ing access for '{recipient}': {ex.Message}");
                 }
             }
         }
@@ -220,14 +271,17 @@ namespace Commander
 
     class NsfRndirOptions
     {
-        [Value(0, Required = true, HelpText = "Folder UID or name")]
-        public string Folder { get; set; }
+        [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]
+        public IEnumerable<string> Folder { get; set; }
 
         [Option('n', "name", Required = false, HelpText = "New folder name")]
         public string Name { get; set; }
 
         [Option("color", Required = false, HelpText = "Folder color (none, red, orange, yellow, green, blue, gray)")]
         public string Color { get; set; }
+
+        [Option("no-inherit", Required = false, HelpText = "Do not inherit parent folder permissions")]
+        public bool NoInheritPermissions { get; set; }
     }
 
     class NsfRmdirOptions
@@ -253,7 +307,7 @@ namespace Commander
         [Option("action", Required = false, Default = "grant", HelpText = "grant or remove")]
         public string Action { get; set; }
 
-        [Option("email", Required = true, HelpText = "User email(s)")]
+        [Option("email", Required = true, HelpText = "User email(s), team name(s), or team UID(s)")]
         public IEnumerable<string> Email { get; set; }
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
