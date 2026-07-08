@@ -67,7 +67,7 @@ function Sync-KeeperPam {
         Sync PAM gateway data from the server.
 
         .Description
-        Equivalent to Commander `pam-sync-down` / `pam-sync`.
+        Sync PAM gateway data from the server. Equivalent to pam-sync.
 
         .Parameter Reload
         Perform a full sync.

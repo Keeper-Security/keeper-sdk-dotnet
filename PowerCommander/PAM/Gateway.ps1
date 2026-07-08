@@ -135,6 +135,22 @@ function script:invokePamGatewayMutation {
     syncPamPlugin -Plugin $Plugin
 }
 
+function script:handlePamRouterUnavailable {
+    Param (
+        [ref] $RouterDown,
+        [bool] $Force
+    )
+
+    $RouterDown.Value = $true
+    if (-not $Force) {
+        Write-Output 'Router is unavailable. Use -Force to list registered gateways without online status.'
+        return $false
+    }
+
+    Write-Output 'Router is unavailable. Showing registered gateways with UNKNOWN status.'
+    return $true
+}
+
 function script:buildPamGatewayJsonItem {
     Param (
         [Parameter(Mandatory = $true)][object] $Summary,
@@ -287,22 +303,22 @@ function script:getPamGatewayTableRows {
 function Get-KeeperPamGatewayList {
     <#
         .Synopsis
-        List PAM gateways (Commander: pam gateway list).
+        List PAM gateways.
 
         .Description
         Lists registered PAM gateways with online status from the router when available.
 
         .Parameter Force
-        Commander: --force, -f. List registered gateways when the router is unavailable.
+        List registered gateways when the router is unavailable. Alias: -f.
 
         .Parameter VerboseOutput
-        Commander: --verbose, -v.
+        Show verbose gateway and router details.
 
         .Parameter Format
-        Commander: --format {table,json}.
+        Output format: {table,json}.
 
         .Parameter Online
-        Commander: --online, -o. Show only online gateways.
+        Show only online gateways. Alias: -o.
 
         .Example
         Get-KeeperPamGatewayList
@@ -344,30 +360,16 @@ function Get-KeeperPamGatewayList {
     try {
         $onlineControllers = [KeeperSecurity.Plugins.PAM.RouterUtils]::GetConnectedGatewaysAsync($auth).GetAwaiter().GetResult()
     }
-    catch [System.Net.Http.HttpRequestException] {
-        $routerDown = $true
-        if (-not $Force) {
-            Write-Output "Router is unavailable. Use -Force to list registered gateways without online status."
-            return
-        }
-        Write-Output "Router is unavailable. Showing registered gateways with UNKNOWN status."
-    }
-    catch [System.Threading.Tasks.TaskCanceledException] {
-        $routerDown = $true
-        if (-not $Force) {
-            Write-Output "Router is unavailable. Use -Force to list registered gateways without online status."
-            return
-        }
-        Write-Output "Router is unavailable. Showing registered gateways with UNKNOWN status."
-    }
     catch {
-        if ($_.Exception.GetType().FullName -eq 'KeeperSecurity.Authentication.KeeperApiException') {
-            $routerDown = $true
-            if (-not $Force) {
-                Write-Output "Router is unavailable. Use -Force to list registered gateways without online status."
+        $exception = $_.Exception
+        $isRouterError = ($exception -is [System.Net.Http.HttpRequestException]) -or
+            ($exception -is [System.Threading.Tasks.TaskCanceledException]) -or
+            ($exception.GetType().FullName -eq 'KeeperSecurity.Authentication.KeeperApiException')
+
+        if ($isRouterError) {
+            if (-not (handlePamRouterUnavailable -RouterDown ([ref]$routerDown) -Force:$Force)) {
                 return
             }
-            Write-Output "Router is unavailable. Showing registered gateways with UNKNOWN status."
         }
         else {
             throw
@@ -452,7 +454,7 @@ function Get-KeeperPamGatewayList {
 function New-KeeperPamGateway {
     <#
         .Synopsis
-        Create a PAM gateway (Commander: pam gateway new).
+        Create a PAM gateway.
 
         .Description
         Creates a PAM gateway in a KSM application and returns a one-time token or initialized
@@ -470,19 +472,19 @@ function New-KeeperPamGateway {
             Return only the token or config string.
 
         .Parameter Name
-        Commander: --name, -n.
+        Gateway name. Alias: -n.
 
         .Parameter Application
-        Commander: --application, -a. KSM application UID or title.
+        KSM application UID or title. Alias: -a.
 
         .Parameter TokenExpiresInMinutes
-        Commander: --token-expires-in-min, -e. Default 60, max 1440.
+        One-time token expiration in minutes. Default 60, maximum 1440. Alias: -e.
 
         .Parameter ConfigInit
-        Commander: --config-init, -c {json,b64}. Initialize client config and return configuration string.
+        Initialize client config and return configuration string. Values: {json,b64}. Alias: -c.
 
         .Parameter ReturnValue
-        Commander: --return_value, -r. Return token/config only.
+        Return token or config only. Alias: -r.
 
         .Example
         New-KeeperPamGateway -Name "Prod Gateway" -Application "My KSM App"
@@ -594,16 +596,16 @@ function New-KeeperPamGateway {
 function Set-KeeperPamGateway {
     <#
         .Synopsis
-        Edit a PAM gateway (Commander: pam gateway edit).
+        Edit a PAM gateway.
 
         .Parameter Gateway
-        Commander: --gateway, -g.
+        Gateway UID or name. Alias: -g.
 
         .Parameter Name
-        Commander: --name, -n.
+        New gateway name. Alias: -n.
 
         .Parameter NodeId
-        Commander: --node-id, -i.
+        Enterprise node ID or name. Alias: -i.
 
         .Example
         Set-KeeperPamGateway -Gateway "Prod Gateway" -Name "Production Gateway"
@@ -678,10 +680,10 @@ function Set-KeeperPamGateway {
 function Remove-KeeperPamGateway {
     <#
         .Synopsis
-        Remove a PAM gateway (Commander: pam gateway remove).
+        Remove a PAM gateway.
 
         .Parameter Gateway
-        Commander: --gateway, -g.
+        Gateway UID or name. Alias: -g.
 
         .Example
         Remove-KeeperPamGateway -Gateway "Prod Gateway"
@@ -728,13 +730,13 @@ function Remove-KeeperPamGateway {
 function Set-KeeperPamGatewayMaxInstances {
     <#
         .Synopsis
-        Set maximum PAM gateway instances (Commander: pam gateway set-max-instances).
+        Set maximum PAM gateway instances.
 
         .Parameter Gateway
-        Commander: --gateway, -g.
+        Gateway UID or name. Alias: -g.
 
         .Parameter MaxInstances
-        Commander: --max-instances, -m. Must be at least 1.
+        Maximum number of gateway instances. Must be at least 1. Alias: -m.
 
         .Example
         Set-KeeperPamGatewayMaxInstances -Gateway "Prod Gateway" -MaxInstances 3
