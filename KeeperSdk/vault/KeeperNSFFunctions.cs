@@ -142,6 +142,9 @@ namespace KeeperSecurity.Vault
                 {
                     throw new VaultException($"Parent Keeper NSF folder '{parentFolderUid}' not found");
                 }
+
+                await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, parentFolderUid)
+                    .ConfigureAwait(false);
             }
 
             var nameLower = folderName.ToLowerInvariant();
@@ -226,7 +229,110 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task GrantKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string userEmail, string role, SharedFolderUserOptions options = null)
+        private static bool FolderInheritsParentPermissions(VaultOnline vault, string folderUid)
+        {
+            string parentUid = null;
+            if (vault.TryGetKeeperNSFFolder(folderUid, out var node))
+            {
+                parentUid = node.ParentUid;
+            }
+
+            var row = vault.Storage.KdFolders.GetEntity(folderUid);
+            if (string.IsNullOrEmpty(parentUid) && row != null)
+            {
+                parentUid = row.ParentUid;
+            }
+
+            if (string.IsNullOrEmpty(parentUid)
+                || parentUid == KeeperNSFConstants.KeeperDriveRootFolderUid)
+            {
+                return false;
+            }
+
+            if (row == null)
+            {
+                return true;
+            }
+
+            return row.InheritPermissions != (int)FolderProto.SetBooleanValue.BooleanFalse;
+        }
+
+        private static async Task EnsureKeeperNSFFolderDirectPermissionsAsync(
+            VaultOnline vault, string folderUid)
+        {
+            if (!FolderInheritsParentPermissions(vault, folderUid))
+            {
+                return;
+            }
+
+            System.Diagnostics.Trace.TraceInformation(
+                $"KeeperNSF: Disabled folder inheritance for '{folderUid}' to apply direct permissions.");
+
+            var updateResult = await vault.UpdateKeeperNSFFolderCore(
+                folderUid, null, null, inheritPermissions: false, requestSync: false).ConfigureAwait(false);
+            VaultOnline.ValidateFolderModifyResult(updateResult);
+        }
+
+        private static async Task PrepareKeeperNSFFolderForAccessChangeAsync(
+            VaultOnline vault, string folderUid)
+        {
+            await EnsureKeeperNSFFolderDirectPermissionsAsync(vault, folderUid).ConfigureAwait(false);
+        }
+
+        public static async Task GrantKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string accessor, string role, SharedFolderUserOptions options = null, bool? asTeam = null)
+        {
+            if (string.IsNullOrEmpty(folderUid))
+                throw new VaultException("Folder UID cannot be empty");
+            if (string.IsNullOrEmpty(accessor))
+                throw new VaultException("User or team identifier cannot be empty");
+
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
+                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+
+            await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
+                .ConfigureAwait(false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
+            NsfShareRecipient recipient;
+            if (asTeam.HasValue)
+            {
+                if (asTeam.Value)
+                {
+                    var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, accessor)
+                        .ConfigureAwait(false);
+                    recipient = new NsfShareRecipient(NsfShareRecipientKind.Team, teamUid);
+                }
+                else
+                {
+                    recipient = new NsfShareRecipient(NsfShareRecipientKind.User, accessor.Trim().ToLowerInvariant());
+                }
+            }
+            else
+            {
+                var classified = await NsfShareRecipientHelper.ClassifyShareRecipientAsync(vault, accessor)
+                    .ConfigureAwait(false);
+                if (!classified.HasValue)
+                {
+                    throw new VaultException($"User or team \"{accessor}\" could not be resolved.");
+                }
+
+                recipient = classified.Value;
+            }
+
+            if (recipient.Kind == NsfShareRecipientKind.Team)
+            {
+                await GrantKeeperNSFFolderAccessToTeam(vault, folderUid, recipient.Identifier, role, options)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await GrantKeeperNSFFolderAccessToUser(vault, folderUid, recipient.Identifier, role, options)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private static async Task GrantKeeperNSFFolderAccessToUser(this VaultOnline vault, string folderUid, string userEmail, string role, SharedFolderUserOptions options = null)
         {
             if (string.IsNullOrEmpty(folderUid))
                 throw new VaultException("Folder UID cannot be empty");
@@ -256,24 +362,11 @@ namespace KeeperSecurity.Vault
             FolderProto.FolderAccessData existingAccess = null;
             try
             {
-                var accessRq = new FolderProto.V3.GetFolderAccessRequest();
-                accessRq.FolderUid.Add(folderUidBytes);
-                var accessRs = await vault.Auth.ExecuteAuthRest<FolderProto.V3.GetFolderAccessRequest, FolderProto.V3.GetFolderAccessResponse>(
-                    "vault/folders/v3/access", accessRq);
-                foreach (var fr in accessRs.FolderAccessResults)
-                {
-                    if (fr.Error != null) continue;
-                    foreach (var accessor in fr.Accessors)
-                    {
-                        if (accessor.AccessType == FolderProto.AccessType.AtUser
-                            && accessor.AccessTypeUid.Equals(pkRs.AccountUid))
-                        {
-                            existingAccess = accessor;
-                            break;
-                        }
-                    }
-                    if (existingAccess != null) break;
-                }
+                var accessors = await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                    .ConfigureAwait(false);
+                existingAccess = accessors.FirstOrDefault(accessor =>
+                    accessor.AccessType == FolderProto.AccessType.AtUser
+                    && accessor.AccessTypeUid.Equals(pkRs.AccountUid));
             }
             catch (Exception ex)
             {
@@ -361,16 +454,146 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task RevokeKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string userEmail)
+        private static async Task GrantKeeperNSFFolderAccessToTeam(this VaultOnline vault, string folderUid, string teamNameOrUid, string role, SharedFolderUserOptions options = null)
+        {
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder))
+                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+
+            var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, teamNameOrUid)
+                .ConfigureAwait(false);
+            var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
+
+            var folderKey = folder.FolderKey;
+            if (folderKey == null)
+                throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
+
+            var accessRole = ResolveAccessRole(role);
+            var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
+
+            FolderProto.FolderAccessData existingAccess = null;
+            try
+            {
+                var accessors = await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                    .ConfigureAwait(false);
+                existingAccess = accessors.FirstOrDefault(accessor =>
+                    accessor.AccessType == FolderProto.AccessType.AtTeam
+                    && accessor.AccessTypeUid.Equals(teamUidBytes));
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not look up existing folder access for '{folderUid}'; falling back to create flow: {ex.Message}");
+            }
+
+            var rq = new FolderProto.FolderAccessRequest();
+
+            if (existingAccess != null)
+            {
+                if (existingAccess.AccessRoleType == accessRole && tlaProperties == null)
+                {
+                    return;
+                }
+
+                var updateData = new FolderProto.FolderAccessData
+                {
+                    FolderUid = folderUidBytes,
+                    AccessTypeUid = teamUidBytes,
+                    AccessType = FolderProto.AccessType.AtTeam,
+                    AccessRoleType = accessRole,
+                };
+                if (tlaProperties != null)
+                    updateData.TlaProperties = tlaProperties;
+                rq.FolderAccessUpdates.Add(updateData);
+            }
+            else
+            {
+                var teamKeys = await vault.Auth.GetTeamKeysForSharingAsync(teamUid).ConfigureAwait(false);
+                var (encryptedFolderKey, keyType) = NsfShareRecipientHelper.EncryptFolderKeyForTeam(
+                    folderKey, teamKeys, vault.Auth.AuthContext.ForbidKeyType2);
+
+                var addData = new FolderProto.FolderAccessData
+                {
+                    FolderUid = folderUidBytes,
+                    AccessTypeUid = teamUidBytes,
+                    AccessType = FolderProto.AccessType.AtTeam,
+                    AccessRoleType = accessRole,
+                };
+                addData.FolderKey = new FolderProto.EncryptedDataKey
+                {
+                    EncryptedKey = ByteString.CopyFrom(encryptedFolderKey),
+                    EncryptedKeyType = keyType,
+                };
+                if (tlaProperties != null)
+                    addData.TlaProperties = tlaProperties;
+                rq.FolderAccessAdds.Add(addData);
+            }
+
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq).ConfigureAwait(false);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    var action = existingAccess != null ? "update" : "grant";
+                    throw new VaultException($"Failed to {action} access: {result.Message}");
+                }
+            }
+        }
+
+        public static async Task RevokeKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string accessor, bool? asTeam = null)
         {
             if (string.IsNullOrEmpty(folderUid))
                 throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(userEmail))
-                throw new VaultException("User email cannot be empty");
+            if (string.IsNullOrEmpty(accessor))
+                throw new VaultException("User or team identifier cannot be empty");
 
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
                 throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
 
+            await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
+                .ConfigureAwait(false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
+            NsfShareRecipient recipient;
+            if (asTeam.HasValue)
+            {
+                if (asTeam.Value)
+                {
+                    var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, accessor)
+                        .ConfigureAwait(false);
+                    recipient = new NsfShareRecipient(NsfShareRecipientKind.Team, teamUid);
+                }
+                else
+                {
+                    recipient = new NsfShareRecipient(NsfShareRecipientKind.User, accessor.Trim().ToLowerInvariant());
+                }
+            }
+            else
+            {
+                var classified = await NsfShareRecipientHelper.ClassifyShareRecipientAsync(vault, accessor)
+                    .ConfigureAwait(false);
+                if (!classified.HasValue)
+                {
+                    throw new VaultException($"User or team \"{accessor}\" could not be resolved.");
+                }
+
+                recipient = classified.Value;
+            }
+
+            if (recipient.Kind == NsfShareRecipientKind.Team)
+            {
+                await RevokeKeeperNSFFolderAccessFromTeam(vault, folderUid, recipient.Identifier).ConfigureAwait(false);
+            }
+            else
+            {
+                await RevokeKeeperNSFFolderAccessFromUser(vault, folderUid, recipient.Identifier).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task RevokeKeeperNSFFolderAccessFromUser(this VaultOnline vault, string folderUid, string userEmail)
+        {
             var pkRq = new AuthProto.GetPublicKeysRequest();
             pkRq.Usernames.Add(userEmail);
             var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
@@ -402,6 +625,32 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        private static async Task RevokeKeeperNSFFolderAccessFromTeam(this VaultOnline vault, string folderUid, string teamNameOrUid)
+        {
+            var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, teamNameOrUid)
+                .ConfigureAwait(false);
+            var accessData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = ByteString.CopyFrom(teamUid.Base64UrlDecode()),
+                AccessType = FolderProto.AccessType.AtTeam,
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessRemoves.Add(accessData);
+
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq).ConfigureAwait(false);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to revoke access: {result.Message}");
+                }
+            }
+        }
+
         public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(title))
@@ -419,6 +668,10 @@ namespace KeeperSecurity.Vault
                     throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
                 if (folder.FolderKey == null)
                     throw new VaultException($"Folder key not available for folder '{folderUid}'");
+
+                await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
+                    .ConfigureAwait(false);
+
                 encryptionKey = folder.FolderKey;
                 keyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey;
             }
@@ -612,12 +865,152 @@ namespace KeeperSecurity.Vault
             return perm;
         }
 
+        private static async Task<RecordSharingProto.Permissions> BuildRecordDenySharePermissions(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
+                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
+            if (record.RecordKey == null)
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+
+            var pkRq = new AuthProto.GetPublicKeysRequest();
+            pkRq.Usernames.Add(userEmail);
+            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
+                "vault/get_public_keys", pkRq).ConfigureAwait(false);
+            var pkRs = pkRss.KeyResponses[0];
+
+            if (pkRs.PublicEccKey.IsEmpty && pkRs.PublicKey.IsEmpty)
+                throw new KeeperApiException("public_key_error", $"User '{userEmail}' not found or has no public key: {pkRs.Message}");
+
+            byte[] encryptedRecordKey;
+            bool useEcc;
+            if (!pkRs.PublicKey.IsEmpty)
+            {
+                var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptRsa(record.RecordKey, rsaPk);
+                useEcc = false;
+            }
+            else
+            {
+                var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptEc(record.RecordKey, ecPk);
+                useEcc = true;
+            }
+
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = pkRs.AccountUid,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                RecordKey = ByteString.CopyFrom(encryptedRecordKey),
+                UseEccKey = useEcc,
+            };
+            perm.Rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = pkRs.AccountUid,
+                AccessType = FolderProto.AccessType.AtUser,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Owner = false,
+                DeniedAccess = true,
+            };
+            return perm;
+        }
+
+        private static async Task<IList<FolderProto.RecordAccessData>> GetRecordUserAccessRowsAsync(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            var pkRq = new AuthProto.GetPublicKeysRequest();
+            pkRq.Usernames.Add(userEmail);
+            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
+                "vault/get_public_keys", pkRq).ConfigureAwait(false);
+            var pkRs = pkRss.KeyResponses[0];
+            if (pkRs.AccountUid.IsEmpty)
+            {
+                return Array.Empty<FolderProto.RecordAccessData>();
+            }
+
+            var detailsRs = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(
+                vault, new[] { recordUid }).ConfigureAwait(false);
+
+            var rows = new List<FolderProto.RecordAccessData>();
+            foreach (var ra in detailsRs.RecordAccesses)
+            {
+                var data = ra?.Data;
+                if (data == null) continue;
+                if (data.AccessType != FolderProto.AccessType.AtUser) continue;
+                if (data.Owner) continue;
+                if (!data.AccessTypeUid.Equals(pkRs.AccountUid)) continue;
+                rows.Add(data);
+            }
+
+            return rows;
+        }
+
+        private static async Task RevokeDirectKeeperNSFRecordShareAsync(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            var pkRq = new AuthProto.GetPublicKeysRequest();
+            pkRq.Usernames.Add(userEmail);
+            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
+                "vault/get_public_keys", pkRq).ConfigureAwait(false);
+            var pkRs = pkRss.KeyResponses[0];
+
+            if (pkRs.AccountUid.IsEmpty)
+                throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found");
+
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = pkRs.AccountUid,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+            perm.Rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = pkRs.AccountUid,
+                AccessType = FolderProto.AccessType.AtUser,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+
+            var rq = new RecordSharingProto.Request();
+            rq.RevokeSharingPermissions.Add(perm);
+
+            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                "vault/records/v3/share", rq).ConfigureAwait(false);
+
+            foreach (var status in rs.RevokedSharingStatus)
+            {
+                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
+                {
+                    throw new VaultException($"Failed to revoke record access: {status.Message}");
+                }
+            }
+        }
+
+        private static async Task DenyInheritedKeeperNSFRecordShareAsync(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            var perm = await BuildRecordDenySharePermissions(vault, recordUid, userEmail).ConfigureAwait(false);
+            var rq = new RecordSharingProto.Request();
+            rq.CreateSharingPermissions.Add(perm);
+            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                "vault/records/v3/share", rq).ConfigureAwait(false);
+
+            foreach (var status in rs.CreatedSharingStatus)
+            {
+                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
+                {
+                    throw new VaultException($"Failed to deny inherited record access: {status.Message}");
+                }
+            }
+        }
+
         public static async Task ShareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail, string role, SharedFolderRecordOptions options = null)
         {
             if (string.IsNullOrEmpty(recordUid))
                 throw new VaultException("Record UID cannot be empty");
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
+
+            await KeeperNSFAccessHelpers.RequireKeeperNSFRecordSharePermissionAsync(vault, recordUid)
+                .ConfigureAwait(false);
 
             var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, role, options);
             var recipientUid = perm.RecipientUid;
@@ -627,10 +1020,8 @@ namespace KeeperSecurity.Vault
             bool hasDirectShare = false;
             try
             {
-                var detailsRq = new RecordDetailsProto.RecordAccessRequest();
-                detailsRq.RecordUids.Add(ByteString.CopyFrom(recordUid.Base64UrlDecode()));
-                var detailsRs = await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordAccessRequest, RecordDetailsProto.RecordAccessResponse>(
-                    "vault/records/v3/details/access", detailsRq);
+                var detailsRs = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(
+                    vault, new[] { recordUid }).ConfigureAwait(false);
                 foreach (var ra in detailsRs.RecordAccesses)
                 {
                     var data = ra?.Data;
@@ -745,39 +1136,26 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            var pkRq = new AuthProto.GetPublicKeysRequest();
-            pkRq.Usernames.Add(userEmail);
-            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
-                "vault/get_public_keys", pkRq);
-            var pkRs = pkRss.KeyResponses[0];
+            await KeeperNSFAccessHelpers.RequireKeeperNSFRecordSharePermissionAsync(vault, recordUid)
+                .ConfigureAwait(false);
 
-            if (pkRs.AccountUid.IsEmpty)
-                throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found");
+            var userAccesses = await GetRecordUserAccessRowsAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+            var hasDirect = userAccesses.Any(a => !a.Inherited);
+            var hasInherited = userAccesses.Any(a => a.Inherited);
 
-            var perm = new RecordSharingProto.Permissions
+            if (hasDirect)
             {
-                RecipientUid = pkRs.AccountUid,
-                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-            };
-            perm.Rules = new FolderProto.RecordAccessData
+                await RevokeDirectKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+            }
+
+            if (hasInherited)
             {
-                AccessTypeUid = pkRs.AccountUid,
-                AccessType = FolderProto.AccessType.AtUser,
-                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-            };
+                await DenyInheritedKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+            }
 
-            var rq = new RecordSharingProto.Request();
-            rq.RevokeSharingPermissions.Add(perm);
-
-            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                "vault/records/v3/share", rq);
-
-            foreach (var status in rs.RevokedSharingStatus)
+            if (!hasDirect && !hasInherited)
             {
-                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
-                {
-                    throw new VaultException($"Failed to revoke record access: {status.Message}");
-                }
+                await RevokeDirectKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
             }
         }
 
@@ -844,15 +1222,8 @@ namespace KeeperSecurity.Vault
             if (recordUids.Count == 0)
                 throw new VaultException("No records found in the specified folder");
 
-            var accessRq = new RecordDetailsProto.RecordAccessRequest();
-            foreach (var uid in recordUids)
-            {
-                accessRq.RecordUids.Add(ByteString.CopyFrom(uid.Base64UrlDecode()));
-            }
-
-            var accessRs = await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordAccessRequest,
-                RecordDetailsProto.RecordAccessResponse>(
-                "vault/records/v3/details/access", accessRq);
+            var accessRs = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(vault, recordUids)
+                .ConfigureAwait(false);
 
             var currentUser = vault.Auth.Username;
             var forbidden = new HashSet<string>();
@@ -978,12 +1349,37 @@ namespace KeeperSecurity.Vault
                     {
                         if (access.Inherited)
                         {
-                            result.Skipped.Add(new KeeperNSFPermissionChange
+                            if (dryRun)
                             {
-                                RecordUid = access.RecordUid, Email = access.AccessorName,
-                                CurrentRole = curRole, ChangeType = "skip",
-                                Message = "Inherited from a shared folder - revoke at the parent shared folder",
-                            });
+                                result.Denies.Add(new KeeperNSFPermissionChange
+                                {
+                                    RecordUid = access.RecordUid, Email = access.AccessorName,
+                                    CurrentRole = curRole, ChangeType = "deny",
+                                    Success = true, Message = "dry-run",
+                                });
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    await DenyInheritedKeeperNSFRecordShareAsync(
+                                        vault, access.RecordUid, access.AccessorName);
+                                    result.Denies.Add(new KeeperNSFPermissionChange
+                                    {
+                                        RecordUid = access.RecordUid, Email = access.AccessorName,
+                                        CurrentRole = curRole, ChangeType = "deny", Success = true,
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    result.Denies.Add(new KeeperNSFPermissionChange
+                                    {
+                                        RecordUid = access.RecordUid, Email = access.AccessorName,
+                                        CurrentRole = curRole, ChangeType = "deny",
+                                        Success = false, Message = ex.Message,
+                                    });
+                                }
+                            }
                         }
                         else if (dryRun)
                         {

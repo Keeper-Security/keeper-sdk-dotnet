@@ -409,6 +409,22 @@ namespace KeeperSecurity.Vault
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 
+        /// <summary>
+        /// Resolves a user email or team name/UID to a display label for NSF sharing output.
+        /// </summary>
+        public async Task<string> ResolveKeeperNSFShareRecipientLabel(string recipient)
+        {
+            var classified = await NsfShareRecipientHelper.ClassifyShareRecipientAsync(this, recipient)
+                .ConfigureAwait(false);
+            if (classified?.Kind == NsfShareRecipientKind.Team)
+            {
+                return await NsfShareRecipientHelper.ResolveTeamDisplayNameAsync(this, classified.Value.Identifier)
+                    .ConfigureAwait(false);
+            }
+
+            return recipient;
+        }
+
         /// <inheritdoc/>
         public async Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null)
         {

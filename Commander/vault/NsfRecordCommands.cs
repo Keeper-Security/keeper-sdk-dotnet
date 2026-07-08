@@ -148,7 +148,7 @@ namespace Commander
                 return;
             }
 
-            var hasChanges = permResult.Grants.Count > 0 || permResult.Revokes.Count > 0;
+            var hasChanges = permResult.Grants.Count > 0 || permResult.Revokes.Count > 0 || permResult.Denies.Count > 0;
             NsfHelpers.DisplayPermissionChanges(permResult, true);
 
             if (!hasChanges && permResult.Skipped.Count == 0)
@@ -161,7 +161,7 @@ namespace Commander
             {
                 Console.WriteLine();
                 Console.WriteLine("[Dry-run mode - no changes were made]");
-                Console.WriteLine($"Summary: {permResult.Grants.Count + permResult.Revokes.Count} planned, {permResult.Skipped.Count} skipped");
+                Console.WriteLine($"Summary: {permResult.Grants.Count + permResult.Revokes.Count + permResult.Denies.Count} planned, {permResult.Skipped.Count} skipped");
                 return;
             }
 
@@ -193,8 +193,8 @@ namespace Commander
             }
 
             NsfHelpers.DisplayPermissionChanges(permResult, false);
-            var successCount = permResult.Grants.Count(g => g.Success) + permResult.Revokes.Count(r => r.Success);
-            var failCount = permResult.Grants.Count(g => !g.Success) + permResult.Revokes.Count(r => !r.Success);
+            var successCount = permResult.Grants.Count(g => g.Success) + permResult.Revokes.Count(r => r.Success) + permResult.Denies.Count(d => d.Success);
+            var failCount = permResult.Grants.Count(g => !g.Success) + permResult.Revokes.Count(r => !r.Success) + permResult.Denies.Count(d => !d.Success);
             Console.WriteLine();
             Console.WriteLine($"Summary: {successCount} succeeded, {failCount} failed, {permResult.Skipped.Count} skipped");
         }

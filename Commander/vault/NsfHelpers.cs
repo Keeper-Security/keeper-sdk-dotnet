@@ -560,6 +560,23 @@ namespace Commander
                     }
                 }
             }
+
+            if (result.Denies.Count > 0)
+            {
+                var header = isDryRun ? "PLANNED DENIES" : "DENY";
+                Console.WriteLine();
+                Console.WriteLine($"  {header} ({result.Denies.Count}):");
+                foreach (var d in result.Denies)
+                {
+                    var statusIcon = isDryRun ? "" : (d.Success ? "[OK] " : "[FAIL] ");
+                    var inherited = d.ChangeType == "deny" ? " (inherited override)" : "";
+                    Console.WriteLine($"    {statusIcon}{d.RecordUid}  {d.Email}  [{d.CurrentRole}]{inherited}");
+                    if (!isDryRun && !d.Success && !string.IsNullOrEmpty(d.Message))
+                    {
+                        Console.WriteLine($"         Error: {d.Message}");
+                    }
+                }
+            }
         }
     }
 }

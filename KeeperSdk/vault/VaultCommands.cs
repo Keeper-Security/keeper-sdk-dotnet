@@ -521,6 +521,10 @@ namespace KeeperSecurity.Commands
         public string key;
         [DataMember(Name = "type")]
         public int keyType;
+        [DataMember(Name = "team_public_key")]
+        public string teamPublicKey;
+        [DataMember(Name = "team_public_key_type")]
+        public int teamPublicKeyType;
         [DataMember(Name = "result_code")]
         public string resultCode;
         [DataMember(Name = "message")]

@@ -216,6 +216,10 @@ namespace KeeperSecurity.Vault
                     keyType = (int)fa.FolderKey.EncryptedKeyType;
                 }
 
+                var permissionsJson = fa.Permissions != null
+                    ? KeeperNSFAccessHelpers.SerializeFolderPermissions(fa.Permissions)
+                    : string.Empty;
+
                 return new StorageKdFolderAccess
                 {
                     FolderUid = fa.FolderUid.ToByteArray().Base64UrlEncode(),
@@ -229,6 +233,7 @@ namespace KeeperSecurity.Vault
                     FolderKeyType = keyType,
                     DateCreated = fa.DateCreated,
                     LastModified = fa.LastModified,
+                    PermissionsJson = permissionsJson,
                 };
             }).ToArray();
 
@@ -914,6 +919,7 @@ namespace KeeperSecurity.Vault
     {
         public List<KeeperNSFPermissionChange> Grants { get; } = new List<KeeperNSFPermissionChange>();
         public List<KeeperNSFPermissionChange> Revokes { get; } = new List<KeeperNSFPermissionChange>();
+        public List<KeeperNSFPermissionChange> Denies { get; } = new List<KeeperNSFPermissionChange>();
         public List<KeeperNSFPermissionChange> Skipped { get; } = new List<KeeperNSFPermissionChange>();
     }
 
