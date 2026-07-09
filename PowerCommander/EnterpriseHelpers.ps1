@@ -162,6 +162,11 @@ function resolveUser {
             return $u
         }
     }
+    elseif ($user -is [int]) {
+        if ($enterpriseData.TryGetUserById([long]$user, [ref]$u)) {
+            return $u
+        }
+    }
     elseif ($user -is [string]) {
         if ($enterpriseData.TryGetUserByEmail($user, [ref]$u)) {
             return $u
@@ -389,6 +394,300 @@ function Get-KeeperTeamByNameOrUid {
         }
     }
     return $null
+}
+
+function Resolve-EnterpriseTeamTarget {
+    param (
+        [Parameter(Mandatory = $true)][Enterprise]$Enterprise,
+        [Parameter(Mandatory = $true)][string]$TeamInput
+    )
+
+    if ([string]::IsNullOrWhiteSpace($TeamInput)) { return $null }
+
+    $key = $TeamInput.Trim()
+    $ed = $Enterprise.enterpriseData
+    [KeeperSecurity.Enterprise.EnterpriseTeam]$team = $null
+
+    if ($ed.TryGetTeam($key, [ref]$team)) {
+        return [EnterpriseTeamTarget]::FromActiveTeam($team)
+    }
+
+    $nameMatches = @($ed.Teams | Where-Object { $_.Name -ieq $key })
+    if ($nameMatches.Count -eq 1) {
+        return [EnterpriseTeamTarget]::FromActiveTeam($nameMatches[0])
+    }
+    if ($nameMatches.Count -gt 1) {
+        Write-Warning "Team name `"$key`" is not unique. Use Team UID."
+        return $null
+    }
+
+    $queuedMatches = @(
+        $Enterprise.queuedTeamData.QueuedTeams |
+        Where-Object { $_.Uid -ceq $key -or $_.Name -ieq $key }
+    )
+    if ($queuedMatches.Count -eq 1) {
+        return [EnterpriseTeamTarget]::FromQueuedTeam($queuedMatches[0])
+    }
+    if ($queuedMatches.Count -gt 1) {
+        Write-Warning "Queued team name `"$key`" is not unique. Use Team UID."
+        return $null
+    }
+
+    Write-Warning "Team `"$key`" not found."
+    return $null
+}
+
+function Resolve-EnterpriseRoleList {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][string[]]$Roles
+    )
+
+    $resolved = [System.Collections.Generic.List[KeeperSecurity.Enterprise.EnterpriseRole]]::new()
+    foreach ($roleInput in $Roles) {
+        if ([string]::IsNullOrWhiteSpace($roleInput)) {
+            Write-Warning "Skipping empty role value."
+            continue
+        }
+        try {
+            $role = resolveRole $RoleData $roleInput.Trim()
+            if ($role) { [void]$resolved.Add($role) }
+        }
+        catch { Write-Warning $_.Exception.Message }
+    }
+    return $resolved
+}
+
+function Get-EnterpriseTeamMemberInputs {
+    param (
+        [AllowNull()]
+        [string[]]$EmailInputs,
+        [AllowNull()]
+        [string[]]$UserInputs
+    )
+
+    $memberInputsList = [System.Collections.Generic.List[string]]::new()
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    if ($null -ne $EmailInputs) {
+        foreach ($email in $EmailInputs) {
+            if ([string]::IsNullOrWhiteSpace($email)) {
+                Write-Warning "Skipping empty email value."
+                continue
+            }
+            $trimmed = $email.Trim()
+            if ($seen.Add($trimmed)) {
+                [void]$memberInputsList.Add($trimmed)
+            }
+        }
+    }
+
+    if ($null -ne $UserInputs) {
+        foreach ($userInput in $UserInputs) {
+            if ([string]::IsNullOrWhiteSpace($userInput)) {
+                Write-Warning "Skipping empty user value."
+                continue
+            }
+            $trimmed = $userInput.Trim()
+            if ($seen.Add($trimmed)) {
+                [void]$memberInputsList.Add($trimmed)
+            }
+        }
+    }
+
+    if ($memberInputsList.Count -eq 0) {
+        throw "At least one user must be specified via -Emails or -User."
+    }
+
+    # Comma ensures a single user is returned as string[]
+    return ,@($memberInputsList.ToArray())
+}
+
+function Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders {
+    <#
+        .SYNOPSIS
+        Maps -HideSharedFolders (on/off) to SDK TeamUserType admin values.
+    #>
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('on', 'off')]
+        [string]$HideSharedFolders
+    )
+
+    if ($HideSharedFolders -eq 'on') {
+        return [int][Enterprise.TeamUserType]::AdminOnly
+    }
+    return [int][Enterprise.TeamUserType]::Admin
+}
+
+function Test-EnterpriseRoleIsAdmin {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][long]$RoleId
+    )
+    return @($RoleData.GetManagedNodes() | Where-Object { $_.RoleId -eq $RoleId }).Count -gt 0
+}
+
+function Get-EnterpriseDistinctUserIdsForTeam {
+    param (
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string]$TeamUid
+    )
+
+    $seen = [System.Collections.Generic.HashSet[long]]::new()
+    $userIds = [System.Collections.Generic.List[long]]::new()
+    foreach ($userId in @($EnterpriseData.GetUsersForTeam($TeamUid))) {
+        if ($seen.Add($userId)) {
+            [void]$userIds.Add($userId)
+        }
+    }
+    return $userIds
+}
+
+function Test-EnterpriseUserOnTeam {
+    param (
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string]$TeamUid,
+        [Parameter(Mandatory = $true)][long]$UserId
+    )
+    return @(Get-EnterpriseDistinctUserIdsForTeam -EnterpriseData $EnterpriseData -TeamUid $TeamUid) -contains $UserId
+}
+
+function Test-EnterpriseTeamOnRole {
+    param (
+        [Parameter(Mandatory = $true)]$RoleData,
+        [Parameter(Mandatory = $true)][long]$RoleId,
+        [Parameter(Mandatory = $true)][string]$TeamUid
+    )
+    return @($RoleData.GetTeamsForRole($RoleId)) -contains $TeamUid
+}
+
+function Test-EnterpriseUserQueuedForTeam {
+    param (
+        [Parameter(Mandatory = $true)]$QueuedTeamData,
+        [Parameter(Mandatory = $true)][string]$TeamUid,
+        [Parameter(Mandatory = $true)][long]$UserId
+    )
+    return @($QueuedTeamData.GetQueuedUsersForTeam($TeamUid)) -contains $UserId
+}
+
+function Get-EnterpriseSdkWarningCallback {
+    if ($null -eq $script:EnterpriseSdkWarningCallback) {
+        $writeLine = [System.Console].GetMethod('WriteLine', [System.Type[]]@([string]))
+        $script:EnterpriseSdkWarningCallback = [System.Delegate]::CreateDelegate(
+            [System.Action[string]],
+            $null,
+            $writeLine
+        )
+    }
+    return $script:EnterpriseSdkWarningCallback
+}
+
+function Invoke-EnterpriseAddUsersToTeams {
+    param(
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string[]]$Emails,
+        [Parameter(Mandatory = $true)][string[]]$TeamUids
+    )
+
+    try {
+        $callback = Get-EnterpriseSdkWarningCallback
+        $EnterpriseData.AddUsersToTeams($Emails, $TeamUids, $callback).GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+        $message = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { $_.Exception.Message }
+        if ($message -match 'AddUsersToTeams' -and $message -match 'argument count') {
+            $EnterpriseData.AddUsersToTeams($Emails, $TeamUids).GetAwaiter().GetResult() | Out-Null
+        }
+        else {
+            throw
+        }
+    }
+}
+
+function Invoke-EnterpriseRemoveUsersFromTeams {
+    param(
+        [Parameter(Mandatory = $true)]$EnterpriseData,
+        [Parameter(Mandatory = $true)][string[]]$Emails,
+        [Parameter(Mandatory = $true)][string[]]$TeamUids
+    )
+
+    try {
+        $callback = Get-EnterpriseSdkWarningCallback
+        $EnterpriseData.RemoveUsersFromTeams($Emails, $TeamUids, $callback).GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+        $message = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { $_.Exception.Message }
+        if ($message -match 'RemoveUsersFromTeams' -and $message -match 'argument count') {
+            $EnterpriseData.RemoveUsersFromTeams($Emails, $TeamUids).GetAwaiter().GetResult() | Out-Null
+        }
+        else {
+            throw
+        }
+    }
+}
+
+function Add-EnterpriseUserToTeamMembership {
+    param (
+        [Parameter(Mandatory = $true)][EnterpriseTeamMembershipRequest]$Request
+    )
+
+    $Enterprise = $Request.Enterprise
+    $User = $Request.User
+    $TeamTarget = $Request.TeamTarget
+    $HideSharedFolders = $Request.HideSharedFolders
+
+    $ed = $Enterprise.enterpriseData
+    $teamUid = $TeamTarget.Uid
+    $teamName = $TeamTarget.Name
+    $teamObject = $TeamTarget.Team
+
+    if ($User.UserStatus -eq [KeeperSecurity.Enterprise.UserStatus]::Active) {
+        if (-not $teamObject) {
+            Write-Warning "Team `"$teamName`" is queued only. Active users cannot be added until the team is approved."
+            return
+        }
+
+        $existingMember = Test-EnterpriseUserOnTeam -EnterpriseData $ed -TeamUid $teamUid -UserId $User.Id
+        if ($existingMember) {
+            Write-Warning "User `"$($User.Email)`" is already a member of team `"$teamName`"."
+            if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
+                $userType = Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders $HideSharedFolders
+                $ed.TeamEnterpriseUserUpdate($teamObject, $User, $userType).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Admin type updated for user `"$($User.Email)`" in team `"$teamName`"."
+            }
+            return
+        }
+
+        Invoke-EnterpriseAddUsersToTeams -EnterpriseData $ed -Emails @($User.Email) -TeamUids @($teamUid)
+        $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+
+        if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
+            $userType = Get-EnterpriseTeamAdminUserTypeFromHideSharedFolders -HideSharedFolders $HideSharedFolders
+            $ed.TeamEnterpriseUserUpdate($teamObject, $User, $userType).GetAwaiter().GetResult() | Out-Null
+        }
+
+        Write-Output "User `"$($User.Email)`" added to team `"$teamName`"."
+        return
+    }
+
+    # Commander queues inactive users via team_queue_user (no admin-type field on that API).
+    # HideSharedFolders applies after the user is active and on the team (TeamEnterpriseUserUpdate).
+    if (Test-EnterpriseUserQueuedForTeam -QueuedTeamData $Enterprise.queuedTeamData -TeamUid $teamUid -UserId $User.Id) {
+        Write-Warning "User `"$($User.Email)`" is already queued for team `"$teamName`"."
+        return
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HideSharedFolders)) {
+        Write-Warning "HideSharedFolders is not applied when queueing inactive user `"$($User.Email)`" to team `"$teamName`". Set admin type after the user is active."
+    }
+
+    $rq = New-Object KeeperSecurity.Commands.TeamQueueUserCommand
+    $rq.TeamUid = $teamUid
+    $rq.EnterpriseUserId = $User.Id
+    $Enterprise.loader.Auth.ExecuteAuthCommand($rq).GetAwaiter().GetResult() | Out-Null
+    $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+    Write-Output "User `"$($User.Email)`" queued to team `"$teamName`"."
 }
 
 

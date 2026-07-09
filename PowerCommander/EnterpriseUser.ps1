@@ -588,6 +588,45 @@ function Remove-KeeperEnterpriseUserAlias {
 Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseUserAlias -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
 New-Alias -Name kuser-alias-remove -Value Remove-KeeperEnterpriseUserAlias
 
+function Get-KeeperEnterpriseUserTeam {
+    <#
+        .SYNOPSIS
+        Gets the list of enterprise teams for a user.
+
+        .DESCRIPTION
+        Returns teams the specified enterprise user belongs to.
+
+        .PARAMETER User
+        User email, enterprise user ID, or EnterpriseUser object.
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUserTeam -User "user@example.com"
+
+        .EXAMPLE
+        Get-KeeperEnterpriseUserTeam -User 123456789
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$User
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $userObject = resolveUser $enterpriseData $User
+    if (-not $userObject) { return @() }
+
+    $teamUids = @($enterpriseData.GetTeamsForUser($userObject.Id) | Select-Object -Unique)
+    if ($teamUids.Count -eq 0) { return @() }
+
+    $teams = foreach ($teamUid in $teamUids) {
+        $team = $null
+        if ($enterpriseData.TryGetTeam($teamUid, [ref]$team)) { $team }
+    }
+    return @($teams | Sort-Object { $_.Name })
+}
+Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseUserTeam -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+New-Alias -Name keut -Value Get-KeeperEnterpriseUserTeam
+
 function Update-KeeperEnterpriseTeamUser {
     <#
         .Synopsis

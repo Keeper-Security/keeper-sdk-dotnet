@@ -7,6 +7,11 @@ function getEnterprise {
         Write-Error -Message "Not an Enterprise Administrator" -ErrorAction Stop
     }
     $enterprise = $Script:Context.Enterprise
+    if ($null -ne $enterprise -and -not ($enterprise -is [Enterprise])) {
+        $Script:Context.Enterprise = $null
+        $Script:Context.ManagedCompanyId = 0
+        $enterprise = $null
+    }
     if (-not $enterprise) {
         $enterprise = New-Object Enterprise
 
