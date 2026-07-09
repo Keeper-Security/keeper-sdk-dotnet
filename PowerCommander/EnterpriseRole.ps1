@@ -462,10 +462,11 @@ function Grant-KeeperEnterpriseRoleToTeam {
         Adds a team to an Enterprise Role
 
         .DESCRIPTION
-        Assigns an existing enterprise team to an enterprise role.
+        Assigns an existing enterprise team to an enterprise role. When the team is already
+        on a role, a warning is shown and that role is skipped.
 
         .PARAMETER Role
-        Role Name, ID, or EnterpriseRole object
+        One or more role names, IDs, or EnterpriseRole objects
 
         .PARAMETER Team
         Team UID, Name, or EnterpriseTeam object
@@ -475,8 +476,8 @@ function Grant-KeeperEnterpriseRoleToTeam {
         Adds the team to the role
 
         .EXAMPLE
-        Grant-KeeperEnterpriseRoleToTeam -Role "MyRole" -Team "1P7A8XZ9K3J9H"
-        Adds the team using Team UID
+        Grant-KeeperEnterpriseRoleToTeam -Team "Engineering" -Role "Employee", "Contractor"
+        Adds multiple roles to the team (enterprise-team -ar)
 
         .EXAMPLE
         Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Grant-KeeperEnterpriseRoleToTeam -Team "Engineering"
@@ -488,29 +489,63 @@ function Grant-KeeperEnterpriseRoleToTeam {
         [Parameter(Position = 1, Mandatory = $true)]$Team
     )
 
-    [Enterprise]$enterprise = getEnterprise
-    $roleData = $enterprise.roleData
-    $enterpriseData = $enterprise.enterpriseData
-
-    $roleObject = resolveRole $roleData $Role
-    if (-not $roleObject) {
-        return
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $teamObject = resolveTeam $enterprise.enterpriseData $Team
+        $skipOperation = -not $teamObject
+        $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
-
-    $teamObject = resolveTeam $enterpriseData $Team
-    if (-not $teamObject) {
-        return
-    }
-
-    $roleName = $roleObject.DisplayName
-    $teamName = $teamObject.Name
-    if ($PSCmdlet.ShouldProcess("Team `"$teamName`" to Role `"$roleName`"", "Add")) {
-        try {
-            $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Team `"$teamName`" added to role `"$roleName`""
+    process {
+        foreach ($roleInput in @($Role)) {
+            if ($null -eq $roleInput) { continue }
+            if ($roleInput -is [KeeperSecurity.Enterprise.EnterpriseRole]) {
+                [void]$roleInputs.Add([string]$roleInput.Id)
+            }
+            else {
+                [void]$roleInputs.Add([string]$roleInput)
+            }
         }
-        catch {
-            Write-Error "Failed to add team `"$teamName`" to role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+    end {
+        if ($skipOperation) { return }
+        if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to add."
+            return
+        }
+
+        $failures = [System.Collections.Generic.List[string]]::new()
+        $addedCount = 0
+        foreach ($roleObject in $roleObjects) {
+            if (Test-EnterpriseRoleIsAdmin -RoleData $roleData -RoleId $roleObject.Id) {
+                Write-Warning "Teams cannot be assigned to role `"$($roleObject.DisplayName)`". Skipping."
+                continue
+            }
+            $roleName = $roleObject.DisplayName
+            $teamName = $teamObject.Name
+            if (Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId $roleObject.Id -TeamUid $teamObject.Uid) {
+                Write-Warning "Team `"$teamName`" is already assigned to role `"$roleName`"."
+                continue
+            }
+            if ($PSCmdlet.ShouldProcess("Team `"$teamName`" to Role `"$roleName`"", "Add")) {
+                try {
+                    $roleData.AddTeamToRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                    Write-Output "Team `"$teamName`" added to role `"$roleName`""
+                    $addedCount++
+                }
+                catch {
+                    [void]$failures.Add("$roleName`: $($_.Exception.Message)")
+                }
+            }
+        }
+        if ($addedCount -eq 0 -and $failures.Count -eq 0) {
+            Write-Warning "No new role assignments were added for team `"$($teamObject.Name)`"."
+        }
+        if ($failures.Count -gt 0) {
+            Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))
         }
     }
 }
@@ -524,10 +559,11 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes a team from an Enterprise Role
 
         .DESCRIPTION
-        Removes an enterprise team from an enterprise role.
+        Removes an enterprise team from an enterprise role. When the team is not on a role,
+        a warning is shown and that role is skipped.
 
         .PARAMETER Role
-        Role Name, ID, or EnterpriseRole object
+        One or more role names, IDs, or EnterpriseRole objects
 
         .PARAMETER Team
         Team UID, Name, or EnterpriseTeam object
@@ -537,8 +573,8 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         Removes the team from the role
 
         .EXAMPLE
-        Revoke-KeeperEnterpriseRoleFromTeam -Role "MyRole" -Team "1P7A8XZ9K3J9H"
-        Removes the team using Team UID
+        Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering" -Role "Employee", "Contractor"
+        Removes multiple roles from the team
 
         .EXAMPLE
         Get-EnterpriseRole | Where-Object { $_.DisplayName -eq "MyRole" } | Revoke-KeeperEnterpriseRoleFromTeam -Team "Engineering"
@@ -550,29 +586,59 @@ function Revoke-KeeperEnterpriseRoleFromTeam {
         [Parameter(Position = 1, Mandatory = $true)]$Team
     )
 
-    [Enterprise]$enterprise = getEnterprise
-    $roleData = $enterprise.roleData
-    $enterpriseData = $enterprise.enterpriseData
-
-    $roleObject = resolveRole $roleData $Role
-    if (-not $roleObject) {
-        return
+    begin {
+        [Enterprise]$enterprise = getEnterprise
+        $roleData = $enterprise.roleData
+        $teamObject = resolveTeam $enterprise.enterpriseData $Team
+        $skipOperation = -not $teamObject
+        $roleInputs = [System.Collections.Generic.List[string]]::new()
     }
-
-    $teamObject = resolveTeam $enterpriseData $Team
-    if (-not $teamObject) {
-        return
-    }
-
-    $roleName = $roleObject.DisplayName
-    $teamName = $teamObject.Name
-    if ($PSCmdlet.ShouldProcess("Team `"$teamName`" from Role `"$roleName`"", "Remove")) {
-        try {
-            $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Team `"$teamName`" removed from role `"$roleName`""
+    process {
+        foreach ($roleInput in @($Role)) {
+            if ($null -eq $roleInput) { continue }
+            if ($roleInput -is [KeeperSecurity.Enterprise.EnterpriseRole]) {
+                [void]$roleInputs.Add([string]$roleInput.Id)
+            }
+            else {
+                [void]$roleInputs.Add([string]$roleInput)
+            }
         }
-        catch {
-            Write-Error "Failed to remove team `"$teamName`" from role `"$roleName`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+    end {
+        if ($skipOperation) { return }
+        if ($roleInputs.Count -eq 0) { Write-Error "At least one role must be specified." -ErrorAction Stop }
+
+        $roleObjects = Resolve-EnterpriseRoleList -RoleData $roleData -Roles $roleInputs.ToArray()
+        if ($roleObjects.Count -eq 0) {
+            Write-Warning "No valid roles found to remove."
+            return
+        }
+
+        $failures = [System.Collections.Generic.List[string]]::new()
+        $removedCount = 0
+        foreach ($roleObject in $roleObjects) {
+            $roleName = $roleObject.DisplayName
+            $teamName = $teamObject.Name
+            if (-not (Test-EnterpriseTeamOnRole -RoleData $roleData -RoleId $roleObject.Id -TeamUid $teamObject.Uid)) {
+                Write-Warning "Team `"$teamName`" is not assigned to role `"$roleName`"."
+                continue
+            }
+            if ($PSCmdlet.ShouldProcess("Team `"$teamName`" from Role `"$roleName`"", "Remove")) {
+                try {
+                    $roleData.RemoveTeamFromRole($roleObject, $teamObject).GetAwaiter().GetResult() | Out-Null
+                    Write-Output "Team `"$teamName`" removed from role `"$roleName`""
+                    $removedCount++
+                }
+                catch {
+                    [void]$failures.Add("$roleName`: $($_.Exception.Message)")
+                }
+            }
+        }
+        if ($removedCount -eq 0 -and $failures.Count -eq 0) {
+            Write-Warning "No role assignments were removed for team `"$($teamObject.Name)`"."
+        }
+        if ($failures.Count -gt 0) {
+            Write-Warning ("Completed with errors:`n" + ($failures -join "`n"))
         }
     }
 }

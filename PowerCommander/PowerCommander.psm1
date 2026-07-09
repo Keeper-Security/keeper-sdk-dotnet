@@ -11,6 +11,36 @@ Class Enterprise {
     [hashtable] $ManagedCompanies = $null
 }
 
+Class EnterpriseTeamTarget {
+    [KeeperSecurity.Enterprise.EnterpriseTeam]$Team
+    [KeeperSecurity.Enterprise.EnterpriseQueuedTeam]$QueuedTeam
+    [string]$Uid
+    [string]$Name
+
+    static [EnterpriseTeamTarget] FromActiveTeam([KeeperSecurity.Enterprise.EnterpriseTeam]$team) {
+        $target = [EnterpriseTeamTarget]::new()
+        $target.Team = $team
+        $target.Uid = $team.Uid
+        $target.Name = $team.Name
+        return $target
+    }
+
+    static [EnterpriseTeamTarget] FromQueuedTeam([KeeperSecurity.Enterprise.EnterpriseQueuedTeam]$queuedTeam) {
+        $target = [EnterpriseTeamTarget]::new()
+        $target.QueuedTeam = $queuedTeam
+        $target.Uid = $queuedTeam.Uid
+        $target.Name = $queuedTeam.Name
+        return $target
+    }
+}
+
+Class EnterpriseTeamMembershipRequest {
+    [Enterprise]$Enterprise
+    [KeeperSecurity.Enterprise.EnterpriseUser]$User
+    [EnterpriseTeamTarget]$TeamTarget
+    [string]$HideSharedFolders
+}
+
 class KeeperContext {
     [KeeperSecurity.Authentication.IAuth] $Auth = $null
     [KeeperSecurity.Vault.VaultOnline] $Vault = $null
@@ -22,6 +52,13 @@ class KeeperContext {
 }
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
+
+# Import-Module -Force redefines the Enterprise class; a cached instance from the prior load
+# is a different type identity and breaks [Enterprise] parameter binding.
+if ($null -ne $Script:Context.Enterprise -and -not ($Script:Context.Enterprise -is [Enterprise])) {
+    $Script:Context.Enterprise = $null
+    $Script:Context.ManagedCompanyId = 0
+}
 
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
 Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
@@ -59,6 +96,7 @@ Get-KeeperAuditReport, Get-KeeperUserReport, Export-KeeperAuditLog, Get-KeeperAu
 Export-ModuleMember -Function Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser, 
 Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Invoke-ResendKeeperEnterpriseInvite, 
 Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Remove-KeeperEnterpriseUserAlias,
+Get-KeeperEnterpriseUserTeam,
 Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
 Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
@@ -72,14 +110,16 @@ Add-KeeperEnterpriseRoleEnforcement, Update-KeeperEnterpriseRoleEnforcement, Rem
 
 
 Export-ModuleMember -Function New-KeeperEnterpriseTeam, Update-KeeperEnterpriseTeam, Remove-KeeperEnterpriseTeam,
-Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember, Get-KeeperEnterpriseTeams
+Get-KeeperEnterpriseTeamUser, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember,
+Get-KeeperEnterpriseTeamRole,
+Get-KeeperEnterpriseTeams
 
 Export-ModuleMember -Function New-KeeperEnterpriseNode, Edit-KeeperEnterpriseNode, Remove-KeeperEnterpriseNode, 
 Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitation, Set-KeeperEnterpriseNodeCustomLogo,
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, 
+Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ketr, keut, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers,
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, kuser-alias-add, kuser-alias-remove, list-team, kar, user-report, kal, audit-alert
 
