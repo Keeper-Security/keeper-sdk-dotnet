@@ -466,7 +466,8 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       var parts = complexity.Split(new[] { ',' }, 6);
-      if (parts.Length < 5 || !parts.Take(5).All(p => int.TryParse(p.Trim(), out _)))
+      if (parts.Length < 5
+          || !parts.Take(5).All(p => int.TryParse(p.Trim(), out _)))
       {
         throw new ArgumentException(
           "Invalid rules to generate password. Format is \"length, upper, lower, digits, symbols\". Ex: 32,5,5,5,5[,SPECIAL CHARS]");
@@ -475,10 +476,12 @@ namespace KeeperSecurity.Plugins.PAM
       var specialChars = DefaultSpecialChars;
       if (parts.Length == 6)
       {
+        // Only keep chars from our default set that appear in the 6th segment.
+        var specialCharsPart = parts[5].Trim();
         var builder = new StringBuilder();
         foreach (var ch in DefaultSpecialChars)
         {
-          if (parts[5].IndexOf(ch) >= 0)
+          if (specialCharsPart.IndexOf(ch) >= 0)
           {
             builder.Append(ch);
           }

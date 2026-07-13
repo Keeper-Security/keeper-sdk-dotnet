@@ -6,7 +6,6 @@ using KeeperSecurity.Authentication;
 namespace KeeperSecurity.Plugins.PAM
 {
   /// <summary>
-  /// Layer-B router fallback policy (mirrors Python Commander <c>pam/_layer_b.py</c>).
   /// Strict by default; legacy graph-sync fallback is opt-in via KEEPER_DAG_LB_FALLBACK=1.
   /// </summary>
   internal static class PamLayerB

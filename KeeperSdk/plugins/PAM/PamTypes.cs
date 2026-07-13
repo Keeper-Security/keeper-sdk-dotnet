@@ -64,7 +64,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// Vault record rotation metadata exposed by <see cref="PamPlugin"/>.
+  /// Vault record rotation metadata exposed by PamPlugin.
   /// </summary>
   public class PamRecordRotationInfo : IUid
   {

@@ -77,7 +77,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// When true, uploads as a PAM post-rotation script file (vault/files_add is_script).
+        /// When true, uploads as a PAM post-rotation script file.
         /// </summary>
         public bool IsScript { get; }
 
