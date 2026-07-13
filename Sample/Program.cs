@@ -77,8 +77,8 @@ namespace Sample
                 // // Delete Record Example
                 // await DeleteRecordExample.DeleteRecord(vault, recordUid: "<recordUid_here>");
 
-                // List Records Example
-                await ListRecordExample.ListAllRecords(vault);
+                // // List Records Example
+                // await ListRecordExample.ListAllRecords(vault);
 
                 // // Get Record Details Example
                 // var getRecord = new GetRecordExample();
@@ -150,6 +150,19 @@ namespace Sample
                 //         { "password", "A123" }
                 //     }
                 // );
+
+                // Create Keeper NSF Records (batch) Example - all common record types
+                await KeeperNSFExamples.CreateKeeperNSFRecordsBatchExample.CreateBatch(
+                    vault,
+                    defaultFolderUid: "mGeYFviQ9Vwr9dm4302_CQ");
+
+                // Or load the embedded sample JSON (same as PowerCommander -DownloadSampleRecords):
+                // await KeeperNSFExamples.CreateKeeperNSFRecordsBatchExample.CreateBatchFromSampleFile(
+                //     vault,
+                //     defaultFolderUid: "mGeYFviQ9Vwr9dm4302_CQ");
+                //
+                // PowerCommander: nsf-records-add -DownloadSampleRecords
+                // PowerCommander: nsf-records-add -FilePath .\nsf-records-batch.sample.json
 
                 // // Update Keeper NSF Record Example
                 // await KeeperNSFExamples.UpdateKeeperNSFRecordExample.Update(

@@ -109,7 +109,7 @@ namespace KeeperSecurity
         {
             private const string TwoFactorCode = "TFC:Keeper";
 
-            private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
+            internal static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
                 password.Uid = import.Uid;
                 password.Title = import.Title;
@@ -142,7 +142,7 @@ namespace KeeperSecurity
                 }
             }
 
-            private static Tuple<string, string> SplitFieldKey(string fieldKey)
+            internal static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
                 var fieldLabel = "";
@@ -290,7 +290,7 @@ namespace KeeperSecurity
                 }
             }
 
-            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
+            internal static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
                 typed.Uid = import.Uid;
                 typed.Title = import.Title;
@@ -782,6 +782,181 @@ namespace KeeperSecurity
                 }
 
                 return await bo.ApplyChanges();
+            }
+
+            /// <summary>
+            /// Converts import records to Keeper NSF batch create requests.
+            /// Uses the same record JSON shape as <see cref="ImportJson"/> / Export-KeeperVault.
+            /// Folder placement uses <c>folders[].folder</c> as an NSF folder name or UID;
+            /// <c>can_edit</c>, <c>can_share</c>, and <c>shared_folder</c> are ignored.
+            /// </summary>
+            public static IReadOnlyList<KeeperNSFRecordCreateRequest> ToKeeperNSFCreateRequests(
+                VaultOnline vault,
+                ImportFile import,
+                string defaultFolderUid = null)
+            {
+                if (vault == null)
+                {
+                    throw new ArgumentNullException(nameof(vault));
+                }
+
+                if (import?.Records == null || import.Records.Length == 0)
+                {
+                    throw new ArgumentException("Import file contains no records.", nameof(import));
+                }
+
+                var requests = new List<KeeperNSFRecordCreateRequest>(import.Records.Length);
+                foreach (var record in import.Records)
+                {
+                    if (string.IsNullOrWhiteSpace(record.Title))
+                    {
+                        throw new VaultException("Each import record must include a title.");
+                    }
+
+                    requests.Add(new KeeperNSFRecordCreateRequest
+                    {
+                        Title = record.Title.Trim(),
+                        RecordType = string.IsNullOrEmpty(record.RecordType) ? "login" : record.RecordType,
+                        Notes = record.Notes,
+                        FolderUid = ResolveKeeperNSFFolderUid(vault, record, defaultFolderUid),
+                        Fields = BuildNsfFieldsFromImportRecord(vault, record),
+                    });
+                }
+
+                return requests;
+            }
+
+            private static string ResolveKeeperNSFFolderUid(
+                VaultOnline vault,
+                ImportRecord record,
+                string defaultFolderUid)
+            {
+                if (record.Folders?.Length > 0)
+                {
+                    var folderRef = record.Folders[0].FolderName;
+                    if (!string.IsNullOrWhiteSpace(folderRef)
+                        && vault.TryResolveKeeperNSFFolder(folderRef.Trim(), out var folder))
+                    {
+                        return folder.FolderUid;
+                    }
+                }
+
+                return string.IsNullOrWhiteSpace(defaultFolderUid) ? null : defaultFolderUid.Trim();
+            }
+
+            private static ImportRecord CloneImportRecord(ImportRecord import)
+            {
+                return new ImportRecord
+                {
+                    Uid = import.Uid,
+                    Title = import.Title,
+                    RecordType = import.RecordType,
+                    Login = import.Login,
+                    Password = import.Password,
+                    LoginUrl = import.LoginUrl,
+                    Notes = import.Notes,
+                    CustomFields = import.CustomFields?.ToDictionary(entry => entry.Key, entry => entry.Value),
+                    Folders = import.Folders?.Select(f => new ImportRecordFolder
+                    {
+                        FolderName = f.FolderName,
+                        SharedFolderName = f.SharedFolderName,
+                        CanEdit = f.CanEdit,
+                        CanShare = f.CanShare,
+                    }).ToArray(),
+                };
+            }
+
+            private static IDictionary<string, object> BuildNsfFieldsFromImportRecord(
+                VaultOnline vault,
+                ImportRecord import)
+            {
+                var copy = CloneImportRecord(import);
+                if (string.IsNullOrEmpty(copy.RecordType))
+                {
+                    return BuildNsfFieldsFromLegacyImportRecord(copy);
+                }
+
+                var recordTypeName = copy.RecordType;
+                if (!vault.TryGetRecordTypeByName(recordTypeName, out var recordType))
+                {
+                    recordTypeName = "login";
+                    vault.TryGetRecordTypeByName(recordTypeName, out recordType);
+                }
+
+                var typed = new TypedRecord(recordTypeName);
+                copy.PopulateTypedRecord(typed, recordType.Fields);
+                return ExtractNsfFieldsFromTypedRecord(typed);
+            }
+
+            private static IDictionary<string, object> BuildNsfFieldsFromLegacyImportRecord(ImportRecord import)
+            {
+                var fields = new Dictionary<string, object>();
+                if (!string.IsNullOrEmpty(import.Login))
+                {
+                    fields["login"] = import.Login;
+                }
+
+                if (!string.IsNullOrEmpty(import.Password))
+                {
+                    fields["password"] = import.Password;
+                }
+
+                if (!string.IsNullOrEmpty(import.LoginUrl))
+                {
+                    fields["url"] = import.LoginUrl;
+                }
+
+                if (import.CustomFields == null)
+                {
+                    return fields;
+                }
+
+                foreach (var pair in import.CustomFields)
+                {
+                    if (pair.Value == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.Equals(pair.Key, TwoFactorCode, StringComparison.Ordinal))
+                    {
+                        fields["oneTimeCode"] = pair.Value;
+                        continue;
+                    }
+
+                    var split = SplitFieldKey(pair.Key);
+                    var fieldType = split.Item1;
+                    if (string.IsNullOrEmpty(fieldType))
+                    {
+                        continue;
+                    }
+
+                    fields[fieldType] = pair.Value;
+                }
+
+                return fields;
+            }
+
+            private static IDictionary<string, object> ExtractNsfFieldsFromTypedRecord(TypedRecord typed)
+            {
+                var fields = new Dictionary<string, object>();
+                foreach (var field in typed.Fields.Concat(typed.Custom))
+                {
+                    if (string.IsNullOrEmpty(field.FieldName))
+                    {
+                        continue;
+                    }
+
+                    var value = field.ObjectValue;
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    fields[field.FieldName] = value;
+                }
+
+                return fields;
             }
         }
     }

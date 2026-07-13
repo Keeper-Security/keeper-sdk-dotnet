@@ -1,5 +1,7 @@
 #requires -Version 5.1
 
+. "$PSScriptRoot/ImportSampleData.ps1"
+
 $Script:PathDelimiter = [System.IO.Path]::DirectorySeparatorChar
 
 function getVault {
@@ -809,7 +811,13 @@ function Import-KeeperVault {
 	Import vault data from a JSON file
 
 	.Parameter FileName
-	JSON import filename (from Export-KeeperVault or compatible format)
+	JSON import filename (from Export-KeeperVault or compatible format).
+	When used with -DownloadSampleRecords, this is the output path (default: keeper-import-sample.json).
+
+	.Parameter DownloadSampleRecords
+	Writes a sample import JSON file to disk and exits without importing.
+	The sample uses the same records and shared_folders structure as Export-KeeperVault / kimport.
+	Edit the file with your own data, then import with Import-KeeperVault -FileName.
 
 	.Parameter Force
 	Proceed without confirming when file is large
@@ -823,18 +831,56 @@ function Import-KeeperVault {
 	Imports vault data from vault_backup.json
 
 	.Example
+	Import-KeeperVault -DownloadSampleRecords
+	Writes keeper-import-sample.json in the current directory
+
+	.Example
+	Import-KeeperVault -DownloadSampleRecords -FileName "my-import-template.json"
+	Writes a sample import file to my-import-template.json
+
+	.Example
 	Import-KeeperVault -FileName "restore.json" -Force
 	Imports without size confirmation
 #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Import')]
     Param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Import')]
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = 'DownloadSample')]
         [string] $FileName,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleRecords,
 
         [Parameter(Mandatory = $false)]
         [switch] $Force
     )
+
+    if ($DownloadSampleRecords) {
+        if (-not $FileName) {
+            $FileName = 'keeper-import-sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperImportSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample import file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with your records and shared folders, then run:"
+        Write-Host "    Import-KeeperVault -FileName `"$FileName`""
+        return
+    }
+
+    if (-not $FileName) {
+        Write-Error "FileName is required when -DownloadSampleRecords is not specified."
+        return
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if (-not $vault) {

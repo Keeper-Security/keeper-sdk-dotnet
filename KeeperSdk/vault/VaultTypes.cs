@@ -520,6 +520,23 @@ namespace KeeperSecurity.Vault
         Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
+        /// Creates multiple Keeper NSF records in one or more batch requests.
+        /// </summary>
+        /// <param name="records">Record payloads to create.</param>
+        /// <returns>Per-record create results in the same order as <paramref name="records"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordCreateRequest> records);
+
+        /// <summary>
+        /// Creates multiple Keeper NSF records from an import file payload (same JSON record shape as Export/Import-KeeperVault).
+        /// </summary>
+        /// <param name="import">Import file containing records. <c>shared_folders</c> are ignored.</param>
+        /// <param name="defaultFolderUid">Optional NSF folder UID for records without <c>folders[].folder</c>.</param>
+        Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
+            ImportFile import,
+            string defaultFolderUid = null);
+
+        /// <summary>
         /// Updates an existing Keeper NSF record.
         /// </summary>
         /// <param name="recordUid">Record UID to update.</param>
@@ -1006,6 +1023,48 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Removal operation.</summary>
         public KeeperNSFFolderRemoveOperation Operation { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for creating a Keeper NSF record in a batch request.
+    /// </summary>
+    public class KeeperNSFRecordCreateRequest
+    {
+        /// <summary>Record title.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type of the record. Default is "login".</summary>
+        public string RecordType { get; set; } = "login";
+
+        /// <summary>Optional folder UID. When null, the record is created at the vault root.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Optional notes.</summary>
+        public string Notes { get; set; }
+
+        /// <summary>Optional fields as key-value pairs.</summary>
+        public IDictionary<string, object> Fields { get; set; }
+    }
+
+    /// <summary>
+    /// Result of creating a Keeper NSF record.
+    /// </summary>
+    public class KeeperNSFRecordCreateResult
+    {
+        /// <summary>Assigned record UID on success.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Record title from the request.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the record was created successfully.</summary>
+        public bool Success { get; set; }
     }
 
     /// <summary>
