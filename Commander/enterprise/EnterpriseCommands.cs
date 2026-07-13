@@ -275,6 +275,16 @@ namespace Commander
                 });
             cli.Aliases["pam-gw"] = "pam-gateway";
 
+            var pamConfig = new PamConfigCommand(context);
+            cli.Commands.Add("pam-config",
+                new ParseableCommand<PamConfigOptions>
+                {
+                    Order = 88,
+                    Description = "Manage PAM configurations",
+                    Action = async options => { await pamConfig.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-cfg"] = "pam-config";
+
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>
                 {

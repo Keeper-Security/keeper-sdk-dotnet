@@ -317,6 +317,15 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Moves a record without requiring it to appear in the source folder's local record list.
+        /// Used when moving PAM configuration records from the vault root after pam/add_configuration_record.
+        /// </summary>
+        public Task MoveRecordToFolder(RecordPath recordPath, string dstFolderUid, bool link = false)
+        {
+            return this.MoveToFolder(new[] { recordPath }, dstFolderUid, link);
+        }
+
         /// <inheritdoc/>
         public async Task MoveFolder(string srcFolderUid, string dstFolderUid, bool link = false)
         {

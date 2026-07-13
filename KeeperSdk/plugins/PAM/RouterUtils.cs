@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using PamProto = PAM;
+using RouterProto = Router;
 
 namespace KeeperSecurity.Plugins.PAM
 {
@@ -33,6 +35,31 @@ namespace KeeperSecurity.Plugins.PAM
         .Where(x => x.ControllerUid != null && x.ControllerUid.Length > 0)
         .Select(x => x.ControllerUid.ToByteArray())
         .ToList();
+    }
+
+    public static async Task ConfigureNetworkGraphAsync(
+      IAuthentication auth,
+      RouterProto.PAMNetworkConfigurationRequest request)
+    {
+      if (auth == null)
+      {
+        throw new ArgumentNullException(nameof(auth));
+      }
+
+      if (request == null)
+      {
+        throw new ArgumentNullException(nameof(request));
+      }
+
+      if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
+      {
+        throw new InvalidOperationException("Endpoint must be KeeperEndpoint to use ConfigureNetworkGraphAsync");
+      }
+
+      await keeperEndpoint.ExecuteRouterRest(
+        "configure_network_graph",
+        auth.AuthContext.SessionToken,
+        request.ToByteArray());
     }
   }
 }

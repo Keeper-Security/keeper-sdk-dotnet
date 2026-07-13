@@ -265,6 +265,8 @@ namespace KeeperSecurity.Vault
         public string FolderUid { get; set; }
         [DataMember(Name = "resourceRef", EmitDefaultValue = true)]
         public string[] ResourceRef { get; set; }
+        [DataMember(Name = "adminCredentialRef", EmitDefaultValue = true)]
+        public string AdminCredentialRef { get; set; }
     }
 
     /// <exclude />
@@ -273,20 +275,27 @@ namespace KeeperSecurity.Vault
     {
         [DataMember(Name = "type", EmitDefaultValue = true)]
         public string Type { get; set; }
-        [DataMember(Name = "time", EmitDefaultValue = true)]
+        [DataMember(Name = "time", EmitDefaultValue = false)]
         public string Time { get; set; }
-        [DataMember(Name = "tz", EmitDefaultValue = true)]
+        [DataMember(Name = "tz", EmitDefaultValue = false)]
         public string TimeZone { get; set; }
         [DataMember(Name = "weekday", EmitDefaultValue = false)]
         public string Weekday { get; set; }
         [DataMember(Name = "month", EmitDefaultValue = false)]
         public string Month { get; set; }
         [DataMember(Name = "monthDay", EmitDefaultValue = false)]
-        public string MonthDay { get; set; }
+        public int? MonthDay { get; set; }
         [DataMember(Name = "cron", EmitDefaultValue = false)]
         public string Cron { get; set; }
-        [DataMember(Name = "intervalCount", EmitDefaultValue = true)]
-        public string IntervalCount { get; set; }
+        [DataMember(Name = "intervalCount", EmitDefaultValue = false)]
+        public int? IntervalCount { get; set; }
+        [DataMember(Name = "endDate", EmitDefaultValue = false)]
+        public string EndDate { get; set; }
+        [DataMember(Name = "occurrences", EmitDefaultValue = false)]
+        public int? Occurrences { get; set; }
+        /// <summary>MONTHLY_BY_WEEKDAY: FIRST | SECOND | THIRD | FOURTH | LAST</summary>
+        [DataMember(Name = "occurrence", EmitDefaultValue = false)]
+        public string Occurrence { get; set; }
     }
 
     /// <summary>
