@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -55,15 +56,22 @@ namespace Commander.PAM
 
             await _plugin.SyncRecordRotationsFromVaultAsync();
 
-            Dictionary<string, object> complexityRules = null;
+            PasswordGenerationOptions complexityRules = null;
             if (options.Complexity != null)
             {
                 complexityRules = RotationUtils.ParsePasswordComplexityRules(options.Complexity);
             }
             else if (!string.IsNullOrWhiteSpace(options.ComplexityJson))
             {
-                complexityRules = JsonUtils.ParseJson<Dictionary<string, object>>(
-                    Encoding.UTF8.GetBytes(options.ComplexityJson));
+                try
+                {
+                    complexityRules = RotationUtils.ParsePasswordComplexityJson(
+                        Encoding.UTF8.GetBytes(options.ComplexityJson));
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new InvalidOperationException(ex.Message, ex);
+                }
             }
 
             List<object> scheduleData;
@@ -124,16 +132,13 @@ namespace Commander.PAM
                 {
                     try
                     {
-                        if (await ConfigureResourceRecordAsync(
-                                record,
-                                options,
-                                configRecord,
-                                pamConfigs,
-                                skipped,
-                                configuredResources))
-                        {
-                            // Resource graph operations complete; no router rotation request is sent.
-                        }
+                        await ConfigureResourceRecordAsync(
+                            record,
+                            options,
+                            configRecord,
+                            pamConfigs,
+                            skipped,
+                            configuredResources);
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -157,11 +162,12 @@ namespace Commander.PAM
 
                 try
                 {
+                    var editContext = ResolveRecordEditContext(options, record);
                     string resourceUidForDag = null;
                     string configUidForDag = configRecord?.Uid;
-                    var profile = NormalizeProfile(options);
-                    var noop = profile == "scripts_only" || IsNoopRecord(record);
-                    if (profile != "iam_user" && !noop && !options.ScheduleOnly)
+                    if (editContext.Profile != "iam_user"
+                        && !editContext.Noop
+                        && !options.ScheduleOnly)
                     {
                         resourceUidForDag = ResolveResourceUidForDag(record, options, configRecord, pamConfigs);
                         if (string.IsNullOrEmpty(configUidForDag))
@@ -173,13 +179,13 @@ namespace Commander.PAM
 
                     if (!string.IsNullOrEmpty(resourceUidForDag) && !string.IsNullOrEmpty(configUidForDag))
                     {
-                        await PamRotationDag.ConfigureUserAsync(
+                        await PamRotationGraphEdit.ConfigureUserAsync(
                             _auth,
                             _vault,
                             record,
                             resourceUidForDag,
                             configUidForDag,
-                            noop,
+                            editContext.Noop,
                             options.ScheduleOnly);
                     }
 
@@ -190,6 +196,7 @@ namespace Commander.PAM
                             pamConfigs,
                             scheduleData,
                             complexityRules,
+                            editContext,
                             skipped,
                             valid,
                             out var request))
@@ -264,6 +271,7 @@ namespace Commander.PAM
                 }
             }
 
+            var failures = new List<string>();
             foreach (var request in requests)
             {
                 var recordUid = request.RecordUid.ToByteArray().Base64UrlEncode();
@@ -275,11 +283,45 @@ namespace Commander.PAM
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Record \"{recordUid}\": Set rotation error: {ex.Message}");
+                    var message = $"Record \"{recordUid}\": Set rotation error: {ex.Message}";
+                    Console.WriteLine(message);
+                    failures.Add(message);
                 }
             }
 
             await _plugin.SyncRecordRotationsFromVaultAsync();
+
+            if (failures.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    $"{failures.Count} of {requests.Count} record(s) failed to update rotation:"
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine, failures));
+            }
+        }
+
+        private sealed class RecordEditContext
+        {
+            internal string Profile { get; set; }
+
+            internal bool Noop { get; set; }
+        }
+
+        private static RecordEditContext ResolveRecordEditContext(PamRotationOptions options, TypedRecord record)
+        {
+            var profile = NormalizeProfile(options);
+            var noop = profile == "scripts_only" || IsNoopRecord(record);
+            if (profile == "saas")
+            {
+                ValidateSaasConfig(options.SaasConfigUid);
+                noop = true;
+            }
+
+            return new RecordEditContext
+            {
+                Profile = profile,
+                Noop = noop,
+            };
         }
 
         private bool TryBuildUserRotationRequest(
@@ -288,21 +330,16 @@ namespace Commander.PAM
             TypedRecord configRecord,
             Dictionary<string, TypedRecord> pamConfigs,
             List<object> scheduleData,
-            Dictionary<string, object> complexityRules,
+            PasswordGenerationOptions complexityRules,
+            RecordEditContext editContext,
             List<object[]> skipped,
             List<object[]> valid,
             out RouterProto.RouterRecordRotationRequest request)
         {
             request = null;
             var cached = _plugin.RecordRotations.GetEntity(record.Uid);
-            var profile = NormalizeProfile(options);
-            var noop = profile == "scripts_only" || IsNoopRecord(record);
-
-            if (profile == "saas")
-            {
-                ValidateSaasConfig(options.SaasConfigUid);
-                noop = true;
-            }
+            var profile = editContext.Profile;
+            var noop = editContext.Noop;
 
             if (options.ScheduleOnly)
             {
@@ -368,8 +405,12 @@ namespace Commander.PAM
                     {
                         recordSchedule = RotationUtils.ParseScheduleJsonString(cached.Schedule);
                     }
-                    catch
+                    catch (ArgumentException ex)
                     {
+                        Trace.TraceWarning(
+                            "PAM: invalid cached schedule for record {0}: {1}",
+                            record.Uid,
+                            ex.Message);
                         recordSchedule = new List<object>();
                     }
                 }
@@ -382,7 +423,7 @@ namespace Commander.PAM
             byte[] pwdComplexity;
             if (complexityRules != null)
             {
-                pwdComplexity = complexityRules.Count == 0
+                pwdComplexity = RotationUtils.IsClearedPasswordComplexity(complexityRules)
                     ? Array.Empty<byte>()
                     : RotationUtils.EncryptPasswordComplexity(complexityRules, record.RecordKey);
             }
@@ -413,7 +454,6 @@ namespace Commander.PAM
             }
             else if (profile == "saas")
             {
-                ValidateSaasConfig(options.SaasConfigUid);
                 resourceUid = null;
                 noop = true;
             }
@@ -459,8 +499,15 @@ namespace Commander.PAM
 
             var scheduleType = RotationUtils.GetScheduleType(recordSchedule);
 
-            var complexityDisplay = RotationUtils.FormatPasswordComplexityDisplay(
-                RotationUtils.DecryptPasswordComplexity(pwdComplexity, record.RecordKey));
+            string complexityDisplay;
+            if (!RotationUtils.TryDecryptPasswordComplexity(pwdComplexity, record.RecordKey, out var complexityRulesDecoded))
+            {
+                complexityDisplay = "[decrypt failed]";
+            }
+            else
+            {
+                complexityDisplay = RotationUtils.FormatPasswordComplexityDisplay(complexityRulesDecoded);
+            }
 
             valid.Add(new object[]
             {
@@ -833,7 +880,7 @@ namespace Commander.PAM
 
             try
             {
-                await PamRotationDag.TryConfigureResourceAsync(
+                await PamRotationGraphEdit.ConfigureResourceAsync(
                     _auth,
                     _vault,
                     resourceRecord,
@@ -852,15 +899,7 @@ namespace Commander.PAM
                     adminUserUid = adminUser?.Uid;
                 }
 
-                bool? rotationEnabled = null;
-                if (options.Enable)
-                {
-                    rotationEnabled = true;
-                }
-                else if (options.Disable)
-                {
-                    rotationEnabled = false;
-                }
+                var rotationEnabled = RotationUtils.ResolveRotationEnabled(options.Enable, options.Disable);
 
                 configuredResources.Add(new ResourceConfigureSummary
                 {

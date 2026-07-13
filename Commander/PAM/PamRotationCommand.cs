@@ -197,7 +197,14 @@ namespace Commander.PAM
             {
                 pwdComplexityRaw = rotationInfo.PwdComplexity.Base64UrlDecode();
             }
-            var pwdComplexityDetail = RotationUtils.DecryptPasswordComplexity(pwdComplexityRaw, record.RecordKey);
+            PasswordGenerationOptions pwdComplexityDetail = null;
+            var pwdComplexityDecryptFailed = false;
+            if (pwdComplexityRaw?.Length > 0
+                && !RotationUtils.TryDecryptPasswordComplexity(pwdComplexityRaw, record.RecordKey, out pwdComplexityDetail))
+            {
+                pwdComplexityDecryptFailed = true;
+                pwdComplexityDetail = null;
+            }
 
             string scheduleType = null;
             string scheduleData = null;
@@ -224,7 +231,9 @@ namespace Commander.PAM
                     ["password_complexity"] = pwdComplexityRaw?.Length > 0
                         ? rotationInfo.PwdComplexity
                         : null,
-                    ["password_complexity_detail"] = pwdComplexityDetail,
+                    ["password_complexity_detail"] = pwdComplexityDecryptFailed
+                        ? "[decrypt failed]"
+                        : RotationUtils.PasswordComplexityToDetail(pwdComplexityDetail),
                     ["schedule_type"] = scheduleType,
                     ["schedule_data"] = scheduleData,
                     ["disabled"] = rotationInfo.Disabled,
@@ -249,10 +258,17 @@ namespace Commander.PAM
                 if (pwdComplexityRaw?.Length > 0)
                 {
                     Console.WriteLine($"Password Complexity: {rotationInfo.PwdComplexity}");
-                    var complexityDisplay = RotationUtils.FormatPasswordComplexityDisplay(pwdComplexityDetail);
-                    if (!string.IsNullOrEmpty(complexityDisplay))
+                    if (pwdComplexityDecryptFailed)
                     {
-                        Console.WriteLine($"Password Complexity Data: {complexityDisplay}");
+                        Console.WriteLine("Password Complexity Data: [decrypt failed]");
+                    }
+                    else
+                    {
+                        var complexityDisplay = RotationUtils.FormatPasswordComplexityDisplay(pwdComplexityDetail);
+                        if (!string.IsNullOrEmpty(complexityDisplay))
+                        {
+                            Console.WriteLine($"Password Complexity Data: {complexityDisplay}");
+                        }
                     }
                 }
                 else
@@ -298,20 +314,9 @@ namespace Commander.PAM
                 return;
             }
 
-            try
-            {
-                var pathContext = Context is ConnectedContext connected ? connected._vaultContext : null;
-                var service = new PamRotationEditService(Plugin, Context.Enterprise.Auth, vault, pathContext);
-                await service.ExecuteAsync(options);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            var pathContext = Context is ConnectedContext connected ? connected._vaultContext : null;
+            var service = new PamRotationEditService(Plugin, Context.Enterprise.Auth, vault, pathContext);
+            await service.ExecuteAsync(options);
         }
 
         private async Task ExecuteScriptAsync(PamRotationOptions options)

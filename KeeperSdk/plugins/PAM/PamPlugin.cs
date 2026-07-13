@@ -26,7 +26,8 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// Loads and caches PAM controller and record-rotation data for enterprise administrators.
+  /// Caches PAM gateways and rotation metadata for enterprise admins.
+  /// Uses SQLite when Commander offline storage is on; otherwise keeps everything in memory.
   /// </summary>
   public class PamPlugin : IPamPlugin
   {
@@ -64,6 +65,7 @@ namespace KeeperSecurity.Plugins.PAM
       Storage = getConnection != null
         ? new SqlitePamStorage(getConnection, _enterpriseId)
         : new MemoryPamStorage();
+      LoadFromStorage();
     }
 
     public PamPlugin(IEnterpriseLoader loader, Func<IDbConnection> getConnection = null)
@@ -104,18 +106,30 @@ namespace KeeperSecurity.Plugins.PAM
 
       ApplyGatewayEntities(storageRows, domainRows);
 
-      if (!reload)
+      if (reload)
       {
+        try
+        {
+          await SyncRecordRotationsFromVaultAsync();
+        }
+        catch (Exception ex)
+        {
+          Trace.TraceWarning("PAM: loading record rotations from vault/sync_down failed: {0}", ex.Message);
+        }
+
         return;
       }
 
-      try
+      if (!_recordRotations.GetAll().Any())
       {
-        await SyncRecordRotationsFromVaultAsync();
-      }
-      catch (Exception ex)
-      {
-        Trace.TraceWarning("PAM: loading record rotations from vault/sync_down failed: {0}", ex.Message);
+        try
+        {
+          await SyncRecordRotationsFromVaultAsync();
+        }
+        catch (Exception ex)
+        {
+          Trace.TraceWarning("PAM: loading record rotations from vault/sync_down failed: {0}", ex.Message);
+        }
       }
     }
 
@@ -160,6 +174,25 @@ namespace KeeperSecurity.Plugins.PAM
       var rows = merged.Values.ToList();
       Storage.RecordRotations.PutEntities(rows);
       _recordRotations.PutEntities(rows.Select(PamStorageMapper.ToDomainRotation));
+    }
+
+    private void LoadFromStorage()
+    {
+      var controllers = Storage.Controllers.GetAll()
+        .Select(PamStorageMapper.ToDomainController)
+        .ToList();
+      if (controllers.Count > 0)
+      {
+        _controllers.PutEntities(controllers);
+      }
+
+      var rotations = Storage.RecordRotations.GetAll()
+        .Select(PamStorageMapper.ToDomainRotation)
+        .ToList();
+      if (rotations.Count > 0)
+      {
+        _recordRotations.PutEntities(rotations);
+      }
     }
 
     private void ApplyGatewayEntities(

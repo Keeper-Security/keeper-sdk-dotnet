@@ -50,7 +50,7 @@ namespace KeeperSecurity.Plugins.PAM
 
         if (parts[3] != "?" && parts[5] != "?")
         {
-          Trace.TraceWarning(
+          return (false,
             "CRON: Rotation schedule CRON format - must use ? character in one of these fields: day-of-week, day-of-month");
         }
 
@@ -164,13 +164,36 @@ namespace KeeperSecurity.Plugins.PAM
         Uid = ByteString.CopyFrom(recordUid.Trim().Base64UrlDecode()),
       };
 
-      return (RouterProto.RouterRotationInfo)await auth.ExecuteAuthRest(
+      var response = await auth.ExecuteAuthRest(
         GetRotationInfoEndpoint,
         request,
         typeof(RouterProto.RouterRotationInfo));
+
+      if (response is not RouterProto.RouterRotationInfo rotationInfo)
+      {
+        throw new InvalidOperationException(
+          $"Unexpected response type from {GetRotationInfoEndpoint}: {response?.GetType().Name ?? "null"}");
+      }
+
+      return rotationInfo;
     }
 
-    public static byte[] EncryptPasswordComplexity(IDictionary<string, object> rules, byte[] recordKey)
+    public static bool? ResolveRotationEnabled(bool enable, bool disable)
+    {
+      if (enable)
+      {
+        return true;
+      }
+
+      if (disable)
+      {
+        return false;
+      }
+
+      return null;
+    }
+
+    public static byte[] EncryptPasswordComplexity(PasswordGenerationOptions rules, byte[] recordKey)
     {
       if (rules == null)
       {
@@ -182,8 +205,19 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentException("Record key is required", nameof(recordKey));
       }
 
-      var json = JsonUtils.DumpJson(rules, indent: false);
-      return CryptoUtils.EncryptAesV2(json, recordKey);
+      ValidateComplexityRules(rules);
+      return CryptoUtils.EncryptAesV2(ToWireJson(rules), recordKey);
+    }
+
+    public static bool IsClearedPasswordComplexity(PasswordGenerationOptions rules)
+    {
+      return rules != null
+             && rules.Length == 0
+             && rules.Upper == 0
+             && rules.Lower == 0
+             && rules.Digit == 0
+             && rules.Special == 0
+             && string.IsNullOrEmpty(rules.SpecialCharacters);
     }
 
     public static string FormatScheduleDisplay(string scheduleData, bool noSchedule)
@@ -336,12 +370,12 @@ namespace KeeperSecurity.Plugins.PAM
 
       try
       {
-        if (json[0] == '[')
+        if (json.StartsWith("[", StringComparison.Ordinal))
         {
           return JsonUtils.ParseJson<List<Dictionary<string, object>>>(Encoding.UTF8.GetBytes(json));
         }
 
-        if (json[0] == '{')
+        if (json.StartsWith("{", StringComparison.Ordinal))
         {
           var item = JsonUtils.ParseJson<Dictionary<string, object>>(Encoding.UTF8.GetBytes(json));
           return new List<Dictionary<string, object>> { item };
@@ -419,7 +453,7 @@ namespace KeeperSecurity.Plugins.PAM
       return Encoding.UTF8.GetString(JsonUtils.DumpJson(entries, indent: false));
     }
 
-    public static Dictionary<string, object> ParsePasswordComplexityRules(string complexity)
+    public static PasswordGenerationOptions ParsePasswordComplexityRules(string complexity)
     {
       if (complexity == null)
       {
@@ -428,7 +462,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       if (complexity.Length == 0)
       {
-        return new Dictionary<string, object>();
+        return new PasswordGenerationOptions();
       }
 
       var parts = complexity.Split(new[] { ',' }, 6);
@@ -441,60 +475,165 @@ namespace KeeperSecurity.Plugins.PAM
       var specialChars = DefaultSpecialChars;
       if (parts.Length == 6)
       {
-        specialChars = "";
+        var builder = new StringBuilder();
         foreach (var ch in DefaultSpecialChars)
         {
           if (parts[5].IndexOf(ch) >= 0)
           {
-            specialChars += ch;
+            builder.Append(ch);
           }
         }
+
+        specialChars = builder.ToString();
       }
 
-      return new Dictionary<string, object>
+      return new PasswordGenerationOptions
       {
-        ["length"] = int.Parse(parts[0].Trim()),
-        ["caps"] = int.Parse(parts[1].Trim()),
-        ["lowercase"] = int.Parse(parts[2].Trim()),
-        ["digits"] = int.Parse(parts[3].Trim()),
-        ["special"] = int.Parse(parts[4].Trim()),
-        ["specialChars"] = specialChars,
+        Length = int.Parse(parts[0].Trim()),
+        Upper = int.Parse(parts[1].Trim()),
+        Lower = int.Parse(parts[2].Trim()),
+        Digit = int.Parse(parts[3].Trim()),
+        Special = int.Parse(parts[4].Trim()),
+        SpecialCharacters = specialChars,
       };
     }
 
-    public static Dictionary<string, object> DecryptPasswordComplexity(byte[] encrypted, byte[] recordKey)
+    public static PasswordGenerationOptions ParsePasswordComplexityJson(byte[] json)
     {
-      if (encrypted == null || encrypted.Length == 0 || recordKey == null || recordKey.Length == 0)
+      if (json == null || json.Length == 0)
       {
         return null;
       }
 
       try
       {
-        var decrypted = CryptoUtils.DecryptAesV2(encrypted, recordKey);
-        return JsonUtils.ParseJson<Dictionary<string, object>>(decrypted);
+        return FromWireDictionary(JsonUtils.ParseJson<Dictionary<string, object>>(json));
       }
-      catch
+      catch (SerializationException ex)
       {
-        return null;
+        throw new ArgumentException($"Invalid password complexity JSON: {ex.Message}", ex);
       }
     }
 
-    public static string FormatPasswordComplexityDisplay(Dictionary<string, object> rules)
+    public static bool TryDecryptPasswordComplexity(
+      byte[] encrypted,
+      byte[] recordKey,
+      out PasswordGenerationOptions rules)
+    {
+      rules = null;
+      if (encrypted == null || encrypted.Length == 0)
+      {
+        return true;
+      }
+
+      if (recordKey == null || recordKey.Length == 0)
+      {
+        return false;
+      }
+
+      try
+      {
+        rules = FromWireJson(CryptoUtils.DecryptAesV2(encrypted, recordKey));
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Trace.TraceWarning("PAM: failed to decrypt password complexity: {0}", ex.Message);
+        return false;
+      }
+    }
+
+    public static PasswordGenerationOptions DecryptPasswordComplexity(byte[] encrypted, byte[] recordKey)
+    {
+      return TryDecryptPasswordComplexity(encrypted, recordKey, out var rules)
+        ? rules
+        : null;
+    }
+
+    public static string FormatPasswordComplexityDisplay(PasswordGenerationOptions rules)
     {
       if (rules == null)
       {
         return "";
       }
 
-      rules.TryGetValue("length", out var length);
-      rules.TryGetValue("caps", out var caps);
-      rules.TryGetValue("lowercase", out var lowercase);
-      rules.TryGetValue("digits", out var digits);
-      rules.TryGetValue("special", out var special);
-      rules.TryGetValue("specialChars", out var specialChars);
-      var chars = specialChars?.ToString() ?? DefaultSpecialChars;
-      return $"{length},{caps},{lowercase},{digits},{special},{chars}";
+      var chars = rules.SpecialCharacters ?? DefaultSpecialChars;
+      return $"{rules.Length},{rules.Upper},{rules.Lower},{rules.Digit},{rules.Special},{chars}";
+    }
+
+    public static Dictionary<string, object> PasswordComplexityToDetail(PasswordGenerationOptions rules)
+    {
+      if (rules == null)
+      {
+        return null;
+      }
+
+      return new Dictionary<string, object>
+      {
+        ["length"] = rules.Length,
+        ["caps"] = rules.Upper,
+        ["lowercase"] = rules.Lower,
+        ["digits"] = rules.Digit,
+        ["special"] = rules.Special,
+        ["specialChars"] = rules.SpecialCharacters ?? DefaultSpecialChars,
+      };
+    }
+
+    private static void ValidateComplexityRules(PasswordGenerationOptions rules)
+    {
+      if (rules.Length < 0
+          || rules.Upper < 0
+          || rules.Lower < 0
+          || rules.Digit < 0
+          || rules.Special < 0)
+      {
+        throw new ArgumentException("Password complexity values must be non-negative.");
+      }
+    }
+
+    private static byte[] ToWireJson(PasswordGenerationOptions rules)
+    {
+      return JsonUtils.DumpJson(PasswordComplexityToDetail(rules), indent: false);
+    }
+
+    private static PasswordGenerationOptions FromWireJson(byte[] json)
+    {
+      return FromWireDictionary(JsonUtils.ParseJson<Dictionary<string, object>>(json));
+    }
+
+    private static PasswordGenerationOptions FromWireDictionary(Dictionary<string, object> rules)
+    {
+      if (rules == null || rules.Count == 0)
+      {
+        return new PasswordGenerationOptions();
+      }
+
+      return new PasswordGenerationOptions
+      {
+        Length = ReadInt(rules, "length"),
+        Upper = ReadInt(rules, "caps"),
+        Lower = ReadInt(rules, "lowercase"),
+        Digit = ReadInt(rules, "digits"),
+        Special = ReadInt(rules, "special"),
+        SpecialCharacters = rules.TryGetValue("specialChars", out var specialChars)
+          ? specialChars?.ToString() ?? DefaultSpecialChars
+          : DefaultSpecialChars,
+      };
+    }
+
+    private static int ReadInt(Dictionary<string, object> values, string key)
+    {
+      if (!values.TryGetValue(key, out var raw) || raw == null)
+      {
+        return 0;
+      }
+
+      return raw switch
+      {
+        int i => i,
+        long l => (int)l,
+        _ => int.TryParse(raw.ToString(), out var parsed) ? parsed : 0,
+      };
     }
   }
 }

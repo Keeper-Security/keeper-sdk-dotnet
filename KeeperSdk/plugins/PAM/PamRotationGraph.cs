@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -95,9 +96,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return user.TryGetAclContent(resourceUid, out var content)
-             && content.TryGetValue("belongs_to", out var belongs)
-             && belongs is bool flag
-             && flag;
+             && ReadBool(content, "belongs_to");
     }
 
     public bool CheckIfResourceHasAdmin(string resourceUid)
@@ -106,9 +105,7 @@ namespace KeeperSecurity.Plugins.PAM
       {
         if (_vertices.TryGetValue(userUid, out var user)
             && user.TryGetAclContent(resourceUid, out var content)
-            && content.TryGetValue("is_admin", out var admin)
-            && admin is bool flag
-            && flag)
+            && ReadBool(content, "is_admin"))
         {
           return true;
         }
@@ -147,9 +144,7 @@ namespace KeeperSecurity.Plugins.PAM
       {
         if (_vertices.TryGetValue(userUid, out var user)
             && user.TryGetAclContent(resourceUid, out var content)
-            && content.TryGetValue("is_launch_credential", out var launch)
-            && launch is bool flag
-            && flag)
+            && ReadBool(content, "is_launch_credential"))
         {
           result.Add(userUid);
         }
@@ -176,7 +171,7 @@ namespace KeeperSecurity.Plugins.PAM
         GetOrCreateVertex(_configUid, GraphSyncProto.RefType.RftPamNetwork);
         if (enableRotationOnConfig)
         {
-          await EditTunnelingConfigAsync(rotation: true);
+          await SetNetworkRotationAllowedAsync(rotation: true);
         }
       }
     }
@@ -220,14 +215,24 @@ namespace KeeperSecurity.Plugins.PAM
           },
         };
 
-        try
+        const string endpoint = "configure_resource";
+        var host = GetRouterHost();
+        if (!PamLayerB.IsFeatureDisabled(host, endpoint))
         {
-          await RouterUtils.ConfigureResourceAsync(_auth, request);
-          return;
-        }
-        catch
-        {
-          // Fall back to legacy ACL write below.
+          try
+          {
+            await RouterUtils.ConfigureResourceAsync(_auth, request);
+            return;
+          }
+          catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+          {
+            PamLayerB.TraceFallback(endpoint, resourceUid, ex);
+          }
+          catch (Exception ex)
+          {
+            PamLayerB.TraceNoFallback(endpoint, ex);
+            throw;
+          }
         }
       }
 
@@ -235,14 +240,14 @@ namespace KeeperSecurity.Plugins.PAM
       await SaveAsync();
     }
 
-    public async Task EditTunnelingConfigAsync(bool? rotation = null)
+    public async Task SetNetworkRotationAllowedAsync(bool? rotation = null)
     {
       if (rotation == null)
       {
         return;
       }
 
-      var allowedSettings = new Dictionary<string, object> { ["rotation"] = rotation.Value };
+      var allowedSettings = new PamGraphAllowedSettings { Rotation = rotation.Value };
       var request = new RouterProto.PAMNetworkConfigurationRequest
       {
         RecordUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
@@ -252,36 +257,52 @@ namespace KeeperSecurity.Plugins.PAM
         },
       };
 
-      try
+      const string endpoint = "configure_network_graph";
+      var host = GetRouterHost();
+      if (!PamLayerB.IsFeatureDisabled(host, endpoint))
       {
-        await RouterUtils.ConfigureNetworkGraphAsync(_auth, request);
-        return;
-      }
-      catch
-      {
-        // Fall back to legacy meta write on config vertex.
+        try
+        {
+          await RouterUtils.ConfigureNetworkGraphAsync(_auth, request);
+          return;
+        }
+        catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+        {
+          PamLayerB.TraceFallback(endpoint, _configUid, ex);
+        }
+        catch (Exception ex)
+        {
+          PamLayerB.TraceNoFallback(endpoint, ex);
+          throw;
+        }
       }
 
       var config = GetOrCreateVertex(_configUid, GraphSyncProto.RefType.RftPamNetwork);
-      var content = new Dictionary<string, object>
-      {
-        ["allowedSettings"] = allowedSettings,
-      };
+      var content = new PamGraphMetaContent { AllowedSettings = allowedSettings };
       config.SetDataEdge("meta", JsonUtils.DumpJson(content), modified: true);
       await SaveAsync();
     }
 
-    private static Dictionary<string, object> GetOrCreateAllowedSettings(Dictionary<string, object> metaContent)
+    private static bool ReadBool(IDictionary<string, object> content, string key)
     {
-      metaContent ??= new Dictionary<string, object>();
-      if (!metaContent.TryGetValue("allowedSettings", out var existing)
-          || existing is not Dictionary<string, object> allowedSettings)
+      if (content == null || !content.TryGetValue(key, out var raw) || raw == null)
       {
-        allowedSettings = new Dictionary<string, object>();
-        metaContent["allowedSettings"] = allowedSettings;
+        return false;
       }
 
-      return allowedSettings;
+      return raw switch
+      {
+        bool value => value,
+        string text => bool.TryParse(text, out var parsed) && parsed,
+        _ => false,
+      };
+    }
+
+    private static PamGraphAllowedSettings GetOrCreateAllowedSettings(PamGraphMetaContent metaContent)
+    {
+      metaContent ??= new PamGraphMetaContent();
+      metaContent.AllowedSettings ??= new PamGraphAllowedSettings();
+      return metaContent.AllowedSettings;
     }
 
     public async Task SetResourceRotationAllowedAsync(
@@ -295,9 +316,9 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       var resource = GetOrCreateVertex(resourceUid, resourceType);
-      var metaContent = resource.TryGetMetaContent() ?? new Dictionary<string, object>();
+      var metaContent = resource.TryGetMetaContent() ?? new PamGraphMetaContent();
       var allowedSettings = GetOrCreateAllowedSettings(metaContent);
-      allowedSettings["rotation"] = rotationEnabled.Value;
+      allowedSettings.Rotation = rotationEnabled.Value;
 
       var request = new PamProto.PAMResourceConfig
       {
@@ -306,21 +327,44 @@ namespace KeeperSecurity.Plugins.PAM
         Meta = ByteString.CopyFrom(JsonUtils.DumpJson(metaContent)),
       };
 
-      try
+      const string endpoint = "configure_resource";
+      var host = GetRouterHost();
+      if (!PamLayerB.IsFeatureDisabled(host, endpoint))
       {
-        await RouterUtils.ConfigureResourceAsync(_auth, request);
-        return;
-      }
-      catch (Exception ex)
-      {
-        System.Diagnostics.Trace.TraceWarning(
-          "PAM: configure_resource failed for {0}, falling back to graph meta write: {1}",
-          resourceUid,
-          ex.Message);
+        try
+        {
+          await RouterUtils.ConfigureResourceAsync(_auth, request);
+          return;
+        }
+        catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+        {
+          PamLayerB.TraceFallback(endpoint, resourceUid, ex);
+        }
+        catch (Exception ex)
+        {
+          PamLayerB.TraceNoFallback(endpoint, ex);
+          throw;
+        }
       }
 
       resource.SetDataEdge("meta", JsonUtils.DumpJson(metaContent), modified: true);
       await SaveAsync();
+    }
+
+    private string GetRouterHost()
+    {
+      var routerUrl = Environment.GetEnvironmentVariable("ROUTER_URL");
+      if (!string.IsNullOrEmpty(routerUrl))
+      {
+        return routerUrl;
+      }
+
+      if (_auth.Endpoint is KeeperEndpoint keeperEndpoint)
+      {
+        return keeperEndpoint.Server;
+      }
+
+      return string.Empty;
     }
 
     public static GraphSyncProto.RefType GetResourceRefType(string recordTypeName)
@@ -404,6 +448,20 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    [DataContract]
+    private sealed class PamGraphAllowedSettings
+    {
+      [DataMember(Name = "rotation")]
+      public bool Rotation { get; set; }
+    }
+
+    [DataContract]
+    private sealed class PamGraphMetaContent
+    {
+      [DataMember(Name = "allowedSettings", EmitDefaultValue = false)]
+      public PamGraphAllowedSettings AllowedSettings { get; set; }
+    }
+
     private enum PamGraphEdgeType
     {
       Data,
@@ -451,8 +509,9 @@ namespace KeeperSecurity.Plugins.PAM
         return JsonUtils.ParseJson<Dictionary<string, object>>(content)
                ?? new Dictionary<string, object>();
       }
-      catch
+      catch (Exception ex)
       {
+        System.Diagnostics.Trace.TraceWarning("PAM: failed to parse ACL content: {0}", ex.Message);
         return new Dictionary<string, object>();
       }
     }
@@ -518,7 +577,7 @@ namespace KeeperSecurity.Plugins.PAM
         _dataEdge = new PamGraphEdge(Uid, Uid, PamGraphEdgeType.Data, content, path, modified);
       }
 
-      internal Dictionary<string, object> TryGetMetaContent()
+      internal PamGraphMetaContent TryGetMetaContent()
       {
         if (_dataEdge?.Content == null
             || _dataEdge.Content.Length == 0
@@ -529,10 +588,11 @@ namespace KeeperSecurity.Plugins.PAM
 
         try
         {
-          return JsonUtils.ParseJson<Dictionary<string, object>>(_dataEdge.Content);
+          return JsonUtils.ParseJson<PamGraphMetaContent>(_dataEdge.Content);
         }
-        catch
+        catch (Exception ex)
         {
+          System.Diagnostics.Trace.TraceWarning("PAM: failed to parse graph meta content: {0}", ex.Message);
           return null;
         }
       }
@@ -622,7 +682,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// High-level rotation edit graph operations (config_resource / config_user).
+  /// High-level rotation edit graph operations (Python Commander: config_resource / config_user).
   /// </summary>
   public static class PamRotationGraphEdit
   {
@@ -646,14 +706,12 @@ namespace KeeperSecurity.Plugins.PAM
       if (!graph.HasGraph)
       {
         await graph.EnsureConfigGraphAsync(enableRotationOnConfig: true);
-        await graph.LoadAsync();
       }
 
       if (!graph.ResourceBelongsToConfig(resourceRecord.Uid))
       {
         var resourceType = PamRotationGraph.GetResourceRefType(resourceRecord.TypeName ?? "");
         await graph.LinkResourceToConfigAsync(resourceRecord.Uid, resourceType);
-        await graph.LoadAsync();
       }
 
       if (!string.IsNullOrWhiteSpace(adminUserIdentifier)
@@ -669,15 +727,7 @@ namespace KeeperSecurity.Plugins.PAM
         await graph.LinkUserToResourceAsync(adminUser.Uid, resourceRecord.Uid, isAdmin: true, belongsTo: true);
       }
 
-      bool? rotationEnabled = null;
-      if (enable)
-      {
-        rotationEnabled = true;
-      }
-      else if (disable)
-      {
-        rotationEnabled = false;
-      }
+      bool? rotationEnabled = RotationUtils.ResolveRotationEnabled(enable, disable);
 
       if (rotationEnabled != null)
       {
@@ -697,11 +747,16 @@ namespace KeeperSecurity.Plugins.PAM
     {
       if (scheduleOnly || noopRotation || string.IsNullOrEmpty(configUid))
       {
+        System.Diagnostics.Trace.WriteLine(
+          $"PAM: skipping user graph link for {userRecord.Uid} "
+          + $"(scheduleOnly={scheduleOnly}, noopRotation={noopRotation}, configUid set={!string.IsNullOrEmpty(configUid)})");
         return;
       }
 
       if (string.IsNullOrEmpty(resourceUid))
       {
+        System.Diagnostics.Trace.WriteLine(
+          $"PAM: skipping user graph link for {userRecord.Uid} (resource UID not specified)");
         return;
       }
 

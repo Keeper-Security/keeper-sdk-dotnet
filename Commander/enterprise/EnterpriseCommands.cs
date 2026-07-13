@@ -100,7 +100,8 @@ namespace Commander
 
             try
             {
-                var pamPlugin = new PamPlugin(context.Enterprise);
+                var getConnection = Program.CommanderStorage.GetPamConnectionFactory();
+                var pamPlugin = new PamPlugin(context.Enterprise, getConnection);
                 _pamPlugins[context] = pamPlugin;
                 return pamPlugin;
             }

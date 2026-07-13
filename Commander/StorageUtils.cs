@@ -1,9 +1,12 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
+using System.Data;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using KeeperSecurity.Configuration;
+using KeeperSecurity.Plugins.PAM;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Vault;
 
@@ -13,6 +16,11 @@ namespace Commander
     {
         IJsonConfigurationLoader GetConfigurationLoader();
         IKeeperStorage GetKeeperStorage(string username);
+
+        /// <summary>
+        /// Shared keeper_db.sqlite connection for PAM when useOfflineStorage is on; null otherwise.
+        /// </summary>
+        Func<IDbConnection> GetPamConnectionFactory();
     }
 
     internal static class StorageUtils
@@ -48,6 +56,11 @@ namespace Commander
         }
         
         public abstract IKeeperStorage GetKeeperStorage(string ownerUid);
+
+        public virtual Func<IDbConnection> GetPamConnectionFactory()
+        {
+            return null;
+        }
     }
 
     internal class SqliteCommanderStorage : ExternalLoader
@@ -73,15 +86,22 @@ namespace Commander
         {
             var vaultStorage = new SqlKeeperStorage(GetSqliteConnection, SqliteDialect.Instance, ownerUid);
             using var connection = GetSqliteConnection();
-            var failedStmts = DatabaseUtils.VerifyDatabase(connection, SqliteDialect.Instance,
-                vaultStorage.GetStorages().Select(x => x.Schema).ToArray());
+            var schemas = vaultStorage.GetStorages().Select(x => x.Schema).ToArray();
+            var failedStmts = DatabaseUtils.VerifyDatabase(connection, SqliteDialect.Instance, schemas);
 
             if (failedStmts.Any())
             {
                 Trace.TraceError(string.Join("\n", failedStmts));
             }
 
+            SqlitePamStorage.VerifyDatabase(connection, SqliteDialect.Instance);
+
             return vaultStorage;
+        }
+
+        public override Func<IDbConnection> GetPamConnectionFactory()
+        {
+            return GetSqliteConnection;
         }
     }
 
