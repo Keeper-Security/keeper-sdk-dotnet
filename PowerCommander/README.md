@@ -80,6 +80,27 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Export-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-2)                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
 | [Import-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-3)                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
 
+### Keeper NSF Cmdlets
+
+Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs/gitbook/keeper-nsf-commands.md)** | **[Import sample templates](docs/gitbook/import-export-download-sample.md)**
+
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Add-KeeperNSFRecord                                     | nsf-record-add   | Create a single Keeper NSF record
+| Add-KeeperNSFRecords                                    | nsf-records-add | Batch create NSF records from JSON (`-DownloadSampleRecords` writes a starter template; login required)
+| Edit-KeeperNSFRecord                                    | nsf-record-update | Update an existing Keeper NSF record
+| Remove-KeeperNSFRecord                                  | nsf-rm           | Remove Keeper NSF record(s)
+| Set-KeeperNSFRecordAccess                               | nsf-share-record | Grant or revoke user access to an NSF record
+| Set-KeeperNSFRecordPermission                           | nsf-record-permission | Bulk grant or revoke record permissions in an NSF folder
+| Link-KeeperNSFRecord                                    | nsf-ln           | Link a record into an NSF folder
+| Transfer-KeeperNSFRecordOwnership                       | nsf-transfer-record | Transfer NSF record ownership
+| Get-KeeperNSFShortcut                                   | nsf-shortcut-list | List NSF shortcut records
+| Set-KeeperNSFShortcutKeep                               | nsf-shortcut-keep | Keep a record in one NSF folder only
+| New-KeeperNSFFolder                                     | nsf-mkdir        | Create a Keeper NSF folder
+| Set-KeeperNSFFolder                                     | nsf-rndir        | Rename or recolor an NSF folder
+| Remove-KeeperNSFFolder                                  | nsf-rmdir        | Remove NSF folder(s)
+| Set-KeeperNSFFolderAccess                               | nsf-share-folder | Grant or revoke user or **team** access to an NSF folder
+
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------

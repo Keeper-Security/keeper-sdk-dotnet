@@ -653,24 +653,107 @@ namespace KeeperSecurity.Vault
 
         public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
-            if (string.IsNullOrEmpty(title))
-                throw new VaultException("Record title cannot be empty");
+            var results = await vault.CreateKeeperNSFRecordsInternal(new[]
+            {
+                new KeeperNSFRecordCreateRequest
+                {
+                    Title = title,
+                    RecordType = recordType,
+                    FolderUid = folderUid,
+                    Notes = notes,
+                    Fields = fields,
+                },
+            }).ConfigureAwait(false);
 
+            var result = results[0];
+            if (!result.Success)
+            {
+                throw new VaultException(string.IsNullOrEmpty(result.Message)
+                    ? $"Failed to create record: {result.Status ?? "unknown error"}"
+                    : $"Failed to create record: {result.Message}");
+            }
+
+            return result.RecordUid;
+        }
+
+        private const int MaxKeeperNSFRecordsAddBatchSize = 1000;
+
+        public static async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsInternal(
+            this VaultOnline vault, IReadOnlyList<KeeperNSFRecordCreateRequest> records)
+        {
+            if (records == null || records.Count == 0)
+            {
+                throw new ArgumentException("At least one record is required.", nameof(records));
+            }
+
+            for (var i = 0; i < records.Count; i++)
+            {
+                if (records[i] == null)
+                {
+                    throw new ArgumentException($"Record at index {i} is null.", nameof(records));
+                }
+
+                if (string.IsNullOrEmpty(records[i].Title))
+                {
+                    throw new ArgumentException($"Record title cannot be empty (index {i}).", nameof(records));
+                }
+            }
+
+            var folderUids = records
+                .Select(r => r.FolderUid)
+                .Where(uid => !string.IsNullOrEmpty(uid))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            foreach (var folderUid in folderUids)
+            {
+                if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder))
+                {
+                    throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+                }
+
+                if (folder.FolderKey == null)
+                {
+                    throw new VaultException($"Folder key not available for folder '{folderUid}'");
+                }
+
+                await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
+                    .ConfigureAwait(false);
+            }
+
+            var preparedRecordRequestArray = new List<(KeeperNSFRecordCreateRequest Request, string RecordUid, RecordProto.RecordAdd RecordAdd)>(records.Count);
+            foreach (var request in records)
+            {
+                var recordUid = BuildKeeperNSFRecordAdd(vault, request, out var recordAdd);
+                preparedRecordRequestArray.Add((request, recordUid, recordAdd));
+            }
+
+            var results = new List<KeeperNSFRecordCreateResult>(records.Count);
+            for (var offset = 0; offset < preparedRecordRequestArray.Count; offset += MaxKeeperNSFRecordsAddBatchSize)
+            {
+                var chunk = preparedRecordRequestArray.Skip(offset).Take(MaxKeeperNSFRecordsAddBatchSize).ToList();
+                var chunkResults = await ExecuteKeeperNSFRecordsAddBatchAsync(vault, chunk).ConfigureAwait(false);
+                results.AddRange(chunkResults);
+            }
+
+            return results;
+        }
+
+        private static string BuildKeeperNSFRecordAdd(
+            VaultOnline vault,
+            KeeperNSFRecordCreateRequest request,
+            out RecordProto.RecordAdd recordAdd)
+        {
             var recordUid = CryptoUtils.GenerateUid();
             var recordKey = CryptoUtils.GenerateEncryptionKey();
 
             byte[] encryptionKey;
             FolderProto.FolderKeyEncryptionType keyEncryptedBy;
-
-            if (!string.IsNullOrEmpty(folderUid))
+            if (!string.IsNullOrEmpty(request.FolderUid))
             {
-                if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder))
-                    throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-                if (folder.FolderKey == null)
-                    throw new VaultException($"Folder key not available for folder '{folderUid}'");
-
-                await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
-                    .ConfigureAwait(false);
+                if (!vault.TryGetKeeperNSFFolder(request.FolderUid, out var folder))
+                {
+                    throw new VaultException($"Keeper NSF folder '{request.FolderUid}' not found");
+                }
 
                 encryptionKey = folder.FolderKey;
                 keyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey;
@@ -681,13 +764,17 @@ namespace KeeperSecurity.Vault
                 keyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByUserKey;
             }
 
-            var dataObj = BuildNsfRecordData(recordType, title, notes, fields);
+            var dataObj = BuildNsfRecordData(
+                request.RecordType,
+                request.Title,
+                request.Notes,
+                request.Fields);
             var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
             var encryptedRecordKey = CryptoUtils.EncryptAesV2(recordKey, encryptionKey);
 
-            var ra = new RecordProto.RecordAdd
+            recordAdd = new RecordProto.RecordAdd
             {
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 RecordKey = ByteString.CopyFrom(encryptedRecordKey),
@@ -697,27 +784,76 @@ namespace KeeperSecurity.Vault
                 Data = ByteString.CopyFrom(encryptedData),
             };
 
-            if (!string.IsNullOrEmpty(folderUid))
+            if (!string.IsNullOrEmpty(request.FolderUid))
             {
-                ra.FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode());
-            }
-
-            var rq = new RecordProto.RecordsAddRequest();
-            rq.Records.Add(ra);
-
-            var rs = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
-                "vault/records/v3/add", rq);
-
-            if (rs.Records.Count > 0)
-            {
-                var result = rs.Records[0];
-                if (result.Status != RecordModifyResult.RsSuccess)
-                {
-                    throw new VaultException($"Failed to create record: {result.Message}");
-                }
+                recordAdd.FolderUid = ByteString.CopyFrom(request.FolderUid.Base64UrlDecode());
             }
 
             return recordUid;
+        }
+
+        private static async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> ExecuteKeeperNSFRecordsAddBatchAsync(
+            VaultOnline vault,
+            IReadOnlyList<(KeeperNSFRecordCreateRequest Request, string RecordUid, RecordProto.RecordAdd RecordAdd)> batch)
+        {
+            var requestObj = new RecordProto.RecordsAddRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+            foreach (var item in batch)
+            {
+                requestObj.Records.Add(item.RecordAdd);
+            }
+
+            var responseObj = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
+                "vault/records/v3/add", requestObj).ConfigureAwait(false);
+
+            var statusByRecordUid = new Dictionary<string, Records.RecordModifyStatus>(StringComparer.Ordinal);
+            foreach (var status in responseObj.Records)
+            {
+                if (status.RecordUid == null || status.RecordUid.IsEmpty)
+                {
+                    continue;
+                }
+
+                var uid = CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray());
+                statusByRecordUid[uid] = status;
+            }
+
+            var results = new List<KeeperNSFRecordCreateResult>(batch.Count);
+            foreach (var item in batch)
+            {
+                if (!statusByRecordUid.TryGetValue(item.RecordUid, out var status))
+                {
+                    results.Add(new KeeperNSFRecordCreateResult
+                    {
+                        RecordUid = item.RecordUid,
+                        Title = item.Request.Title,
+                        Status = "missing",
+                        Message = "Server returned no status for this record.",
+                        Success = false,
+                    });
+                    continue;
+                }
+
+                var statusLabel = FormatRecordModifyStatus(status.Status);
+                results.Add(new KeeperNSFRecordCreateResult
+                {
+                    RecordUid = item.RecordUid,
+                    Title = item.Request.Title,
+                    Status = statusLabel,
+                    Message = status.Message,
+                    Success = status.Status == RecordModifyResult.RsSuccess,
+                });
+            }
+
+            return results;
+        }
+
+        private static string FormatRecordModifyStatus(RecordModifyResult status)
+        {
+            var name = Enum.GetName(typeof(RecordModifyResult), status) ?? status.ToString();
+            return name.StartsWith("Rs", StringComparison.Ordinal) ? name.Substring(2) : name;
         }
 
         public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)

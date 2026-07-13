@@ -434,6 +434,28 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordCreateRequest> records)
+        {
+            var results = await this.CreateKeeperNSFRecordsInternal(records).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
+            ImportFile import,
+            string defaultFolderUid = null)
+        {
+            var requests = KeeperImport.ToKeeperNSFCreateRequests(this, import, defaultFolderUid);
+            return await CreateKeeperNSFRecords(requests).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<TryUpdateKeeperNSFRecordResult> TryUpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null)
         {
             try

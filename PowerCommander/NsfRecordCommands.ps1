@@ -1,5 +1,7 @@
 #requires -Version 5.1
 
+. "$PSScriptRoot/NsfBatchSampleData.ps1"
+
 function Script:ConvertTo-NSFJsonValue {
     Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
 
@@ -255,6 +257,224 @@ function Add-KeeperNSFRecord {
 }
 
 New-Alias -Name nsf-record-add -Value Add-KeeperNSFRecord
+
+function Script:Read-KeeperNSFImportFile {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    if ([string]::IsNullOrWhiteSpace($JsonText)) {
+        throw "JSON text cannot be empty."
+    }
+
+    try {
+        $jsonBytes = [System.Text.Encoding]::UTF8.GetBytes($JsonText)
+        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod('ParseJson', [Type[]]@([byte[]]))
+        return $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+    }
+    catch {
+        throw "Invalid import JSON: $($_.Exception.Message)"
+    }
+}
+
+function Add-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Creates multiple Keeper NSF records in a single batch API call.
+
+	.Description
+	Uses vault/records/v3/add batching (up to 1000 records per request; larger sets are chunked automatically).
+	Accepts the same JSON record payload as Import-KeeperVault (kimport) / Export-KeeperVault.
+
+	Each record supports: title, $type, login, password, login_url, notes, custom_fields, folders.
+	Place records in an NSF folder via folders[].folder (folder name or UID). Permission fields on folders
+	(can_edit, can_share) and shared_folders entries are ignored for NSF batch create.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON import file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DefaultFolderUid
+	Optional NSF folder UID applied when a record has no folders[].folder.
+
+	.Parameter DownloadSampleRecords
+	Writes a sample batch import JSON file to disk and exits without creating records.
+	Requires an authenticated Keeper session. The sample uses the same records section
+	shape as Import-KeeperVault / kimport. Edit the file with your own data, then run
+	Add-KeeperNSFRecords -FilePath.
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecords -DownloadSampleRecords
+	Writes nsf-records-batch.sample.json in the current directory.
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecords -DownloadSampleRecords -FilePath .\my-nsf-batch.json
+	Writes a sample batch file to my-nsf-batch.json.
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecords -FilePath .\vault_backup.json
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecords -Json '{"records":[{"title":"Site A","$type":"login","login":"a","password":"secret","login_url":"https://example.com"}]}'
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecords -FilePath .\records.json -DefaultFolderUid "<nsfFolderUid>"
+
+	Example file (same shape as kimport records section; includes login, legacy/general, bankCard,
+	databaseCredentials, serverCredentials, sshKeys, address, contact, secureNote, bankAccount):
+	{
+	  "records": [
+	    {
+	      "title": "Batch Site A",
+	      "$type": "login",
+	      "login": "user.a@example.com",
+	      "password": "Secret-A-2026!",
+	      "login_url": "https://a.example.com",
+	      "notes": "Created via NSF batch"
+	    },
+	    {
+	      "title": "Production DB",
+	      "$type": "databaseCredentials",
+	      "login": "db_user",
+	      "password": "Secret-DB-2026!",
+	      "custom_fields": {
+	        "$host": { "hostName": "192.168.1.10", "port": "1433" },
+	        "$databaseType": "sqlServer"
+	      }
+	    },
+	    {
+	      "title": "Office",
+	      "$type": "address",
+	      "custom_fields": {
+	        "$address:Work": {
+	          "street1": "123 Main Street",
+	          "city": "San Jose",
+	          "state": "CA",
+	          "zip": "95110",
+	          "country": "US"
+	        }
+	      }
+	    },
+	    {
+	      "title": "Legacy Entry",
+	      "login": "legacy@example.com",
+	      "password": "secret",
+	      "notes": "No $type - legacy/general format"
+	    }
+	  ]
+	}
+
+	Use -DownloadSampleRecords to write a full multi-type example file for editing.
+#>
+    [CmdletBinding(DefaultParameterSetName = 'File')]
+    Param (
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleRecords,
+
+        [Parameter()]
+        [string] $DefaultFolderUid
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleRecords) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with your records, then run:"
+        Write-Host "    Add-KeeperNSFRecords -FilePath `"$FilePath`""
+        if ($DefaultFolderUid) {
+            Write-Host "    Add-KeeperNSFRecords -FilePath `"$FilePath`" -DefaultFolderUid `"$DefaultFolderUid`""
+        }
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleRecords is not specified."
+        return
+    }
+
+    try {
+        $importFile = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Read-KeeperNSFImportFile -JsonText (Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8)
+        }
+        else {
+            Read-KeeperNSFImportFile -JsonText $Json
+        }
+
+        if (-not $importFile.Records -or $importFile.Records.Length -eq 0) {
+            throw "Import file contains no records."
+        }
+
+        if ($importFile.SharedFolders -and $importFile.SharedFolders.Length -gt 0) {
+            Write-Host "Note: shared_folders in the import file are ignored for NSF batch record create." -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Error parsing import payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    try {
+        Write-Host "Creating $($importFile.Records.Length) Keeper NSF record(s) in batch..."
+        $results = $vault.CreateKeeperNSFRecordsFromImport($importFile, $DefaultFolderUid).GetAwaiter().GetResult()
+
+        $ok = @($results | Where-Object { $_.Success })
+        $fail = @($results | Where-Object { -not $_.Success })
+        Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+        Write-Host ""
+
+        foreach ($result in $results) {
+            if ($result.Success) {
+                Write-Host "  [OK]   $($result.Title)  UID: $($result.RecordUid)" -ForegroundColor Green
+            }
+            else {
+                $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+                Write-Host "  [FAIL] $($result.Title)  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
+        }
+
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error creating records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-records-add -Value Add-KeeperNSFRecords
 
 function Edit-KeeperNSFRecord {
     <#
