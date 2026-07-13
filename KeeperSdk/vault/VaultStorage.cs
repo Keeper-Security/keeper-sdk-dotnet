@@ -538,6 +538,16 @@ namespace KeeperSecurity.Vault
         /// Enterprise-Defined
         /// </summary>
         Enterprise = 2,
+
+        /// <summary>
+        /// PAM record types
+        /// </summary>
+        Pam = 3,
+
+        /// <summary>
+        /// PAM configuration record types
+        /// </summary>
+        PamConfiguration = 4,
     }
 
     /// <summary>

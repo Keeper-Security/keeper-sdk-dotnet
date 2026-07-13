@@ -19,6 +19,8 @@ namespace KeeperSecurity.Utils
                 RecordTypeScope.Standard => "standard",
                 RecordTypeScope.Enterprise => "enterprise",
                 RecordTypeScope.User => "user",
+                RecordTypeScope.Pam => "pam",
+                RecordTypeScope.PamConfiguration => "pam_configuration",
                 _ => "",
             };
         }
