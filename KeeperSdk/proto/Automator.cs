@@ -192,13 +192,14 @@ namespace Automator {
             "CgljaGVja2VkT24YByABKAQqSQodU3NvQXV0aGVudGljYXRpb25Qcm90b2Nv",
             "bFR5cGUSFAoQVU5LTk9XTl9QUk9UT0NPTBAAEgkKBVNBTUwyEAESBwoDSldU",
             "EAIqPAoRQ2VydGlmaWNhdGVGb3JtYXQSEgoOVU5LTk9XTl9GT1JNQVQQABIK",
-            "CgZQS0NTMTIQARIHCgNKS1MQAipnCglTa2lsbFR5cGUSFgoSVU5LTk9XTl9T",
+            "CgZQS0NTMTIQARIHCgNKS1MQAip2CglTa2lsbFR5cGUSFgoSVU5LTk9XTl9T",
             "S0lMTF9UWVBFEAASEwoPREVWSUNFX0FQUFJPVkFMEAESEQoNVEVBTV9BUFBS",
-            "T1ZBTBACEhoKFlRFQU1fRk9SX1VTRVJfQVBQUk9WQUwQAyqHAQoOQXV0b21h",
-            "dG9yU3RhdGUSEQoNVU5LTk9XTl9TVEFURRAAEgsKB1JVTk5JTkcQARIJCgVF",
-            "UlJPUhACEhgKFE5FRURTX0lOSVRJQUxJWkFUSU9OEAMSFwoTTkVFRFNfQ1JZ",
-            "UFRPX1NURVBfMRAEEhcKE05FRURTX0NSWVBUT19TVEVQXzIQBUIlChhjb20u",
-            "a2VlcGVyc2VjdXJpdHkucHJvdG9CCUF1dG9tYXRvcmIGcHJvdG8z"));
+            "T1ZBTBACEhoKFlRFQU1fRk9SX1VTRVJfQVBQUk9WQUwQAxINCglSRVBPUlRJ",
+            "TkcQBCqHAQoOQXV0b21hdG9yU3RhdGUSEQoNVU5LTk9XTl9TVEFURRAAEgsK",
+            "B1JVTk5JTkcQARIJCgVFUlJPUhACEhgKFE5FRURTX0lOSVRJQUxJWkFUSU9O",
+            "EAMSFwoTTkVFRFNfQ1JZUFRPX1NURVBfMRAEEhcKE05FRURTX0NSWVBUT19T",
+            "VEVQXzIQBUIlChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCUF1dG9tYXRv",
+            "cmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::SsoCloud.SsocloudReflection.Descriptor, global::Enterprise.EnterpriseReflection.Descriptor, global::SemanticVersion.VersionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Automator.SsoAuthenticationProtocolType), typeof(global::Automator.CertificateFormat), typeof(global::Automator.SkillType), typeof(global::Automator.AutomatorState), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -283,6 +284,7 @@ namespace Automator {
     [pbr::OriginalName("DEVICE_APPROVAL")] DeviceApproval = 1,
     [pbr::OriginalName("TEAM_APPROVAL")] TeamApproval = 2,
     [pbr::OriginalName("TEAM_FOR_USER_APPROVAL")] TeamForUserApproval = 3,
+    [pbr::OriginalName("REPORTING")] Reporting = 4,
   }
 
   /// <summary>

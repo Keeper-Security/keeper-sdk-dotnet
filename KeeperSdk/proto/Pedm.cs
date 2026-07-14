@@ -154,13 +154,19 @@ namespace PEDM {
             "ChdBZ2VudENvdW50Rm9yRW50ZXJwcmlzZRIUCgxlbnRlcnByaXNlSWQYASAB",
             "KAUSJQoGY291bnRzGAIgAygLMhUuUEVETS5BZ2VudERhaWx5Q291bnQiVQoa",
             "R2V0QWdlbnREYWlseUNvdW50UmVzcG9uc2USNwoQZW50ZXJwcmlzZUNvdW50",
-            "cxgBIAMoCzIdLlBFRE0uQWdlbnRDb3VudEZvckVudGVycHJpc2UqagoSQ29s",
-            "bGVjdGlvbkxpbmtUeXBlEg0KCUNMVF9PVEhFUhAAEg0KCUNMVF9BR0VOVBAB",
-            "Eg4KCkNMVF9QT0xJQ1kQAhISCg5DTFRfQ09MTEVDVElPThADEhIKDkNMVF9E",
-            "RVBMT1lNRU5UEAQqbwoSQXBwcm92YWxTdGF0dXNUeXBlEhMKD0FTVF9VTlNQ",
-            "RUNJRklFRBAAEhAKDEFTVF9BUFBST1ZFRBABEg4KCkFTVF9ERU5JRUQQAhIP",
-            "CgtBU1RfRVhQSVJFRBADEhEKDUFTVF9FU0NBTEFURUQQBUIgChhjb20ua2Vl",
-            "cGVyc2VjdXJpdHkucHJvdG9CBFBFRE1iBnByb3RvMw=="));
+            "cxgBIAMoCzIdLlBFRE0uQWdlbnRDb3VudEZvckVudGVycHJpc2UidAoeR2V0",
+            "QWdlbnRpY1dvcmtsb2FkQ291bnRSZXF1ZXN0EhQKDGVudGVycHJpc2VJZBgB",
+            "IAMoBRIQCgZwcmVzZXQYAiABKAlIABIgCgVyYW5nZRgDIAEoCzIPLlBFRE0u",
+            "RGF0ZVJhbmdlSABCCAoGcGVyaW9kIkYKF0VudGVycHJpc2VXb3JrbG9hZENv",
+            "dW50EhQKDGVudGVycHJpc2VJZBgBIAEoBRIVCg13b3JrbG9hZENvdW50GAIg",
+            "ASgDIlAKH0dldEFnZW50aWNXb3JrbG9hZENvdW50UmVzcG9uc2USLQoGY291",
+            "bnRzGAEgAygLMh0uUEVETS5FbnRlcnByaXNlV29ya2xvYWRDb3VudCpqChJD",
+            "b2xsZWN0aW9uTGlua1R5cGUSDQoJQ0xUX09USEVSEAASDQoJQ0xUX0FHRU5U",
+            "EAESDgoKQ0xUX1BPTElDWRACEhIKDkNMVF9DT0xMRUNUSU9OEAMSEgoOQ0xU",
+            "X0RFUExPWU1FTlQQBCpvChJBcHByb3ZhbFN0YXR1c1R5cGUSEwoPQVNUX1VO",
+            "U1BFQ0lGSUVEEAASEAoMQVNUX0FQUFJPVkVEEAESDgoKQVNUX0RFTklFRBAC",
+            "Eg8KC0FTVF9FWFBJUkVEEAMSEQoNQVNUX0VTQ0FMQVRFRBAFQiAKGGNvbS5r",
+            "ZWVwZXJzZWN1cml0eS5wcm90b0IEUEVETWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Folder.FolderReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::PEDM.CollectionLinkType), typeof(global::PEDM.ApprovalStatusType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -220,7 +226,10 @@ namespace PEDM {
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.DateRange), global::PEDM.DateRange.Parser, new[]{ "Start", "End" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.AgentDailyCount), global::PEDM.AgentDailyCount.Parser, new[]{ "Date", "AgentCount" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.AgentCountForEnterprise), global::PEDM.AgentCountForEnterprise.Parser, new[]{ "EnterpriseId", "Counts" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgentDailyCountResponse), global::PEDM.GetAgentDailyCountResponse.Parser, new[]{ "EnterpriseCounts" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgentDailyCountResponse), global::PEDM.GetAgentDailyCountResponse.Parser, new[]{ "EnterpriseCounts" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgenticWorkloadCountRequest), global::PEDM.GetAgenticWorkloadCountRequest.Parser, new[]{ "EnterpriseId", "Preset", "Range" }, new[]{ "Period" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.EnterpriseWorkloadCount), global::PEDM.EnterpriseWorkloadCount.Parser, new[]{ "EnterpriseId", "WorkloadCount" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgenticWorkloadCountResponse), global::PEDM.GetAgenticWorkloadCountResponse.Parser, new[]{ "Counts" }, null, null, null, null)
           }));
     }
     #endregion
@@ -15618,6 +15627,751 @@ namespace PEDM {
             break;
           case 10: {
             enterpriseCounts_.AddEntriesFrom(ref input, _repeated_enterpriseCounts_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class GetAgenticWorkloadCountRequest : pb::IMessage<GetAgenticWorkloadCountRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<GetAgenticWorkloadCountRequest> _parser = new pb::MessageParser<GetAgenticWorkloadCountRequest>(() => new GetAgenticWorkloadCountRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<GetAgenticWorkloadCountRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::PEDM.PedmReflection.Descriptor.MessageTypes[57]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountRequest(GetAgenticWorkloadCountRequest other) : this() {
+      enterpriseId_ = other.enterpriseId_.Clone();
+      switch (other.PeriodCase) {
+        case PeriodOneofCase.Preset:
+          Preset = other.Preset;
+          break;
+        case PeriodOneofCase.Range:
+          Range = other.Range.Clone();
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountRequest Clone() {
+      return new GetAgenticWorkloadCountRequest(this);
+    }
+
+    /// <summary>Field number for the "enterpriseId" field.</summary>
+    public const int EnterpriseIdFieldNumber = 1;
+    private static readonly pb::FieldCodec<int> _repeated_enterpriseId_codec
+        = pb::FieldCodec.ForInt32(10);
+    private readonly pbc::RepeatedField<int> enterpriseId_ = new pbc::RepeatedField<int>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<int> EnterpriseId {
+      get { return enterpriseId_; }
+    }
+
+    /// <summary>Field number for the "preset" field.</summary>
+    public const int PresetFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Preset {
+      get { return HasPreset ? (string) period_ : ""; }
+      set {
+        period_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        periodCase_ = PeriodOneofCase.Preset;
+      }
+    }
+    /// <summary>Gets whether the "preset" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPreset {
+      get { return periodCase_ == PeriodOneofCase.Preset; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "preset" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPreset() {
+      if (HasPreset) {
+        ClearPeriod();
+      }
+    }
+
+    /// <summary>Field number for the "range" field.</summary>
+    public const int RangeFieldNumber = 3;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::PEDM.DateRange Range {
+      get { return periodCase_ == PeriodOneofCase.Range ? (global::PEDM.DateRange) period_ : null; }
+      set {
+        period_ = value;
+        periodCase_ = value == null ? PeriodOneofCase.None : PeriodOneofCase.Range;
+      }
+    }
+
+    private object period_;
+    /// <summary>Enum of possible cases for the "period" oneof.</summary>
+    public enum PeriodOneofCase {
+      None = 0,
+      Preset = 2,
+      Range = 3,
+    }
+    private PeriodOneofCase periodCase_ = PeriodOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PeriodOneofCase PeriodCase {
+      get { return periodCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPeriod() {
+      periodCase_ = PeriodOneofCase.None;
+      period_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as GetAgenticWorkloadCountRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(GetAgenticWorkloadCountRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!enterpriseId_.Equals(other.enterpriseId_)) return false;
+      if (Preset != other.Preset) return false;
+      if (!object.Equals(Range, other.Range)) return false;
+      if (PeriodCase != other.PeriodCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= enterpriseId_.GetHashCode();
+      if (HasPreset) hash ^= Preset.GetHashCode();
+      if (periodCase_ == PeriodOneofCase.Range) hash ^= Range.GetHashCode();
+      hash ^= (int) periodCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      enterpriseId_.WriteTo(output, _repeated_enterpriseId_codec);
+      if (HasPreset) {
+        output.WriteRawTag(18);
+        output.WriteString(Preset);
+      }
+      if (periodCase_ == PeriodOneofCase.Range) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Range);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      enterpriseId_.WriteTo(ref output, _repeated_enterpriseId_codec);
+      if (HasPreset) {
+        output.WriteRawTag(18);
+        output.WriteString(Preset);
+      }
+      if (periodCase_ == PeriodOneofCase.Range) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Range);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += enterpriseId_.CalculateSize(_repeated_enterpriseId_codec);
+      if (HasPreset) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Preset);
+      }
+      if (periodCase_ == PeriodOneofCase.Range) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Range);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(GetAgenticWorkloadCountRequest other) {
+      if (other == null) {
+        return;
+      }
+      enterpriseId_.Add(other.enterpriseId_);
+      switch (other.PeriodCase) {
+        case PeriodOneofCase.Preset:
+          Preset = other.Preset;
+          break;
+        case PeriodOneofCase.Range:
+          if (Range == null) {
+            Range = new global::PEDM.DateRange();
+          }
+          Range.MergeFrom(other.Range);
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10:
+          case 8: {
+            enterpriseId_.AddEntriesFrom(input, _repeated_enterpriseId_codec);
+            break;
+          }
+          case 18: {
+            Preset = input.ReadString();
+            break;
+          }
+          case 26: {
+            global::PEDM.DateRange subBuilder = new global::PEDM.DateRange();
+            if (periodCase_ == PeriodOneofCase.Range) {
+              subBuilder.MergeFrom(Range);
+            }
+            input.ReadMessage(subBuilder);
+            Range = subBuilder;
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10:
+          case 8: {
+            enterpriseId_.AddEntriesFrom(ref input, _repeated_enterpriseId_codec);
+            break;
+          }
+          case 18: {
+            Preset = input.ReadString();
+            break;
+          }
+          case 26: {
+            global::PEDM.DateRange subBuilder = new global::PEDM.DateRange();
+            if (periodCase_ == PeriodOneofCase.Range) {
+              subBuilder.MergeFrom(Range);
+            }
+            input.ReadMessage(subBuilder);
+            Range = subBuilder;
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class EnterpriseWorkloadCount : pb::IMessage<EnterpriseWorkloadCount>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<EnterpriseWorkloadCount> _parser = new pb::MessageParser<EnterpriseWorkloadCount>(() => new EnterpriseWorkloadCount());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<EnterpriseWorkloadCount> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::PEDM.PedmReflection.Descriptor.MessageTypes[58]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EnterpriseWorkloadCount() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EnterpriseWorkloadCount(EnterpriseWorkloadCount other) : this() {
+      enterpriseId_ = other.enterpriseId_;
+      workloadCount_ = other.workloadCount_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EnterpriseWorkloadCount Clone() {
+      return new EnterpriseWorkloadCount(this);
+    }
+
+    /// <summary>Field number for the "enterpriseId" field.</summary>
+    public const int EnterpriseIdFieldNumber = 1;
+    private int enterpriseId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int EnterpriseId {
+      get { return enterpriseId_; }
+      set {
+        enterpriseId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "workloadCount" field.</summary>
+    public const int WorkloadCountFieldNumber = 2;
+    private long workloadCount_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long WorkloadCount {
+      get { return workloadCount_; }
+      set {
+        workloadCount_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as EnterpriseWorkloadCount);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(EnterpriseWorkloadCount other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (EnterpriseId != other.EnterpriseId) return false;
+      if (WorkloadCount != other.WorkloadCount) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (EnterpriseId != 0) hash ^= EnterpriseId.GetHashCode();
+      if (WorkloadCount != 0L) hash ^= WorkloadCount.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (EnterpriseId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(EnterpriseId);
+      }
+      if (WorkloadCount != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(WorkloadCount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(EnterpriseId);
+      }
+      if (WorkloadCount != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(WorkloadCount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (EnterpriseId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnterpriseId);
+      }
+      if (WorkloadCount != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(WorkloadCount);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(EnterpriseWorkloadCount other) {
+      if (other == null) {
+        return;
+      }
+      if (other.EnterpriseId != 0) {
+        EnterpriseId = other.EnterpriseId;
+      }
+      if (other.WorkloadCount != 0L) {
+        WorkloadCount = other.WorkloadCount;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            EnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            WorkloadCount = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            WorkloadCount = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class GetAgenticWorkloadCountResponse : pb::IMessage<GetAgenticWorkloadCountResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<GetAgenticWorkloadCountResponse> _parser = new pb::MessageParser<GetAgenticWorkloadCountResponse>(() => new GetAgenticWorkloadCountResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<GetAgenticWorkloadCountResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::PEDM.PedmReflection.Descriptor.MessageTypes[59]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountResponse(GetAgenticWorkloadCountResponse other) : this() {
+      counts_ = other.counts_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAgenticWorkloadCountResponse Clone() {
+      return new GetAgenticWorkloadCountResponse(this);
+    }
+
+    /// <summary>Field number for the "counts" field.</summary>
+    public const int CountsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::PEDM.EnterpriseWorkloadCount> _repeated_counts_codec
+        = pb::FieldCodec.ForMessage(10, global::PEDM.EnterpriseWorkloadCount.Parser);
+    private readonly pbc::RepeatedField<global::PEDM.EnterpriseWorkloadCount> counts_ = new pbc::RepeatedField<global::PEDM.EnterpriseWorkloadCount>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::PEDM.EnterpriseWorkloadCount> Counts {
+      get { return counts_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as GetAgenticWorkloadCountResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(GetAgenticWorkloadCountResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!counts_.Equals(other.counts_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= counts_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      counts_.WriteTo(output, _repeated_counts_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      counts_.WriteTo(ref output, _repeated_counts_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += counts_.CalculateSize(_repeated_counts_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(GetAgenticWorkloadCountResponse other) {
+      if (other == null) {
+        return;
+      }
+      counts_.Add(other.counts_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            counts_.AddEntriesFrom(input, _repeated_counts_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            counts_.AddEntriesFrom(ref input, _repeated_counts_codec);
             break;
           }
         }

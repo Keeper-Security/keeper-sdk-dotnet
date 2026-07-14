@@ -32,129 +32,155 @@ namespace Router {
             "ASABKA4yGi5QQU0uQ29udHJvbGxlck1lc3NhZ2VUeXBlEhIKCm1lc3NhZ2VV",
             "aWQYAiABKAwSFQoNY29udHJvbGxlclVpZBgDIAEoDBIWCg5zdHJlYW1SZXNw",
             "b25zZRgEIAEoCBIPCgdwYXlsb2FkGAUgASgMEg8KB3RpbWVvdXQYBiABKAUi",
-            "mQIKDlJvdXRlclVzZXJBdXRoEhcKD3RyYW5zbWlzc2lvbktleRgBIAEoDBIU",
+            "vQIKDlJvdXRlclVzZXJBdXRoEhcKD3RyYW5zbWlzc2lvbktleRgBIAEoDBIU",
             "CgxzZXNzaW9uVG9rZW4YAiABKAwSDgoGdXNlcklkGAMgASgFEhgKEGVudGVy",
             "cHJpc2VVc2VySWQYBCABKAMSEgoKZGV2aWNlTmFtZRgFIAEoCRITCgtkZXZp",
             "Y2VUb2tlbhgGIAEoDBIXCg9jbGllbnRWZXJzaW9uSWQYByABKAUSFAoMbmVl",
             "ZFVzZXJuYW1lGAggASgIEhAKCHVzZXJuYW1lGAkgASgJEhcKD21zcEVudGVy",
             "cHJpc2VJZBgKIAEoBRITCgtpc1BlZG1BZG1pbhgLIAEoCBIWCg5tY0VudGVy",
-            "cHJpc2VJZBgMIAEoBSKdAgoQUm91dGVyRGV2aWNlQXV0aBIQCghjbGllbnRJ",
-            "ZBgBIAEoCRIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhEKCXNpZ25hdHVyZRgD",
-            "IAEoDBIUCgxlbnRlcnByaXNlSWQYBCABKAUSDgoGbm9kZUlkGAUgASgDEhIK",
-            "CmRldmljZU5hbWUYBiABKAkSEwoLZGV2aWNlVG9rZW4YByABKAwSFgoOY29u",
-            "dHJvbGxlck5hbWUYCCABKAkSFQoNY29udHJvbGxlclVpZBgJIAEoDBIRCglv",
-            "d25lclVzZXIYCiABKAkSEQoJY2hhbGxlbmdlGAsgASgJEg8KB293bmVySWQY",
-            "DCABKAUSGAoQbWF4SW5zdGFuY2VDb3VudBgNIAEoBSKDAQoUUm91dGVyUmVj",
-            "b3JkUm90YXRpb24SEQoJcmVjb3JkVWlkGAEgASgMEhgKEGNvbmZpZ3VyYXRp",
-            "b25VaWQYAiABKAwSFQoNY29udHJvbGxlclVpZBgDIAEoDBITCgtyZXNvdXJj",
-            "ZVVpZBgEIAEoDBISCgpub1NjaGVkdWxlGAUgASgIIkUKHFJvdXRlclJlY29y",
-            "ZFJvdGF0aW9uc1JlcXVlc3QSFAoMZW50ZXJwcmlzZUlkGAEgASgFEg8KB3Jl",
-            "Y29yZHMYAiADKAwiYQodUm91dGVyUmVjb3JkUm90YXRpb25zUmVzcG9uc2US",
-            "LwoJcm90YXRpb25zGAEgAygLMhwuUm91dGVyLlJvdXRlclJlY29yZFJvdGF0",
-            "aW9uEg8KB2hhc01vcmUYAiABKAgi7QEKElJvdXRlclJvdGF0aW9uSW5mbxIs",
-            "CgZzdGF0dXMYASABKA4yHC5Sb3V0ZXIuUm91dGVyUm90YXRpb25TdGF0dXMS",
-            "GAoQY29uZmlndXJhdGlvblVpZBgCIAEoDBITCgtyZXNvdXJjZVVpZBgDIAEo",
-            "DBIOCgZub2RlSWQYBCABKAMSFQoNY29udHJvbGxlclVpZBgFIAEoDBIWCg5j",
-            "b250cm9sbGVyTmFtZRgGIAEoCRISCgpzY3JpcHROYW1lGAcgASgJEhUKDXB3",
-            "ZENvbXBsZXhpdHkYCCABKAkSEAoIZGlzYWJsZWQYCSABKAgiugIKG1JvdXRl",
-            "clJlY29yZFJvdGF0aW9uUmVxdWVzdBIRCglyZWNvcmRVaWQYASABKAwSEAoI",
-            "cmV2aXNpb24YAiABKAMSGAoQY29uZmlndXJhdGlvblVpZBgDIAEoDBITCgty",
-            "ZXNvdXJjZVVpZBgEIAEoDBIQCghzY2hlZHVsZRgFIAEoCRIYChBlbnRlcnBy",
-            "aXNlVXNlcklkGAYgASgDEhUKDXB3ZENvbXBsZXhpdHkYByABKAwSEAoIZGlz",
-            "YWJsZWQYCCABKAgSFQoNcmVtb3RlQWRkcmVzcxgJIAEoCRIXCg9jbGllbnRW",
-            "ZXJzaW9uSWQYCiABKAUSDAoEbm9vcBgLIAEoCBIeChFzYWFzQ29uZmlndXJh",
-            "dGlvbhgMIAEoDEgAiAEBQhQKEl9zYWFzQ29uZmlndXJhdGlvbiI8ChdVc2Vy",
-            "UmVjb3JkQWNjZXNzUmVxdWVzdBIOCgZ1c2VySWQYASABKAUSEQoJcmVjb3Jk",
-            "VWlkGAIgASgMImEKGFVzZXJSZWNvcmRBY2Nlc3NSZXNwb25zZRIRCglyZWNv",
-            "cmRVaWQYASABKAwSMgoLYWNjZXNzTGV2ZWwYAiABKA4yHS5Sb3V0ZXIuVXNl",
-            "clJlY29yZEFjY2Vzc0xldmVsIk0KGFVzZXJSZWNvcmRBY2Nlc3NSZXF1ZXN0",
-            "cxIxCghyZXF1ZXN0cxgBIAMoCzIfLlJvdXRlci5Vc2VyUmVjb3JkQWNjZXNz",
-            "UmVxdWVzdCJQChlVc2VyUmVjb3JkQWNjZXNzUmVzcG9uc2VzEjMKCXJlc3Bv",
-            "bnNlcxgBIAMoCzIgLlJvdXRlci5Vc2VyUmVjb3JkQWNjZXNzUmVzcG9uc2Ui",
-            "SAodVXNlclNoYXJlZEZvbGRlckFjY2Vzc1JlcXVlc3QSDgoGdXNlcklkGAEg",
-            "ASgFEhcKD3NoYXJlZEZvbGRlclVpZBgCIAMoDCJpCh5Vc2VyU2hhcmVkRm9s",
-            "ZGVyQWNjZXNzUmVzcG9uc2USFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEi4K",
-            "DmFjY2Vzc1JvbGVUeXBlGAIgASgOMhYuRm9sZGVyLkFjY2Vzc1JvbGVUeXBl",
-            "IlwKH1VzZXJTaGFyZWRGb2xkZXJBY2Nlc3NSZXNwb25zZXMSOQoJcmVzcG9u",
-            "c2VzGAEgAygLMiYuUm91dGVyLlVzZXJTaGFyZWRGb2xkZXJBY2Nlc3NSZXNw",
-            "b25zZSI4ChBSb3RhdGlvblNjaGVkdWxlEhIKCnJlY29yZF91aWQYASABKAwS",
-            "EAoIc2NoZWR1bGUYAiABKAkikAEKEkFwaUNhbGxiYWNrUmVxdWVzdBITCgty",
-            "ZXNvdXJjZVVpZBgBIAEoDBIuCglzY2hlZHVsZXMYAiADKAsyGy5Sb3V0ZXIu",
-            "QXBpQ2FsbGJhY2tTY2hlZHVsZRILCgN1cmwYAyABKAkSKAoLc2VydmljZVR5",
-            "cGUYBCABKA4yEy5Sb3V0ZXIuU2VydmljZVR5cGUiNQoTQXBpQ2FsbGJhY2tT",
-            "Y2hlZHVsZRIQCghzY2hlZHVsZRgBIAEoCRIMCgRkYXRhGAIgASgMIkAKFlJv",
-            "dXRlclNjaGVkdWxlZEFjdGlvbnMSEAoIc2NoZWR1bGUYASABKAkSFAoMcmVz",
-            "b3VyY2VVaWRzGAIgAygMIlkKHFJvdXRlclJlY29yZHNSb3RhdGlvblJlcXVl",
-            "c3QSOQoRcm90YXRpb25TY2hlZHVsZXMYASADKAsyHi5Sb3V0ZXIuUm91dGVy",
-            "U2NoZWR1bGVkQWN0aW9ucyKFAQoUQ29ubmVjdGlvblBhcmFtZXRlcnMSFQoN",
-            "Y29ubmVjdGlvblVpZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSDgoGdXNl",
-            "cklkGAMgASgFEhUKDWNvbnRyb2xsZXJVaWQYBCABKAwSHAoUY3JlZGVudGlh",
-            "bHNSZWNvcmRVaWQYBSABKAwiTwoaVmFsaWRhdGVDb25uZWN0aW9uc1JlcXVl",
-            "c3QSMQoLY29ubmVjdGlvbnMYASADKAsyHC5Sb3V0ZXIuQ29ubmVjdGlvblBh",
-            "cmFtZXRlcnMiSgobQ29ubmVjdGlvblZhbGlkYXRpb25GYWlsdXJlEhUKDWNv",
-            "bm5lY3Rpb25VaWQYASABKAwSFAoMZXJyb3JNZXNzYWdlGAIgASgJIl0KG1Zh",
-            "bGlkYXRlQ29ubmVjdGlvbnNSZXNwb25zZRI+ChFmYWlsZWRDb25uZWN0aW9u",
-            "cxgBIAMoCzIjLlJvdXRlci5Db25uZWN0aW9uVmFsaWRhdGlvbkZhaWx1cmUi",
-            "MQoVR2V0RW5mb3JjZW1lbnRSZXF1ZXN0EhgKEGVudGVycHJpc2VVc2VySWQY",
-            "ASABKAMiOwoPRW5mb3JjZW1lbnRUeXBlEhkKEWVuZm9yY2VtZW50VHlwZUlk",
-            "GAEgASgFEg0KBXZhbHVlGAIgASgJInAKFkdldEVuZm9yY2VtZW50UmVzcG9u",
-            "c2USMQoQZW5mb3JjZW1lbnRUeXBlcxgBIAMoCzIXLlJvdXRlci5FbmZvcmNl",
-            "bWVudFR5cGUSEAoIYWRkT25JZHMYAiADKAUSEQoJaXNJblRyaWFsGAMgASgI",
-            "Ik8KF1BFRE1UT1RQVmFsaWRhdGVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJ",
-            "EhQKDGVudGVycHJpc2VJZBgCIAEoBRIMCgRjb2RlGAMgASgFIkgKGEdldFBF",
-            "RE1BZG1pbkluZm9SZXNwb25zZRITCgtpc1BlZG1BZG1pbhgBIAEoCBIXCg9w",
-            "ZWRtQWRkb25BY3RpdmUYAiABKAgiLQoSUEFNTmV0d29ya1NldHRpbmdzEhcK",
-            "D2FsbG93ZWRTZXR0aW5ncxgBIAEoDCLkAQoeUEFNTmV0d29ya0NvbmZpZ3Vy",
-            "YXRpb25SZXF1ZXN0EhEKCXJlY29yZFVpZBgBIAEoDBI4Cg9uZXR3b3JrU2V0",
-            "dGluZ3MYAiABKAsyGi5Sb3V0ZXIuUEFNTmV0d29ya1NldHRpbmdzSACIAQES",
-            "KQoJcmVzb3VyY2VzGAMgAygLMhYuUEFNLlBBTVJlc291cmNlQ29uZmlnEjYK",
-            "CXJvdGF0aW9ucxgEIAMoCzIjLlJvdXRlci5Sb3V0ZXJSZWNvcmRSb3RhdGlv",
-            "blJlcXVlc3RCEgoQX25ldHdvcmtTZXR0aW5ncyJSChtQQU1EaXNjb3ZlcnlS",
-            "dWxlc1NldFJlcXVlc3QSEgoKbmV0d29ya1VpZBgBIAEoDBINCgVydWxlcxgC",
-            "IAEoDBIQCghydWxlc0tleRgDIAEoDCJYChhSb3V0ZXIyRkFWYWxpZGF0ZVJl",
-            "cXVlc3QSFwoPdHJhbnNtaXNzaW9uS2V5GAEgASgMEhQKDHNlc3Npb25Ub2tl",
-            "bhgCIAEoDBINCgV2YWx1ZRgDIAEoCSJ+ChhSb3V0ZXIyRkFTZW5kUHVzaFJl",
-            "cXVlc3QSFwoPdHJhbnNtaXNzaW9uS2V5GAEgASgMEhQKDHNlc3Npb25Ub2tl",
-            "bhgCIAEoDBIzCghwdXNoVHlwZRgDIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlR3",
-            "b0ZhY3RvclB1c2hUeXBlIlUKJFJvdXRlcjJGQUdldFdlYkF1dGhuQ2hhbGxl",
-            "bmdlUmVxdWVzdBIXCg90cmFuc21pc3Npb25LZXkYASABKAwSFAoMc2Vzc2lv",
-            "blRva2VuGAIgASgMIlAKJVJvdXRlcjJGQUdldFdlYkF1dGhuQ2hhbGxlbmdl",
-            "UmVzcG9uc2USEQoJY2hhbGxlbmdlGAEgASgJEhQKDGNhcGFiaWxpdGllcxgC",
-            "IAMoCSJbChxDcmVhdGVFcGhlbWVyYWxTZWNyZXRSZXF1ZXN0EhcKD2VuY3J5",
-            "cHRlZFNlY3JldBgBIAEoDBIVCg1zZWNyZXRLZXlIYXNoGAIgASgMEgsKA3R0",
-            "bBgDIAEoAyqYAgoSUm91dGVyUmVzcG9uc2VDb2RlEgoKBlJSQ19PSxAAEhUK",
-            "EVJSQ19HRU5FUkFMX0VSUk9SEAESEwoPUlJDX05PVF9BTExPV0VEEAISEwoP",
-            "UlJDX0JBRF9SRVFVRVNUEAMSDwoLUlJDX1RJTUVPVVQQBBIRCg1SUkNfQkFE",
-            "X1NUQVRFEAUSFwoTUlJDX0NPTlRST0xMRVJfRE9XThAGEhYKElJSQ19XUk9O",
-            "R19JTlNUQU5DRRAHEisKJ1JSQ19OT1RfQUxMT1dFRF9FTkZPUkNFTUVOVF9O",
-            "T1RfRU5BQkxFRBAIEjMKL1JSQ19OT1RfQUxMT1dFRF9QQU1fQ09ORklHX0ZF",
-            "QVRVUkVTX05PVF9FTkFCTEVEEAkqawoUUm91dGVyUm90YXRpb25TdGF0dXMS",
-            "DgoKUlJTX09OTElORRAAEhMKD1JSU19OT19ST1RBVElPThABEhUKEVJSU19O",
-            "T19DT05UUk9MTEVSEAISFwoTUlJTX0NPTlRST0xMRVJfRE9XThADKn0KFVVz",
-            "ZXJSZWNvcmRBY2Nlc3NMZXZlbBINCglSUkFMX05PTkUQABINCglSUkFMX1JF",
-            "QUQQARIOCgpSUkFMX1NIQVJFEAISDQoJUlJBTF9FRElUEAMSFwoTUlJBTF9F",
-            "RElUX0FORF9TSEFSRRAEEg4KClJSQUxfT1dORVIQBSouCgtTZXJ2aWNlVHlw",
-            "ZRIPCgtVTlNQRUNJRklFRBAAEgYKAktBEAESBgoCQkkQAkIiChhjb20ua2Vl",
-            "cGVyc2VjdXJpdHkucHJvdG9CBlJvdXRlcmIGcHJvdG8z"));
+            "cHJpc2VJZBgMIAEoBRIVCghkZXZpY2VJZBgNIAEoA0gAiAEBQgsKCV9kZXZp",
+            "Y2VJZCKdAgoQUm91dGVyRGV2aWNlQXV0aBIQCghjbGllbnRJZBgBIAEoCRIV",
+            "Cg1jbGllbnRWZXJzaW9uGAIgASgJEhEKCXNpZ25hdHVyZRgDIAEoDBIUCgxl",
+            "bnRlcnByaXNlSWQYBCABKAUSDgoGbm9kZUlkGAUgASgDEhIKCmRldmljZU5h",
+            "bWUYBiABKAkSEwoLZGV2aWNlVG9rZW4YByABKAwSFgoOY29udHJvbGxlck5h",
+            "bWUYCCABKAkSFQoNY29udHJvbGxlclVpZBgJIAEoDBIRCglvd25lclVzZXIY",
+            "CiABKAkSEQoJY2hhbGxlbmdlGAsgASgJEg8KB293bmVySWQYDCABKAUSGAoQ",
+            "bWF4SW5zdGFuY2VDb3VudBgNIAEoBSKDAQoUUm91dGVyUmVjb3JkUm90YXRp",
+            "b24SEQoJcmVjb3JkVWlkGAEgASgMEhgKEGNvbmZpZ3VyYXRpb25VaWQYAiAB",
+            "KAwSFQoNY29udHJvbGxlclVpZBgDIAEoDBITCgtyZXNvdXJjZVVpZBgEIAEo",
+            "DBISCgpub1NjaGVkdWxlGAUgASgIIkUKHFJvdXRlclJlY29yZFJvdGF0aW9u",
+            "c1JlcXVlc3QSFAoMZW50ZXJwcmlzZUlkGAEgASgFEg8KB3JlY29yZHMYAiAD",
+            "KAwiYQodUm91dGVyUmVjb3JkUm90YXRpb25zUmVzcG9uc2USLwoJcm90YXRp",
+            "b25zGAEgAygLMhwuUm91dGVyLlJvdXRlclJlY29yZFJvdGF0aW9uEg8KB2hh",
+            "c01vcmUYAiABKAgi/gEKElJvdXRlclJvdGF0aW9uSW5mbxIsCgZzdGF0dXMY",
+            "ASABKA4yHC5Sb3V0ZXIuUm91dGVyUm90YXRpb25TdGF0dXMSGAoQY29uZmln",
+            "dXJhdGlvblVpZBgCIAEoDBITCgtyZXNvdXJjZVVpZBgDIAEoDBIOCgZub2Rl",
+            "SWQYBCABKAMSFQoNY29udHJvbGxlclVpZBgFIAEoDBIWCg5jb250cm9sbGVy",
+            "TmFtZRgGIAEoCRISCgpzY3JpcHROYW1lGAcgASgJEhUKDXB3ZENvbXBsZXhp",
+            "dHkYCCABKAkSEAoIZGlzYWJsZWQYCSABKAgSDwoHc2NyaXB0cxgKIAMoDCKs",
+            "AwobUm91dGVyUmVjb3JkUm90YXRpb25SZXF1ZXN0EhEKCXJlY29yZFVpZBgB",
+            "IAEoDBIQCghyZXZpc2lvbhgCIAEoAxIYChBjb25maWd1cmF0aW9uVWlkGAMg",
+            "ASgMEhMKC3Jlc291cmNlVWlkGAQgASgMEhAKCHNjaGVkdWxlGAUgASgJEhgK",
+            "EGVudGVycHJpc2VVc2VySWQYBiABKAMSFQoNcHdkQ29tcGxleGl0eRgHIAEo",
+            "DBIQCghkaXNhYmxlZBgIIAEoCBIVCg1yZW1vdGVBZGRyZXNzGAkgASgJEhcK",
+            "D2NsaWVudFZlcnNpb25JZBgKIAEoBRIMCgRub29wGAsgASgIEh4KEXNhYXND",
+            "b25maWd1cmF0aW9uGAwgASgMSACIAQESGwoOdXBkYXRlU2VydmljZXMYDSAB",
+            "KAhIAYgBARIrChBzZXJ2aWNlUmVzb3VyY2VzGA4gASgLMgwuUEFNLlVpZExp",
+            "c3RIAogBAUIUChJfc2Fhc0NvbmZpZ3VyYXRpb25CEQoPX3VwZGF0ZVNlcnZp",
+            "Y2VzQhMKEV9zZXJ2aWNlUmVzb3VyY2VzIjwKF1VzZXJSZWNvcmRBY2Nlc3NS",
+            "ZXF1ZXN0Eg4KBnVzZXJJZBgBIAEoBRIRCglyZWNvcmRVaWQYAiABKAwidwoY",
+            "VXNlclJlY29yZEFjY2Vzc1Jlc3BvbnNlEhEKCXJlY29yZFVpZBgBIAEoDBIy",
+            "CgthY2Nlc3NMZXZlbBgCIAEoDjIdLlJvdXRlci5Vc2VyUmVjb3JkQWNjZXNz",
+            "TGV2ZWwSFAoMaXNTaGFyZUFkbWluGAMgASgIIk0KGFVzZXJSZWNvcmRBY2Nl",
+            "c3NSZXF1ZXN0cxIxCghyZXF1ZXN0cxgBIAMoCzIfLlJvdXRlci5Vc2VyUmVj",
+            "b3JkQWNjZXNzUmVxdWVzdCJQChlVc2VyUmVjb3JkQWNjZXNzUmVzcG9uc2Vz",
+            "EjMKCXJlc3BvbnNlcxgBIAMoCzIgLlJvdXRlci5Vc2VyUmVjb3JkQWNjZXNz",
+            "UmVzcG9uc2UiSAodVXNlclNoYXJlZEZvbGRlckFjY2Vzc1JlcXVlc3QSDgoG",
+            "dXNlcklkGAEgASgFEhcKD3NoYXJlZEZvbGRlclVpZBgCIAMoDCJpCh5Vc2Vy",
+            "U2hhcmVkRm9sZGVyQWNjZXNzUmVzcG9uc2USFwoPc2hhcmVkRm9sZGVyVWlk",
+            "GAEgASgMEi4KDmFjY2Vzc1JvbGVUeXBlGAIgASgOMhYuRm9sZGVyLkFjY2Vz",
+            "c1JvbGVUeXBlIlwKH1VzZXJTaGFyZWRGb2xkZXJBY2Nlc3NSZXNwb25zZXMS",
+            "OQoJcmVzcG9uc2VzGAEgAygLMiYuUm91dGVyLlVzZXJTaGFyZWRGb2xkZXJB",
+            "Y2Nlc3NSZXNwb25zZSJBChxVc2VyRm9sZGVyUGVybWlzc2lvbnNSZXF1ZXN0",
+            "Eg4KBnVzZXJJZBgBIAEoBRIRCglmb2xkZXJVaWQYAiADKAwiYgodVXNlckZv",
+            "bGRlclBlcm1pc3Npb25zUmVzcG9uc2USEQoJZm9sZGVyVWlkGAEgASgMEi4K",
+            "C3Blcm1pc3Npb25zGAIgASgLMhkuRm9sZGVyLkZvbGRlclBlcm1pc3Npb25z",
+            "IloKHlVzZXJGb2xkZXJQZXJtaXNzaW9uc1Jlc3BvbnNlcxI4CglyZXNwb25z",
+            "ZXMYASADKAsyJS5Sb3V0ZXIuVXNlckZvbGRlclBlcm1pc3Npb25zUmVzcG9u",
+            "c2UiOAoQUm90YXRpb25TY2hlZHVsZRISCgpyZWNvcmRfdWlkGAEgASgMEhAK",
+            "CHNjaGVkdWxlGAIgASgJIpABChJBcGlDYWxsYmFja1JlcXVlc3QSEwoLcmVz",
+            "b3VyY2VVaWQYASABKAwSLgoJc2NoZWR1bGVzGAIgAygLMhsuUm91dGVyLkFw",
+            "aUNhbGxiYWNrU2NoZWR1bGUSCwoDdXJsGAMgASgJEigKC3NlcnZpY2VUeXBl",
+            "GAQgASgOMhMuUm91dGVyLlNlcnZpY2VUeXBlIjUKE0FwaUNhbGxiYWNrU2No",
+            "ZWR1bGUSEAoIc2NoZWR1bGUYASABKAkSDAoEZGF0YRgCIAEoDCJAChZSb3V0",
+            "ZXJTY2hlZHVsZWRBY3Rpb25zEhAKCHNjaGVkdWxlGAEgASgJEhQKDHJlc291",
+            "cmNlVWlkcxgCIAMoDCJZChxSb3V0ZXJSZWNvcmRzUm90YXRpb25SZXF1ZXN0",
+            "EjkKEXJvdGF0aW9uU2NoZWR1bGVzGAEgAygLMh4uUm91dGVyLlJvdXRlclNj",
+            "aGVkdWxlZEFjdGlvbnMihQEKFENvbm5lY3Rpb25QYXJhbWV0ZXJzEhUKDWNv",
+            "bm5lY3Rpb25VaWQYASABKAwSEQoJcmVjb3JkVWlkGAIgASgMEg4KBnVzZXJJ",
+            "ZBgDIAEoBRIVCg1jb250cm9sbGVyVWlkGAQgASgMEhwKFGNyZWRlbnRpYWxz",
+            "UmVjb3JkVWlkGAUgASgMIk8KGlZhbGlkYXRlQ29ubmVjdGlvbnNSZXF1ZXN0",
+            "EjEKC2Nvbm5lY3Rpb25zGAEgAygLMhwuUm91dGVyLkNvbm5lY3Rpb25QYXJh",
+            "bWV0ZXJzIkoKG0Nvbm5lY3Rpb25WYWxpZGF0aW9uRmFpbHVyZRIVCg1jb25u",
+            "ZWN0aW9uVWlkGAEgASgMEhQKDGVycm9yTWVzc2FnZRgCIAEoCSJdChtWYWxp",
+            "ZGF0ZUNvbm5lY3Rpb25zUmVzcG9uc2USPgoRZmFpbGVkQ29ubmVjdGlvbnMY",
+            "ASADKAsyIy5Sb3V0ZXIuQ29ubmVjdGlvblZhbGlkYXRpb25GYWlsdXJlIjEK",
+            "FUdldEVuZm9yY2VtZW50UmVxdWVzdBIYChBlbnRlcnByaXNlVXNlcklkGAEg",
+            "ASgDIjsKD0VuZm9yY2VtZW50VHlwZRIZChFlbmZvcmNlbWVudFR5cGVJZBgB",
+            "IAEoBRINCgV2YWx1ZRgCIAEoCSJwChZHZXRFbmZvcmNlbWVudFJlc3BvbnNl",
+            "EjEKEGVuZm9yY2VtZW50VHlwZXMYASADKAsyFy5Sb3V0ZXIuRW5mb3JjZW1l",
+            "bnRUeXBlEhAKCGFkZE9uSWRzGAIgAygFEhEKCWlzSW5UcmlhbBgDIAEoCCJP",
+            "ChdQRURNVE9UUFZhbGlkYXRlUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRIU",
+            "CgxlbnRlcnByaXNlSWQYAiABKAUSDAoEY29kZRgDIAEoBSJIChhHZXRQRURN",
+            "QWRtaW5JbmZvUmVzcG9uc2USEwoLaXNQZWRtQWRtaW4YASABKAgSFwoPcGVk",
+            "bUFkZG9uQWN0aXZlGAIgASgIIn0KElBBTU5ldHdvcmtTZXR0aW5ncxIXCg9h",
+            "bGxvd2VkU2V0dGluZ3MYASABKAwSGQoMaWRwQ29uZmlnVWlkGAIgASgMSACI",
+            "AQESFQoIYWRtaW5VaWQYAyABKAxIAYgBAUIPCg1faWRwQ29uZmlnVWlkQgsK",
+            "CV9hZG1pblVpZCLkAQoeUEFNTmV0d29ya0NvbmZpZ3VyYXRpb25SZXF1ZXN0",
+            "EhEKCXJlY29yZFVpZBgBIAEoDBI4Cg9uZXR3b3JrU2V0dGluZ3MYAiABKAsy",
+            "Gi5Sb3V0ZXIuUEFNTmV0d29ya1NldHRpbmdzSACIAQESKQoJcmVzb3VyY2Vz",
+            "GAMgAygLMhYuUEFNLlBBTVJlc291cmNlQ29uZmlnEjYKCXJvdGF0aW9ucxgE",
+            "IAMoCzIjLlJvdXRlci5Sb3V0ZXJSZWNvcmRSb3RhdGlvblJlcXVlc3RCEgoQ",
+            "X25ldHdvcmtTZXR0aW5ncyJSChtQQU1EaXNjb3ZlcnlSdWxlc1NldFJlcXVl",
+            "c3QSEgoKbmV0d29ya1VpZBgBIAEoDBINCgVydWxlcxgCIAEoDBIQCghydWxl",
+            "c0tleRgDIAEoDCJwChhSb3V0ZXIyRkFWYWxpZGF0ZVJlcXVlc3QSFwoPdHJh",
+            "bnNtaXNzaW9uS2V5GAEgASgMEhQKDHNlc3Npb25Ub2tlbhgCIAEoDBINCgV2",
+            "YWx1ZRgDIAEoCRIWCg5jaGFsbGVuZ2VUb2tlbhgEIAEoDCJ+ChhSb3V0ZXIy",
+            "RkFTZW5kUHVzaFJlcXVlc3QSFwoPdHJhbnNtaXNzaW9uS2V5GAEgASgMEhQK",
+            "DHNlc3Npb25Ub2tlbhgCIAEoDBIzCghwdXNoVHlwZRgDIAEoDjIhLkF1dGhl",
+            "bnRpY2F0aW9uLlR3b0ZhY3RvclB1c2hUeXBlIlUKJFJvdXRlcjJGQUdldFdl",
+            "YkF1dGhuQ2hhbGxlbmdlUmVxdWVzdBIXCg90cmFuc21pc3Npb25LZXkYASAB",
+            "KAwSFAoMc2Vzc2lvblRva2VuGAIgASgMImgKJVJvdXRlcjJGQUdldFdlYkF1",
+            "dGhuQ2hhbGxlbmdlUmVzcG9uc2USEQoJY2hhbGxlbmdlGAEgASgJEhQKDGNh",
+            "cGFiaWxpdGllcxgCIAMoCRIWCg5jaGFsbGVuZ2VUb2tlbhgDIAEoDCJbChxD",
+            "cmVhdGVFcGhlbWVyYWxTZWNyZXRSZXF1ZXN0EhcKD2VuY3J5cHRlZFNlY3Jl",
+            "dBgBIAEoDBIVCg1zZWNyZXRLZXlIYXNoGAIgASgMEgsKA3R0bBgDIAEoAyLY",
+            "AQoWVXNlckFjY2Vzc0xvd2VyZWRFdmVudBI1CglldmVudFR5cGUYASABKA4y",
+            "Ii5Sb3V0ZXIuVXNlckFjY2Vzc0xvd2VyZWRFdmVudFR5cGUSGQoRZW50ZXJw",
+            "cmlzZVVzZXJJZHMYAiADKAMSEgoKcmVjb3JkVWlkcxgDIAMoDBIVCghkZXZp",
+            "Y2VJZBgEIAEoA0gAiAEBEh4KEWVuZm9yY2VtZW50VHlwZUlkGAUgASgFSAGI",
+            "AQFCCwoJX2RldmljZUlkQhQKEl9lbmZvcmNlbWVudFR5cGVJZCJQCh5Vc2Vy",
+            "QWNjZXNzTG93ZXJlZEV2ZW50c1JlcXVlc3QSLgoGZXZlbnRzGAEgAygLMh4u",
+            "Um91dGVyLlVzZXJBY2Nlc3NMb3dlcmVkRXZlbnQqmAIKElJvdXRlclJlc3Bv",
+            "bnNlQ29kZRIKCgZSUkNfT0sQABIVChFSUkNfR0VORVJBTF9FUlJPUhABEhMK",
+            "D1JSQ19OT1RfQUxMT1dFRBACEhMKD1JSQ19CQURfUkVRVUVTVBADEg8KC1JS",
+            "Q19USU1FT1VUEAQSEQoNUlJDX0JBRF9TVEFURRAFEhcKE1JSQ19DT05UUk9M",
+            "TEVSX0RPV04QBhIWChJSUkNfV1JPTkdfSU5TVEFOQ0UQBxIrCidSUkNfTk9U",
+            "X0FMTE9XRURfRU5GT1JDRU1FTlRfTk9UX0VOQUJMRUQQCBIzCi9SUkNfTk9U",
+            "X0FMTE9XRURfUEFNX0NPTkZJR19GRUFUVVJFU19OT1RfRU5BQkxFRBAJKmsK",
+            "FFJvdXRlclJvdGF0aW9uU3RhdHVzEg4KClJSU19PTkxJTkUQABITCg9SUlNf",
+            "Tk9fUk9UQVRJT04QARIVChFSUlNfTk9fQ09OVFJPTExFUhACEhcKE1JSU19D",
+            "T05UUk9MTEVSX0RPV04QAyp9ChVVc2VyUmVjb3JkQWNjZXNzTGV2ZWwSDQoJ",
+            "UlJBTF9OT05FEAASDQoJUlJBTF9SRUFEEAESDgoKUlJBTF9TSEFSRRACEg0K",
+            "CVJSQUxfRURJVBADEhcKE1JSQUxfRURJVF9BTkRfU0hBUkUQBBIOCgpSUkFM",
+            "X09XTkVSEAUqLgoLU2VydmljZVR5cGUSDwoLVU5TUEVDSUZJRUQQABIGCgJL",
+            "QRABEgYKAkJJEAIqpwEKGlVzZXJBY2Nlc3NMb3dlcmVkRXZlbnRUeXBlEhQK",
+            "EFVBTEVfVU5TUEVDSUZJRUQQABIWChJVQUxFX0RFVklDRV9MT0dPVVQQARIg",
+            "ChxVQUxFX1VTRVJfTE9HT1VUX0FMTF9ERVZJQ0VTEAISHAoYVUFMRV9FTkZP",
+            "UkNFTUVOVF9SRU1PVkVEEAMSGwoXVUFMRV9SRUNPUkRfQUNDRVNTX0xPU1QQ",
+            "BEIiChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CBlJvdXRlcmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::PAM.PamReflection.Descriptor, global::Authentication.APIRequestReflection.Descriptor, global::Folder.FolderReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Router.RouterResponseCode), typeof(global::Router.RouterRotationStatus), typeof(global::Router.UserRecordAccessLevel), typeof(global::Router.ServiceType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Router.RouterResponseCode), typeof(global::Router.RouterRotationStatus), typeof(global::Router.UserRecordAccessLevel), typeof(global::Router.ServiceType), typeof(global::Router.UserAccessLoweredEventType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterResponse), global::Router.RouterResponse.Parser, new[]{ "ResponseCode", "ErrorMessage", "EncryptedPayload" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterControllerMessage), global::Router.RouterControllerMessage.Parser, new[]{ "MessageType", "MessageUid", "ControllerUid", "StreamResponse", "Payload", "Timeout" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterUserAuth), global::Router.RouterUserAuth.Parser, new[]{ "TransmissionKey", "SessionToken", "UserId", "EnterpriseUserId", "DeviceName", "DeviceToken", "ClientVersionId", "NeedUsername", "Username", "MspEnterpriseId", "IsPedmAdmin", "McEnterpriseId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterUserAuth), global::Router.RouterUserAuth.Parser, new[]{ "TransmissionKey", "SessionToken", "UserId", "EnterpriseUserId", "DeviceName", "DeviceToken", "ClientVersionId", "NeedUsername", "Username", "MspEnterpriseId", "IsPedmAdmin", "McEnterpriseId", "DeviceId" }, new[]{ "DeviceId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterDeviceAuth), global::Router.RouterDeviceAuth.Parser, new[]{ "ClientId", "ClientVersion", "Signature", "EnterpriseId", "NodeId", "DeviceName", "DeviceToken", "ControllerName", "ControllerUid", "OwnerUser", "Challenge", "OwnerId", "MaxInstanceCount" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRecordRotation), global::Router.RouterRecordRotation.Parser, new[]{ "RecordUid", "ConfigurationUid", "ControllerUid", "ResourceUid", "NoSchedule" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRecordRotationsRequest), global::Router.RouterRecordRotationsRequest.Parser, new[]{ "EnterpriseId", "Records" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRecordRotationsResponse), global::Router.RouterRecordRotationsResponse.Parser, new[]{ "Rotations", "HasMore" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRotationInfo), global::Router.RouterRotationInfo.Parser, new[]{ "Status", "ConfigurationUid", "ResourceUid", "NodeId", "ControllerUid", "ControllerName", "ScriptName", "PwdComplexity", "Disabled" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRecordRotationRequest), global::Router.RouterRecordRotationRequest.Parser, new[]{ "RecordUid", "Revision", "ConfigurationUid", "ResourceUid", "Schedule", "EnterpriseUserId", "PwdComplexity", "Disabled", "RemoteAddress", "ClientVersionId", "Noop", "SaasConfiguration" }, new[]{ "SaasConfiguration" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRotationInfo), global::Router.RouterRotationInfo.Parser, new[]{ "Status", "ConfigurationUid", "ResourceUid", "NodeId", "ControllerUid", "ControllerName", "ScriptName", "PwdComplexity", "Disabled", "Scripts" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.RouterRecordRotationRequest), global::Router.RouterRecordRotationRequest.Parser, new[]{ "RecordUid", "Revision", "ConfigurationUid", "ResourceUid", "Schedule", "EnterpriseUserId", "PwdComplexity", "Disabled", "RemoteAddress", "ClientVersionId", "Noop", "SaasConfiguration", "UpdateServices", "ServiceResources" }, new[]{ "SaasConfiguration", "UpdateServices", "ServiceResources" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserRecordAccessRequest), global::Router.UserRecordAccessRequest.Parser, new[]{ "UserId", "RecordUid" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserRecordAccessResponse), global::Router.UserRecordAccessResponse.Parser, new[]{ "RecordUid", "AccessLevel" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserRecordAccessResponse), global::Router.UserRecordAccessResponse.Parser, new[]{ "RecordUid", "AccessLevel", "IsShareAdmin" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserRecordAccessRequests), global::Router.UserRecordAccessRequests.Parser, new[]{ "Requests" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserRecordAccessResponses), global::Router.UserRecordAccessResponses.Parser, new[]{ "Responses" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserSharedFolderAccessRequest), global::Router.UserSharedFolderAccessRequest.Parser, new[]{ "UserId", "SharedFolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserSharedFolderAccessResponse), global::Router.UserSharedFolderAccessResponse.Parser, new[]{ "SharedFolderUid", "AccessRoleType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserSharedFolderAccessResponses), global::Router.UserSharedFolderAccessResponses.Parser, new[]{ "Responses" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserFolderPermissionsRequest), global::Router.UserFolderPermissionsRequest.Parser, new[]{ "UserId", "FolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserFolderPermissionsResponse), global::Router.UserFolderPermissionsResponse.Parser, new[]{ "FolderUid", "Permissions" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserFolderPermissionsResponses), global::Router.UserFolderPermissionsResponses.Parser, new[]{ "Responses" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.RotationSchedule), global::Router.RotationSchedule.Parser, new[]{ "RecordUid", "Schedule" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.ApiCallbackRequest), global::Router.ApiCallbackRequest.Parser, new[]{ "ResourceUid", "Schedules", "Url", "ServiceType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.ApiCallbackSchedule), global::Router.ApiCallbackSchedule.Parser, new[]{ "Schedule", "Data" }, null, null, null, null),
@@ -169,14 +195,16 @@ namespace Router {
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.GetEnforcementResponse), global::Router.GetEnforcementResponse.Parser, new[]{ "EnforcementTypes", "AddOnIds", "IsInTrial" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.PEDMTOTPValidateRequest), global::Router.PEDMTOTPValidateRequest.Parser, new[]{ "Username", "EnterpriseId", "Code" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.GetPEDMAdminInfoResponse), global::Router.GetPEDMAdminInfoResponse.Parser, new[]{ "IsPedmAdmin", "PedmAddonActive" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.PAMNetworkSettings), global::Router.PAMNetworkSettings.Parser, new[]{ "AllowedSettings" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.PAMNetworkSettings), global::Router.PAMNetworkSettings.Parser, new[]{ "AllowedSettings", "IdpConfigUid", "AdminUid" }, new[]{ "IdpConfigUid", "AdminUid" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.PAMNetworkConfigurationRequest), global::Router.PAMNetworkConfigurationRequest.Parser, new[]{ "RecordUid", "NetworkSettings", "Resources", "Rotations" }, new[]{ "NetworkSettings" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.PAMDiscoveryRulesSetRequest), global::Router.PAMDiscoveryRulesSetRequest.Parser, new[]{ "NetworkUid", "Rules", "RulesKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FAValidateRequest), global::Router.Router2FAValidateRequest.Parser, new[]{ "TransmissionKey", "SessionToken", "Value" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FAValidateRequest), global::Router.Router2FAValidateRequest.Parser, new[]{ "TransmissionKey", "SessionToken", "Value", "ChallengeToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FASendPushRequest), global::Router.Router2FASendPushRequest.Parser, new[]{ "TransmissionKey", "SessionToken", "PushType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FAGetWebAuthnChallengeRequest), global::Router.Router2FAGetWebAuthnChallengeRequest.Parser, new[]{ "TransmissionKey", "SessionToken" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FAGetWebAuthnChallengeResponse), global::Router.Router2FAGetWebAuthnChallengeResponse.Parser, new[]{ "Challenge", "Capabilities" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Router.CreateEphemeralSecretRequest), global::Router.CreateEphemeralSecretRequest.Parser, new[]{ "EncryptedSecret", "SecretKeyHash", "Ttl" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.Router2FAGetWebAuthnChallengeResponse), global::Router.Router2FAGetWebAuthnChallengeResponse.Parser, new[]{ "Challenge", "Capabilities", "ChallengeToken" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.CreateEphemeralSecretRequest), global::Router.CreateEphemeralSecretRequest.Parser, new[]{ "EncryptedSecret", "SecretKeyHash", "Ttl" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserAccessLoweredEvent), global::Router.UserAccessLoweredEvent.Parser, new[]{ "EventType", "EnterpriseUserIds", "RecordUids", "DeviceId", "EnforcementTypeId" }, new[]{ "DeviceId", "EnforcementTypeId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Router.UserAccessLoweredEventsRequest), global::Router.UserAccessLoweredEventsRequest.Parser, new[]{ "Events" }, null, null, null, null)
           }));
     }
     #endregion
@@ -240,6 +268,26 @@ namespace Router {
     [pbr::OriginalName("UNSPECIFIED")] Unspecified = 0,
     [pbr::OriginalName("KA")] Ka = 1,
     [pbr::OriginalName("BI")] Bi = 2,
+  }
+
+  public enum UserAccessLoweredEventType {
+    [pbr::OriginalName("UALE_UNSPECIFIED")] UaleUnspecified = 0,
+    /// <summary>
+    /// logged out on a specific device; deviceId set, enterpriseUserIds size == 1
+    /// </summary>
+    [pbr::OriginalName("UALE_DEVICE_LOGOUT")] UaleDeviceLogout = 1,
+    /// <summary>
+    /// all sessions for the listed users invalidated; deviceId unset
+    /// </summary>
+    [pbr::OriginalName("UALE_USER_LOGOUT_ALL_DEVICES")] UaleUserLogoutAllDevices = 2,
+    /// <summary>
+    /// a role enforcement was lifted
+    /// </summary>
+    [pbr::OriginalName("UALE_ENFORCEMENT_REMOVED")] UaleEnforcementRemoved = 3,
+    /// <summary>
+    /// user lost access to one or more records
+    /// </summary>
+    [pbr::OriginalName("UALE_RECORD_ACCESS_LOST")] UaleRecordAccessLost = 4,
   }
 
   #endregion
@@ -908,6 +956,7 @@ namespace Router {
   {
     private static readonly pb::MessageParser<RouterUserAuth> _parser = new pb::MessageParser<RouterUserAuth>(() => new RouterUserAuth());
     private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RouterUserAuth> Parser { get { return _parser; } }
@@ -935,6 +984,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RouterUserAuth(RouterUserAuth other) : this() {
+      _hasBits0 = other._hasBits0;
       transmissionKey_ = other.transmissionKey_;
       sessionToken_ = other.sessionToken_;
       userId_ = other.userId_;
@@ -947,6 +997,7 @@ namespace Router {
       mspEnterpriseId_ = other.mspEnterpriseId_;
       isPedmAdmin_ = other.isPedmAdmin_;
       mcEnterpriseId_ = other.mcEnterpriseId_;
+      deviceId_ = other.deviceId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1100,6 +1151,33 @@ namespace Router {
       }
     }
 
+    /// <summary>Field number for the "deviceId" field.</summary>
+    public const int DeviceIdFieldNumber = 13;
+    private readonly static long DeviceIdDefaultValue = 0L;
+
+    private long deviceId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DeviceId {
+      get { if ((_hasBits0 & 1) != 0) { return deviceId_; } else { return DeviceIdDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        deviceId_ = value;
+      }
+    }
+    /// <summary>Gets whether the "deviceId" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDeviceId {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "deviceId" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDeviceId() {
+      _hasBits0 &= ~1;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1127,6 +1205,7 @@ namespace Router {
       if (MspEnterpriseId != other.MspEnterpriseId) return false;
       if (IsPedmAdmin != other.IsPedmAdmin) return false;
       if (McEnterpriseId != other.McEnterpriseId) return false;
+      if (DeviceId != other.DeviceId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1146,6 +1225,7 @@ namespace Router {
       if (MspEnterpriseId != 0) hash ^= MspEnterpriseId.GetHashCode();
       if (IsPedmAdmin != false) hash ^= IsPedmAdmin.GetHashCode();
       if (McEnterpriseId != 0) hash ^= McEnterpriseId.GetHashCode();
+      if (HasDeviceId) hash ^= DeviceId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1212,6 +1292,10 @@ namespace Router {
         output.WriteRawTag(96);
         output.WriteInt32(McEnterpriseId);
       }
+      if (HasDeviceId) {
+        output.WriteRawTag(104);
+        output.WriteInt64(DeviceId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1270,6 +1354,10 @@ namespace Router {
         output.WriteRawTag(96);
         output.WriteInt32(McEnterpriseId);
       }
+      if (HasDeviceId) {
+        output.WriteRawTag(104);
+        output.WriteInt64(DeviceId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1315,6 +1403,9 @@ namespace Router {
       }
       if (McEnterpriseId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(McEnterpriseId);
+      }
+      if (HasDeviceId) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(DeviceId);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1363,6 +1454,9 @@ namespace Router {
       }
       if (other.McEnterpriseId != 0) {
         McEnterpriseId = other.McEnterpriseId;
+      }
+      if (other.HasDeviceId) {
+        DeviceId = other.DeviceId;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1431,6 +1525,10 @@ namespace Router {
             McEnterpriseId = input.ReadInt32();
             break;
           }
+          case 104: {
+            DeviceId = input.ReadInt64();
+            break;
+          }
         }
       }
     #endif
@@ -1496,6 +1594,10 @@ namespace Router {
           }
           case 96: {
             McEnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 104: {
+            DeviceId = input.ReadInt64();
             break;
           }
         }
@@ -2988,6 +3090,7 @@ namespace Router {
       scriptName_ = other.scriptName_;
       pwdComplexity_ = other.pwdComplexity_;
       disabled_ = other.disabled_;
+      scripts_ = other.scripts_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3105,6 +3208,17 @@ namespace Router {
       }
     }
 
+    /// <summary>Field number for the "scripts" field.</summary>
+    public const int ScriptsFieldNumber = 10;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_scripts_codec
+        = pb::FieldCodec.ForBytes(82);
+    private readonly pbc::RepeatedField<pb::ByteString> scripts_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> Scripts {
+      get { return scripts_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -3129,6 +3243,7 @@ namespace Router {
       if (ScriptName != other.ScriptName) return false;
       if (PwdComplexity != other.PwdComplexity) return false;
       if (Disabled != other.Disabled) return false;
+      if(!scripts_.Equals(other.scripts_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3145,6 +3260,7 @@ namespace Router {
       if (ScriptName.Length != 0) hash ^= ScriptName.GetHashCode();
       if (PwdComplexity.Length != 0) hash ^= PwdComplexity.GetHashCode();
       if (Disabled != false) hash ^= Disabled.GetHashCode();
+      hash ^= scripts_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3199,6 +3315,7 @@ namespace Router {
         output.WriteRawTag(72);
         output.WriteBool(Disabled);
       }
+      scripts_.WriteTo(output, _repeated_scripts_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3245,6 +3362,7 @@ namespace Router {
         output.WriteRawTag(72);
         output.WriteBool(Disabled);
       }
+      scripts_.WriteTo(ref output, _repeated_scripts_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3282,6 +3400,7 @@ namespace Router {
       if (Disabled != false) {
         size += 1 + 1;
       }
+      size += scripts_.CalculateSize(_repeated_scripts_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -3321,6 +3440,7 @@ namespace Router {
       if (other.Disabled != false) {
         Disabled = other.Disabled;
       }
+      scripts_.Add(other.scripts_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -3374,6 +3494,10 @@ namespace Router {
           }
           case 72: {
             Disabled = input.ReadBool();
+            break;
+          }
+          case 82: {
+            scripts_.AddEntriesFrom(input, _repeated_scripts_codec);
             break;
           }
         }
@@ -3431,6 +3555,10 @@ namespace Router {
             Disabled = input.ReadBool();
             break;
           }
+          case 82: {
+            scripts_.AddEntriesFrom(ref input, _repeated_scripts_codec);
+            break;
+          }
         }
       }
     }
@@ -3446,6 +3574,7 @@ namespace Router {
   {
     private static readonly pb::MessageParser<RouterRecordRotationRequest> _parser = new pb::MessageParser<RouterRecordRotationRequest>(() => new RouterRecordRotationRequest());
     private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RouterRecordRotationRequest> Parser { get { return _parser; } }
@@ -3473,6 +3602,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RouterRecordRotationRequest(RouterRecordRotationRequest other) : this() {
+      _hasBits0 = other._hasBits0;
       recordUid_ = other.recordUid_;
       revision_ = other.revision_;
       configurationUid_ = other.configurationUid_;
@@ -3485,6 +3615,8 @@ namespace Router {
       clientVersionId_ = other.clientVersionId_;
       noop_ = other.noop_;
       saasConfiguration_ = other.saasConfiguration_;
+      updateServices_ = other.updateServices_;
+      serviceResources_ = other.serviceResources_ != null ? other.serviceResources_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3652,6 +3784,45 @@ namespace Router {
       saasConfiguration_ = null;
     }
 
+    /// <summary>Field number for the "updateServices" field.</summary>
+    public const int UpdateServicesFieldNumber = 13;
+    private readonly static bool UpdateServicesDefaultValue = false;
+
+    private bool updateServices_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool UpdateServices {
+      get { if ((_hasBits0 & 1) != 0) { return updateServices_; } else { return UpdateServicesDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        updateServices_ = value;
+      }
+    }
+    /// <summary>Gets whether the "updateServices" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasUpdateServices {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "updateServices" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearUpdateServices() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "serviceResources" field.</summary>
+    public const int ServiceResourcesFieldNumber = 14;
+    private global::PAM.UidList serviceResources_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::PAM.UidList ServiceResources {
+      get { return serviceResources_; }
+      set {
+        serviceResources_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -3679,6 +3850,8 @@ namespace Router {
       if (ClientVersionId != other.ClientVersionId) return false;
       if (Noop != other.Noop) return false;
       if (SaasConfiguration != other.SaasConfiguration) return false;
+      if (UpdateServices != other.UpdateServices) return false;
+      if (!object.Equals(ServiceResources, other.ServiceResources)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3698,6 +3871,8 @@ namespace Router {
       if (ClientVersionId != 0) hash ^= ClientVersionId.GetHashCode();
       if (Noop != false) hash ^= Noop.GetHashCode();
       if (HasSaasConfiguration) hash ^= SaasConfiguration.GetHashCode();
+      if (HasUpdateServices) hash ^= UpdateServices.GetHashCode();
+      if (serviceResources_ != null) hash ^= ServiceResources.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3764,6 +3939,14 @@ namespace Router {
         output.WriteRawTag(98);
         output.WriteBytes(SaasConfiguration);
       }
+      if (HasUpdateServices) {
+        output.WriteRawTag(104);
+        output.WriteBool(UpdateServices);
+      }
+      if (serviceResources_ != null) {
+        output.WriteRawTag(114);
+        output.WriteMessage(ServiceResources);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3822,6 +4005,14 @@ namespace Router {
         output.WriteRawTag(98);
         output.WriteBytes(SaasConfiguration);
       }
+      if (HasUpdateServices) {
+        output.WriteRawTag(104);
+        output.WriteBool(UpdateServices);
+      }
+      if (serviceResources_ != null) {
+        output.WriteRawTag(114);
+        output.WriteMessage(ServiceResources);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3867,6 +4058,12 @@ namespace Router {
       }
       if (HasSaasConfiguration) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(SaasConfiguration);
+      }
+      if (HasUpdateServices) {
+        size += 1 + 1;
+      }
+      if (serviceResources_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ServiceResources);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3915,6 +4112,15 @@ namespace Router {
       }
       if (other.HasSaasConfiguration) {
         SaasConfiguration = other.SaasConfiguration;
+      }
+      if (other.HasUpdateServices) {
+        UpdateServices = other.UpdateServices;
+      }
+      if (other.serviceResources_ != null) {
+        if (serviceResources_ == null) {
+          ServiceResources = new global::PAM.UidList();
+        }
+        ServiceResources.MergeFrom(other.ServiceResources);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3983,6 +4189,17 @@ namespace Router {
             SaasConfiguration = input.ReadBytes();
             break;
           }
+          case 104: {
+            UpdateServices = input.ReadBool();
+            break;
+          }
+          case 114: {
+            if (serviceResources_ == null) {
+              ServiceResources = new global::PAM.UidList();
+            }
+            input.ReadMessage(ServiceResources);
+            break;
+          }
         }
       }
     #endif
@@ -4048,6 +4265,17 @@ namespace Router {
           }
           case 98: {
             SaasConfiguration = input.ReadBytes();
+            break;
+          }
+          case 104: {
+            UpdateServices = input.ReadBool();
+            break;
+          }
+          case 114: {
+            if (serviceResources_ == null) {
+              ServiceResources = new global::PAM.UidList();
+            }
+            input.ReadMessage(ServiceResources);
             break;
           }
         }
@@ -4329,6 +4557,7 @@ namespace Router {
     public UserRecordAccessResponse(UserRecordAccessResponse other) : this() {
       recordUid_ = other.recordUid_;
       accessLevel_ = other.accessLevel_;
+      isShareAdmin_ = other.isShareAdmin_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4362,6 +4591,18 @@ namespace Router {
       }
     }
 
+    /// <summary>Field number for the "isShareAdmin" field.</summary>
+    public const int IsShareAdminFieldNumber = 3;
+    private bool isShareAdmin_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsShareAdmin {
+      get { return isShareAdmin_; }
+      set {
+        isShareAdmin_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -4379,6 +4620,7 @@ namespace Router {
       }
       if (RecordUid != other.RecordUid) return false;
       if (AccessLevel != other.AccessLevel) return false;
+      if (IsShareAdmin != other.IsShareAdmin) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4388,6 +4630,7 @@ namespace Router {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
       if (AccessLevel != global::Router.UserRecordAccessLevel.RralNone) hash ^= AccessLevel.GetHashCode();
+      if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4414,6 +4657,10 @@ namespace Router {
         output.WriteRawTag(16);
         output.WriteEnum((int) AccessLevel);
       }
+      if (IsShareAdmin != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IsShareAdmin);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4432,6 +4679,10 @@ namespace Router {
         output.WriteRawTag(16);
         output.WriteEnum((int) AccessLevel);
       }
+      if (IsShareAdmin != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IsShareAdmin);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -4447,6 +4698,9 @@ namespace Router {
       }
       if (AccessLevel != global::Router.UserRecordAccessLevel.RralNone) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessLevel);
+      }
+      if (IsShareAdmin != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4465,6 +4719,9 @@ namespace Router {
       }
       if (other.AccessLevel != global::Router.UserRecordAccessLevel.RralNone) {
         AccessLevel = other.AccessLevel;
+      }
+      if (other.IsShareAdmin != false) {
+        IsShareAdmin = other.IsShareAdmin;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4493,6 +4750,10 @@ namespace Router {
             AccessLevel = (global::Router.UserRecordAccessLevel) input.ReadEnum();
             break;
           }
+          case 24: {
+            IsShareAdmin = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -4518,6 +4779,10 @@ namespace Router {
           }
           case 16: {
             AccessLevel = (global::Router.UserRecordAccessLevel) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            IsShareAdmin = input.ReadBool();
             break;
           }
         }
@@ -5548,6 +5813,661 @@ namespace Router {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserFolderPermissionsRequest : pb::IMessage<UserFolderPermissionsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserFolderPermissionsRequest> _parser = new pb::MessageParser<UserFolderPermissionsRequest>(() => new UserFolderPermissionsRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserFolderPermissionsRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[16]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsRequest(UserFolderPermissionsRequest other) : this() {
+      userId_ = other.userId_;
+      folderUid_ = other.folderUid_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsRequest Clone() {
+      return new UserFolderPermissionsRequest(this);
+    }
+
+    /// <summary>Field number for the "userId" field.</summary>
+    public const int UserIdFieldNumber = 1;
+    private int userId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int UserId {
+      get { return userId_; }
+      set {
+        userId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 2;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_folderUid_codec
+        = pb::FieldCodec.ForBytes(18);
+    private readonly pbc::RepeatedField<pb::ByteString> folderUid_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> FolderUid {
+      get { return folderUid_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserFolderPermissionsRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserFolderPermissionsRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (UserId != other.UserId) return false;
+      if(!folderUid_.Equals(other.folderUid_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (UserId != 0) hash ^= UserId.GetHashCode();
+      hash ^= folderUid_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (UserId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(UserId);
+      }
+      folderUid_.WriteTo(output, _repeated_folderUid_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (UserId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(UserId);
+      }
+      folderUid_.WriteTo(ref output, _repeated_folderUid_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (UserId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
+      }
+      size += folderUid_.CalculateSize(_repeated_folderUid_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserFolderPermissionsRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.UserId != 0) {
+        UserId = other.UserId;
+      }
+      folderUid_.Add(other.folderUid_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            UserId = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            folderUid_.AddEntriesFrom(input, _repeated_folderUid_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            UserId = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            folderUid_.AddEntriesFrom(ref input, _repeated_folderUid_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserFolderPermissionsResponse : pb::IMessage<UserFolderPermissionsResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserFolderPermissionsResponse> _parser = new pb::MessageParser<UserFolderPermissionsResponse>(() => new UserFolderPermissionsResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserFolderPermissionsResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponse(UserFolderPermissionsResponse other) : this() {
+      folderUid_ = other.folderUid_;
+      permissions_ = other.permissions_ != null ? other.permissions_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponse Clone() {
+      return new UserFolderPermissionsResponse(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "permissions" field.</summary>
+    public const int PermissionsFieldNumber = 2;
+    private global::Folder.FolderPermissions permissions_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderPermissions Permissions {
+      get { return permissions_; }
+      set {
+        permissions_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserFolderPermissionsResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserFolderPermissionsResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (!object.Equals(Permissions, other.Permissions)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (permissions_ != null) hash ^= Permissions.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Permissions);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Permissions);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (permissions_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Permissions);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserFolderPermissionsResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.permissions_ != null) {
+        if (permissions_ == null) {
+          Permissions = new global::Folder.FolderPermissions();
+        }
+        Permissions.MergeFrom(other.Permissions);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserFolderPermissionsResponses : pb::IMessage<UserFolderPermissionsResponses>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserFolderPermissionsResponses> _parser = new pb::MessageParser<UserFolderPermissionsResponses>(() => new UserFolderPermissionsResponses());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserFolderPermissionsResponses> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponses() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponses(UserFolderPermissionsResponses other) : this() {
+      responses_ = other.responses_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserFolderPermissionsResponses Clone() {
+      return new UserFolderPermissionsResponses(this);
+    }
+
+    /// <summary>Field number for the "responses" field.</summary>
+    public const int ResponsesFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Router.UserFolderPermissionsResponse> _repeated_responses_codec
+        = pb::FieldCodec.ForMessage(10, global::Router.UserFolderPermissionsResponse.Parser);
+    private readonly pbc::RepeatedField<global::Router.UserFolderPermissionsResponse> responses_ = new pbc::RepeatedField<global::Router.UserFolderPermissionsResponse>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Router.UserFolderPermissionsResponse> Responses {
+      get { return responses_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserFolderPermissionsResponses);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserFolderPermissionsResponses other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!responses_.Equals(other.responses_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= responses_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      responses_.WriteTo(output, _repeated_responses_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      responses_.WriteTo(ref output, _repeated_responses_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += responses_.CalculateSize(_repeated_responses_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserFolderPermissionsResponses other) {
+      if (other == null) {
+        return;
+      }
+      responses_.Add(other.responses_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            responses_.AddEntriesFrom(input, _repeated_responses_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            responses_.AddEntriesFrom(ref input, _repeated_responses_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RotationSchedule : pb::IMessage<RotationSchedule>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5562,7 +6482,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5797,7 +6717,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6095,7 +7015,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[18]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6330,7 +7250,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[19]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6554,7 +7474,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[20]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6741,7 +7661,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[21]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7087,7 +8007,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7274,7 +8194,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7509,7 +8429,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7696,7 +8616,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7894,7 +8814,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8129,7 +9049,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8381,7 +9301,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8653,7 +9573,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8888,7 +9808,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[33]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8909,6 +9829,8 @@ namespace Router {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PAMNetworkSettings(PAMNetworkSettings other) : this() {
       allowedSettings_ = other.allowedSettings_;
+      idpConfigUid_ = other.idpConfigUid_;
+      adminUid_ = other.adminUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -8930,6 +9852,58 @@ namespace Router {
       }
     }
 
+    /// <summary>Field number for the "idpConfigUid" field.</summary>
+    public const int IdpConfigUidFieldNumber = 2;
+    private readonly static pb::ByteString IdpConfigUidDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString idpConfigUid_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString IdpConfigUid {
+      get { return idpConfigUid_ ?? IdpConfigUidDefaultValue; }
+      set {
+        idpConfigUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "idpConfigUid" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasIdpConfigUid {
+      get { return idpConfigUid_ != null; }
+    }
+    /// <summary>Clears the value of the "idpConfigUid" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearIdpConfigUid() {
+      idpConfigUid_ = null;
+    }
+
+    /// <summary>Field number for the "adminUid" field.</summary>
+    public const int AdminUidFieldNumber = 3;
+    private readonly static pb::ByteString AdminUidDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString adminUid_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AdminUid {
+      get { return adminUid_ ?? AdminUidDefaultValue; }
+      set {
+        adminUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "adminUid" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasAdminUid {
+      get { return adminUid_ != null; }
+    }
+    /// <summary>Clears the value of the "adminUid" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearAdminUid() {
+      adminUid_ = null;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -8946,6 +9920,8 @@ namespace Router {
         return true;
       }
       if (AllowedSettings != other.AllowedSettings) return false;
+      if (IdpConfigUid != other.IdpConfigUid) return false;
+      if (AdminUid != other.AdminUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -8954,6 +9930,8 @@ namespace Router {
     public override int GetHashCode() {
       int hash = 1;
       if (AllowedSettings.Length != 0) hash ^= AllowedSettings.GetHashCode();
+      if (HasIdpConfigUid) hash ^= IdpConfigUid.GetHashCode();
+      if (HasAdminUid) hash ^= AdminUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -8976,6 +9954,14 @@ namespace Router {
         output.WriteRawTag(10);
         output.WriteBytes(AllowedSettings);
       }
+      if (HasIdpConfigUid) {
+        output.WriteRawTag(18);
+        output.WriteBytes(IdpConfigUid);
+      }
+      if (HasAdminUid) {
+        output.WriteRawTag(26);
+        output.WriteBytes(AdminUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -8990,6 +9976,14 @@ namespace Router {
         output.WriteRawTag(10);
         output.WriteBytes(AllowedSettings);
       }
+      if (HasIdpConfigUid) {
+        output.WriteRawTag(18);
+        output.WriteBytes(IdpConfigUid);
+      }
+      if (HasAdminUid) {
+        output.WriteRawTag(26);
+        output.WriteBytes(AdminUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -9002,6 +9996,12 @@ namespace Router {
       int size = 0;
       if (AllowedSettings.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(AllowedSettings);
+      }
+      if (HasIdpConfigUid) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(IdpConfigUid);
+      }
+      if (HasAdminUid) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AdminUid);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -9017,6 +10017,12 @@ namespace Router {
       }
       if (other.AllowedSettings.Length != 0) {
         AllowedSettings = other.AllowedSettings;
+      }
+      if (other.HasIdpConfigUid) {
+        IdpConfigUid = other.IdpConfigUid;
+      }
+      if (other.HasAdminUid) {
+        AdminUid = other.AdminUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -9039,6 +10045,14 @@ namespace Router {
             break;
           case 10: {
             AllowedSettings = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            IdpConfigUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            AdminUid = input.ReadBytes();
             break;
           }
         }
@@ -9064,6 +10078,14 @@ namespace Router {
             AllowedSettings = input.ReadBytes();
             break;
           }
+          case 18: {
+            IdpConfigUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            AdminUid = input.ReadBytes();
+            break;
+          }
         }
       }
     }
@@ -9086,7 +10108,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9385,7 +10407,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[32]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9657,7 +10679,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[33]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[36]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9680,6 +10702,7 @@ namespace Router {
       transmissionKey_ = other.transmissionKey_;
       sessionToken_ = other.sessionToken_;
       value_ = other.value_;
+      challengeToken_ = other.challengeToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -9725,6 +10748,21 @@ namespace Router {
       }
     }
 
+    /// <summary>Field number for the "challengeToken" field.</summary>
+    public const int ChallengeTokenFieldNumber = 4;
+    private pb::ByteString challengeToken_ = pb::ByteString.Empty;
+    /// <summary>
+    /// echoed from Router2FAGetWebAuthnChallengeResponse.challengeToken; allows cache-free WebAuthn validation
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ChallengeToken {
+      get { return challengeToken_; }
+      set {
+        challengeToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -9743,6 +10781,7 @@ namespace Router {
       if (TransmissionKey != other.TransmissionKey) return false;
       if (SessionToken != other.SessionToken) return false;
       if (Value != other.Value) return false;
+      if (ChallengeToken != other.ChallengeToken) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -9753,6 +10792,7 @@ namespace Router {
       if (TransmissionKey.Length != 0) hash ^= TransmissionKey.GetHashCode();
       if (SessionToken.Length != 0) hash ^= SessionToken.GetHashCode();
       if (Value.Length != 0) hash ^= Value.GetHashCode();
+      if (ChallengeToken.Length != 0) hash ^= ChallengeToken.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -9783,6 +10823,10 @@ namespace Router {
         output.WriteRawTag(26);
         output.WriteString(Value);
       }
+      if (ChallengeToken.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(ChallengeToken);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -9805,6 +10849,10 @@ namespace Router {
         output.WriteRawTag(26);
         output.WriteString(Value);
       }
+      if (ChallengeToken.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(ChallengeToken);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -9823,6 +10871,9 @@ namespace Router {
       }
       if (Value.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Value);
+      }
+      if (ChallengeToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ChallengeToken);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -9844,6 +10895,9 @@ namespace Router {
       }
       if (other.Value.Length != 0) {
         Value = other.Value;
+      }
+      if (other.ChallengeToken.Length != 0) {
+        ChallengeToken = other.ChallengeToken;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -9874,6 +10928,10 @@ namespace Router {
           }
           case 26: {
             Value = input.ReadString();
+            break;
+          }
+          case 34: {
+            ChallengeToken = input.ReadBytes();
             break;
           }
         }
@@ -9907,6 +10965,10 @@ namespace Router {
             Value = input.ReadString();
             break;
           }
+          case 34: {
+            ChallengeToken = input.ReadBytes();
+            break;
+          }
         }
       }
     }
@@ -9929,7 +10991,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[34]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10201,7 +11263,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[35]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10436,7 +11498,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[36]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[39]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10458,6 +11520,7 @@ namespace Router {
     public Router2FAGetWebAuthnChallengeResponse(Router2FAGetWebAuthnChallengeResponse other) : this() {
       challenge_ = other.challenge_;
       capabilities_ = other.capabilities_.Clone();
+      challengeToken_ = other.challengeToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10490,6 +11553,21 @@ namespace Router {
       get { return capabilities_; }
     }
 
+    /// <summary>Field number for the "challengeToken" field.</summary>
+    public const int ChallengeTokenFieldNumber = 3;
+    private pb::ByteString challengeToken_ = pb::ByteString.Empty;
+    /// <summary>
+    /// server-encrypted WebAuthn challenge; clients echo this back in Router2FAValidateRequest.challengeToken for cache-free validation
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ChallengeToken {
+      get { return challengeToken_; }
+      set {
+        challengeToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -10507,6 +11585,7 @@ namespace Router {
       }
       if (Challenge != other.Challenge) return false;
       if(!capabilities_.Equals(other.capabilities_)) return false;
+      if (ChallengeToken != other.ChallengeToken) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10516,6 +11595,7 @@ namespace Router {
       int hash = 1;
       if (Challenge.Length != 0) hash ^= Challenge.GetHashCode();
       hash ^= capabilities_.GetHashCode();
+      if (ChallengeToken.Length != 0) hash ^= ChallengeToken.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10539,6 +11619,10 @@ namespace Router {
         output.WriteString(Challenge);
       }
       capabilities_.WriteTo(output, _repeated_capabilities_codec);
+      if (ChallengeToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ChallengeToken);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10554,6 +11638,10 @@ namespace Router {
         output.WriteString(Challenge);
       }
       capabilities_.WriteTo(ref output, _repeated_capabilities_codec);
+      if (ChallengeToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ChallengeToken);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -10568,6 +11656,9 @@ namespace Router {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Challenge);
       }
       size += capabilities_.CalculateSize(_repeated_capabilities_codec);
+      if (ChallengeToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ChallengeToken);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -10584,6 +11675,9 @@ namespace Router {
         Challenge = other.Challenge;
       }
       capabilities_.Add(other.capabilities_);
+      if (other.ChallengeToken.Length != 0) {
+        ChallengeToken = other.ChallengeToken;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -10609,6 +11703,10 @@ namespace Router {
           }
           case 18: {
             capabilities_.AddEntriesFrom(input, _repeated_capabilities_codec);
+            break;
+          }
+          case 26: {
+            ChallengeToken = input.ReadBytes();
             break;
           }
         }
@@ -10638,6 +11736,10 @@ namespace Router {
             capabilities_.AddEntriesFrom(ref input, _repeated_capabilities_codec);
             break;
           }
+          case 26: {
+            ChallengeToken = input.ReadBytes();
+            break;
+          }
         }
       }
     }
@@ -10660,7 +11762,7 @@ namespace Router {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Router.RouterReflection.Descriptor.MessageTypes[37]; }
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10908,6 +12010,551 @@ namespace Router {
           }
           case 24: {
             Ttl = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserAccessLoweredEvent : pb::IMessage<UserAccessLoweredEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserAccessLoweredEvent> _parser = new pb::MessageParser<UserAccessLoweredEvent>(() => new UserAccessLoweredEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserAccessLoweredEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[41]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEvent(UserAccessLoweredEvent other) : this() {
+      _hasBits0 = other._hasBits0;
+      eventType_ = other.eventType_;
+      enterpriseUserIds_ = other.enterpriseUserIds_.Clone();
+      recordUids_ = other.recordUids_.Clone();
+      deviceId_ = other.deviceId_;
+      enforcementTypeId_ = other.enforcementTypeId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEvent Clone() {
+      return new UserAccessLoweredEvent(this);
+    }
+
+    /// <summary>Field number for the "eventType" field.</summary>
+    public const int EventTypeFieldNumber = 1;
+    private global::Router.UserAccessLoweredEventType eventType_ = global::Router.UserAccessLoweredEventType.UaleUnspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Router.UserAccessLoweredEventType EventType {
+      get { return eventType_; }
+      set {
+        eventType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseUserIds" field.</summary>
+    public const int EnterpriseUserIdsFieldNumber = 2;
+    private static readonly pb::FieldCodec<long> _repeated_enterpriseUserIds_codec
+        = pb::FieldCodec.ForInt64(18);
+    private readonly pbc::RepeatedField<long> enterpriseUserIds_ = new pbc::RepeatedField<long>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<long> EnterpriseUserIds {
+      get { return enterpriseUserIds_; }
+    }
+
+    /// <summary>Field number for the "recordUids" field.</summary>
+    public const int RecordUidsFieldNumber = 3;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_recordUids_codec
+        = pb::FieldCodec.ForBytes(26);
+    private readonly pbc::RepeatedField<pb::ByteString> recordUids_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> RecordUids {
+      get { return recordUids_; }
+    }
+
+    /// <summary>Field number for the "deviceId" field.</summary>
+    public const int DeviceIdFieldNumber = 4;
+    private readonly static long DeviceIdDefaultValue = 0L;
+
+    private long deviceId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DeviceId {
+      get { if ((_hasBits0 & 1) != 0) { return deviceId_; } else { return DeviceIdDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        deviceId_ = value;
+      }
+    }
+    /// <summary>Gets whether the "deviceId" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDeviceId {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "deviceId" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDeviceId() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "enforcementTypeId" field.</summary>
+    public const int EnforcementTypeIdFieldNumber = 5;
+    private readonly static int EnforcementTypeIdDefaultValue = 0;
+
+    private int enforcementTypeId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int EnforcementTypeId {
+      get { if ((_hasBits0 & 2) != 0) { return enforcementTypeId_; } else { return EnforcementTypeIdDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        enforcementTypeId_ = value;
+      }
+    }
+    /// <summary>Gets whether the "enforcementTypeId" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasEnforcementTypeId {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "enforcementTypeId" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearEnforcementTypeId() {
+      _hasBits0 &= ~2;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserAccessLoweredEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserAccessLoweredEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (EventType != other.EventType) return false;
+      if(!enterpriseUserIds_.Equals(other.enterpriseUserIds_)) return false;
+      if(!recordUids_.Equals(other.recordUids_)) return false;
+      if (DeviceId != other.DeviceId) return false;
+      if (EnforcementTypeId != other.EnforcementTypeId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (EventType != global::Router.UserAccessLoweredEventType.UaleUnspecified) hash ^= EventType.GetHashCode();
+      hash ^= enterpriseUserIds_.GetHashCode();
+      hash ^= recordUids_.GetHashCode();
+      if (HasDeviceId) hash ^= DeviceId.GetHashCode();
+      if (HasEnforcementTypeId) hash ^= EnforcementTypeId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (EventType != global::Router.UserAccessLoweredEventType.UaleUnspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) EventType);
+      }
+      enterpriseUserIds_.WriteTo(output, _repeated_enterpriseUserIds_codec);
+      recordUids_.WriteTo(output, _repeated_recordUids_codec);
+      if (HasDeviceId) {
+        output.WriteRawTag(32);
+        output.WriteInt64(DeviceId);
+      }
+      if (HasEnforcementTypeId) {
+        output.WriteRawTag(40);
+        output.WriteInt32(EnforcementTypeId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EventType != global::Router.UserAccessLoweredEventType.UaleUnspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) EventType);
+      }
+      enterpriseUserIds_.WriteTo(ref output, _repeated_enterpriseUserIds_codec);
+      recordUids_.WriteTo(ref output, _repeated_recordUids_codec);
+      if (HasDeviceId) {
+        output.WriteRawTag(32);
+        output.WriteInt64(DeviceId);
+      }
+      if (HasEnforcementTypeId) {
+        output.WriteRawTag(40);
+        output.WriteInt32(EnforcementTypeId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (EventType != global::Router.UserAccessLoweredEventType.UaleUnspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) EventType);
+      }
+      size += enterpriseUserIds_.CalculateSize(_repeated_enterpriseUserIds_codec);
+      size += recordUids_.CalculateSize(_repeated_recordUids_codec);
+      if (HasDeviceId) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(DeviceId);
+      }
+      if (HasEnforcementTypeId) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnforcementTypeId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserAccessLoweredEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.EventType != global::Router.UserAccessLoweredEventType.UaleUnspecified) {
+        EventType = other.EventType;
+      }
+      enterpriseUserIds_.Add(other.enterpriseUserIds_);
+      recordUids_.Add(other.recordUids_);
+      if (other.HasDeviceId) {
+        DeviceId = other.DeviceId;
+      }
+      if (other.HasEnforcementTypeId) {
+        EnforcementTypeId = other.EnforcementTypeId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            EventType = (global::Router.UserAccessLoweredEventType) input.ReadEnum();
+            break;
+          }
+          case 18:
+          case 16: {
+            enterpriseUserIds_.AddEntriesFrom(input, _repeated_enterpriseUserIds_codec);
+            break;
+          }
+          case 26: {
+            recordUids_.AddEntriesFrom(input, _repeated_recordUids_codec);
+            break;
+          }
+          case 32: {
+            DeviceId = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            EnforcementTypeId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EventType = (global::Router.UserAccessLoweredEventType) input.ReadEnum();
+            break;
+          }
+          case 18:
+          case 16: {
+            enterpriseUserIds_.AddEntriesFrom(ref input, _repeated_enterpriseUserIds_codec);
+            break;
+          }
+          case 26: {
+            recordUids_.AddEntriesFrom(ref input, _repeated_recordUids_codec);
+            break;
+          }
+          case 32: {
+            DeviceId = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            EnforcementTypeId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class UserAccessLoweredEventsRequest : pb::IMessage<UserAccessLoweredEventsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UserAccessLoweredEventsRequest> _parser = new pb::MessageParser<UserAccessLoweredEventsRequest>(() => new UserAccessLoweredEventsRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UserAccessLoweredEventsRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Router.RouterReflection.Descriptor.MessageTypes[42]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEventsRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEventsRequest(UserAccessLoweredEventsRequest other) : this() {
+      events_ = other.events_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UserAccessLoweredEventsRequest Clone() {
+      return new UserAccessLoweredEventsRequest(this);
+    }
+
+    /// <summary>Field number for the "events" field.</summary>
+    public const int EventsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Router.UserAccessLoweredEvent> _repeated_events_codec
+        = pb::FieldCodec.ForMessage(10, global::Router.UserAccessLoweredEvent.Parser);
+    private readonly pbc::RepeatedField<global::Router.UserAccessLoweredEvent> events_ = new pbc::RepeatedField<global::Router.UserAccessLoweredEvent>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Router.UserAccessLoweredEvent> Events {
+      get { return events_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UserAccessLoweredEventsRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UserAccessLoweredEventsRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!events_.Equals(other.events_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= events_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      events_.WriteTo(output, _repeated_events_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      events_.WriteTo(ref output, _repeated_events_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += events_.CalculateSize(_repeated_events_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UserAccessLoweredEventsRequest other) {
+      if (other == null) {
+        return;
+      }
+      events_.Add(other.events_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            events_.AddEntriesFrom(input, _repeated_events_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            events_.AddEntriesFrom(ref input, _repeated_events_codec);
             break;
           }
         }
