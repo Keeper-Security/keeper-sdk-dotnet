@@ -43,51 +43,51 @@ namespace Workflow {
             "c3NDb25kaXRpb24SLgoKYXBwcm92ZWRCeRgDIAMoCzIaLldvcmtmbG93Lldv",
             "cmtmbG93QXBwcm92YWwSEQoJc3RhcnRlZE9uGAQgASgDEhEKCWV4cGlyZXNP",
             "bhgFIAEoAxIRCgllc2NhbGF0ZWQYBiABKAgSFAoMY2hlY2tlZE91dEJ5GAcg",
-            "ASgJEhcKD2NhbkZvcmNlQ2hlY2tJbhgIIAEoCCKpAgoPV29ya2Zsb3dQcm9j",
+            "ASgJEhcKD2NhbkZvcmNlQ2hlY2tJbhgIIAEoCCK8AgoPV29ya2Zsb3dQcm9j",
             "ZXNzEg8KB2Zsb3dVaWQYASABKAwSDgoGdXNlcklkGAIgASgDEikKCHJlc291",
             "cmNlGAMgASgLMhcuR3JhcGhTeW5jLkdyYXBoU3luY1JlZhIRCglzdGFydGVk",
             "T24YBCABKAMSEQoJZXhwaXJlc09uGAUgASgDEhIKBnJlYXNvbhgGIAEoDEIC",
             "GAESEwoLbWZhVmVyaWZpZWQYByABKAgSEwoLZXh0ZXJuYWxSZWYYCCABKAwS",
             "DAoEdXNlchgJIAEoCRJFChJ3b3JrZmxvd1BhcmFtZXRlcnMYCiADKAsyKS5O",
             "b3RpZmljYXRpb25DZW50ZXIuTm90aWZpY2F0aW9uUGFyYW1ldGVyEhEKCWVz",
-            "Y2FsYXRlZBgLIAEoCCJVChBXb3JrZmxvd0FwcHJvdmFsEg4KBnVzZXJJZBgB",
-            "IAEoAxIMCgR1c2VyGAIgASgJEg8KB2Zsb3dVaWQYAyABKAwSEgoKYXBwcm92",
-            "ZWRPbhgEIAEoAyLLAQoPV29ya2Zsb3dDb250ZXh0EjAKDndvcmtmbG93Q29u",
-            "ZmlnGAEgASgLMhguV29ya2Zsb3cuV29ya2Zsb3dDb25maWcSKwoId29ya2Zs",
-            "b3cYAiABKAsyGS5Xb3JrZmxvdy5Xb3JrZmxvd1Byb2Nlc3MSLQoJYXBwcm92",
-            "YWxzGAMgAygLMhouV29ya2Zsb3cuV29ya2Zsb3dBcHByb3ZhbBIqCgdibG9j",
-            "a2VyGAQgASgLMhkuV29ya2Zsb3cuV29ya2Zsb3dQcm9jZXNzInUKDVdvcmtm",
-            "bG93U3RhdGUSDwoHZmxvd1VpZBgBIAEoDBIpCghyZXNvdXJjZRgCIAEoCzIX",
-            "LkdyYXBoU3luYy5HcmFwaFN5bmNSZWYSKAoGc3RhdHVzGAMgASgLMhguV29y",
-            "a2Zsb3cuV29ya2Zsb3dTdGF0dXMiYgoVV29ya2Zsb3dBY2Nlc3NSZXF1ZXN0",
-            "EikKCHJlc291cmNlGAEgASgLMhcuR3JhcGhTeW5jLkdyYXBoU3luY1JlZhIO",
-            "CgZyZWFzb24YAiABKAwSDgoGdGlja2V0GAMgASgMIk8KGFdvcmtmbG93QXBw",
-            "cm92YWxPckRlbmlhbBIPCgdmbG93VWlkGAEgASgMEgwKBGRlbnkYAiABKAgS",
-            "FAoMZGVuaWFsUmVhc29uGAMgASgMIj0KD1VzZXJBY2Nlc3NTdGF0ZRIqCgl3",
-            "b3JrZmxvd3MYASADKAsyFy5Xb3JrZmxvdy5Xb3JrZmxvd1N0YXRlIkAKEEFw",
-            "cHJvdmFsUmVxdWVzdHMSLAoJd29ya2Zsb3dzGAEgAygLMhkuV29ya2Zsb3cu",
-            "V29ya2Zsb3dQcm9jZXNzIjQKDlRpbWVPZkRheVJhbmdlEhEKCXN0YXJ0VGlt",
-            "ZRgBIAEoBRIPCgdlbmRUaW1lGAIgASgFIqMCChJBcHByb3ZhbFF1ZXVlRW50",
-            "cnkSKAoHZmxvd1JlZhgBIAEoCzIXLkdyYXBoU3luYy5HcmFwaFN5bmNSZWYS",
-            "LAoLYXBwcm92ZXJSZWYYAiABKAsyFy5HcmFwaFN5bmMuR3JhcGhTeW5jUmVm",
-            "EikKBGtpbmQYAyABKA4yGy5Xb3JrZmxvdy5BcHByb3ZhbFF1ZXVlS2luZBIS",
-            "Cgpub3RpZnlBdE1zGAQgASgDEhwKD3JlcXVlc3RlclVzZXJJZBgFIAEoA0gA",
-            "iAEBEiYKGXByZWRlZmluZWROb3RpZmljYXRpb25VaWQYBiABKAxIAYgBAUIS",
-            "ChBfcmVxdWVzdGVyVXNlcklkQhwKGl9wcmVkZWZpbmVkTm90aWZpY2F0aW9u",
-            "VWlkIoABChRUZW1wb3JhbEFjY2Vzc0ZpbHRlchIsCgp0aW1lUmFuZ2VzGAEg",
-            "AygLMhguV29ya2Zsb3cuVGltZU9mRGF5UmFuZ2USKAoLYWxsb3dlZERheXMY",
-            "AiADKA4yEy5Xb3JrZmxvdy5EYXlPZldlZWsSEAoIdGltZVpvbmUYAyABKAki",
-            "IwoPQXV0aG9yaXplZFVzZXJzEhAKCHVzZXJuYW1lGAEgAygJKlsKDVdvcmtm",
-            "bG93U3RhZ2USFQoRV1NfUkVBRFlfVE9fU1RBUlQQABIOCgpXU19TVEFSVEVE",
-            "EAESEwoPV1NfTkVFRFNfQUNUSU9OEAISDgoKV1NfV0FJVElORxADKmkKD0Fj",
-            "Y2Vzc0NvbmRpdGlvbhIPCgtBQ19BUFBST1ZBTBAAEg4KCkFDX0NIRUNLSU4Q",
-            "ARIKCgZBQ19NRkEQAhILCgdBQ19USU1FEAMSDQoJQUNfUkVBU09OEAQSDQoJ",
-            "QUNfVElDS0VUEAUqhAEKCURheU9mV2VlaxIbChdEQVlfT0ZfV0VFS19VTlNQ",
-            "RUNJRklFRBAAEgoKBk1PTkRBWRABEgsKB1RVRVNEQVkQAhINCglXRURORVNE",
-            "QVkQAxIMCghUSFVSU0RBWRAEEgoKBkZSSURBWRAFEgwKCFNBVFVSREFZEAYS",
-            "CgoGU1VOREFZEAcqOQoRQXBwcm92YWxRdWV1ZUtpbmQSEAoMQVFLX0FQUFJP",
-            "VkFMEAASEgoOQVFLX0VTQ0FMQVRJT04QAUIkChhjb20ua2VlcGVyc2VjdXJp",
-            "dHkucHJvdG9CCFdvcmtmbG93YgZwcm90bzM="));
+            "Y2FsYXRlZBgLIAEoCBIRCgllcGhlbWVyYWwYDCABKAgiVQoQV29ya2Zsb3dB",
+            "cHByb3ZhbBIOCgZ1c2VySWQYASABKAMSDAoEdXNlchgCIAEoCRIPCgdmbG93",
+            "VWlkGAMgASgMEhIKCmFwcHJvdmVkT24YBCABKAMiywEKD1dvcmtmbG93Q29u",
+            "dGV4dBIwCg53b3JrZmxvd0NvbmZpZxgBIAEoCzIYLldvcmtmbG93Lldvcmtm",
+            "bG93Q29uZmlnEisKCHdvcmtmbG93GAIgASgLMhkuV29ya2Zsb3cuV29ya2Zs",
+            "b3dQcm9jZXNzEi0KCWFwcHJvdmFscxgDIAMoCzIaLldvcmtmbG93Lldvcmtm",
+            "bG93QXBwcm92YWwSKgoHYmxvY2tlchgEIAEoCzIZLldvcmtmbG93Lldvcmtm",
+            "bG93UHJvY2VzcyJ1Cg1Xb3JrZmxvd1N0YXRlEg8KB2Zsb3dVaWQYASABKAwS",
+            "KQoIcmVzb3VyY2UYAiABKAsyFy5HcmFwaFN5bmMuR3JhcGhTeW5jUmVmEigK",
+            "BnN0YXR1cxgDIAEoCzIYLldvcmtmbG93LldvcmtmbG93U3RhdHVzImIKFVdv",
+            "cmtmbG93QWNjZXNzUmVxdWVzdBIpCghyZXNvdXJjZRgBIAEoCzIXLkdyYXBo",
+            "U3luYy5HcmFwaFN5bmNSZWYSDgoGcmVhc29uGAIgASgMEg4KBnRpY2tldBgD",
+            "IAEoDCJPChhXb3JrZmxvd0FwcHJvdmFsT3JEZW5pYWwSDwoHZmxvd1VpZBgB",
+            "IAEoDBIMCgRkZW55GAIgASgIEhQKDGRlbmlhbFJlYXNvbhgDIAEoDCI9Cg9V",
+            "c2VyQWNjZXNzU3RhdGUSKgoJd29ya2Zsb3dzGAEgAygLMhcuV29ya2Zsb3cu",
+            "V29ya2Zsb3dTdGF0ZSJAChBBcHByb3ZhbFJlcXVlc3RzEiwKCXdvcmtmbG93",
+            "cxgBIAMoCzIZLldvcmtmbG93LldvcmtmbG93UHJvY2VzcyI0Cg5UaW1lT2ZE",
+            "YXlSYW5nZRIRCglzdGFydFRpbWUYASABKAUSDwoHZW5kVGltZRgCIAEoBSKj",
+            "AgoSQXBwcm92YWxRdWV1ZUVudHJ5EigKB2Zsb3dSZWYYASABKAsyFy5HcmFw",
+            "aFN5bmMuR3JhcGhTeW5jUmVmEiwKC2FwcHJvdmVyUmVmGAIgASgLMhcuR3Jh",
+            "cGhTeW5jLkdyYXBoU3luY1JlZhIpCgRraW5kGAMgASgOMhsuV29ya2Zsb3cu",
+            "QXBwcm92YWxRdWV1ZUtpbmQSEgoKbm90aWZ5QXRNcxgEIAEoAxIcCg9yZXF1",
+            "ZXN0ZXJVc2VySWQYBSABKANIAIgBARImChlwcmVkZWZpbmVkTm90aWZpY2F0",
+            "aW9uVWlkGAYgASgMSAGIAQFCEgoQX3JlcXVlc3RlclVzZXJJZEIcChpfcHJl",
+            "ZGVmaW5lZE5vdGlmaWNhdGlvblVpZCKAAQoUVGVtcG9yYWxBY2Nlc3NGaWx0",
+            "ZXISLAoKdGltZVJhbmdlcxgBIAMoCzIYLldvcmtmbG93LlRpbWVPZkRheVJh",
+            "bmdlEigKC2FsbG93ZWREYXlzGAIgAygOMhMuV29ya2Zsb3cuRGF5T2ZXZWVr",
+            "EhAKCHRpbWVab25lGAMgASgJIiMKD0F1dGhvcml6ZWRVc2VycxIQCgh1c2Vy",
+            "bmFtZRgBIAMoCSpbCg1Xb3JrZmxvd1N0YWdlEhUKEVdTX1JFQURZX1RPX1NU",
+            "QVJUEAASDgoKV1NfU1RBUlRFRBABEhMKD1dTX05FRURTX0FDVElPThACEg4K",
+            "CldTX1dBSVRJTkcQAyppCg9BY2Nlc3NDb25kaXRpb24SDwoLQUNfQVBQUk9W",
+            "QUwQABIOCgpBQ19DSEVDS0lOEAESCgoGQUNfTUZBEAISCwoHQUNfVElNRRAD",
+            "Eg0KCUFDX1JFQVNPThAEEg0KCUFDX1RJQ0tFVBAFKoQBCglEYXlPZldlZWsS",
+            "GwoXREFZX09GX1dFRUtfVU5TUEVDSUZJRUQQABIKCgZNT05EQVkQARILCgdU",
+            "VUVTREFZEAISDQoJV0VETkVTREFZEAMSDAoIVEhVUlNEQVkQBBIKCgZGUklE",
+            "QVkQBRIMCghTQVRVUkRBWRAGEgoKBlNVTkRBWRAHKjkKEUFwcHJvdmFsUXVl",
+            "dWVLaW5kEhAKDEFRS19BUFBST1ZBTBAAEhIKDkFRS19FU0NBTEFUSU9OEAFC",
+            "JAoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQghXb3JrZmxvd2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::GraphSync.GraphSyncReflection.Descriptor, global::NotificationCenter.NotificationCenterReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Workflow.WorkflowStage), typeof(global::Workflow.AccessCondition), typeof(global::Workflow.DayOfWeek), typeof(global::Workflow.ApprovalQueueKind), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -95,7 +95,7 @@ namespace Workflow {
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowParameters), global::Workflow.WorkflowParameters.Parser, new[]{ "Resource", "ApprovalsNeeded", "CheckoutNeeded", "StartAccessOnApproval", "RequireReason", "RequireTicket", "RequireMFA", "AccessLength", "AllowedTimes" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowConfig), global::Workflow.WorkflowConfig.Parser, new[]{ "Parameters", "Approvers", "CreatedOn" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowStatus), global::Workflow.WorkflowStatus.Parser, new[]{ "Stage", "Conditions", "ApprovedBy", "StartedOn", "ExpiresOn", "Escalated", "CheckedOutBy", "CanForceCheckIn" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowProcess), global::Workflow.WorkflowProcess.Parser, new[]{ "FlowUid", "UserId", "Resource", "StartedOn", "ExpiresOn", "Reason", "MfaVerified", "ExternalRef", "User", "WorkflowParameters", "Escalated" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowProcess), global::Workflow.WorkflowProcess.Parser, new[]{ "FlowUid", "UserId", "Resource", "StartedOn", "ExpiresOn", "Reason", "MfaVerified", "ExternalRef", "User", "WorkflowParameters", "Escalated", "Ephemeral" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowApproval), global::Workflow.WorkflowApproval.Parser, new[]{ "UserId", "User", "FlowUid", "ApprovedOn" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowContext), global::Workflow.WorkflowContext.Parser, new[]{ "WorkflowConfig", "Workflow", "Approvals", "Blocker" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Workflow.WorkflowState), global::Workflow.WorkflowState.Parser, new[]{ "FlowUid", "Resource", "Status" }, null, null, null, null),
@@ -1867,6 +1867,7 @@ namespace Workflow {
       user_ = other.user_;
       workflowParameters_ = other.workflowParameters_.Clone();
       escalated_ = other.escalated_;
+      ephemeral_ = other.ephemeral_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2035,6 +2036,21 @@ namespace Workflow {
       }
     }
 
+    /// <summary>Field number for the "ephemeral" field.</summary>
+    public const int EphemeralFieldNumber = 12;
+    private bool ephemeral_;
+    /// <summary>
+    /// self-service elevation row created without a workflow_config
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Ephemeral {
+      get { return ephemeral_; }
+      set {
+        ephemeral_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -2061,6 +2077,7 @@ namespace Workflow {
       if (User != other.User) return false;
       if(!workflowParameters_.Equals(other.workflowParameters_)) return false;
       if (Escalated != other.Escalated) return false;
+      if (Ephemeral != other.Ephemeral) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2079,6 +2096,7 @@ namespace Workflow {
       if (User.Length != 0) hash ^= User.GetHashCode();
       hash ^= workflowParameters_.GetHashCode();
       if (Escalated != false) hash ^= Escalated.GetHashCode();
+      if (Ephemeral != false) hash ^= Ephemeral.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2138,6 +2156,10 @@ namespace Workflow {
         output.WriteRawTag(88);
         output.WriteBool(Escalated);
       }
+      if (Ephemeral != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(Ephemeral);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2189,6 +2211,10 @@ namespace Workflow {
         output.WriteRawTag(88);
         output.WriteBool(Escalated);
       }
+      if (Ephemeral != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(Ephemeral);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -2228,6 +2254,9 @@ namespace Workflow {
       }
       size += workflowParameters_.CalculateSize(_repeated_workflowParameters_codec);
       if (Escalated != false) {
+        size += 1 + 1;
+      }
+      if (Ephemeral != false) {
         size += 1 + 1;
       }
       if (_unknownFields != null) {
@@ -2275,6 +2304,9 @@ namespace Workflow {
       workflowParameters_.Add(other.workflowParameters_);
       if (other.Escalated != false) {
         Escalated = other.Escalated;
+      }
+      if (other.Ephemeral != false) {
+        Ephemeral = other.Ephemeral;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2342,6 +2374,10 @@ namespace Workflow {
             Escalated = input.ReadBool();
             break;
           }
+          case 96: {
+            Ephemeral = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -2406,6 +2442,10 @@ namespace Workflow {
           }
           case 88: {
             Escalated = input.ReadBool();
+            break;
+          }
+          case 96: {
+            Ephemeral = input.ReadBool();
             break;
           }
         }
