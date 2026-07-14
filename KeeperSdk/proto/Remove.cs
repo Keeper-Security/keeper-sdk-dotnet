@@ -63,36 +63,58 @@ namespace Folder.V3.Remove {
             "Dm9wZXJhdGlvbl90eXBlGAMgASgOMiUuZm9sZGVyLnYzLnJlbW92ZS5SZWNv",
             "cmRPcGVyYXRpb25UeXBlImEKDEZvbGRlclRhcmdldBISCgpmb2xkZXJfdWlk",
             "GAEgASgMEj0KDm9wZXJhdGlvbl90eXBlGAIgASgOMiUuZm9sZGVyLnYzLnJl",
-            "bW92ZS5Gb2xkZXJPcGVyYXRpb25UeXBlKkQKDFJlbW92ZUFjdGlvbhIZChVS",
-            "RU1PVkVfQUNUSU9OX1BSRVZJRVcQABIZChVSRU1PVkVfQUNUSU9OX0NPTkZJ",
-            "Uk0QASp+ChNSZWNvcmRPcGVyYXRpb25UeXBlEhwKGFJFQ09SRF9PUEVSQVRJ",
-            "T05fVU5LTk9XThAAEhYKElVOTElOS19GUk9NX0ZPTERFUhABEhgKFE1PVkVf",
-            "VE9fRk9MREVSX1RSQVNIEAISFwoTTU9WRV9UT19PV05FUl9UUkFTSBADKpEB",
-            "ChNGb2xkZXJPcGVyYXRpb25UeXBlEhwKGEZPTERFUl9PUEVSQVRJT05fVU5L",
-            "Tk9XThAAEh8KG0ZPTERFUl9NT1ZFX1RPX0ZPTERFUl9UUkFTSBABEh4KGkZP",
-            "TERFUl9NT1ZFX1RPX09XTkVSX1RSQVNIEAISGwoXRk9MREVSX0RFTEVURV9Q",
-            "RVJNQU5FTlQQAyrLAQoPUmVtb3ZlRXJyb3JDb2RlEhgKFFJFTU9WRV9FUlJP",
-            "Ul9VTktOT1dOEAASGgoWUkVNT1ZFX0VSUk9SX05PVF9GT1VORBABEh4KGlJF",
-            "TU9WRV9FUlJPUl9BQ0NFU1NfREVOSUVEEAISIAocUkVNT1ZFX0VSUk9SX1RS",
-            "QVNIQ0FOX0ZPTERFUhADEhwKGFJFTU9WRV9FUlJPUl9ST09UX0ZPTERFUhAE",
-            "EiIKHlJFTU9WRV9FUlJPUl9ERVNDRU5EQU5UX0RFTklFRBAFKuwBCgxSZW1v",
-            "dmVTdGF0dXMSGQoVUkVNT1ZFX1NUQVRVU19VTktOT1dOEAASGQoVUkVNT1ZF",
-            "X1NUQVRVU19TVUNDRVNTEAESHwobUkVNT1ZFX1NUQVRVU19TVEFMRV9QUkVW",
-            "SUVXEAISHwobUkVNT1ZFX1NUQVRVU19UT0tFTl9FWFBJUkVEEAMSHwobUkVN",
-            "T1ZFX1NUQVRVU19UT0tFTl9JTlZBTElEEAQSHwobUkVNT1ZFX1NUQVRVU19B",
-            "Q0NFU1NfREVOSUVEEAUSIgoeUkVNT1ZFX1NUQVRVU19WQUxJREFUSU9OX0VS",
-            "Uk9SEAYyrQIKDVJlbW92ZVNlcnZpY2USjAEKDFJlbW92ZVJlY29yZBIlLmZv",
-            "bGRlci52My5yZW1vdmUuUmVtb3ZlUmVjb3JkUmVxdWVzdBogLmZvbGRlci52",
-            "My5yZW1vdmUuUmVtb3ZlUmVzcG9uc2UiM4LT5JMCLSIoL2FwaS9yZXN0L3Zh",
-            "dWx0L2ZvbGRlcnMvdjMvcmVtb3ZlX3JlY29yZDoBKhKMAQoMUmVtb3ZlRm9s",
-            "ZGVyEiUuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVGb2xkZXJSZXF1ZXN0GiAu",
-            "Zm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVSZXNwb25zZSIzgtPkkwItIigvYXBp",
-            "L3Jlc3QvdmF1bHQvZm9sZGVycy92My9yZW1vdmVfZm9sZGVyOgEqQjEKLWNv",
-            "bS5rZWVwZXJzZWN1cml0eS5wcm90by5hcGkuZm9sZGVyLnYzLnJlbW92ZVAB",
-            "YgZwcm90bzM="));
+            "bW92ZS5Gb2xkZXJPcGVyYXRpb25UeXBlIp8BCg1SZXN0b3JlUmVzdWx0EhAK",
+            "CGl0ZW1fdWlkGAEgASgMEjQKCWl0ZW1fdHlwZRgCIAEoDjIhLmZvbGRlci52",
+            "My5yZW1vdmUuUmVzdG9yZUl0ZW1UeXBlEi8KBnN0YXR1cxgDIAEoDjIfLmZv",
+            "bGRlci52My5yZW1vdmUuUmVzdG9yZVN0YXR1cxIVCg1lcnJvcl9tZXNzYWdl",
+            "GAQgASgJImIKF1RyYXNoY2FuUmVzdG9yZVJlc3BvbnNlEjAKB3Jlc3VsdHMY",
+            "ASADKAsyHy5mb2xkZXIudjMucmVtb3ZlLlJlc3RvcmVSZXN1bHQSFQoNZXJy",
+            "b3JfbWVzc2FnZRgCIAEoCSJcCg1SZXN0b3JlUmVjb3JkEhIKCnJlY29yZF91",
+            "aWQYASABKAwSHAoUZW5jcnlwdGVkX3JlY29yZF9rZXkYAiABKAwSGQoRc291",
+            "cmNlX2ZvbGRlcl91aWQYAyABKAwiQQoNUmVzdG9yZUZvbGRlchISCgpmb2xk",
+            "ZXJfdWlkGAEgASgMEhwKFGVuY3J5cHRlZF9mb2xkZXJfa2V5GAIgASgMIpcB",
+            "ChZUcmFzaGNhblJlc3RvcmVSZXF1ZXN0EjAKB3JlY29yZHMYASADKAsyHy5m",
+            "b2xkZXIudjMucmVtb3ZlLlJlc3RvcmVSZWNvcmQSMAoHZm9sZGVycxgCIAMo",
+            "CzIfLmZvbGRlci52My5yZW1vdmUuUmVzdG9yZUZvbGRlchIZChF0YXJnZXRf",
+            "Zm9sZGVyX3VpZBgDIAEoDCpECgxSZW1vdmVBY3Rpb24SGQoVUkVNT1ZFX0FD",
+            "VElPTl9QUkVWSUVXEAASGQoVUkVNT1ZFX0FDVElPTl9DT05GSVJNEAEqfgoT",
+            "UmVjb3JkT3BlcmF0aW9uVHlwZRIcChhSRUNPUkRfT1BFUkFUSU9OX1VOS05P",
+            "V04QABIWChJVTkxJTktfRlJPTV9GT0xERVIQARIYChRNT1ZFX1RPX0ZPTERF",
+            "Ul9UUkFTSBACEhcKE01PVkVfVE9fT1dORVJfVFJBU0gQAyqRAQoTRm9sZGVy",
+            "T3BlcmF0aW9uVHlwZRIcChhGT0xERVJfT1BFUkFUSU9OX1VOS05PV04QABIf",
+            "ChtGT0xERVJfTU9WRV9UT19GT0xERVJfVFJBU0gQARIeChpGT0xERVJfTU9W",
+            "RV9UT19PV05FUl9UUkFTSBACEhsKF0ZPTERFUl9ERUxFVEVfUEVSTUFORU5U",
+            "EAMqywEKD1JlbW92ZUVycm9yQ29kZRIYChRSRU1PVkVfRVJST1JfVU5LTk9X",
+            "ThAAEhoKFlJFTU9WRV9FUlJPUl9OT1RfRk9VTkQQARIeChpSRU1PVkVfRVJS",
+            "T1JfQUNDRVNTX0RFTklFRBACEiAKHFJFTU9WRV9FUlJPUl9UUkFTSENBTl9G",
+            "T0xERVIQAxIcChhSRU1PVkVfRVJST1JfUk9PVF9GT0xERVIQBBIiCh5SRU1P",
+            "VkVfRVJST1JfREVTQ0VOREFOVF9ERU5JRUQQBSrsAQoMUmVtb3ZlU3RhdHVz",
+            "EhkKFVJFTU9WRV9TVEFUVVNfVU5LTk9XThAAEhkKFVJFTU9WRV9TVEFUVVNf",
+            "U1VDQ0VTUxABEh8KG1JFTU9WRV9TVEFUVVNfU1RBTEVfUFJFVklFVxACEh8K",
+            "G1JFTU9WRV9TVEFUVVNfVE9LRU5fRVhQSVJFRBADEh8KG1JFTU9WRV9TVEFU",
+            "VVNfVE9LRU5fSU5WQUxJRBAEEh8KG1JFTU9WRV9TVEFUVVNfQUNDRVNTX0RF",
+            "TklFRBAFEiIKHlJFTU9WRV9TVEFUVVNfVkFMSURBVElPTl9FUlJPUhAGKrcB",
+            "Cg1SZXN0b3JlU3RhdHVzEhoKFlJFU1RPUkVfU1RBVFVTX1VOS05PV04QABIO",
+            "CgpSU19TVUNDRVNTEAESFgoSUlNfTk9UX0lOX1RSQVNIQ0FOEAISFAoQUlNf",
+            "QUNDRVNTX0RFTklFRBADEh4KGlJTX1RBUkdFVF9GT0xERVJfTk9UX0ZPVU5E",
+            "EAQSHwobUlNfQUxSRUFEWV9FWElTVFNfSU5fVEFSR0VUEAUSCwoHUlNfRkFJ",
+            "TBAGKl0KD1Jlc3RvcmVJdGVtVHlwZRIYChRSRVNUT1JFX0lURU1fVU5LTk9X",
+            "ThAAEhcKE1JFU1RPUkVfSVRFTV9SRUNPUkQQARIXChNSRVNUT1JFX0lURU1f",
+            "Rk9MREVSEAIyzgMKDVJlbW92ZVNlcnZpY2USjAEKDFJlbW92ZVJlY29yZBIl",
+            "LmZvbGRlci52My5yZW1vdmUuUmVtb3ZlUmVjb3JkUmVxdWVzdBogLmZvbGRl",
+            "ci52My5yZW1vdmUuUmVtb3ZlUmVzcG9uc2UiM4LT5JMCLSIoL2FwaS9yZXN0",
+            "L3ZhdWx0L2ZvbGRlcnMvdjMvcmVtb3ZlX3JlY29yZDoBKhKMAQoMUmVtb3Zl",
+            "Rm9sZGVyEiUuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVGb2xkZXJSZXF1ZXN0",
+            "GiAuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVSZXNwb25zZSIzgtPkkwItIigv",
+            "YXBpL3Jlc3QvdmF1bHQvZm9sZGVycy92My9yZW1vdmVfZm9sZGVyOgEqEp4B",
+            "Cg9UcmFzaGNhblJlc3RvcmUSKC5mb2xkZXIudjMucmVtb3ZlLlRyYXNoY2Fu",
+            "UmVzdG9yZVJlcXVlc3QaKS5mb2xkZXIudjMucmVtb3ZlLlRyYXNoY2FuUmVz",
+            "dG9yZVJlc3BvbnNlIjaC0+STAjAiKy9hcGkvcmVzdC92YXVsdC9mb2xkZXJz",
+            "L3YzL3RyYXNoY2FuL3Jlc3RvcmU6ASpCMQotY29tLmtlZXBlcnNlY3VyaXR5",
+            "LnByb3RvLmFwaS5mb2xkZXIudjMucmVtb3ZlUAFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Api.AnnotationsReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.V3.Remove.RemoveAction), typeof(global::Folder.V3.Remove.RecordOperationType), typeof(global::Folder.V3.Remove.FolderOperationType), typeof(global::Folder.V3.Remove.RemoveErrorCode), typeof(global::Folder.V3.Remove.RemoveStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.V3.Remove.RemoveAction), typeof(global::Folder.V3.Remove.RecordOperationType), typeof(global::Folder.V3.Remove.FolderOperationType), typeof(global::Folder.V3.Remove.RemoveErrorCode), typeof(global::Folder.V3.Remove.RemoveStatus), typeof(global::Folder.V3.Remove.RestoreStatus), typeof(global::Folder.V3.Remove.RestoreItemType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RecordRemoval), global::Folder.V3.Remove.RecordRemoval.Parser, new[]{ "FolderUid", "RecordUid", "OperationType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.FolderRemoval), global::Folder.V3.Remove.FolderRemoval.Parser, new[]{ "FolderUid", "OperationType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RemoveRecordRequest), global::Folder.V3.Remove.RemoveRecordRequest.Parser, new[]{ "Action", "Records", "ConfirmationToken" }, null, null, null, null),
@@ -105,7 +127,12 @@ namespace Folder.V3.Remove {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RemovalTokenPayload), global::Folder.V3.Remove.RemovalTokenPayload.Parser, new[]{ "ItemFingerprints", "UserId", "DeviceId", "SessionUid", "ExpiresAtMillis" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.ItemFingerprint), global::Folder.V3.Remove.ItemFingerprint.Parser, new[]{ "Record", "Folder", "Fingerprint" }, new[]{ "Target" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RecordTarget), global::Folder.V3.Remove.RecordTarget.Parser, new[]{ "FolderUid", "RecordUid", "OperationType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.FolderTarget), global::Folder.V3.Remove.FolderTarget.Parser, new[]{ "FolderUid", "OperationType" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.FolderTarget), global::Folder.V3.Remove.FolderTarget.Parser, new[]{ "FolderUid", "OperationType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RestoreResult), global::Folder.V3.Remove.RestoreResult.Parser, new[]{ "ItemUid", "ItemType", "Status", "ErrorMessage" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.TrashcanRestoreResponse), global::Folder.V3.Remove.TrashcanRestoreResponse.Parser, new[]{ "Results", "ErrorMessage" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RestoreRecord), global::Folder.V3.Remove.RestoreRecord.Parser, new[]{ "RecordUid", "EncryptedRecordKey", "SourceFolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RestoreFolder), global::Folder.V3.Remove.RestoreFolder.Parser, new[]{ "FolderUid", "EncryptedFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.TrashcanRestoreRequest), global::Folder.V3.Remove.TrashcanRestoreRequest.Parser, new[]{ "Records", "Folders", "TargetFolderUid" }, null, null, null, null)
           }));
     }
     #endregion
@@ -172,6 +199,30 @@ namespace Folder.V3.Remove {
     [pbr::OriginalName("REMOVE_STATUS_TOKEN_INVALID")] TokenInvalid = 4,
     [pbr::OriginalName("REMOVE_STATUS_ACCESS_DENIED")] AccessDenied = 5,
     [pbr::OriginalName("REMOVE_STATUS_VALIDATION_ERROR")] ValidationError = 6,
+  }
+
+  /// <summary>
+  /// Per-item status code for a single trashcan_restore result.
+  /// Each input record or folder is evaluated independently; a failure on one
+  /// item does not poison the rest of the batch.
+  /// </summary>
+  public enum RestoreStatus {
+    [pbr::OriginalName("RESTORE_STATUS_UNKNOWN")] Unknown = 0,
+    [pbr::OriginalName("RS_SUCCESS")] RsSuccess = 1,
+    [pbr::OriginalName("RS_NOT_IN_TRASHCAN")] RsNotInTrashcan = 2,
+    [pbr::OriginalName("RS_ACCESS_DENIED")] RsAccessDenied = 3,
+    [pbr::OriginalName("RS_TARGET_FOLDER_NOT_FOUND")] RsTargetFolderNotFound = 4,
+    [pbr::OriginalName("RS_ALREADY_EXISTS_IN_TARGET")] RsAlreadyExistsInTarget = 5,
+    [pbr::OriginalName("RS_FAIL")] RsFail = 6,
+  }
+
+  /// <summary>
+  /// Disambiguates whether a RestoreResult refers to a record or a folder.
+  /// </summary>
+  public enum RestoreItemType {
+    [pbr::OriginalName("RESTORE_ITEM_UNKNOWN")] RestoreItemUnknown = 0,
+    [pbr::OriginalName("RESTORE_ITEM_RECORD")] RestoreItemRecord = 1,
+    [pbr::OriginalName("RESTORE_ITEM_FOLDER")] RestoreItemFolder = 2,
   }
 
   #endregion
@@ -3985,6 +4036,1370 @@ namespace Folder.V3.Remove {
           }
           case 16: {
             OperationType = (global::Folder.V3.Remove.FolderOperationType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Per-item outcome for one input record or folder.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RestoreResult : pb::IMessage<RestoreResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RestoreResult> _parser = new pb::MessageParser<RestoreResult>(() => new RestoreResult());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RestoreResult> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreResult() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreResult(RestoreResult other) : this() {
+      itemUid_ = other.itemUid_;
+      itemType_ = other.itemType_;
+      status_ = other.status_;
+      errorMessage_ = other.errorMessage_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreResult Clone() {
+      return new RestoreResult(this);
+    }
+
+    /// <summary>Field number for the "item_uid" field.</summary>
+    public const int ItemUidFieldNumber = 1;
+    private pb::ByteString itemUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// record_uid or folder_uid (16 bytes)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ItemUid {
+      get { return itemUid_; }
+      set {
+        itemUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "item_type" field.</summary>
+    public const int ItemTypeFieldNumber = 2;
+    private global::Folder.V3.Remove.RestoreItemType itemType_ = global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.V3.Remove.RestoreItemType ItemType {
+      get { return itemType_; }
+      set {
+        itemType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 3;
+    private global::Folder.V3.Remove.RestoreStatus status_ = global::Folder.V3.Remove.RestoreStatus.Unknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.V3.Remove.RestoreStatus Status {
+      get { return status_; }
+      set {
+        status_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "error_message" field.</summary>
+    public const int ErrorMessageFieldNumber = 4;
+    private string errorMessage_ = "";
+    /// <summary>
+    /// Detail for non-SUCCESS statuses
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ErrorMessage {
+      get { return errorMessage_; }
+      set {
+        errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RestoreResult);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RestoreResult other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ItemUid != other.ItemUid) return false;
+      if (ItemType != other.ItemType) return false;
+      if (Status != other.Status) return false;
+      if (ErrorMessage != other.ErrorMessage) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (ItemUid.Length != 0) hash ^= ItemUid.GetHashCode();
+      if (ItemType != global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown) hash ^= ItemType.GetHashCode();
+      if (Status != global::Folder.V3.Remove.RestoreStatus.Unknown) hash ^= Status.GetHashCode();
+      if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (ItemUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ItemUid);
+      }
+      if (ItemType != global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) ItemType);
+      }
+      if (Status != global::Folder.V3.Remove.RestoreStatus.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Status);
+      }
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ItemUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ItemUid);
+      }
+      if (ItemType != global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) ItemType);
+      }
+      if (Status != global::Folder.V3.Remove.RestoreStatus.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Status);
+      }
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (ItemUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ItemUid);
+      }
+      if (ItemType != global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ItemType);
+      }
+      if (Status != global::Folder.V3.Remove.RestoreStatus.Unknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (ErrorMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RestoreResult other) {
+      if (other == null) {
+        return;
+      }
+      if (other.ItemUid.Length != 0) {
+        ItemUid = other.ItemUid;
+      }
+      if (other.ItemType != global::Folder.V3.Remove.RestoreItemType.RestoreItemUnknown) {
+        ItemType = other.ItemType;
+      }
+      if (other.Status != global::Folder.V3.Remove.RestoreStatus.Unknown) {
+        Status = other.Status;
+      }
+      if (other.ErrorMessage.Length != 0) {
+        ErrorMessage = other.ErrorMessage;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            ItemUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            ItemType = (global::Folder.V3.Remove.RestoreItemType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            Status = (global::Folder.V3.Remove.RestoreStatus) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ItemUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            ItemType = (global::Folder.V3.Remove.RestoreItemType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            Status = (global::Folder.V3.Remove.RestoreStatus) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Response for POST /vault/trashcan_restore.
+  /// Results are returned in request order: records first (in the order they
+  /// appear in TrashcanRestoreRequest.records), then folders.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TrashcanRestoreResponse : pb::IMessage<TrashcanRestoreResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TrashcanRestoreResponse> _parser = new pb::MessageParser<TrashcanRestoreResponse>(() => new TrashcanRestoreResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TrashcanRestoreResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[14]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreResponse(TrashcanRestoreResponse other) : this() {
+      results_ = other.results_.Clone();
+      errorMessage_ = other.errorMessage_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreResponse Clone() {
+      return new TrashcanRestoreResponse(this);
+    }
+
+    /// <summary>Field number for the "results" field.</summary>
+    public const int ResultsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.V3.Remove.RestoreResult> _repeated_results_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.V3.Remove.RestoreResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.V3.Remove.RestoreResult> results_ = new pbc::RepeatedField<global::Folder.V3.Remove.RestoreResult>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.V3.Remove.RestoreResult> Results {
+      get { return results_; }
+    }
+
+    /// <summary>Field number for the "error_message" field.</summary>
+    public const int ErrorMessageFieldNumber = 2;
+    private string errorMessage_ = "";
+    /// <summary>
+    /// Set only for structural request errors (e.g. empty target_folder_uid);
+    /// per-item errors are reported via RestoreResult.status.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ErrorMessage {
+      get { return errorMessage_; }
+      set {
+        errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TrashcanRestoreResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TrashcanRestoreResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!results_.Equals(other.results_)) return false;
+      if (ErrorMessage != other.ErrorMessage) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= results_.GetHashCode();
+      if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      results_.WriteTo(output, _repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      results_.WriteTo(ref output, _repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += results_.CalculateSize(_repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TrashcanRestoreResponse other) {
+      if (other == null) {
+        return;
+      }
+      results_.Add(other.results_);
+      if (other.ErrorMessage.Length != 0) {
+        ErrorMessage = other.ErrorMessage;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            results_.AddEntriesFrom(input, _repeated_results_codec);
+            break;
+          }
+          case 18: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            results_.AddEntriesFrom(ref input, _repeated_results_codec);
+            break;
+          }
+          case 18: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Per-record restore specification.
+  ///
+  /// `source_folder_uid` identifies the folder this record currently sits in (the
+  /// `folder_record` row to move). May be:
+  ///   - A UT_TRASHCAN folder, when the record was deleted via MOVE_TO_FOLDER_TRASH
+  ///     or MOVE_TO_OWNER_TRASH (top-level trashed record).
+  ///   - A regular folder under a trashed ancestor, when a parent folder was
+  ///     trashed but the record itself was not (sub-record).
+  ///
+  /// The server walks up from this folder to find the UT_TRASHCAN ancestor; the
+  /// ancestor's parent is the source folder for the canDelete permission check.
+  ///
+  /// May be left empty (zero-length bytes) when the record has exactly one
+  /// container whose ancestor chain includes a UT_TRASHCAN — the server infers.
+  /// REQUIRED when the record has multiple such containers (e.g. linked in F2 and
+  /// F3 with both children of trashed F1, or MOVE_TO_FOLDER_TRASH'd from multiple
+  /// folders at different times). Omitting in the ambiguous case is rejected with
+  /// RS_FAIL and an error_message asking the client to set source_folder_uid.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RestoreRecord : pb::IMessage<RestoreRecord>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RestoreRecord> _parser = new pb::MessageParser<RestoreRecord>(() => new RestoreRecord());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RestoreRecord> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[15]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreRecord() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreRecord(RestoreRecord other) : this() {
+      recordUid_ = other.recordUid_;
+      encryptedRecordKey_ = other.encryptedRecordKey_;
+      sourceFolderUid_ = other.sourceFolderUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreRecord Clone() {
+      return new RestoreRecord(this);
+    }
+
+    /// <summary>Field number for the "record_uid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Record to restore from trashcan (16 bytes)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encrypted_record_key" field.</summary>
+    public const int EncryptedRecordKeyFieldNumber = 2;
+    private pb::ByteString encryptedRecordKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Record key re-encrypted under target folder key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString EncryptedRecordKey {
+      get { return encryptedRecordKey_; }
+      set {
+        encryptedRecordKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "source_folder_uid" field.</summary>
+    public const int SourceFolderUidFieldNumber = 3;
+    private pb::ByteString sourceFolderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Container folder where the record currently sits;
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SourceFolderUid {
+      get { return sourceFolderUid_; }
+      set {
+        sourceFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RestoreRecord);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RestoreRecord other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (EncryptedRecordKey != other.EncryptedRecordKey) return false;
+      if (SourceFolderUid != other.SourceFolderUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (EncryptedRecordKey.Length != 0) hash ^= EncryptedRecordKey.GetHashCode();
+      if (SourceFolderUid.Length != 0) hash ^= SourceFolderUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (SourceFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(SourceFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (SourceFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(SourceFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedRecordKey);
+      }
+      if (SourceFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SourceFolderUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RestoreRecord other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.EncryptedRecordKey.Length != 0) {
+        EncryptedRecordKey = other.EncryptedRecordKey;
+      }
+      if (other.SourceFolderUid.Length != 0) {
+        SourceFolderUid = other.SourceFolderUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            SourceFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            SourceFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Per-folder restore specification
+  /// 
+  /// No `source_folder_uid` field: folders have a single `parent_uid`, so the
+  /// current container is always derivable server-side from `folder_uid`. Restore
+  /// supports pulling a sub-folder out from under a trashed ancestor — the server
+  /// walks up the parent chain to find the trashcan ancestor for the canDelete
+  /// permission check, no client input required.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RestoreFolder : pb::IMessage<RestoreFolder>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RestoreFolder> _parser = new pb::MessageParser<RestoreFolder>(() => new RestoreFolder());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RestoreFolder> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[16]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreFolder() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreFolder(RestoreFolder other) : this() {
+      folderUid_ = other.folderUid_;
+      encryptedFolderKey_ = other.encryptedFolderKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RestoreFolder Clone() {
+      return new RestoreFolder(this);
+    }
+
+    /// <summary>Field number for the "folder_uid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Folder to restore from trashcan (16 bytes)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encrypted_folder_key" field.</summary>
+    public const int EncryptedFolderKeyFieldNumber = 2;
+    private pb::ByteString encryptedFolderKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Folder key re-encrypted under target folder key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString EncryptedFolderKey {
+      get { return encryptedFolderKey_; }
+      set {
+        encryptedFolderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RestoreFolder);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RestoreFolder other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (EncryptedFolderKey != other.EncryptedFolderKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (EncryptedFolderKey.Length != 0) hash ^= EncryptedFolderKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (EncryptedFolderKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedFolderKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (EncryptedFolderKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedFolderKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (EncryptedFolderKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedFolderKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RestoreFolder other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.EncryptedFolderKey.Length != 0) {
+        EncryptedFolderKey = other.EncryptedFolderKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedFolderKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedFolderKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Request to restore records and/or folders from the trashcan to a target folder
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TrashcanRestoreRequest : pb::IMessage<TrashcanRestoreRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TrashcanRestoreRequest> _parser = new pb::MessageParser<TrashcanRestoreRequest>(() => new TrashcanRestoreRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TrashcanRestoreRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreRequest(TrashcanRestoreRequest other) : this() {
+      records_ = other.records_.Clone();
+      folders_ = other.folders_.Clone();
+      targetFolderUid_ = other.targetFolderUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TrashcanRestoreRequest Clone() {
+      return new TrashcanRestoreRequest(this);
+    }
+
+    /// <summary>Field number for the "records" field.</summary>
+    public const int RecordsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.V3.Remove.RestoreRecord> _repeated_records_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.V3.Remove.RestoreRecord.Parser);
+    private readonly pbc::RepeatedField<global::Folder.V3.Remove.RestoreRecord> records_ = new pbc::RepeatedField<global::Folder.V3.Remove.RestoreRecord>();
+    /// <summary>
+    /// Records to restore from trashcan
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.V3.Remove.RestoreRecord> Records {
+      get { return records_; }
+    }
+
+    /// <summary>Field number for the "folders" field.</summary>
+    public const int FoldersFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Folder.V3.Remove.RestoreFolder> _repeated_folders_codec
+        = pb::FieldCodec.ForMessage(18, global::Folder.V3.Remove.RestoreFolder.Parser);
+    private readonly pbc::RepeatedField<global::Folder.V3.Remove.RestoreFolder> folders_ = new pbc::RepeatedField<global::Folder.V3.Remove.RestoreFolder>();
+    /// <summary>
+    /// Folders to restore from trashcan
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.V3.Remove.RestoreFolder> Folders {
+      get { return folders_; }
+    }
+
+    /// <summary>Field number for the "target_folder_uid" field.</summary>
+    public const int TargetFolderUidFieldNumber = 3;
+    private pb::ByteString targetFolderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Destination folder for restored items
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString TargetFolderUid {
+      get { return targetFolderUid_; }
+      set {
+        targetFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TrashcanRestoreRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TrashcanRestoreRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!records_.Equals(other.records_)) return false;
+      if(!folders_.Equals(other.folders_)) return false;
+      if (TargetFolderUid != other.TargetFolderUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= records_.GetHashCode();
+      hash ^= folders_.GetHashCode();
+      if (TargetFolderUid.Length != 0) hash ^= TargetFolderUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      records_.WriteTo(output, _repeated_records_codec);
+      folders_.WriteTo(output, _repeated_folders_codec);
+      if (TargetFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TargetFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      records_.WriteTo(ref output, _repeated_records_codec);
+      folders_.WriteTo(ref output, _repeated_folders_codec);
+      if (TargetFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TargetFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += records_.CalculateSize(_repeated_records_codec);
+      size += folders_.CalculateSize(_repeated_folders_codec);
+      if (TargetFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TargetFolderUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TrashcanRestoreRequest other) {
+      if (other == null) {
+        return;
+      }
+      records_.Add(other.records_);
+      folders_.Add(other.folders_);
+      if (other.TargetFolderUid.Length != 0) {
+        TargetFolderUid = other.TargetFolderUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            records_.AddEntriesFrom(input, _repeated_records_codec);
+            break;
+          }
+          case 18: {
+            folders_.AddEntriesFrom(input, _repeated_folders_codec);
+            break;
+          }
+          case 26: {
+            TargetFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            records_.AddEntriesFrom(ref input, _repeated_records_codec);
+            break;
+          }
+          case 18: {
+            folders_.AddEntriesFrom(ref input, _repeated_folders_codec);
+            break;
+          }
+          case 26: {
+            TargetFolderUid = input.ReadBytes();
             break;
           }
         }

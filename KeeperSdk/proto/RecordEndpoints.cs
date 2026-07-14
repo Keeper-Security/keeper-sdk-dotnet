@@ -28,7 +28,7 @@ namespace Record.V3 {
             "cm90bxoMZm9sZGVyLnByb3RvIoMBChFSZWNvcmRzQWRkUmVxdWVzdBIlCgdy",
             "ZWNvcmRzGAEgAygLMhQucmVjb3JkLnYzLlJlY29yZEFkZBISCgpjbGllbnRU",
             "aW1lGAIgASgDEjMKE3NlY3VyaXR5RGF0YUtleVR5cGUYAyABKA4yFi5SZWNv",
-            "cmRzLlJlY29yZEtleVR5cGUiqAMKCVJlY29yZEFkZBIRCglyZWNvcmRVaWQY",
+            "cmRzLlJlY29yZEtleVR5cGUizgMKCVJlY29yZEFkZBIRCglyZWNvcmRVaWQY",
             "ASABKAwSEQoJcmVjb3JkS2V5GAIgASgMEi8KDXJlY29yZEtleVR5cGUYAyAB",
             "KA4yGC5Gb2xkZXIuRW5jcnlwdGVkS2V5VHlwZRI9ChRyZWNvcmRLZXlFbmNy",
             "eXB0ZWRCeRgEIAEoDjIfLkZvbGRlci5Gb2xkZXJLZXlFbmNyeXB0aW9uVHlw",
@@ -37,14 +37,14 @@ namespace Record.V3 {
             "ZWNvcmRMaW5rcxgJIAMoCzITLlJlY29yZHMuUmVjb3JkTGluaxIjCgVhdWRp",
             "dBgKIAEoCzIULlJlY29yZHMuUmVjb3JkQXVkaXQSKwoMc2VjdXJpdHlEYXRh",
             "GAsgASgLMhUuUmVjb3Jkcy5TZWN1cml0eURhdGESNQoRc2VjdXJpdHlTY29y",
-            "ZURhdGEYDCABKAsyGi5SZWNvcmRzLlNlY3VyaXR5U2NvcmVEYXRhQioKJmNv",
-            "bS5rZWVwZXJzZWN1cml0eS5wcm90by5hcGkucmVjb3JkLnYzUAFiBnByb3Rv",
-            "Mw=="));
+            "ZURhdGEYDCABKAsyGi5SZWNvcmRzLlNlY3VyaXR5U2NvcmVEYXRhEiQKHHJl",
+            "Y29yZEtleUVuY3J5cHRlZEJ5T3duZXJLZXkYDSABKAxCKgomY29tLmtlZXBl",
+            "cnNlY3VyaXR5LnByb3RvLmFwaS5yZWNvcmQudjNQAWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::Folder.FolderReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Record.V3.RecordsAddRequest), global::Record.V3.RecordsAddRequest.Parser, new[]{ "Records", "ClientTime", "SecurityDataKeyType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Record.V3.RecordAdd), global::Record.V3.RecordAdd.Parser, new[]{ "RecordUid", "RecordKey", "RecordKeyType", "RecordKeyEncryptedBy", "ClientModifiedTime", "Data", "NonSharedData", "FolderUid", "RecordLinks", "Audit", "SecurityData", "SecurityScoreData" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Record.V3.RecordAdd), global::Record.V3.RecordAdd.Parser, new[]{ "RecordUid", "RecordKey", "RecordKeyType", "RecordKeyEncryptedBy", "ClientModifiedTime", "Data", "NonSharedData", "FolderUid", "RecordLinks", "Audit", "SecurityData", "SecurityScoreData", "RecordKeyEncryptedByOwnerKey" }, null, null, null, null)
           }));
     }
     #endregion
@@ -359,6 +359,7 @@ namespace Record.V3 {
       audit_ = other.audit_ != null ? other.audit_.Clone() : null;
       securityData_ = other.securityData_ != null ? other.securityData_.Clone() : null;
       securityScoreData_ = other.securityScoreData_ != null ? other.securityScoreData_.Clone() : null;
+      recordKeyEncryptedByOwnerKey_ = other.recordKeyEncryptedByOwnerKey_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -516,6 +517,22 @@ namespace Record.V3 {
       }
     }
 
+    /// <summary>Field number for the "recordKeyEncryptedByOwnerKey" field.</summary>
+    public const int RecordKeyEncryptedByOwnerKeyFieldNumber = 13;
+    private pb::ByteString recordKeyEncryptedByOwnerKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Record key encrypted with the owner's data key, always data-key encrypted regardless of folder
+    /// placement, so record_owner_key_history stores a correct owner-decryptable copy (KA-8946 / KA-8939).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordKeyEncryptedByOwnerKey {
+      get { return recordKeyEncryptedByOwnerKey_; }
+      set {
+        recordKeyEncryptedByOwnerKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -543,6 +560,7 @@ namespace Record.V3 {
       if (!object.Equals(Audit, other.Audit)) return false;
       if (!object.Equals(SecurityData, other.SecurityData)) return false;
       if (!object.Equals(SecurityScoreData, other.SecurityScoreData)) return false;
+      if (RecordKeyEncryptedByOwnerKey != other.RecordKeyEncryptedByOwnerKey) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -562,6 +580,7 @@ namespace Record.V3 {
       if (audit_ != null) hash ^= Audit.GetHashCode();
       if (securityData_ != null) hash ^= SecurityData.GetHashCode();
       if (securityScoreData_ != null) hash ^= SecurityScoreData.GetHashCode();
+      if (RecordKeyEncryptedByOwnerKey.Length != 0) hash ^= RecordKeyEncryptedByOwnerKey.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -625,6 +644,10 @@ namespace Record.V3 {
         output.WriteRawTag(98);
         output.WriteMessage(SecurityScoreData);
       }
+      if (RecordKeyEncryptedByOwnerKey.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteBytes(RecordKeyEncryptedByOwnerKey);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -680,6 +703,10 @@ namespace Record.V3 {
         output.WriteRawTag(98);
         output.WriteMessage(SecurityScoreData);
       }
+      if (RecordKeyEncryptedByOwnerKey.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteBytes(RecordKeyEncryptedByOwnerKey);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -723,6 +750,9 @@ namespace Record.V3 {
       }
       if (securityScoreData_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(SecurityScoreData);
+      }
+      if (RecordKeyEncryptedByOwnerKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordKeyEncryptedByOwnerKey);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -778,6 +808,9 @@ namespace Record.V3 {
           SecurityScoreData = new global::Records.SecurityScoreData();
         }
         SecurityScoreData.MergeFrom(other.SecurityScoreData);
+      }
+      if (other.RecordKeyEncryptedByOwnerKey.Length != 0) {
+        RecordKeyEncryptedByOwnerKey = other.RecordKeyEncryptedByOwnerKey;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -855,6 +888,10 @@ namespace Record.V3 {
             input.ReadMessage(SecurityScoreData);
             break;
           }
+          case 106: {
+            RecordKeyEncryptedByOwnerKey = input.ReadBytes();
+            break;
+          }
         }
       }
     #endif
@@ -929,6 +966,10 @@ namespace Record.V3 {
               SecurityScoreData = new global::Records.SecurityScoreData();
             }
             input.ReadMessage(SecurityScoreData);
+            break;
+          }
+          case 106: {
+            RecordKeyEncryptedByOwnerKey = input.ReadBytes();
             break;
           }
         }
