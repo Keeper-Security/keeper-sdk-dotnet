@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using KeeperSecurity.Plugins.PAM;
 using KeeperSecurity.Utils;
@@ -187,25 +186,12 @@ namespace Commander.PAM
         return null;
       }
 
-      var comps = cron.Trim().Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
-      if (comps.Length >= 6)
-      {
-        return string.Join(" ", comps.Skip(1).Take(5));
-      }
-
       return cron.Trim();
     }
 
     private static string NormalizeRotationCronForStorage(string cron)
     {
-      var trimmed = cron.Trim();
-      var comps = trimmed.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
-      if (comps.Length == 5)
-      {
-        return $"0 {trimmed}";
-      }
-
-      return trimmed;
+      return cron?.Trim();
     }
 
     private static FieldSchedule NormalizeSchedule(FieldSchedule source)

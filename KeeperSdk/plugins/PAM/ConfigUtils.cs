@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -303,12 +302,6 @@ namespace KeeperSecurity.Plugins.PAM
         {
           return (false,
             $"CRON: Rotation schedules require all 6 parts incl. seconds - ex. Daily at 04:00:00 cron: 0 0 4 * * ? got {parts.Length} parts");
-        }
-
-        if (parts[3] != "?" && parts[5] != "?")
-        {
-          Trace.TraceWarning(
-            "CRON: Rotation schedule CRON format - must use ? character in one of these fields: day-of-week, day-of-month");
         }
 
         parts = (string[])parts.Clone();
