@@ -221,7 +221,6 @@ namespace Commander.PAM
 
       PamConfigFieldPlacement.EnsureSchemaFields(vault, record);
       PamConfigFieldPlacement.RelocateCustomToFields(vault, record);
-      PamConfigFieldDiagnostics.LogPlacement(record, vault, "before-save-new");
 
       await ConfigUtils.AddConfigurationRecordAsync(vault, record);
       await EnsureConfigurationNetworkGraphAsync(record.Uid);
@@ -290,7 +289,6 @@ namespace Commander.PAM
       editService.VerifyRequired(configuration);
       PamConfigFieldPlacement.EnsureSchemaFields(vault, configuration);
       PamConfigFieldPlacement.RelocateCustomToFields(vault, configuration);
-      PamConfigFieldDiagnostics.LogPlacement(configuration, vault, "before-save-edit");
       await vault.UpdateRecord(configuration);
 
       facade = new PamConfigurationFacade(configuration);
@@ -579,7 +577,7 @@ namespace Commander.PAM
     [Option("shared-folder", Required = false, HelpText = "Shared folder path or UID")]
     public string SharedFolder { get; set; }
 
-    [Option("schedule", Required = false, HelpText = "Default schedule CRON expression")]
+    [Option("schedule", Required = false, HelpText = "Default schedule CRON expression (e.g. 0 0 2 * * ?)")]
     public string DefaultSchedule { get; set; }
 
     [Option("port-mapping", Required = false, HelpText = "Port mapping entry")]
