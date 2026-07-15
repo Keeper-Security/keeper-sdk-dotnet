@@ -211,52 +211,20 @@ namespace Commander.PAM
       bool isEdit,
       List<string> properties)
     {
+      ApplyDomainTextProperties(options, isEdit, properties);
+      ApplyDomainHostnameProperty(record, options, isEdit, properties);
+      ApplyDomainCheckboxProperties(record, options);
+      ApplyDomainAdminCredential(record, options);
+    }
+
+    private static void ApplyDomainTextProperties(
+      PamConfigOptions options,
+      bool isEdit,
+      List<string> properties)
+    {
       if (DomainKwargSupplied(options.DomainId, isEdit))
       {
         properties.Add($"text.pamDomainId={options.DomainId ?? ""}");
-      }
-
-      if (isEdit)
-      {
-        if (options.DomainHostname != null || options.DomainPort != null)
-        {
-          var existing = PamConfigFieldAssigner.GetPamHostname(record);
-          var host = options.DomainHostname != null
-            ? options.DomainHostname.Trim()
-            : existing?.HostName ?? "";
-          var port = options.DomainPort != null
-            ? options.DomainPort.Trim()
-            : existing?.Port ?? "";
-          if (!string.IsNullOrEmpty(host) || !string.IsNullOrEmpty(port))
-          {
-            properties.Add($"f.pamHostname=$JSON:{{\"hostName\":\"{EscapeJson(host)}\",\"port\":\"{EscapeJson(port)}\"}}");
-          }
-          else
-          {
-            properties.Add("f.pamHostname=");
-          }
-        }
-      }
-      else
-      {
-        var host = options.DomainHostname?.Trim() ?? "";
-        var port = options.DomainPort?.Trim() ?? "";
-        if (!string.IsNullOrEmpty(host) || !string.IsNullOrEmpty(port))
-        {
-          properties.Add($"f.pamHostname=$JSON:{{\"hostName\":\"{EscapeJson(host)}\",\"port\":\"{EscapeJson(port)}\"}}");
-        }
-      }
-
-      var useSsl = ParseTriBool(options.DomainUseSsl);
-      if (useSsl.HasValue)
-      {
-        PamConfigFieldAssigner.SetCheckboxField(record, "useSSL", useSsl);
-      }
-
-      var scanDc = ParseTriBool(options.DomainScanDcCidr);
-      if (scanDc.HasValue)
-      {
-        PamConfigFieldAssigner.SetCheckboxField(record, "scanDCCIDR", scanDc);
       }
 
       if (DomainKwargSupplied(options.DomainNetworkCidr, isEdit))
@@ -268,8 +236,68 @@ namespace Commander.PAM
       {
         properties.Add($"text.userMatch={options.DomainUserMatch ?? ""}");
       }
+    }
 
-      ApplyDomainAdminCredential(record, options);
+    private static void ApplyDomainHostnameProperty(
+      TypedRecord record,
+      PamConfigOptions options,
+      bool isEdit,
+      List<string> properties)
+    {
+      string host;
+      string port;
+
+      if (isEdit)
+      {
+        if (options.DomainHostname == null && options.DomainPort == null)
+        {
+          return;
+        }
+
+        var existing = PamConfigFieldAssigner.GetPamHostname(record);
+        host = options.DomainHostname != null
+          ? options.DomainHostname.Trim()
+          : existing?.HostName ?? "";
+        port = options.DomainPort != null
+          ? options.DomainPort.Trim()
+          : existing?.Port ?? "";
+      }
+      else
+      {
+        host = options.DomainHostname?.Trim() ?? "";
+        port = options.DomainPort?.Trim() ?? "";
+        if (string.IsNullOrEmpty(host) && string.IsNullOrEmpty(port))
+        {
+          return;
+        }
+      }
+
+      properties.Add(BuildPamHostnameProperty(host, port));
+    }
+
+    private static string BuildPamHostnameProperty(string host, string port)
+    {
+      if (string.IsNullOrEmpty(host) && string.IsNullOrEmpty(port))
+      {
+        return "f.pamHostname=";
+      }
+
+      return $"f.pamHostname=$JSON:{{\"hostName\":\"{EscapeJson(host)}\",\"port\":\"{EscapeJson(port)}\"}}";
+    }
+
+    private static void ApplyDomainCheckboxProperties(TypedRecord record, PamConfigOptions options)
+    {
+      var useSsl = ParseTriBool(options.DomainUseSsl);
+      if (useSsl.HasValue)
+      {
+        PamConfigFieldAssigner.SetCheckboxField(record, "useSSL", useSsl);
+      }
+
+      var scanDc = ParseTriBool(options.DomainScanDcCidr);
+      if (scanDc.HasValue)
+      {
+        PamConfigFieldAssigner.SetCheckboxField(record, "scanDCCIDR", scanDc);
+      }
     }
 
     private void ApplyDomainAdminCredential(TypedRecord record, PamConfigOptions options)

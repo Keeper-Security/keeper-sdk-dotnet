@@ -38,16 +38,25 @@ namespace Commander.PAM
           break;
         case "edit":
         case "e":
+          if (string.IsNullOrWhiteSpace(options.Uid))
+          {
+            throw new InvalidOperationException("Configuration UID or name is required for edit");
+          }
+
           await EditConfigurationAsync(options);
           break;
         case "remove":
         case "rm":
         case "delete":
+          if (string.IsNullOrWhiteSpace(options.Uid))
+          {
+            throw new InvalidOperationException("Configuration UID is required for remove");
+          }
+
           await RemoveConfigurationAsync(options);
           break;
         default:
-          Console.WriteLine("Unsupported command. Available: list, new, edit, remove");
-          break;
+          throw new InvalidOperationException("Unsupported command. Available: list, new, edit, remove");
       }
     }
 
@@ -67,36 +76,48 @@ namespace Commander.PAM
       }
 
       var configs = PamVaultHelpers.GetConfigurationRecords(vault).Values
-        .OrderBy(x => x.Title ?? "", StringComparer.OrdinalIgnoreCase)
-        .ToList();
+        .OrderBy(x => x.Title ?? string.Empty, StringComparer.OrdinalIgnoreCase);
 
       if (options.isFormatOutputJSON)
       {
-        var rows = new List<Dictionary<string, object>>();
-        foreach (var config in configs)
-        {
-          if (!PamVaultHelpers.IsConfigurationInSharedFolder(vault, config))
-          {
-            PamVaultHelpers.WarnConfigurationNotInSharedFolder(config);
-            continue;
-          }
+        ListConfigurationsAsJson(vault, configs, options.Verbose);
+      }
+      else
+      {
+        ListConfigurationsAsTable(vault, configs, options.Verbose);
+      }
+    }
 
-          var row = BuildConfigListJson(vault, config, options.Verbose);
-          if (row != null)
-          {
-            rows.Add(row);
-          }
+    private static void ListConfigurationsAsJson(
+      VaultOnline vault,
+      IEnumerable<TypedRecord> configs,
+      bool verbose)
+    {
+      var rows = new List<Dictionary<string, object>>();
+      foreach (var config in configs)
+      {
+        var sharedFolder = TryGetListedConfigurationFolder(vault, config);
+        if (sharedFolder == null)
+        {
+          continue;
         }
 
-        Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object> { ["configurations"] = rows }));
-        return;
+        rows.Add(BuildConfigListJson(config, sharedFolder, verbose));
       }
 
+      Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object> { ["configurations"] = rows }));
+    }
+
+    private static void ListConfigurationsAsTable(
+      VaultOnline vault,
+      IEnumerable<TypedRecord> configs,
+      bool verbose)
+    {
       var headers = new List<string>
       {
         "UID", "Config Name", "Config Type", "Shared Folder", "Gateway UID", "Resource Record UIDs"
       };
-      if (options.Verbose)
+      if (verbose)
       {
         headers.Add("Fields");
       }
@@ -105,20 +126,27 @@ namespace Commander.PAM
       tab.AddHeader(headers.ToArray());
       foreach (var config in configs)
       {
-        if (!PamVaultHelpers.IsConfigurationInSharedFolder(vault, config))
+        var sharedFolder = TryGetListedConfigurationFolder(vault, config);
+        if (sharedFolder == null)
         {
-          PamVaultHelpers.WarnConfigurationNotInSharedFolder(config);
           continue;
         }
 
-        var row = BuildConfigTableRow(vault, config, options.Verbose);
-        if (row != null)
-        {
-          tab.AddRow(row);
-        }
+        tab.AddRow(BuildConfigTableRow(config, sharedFolder, verbose));
       }
 
       tab.Dump();
+    }
+
+    private static SharedFolder TryGetListedConfigurationFolder(VaultOnline vault, TypedRecord config)
+    {
+      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
+      if (sharedFolder == null)
+      {
+        PamVaultHelpers.WarnConfigurationNotInSharedFolder(config);
+      }
+
+      return sharedFolder;
     }
 
     private async Task ListSingleConfigurationAsync(VaultOnline vault, PamConfigOptions options, string configId)
@@ -177,6 +205,12 @@ namespace Commander.PAM
           $"--environment parameter is required. Supported options: {PamConfigTypes.GetSupportedConfigTypes()}");
       }
 
+      if (string.Equals(options.Environment?.Trim(), PamConfigTypes.EnvironmentOci, StringComparison.OrdinalIgnoreCase))
+      {
+        Console.WriteLine("Environment OCI is not supported yet. It will be supported in a future release.");
+        return;
+      }
+
       if (string.IsNullOrWhiteSpace(options.Title))
       {
         throw new InvalidOperationException("--title parameter is required");
@@ -223,11 +257,11 @@ namespace Commander.PAM
       PamConfigFieldPlacement.RelocateCustomToFields(vault, record);
 
       await ConfigUtils.AddConfigurationRecordAsync(vault, record);
-      await EnsureConfigurationNetworkGraphAsync(record.Uid);
+      await ConfigUtils.EnsureConfigurationNetworkGraphAsync(Context.Enterprise.Auth, record.Uid);
       await ConfigureTunnelingIfNeededAsync(record.Uid, options);
 
-      await MoveRecordToSharedFolderAsync(vault, record, moveDestinationUid);
       await vault.SyncDown();
+      await MoveRecordToSharedFolderAsync(vault, record, moveDestinationUid);
 
       if (!string.IsNullOrEmpty(facade.ControllerUid))
       {
@@ -235,7 +269,6 @@ namespace Commander.PAM
       }
 
       await vault.SyncDown();
-      await SyncPamAsync(reload: true);
       editService.LogWarnings();
       Console.WriteLine(record.Uid);
     }
@@ -259,6 +292,12 @@ namespace Commander.PAM
         throw new InvalidOperationException($"PAM configuration \"{options.Uid}\" not found");
       }
 
+      if (string.Equals(options.Environment?.Trim(), PamConfigTypes.EnvironmentOci, StringComparison.OrdinalIgnoreCase))
+      {
+        Console.WriteLine("Environment OCI is not supported yet. It will be supported in a future release.");
+        return;
+      }
+
       await vault.EnsurePamRecordTypesAsync();
 
       if (!string.IsNullOrWhiteSpace(options.Environment)
@@ -278,10 +317,10 @@ namespace Commander.PAM
         configuration.Title = options.Title.Trim();
       }
 
-      var facade = new PamConfigurationFacade(configuration);
-      var origGatewayUid = facade.ControllerUid;
-      var origSharedFolderUid = facade.FolderUid;
-      var origAdminCredRef = facade.AdminCredentialRef;
+      var beforeEdit = new PamConfigurationFacade(configuration);
+      var origGatewayUid = beforeEdit.ControllerUid;
+      var origSharedFolderUid = beforeEdit.FolderUid;
+      var origAdminCredRef = beforeEdit.AdminCredentialRef;
 
       var editService = CreateEditService(vault);
       editService.ClearWarnings();
@@ -291,21 +330,21 @@ namespace Commander.PAM
       PamConfigFieldPlacement.RelocateCustomToFields(vault, configuration);
       await vault.UpdateRecord(configuration);
 
-      facade = new PamConfigurationFacade(configuration);
-      if (!string.Equals(facade.ControllerUid, origGatewayUid, StringComparison.Ordinal)
-          && !string.IsNullOrEmpty(facade.ControllerUid))
+      var afterEdit = new PamConfigurationFacade(configuration);
+      if (!string.Equals(afterEdit.ControllerUid, origGatewayUid, StringComparison.Ordinal)
+          && !string.IsNullOrEmpty(afterEdit.ControllerUid))
       {
         await ConfigUtils.SetConfigurationControllerAsync(
-          Context.Enterprise.Auth, configuration.Uid, facade.ControllerUid);
+          Context.Enterprise.Auth, configuration.Uid, afterEdit.ControllerUid);
       }
 
-      if (!string.Equals(facade.FolderUid, origSharedFolderUid, StringComparison.Ordinal)
-          && !string.IsNullOrEmpty(facade.FolderUid))
+      if (!string.Equals(afterEdit.FolderUid, origSharedFolderUid, StringComparison.Ordinal)
+          && !string.IsNullOrEmpty(afterEdit.FolderUid))
       {
-        await MoveRecordToSharedFolderAsync(vault, configuration, facade.FolderUid);
+        await MoveRecordToSharedFolderAsync(vault, configuration, afterEdit.FolderUid);
       }
 
-      if (HasTunnelingOptions(options) || !string.Equals(facade.AdminCredentialRef, origAdminCredRef, StringComparison.Ordinal))
+      if (HasTunnelingOptions(options) || !string.Equals(afterEdit.AdminCredentialRef, origAdminCredRef, StringComparison.Ordinal))
       {
         await ConfigureTunnelingIfNeededAsync(configuration.Uid, options);
       }
@@ -423,18 +462,6 @@ namespace Commander.PAM
         ConfigUtils.ParseTriState(options.AiTerminateSessionOnDetection));
     }
 
-    private async Task EnsureConfigurationNetworkGraphAsync(string configUid)
-    {
-      try
-      {
-        await ConfigUtils.EnsureConfigurationNetworkGraphAsync(Context.Enterprise.Auth, configUid);
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"Warning: Could not register PAM configuration network graph: {ex.Message}");
-      }
-    }
-
     private static bool HasTunnelingOptions(PamConfigOptions options)
     {
       return options.Connections != null || options.Tunneling != null || options.Rotation != null
@@ -443,14 +470,11 @@ namespace Commander.PAM
              || options.AiTerminateSessionOnDetection != null;
     }
 
-    private static Dictionary<string, object> BuildConfigListJson(VaultOnline vault, TypedRecord config, bool verbose)
+    private static Dictionary<string, object> BuildConfigListJson(
+      TypedRecord config,
+      SharedFolder sharedFolder,
+      bool verbose)
     {
-      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
-      if (sharedFolder == null)
-      {
-        return null;
-      }
-
       var facade = new PamConfigurationFacade(config);
       var row = new Dictionary<string, object>
       {
@@ -500,14 +524,11 @@ namespace Commander.PAM
       return row;
     }
 
-    private static object[] BuildConfigTableRow(VaultOnline vault, TypedRecord config, bool verbose)
+    private static object[] BuildConfigTableRow(
+      TypedRecord config,
+      SharedFolder sharedFolder,
+      bool verbose)
     {
-      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
-      if (sharedFolder == null)
-      {
-        return null;
-      }
-
       var facade = new PamConfigurationFacade(config);
       var row = new List<object>
       {
