@@ -26,14 +26,14 @@ namespace KeeperSecurity.Plugins.PAM
 
     public static TypedRecord ResolveRecord(VaultOnline vault, string identifier, IEnumerable<string> allowedTypes)
     {
-      if (vault == null || string.IsNullOrEmpty(identifier))
+      if (vault == null || string.IsNullOrWhiteSpace(identifier))
       {
         return null;
       }
 
       if (TryGetTypedRecord(vault, identifier, out var typedByUid))
       {
-        if (allowedTypes == null || allowedTypes.Contains(typedByUid.TypeName ?? ""))
+        if (allowedTypes == null || allowedTypes.Contains(typedByUid.TypeName ?? string.Empty))
         {
           return typedByUid;
         }
@@ -46,7 +46,7 @@ namespace KeeperSecurity.Plugins.PAM
         : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
       var matches = vault.KeeperRecords
         .OfType<TypedRecord>()
-        .Where(x => allowed == null || allowed.Contains(x.TypeName ?? ""))
+        .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
         .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
         .ToList();
 

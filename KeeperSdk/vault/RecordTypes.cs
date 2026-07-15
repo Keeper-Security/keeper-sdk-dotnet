@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Utils;
+using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1425,6 +1425,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("text", typeof(string), "''", "plain text"),
                 new FieldType("url", typeof(string), "''", "url string, can be clicked"),
                 new FieldType("multiline", typeof(string), "''", "multiline text"),
+                new FieldType("json", typeof(string), "''", "json text; only validated data persisted"),
                 new FieldType("fileRef", typeof(string), "''", "reference to the file field on another record"),
                 new FieldType("email", typeof(string), "''", "valid email address plus tag"),
                 new FieldType("host", typeof(FieldTypeHost), "{'hostName': '', 'port': ''}", "multiple fields to capture host information"),
