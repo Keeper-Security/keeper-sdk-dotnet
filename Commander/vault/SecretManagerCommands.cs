@@ -190,108 +190,55 @@ namespace Commander
                 await context.Vault.DeleteSecretManagerApplication(application.Uid);
                 Console.Write($"KSM Application {application.Title} has been deleted.");
             }
-            else if (action == "share")
+            else if (action == "share" || action == "share-update")
             {
                 if (string.IsNullOrEmpty(arguments.Secret))
                 {
-                    Console.Write("Secret (Shared Folder/Record UID/Title) parameter is required.");
+                    Console.Write("Secret (Shared Folder/Record/NSF UID or name) parameter is required.");
                     return;
                 }
-                string uid = "";
-
-                if (context.Vault.TryGetKeeperRecord(arguments.Secret, out var record))
+                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret);
+                if (string.IsNullOrEmpty(uid))
                 {
-                    uid = record.Uid;
+                    Console.Write($"Record, Shared Folder, or NSF folder/record \"{arguments.Secret}\" does not exist. Run sync-down and try again.");
+                    return;
                 }
-                else if (context.Vault.TryGetSharedFolder(arguments.Secret, out var sf))
+
+                SecretsManagerApplication app;
+                if (action == "share-update")
                 {
-                    uid = sf.Uid;
+                    app = await context.Vault.UpdateSecretManagerApplicationShare(application.Uid, uid, arguments.CanEdit);
                 }
                 else
                 {
-                    if (context.TryResolvePath(arguments.Secret, out var folder, out var title))
-                    {
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            if (folder.FolderType == FolderType.SharedFolder)
-                            {
-                                uid = folder.FolderUid;
-                            }
-                            else
-                            {
-                                Console.Write($"Folder \"{arguments.Secret}\" is not Shared Folder.");
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            record = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
-                                string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
-                            if (record != null)
-                            {
-                                uid = record.Uid;
-                            }
-                        }
-                    }
+                    app = await context.Vault.ShareToSecretManagerApplication(application.Uid, uid, arguments.CanEdit);
                 }
-                if (string.IsNullOrEmpty(uid))
-                {
-                    Console.Write($"Record or Shared Folder \"{arguments.Secret}\" does not exist.");
-                    return;
-                }
-                var app = await context.Vault.ShareToSecretManagerApplication(application.Uid, uid, arguments.CanEdit);
                 DumpSecretManagerApplicationInfo(context.Vault, app);
             }
             else if (action == "unshare")
             {
                 if (string.IsNullOrEmpty(arguments.Secret))
                 {
-                    Console.Write("Secret (Shared Folder/Record UID/Title) parameter is required.");
+                    Console.Write("Secret (Shared Folder/Record/NSF UID or name) parameter is required.");
                     return;
                 }
 
-                var uid = "";
-                if (context.Vault.TryGetKeeperRecord(arguments.Secret, out var record))
-                {
-                    uid = record.Uid;
-                }
-                else if (context.Vault.TryGetSharedFolder(arguments.Secret, out var sf))
-                {
-                    uid = sf.Uid;
-                }
-                else
-                {
-                    if (context.TryResolvePath(arguments.Secret, out var folder, out var title))
-                    {
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            if (folder.FolderType == FolderType.SharedFolder)
-                            {
-                                uid = folder.FolderUid;
-                            }
-                        }
-                        else
-                        {
-                            record = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
-                                string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
-                            if (record != null)
-                            {
-                                uid = record.Uid;
-                            }
-                        }
-                    }
-                }
-
+                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret);
                 if (string.IsNullOrEmpty(uid))
                 {
                     uid = arguments.Secret;
                 }
                 var app = await context.Vault.GetSecretManagerApplication(application.Uid);
-                var share = app.Shares.FirstOrDefault(x => x.SecretUid == uid);
+                var share = app?.Shares?.FirstOrDefault(x => x.SecretUid == uid);
 
-                if (share == null)
+                if (share == null && context.Vault.TryResolveKeeperNSFFolder(uid, out var nsfFolder))
                 {
-                    Console.Write($"\"{arguments.Secret}\" is not shared to application {application.Title}");
+                    // NSF folders are shared via AT_APPLICATION and may still need revoke even if not listed yet.
+                    uid = nsfFolder.FolderUid;
+                }
+                else if (share == null)
+                {
+                    Console.WriteLine($"\"{arguments.Secret}\" is not shared to application {application.Title}");
                 }
                 app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(context.Vault, app);
@@ -370,6 +317,54 @@ namespace Commander
             }
         }
 
+        private static string ResolveSecretManagerSecretUid(VaultContext context, string secret)
+        {
+            if (string.IsNullOrWhiteSpace(secret))
+            {
+                return null;
+            }
+
+            if (context.Vault.TryGetKeeperRecord(secret, out var record)
+                && (record is PasswordRecord || record is TypedRecord))
+            {
+                return record.Uid;
+            }
+            if (context.Vault.TryGetSharedFolder(secret, out var sf))
+            {
+                return sf.Uid;
+            }
+            if (context.Vault.TryResolveKeeperNSFFolder(secret, out var nsfFolder) && nsfFolder != null)
+            {
+                return nsfFolder.FolderUid;
+            }
+            if (context.Vault.TryResolveKeeperNSFRecord(secret, out var nsfRecord) && nsfRecord != null)
+            {
+                return nsfRecord.RecordUid;
+            }
+
+            if (context.TryResolvePath(secret, out var folder, out var title))
+            {
+                if (string.IsNullOrEmpty(title))
+                {
+                    if (folder.FolderType == FolderType.SharedFolder)
+                    {
+                        return folder.FolderUid;
+                    }
+                }
+                else
+                {
+                    record = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
+                        x != null && string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
+                    if (record != null)
+                    {
+                        return record.Uid;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static void DumpSecretManagerApplicationInfo(VaultData vault, SecretsManagerApplication application)
         {
             var shareTab = new Tabulate(5)
@@ -379,7 +374,7 @@ namespace Commander
             shareTab.AddHeader("Share Type", "Share UID", "Share Title", "Editable", "Created");
             foreach (var share in application.Shares)
             {
-                var shareType = share.SecretType == SecretManagerSecretType.Record ? "Record" : "SharedFolder";
+                var shareType = share.SecretType == SecretManagerSecretType.Record ? "Record" : "Folder";
                 var shareTitle = "";
                 if (share.SecretType == SecretManagerSecretType.Record)
                 {
@@ -387,12 +382,23 @@ namespace Commander
                     {
                         shareTitle = r.Title;
                     }
+                    else if (vault.TryGetKeeperNSFRecord(share.SecretUid, out var nsfRec))
+                    {
+                        shareType = "NSF Record";
+                        shareTitle = nsfRec.Title;
+                    }
                 }
                 else
                 {
                     if (vault.TryGetSharedFolder(share.SecretUid, out var sf))
                     {
+                        shareType = "SharedFolder";
                         shareTitle = sf.Name;
+                    }
+                    else if (vault.TryGetKeeperNSFFolder(share.SecretUid, out var nsfFolder))
+                    {
+                        shareType = "NSF Folder";
+                        shareTitle = nsfFolder.Name;
                     }
                 }
                 shareTab.AddRow(shareType, share.SecretUid, shareTitle, share.Editable, share.CreatedOn);
@@ -486,9 +492,21 @@ namespace Commander
                     .FirstOrDefault(x => x.RecordUid == applicationUid).UserPermissions;
             var appInfo = (await GetAppInfo(vault, applicationUid))
                 .FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(applicationRecord.Uid.Base64UrlDecode()));
-            var shareUids = appInfo.Shares.Select(x => x.SecretUid.ToByteArray().Base64UrlEncode()).ToList();
-            var sharesRecords = appInfo.Shares.Select(x => x.ShareType == ApplicationShareType.ShareTypeRecord ? x.SecretUid.ToByteArray().Base64UrlEncode() : null).Where(x => x != null).ToList();
-            var sharedFolders = appInfo.Shares.Select(x => x.ShareType == ApplicationShareType.ShareTypeFolder ? x.SecretUid.ToByteArray().Base64UrlEncode() : null).Where(x => x != null).ToList();
+            // NSF app shares use AT_APPLICATION / Drive APIs; cascading user grants apply only to classic vault objects.
+            var shareUids = appInfo.Shares
+                .Select(x => x.SecretUid.ToByteArray().Base64UrlEncode())
+                .Where(uid => vault.TryGetKeeperRecord(uid, out _) || vault.TryGetSharedFolder(uid, out _))
+                .ToList();
+            var sharesRecords = appInfo.Shares
+                .Where(x => x.ShareType == ApplicationShareType.ShareTypeRecord)
+                .Select(x => x.SecretUid.ToByteArray().Base64UrlEncode())
+                .Where(uid => vault.TryGetKeeperRecord(uid, out _))
+                .ToList();
+            var sharedFolders = appInfo.Shares
+                .Where(x => x.ShareType == ApplicationShareType.ShareTypeFolder)
+                .Select(x => x.SecretUid.ToByteArray().Base64UrlEncode())
+                .Where(uid => vault.TryGetSharedFolder(uid, out _))
+                .ToList();
 
             var recordShares = await vault.GetSharesForRecords(sharesRecords);
             var admins = userPermissions.Where(x => x.CanEdit && (x.Username != vault.Auth.Username)).Select(x => x.Username).ToList();
@@ -615,7 +633,11 @@ namespace Commander
             }
             else
             {
-                vault.TryGetSharedFolder(shareUid, out SharedFolder sharedFolder);
+                if (!vault.TryGetSharedFolder(shareUid, out SharedFolder sharedFolder) || sharedFolder == null)
+                {
+                    // NSF / unknown folder shares are not updated via classic shared-folder APIs.
+                    return false;
+                }
 
                 var folderPerms = sharedFolder.UsersPermissions.FirstOrDefault(p => p.Uid == user);
                 if (folderPerms == null) return true;
@@ -689,9 +711,9 @@ namespace Commander
 
     class SecretManagerOptions
     {
-        [Option("folder", Required = false, HelpText = "Shared Folder UID or name. \"share\", \"unshare\" only")]
+        [Option("folder", Required = false, HelpText = "Shared Folder / Record / NSF folder or record UID or name. \"share\", \"share-update\", \"unshare\" only")]
         public string Secret { get; set; }
-        [Option('e', "can-edit", Required = false, HelpText = "Can secret be edited?  \"share\", \"unshare\" only")]
+        [Option('e', "can-edit", Required = false, HelpText = "Can secret be edited? \"share\", \"share-update\" only")]
         public bool CanEdit { get; set; }
 
         [Option("client-name", Required = false, HelpText = "Client name. \"add-client\", \"remove-client\" only")]
@@ -712,7 +734,7 @@ namespace Commander
         [Option("name", Required = false, HelpText = "New application name. \"update\" only")]
         public string NewName { get; set; }
 
-        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"update\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\", \"app-share\", \"app-unshare\"")]
+        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"update\", \"delete\", \"share\", \"share-update\", \"unshare\", \"add-client\", \"delete-client\", \"list\", \"app-share\", \"app-unshare\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Secret Manager application UID or Title")]

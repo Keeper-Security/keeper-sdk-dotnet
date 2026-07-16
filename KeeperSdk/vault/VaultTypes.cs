@@ -798,20 +798,28 @@ namespace KeeperSecurity.Vault
         Task<ApplicationRecord> UpdateSecretManagerApplication(string applicationId, string newTitle);
 
         /// <summary>
-        /// Grants Shared Folder or Record Access to Secret Manager Application
+        /// Grants Shared Folder, classic Record, NSF folder, or NSF Record Access to Secret Manager Application.
+        /// Classic secrets use vault/app_share_add; NSF folders use folders/v3/access_update with AT_APPLICATION.
         /// </summary>
         /// <param name="applicationId">Application ID</param>
-        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder, Record, NSF folder, or NSF Record UID/name</param>
         /// <param name="canEdit">permission to edit</param>
         /// <returns>Secret Manager Application</returns>
         Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId,
             string sharedFolderOrRecordUid, bool canEdit);
 
         /// <summary>
-        /// Revokes Shared Folder or Record access from Secret Manager Application
+        /// Updates editable vs read-only on a secret already shared with the application.
+        /// NSF folders use folders/v3/access_update; classic/NSF records remove then re-add the app share.
+        /// </summary>
+        Task<SecretsManagerApplication> UpdateSecretManagerApplicationShare(string applicationId,
+            string sharedFolderOrRecordUid, bool canEdit);
+
+        /// <summary>
+        /// Revokes Shared Folder, classic Record, NSF folder, or NSF Record access from Secret Manager Application
         /// </summary>
         /// <param name="applicationId">Application ID</param>
-        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder, Record, NSF folder, or NSF Record UID/name</param>
         /// <returns>Secret Manager Application</returns>
         Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId,
             string sharedFolderOrRecordUid);

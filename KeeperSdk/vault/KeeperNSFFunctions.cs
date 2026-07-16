@@ -651,6 +651,227 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Share an NSF (Keeper Drive) folder with a KSM application via AT_APPLICATION.
+        /// Classic vault/app_share_add rejects Drive folders; this uses folders/v3/access_update.
+        /// </summary>
+        public static async Task GrantKeeperNSFFolderToApplicationInternal(
+            this VaultOnline vault, string folderUid, string applicationUid, bool editable)
+        {
+            if (string.IsNullOrEmpty(folderUid))
+                throw new VaultException("Folder UID cannot be empty");
+            if (string.IsNullOrEmpty(applicationUid))
+                throw new VaultException("Application UID cannot be empty");
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder))
+                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application)
+                throw new VaultException($"Secrets Manager application '{applicationUid}' not found");
+            if (folder.FolderKey == null)
+                throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
+            if (application.RecordKey == null)
+                throw new VaultException($"Cannot share folder: application key is not available for '{applicationUid}'");
+
+            var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
+            var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+            var appUidBytes = ByteString.CopyFrom(applicationUid.Base64UrlDecode());
+
+            FolderProto.FolderAccessData existingAccess = null;
+            try
+            {
+                var accessRq = new FolderProto.V3.GetFolderAccessRequest();
+                accessRq.FolderUid.Add(folderUidBytes);
+                var accessRs = await vault.Auth.ExecuteAuthRest<FolderProto.V3.GetFolderAccessRequest, FolderProto.V3.GetFolderAccessResponse>(
+                    "vault/folders/v3/access", accessRq);
+                foreach (var fr in accessRs.FolderAccessResults)
+                {
+                    if (fr.Error != null) continue;
+                    foreach (var accessor in fr.Accessors)
+                    {
+                        if (accessor.AccessType == FolderProto.AccessType.AtApplication
+                            && accessor.AccessTypeUid.Equals(appUidBytes))
+                        {
+                            existingAccess = accessor;
+                            break;
+                        }
+                    }
+                    if (existingAccess != null) break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not look up existing AT_APPLICATION access for '{folderUid}': {ex.Message}");
+            }
+
+            if (existingAccess != null)
+            {
+                if (existingAccess.AccessRoleType == accessRole)
+                {
+                    return;
+                }
+                await vault.UpdateKeeperNSFFolderApplicationAccessInternal(folderUid, applicationUid, editable);
+                return;
+            }
+
+            var addData = new FolderProto.FolderAccessData
+            {
+                FolderUid = folderUidBytes,
+                AccessTypeUid = appUidBytes,
+                AccessType = FolderProto.AccessType.AtApplication,
+                AccessRoleType = accessRole,
+                Permissions = GetFolderPermissionsForRole(accessRole),
+                FolderKey = new FolderProto.EncryptedDataKey
+                {
+                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(folder.FolderKey, application.RecordKey)),
+                    EncryptedKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
+                },
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessAdds.Add(addData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to grant application access: {result.Message}");
+                }
+            }
+        }
+
+        public static async Task UpdateKeeperNSFFolderApplicationAccessInternal(
+            this VaultOnline vault, string folderUid, string applicationUid, bool editable)
+        {
+            if (string.IsNullOrEmpty(folderUid))
+                throw new VaultException("Folder UID cannot be empty");
+            if (string.IsNullOrEmpty(applicationUid))
+                throw new VaultException("Application UID cannot be empty");
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
+                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+
+            var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
+            var updateData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = ByteString.CopyFrom(applicationUid.Base64UrlDecode()),
+                AccessType = FolderProto.AccessType.AtApplication,
+                AccessRoleType = accessRole,
+                Permissions = GetFolderPermissionsForRole(accessRole),
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessUpdates.Add(updateData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to update application access: {result.Message}");
+                }
+            }
+        }
+
+        public static async Task RevokeKeeperNSFFolderFromApplicationInternal(
+            this VaultOnline vault, string folderUid, string applicationUid)
+        {
+            if (string.IsNullOrEmpty(folderUid))
+                throw new VaultException("Folder UID cannot be empty");
+            if (string.IsNullOrEmpty(applicationUid))
+                throw new VaultException("Application UID cannot be empty");
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
+                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+
+            var accessData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = ByteString.CopyFrom(applicationUid.Base64UrlDecode()),
+                AccessType = FolderProto.AccessType.AtApplication,
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessRemoves.Add(accessData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to revoke application access: {result.Message}");
+                }
+            }
+        }
+
+        private static FolderProto.FolderPermissions GetFolderPermissionsForRole(FolderProto.AccessRoleType role)
+        {
+            return role switch
+            {
+                FolderProto.AccessRoleType.Viewer => new FolderProto.FolderPermissions
+                {
+                    CanListAccess = true,
+                    CanViewRecords = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+                FolderProto.AccessRoleType.ContentManager => new FolderProto.FolderPermissions
+                {
+                    CanAdd = true,
+                    CanListAccess = true,
+                    CanEditRecords = true,
+                    CanViewRecords = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+                FolderProto.AccessRoleType.SharedManager => new FolderProto.FolderPermissions
+                {
+                    CanListAccess = true,
+                    CanUpdateAccess = true,
+                    CanViewRecords = true,
+                    CanApproveAccess = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+                FolderProto.AccessRoleType.ContentShareManager => new FolderProto.FolderPermissions
+                {
+                    CanAdd = true,
+                    CanRemove = true,
+                    CanListAccess = true,
+                    CanUpdateAccess = true,
+                    CanEditRecords = true,
+                    CanViewRecords = true,
+                    CanApproveAccess = true,
+                    CanUpdateSetting = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+                FolderProto.AccessRoleType.Manager => new FolderProto.FolderPermissions
+                {
+                    CanAdd = true,
+                    CanRemove = true,
+                    CanDelete = true,
+                    CanListAccess = true,
+                    CanUpdateAccess = true,
+                    CanChangeOwnership = true,
+                    CanEditRecords = true,
+                    CanViewRecords = true,
+                    CanApproveAccess = true,
+                    CanUpdateSetting = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+                _ => new FolderProto.FolderPermissions
+                {
+                    CanListAccess = true,
+                    CanViewRecords = true,
+                    CanListRecords = true,
+                    CanListFolders = true,
+                },
+            };
+        }
+
         public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(title))
