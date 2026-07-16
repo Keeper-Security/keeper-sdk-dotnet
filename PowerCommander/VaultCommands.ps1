@@ -805,6 +805,80 @@ function Export-KeeperVault {
 }
 New-Alias -Name kexport -Value Export-KeeperVault
 
+function Script:ConvertTo-ImportJsonValue {
+    Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
+
+    if ($null -eq $InputObject) { return $null }
+
+    $base = $InputObject
+    if ($InputObject -is [System.Management.Automation.PSObject] -and $null -ne $InputObject.PSObject) {
+        $bo = $InputObject.PSObject.BaseObject
+        if ($null -ne $bo) { $base = $bo }
+    }
+
+    if ($base -is [string] -or $base -is [System.ValueType]) {
+        return $base
+    }
+
+    if ($base -is [System.Collections.IDictionary]) {
+        # Dictionary[string,object] so KeeperImport.LoadJsonDictionary accepts custom_fields.
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        foreach ($key in $base.Keys) {
+            $ht[[string]$key] = ConvertTo-ImportJsonValue -InputObject $base[$key]
+        }
+        return $ht
+    }
+
+    if ($base -is [System.Collections.IEnumerable]) {
+        $list = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($item in $base) {
+            $list.Add((ConvertTo-ImportJsonValue -InputObject $item)) | Out-Null
+        }
+        return ,$list.ToArray()
+    }
+
+    if ($null -ne $InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        foreach ($prop in $InputObject.PSObject.Properties) {
+            $ht[$prop.Name] = ConvertTo-ImportJsonValue -InputObject $prop.Value
+        }
+        return $ht
+    }
+
+    return $base
+}
+
+function Script:Read-KeeperImportFile {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    if ([string]::IsNullOrWhiteSpace($JsonText)) {
+        throw "JSON text cannot be empty."
+    }
+
+    # ConvertFrom-Json + LoadJsonDictionary preserves nested custom_fields.
+    # JsonUtils.ParseJson / DataContractJsonSerializer turns those into empty System.Object.
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $dict = ConvertTo-ImportJsonValue -InputObject $parsed
+    if ($dict -isnot [System.Collections.Generic.Dictionary[string, object]]) {
+        $generic = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        foreach ($key in $dict.Keys) {
+            $generic[[string]$key] = $dict[$key]
+        }
+        $dict = $generic
+    }
+
+    foreach ($arrayKey in @('records', 'shared_folders')) {
+        if ($dict.ContainsKey($arrayKey) -and $null -ne $dict[$arrayKey] -and $dict[$arrayKey] -isnot [System.Array]) {
+            $dict[$arrayKey] = @($dict[$arrayKey])
+        }
+    }
+
+    return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($dict)
+}
+
 function Import-KeeperVault {
     <#
 	.Synopsis
@@ -825,6 +899,8 @@ function Import-KeeperVault {
 	.Description
 	Imports records and shared folders from a JSON file into the vault.
 	Use a file produced by Export-KeeperVault or the same JSON structure (records, shared_folders).
+	Nested custom_fields objects (e.g. $host, $paymentCard) are preserved; the same record JSON
+	shape is used by NSF batch create/update (Add-KeeperNSFRecords / Edit-KeeperNSFRecords).
 
 	.Example
 	Import-KeeperVault -FileName "vault_backup.json"
@@ -908,9 +984,8 @@ function Import-KeeperVault {
     }
 
     try {
-        $jsonBytes = [System.IO.File]::ReadAllBytes($fullPath)
-        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod("ParseJson", [Type[]]@([byte[]]))
-        $importFile = $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+        $jsonText = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
+        $importFile = Read-KeeperImportFile -JsonText $jsonText
     }
     catch {
         Write-Error "Error reading or parsing JSON file: $_"

@@ -22,12 +22,24 @@ namespace KeeperSecurity.Vault
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false)
         {
             var result = await ExecuteKeeperNSFRecordRemovalAsync(removals, dryRun).ConfigureAwait(false);
-            if (!dryRun && result.Confirmed)
+            if (!dryRun && (result.Confirmed || result.PartialSuccess))
             {
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
 
             return result;
+        }
+
+        /// <inheritdoc/>
+        public Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecord(
+            KeeperNSFRecordRemoval removal, bool dryRun = false)
+        {
+            if (removal == null)
+            {
+                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFRecord), "removal", "", "removal required");
+            }
+
+            return RemoveKeeperNSFRecords(new[] { removal }, dryRun);
         }
 
         /// <inheritdoc/>
@@ -41,6 +53,18 @@ namespace KeeperSecurity.Vault
             }
 
             return result;
+        }
+
+        /// <inheritdoc/>
+        public Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolder(
+            KeeperNSFFolderRemoval removal, bool dryRun = false)
+        {
+            if (removal == null)
+            {
+                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFFolder), "removal", "", "removal required");
+            }
+
+            return RemoveKeeperNSFFolders(new[] { removal }, dryRun);
         }
 
         /// <inheritdoc/>
@@ -858,6 +882,8 @@ namespace KeeperSecurity.Vault
                 .ToList();
         }
 
+        private const int MaxKeeperNSFRecordRemovalBatchSize = 500;
+
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFRecordRemovalAsync(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun)
         {
@@ -866,12 +892,78 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFRecords), "removals", "", "at least one record required");
             }
 
-            if (removals.Count > 500)
+            var validRemovals = removals
+                .Where(r => r != null && !string.IsNullOrEmpty(r.RecordUid))
+                .ToList();
+            if (validRemovals.Count == 0)
             {
-                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFRecords), "removals", removals.Count.ToString(), "maximum 500 records per request");
+                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFRecords), "removals", "", "at least one record required");
             }
 
+            var mergedPreview = new RemoveResponse();
+            var confirmedChunkCount = 0;
+            var failedChunkCount = 0;
+            var chunkErrors = new List<string>();
+            long? earliestExpiry = null;
+
+            for (var offset = 0; offset < validRemovals.Count; offset += MaxKeeperNSFRecordRemovalBatchSize)
+            {
+                var chunk = validRemovals.Skip(offset).Take(MaxKeeperNSFRecordRemovalBatchSize).ToList();
+                try
+                {
+                    var chunkResult = await ExecuteKeeperNSFRecordRemovalChunkAsync(chunk, dryRun).ConfigureAwait(false);
+                    MergeRemovePreviewResponse(mergedPreview, chunkResult.PreviewResponse);
+
+                    if (chunkResult.TokenExpiresAt.HasValue)
+                    {
+                        earliestExpiry = earliestExpiry.HasValue
+                            ? Math.Min(earliestExpiry.Value, chunkResult.TokenExpiresAt.Value)
+                            : chunkResult.TokenExpiresAt;
+                    }
+
+                    if (dryRun)
+                    {
+                        continue;
+                    }
+
+                    if (chunkResult.Confirmed)
+                    {
+                        confirmedChunkCount++;
+                    }
+                    else
+                    {
+                        failedChunkCount++;
+                        chunkErrors.Add(
+                            $"Chunk at offset {offset} ({chunk.Count} records): confirmation did not complete.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failedChunkCount++;
+                    chunkErrors.Add($"Chunk at offset {offset} ({chunk.Count} records): {ex.Message}");
+                }
+            }
+
+            return new KeeperNSFRemoveResult
+            {
+                PreviewResponse = mergedPreview,
+                Confirmed = !dryRun && failedChunkCount == 0 && confirmedChunkCount > 0,
+                ConfirmedChunkCount = confirmedChunkCount,
+                FailedChunkCount = failedChunkCount,
+                ChunkErrors = chunkErrors,
+                TokenExpiresAt = earliestExpiry,
+            };
+        }
+
+        private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFRecordRemovalChunkAsync(
+            IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun)
+        {
             var previewRequest = BuildRemoveRecordRequest(removals, RemoveAction.Preview);
+            if (previewRequest.Records.Count == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFRecords), "removals", "", "no valid record UIDs");
+            }
+
             var previewResponse = await Auth.ExecuteAuthRest<RemoveRecordRequest, RemoveResponse>(
                 "vault/folders/v3/remove_record", previewRequest).ConfigureAwait(false);
 
@@ -942,6 +1034,39 @@ namespace KeeperSecurity.Vault
             ValidateRemoveResponse(confirmResponse, true);
             result.Confirmed = true;
             return result;
+        }
+
+        private static void MergeRemovePreviewResponse(RemoveResponse target, RemoveResponse source)
+        {
+            if (target == null || source == null)
+            {
+                return;
+            }
+
+            target.Results.AddRange(source.Results);
+
+            if (!string.IsNullOrEmpty(source.ErrorMessage))
+            {
+                target.ErrorMessage = string.IsNullOrEmpty(target.ErrorMessage)
+                    ? source.ErrorMessage
+                    : $"{target.ErrorMessage}; {source.ErrorMessage}";
+            }
+
+            if ((target.ConfirmationToken == null || target.ConfirmationToken.IsEmpty)
+                && source.ConfirmationToken != null
+                && !source.ConfirmationToken.IsEmpty)
+            {
+                target.ConfirmationToken = source.ConfirmationToken;
+                target.TokenExpiresAt = source.TokenExpiresAt;
+            }
+            else if (target.TokenExpiresAt == 0 && source.TokenExpiresAt > 0)
+            {
+                target.TokenExpiresAt = source.TokenExpiresAt;
+            }
+            else if (target.TokenExpiresAt > 0 && source.TokenExpiresAt > 0)
+            {
+                target.TokenExpiresAt = Math.Min(target.TokenExpiresAt, source.TokenExpiresAt);
+            }
         }
 
         private static RemoveRecordRequest BuildRemoveRecordRequest(

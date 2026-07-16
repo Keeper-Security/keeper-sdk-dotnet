@@ -1,4 +1,4 @@
-﻿//  _  __
+//  _  __
 // | |/ /___ ___ _ __  ___ _ _ ®
 // | ' </ -_) -_) '_ \/ -_) '_|
 // |_|\_\___\___| .__/\___|_|
@@ -178,6 +178,27 @@ namespace Sample
                 //     }
                 // );
 
+                // // Update Keeper NSF Records (batch) Example
+                // await KeeperNSFExamples.UpdateKeeperNSFRecordsBatchExample.UpdateBatch(
+                //     vault,
+                //     new[]
+                //     {
+                //         new KeeperNSFRecordUpdateRequest
+                //         {
+                //             RecordUid = "<recordUid_1>",
+                //             Title = "Updated Title 1",
+                //             Fields = new Dictionary<string, object> { { "login", "a@example.com" } },
+                //         },
+                //         new KeeperNSFRecordUpdateRequest
+                //         {
+                //             RecordUid = "<recordUid_2>",
+                //             Notes = "Updated via batch",
+                //         },
+                //     });
+                //
+                // PowerCommander: nsf-records-update -DownloadSampleRecords
+                // PowerCommander: nsf-records-update -FilePath .\nsf-records-update-batch.sample.json
+
                 // // Remove Keeper NSF Record Example (dryRun defaults to true — set false to confirm)
                 // await KeeperNSFExamples.RemoveKeeperNSFRecordExample.Remove(
                 //     vault,
@@ -186,6 +207,16 @@ namespace Sample
                 //     operation: KeeperNSFRecordRemoveOperation.FolderTrash,
                 //     dryRun: true
                 // );
+
+                // // Remove Keeper NSF Records (batch) Example (dryRun defaults to true — set false to confirm)
+                // await KeeperNSFExamples.RemoveKeeperNSFRecordsBatchExample.RemoveBatch(
+                //     vault,
+                //     KeeperNSFExamples.RemoveKeeperNSFRecordsBatchExample.BuildSampleRemovals(),
+                //     dryRun: true
+                // );
+                //
+                // PowerCommander: nsf-records-rm -DownloadSampleRemovals
+                // PowerCommander: nsf-records-rm -FilePath .\nsf-records-remove-batch.sample.json
 
                 // // List Keeper NSF Folders Example
                 // await KeeperNSFExamples.ListKeeperNSFFoldersExample.ListAll(vault);
@@ -244,11 +275,23 @@ namespace Sample
                 //     role: "viewer"
                 // );
 
+                // // Share Keeper NSF Records (batch) Example
+                // await KeeperNSFExamples.ShareKeeperNSFRecordsBatchExample.ShareBatch(
+                //     vault,
+                //     KeeperNSFExamples.ShareKeeperNSFRecordsBatchExample.BuildSampleShares()
+                // );
+
                 // // Unshare Keeper NSF Record Example
                 // await KeeperNSFExamples.UnshareKeeperNSFRecordExample.Unshare(
                 //     vault,
                 //     recordUid: "<recordUid_here>",
                 //     userEmail: "<userEmail_here>"
+                // );
+
+                // // Unshare Keeper NSF Records (batch) Example
+                // await KeeperNSFExamples.UnshareKeeperNSFRecordsBatchExample.UnshareBatch(
+                //     vault,
+                //     KeeperNSFExamples.UnshareKeeperNSFRecordsBatchExample.BuildSampleUnshares()
                 // );
 
                 // // Transfer Keeper NSF Record Ownership Example

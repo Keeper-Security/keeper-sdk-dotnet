@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using KeeperSecurity.Commands;
-using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
+using ZeroDep;
 
 namespace Sample.KeeperNSFExamples
 {
@@ -87,7 +88,13 @@ namespace Sample.KeeperNSFExamples
         /// </summary>
         public static ImportFile LoadSampleImportFile()
         {
-            return JsonUtils.ParseJson<ImportFile>(System.Text.Encoding.UTF8.GetBytes(SampleImportJson));
+            var jOptions = new JsonOptions
+            {
+                DateTimeStyles = DateTimeStyles.None,
+            };
+            jOptions.SerializationOptions &= ~JsonSerializationOptions.AutoParseDateTime;
+            var jsonDict = Json.Deserialize<Dictionary<string, object>>(SampleImportJson, jOptions);
+            return KeeperImport.LoadJsonDictionary(jsonDict);
         }
 
         private const string SampleImportJson = @"{
