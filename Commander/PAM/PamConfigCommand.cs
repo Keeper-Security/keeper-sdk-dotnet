@@ -205,9 +205,9 @@ namespace Commander.PAM
           $"--environment parameter is required. Supported options: {PamConfigTypes.GetSupportedConfigTypes()}");
       }
 
-      if (string.Equals(options.Environment?.Trim(), PamConfigTypes.EnvironmentOci, StringComparison.OrdinalIgnoreCase))
+      if (PamConfigTypes.IsComingSoonEnvironment(options.Environment, out var comingSoonName))
       {
-        Console.WriteLine("Environment OCI is not supported yet. It will be supported in a future release.");
+        Console.WriteLine($"Environment {comingSoonName} is not supported yet. It will be supported in a future release.");
         return;
       }
 
@@ -292,9 +292,9 @@ namespace Commander.PAM
         throw new InvalidOperationException($"PAM configuration \"{options.Uid}\" not found");
       }
 
-      if (string.Equals(options.Environment?.Trim(), PamConfigTypes.EnvironmentOci, StringComparison.OrdinalIgnoreCase))
+      if (PamConfigTypes.IsComingSoonEnvironment(options.Environment, out var comingSoonName))
       {
-        Console.WriteLine("Environment OCI is not supported yet. It will be supported in a future release.");
+        Console.WriteLine($"Environment {comingSoonName} is not supported yet. It will be supported in a future release.");
         return;
       }
 
@@ -586,7 +586,7 @@ namespace Commander.PAM
     [Option("config", Required = false, HelpText = "Specific PAM Configuration UID (list)")]
     public string ListConfig { get; set; }
 
-    [Option("environment", Required = false, HelpText = "PAM configuration type: local, aws, azure, gcp, domain, oci")]
+    [Option("environment", Required = false, HelpText = "PAM configuration type: local, aws, azure, gcp, domain, oci, github")]
     public string Environment { get; set; }
 
     [Option('t', "title", Required = false, HelpText = "Title of the PAM configuration")]

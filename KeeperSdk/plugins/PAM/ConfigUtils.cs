@@ -20,6 +20,7 @@ namespace KeeperSecurity.Plugins.PAM
     public const string EnvironmentGcp = "gcp";
     public const string EnvironmentDomain = "domain";
     public const string EnvironmentOci = "oci";
+    public const string EnvironmentGithub = "github";
 
     private static readonly Dictionary<string, string> ConfigTypeToRecordType =
       new(StringComparer.OrdinalIgnoreCase)
@@ -31,6 +32,14 @@ namespace KeeperSecurity.Plugins.PAM
         [EnvironmentGcp] = "pamGcpConfiguration",
         [EnvironmentDomain] = "pamDomainConfiguration",
         [EnvironmentOci] = "pamOciConfiguration",
+        [EnvironmentGithub] = "pamGitHubConfiguration",
+      };
+
+    private static readonly Dictionary<string, string> ComingSoonEnvironments =
+      new(StringComparer.OrdinalIgnoreCase)
+      {
+        [EnvironmentOci] = "OCI",
+        [EnvironmentGithub] = "GitHub",
       };
 
     public static bool TryResolveRecordType(string configType, out string recordType)
@@ -42,6 +51,17 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return ConfigTypeToRecordType.TryGetValue(configType.Trim(), out recordType);
+    }
+
+    public static bool IsComingSoonEnvironment(string configType, out string displayName)
+    {
+      displayName = null;
+      if (string.IsNullOrWhiteSpace(configType))
+      {
+        return false;
+      }
+
+      return ComingSoonEnvironments.TryGetValue(configType.Trim(), out displayName);
     }
 
     public static string GetSupportedConfigTypes()
