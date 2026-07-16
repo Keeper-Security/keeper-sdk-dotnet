@@ -8,6 +8,7 @@ using Cli;
 using Commander;
 using CommandLine;
 using Google.Protobuf;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Plugins.PAM;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
@@ -29,7 +30,15 @@ namespace Commander.PAM
                 throw new ArgumentNullException(nameof(options), "Invalid pam Rotation command arguments. Available commands: list, info, edit, script");
             }
 
-            var command = string.IsNullOrEmpty(options.Command) ? "list" : options.Command.Trim().ToLowerInvariant();
+            var hasCommand = !string.IsNullOrWhiteSpace(options.Command);
+            if (!hasCommand)
+            {
+                Console.WriteLine("Available commands: list, info, edit, script");
+                Console.WriteLine("Running default command: list");
+                Console.WriteLine();
+            }
+
+            var command = hasCommand ? options.Command.Trim().ToLowerInvariant() : "list";
             if (command == "script")
             {
                 await ExecuteScriptAsync(options);
@@ -104,7 +113,7 @@ namespace Commander.PAM
                 configs.TryGetValue(configUid, out var configRecord);
 
                 var scheduleText = RotationUtils.FormatScheduleDisplay(schedule.ScheduleData, schedule.NoSchedule);
-                var gatewayName = controller?.ControllerName ?? "[Does not exist]";
+                var gatewayName = ResolveGatewayDisplayName(controller, controllerUid, null);
                 var configText = configRecord != null
                     ? $"{configRecord.Title} ({configRecord.TypeName})"
                     : "[No config found]";
@@ -149,7 +158,7 @@ namespace Commander.PAM
             if (rows.Count > 0)
             {
                 Console.WriteLine();
-                Console.WriteLine("To manually rotate a record (Phase 7): pam-action --command rotate --record-uid [RECORD UID]");
+                Console.WriteLine("Manual rotation is not supported yet. Coming soon.");
             }
             else
             {
@@ -184,10 +193,18 @@ namespace Commander.PAM
             var statusName = rotationInfo.Status.ToString();
             var isReady = rotationInfo.Status == RouterProto.RouterRotationStatus.RrsOnline;
             var configUid = rotationInfo.ConfigurationUid?.ToByteArray().Base64UrlEncode() ?? "";
-            var gatewayName = string.IsNullOrEmpty(rotationInfo.ControllerName) ? "-" : rotationInfo.ControllerName;
             var gatewayUid = rotationInfo.ControllerUid?.Length > 0
                 ? rotationInfo.ControllerUid.ToByteArray().Base64UrlEncode()
                 : "-";
+
+            // Same as list: resolve gateway name from pam/get_controllers when router omits controllerName.
+            PamController gateway = null;
+            if (!string.Equals(gatewayUid, "-", StringComparison.Ordinal) && await EnsurePluginAsync())
+            {
+                gateway = Plugin.Controllers.GetEntity(gatewayUid) ?? ResolveGateway(gatewayUid);
+            }
+
+            var gatewayName = ResolveGatewayDisplayName(gateway, gatewayUid, rotationInfo.ControllerName);
             var adminResourceUid = rotationInfo.ResourceUid?.Length > 0
                 ? rotationInfo.ResourceUid.ToByteArray().Base64UrlEncode()
                 : null;
@@ -287,12 +304,42 @@ namespace Commander.PAM
                 }
 
                 Console.WriteLine();
-                Console.WriteLine($"Command to manually rotate: pam-action --command rotate --record {record.Uid}");
+                Console.WriteLine("Manual rotation is not supported yet. Coming soon.");
             }
             else
             {
                 Console.WriteLine($"Rotation Status: Not ready to rotate ({statusName})");
             }
+        }
+
+        private string ResolveGatewayDisplayName(PamController controller, string controllerUid, string fallbackName)
+        {
+            if (controller != null && !string.IsNullOrWhiteSpace(controller.ControllerName))
+            {
+                return controller.ControllerName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fallbackName))
+            {
+                return fallbackName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(controllerUid)
+                && !string.Equals(controllerUid, "-", StringComparison.Ordinal))
+            {
+                if (Plugin != null)
+                {
+                    var resolved = ResolveGateway(controllerUid);
+                    if (resolved != null && !string.IsNullOrWhiteSpace(resolved.ControllerName))
+                    {
+                        return resolved.ControllerName;
+                    }
+                }
+
+                return controllerUid;
+            }
+
+            return "-";
         }
 
         private async Task EditRotationAsync(PamRotationOptions options)
@@ -315,7 +362,7 @@ namespace Commander.PAM
             }
 
             var pathContext = Context is ConnectedContext connected ? connected._vaultContext : null;
-            var service = new PamRotationEditService(Plugin, Context.Enterprise.Auth, vault, pathContext);
+            var service = new PamRotationEditService(Context.Enterprise.Auth, vault, pathContext);
             await service.ExecuteAsync(options);
         }
 
@@ -390,7 +437,15 @@ namespace Commander.PAM
 
             using (var uploadTask = new FileAttachmentUploadTask(filePath, isScript: true))
             {
-                await vault.UploadAttachment(record, uploadTask);
+                try
+                {
+                    await vault.UploadAttachment(record, uploadTask);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return;
+                }
             }
 
             var postRefs = GetFileRefUids(facade.Fields.FileRef);
@@ -500,8 +555,23 @@ namespace Commander.PAM
                 return;
             }
 
-            await vault.UpdateRecord(record);
+            try
+            {
+                await vault.UpdateRecord(record);
+            }
+            catch (KeeperApiException ex) when (
+                string.Equals(ex.Code, "only_owner_can_modify_scripts", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ex.Code, "RS_ONLY_OWNER_CAN_MODIFY_SCRIPTS", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Only the record owner can edit post-rotation scripts.");
+                return;
+            }
+
             Console.WriteLine($"Script updated on record '{record.Title}' ({record.Uid}).");
+            if (!string.IsNullOrWhiteSpace(scriptValue.Command))
+            {
+                Console.WriteLine($"Command: {scriptValue.Command}");
+            }
         }
 
         private async Task DeleteScriptAsync(PamRotationOptions options)
@@ -547,7 +617,18 @@ namespace Commander.PAM
             }
 
             scriptField.Values.Remove(scriptValue);
-            await vault.UpdateRecord(record);
+            try
+            {
+                await vault.UpdateRecord(record);
+            }
+            catch (KeeperApiException ex) when (
+                string.Equals(ex.Code, "only_owner_can_modify_scripts", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ex.Code, "RS_ONLY_OWNER_CAN_MODIFY_SCRIPTS", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Only the record owner can remove post-rotation scripts.");
+                return;
+            }
+
             Console.WriteLine($"Script removed from record '{record.Title}' ({record.Uid}).");
         }
 
@@ -660,9 +741,12 @@ namespace Commander.PAM
                     continue;
                 }
 
+                // Match UID, title, or filename (Python Commander parity).
                 if (string.Equals(fileRecord.Uid, scriptName, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(fileRecord.Title, scriptName, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(fileRecord.Title, scriptNameFolded, StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(fileRecord.Title, scriptNameFolded, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(fileRecord.Name, scriptName, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(fileRecord.Name, scriptNameFolded, StringComparison.OrdinalIgnoreCase))
                 {
                     return scriptValue;
                 }
@@ -720,14 +804,18 @@ namespace Commander.PAM
                             continue;
                         }
 
-                        vault.TryGetKeeperRecord(script.FileRef, out var fileRecord);
+                        vault.TryGetKeeperRecord(script.FileRef, out var fileKeeper);
+                        var fileRecord = fileKeeper as FileRecord;
+                        var scriptName = !string.IsNullOrEmpty(fileRecord?.Name)
+                            ? fileRecord.Name
+                            : fileRecord?.Title ?? "[inaccessible]";
                         var recordRefs = script.RecordRef != null ? string.Join(", ", script.RecordRef) : "";
                         tab.AddRow(
                             record.Uid,
                             record.Title,
                             record.TypeName,
                             script.FileRef,
-                            fileRecord?.Title ?? "[inaccessible]",
+                            scriptName,
                             recordRefs,
                             script.Command ?? "");
                     }
@@ -794,38 +882,38 @@ namespace Commander.PAM
         [Option("record-uid", Required = false, HelpText = "Record UID (info command alias)")]
         public string RecordUid { get; set; }
 
-        [Option("folder", Required = false, HelpText = "Folder UID or name for bulk rotation setup (-fd in Python Commander)")]
+        [Option("folder", Required = false, HelpText = "Folder UID or name for bulk rotation setup")]
         public string Folder { get; set; }
 
         [Option('c', "config", Required = false, HelpText = "PAM configuration UID or title")]
         public string Config { get; set; }
 
-        [Option("iam-aad-config", Required = false, HelpText = "IAM/Azure AD PAM configuration UID (-iac in Python Commander)")]
+        [Option("iam-aad-config", Required = false, HelpText = "IAM/Azure AD PAM configuration UID")]
         public string IamAadConfig { get; set; }
 
         [Option("rotation-profile", Required = false,
-            HelpText = "Rotation profile: general, iam_user, scripts_only, saas (-rp in Python Commander)")]
+            HelpText = "Rotation profile: general, iam_user, scripts_only, saas")]
         public string RotationProfile { get; set; }
 
         [Option("saas-config-uid", Required = false, HelpText = "SaaS configuration UID for saas profile")]
         public string SaasConfigUid { get; set; }
 
-        [Option("resource", Required = false, HelpText = "Admin resource record UID or title (-rs in Python Commander)")]
+        [Option("resource", Required = false, HelpText = "Admin resource record UID or title")]
         public string Resource { get; set; }
 
-        [Option("schedule-json", Required = false, HelpText = "Rotation schedule JSON array (-sj/--schedulejson in Python Commander)")]
+        [Option("schedule-json", Required = false, HelpText = "Rotation schedule JSON array")]
         public string ScheduleJson { get; set; }
 
-        [Option("schedule-cron", Required = false, HelpText = "Rotation schedule CRON expression (-sc/--schedulecron in Python Commander)")]
+        [Option("schedule-cron", Required = false, HelpText = "Rotation schedule CRON expression")]
         public string ScheduleCron { get; set; }
 
-        [Option("on-demand", Required = false, HelpText = "Configure manual (on-demand) rotation (-od in Python Commander)")]
+        [Option("on-demand", Required = false, HelpText = "Configure manual (on-demand) rotation")]
         public bool OnDemand { get; set; }
 
-        [Option("schedule-config", Required = false, HelpText = "Inherit schedule from PAM configuration (-sf in Python Commander)")]
+        [Option("schedule-config", Required = false, HelpText = "Inherit schedule from PAM configuration")]
         public bool ScheduleConfig { get; set; }
 
-        [Option("schedule-only", Required = false, HelpText = "Only update rotation schedule (-so in Python Commander)")]
+        [Option("schedule-only", Required = false, HelpText = "Only update rotation schedule")]
         public bool ScheduleOnly { get; set; }
 
         [Option('x', "complexity", Required = false,

@@ -1,16 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
-using PamProto = PAM;
-using VaultProto = Vault;
 
 namespace KeeperSecurity.Plugins.PAM
 {
@@ -18,15 +14,15 @@ namespace KeeperSecurity.Plugins.PAM
   {
     IPamStorage Storage { get; }
     IEntityStorage<PamController> Controllers { get; }
-    IEntityStorage<PamRecordRotationInfo> RecordRotations { get; }
     string EnterpriseUid { get; }
 
     Task SyncDownAsync(bool reload = false);
-    Task SyncRecordRotationsFromVaultAsync();
   }
 
   /// <summary>
-  /// Caches PAM gateways and rotation metadata for enterprise admins.
+  /// Caches PAM gateways for enterprise admins.
+  /// Record rotation metadata comes from normal <see cref="KeeperSecurity.Vault.VaultOnline.SyncDown"/>
+  /// (Commander <c>record_rotation_cache</c>), not a separate vault/sync_down.
   /// Uses SQLite when Commander offline storage is on; otherwise keeps everything in memory.
   /// </summary>
   public class PamPlugin : IPamPlugin
@@ -34,7 +30,6 @@ namespace KeeperSecurity.Plugins.PAM
     private readonly IAuthentication _auth;
     private readonly int _enterpriseId;
     private readonly InMemoryEntityStorage<PamController> _controllers = new();
-    private readonly InMemoryEntityStorage<PamRecordRotationInfo> _recordRotations = new();
 
     public PamPlugin(IAuthentication auth, Func<IDbConnection> getConnection = null)
     {
@@ -77,8 +72,6 @@ namespace KeeperSecurity.Plugins.PAM
 
     public IEntityStorage<PamController> Controllers => _controllers;
 
-    public IEntityStorage<PamRecordRotationInfo> RecordRotations => _recordRotations;
-
     public string EnterpriseUid { get; }
 
     public async Task SyncDownAsync(bool reload = false)
@@ -86,7 +79,7 @@ namespace KeeperSecurity.Plugins.PAM
       if (reload)
       {
         Storage.Reset();
-        _recordRotations.Clear();
+        _controllers.Clear();
       }
 
       var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
@@ -105,75 +98,6 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       ApplyGatewayEntities(storageRows, domainRows);
-
-      if (reload)
-      {
-        try
-        {
-          await SyncRecordRotationsFromVaultAsync();
-        }
-        catch (Exception ex)
-        {
-          Trace.TraceWarning("PAM: loading record rotations from vault/sync_down failed: {0}", ex.Message);
-        }
-
-        return;
-      }
-
-      if (!_recordRotations.GetAll().Any())
-      {
-        try
-        {
-          await SyncRecordRotationsFromVaultAsync();
-        }
-        catch (Exception ex)
-        {
-          Trace.TraceWarning("PAM: loading record rotations from vault/sync_down failed: {0}", ex.Message);
-        }
-      }
-    }
-
-    public async Task SyncRecordRotationsFromVaultAsync()
-    {
-      var merged = new Dictionary<string, PamStorageRecordRotationData>(StringComparer.Ordinal);
-      var request = new VaultProto.SyncDownRequest();
-      ByteString token = ByteString.Empty;
-      var done = false;
-
-      while (!done)
-      {
-        request.ContinuationToken = token;
-        var response = (VaultProto.SyncDownResponse)await _auth.ExecuteAuthRest(
-          "vault/sync_down",
-          request,
-          typeof(VaultProto.SyncDownResponse));
-
-        if (response == null)
-        {
-          break;
-        }
-
-        done = !response.HasMore;
-        token = response.ContinuationToken ?? ByteString.Empty;
-
-        foreach (var rotation in response.RecordRotations)
-        {
-          var row = PamStorageMapper.FromProto(rotation);
-          if (!string.IsNullOrEmpty(row.RecordUid))
-          {
-            merged[row.RecordUid] = row;
-          }
-        }
-      }
-
-      if (merged.Count == 0)
-      {
-        return;
-      }
-
-      var rows = merged.Values.ToList();
-      Storage.RecordRotations.PutEntities(rows);
-      _recordRotations.PutEntities(rows.Select(PamStorageMapper.ToDomainRotation));
     }
 
     private void LoadFromStorage()
@@ -184,14 +108,6 @@ namespace KeeperSecurity.Plugins.PAM
       if (controllers.Count > 0)
       {
         _controllers.PutEntities(controllers);
-      }
-
-      var rotations = Storage.RecordRotations.GetAll()
-        .Select(PamStorageMapper.ToDomainRotation)
-        .ToList();
-      if (rotations.Count > 0)
-      {
-        _recordRotations.PutEntities(rotations);
       }
     }
 

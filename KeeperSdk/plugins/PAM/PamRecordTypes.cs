@@ -31,7 +31,8 @@ namespace KeeperSecurity.Plugins.PAM
       "pamGcpConfiguration",
       "pamDomainConfiguration",
       "pamNetworkConfiguration",
-      "pamOciConfiguration");
+      "pamOciConfiguration",
+      "pamGitHubConfiguration");
 
     private static HashSet<string> Create(params string[] types)
     {

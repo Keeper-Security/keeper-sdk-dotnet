@@ -362,7 +362,7 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static List<Dictionary<string, object>> ParseScheduleEntries(string scheduleJson)
     {
-      var json = NormalizeJsonArgument(scheduleJson);
+      var json = NormalizeScheduleJson(scheduleJson);
       if (string.IsNullOrEmpty(json))
       {
         throw new ArgumentException("Schedule JSON is empty.");
@@ -385,14 +385,73 @@ namespace KeeperSecurity.Plugins.PAM
       {
         throw new ArgumentException(
           $"Invalid schedule JSON: {ex.Message}. "
-          + "Provide a JSON array or object, e.g. "
-          + "[{{\"type\":\"MONTHLY_BY_DAY\",\"monthDay\":1,\"time\":\"04:00\",\"tz\":\"America/Chicago\"}}]",
+          + "On PowerShell, wrap the JSON in single quotes so double-quotes are preserved.",
           ex);
       }
 
       throw new ArgumentException(
         "Schedule JSON must start with '[' or '{'. "
-        + "Example: [{\"type\":\"MONTHLY_BY_DAY\",\"monthDay\":1,\"time\":\"04:00\",\"tz\":\"America/Chicago\"}]");
+        + "On PowerShell wrap the value in single quotes.");
+    }
+
+    /// <summary>
+    /// Normalizes CLI schedule JSON. PowerShell often strips double-quotes, producing
+    /// <c>[{type:MONTHLY_BY_DAY,...}]</c>; also coerces numeric fields for DCS dictionary parsing.
+    /// </summary>
+    private static string NormalizeScheduleJson(string value)
+    {
+      var json = NormalizeJsonArgument(value);
+      if (string.IsNullOrEmpty(json))
+      {
+        return json;
+      }
+
+      if (LooksLikeUnquotedJsonObject(json))
+      {
+        json = RepairUnquotedScheduleJson(json);
+      }
+
+      // DataContractJsonSerializer + Dictionary<object> is unreliable with bare numbers.
+      json = Regex.Replace(
+        json,
+        "\"(monthDay|intervalCount|month)\"\\s*:\\s*(-?\\d+)",
+        "\"$1\":\"$2\"",
+        RegexOptions.CultureInvariant);
+
+      return json;
+    }
+
+    private static bool LooksLikeUnquotedJsonObject(string json)
+    {
+      // Proper JSON has "type"; shell-mangled often starts a property as {type: or ,type:
+      return Regex.IsMatch(json, @"[\{\,]\s*[A-Za-z_][A-Za-z0-9_]*\s*:")
+             && json.IndexOf("\"type\"", StringComparison.Ordinal) < 0;
+    }
+
+    private static string RepairUnquotedScheduleJson(string json)
+    {
+      // {type: -> {"type":
+      json = Regex.Replace(
+        json,
+        @"(?<=[\{,])\s*([A-Za-z_][A-Za-z0-9_]*)\s*:",
+        "\"$1\":",
+        RegexOptions.CultureInvariant);
+
+      // time:04:00 -> "time":"04:00"
+      json = Regex.Replace(
+        json,
+        @":\s*(\d{1,2}:\d{2})(?=\s*[,\}])",
+        ":\"$1\"",
+        RegexOptions.CultureInvariant);
+
+      // type:MONTHLY_BY_DAY / tz:America/Chicago
+      json = Regex.Replace(
+        json,
+        @":\s*(?!true\b|false\b|null\b)([A-Za-z_][A-Za-z0-9_/\-]*)(?=\s*[,\}])",
+        ":\"$1\"",
+        RegexOptions.CultureInvariant);
+
+      return json;
     }
 
     private static List<object> ToObjectList(IList<Dictionary<string, object>> entries)

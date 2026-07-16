@@ -18,18 +18,15 @@ namespace Commander.PAM
 {
     internal sealed class PamRotationEditService
     {
-        private readonly IPamPlugin _plugin;
         private readonly IAuthentication _auth;
         private readonly VaultOnline _vault;
         private readonly VaultContext _pathContext;
 
         public PamRotationEditService(
-            IPamPlugin plugin,
             IAuthentication auth,
             VaultOnline vault,
             VaultContext pathContext = null)
         {
-            _plugin = plugin;
             _auth = auth;
             _vault = vault;
             _pathContext = pathContext;
@@ -54,7 +51,7 @@ namespace Commander.PAM
                     + "--resource configures users on a resource; --iam-aad-config configures IAM/Azure AD users.");
             }
 
-            await _plugin.SyncRecordRotationsFromVaultAsync();
+            await _vault.SyncDown();
 
             PasswordGenerationOptions complexityRules = null;
             if (options.Complexity != null)
@@ -172,7 +169,7 @@ namespace Commander.PAM
                         resourceUidForDag = ResolveResourceUidForDag(record, options, configRecord, pamConfigs);
                         if (string.IsNullOrEmpty(configUidForDag))
                         {
-                            var cached = _plugin.RecordRotations.GetEntity(record.Uid);
+                            var cached = _vault.GetRecordRotation(record.Uid);
                             configUidForDag = cached?.ConfigurationUid;
                         }
                     }
@@ -289,7 +286,7 @@ namespace Commander.PAM
                 }
             }
 
-            await _plugin.SyncRecordRotationsFromVaultAsync();
+            await _vault.SyncDown();
 
             if (failures.Count > 0)
             {
@@ -337,7 +334,7 @@ namespace Commander.PAM
             out RouterProto.RouterRecordRotationRequest request)
         {
             request = null;
-            var cached = _plugin.RecordRotations.GetEntity(record.Uid);
+            var cached = _vault.GetRecordRotation(record.Uid);
             var profile = editContext.Profile;
             var noop = editContext.Noop;
 
@@ -417,6 +414,17 @@ namespace Commander.PAM
                 else if (options.ScheduleConfig)
                 {
                     recordSchedule = GetScheduleFromConfig(pamConfig);
+                    if (recordSchedule == null)
+                    {
+                        skipped.Add(new object[]
+                        {
+                            record.Uid,
+                            record.Title,
+                            "No defaultRotationSchedule on PAM Configuration",
+                            "Set a default rotation schedule on the PAM config, or use --schedule-json/--schedule-cron",
+                        });
+                        return false;
+                    }
                 }
             }
 
@@ -559,7 +567,7 @@ namespace Commander.PAM
             return options.RotationProfile.Trim().ToLowerInvariant();
         }
 
-        private static string ResolveIamConfigUid(PamRotationOptions options, PamRecordRotationInfo cached)
+        private static string ResolveIamConfigUid(PamRotationOptions options, RecordRotationInfo cached)
         {
             if (!string.IsNullOrWhiteSpace(options.IamAadConfig))
             {
@@ -619,29 +627,55 @@ namespace Commander.PAM
 
         private static List<object> GetScheduleFromConfig(TypedRecord config)
         {
-            var scheduleField = config.Fields
+            if (config == null)
+            {
+                return null;
+            }
+
+            // Same as Python: get_typed_field('schedule', 'defaultRotationSchedule')
+            var scheduleField = EnumerateTypedFields(config)
                 .OfType<TypedField<FieldSchedule>>()
-                .FirstOrDefault(x => x.FieldName == "defaultRotationSchedule");
+                .FirstOrDefault(x =>
+                    string.Equals(x.FieldName, "schedule", StringComparison.Ordinal)
+                    && string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.Ordinal));
+
             var value = scheduleField?.Values?.FirstOrDefault();
             if (value == null)
+            {
+                return null;
+            }
+
+            // On-Demand / empty default => no scheduled entries
+            if (string.IsNullOrWhiteSpace(value.Type)
+                || string.Equals(value.Type, "On-Demand", StringComparison.OrdinalIgnoreCase))
             {
                 return new List<object>();
             }
 
-            var dict = new Dictionary<string, object>();
-            if (!string.IsNullOrEmpty(value.Type))
+            var dict = new Dictionary<string, object>
             {
-                dict["type"] = value.Type;
-            }
+                ["type"] = value.Type,
+            };
 
             if (!string.IsNullOrEmpty(value.Time))
             {
+                dict["time"] = value.Time;
                 dict["utcTime"] = value.Time;
             }
 
             if (!string.IsNullOrEmpty(value.Weekday))
             {
                 dict["weekday"] = value.Weekday;
+            }
+
+            if (!string.IsNullOrEmpty(value.Month))
+            {
+                dict["month"] = value.Month;
+            }
+
+            if (!string.IsNullOrEmpty(value.MonthDay))
+            {
+                dict["monthDay"] = value.MonthDay;
             }
 
             if (!string.IsNullOrEmpty(value.IntervalCount))
@@ -660,6 +694,25 @@ namespace Commander.PAM
             }
 
             return new List<object> { dict };
+        }
+
+        private static IEnumerable<ITypedField> EnumerateTypedFields(TypedRecord config)
+        {
+            if (config.Fields != null)
+            {
+                foreach (var field in config.Fields)
+                {
+                    yield return field;
+                }
+            }
+
+            if (config.Custom != null)
+            {
+                foreach (var field in config.Custom)
+                {
+                    yield return field;
+                }
+            }
         }
 
         private List<TypedRecord> ResolveTargetRecords(PamRotationOptions options)
@@ -939,7 +992,7 @@ namespace Commander.PAM
             var configUid = configRecord?.Uid;
             if (string.IsNullOrEmpty(configUid))
             {
-                var cached = _plugin.RecordRotations.GetEntity(record.Uid);
+                var cached = _vault.GetRecordRotation(record.Uid);
                 configUid = cached?.ConfigurationUid;
             }
 
@@ -948,7 +1001,7 @@ namespace Commander.PAM
                 return null;
             }
 
-            var cachedRotation = _plugin.RecordRotations.GetEntity(record.Uid);
+            var cachedRotation = _vault.GetRecordRotation(record.Uid);
             if (cachedRotation != null
                 && !string.IsNullOrEmpty(cachedRotation.ResourceUid)
                 && !string.Equals(cachedRotation.ResourceUid, configUid, StringComparison.Ordinal))

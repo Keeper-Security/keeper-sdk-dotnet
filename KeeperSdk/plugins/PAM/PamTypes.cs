@@ -63,21 +63,4 @@ namespace KeeperSecurity.Plugins.PAM
     public IList<PamGatewayOnlineInstance> OnlineInstances { get; set; } = new List<PamGatewayOnlineInstance>();
   }
 
-  /// <summary>
-  /// Vault record rotation metadata exposed by PamPlugin.
-  /// </summary>
-  public class PamRecordRotationInfo : IUid
-  {
-    public string RecordUid { get; set; } = "";
-    public long Revision { get; set; }
-    public string ConfigurationUid { get; set; } = "";
-    public string Schedule { get; set; } = "";
-    public byte[] PwdComplexity { get; set; } = System.Array.Empty<byte>();
-    public bool Disabled { get; set; }
-    public string ResourceUid { get; set; } = "";
-    public long LastRotation { get; set; }
-    public int LastRotationStatus { get; set; }
-
-    public string Uid => RecordUid;
-  }
 }

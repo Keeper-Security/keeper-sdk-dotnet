@@ -431,6 +431,17 @@ namespace KeeperSecurity.Vault
             rq.Files.Add(fileRq);
             var fileRs = await Auth.ExecuteAuthRest<Records.FilesAddRequest, Records.FilesAddResponse>("vault/files_add", rq);
             var uploadRs = fileRs.Files[0];
+            if (uploadRs.Status != Records.FileAddResult.FaSuccess)
+            {
+                if (isScript)
+                {
+                    throw new Exception(
+                        $"Uploading rotation script {uploadTask.Name}: only the record owner can attach post-rotation scripts.");
+                }
+
+                throw new Exception($"Uploading file {uploadTask.Name}: Get upload URL error ({uploadRs.Status}).");
+            }
+
             var fileUpload = new UploadParameters
             {
                 Url = uploadRs.Url,
