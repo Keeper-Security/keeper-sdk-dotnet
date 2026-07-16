@@ -136,9 +136,9 @@ Export-ModuleMember -Alias kshrsh, kshr, kushr, kcancelshare, kshf, kushf, kat, 
 compliance-team-report, record-access-report, compliance-summary-report, compliance-shared-folder-report, external-shares-report, aging-report
 
 Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Remove-KeeperSecretManagerApp,
-Grant-KeeperSecretManagerFolderAccess,Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, 
-Remove-KeeperSecretManagerClient, Grant-KeeperAppAccess, Revoke-KeeperAppAccess
-Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
+Grant-KeeperSecretManagerFolderAccess, Revoke-KeeperSecretManagerFolderAccess, Update-KeeperSecretManagerShare,
+Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient, Grant-KeeperAppAccess, Revoke-KeeperAppAccess
+Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-share-update, ksm-addclient, ksm-rmclient
 
 Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, 
 Remove-KeeperFileAttachment,Get-KeeperFileReport
