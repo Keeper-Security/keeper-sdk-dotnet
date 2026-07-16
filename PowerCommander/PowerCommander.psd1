@@ -137,8 +137,8 @@
         'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
         'Get-KeeperNSFList', 'Get-KeeperNSFFolderList', 'Get-KeeperNSFRecordList', 'Get-KeeperNSFRecord', 'Get-KeeperNSFRecordDetails',
         'New-KeeperNSFFolder', 'Set-KeeperNSFFolderAccess', 'Set-KeeperNSFFolder', 'Remove-KeeperNSFFolder',
-        'Add-KeeperNSFRecord', 'Add-KeeperNSFRecords', 'Edit-KeeperNSFRecord', 'Set-KeeperNSFRecordAccess', 'Set-KeeperNSFRecordPermission',
-        'Remove-KeeperNSFRecord', 'Link-KeeperNSFRecord', 'Transfer-KeeperNSFRecordOwnership',
+        'Add-KeeperNSFRecord', 'Add-KeeperNSFRecords', 'Edit-KeeperNSFRecord', 'Edit-KeeperNSFRecords', 'Set-KeeperNSFRecordAccess', 'Share-KeeperNSFRecords', 'Unshare-KeeperNSFRecords', 'Set-KeeperNSFRecordPermission',
+        'Remove-KeeperNSFRecord', 'Remove-KeeperNSFRecords', 'Link-KeeperNSFRecord', 'Link-KeeperNSFRecords', 'Unlink-KeeperNSFRecords', 'Transfer-KeeperNSFRecordOwnership',
         'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep',
         'Sync-KeeperPam', 'Get-KeeperPamGatewayList', 'New-KeeperPamGateway',
         'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances'
@@ -171,8 +171,8 @@
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
         'nsf-list', 'nsf-folders', 'nsf-records', 'nsf-get', 'nsf-record-details',
         'nsf-mkdir', 'nsf-share-folder', 'nsf-rndir', 'nsf-rmdir',
-        'nsf-record-add', 'nsf-records-add', 'nsf-record-update', 'nsf-share-record', 'nsf-record-permission',
-        'nsf-rm', 'nsf-ln', 'nsf-transfer-record',
+        'nsf-record-add', 'nsf-records-add', 'nsf-record-update', 'nsf-records-update', 'nsf-share-record', 'nsf-share-records', 'nsf-unshare-records', 'nsf-record-permission',
+        'nsf-rm', 'nsf-records-rm', 'nsf-ln', 'nsf-lns', 'nsf-unln', 'nsf-transfer-record',
         'nsf-shortcut-list', 'nsf-shortcut-keep',
         'pam-sync', 'pam-gateway-list', 'pam-gw-list', 'pam-gateway-new', 'pam-gw-new',
         'pam-gateway-edit', 'pam-gw-edit', 'pam-gateway-remove', 'pam-gw-remove', 'pam-gateway-rm',
@@ -191,10 +191,12 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Passphrase generation support:
-                    - Add-KeeperRecord: new -GeneratePassphrase and -PassphraseRuleValues parameters generate a passphrase on the password field
-                    - Add-KeeperNSFRecord: same -GeneratePassphrase / -PassphraseRuleValues support
-                    - Edit-KeeperNSFRecord: same -GeneratePassphrase / -PassphraseRuleValues support
+            ReleaseNotes = 'Keeper NSF batch cmdlets:
+                    - Add-KeeperNSFRecords / Edit-KeeperNSFRecords / Share-KeeperNSFRecords / Unshare-KeeperNSFRecords / Remove-KeeperNSFRecords
+                    - Sample JSON via -DownloadSampleRecords / -DownloadSampleShares / -DownloadSampleUnshares / -DownloadSampleRemovals
+                    - Supports -WhatIf / -Confirm on batch mutators
+                    Passphrase generation support:
+                    - Add-KeeperRecord / Add-KeeperNSFRecord / Edit-KeeperNSFRecord: -GeneratePassphrase and -PassphraseRuleValues
                     PassphraseRuleValues accepts up to 4 values: WordCount (5-9), Separator (- . _ ! ? space), UseCaps, UseDigits
                 '
         }

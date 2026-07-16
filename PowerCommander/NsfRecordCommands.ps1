@@ -18,9 +18,10 @@ function Script:ConvertTo-NSFJsonValue {
     }
 
     if ($base -is [System.Collections.IDictionary]) {
-        $ht = New-Object 'System.Collections.Hashtable'
+        # Use Dictionary[string,object] so KeeperImport.LoadJsonDictionary accepts custom_fields.
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         foreach ($key in $base.Keys) {
-            $ht[$key] = ConvertTo-NSFJsonValue -InputObject $base[$key]
+            $ht[[string]$key] = ConvertTo-NSFJsonValue -InputObject $base[$key]
         }
         return $ht
     }
@@ -30,11 +31,12 @@ function Script:ConvertTo-NSFJsonValue {
         foreach ($item in $base) {
             $list.Add((ConvertTo-NSFJsonValue -InputObject $item)) | Out-Null
         }
-        return $list.ToArray()
+        # Leading comma keeps single-element arrays as Object[] (PowerShell otherwise unwraps them).
+        return ,$list.ToArray()
     }
 
     if ($null -ne $InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
-        $ht = New-Object 'System.Collections.Hashtable'
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         foreach ($prop in $InputObject.PSObject.Properties) {
             $ht[$prop.Name] = ConvertTo-NSFJsonValue -InputObject $prop.Value
         }
@@ -269,12 +271,33 @@ function Script:Read-KeeperNSFImportFile {
     }
 
     try {
-        $jsonBytes = [System.Text.Encoding]::UTF8.GetBytes($JsonText)
-        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod('ParseJson', [Type[]]@([byte[]]))
-        return $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+        # ConvertFrom-Json + LoadJsonDictionary preserves nested custom_fields.
+        # JsonUtils.ParseJson / DataContractJsonSerializer turns those into empty System.Object.
+        $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+        $dict = ConvertTo-NSFJsonValue -InputObject $parsed
+        if ($dict -isnot [System.Collections.Generic.Dictionary[string, object]]) {
+            $generic = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+            foreach ($key in $dict.Keys) {
+                $generic[[string]$key] = $dict[$key]
+            }
+            $dict = $generic
+        }
+
+        # PowerShell unwraps single-element arrays; restore them before calling C#.
+        foreach ($arrayKey in @('records', 'shared_folders')) {
+            if ($dict.ContainsKey($arrayKey) -and $null -ne $dict[$arrayKey] -and $dict[$arrayKey] -isnot [System.Array]) {
+                $dict[$arrayKey] = @($dict[$arrayKey])
+            }
+        }
+
+        return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($dict)
     }
     catch {
-        throw "Invalid import JSON: $($_.Exception.Message)"
+        $msg = $_.Exception.Message
+        if ($_.Exception.InnerException) {
+            $msg = $_.Exception.InnerException.Message
+        }
+        throw "Invalid import JSON: $msg"
     }
 }
 
@@ -315,7 +338,7 @@ function Add-KeeperNSFRecords {
 	Writes a sample batch file to my-nsf-batch.json.
 
 	.EXAMPLE
-	PS> Add-KeeperNSFRecords -FilePath .\vault_backup.json
+	PS> Add-KeeperNSFRecords -FilePath .\nsf-records-batch.sample.json
 
 	.EXAMPLE
 	PS> Add-KeeperNSFRecords -Json '{"records":[{"title":"Site A","$type":"login","login":"a","password":"secret","login_url":"https://example.com"}]}'
@@ -369,7 +392,7 @@ function Add-KeeperNSFRecords {
 
 	Use -DownloadSampleRecords to write a full multi-type example file for editing.
 #>
-    [CmdletBinding(DefaultParameterSetName = 'File')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
     Param (
         [Parameter(Mandatory = $true, ParameterSetName = 'File')]
         [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
@@ -445,6 +468,10 @@ function Add-KeeperNSFRecords {
     }
     catch {
         Write-Host "Error parsing import payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($importFile.Records.Length) Keeper NSF record(s)", "Create Keeper NSF records")) {
         return
     }
 
@@ -629,6 +656,143 @@ function Edit-KeeperNSFRecord {
 
 New-Alias -Name nsf-record-update -Value Edit-KeeperNSFRecord
 
+function Edit-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Updates multiple Keeper NSF records in a single batch API call.
+
+	.Description
+	Uses vault/records/v3/update batching (up to 1000 records per request; larger sets are chunked automatically).
+	Accepts the same JSON record payload as Import-KeeperVault (kimport) / Export-KeeperVault / Add-KeeperNSFRecords.
+	Each record must include uid. Only provided title, $type, notes, login/password/login_url, and custom_fields are updated.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON import file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleRecords
+	Writes a sample batch update JSON file to disk and exits without updating records.
+	Requires an authenticated Keeper session. Replace the placeholder UIDs, then run
+	Edit-KeeperNSFRecords -FilePath.
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecords -DownloadSampleRecords
+	Writes nsf-records-update-batch.sample.json in the current directory.
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecords -FilePath .\nsf-records-update-batch.sample.json
+
+	.EXAMPLE
+	PS> Edit-KeeperNSFRecords -Json '{"records":[{"uid":"<recordUid>","title":"Renamed","login":"a","password":"secret"}]}'
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param (
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleRecords
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleRecords) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-update-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFBatchUpdateSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF batch update file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Replace REPLACE_WITH_EXISTING_RECORD_UID_* values, edit fields, then run:"
+        Write-Host "    Edit-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleRecords is not specified."
+        return
+    }
+
+    try {
+        $importFile = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Read-KeeperNSFImportFile -JsonText (Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8)
+        }
+        else {
+            Read-KeeperNSFImportFile -JsonText $Json
+        }
+
+        if (-not $importFile.Records -or $importFile.Records.Length -eq 0) {
+            throw "Import file contains no records."
+        }
+
+        if ($importFile.SharedFolders -and $importFile.SharedFolders.Length -gt 0) {
+            Write-Host "Note: shared_folders in the import file are ignored for NSF batch record update." -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Error parsing import payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($importFile.Records.Length) Keeper NSF record(s)", "Update Keeper NSF records")) {
+        return
+    }
+
+    try {
+        Write-Host "Updating $($importFile.Records.Length) Keeper NSF record(s) in batch..."
+        $results = $vault.UpdateKeeperNSFRecordsFromImport($importFile).GetAwaiter().GetResult()
+
+        $ok = @($results | Where-Object { $_.Success })
+        $fail = @($results | Where-Object { -not $_.Success })
+        Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+        Write-Host ""
+
+        foreach ($result in $results) {
+            if ($result.Success) {
+                Write-Host "  [OK]   $($result.Title)  UID: $($result.RecordUid)" -ForegroundColor Green
+            }
+            else {
+                $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+                Write-Host "  [FAIL] $($result.Title)  UID: $($result.RecordUid)  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
+        }
+
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error updating records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-records-update -Value Edit-KeeperNSFRecords
+
+
 function Set-KeeperNSFRecordAccess {
     <#
 	.Synopsis
@@ -731,6 +895,475 @@ function Set-KeeperNSFRecordAccess {
 }
 
 New-Alias -Name nsf-share-record -Value Set-KeeperNSFRecordAccess
+
+function Share-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-share Keeper NSF records (grant access) in chunks of up to 1000 shares per API request.
+
+	.Description
+	Uses vault/records/v3/share batching. Independent of Set-KeeperNSFRecordAccess / nsf-share-record.
+	Accepts JSON with a "shares" array. Each item: uid (or record_uid), email, optional role (default viewer),
+	optional expire_in (e.g. 30d) or expire_at (ISO datetime).
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON share file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleShares
+	Writes a sample batch share JSON file and exits without sharing.
+
+	.EXAMPLE
+	PS> Share-KeeperNSFRecords -DownloadSampleShares
+
+	.EXAMPLE
+	PS> Share-KeeperNSFRecords -DownloadSampleShares -FilePath .\my-nsf-share-batch.json
+
+	.EXAMPLE
+	PS> Share-KeeperNSFRecords -FilePath .\nsf-records-share-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleShares
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleShares) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-share-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFShareBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF share batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with record UIDs and emails, then run:"
+        Write-Host "    Share-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleShares is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $shareRequests = ConvertTo-KeeperNSFShareRequests -JsonText $jsonText
+        if (-not $shareRequests -or $shareRequests.Count -eq 0) {
+            throw "Share file contains no shares."
+        }
+
+        # Ensure a typed IList so PowerShell does not pass Object[] into ShareKeeperNSFRecords.
+        if ($shareRequests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordShareRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordShareRequest]'
+            foreach ($item in @($shareRequests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFRecordShareRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $shareRequests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing share payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($shareRequests.Count) Keeper NSF record share(s)", "Share Keeper NSF records")) {
+        return
+    }
+
+    try {
+        Write-Host "Sharing $($shareRequests.Count) Keeper NSF record access(es) in batch..."
+        $shareList = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordShareRequest]]$shareRequests
+        $results = $vault.ShareKeeperNSFRecords($shareList).GetAwaiter().GetResult()
+
+        $ok = @($results | Where-Object { $_.Success })
+        $fail = @($results | Where-Object { -not $_.Success })
+        Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+        Write-Host ""
+
+        foreach ($result in $results) {
+            if ($result.Success) {
+                Write-Host "  [OK]   $($result.RecordUid) -> $($result.UserEmail) ($($result.Role))" -ForegroundColor Green
+            }
+            else {
+                $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+                Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
+        }
+
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error sharing records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-share-records -Value Share-KeeperNSFRecords
+
+function Script:ConvertTo-KeeperNSFShareRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $items = @()
+    if ($null -ne $parsed.shares) {
+        $items = @($parsed.shares)
+    }
+    elseif ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    }
+    else {
+        throw "JSON must contain a 'shares' array (or be a root array of share objects)."
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordShareRequest]'
+    $validRoles = @('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')
+    $index = 0
+    foreach ($item in $items) {
+        $uid = $null
+        if ($item.uid) { $uid = [string]$item.uid }
+        elseif ($item.record_uid) { $uid = [string]$item.record_uid }
+        elseif ($item.RecordUid) { $uid = [string]$item.RecordUid }
+
+        $email = $null
+        if ($item.email) { $email = [string]$item.email }
+        elseif ($item.user_email) { $email = [string]$item.user_email }
+        elseif ($item.UserEmail) { $email = [string]$item.UserEmail }
+
+        if ([string]::IsNullOrWhiteSpace($uid)) {
+            throw "Share item at index $index is missing required 'uid' (or record_uid)."
+        }
+        if ([string]::IsNullOrWhiteSpace($email)) {
+            throw "Share item at index $index is missing required 'email' (or user_email)."
+        }
+
+        $role = 'viewer'
+        if ($item.role) { $role = [string]$item.role }
+        $roleNormalized = $role.Trim().ToLowerInvariant()
+        if ($validRoles -notcontains $roleNormalized) {
+            throw "Invalid role '$role' at share index $index. Valid roles: $($validRoles -join ', ')."
+        }
+
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFRecordShareRequest
+        $req.RecordUid = $uid.Trim()
+        $req.UserEmail = $email.Trim()
+        $req.Role = $roleNormalized
+
+        $expireIn = $null
+        if ($item.expire_in) { $expireIn = $item.expire_in }
+        elseif ($item.ExpireIn) { $expireIn = $item.ExpireIn }
+
+        $expireAt = $null
+        if ($item.expire_at) { $expireAt = [string]$item.expire_at }
+        elseif ($item.ExpireAt) { $expireAt = [string]$item.ExpireAt }
+
+        if ($expireIn -or $expireAt) {
+            $expirationDto = Get-ExpirationDate -ExpireIn $expireIn -ExpireAt $expireAt
+            $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
+            $shareOptions.Expiration = $expirationDto
+            $req.Options = $shareOptions
+        }
+
+        $list.Add($req) | Out-Null
+        $index++
+    }
+
+    # Leading comma prevents PowerShell from unrolling the List into Object[].
+    return ,$list
+}
+
+function Unshare-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-unshare Keeper NSF records (revoke access) in chunks of up to 1000 per API request.
+
+	.Description
+	Uses vault/records/v3/share revokeSharingPermissions (and deny for inherited access).
+	Independent of Set-KeeperNSFRecordAccess / nsf-share-record.
+	Accepts JSON with an "unshares" array. Each item: uid (or record_uid), email.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON unshare file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleUnshares
+	Writes a sample batch unshare JSON file and exits without unsharing.
+
+	.EXAMPLE
+	PS> Unshare-KeeperNSFRecords -DownloadSampleUnshares
+
+	.EXAMPLE
+	PS> Unshare-KeeperNSFRecords -DownloadSampleUnshares -FilePath .\my-nsf-unshare-batch.json
+
+	.EXAMPLE
+	PS> Unshare-KeeperNSFRecords -FilePath .\nsf-records-unshare-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleUnshares
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleUnshares) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-unshare-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFUnshareBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF unshare batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with record UIDs and emails, then run:"
+        Write-Host "    Unshare-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleUnshares is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $unshareRequests = ConvertTo-KeeperNSFUnshareRequests -JsonText $jsonText
+        if (-not $unshareRequests -or $unshareRequests.Count -eq 0) {
+            throw "Unshare file contains no unshares."
+        }
+
+        if ($unshareRequests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest]'
+            foreach ($item in @($unshareRequests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $unshareRequests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing unshare payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($unshareRequests.Count) Keeper NSF record unshare(s)", "Unshare Keeper NSF records")) {
+        return
+    }
+
+    try {
+        Write-Host "Revoking $($unshareRequests.Count) Keeper NSF record access(es) in batch..."
+        $unshareList = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest]]$unshareRequests
+        $results = $vault.UnshareKeeperNSFRecords($unshareList).GetAwaiter().GetResult()
+
+        $ok = @($results | Where-Object { $_.Success })
+        $fail = @($results | Where-Object { -not $_.Success })
+        Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+        Write-Host ""
+
+        foreach ($result in $results) {
+            if ($result.Success) {
+                Write-Host "  [OK]   $($result.RecordUid) -> $($result.UserEmail)" -ForegroundColor Green
+            }
+            else {
+                $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+                Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
+        }
+
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error unsharing records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-unshare-records -Value Unshare-KeeperNSFRecords
+
+function Script:ConvertTo-KeeperNSFUnshareRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $items = @()
+    if ($null -ne $parsed.unshares) {
+        $items = @($parsed.unshares)
+    }
+    elseif ($null -ne $parsed.shares) {
+        # Allow reuse of share-batch JSON (uid/email only; role ignored).
+        $items = @($parsed.shares)
+    }
+    elseif ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    }
+    else {
+        throw "JSON must contain an 'unshares' array (or be a root array of unshare objects)."
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest]'
+    $index = 0
+    foreach ($item in $items) {
+        $uid = $null
+        if ($item.uid) { $uid = [string]$item.uid }
+        elseif ($item.record_uid) { $uid = [string]$item.record_uid }
+        elseif ($item.RecordUid) { $uid = [string]$item.RecordUid }
+
+        $email = $null
+        if ($item.email) { $email = [string]$item.email }
+        elseif ($item.user_email) { $email = [string]$item.user_email }
+        elseif ($item.UserEmail) { $email = [string]$item.UserEmail }
+
+        if ([string]::IsNullOrWhiteSpace($uid)) {
+            throw "Unshare item at index $index is missing required 'uid' (or record_uid)."
+        }
+        if ([string]::IsNullOrWhiteSpace($email)) {
+            throw "Unshare item at index $index is missing required 'email' (or user_email)."
+        }
+
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFRecordUnshareRequest
+        $req.RecordUid = $uid.Trim()
+        $req.UserEmail = $email.Trim()
+        $list.Add($req) | Out-Null
+        $index++
+    }
+
+    return ,$list
+}
+
+function Script:ConvertTo-KeeperNSFRemovalSpecs {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $items = @()
+    if ($null -ne $parsed.removals) {
+        $items = @($parsed.removals)
+    }
+    elseif ($null -ne $parsed.records) {
+        $items = @($parsed.records)
+    }
+    elseif ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    }
+    else {
+        throw "JSON must contain a 'removals' array (or be a root array of removal objects)."
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[pscustomobject]'
+    foreach ($item in $items) {
+        $uid = $null
+        if ($item.uid) { $uid = [string]$item.uid }
+        elseif ($item.record_uid) { $uid = [string]$item.record_uid }
+        elseif ($item.RecordUid) { $uid = [string]$item.RecordUid }
+
+        if ([string]::IsNullOrWhiteSpace($uid)) {
+            throw "Each removal item must include uid (or record_uid)."
+        }
+
+        $folder = $null
+        if ($item.folder) { $folder = [string]$item.folder }
+        elseif ($item.folder_uid) { $folder = [string]$item.folder_uid }
+        elseif ($item.FolderUid) { $folder = [string]$item.FolderUid }
+
+        $operation = 'owner-trash'
+        if ($item.operation) { $operation = [string]$item.operation }
+        elseif ($item.Operation) { $operation = [string]$item.Operation }
+
+        $operation = $operation.Trim().ToLowerInvariant()
+        if ($operation -notin @('owner-trash', 'folder-trash', 'unlink')) {
+            throw "Invalid operation '$operation' for uid '$uid'. Use owner-trash, folder-trash, or unlink."
+        }
+
+        $list.Add([pscustomobject]@{
+                RecordUid = $uid
+                Folder    = $folder
+                Operation = $operation
+            }) | Out-Null
+    }
+
+    return ,$list
+}
+
+#    Before: function Link-KeeperNSFRecord
+# -----------------------------------------------------------------------------
+
 
 function Set-KeeperNSFRecordPermission {
     <#
@@ -1232,6 +1865,30 @@ function Remove-KeeperNSFRecord {
 
 	.Parameter DryRun
 	Preview only; do not remove records.
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecord <recordUid>
+	Moves one record to owner trash (default). Alias: nsf-rm <recordUid>
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecord <recordUid> -DryRun
+	Previews removal impact without deleting.
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecord <recordUid1>,<recordUid2>,<recordUid3> -Force
+	Removes multiple records in one batch (owner trash), skipping the confirmation prompt.
+
+	.EXAMPLE
+	PS> '<recordUid1>','<recordUid2>' | Remove-KeeperNSFRecord -Operation folder-trash -Folder <folderUid>
+	Batch-removes records from a folder via the pipeline (folder trash).
+
+	.EXAMPLE
+	PS> nsf-rm <recordUid> -Operation unlink -Folder <folderUid> -Force
+	Unlinks a single record from a folder without moving it to trash.
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecords -DownloadSampleRemovals
+	Writes nsf-records-remove-batch.sample.json for JSON batch remove (alias: nsf-records-rm).
 #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
@@ -1374,6 +2031,238 @@ function Remove-KeeperNSFRecord {
     }
 }
 New-Alias -Name nsf-rm -Value Remove-KeeperNSFRecord
+
+function Remove-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-remove Keeper NSF records from a JSON file (Keeper NSF v3 API).
+
+	.Description
+	Accepts JSON with a "removals" array. Each item: uid (or record_uid), optional folder
+	(folder_uid; required for unlink / recommended for folder-trash), optional operation
+	(owner-trash default, folder-trash, or unlink).
+	Independent of Remove-KeeperNSFRecord / nsf-rm (UID args or pipeline).
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON remove file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleRemovals
+	Writes a sample batch remove JSON file and exits without removing.
+
+	.Parameter Force
+	Skip confirmation after preview.
+
+	.Parameter DryRun
+	Preview only; do not remove records.
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecords -DownloadSampleRemovals
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecords -DownloadSampleRemovals -FilePath .\my-nsf-remove-batch.json
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecords -FilePath .\nsf-records-remove-batch.sample.json
+
+	.EXAMPLE
+	PS> Remove-KeeperNSFRecords -FilePath .\nsf-records-remove-batch.sample.json -Force
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleRemovals,
+
+        [Alias('f')]
+        [switch] $Force,
+
+        [switch] $DryRun
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleRemovals) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-remove-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFRemoveBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF remove batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with record UIDs (and folder UIDs where needed), then run:"
+        Write-Host "    Remove-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleRemovals is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $specs = ConvertTo-KeeperNSFRemovalSpecs -JsonText $jsonText
+        if (-not $specs -or $specs.Count -eq 0) {
+            throw "Remove file contains no removals."
+        }
+    }
+    catch {
+        Write-Host "Error parsing remove payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
+    foreach ($spec in $specs) {
+        [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+        if (-not $vault.TryResolveKeeperNSFRecord($spec.RecordUid, [ref]$kdRecord)) {
+            Write-Error -Message "Keeper NSF record `"$($spec.RecordUid)`" was not found. Run Sync-Keeper or nsf-list first."
+            continue
+        }
+
+        $op = switch ($spec.Operation) {
+            'owner-trash' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash }
+            'folder-trash' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::FolderTrash }
+            'unlink' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink }
+        }
+
+        $folderHint = $spec.Folder
+        if ([string]::IsNullOrWhiteSpace($folderHint) -and $op -ne [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::OwnerTrash -and $Script:Context.CurrentFolder) {
+            $folderHint = $Script:Context.CurrentFolder
+        }
+
+        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
+            Write-Error -Message "Folder is required for unlink of record `"$($spec.RecordUid)`"."
+            continue
+        }
+
+        [string]$folderUid = $null
+        if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
+            if ($spec.Folder) {
+                Write-Error -Message "Keeper NSF folder `"$($spec.Folder)`" was not found for record `"$($spec.RecordUid)`"."
+            }
+            else {
+                Write-Error -Message "No folder context for record `"$($spec.RecordUid)`". Set folder in JSON or use operation owner-trash."
+            }
+            continue
+        }
+
+        $removal = New-Object KeeperSecurity.Vault.KeeperNSFRecordRemoval
+        $removal.RecordUid = $kdRecord.RecordUid
+        $removal.FolderUid = $folderUid
+        $removal.Operation = $op
+        $removals.Add($removal)
+    }
+
+    if ($removals.Count -eq 0) {
+        return
+    }
+
+    Write-Host ""
+    Write-Host "=== Keeper NSF Remove Preview ===" -ForegroundColor Cyan
+    $previewResult = $vault.RemoveKeeperNSFRecords($removals, $true).GetAwaiter().GetResult()
+    Write-KeeperNSFRemoveImpact -Response $previewResult.PreviewResponse
+
+    $previewErrors = @($previewResult.PreviewResponse.Results | Where-Object {
+            $_.Error -and -not [string]::IsNullOrWhiteSpace($_.Error.Message)
+        })
+    if ($previewErrors.Count -gt 0) {
+        Write-Host ""
+        Write-Host "One or more records could not be previewed. Aborting." -ForegroundColor Yellow
+        return
+    }
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]::ValidateRemoveResponse($previewResult.PreviewResponse, $false)
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+        return
+    }
+
+    if ($DryRun) {
+        Write-Host ""
+        Write-Host "Dry run: no records were removed." -ForegroundColor DarkYellow
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($removals.Count) Keeper NSF record(s)", "Remove Keeper NSF records")) {
+        return
+    }
+
+    if (-not $Force) {
+        $confirmation = Read-Host "Are you sure you want to remove the record(s) above? (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Remove operation cancelled"
+            return
+        }
+    }
+
+    if ($previewResult.PreviewResponse.ConfirmationToken.IsEmpty) {
+        Write-Error -Message "Preview did not return a confirmation token."
+        return
+    }
+
+    Write-Host ""
+    Write-Host "Removing $($removals.Count) Keeper NSF record(s) in batch..." -ForegroundColor Cyan
+    $confirmResult = $vault.RemoveKeeperNSFRecords($removals, $false).GetAwaiter().GetResult()
+    if ($confirmResult.PartialSuccess) {
+        Write-Warning "Partial record removal: $($confirmResult.ConfirmedChunkCount) chunk(s) succeeded, $($confirmResult.FailedChunkCount) failed."
+        foreach ($err in @($confirmResult.ChunkErrors)) {
+            Write-Warning "  $err"
+        }
+        $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
+        return
+    }
+    if (-not $confirmResult.Confirmed) {
+        $detail = if ($confirmResult.ChunkErrors -and $confirmResult.ChunkErrors.Count -gt 0) {
+            ($confirmResult.ChunkErrors -join '; ')
+        } else {
+            'Record removal was not confirmed by the server.'
+        }
+        Write-Error -Message $detail
+        return
+    }
+
+    $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
+    Write-Host ""
+    Write-Host "Keeper NSF record removal completed." -ForegroundColor Green
+}
+New-Alias -Name nsf-records-rm -Value Remove-KeeperNSFRecords
+
 function Link-KeeperNSFRecord {
     <#
 	.Synopsis

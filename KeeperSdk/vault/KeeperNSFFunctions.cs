@@ -51,8 +51,127 @@ namespace KeeperSecurity.Vault
             return new NsfRecordFieldData
             {
                 Type = field.Type,
+                Label = field.Label,
                 Value = field.Value?.Select(v => CoerceNsfFieldValue(field.Type, v)).ToArray(),
+                ExtensionData = field.ExtensionData,
             };
+        }
+
+        private static NsfRecordData CloneNsfRecordData(NsfRecordData source)
+        {
+            if (source == null)
+            {
+                return new NsfRecordData { Fields = new List<NsfRecordFieldData>() };
+            }
+
+            return new NsfRecordData
+            {
+                Type = source.Type,
+                Title = source.Title,
+                Name = source.Name,
+                Notes = source.Notes,
+                ExtensionData = source.ExtensionData,
+                Fields = source.Fields?
+                    .Select(f => f == null
+                        ? null
+                        : new NsfRecordFieldData
+                        {
+                            Type = f.Type,
+                            Label = f.Label,
+                            Value = f.Value?.ToArray(),
+                            ExtensionData = f.ExtensionData,
+                        })
+                    .Where(f => f != null)
+                    .ToList()
+                    ?? new List<NsfRecordFieldData>(),
+            };
+        }
+
+        private static void SplitNsfFieldKey(string fieldKey, out string fieldType, out string fieldLabel)
+        {
+            fieldType = fieldKey ?? string.Empty;
+            fieldLabel = null;
+            if (string.IsNullOrEmpty(fieldKey))
+            {
+                return;
+            }
+
+            var separator = fieldKey.IndexOf(':');
+            if (separator <= 0)
+            {
+                return;
+            }
+
+            fieldType = fieldKey.Substring(0, separator);
+            fieldLabel = fieldKey.Substring(separator + 1);
+        }
+
+        private static NsfRecordFieldData FindNsfField(
+            IList<NsfRecordFieldData> fields,
+            string fieldType,
+            string fieldLabel)
+        {
+            if (fields == null || string.IsNullOrEmpty(fieldType))
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(fieldLabel))
+            {
+                return fields.FirstOrDefault(f =>
+                    string.Equals(f.Type, fieldType, StringComparison.Ordinal)
+                    && string.Equals(f.Label ?? string.Empty, fieldLabel, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return fields.FirstOrDefault(f =>
+                string.Equals(f.Type, fieldType, StringComparison.Ordinal)
+                && string.IsNullOrEmpty(f.Label));
+        }
+
+        private static void ApplyNsfFieldUpdates(NsfRecordData dataObj, IDictionary<string, object> fields)
+        {
+            if (dataObj == null || fields == null)
+            {
+                return;
+            }
+
+            if (dataObj.Fields == null)
+            {
+                dataObj.Fields = new List<NsfRecordFieldData>();
+            }
+
+            foreach (var kvp in fields)
+            {
+                if (kvp.Value == null || string.IsNullOrEmpty(kvp.Key))
+                {
+                    continue;
+                }
+
+                SplitNsfFieldKey(kvp.Key, out var fieldType, out var fieldLabel);
+                if (string.IsNullOrEmpty(fieldType))
+                {
+                    continue;
+                }
+
+                var existing = FindNsfField(dataObj.Fields, fieldType, fieldLabel);
+                if (existing != null)
+                {
+                    existing.Value = ToNsfFieldValues(fieldType, kvp.Value);
+                    if (!string.IsNullOrEmpty(fieldLabel))
+                    {
+                        existing.Label = fieldLabel;
+                    }
+                }
+                else
+                {
+                    dataObj.Fields.Add(new NsfRecordFieldData
+                    {
+                        Type = fieldType,
+                        Label = string.IsNullOrEmpty(fieldLabel) ? null : fieldLabel,
+                        Value = ToNsfFieldValues(fieldType, kvp.Value),
+                    });
+                }
+            }
         }
 
         private static NsfRecordData BuildNsfRecordData(
@@ -69,25 +188,7 @@ namespace KeeperSecurity.Vault
                 Fields = new List<NsfRecordFieldData>(),
             };
 
-            if (fields == null)
-            {
-                return data;
-            }
-
-            foreach (var pair in fields)
-            {
-                if (pair.Value == null || string.IsNullOrEmpty(pair.Key))
-                {
-                    continue;
-                }
-
-                data.Fields.Add(new NsfRecordFieldData
-                {
-                    Type = pair.Key,
-                    Value = ToNsfFieldValues(pair.Key, pair.Value),
-                });
-            }
-
+            ApplyNsfFieldUpdates(data, fields);
             return data;
         }
 
@@ -856,94 +957,298 @@ namespace KeeperSecurity.Vault
             return name.StartsWith("Rs", StringComparison.Ordinal) ? name.Substring(2) : name;
         }
 
+        /// <summary>
+        /// Updates a single Keeper NSF record by UID.
+        /// Thin wrapper over <see cref="UpdateKeeperNSFRecordsInternal"/> (same pattern as create).
+        /// </summary>
         public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)
         {
             if (string.IsNullOrEmpty(recordUid))
                 throw new VaultException("Record UID cannot be empty");
 
-            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
+            var results = await vault.UpdateKeeperNSFRecordsInternal(new[]
+            {
+                new KeeperNSFRecordUpdateRequest
+                {
+                    RecordUid = recordUid,
+                    Title = title,
+                    RecordType = recordType,
+                    Notes = notes,
+                    Fields = fields,
+                },
+            }).ConfigureAwait(false);
 
-            await vault.UpdateKeeperNSFRecordInternal(record, title, recordType, notes, fields).ConfigureAwait(false);
+            var result = results[0];
+            if (!result.Success)
+            {
+                throw new VaultException(string.IsNullOrEmpty(result.Message)
+                    ? $"Failed to update record: {result.Status ?? "unknown error"}"
+                    : $"Failed to update record: {result.Message}");
+            }
         }
 
-        public static async Task UpdateKeeperNSFRecordInternal(this VaultOnline vault, KeeperNSFRecord record, string title, string recordType, string notes, IDictionary<string, object> fields)
+        private const int MaxKeeperNSFRecordsUpdateBatchSize = 1000;
+
+        /// <summary>
+        /// Updates multiple Keeper NSF records in batches of up to 1000.
+        /// Shared implementation used by <see cref="UpdateKeeperNSFRecordInternal"/>.
+        /// </summary>
+        public static async Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> UpdateKeeperNSFRecordsInternal(
+            this VaultOnline vault, IReadOnlyList<KeeperNSFRecordUpdateRequest> records)
         {
-            if (record == null)
-                throw new ArgumentNullException(nameof(record));
-
-            var recordUid = record.RecordUid;
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-
-            if (record.RecordKey == null)
-                throw new VaultException($"Record key not available for record '{recordUid}'");
-
-            if (record.Data == null)
-                throw new VaultException($"Record '{recordUid}' has no decrypted data available. Cannot update.");
-
-            var dataObj = record.Data;
-            if (dataObj.Fields == null)
+            if (records == null || records.Count == 0)
             {
-                dataObj.Fields = new List<NsfRecordFieldData>();
+                throw new ArgumentException("At least one record is required.", nameof(records));
             }
 
-            if (title != null) dataObj.Title = title;
-            if (recordType != null) dataObj.Type = recordType;
-            if (notes != null) dataObj.Notes = notes;
-
-            if (fields != null)
+            for (var i = 0; i < records.Count; i++)
             {
-                foreach (var kvp in fields)
+                if (records[i] == null)
                 {
-                    var existing = dataObj.Fields.FirstOrDefault(f => f.Type == kvp.Key);
-                    if (existing != null)
-                    {
-                        existing.Value = ToNsfFieldValues(kvp.Key, kvp.Value);
-                    }
-                    else
-                    {
-                        dataObj.Fields.Add(new NsfRecordFieldData
-                        {
-                            Type = kvp.Key,
-                            Value = ToNsfFieldValues(kvp.Key, kvp.Value),
-                        });
-                    }
+                    throw new ArgumentException($"Record at index {i} is null.", nameof(records));
+                }
+
+                if (string.IsNullOrEmpty(records[i].RecordUid))
+                {
+                    throw new ArgumentException($"Record UID cannot be empty (index {i}).", nameof(records));
                 }
             }
+
+            var preparedRecordRequestArray = new List<(KeeperNSFRecordUpdateRequest Request, string Title, RecordUpdate RecordUpdate)>();
+            var results = new List<KeeperNSFRecordUpdateResult>(records.Count);
+            var pendingResultIndexes = new List<int>();
+
+            foreach (var request in records)
+            {
+                if (!vault.TryGetKeeperNSFRecord(request.RecordUid, out var record))
+                {
+                    results.Add(new KeeperNSFRecordUpdateResult
+                    {
+                        RecordUid = request.RecordUid,
+                        Title = request.Title,
+                        Status = "not_found",
+                        Message = $"Keeper NSF record '{request.RecordUid}' not found",
+                        Success = false,
+                    });
+                    continue;
+                }
+
+                if (!TryPrepareKeeperNSFRecordUpdate(record, request, out var titleForResult, out var recordUpdate, out var failure))
+                {
+                    results.Add(failure);
+                    continue;
+                }
+
+                pendingResultIndexes.Add(results.Count);
+                results.Add(null);
+                preparedRecordRequestArray.Add((request, titleForResult, recordUpdate));
+            }
+
+            for (var offset = 0; offset < preparedRecordRequestArray.Count; offset += MaxKeeperNSFRecordsUpdateBatchSize)
+            {
+                var chunk = preparedRecordRequestArray.Skip(offset).Take(MaxKeeperNSFRecordsUpdateBatchSize).ToList();
+                var chunkResults = await ExecuteKeeperNSFRecordsUpdateBatchAsync(vault, chunk).ConfigureAwait(false);
+                for (var i = 0; i < chunkResults.Count; i++)
+                {
+                    var resultIndex = pendingResultIndexes[offset + i];
+                    var result = chunkResults[i];
+                    if (result != null
+                        && !result.Success
+                        && string.Equals(result.Status, "OutOfSync", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result = await RetryKeeperNSFRecordUpdateOutOfSyncAsync(vault, chunk[i].Request).ConfigureAwait(false);
+                    }
+
+                    results[resultIndex] = result;
+                }
+            }
+
+            return results;
+        }
+
+        private static bool TryPrepareKeeperNSFRecordUpdate(
+            KeeperNSFRecord record,
+            KeeperNSFRecordUpdateRequest request,
+            out string titleForResult,
+            out RecordUpdate recordUpdate,
+            out KeeperNSFRecordUpdateResult failure)
+        {
+            titleForResult = null;
+            recordUpdate = null;
+            failure = null;
+
+            var recordUid = record?.RecordUid;
+            if (string.IsNullOrEmpty(recordUid))
+            {
+                failure = new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = request?.RecordUid,
+                    Title = request?.Title,
+                    Status = "invalid_record",
+                    Message = "Record UID cannot be empty",
+                    Success = false,
+                };
+                return false;
+            }
+
+            if (record.RecordKey == null)
+            {
+                failure = new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = recordUid,
+                    Title = request?.Title,
+                    Status = "no_record_key",
+                    Message = $"Record key not available for record '{recordUid}'",
+                    Success = false,
+                };
+                return false;
+            }
+
+            if (record.Data == null)
+            {
+                failure = new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = recordUid,
+                    Title = request?.Title,
+                    Status = "no_record_data",
+                    Message = $"Record '{recordUid}' has no decrypted data available. Cannot update.",
+                    Success = false,
+                };
+                return false;
+            }
+
+            var dataObj = CloneNsfRecordData(record.Data);
+            if (request.Title != null) dataObj.Title = request.Title;
+            if (request.RecordType != null) dataObj.Type = request.RecordType;
+            if (request.Notes != null) dataObj.Notes = request.Notes;
+            ApplyNsfFieldUpdates(dataObj, request.Fields);
+
+            titleForResult = dataObj.Title ?? request.Title;
 
             var jsonData = SerializeNsfRecordData(dataObj);
             jsonData = VaultExtensions.PadRecordData(jsonData);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, record.RecordKey);
 
-            var ru = new RecordUpdate
+            recordUpdate = new RecordUpdate
             {
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Revision = record.Revision,
                 Data = ByteString.CopyFrom(encryptedData),
             };
+            return true;
+        }
 
-            var rq = new RecordsUpdateRequest();
-            rq.Records.Add(ru);
-
-            var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
-                "vault/records/v3/update", rq);
-
-            if (rs.Records.Count > 0)
+        private static async Task<KeeperNSFRecordUpdateResult> RetryKeeperNSFRecordUpdateOutOfSyncAsync(
+            VaultOnline vault,
+            KeeperNSFRecordUpdateRequest request)
+        {
+            try
             {
-                var result = rs.Records[0];
-                if (result.Status != RecordModifyResult.RsSuccess)
+                var refreshed = await vault.GetRefreshedKeeperNSFRecordAsync(request.RecordUid).ConfigureAwait(false);
+                if (refreshed == null)
                 {
-                    var status = Enum.GetName(typeof(RecordModifyResult), result.Status) ?? "";
-                    if (status.StartsWith("Rs", StringComparison.Ordinal))
+                    return new KeeperNSFRecordUpdateResult
                     {
-                        status = status.Substring(2);
-                    }
-
-                    throw new KeeperApiException(status.ToSnakeCase(), result.Message ?? "Failed to update record");
+                        RecordUid = request.RecordUid,
+                        Title = request.Title,
+                        Status = "OutOfSync",
+                        Message = "Record is out of sync and could not be refreshed for retry.",
+                        Success = false,
+                    };
                 }
+
+                if (!TryPrepareKeeperNSFRecordUpdate(
+                        refreshed,
+                        request,
+                        out var titleForResult,
+                        out var recordUpdate,
+                        out var failure))
+                {
+                    return failure;
+                }
+
+                var batch = new List<(KeeperNSFRecordUpdateRequest Request, string Title, RecordUpdate RecordUpdate)>
+                {
+                    (request, titleForResult, recordUpdate),
+                };
+                var retryResults = await ExecuteKeeperNSFRecordsUpdateBatchAsync(vault, batch).ConfigureAwait(false);
+                return retryResults[0];
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Preserve unexpected failures as per-item results only for the retry path;
+                // cancellation must still propagate to callers.
+                return new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = request.RecordUid,
+                    Title = request.Title,
+                    Status = "OutOfSync",
+                    Message = $"Out-of-sync retry failed: {ex.Message}",
+                    Success = false,
+                };
+            }
+        }
+
+        private static async Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> ExecuteKeeperNSFRecordsUpdateBatchAsync(
+            VaultOnline vault,
+            IReadOnlyList<(KeeperNSFRecordUpdateRequest Request, string Title, RecordUpdate RecordUpdate)> batch)
+        {
+            var requestObj = new RecordsUpdateRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+            foreach (var item in batch)
+            {
+                requestObj.Records.Add(item.RecordUpdate);
+            }
+
+            var responseObj = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
+                "vault/records/v3/update", requestObj).ConfigureAwait(false);
+
+            var statusByRecordUid = new Dictionary<string, Records.RecordModifyStatus>(StringComparer.Ordinal);
+            foreach (var status in responseObj.Records)
+            {
+                if (status.RecordUid == null || status.RecordUid.IsEmpty)
+                {
+                    continue;
+                }
+
+                var uid = CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray());
+                statusByRecordUid[uid] = status;
+            }
+
+            var results = new List<KeeperNSFRecordUpdateResult>(batch.Count);
+            foreach (var item in batch)
+            {
+                if (!statusByRecordUid.TryGetValue(item.Request.RecordUid, out var status))
+                {
+                    results.Add(new KeeperNSFRecordUpdateResult
+                    {
+                        RecordUid = item.Request.RecordUid,
+                        Title = item.Title,
+                        Status = "missing",
+                        Message = "Server returned no status for this record.",
+                        Success = false,
+                    });
+                    continue;
+                }
+
+                results.Add(new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = item.Request.RecordUid,
+                    Title = item.Title,
+                    Status = FormatRecordModifyStatus(status.Status),
+                    Message = status.Message,
+                    Success = status.Status == RecordModifyResult.RsSuccess,
+                });
+            }
+
+            return results;
         }
 
         private static async Task<RecordSharingProto.Permissions> BuildRecordSharePermissions(
@@ -1051,75 +1356,6 @@ namespace KeeperSecurity.Vault
             return perm;
         }
 
-        private static async Task<IList<FolderProto.RecordAccessData>> GetRecordUserAccessRowsAsync(
-            VaultOnline vault, string recordUid, string userEmail)
-        {
-            var pkRq = new AuthProto.GetPublicKeysRequest();
-            pkRq.Usernames.Add(userEmail);
-            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
-                "vault/get_public_keys", pkRq).ConfigureAwait(false);
-            var pkRs = pkRss.KeyResponses[0];
-            if (pkRs.AccountUid.IsEmpty)
-            {
-                return Array.Empty<FolderProto.RecordAccessData>();
-            }
-
-            var detailsRs = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(
-                vault, new[] { recordUid }).ConfigureAwait(false);
-
-            var rows = new List<FolderProto.RecordAccessData>();
-            foreach (var ra in detailsRs.RecordAccesses)
-            {
-                var data = ra?.Data;
-                if (data == null) continue;
-                if (data.AccessType != FolderProto.AccessType.AtUser) continue;
-                if (data.Owner) continue;
-                if (!data.AccessTypeUid.Equals(pkRs.AccountUid)) continue;
-                rows.Add(data);
-            }
-
-            return rows;
-        }
-
-        private static async Task RevokeDirectKeeperNSFRecordShareAsync(
-            VaultOnline vault, string recordUid, string userEmail)
-        {
-            var pkRq = new AuthProto.GetPublicKeysRequest();
-            pkRq.Usernames.Add(userEmail);
-            var pkRss = await vault.Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
-                "vault/get_public_keys", pkRq).ConfigureAwait(false);
-            var pkRs = pkRss.KeyResponses[0];
-
-            if (pkRs.AccountUid.IsEmpty)
-                throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found");
-
-            var perm = new RecordSharingProto.Permissions
-            {
-                RecipientUid = pkRs.AccountUid,
-                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-            };
-            perm.Rules = new FolderProto.RecordAccessData
-            {
-                AccessTypeUid = pkRs.AccountUid,
-                AccessType = FolderProto.AccessType.AtUser,
-                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-            };
-
-            var rq = new RecordSharingProto.Request();
-            rq.RevokeSharingPermissions.Add(perm);
-
-            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                "vault/records/v3/share", rq).ConfigureAwait(false);
-
-            foreach (var status in rs.RevokedSharingStatus)
-            {
-                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
-                {
-                    throw new VaultException($"Failed to revoke record access: {status.Message}");
-                }
-            }
-        }
-
         private static async Task DenyInheritedKeeperNSFRecordShareAsync(
             VaultOnline vault, string recordUid, string userEmail)
         {
@@ -1138,6 +1374,10 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Grants a user access to a single Keeper NSF record.
+        /// Thin wrapper over <see cref="ShareKeeperNSFRecordsInternal"/> (same pattern as create).
+        /// </summary>
         public static async Task ShareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail, string role, SharedFolderRecordOptions options = null)
         {
             if (string.IsNullOrEmpty(recordUid))
@@ -1145,71 +1385,23 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            await KeeperNSFAccessHelpers.RequireKeeperNSFRecordSharePermissionAsync(vault, recordUid)
-                .ConfigureAwait(false);
-
-            var perm = await BuildRecordSharePermissions(vault, recordUid, userEmail, role, options);
-            var recipientUid = perm.RecipientUid;
-            var requestedRole = (int)ResolveAccessRole(role);
-            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
-
-            bool hasDirectShare = false;
-            try
+            var results = await vault.ShareKeeperNSFRecordsInternal(new[]
             {
-                var detailsRs = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(
-                    vault, new[] { recordUid }).ConfigureAwait(false);
-                foreach (var ra in detailsRs.RecordAccesses)
+                new KeeperNSFRecordShareRequest
                 {
-                    var data = ra?.Data;
-                    if (data == null) continue;
-                    if (data.AccessType != FolderProto.AccessType.AtUser) continue;
-                    if (data.Owner) continue;
-                    if (data.Inherited) continue;
-                    if (!data.AccessTypeUid.Equals(recipientUid)) continue;
+                    RecordUid = recordUid,
+                    UserEmail = userEmail,
+                    Role = string.IsNullOrWhiteSpace(role) ? "viewer" : role,
+                    Options = options,
+                },
+            }).ConfigureAwait(false);
 
-                    if (data.AccessRoleType == (FolderProto.AccessRoleType)requestedRole && tlaProperties == null)
-                    {
-                        return;
-                    }
-                    hasDirectShare = true;
-                    break;
-                }
-            }
-            catch (Exception ex)
+            var result = results[0];
+            if (!result.Success)
             {
-                Trace.TraceWarning($"KeeperNSF: Could not look up existing record access for '{recordUid}'; falling back to create flow: {ex.Message}");
-            }
-
-            if (!hasDirectShare)
-            {
-                var createRq = new RecordSharingProto.Request();
-                createRq.CreateSharingPermissions.Add(perm);
-                var createRs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                    "vault/records/v3/share", createRq);
-
-                var createStatus = createRs.CreatedSharingStatus.FirstOrDefault();
-                if (createStatus != null && createStatus.Status_ == RecordSharingProto.SharingStatus.Success)
-                {
-                    return;
-                }
-
-                if (createStatus == null || createStatus.Status_ != RecordSharingProto.SharingStatus.AlreadyShared)
-                {
-                    var msg = createStatus?.Message;
-                    throw new VaultException($"Failed to share record: {(string.IsNullOrEmpty(msg) ? "unknown error" : msg)}");
-                }
-            }
-
-            var updateRq = new RecordSharingProto.Request();
-            updateRq.UpdateSharingPermissions.Add(perm);
-            var updateRs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                "vault/records/v3/share", updateRq);
-            foreach (var status in updateRs.UpdatedSharingStatus)
-            {
-                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
-                {
-                    throw new VaultException($"Failed to update record share: {status.Message}");
-                }
+                throw new VaultException(string.IsNullOrEmpty(result.Message)
+                    ? $"Failed to share record: {result.Status ?? "unknown error"}"
+                    : $"Failed to share record: {result.Message}");
             }
         }
 
@@ -1265,6 +1457,10 @@ namespace KeeperSecurity.Vault
             return perm;
         }
 
+        /// <summary>
+        /// Revokes a user's access from a single Keeper NSF record.
+        /// Thin wrapper over <see cref="UnshareKeeperNSFRecordsInternal"/> (same pattern as create).
+        /// </summary>
         public static async Task UnshareKeeperNSFRecordInternal(this VaultOnline vault, string recordUid, string userEmail)
         {
             if (string.IsNullOrEmpty(recordUid))
@@ -1272,27 +1468,774 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            await KeeperNSFAccessHelpers.RequireKeeperNSFRecordSharePermissionAsync(vault, recordUid)
+            var results = await vault.UnshareKeeperNSFRecordsInternal(new[]
+            {
+                new KeeperNSFRecordUnshareRequest
+                {
+                    RecordUid = recordUid,
+                    UserEmail = userEmail,
+                },
+            }).ConfigureAwait(false);
+
+            var result = results[0];
+            if (!result.Success)
+            {
+                throw new VaultException(string.IsNullOrEmpty(result.Message)
+                    ? $"Failed to revoke record access: {result.Status ?? "unknown error"}"
+                    : $"Failed to revoke record access: {result.Message}");
+            }
+        }
+
+        private const int MaxKeeperNSFRecordsShareBatchSize = 1000;
+
+        /// <summary>
+        /// Batch grant Keeper NSF record shares.
+        /// Shared implementation used by <see cref="ShareKeeperNSFRecordInternal"/>.
+        /// </summary>
+        public static async Task<IReadOnlyList<KeeperNSFRecordShareResult>> ShareKeeperNSFRecordsInternal(
+            this VaultOnline vault,
+            IReadOnlyList<KeeperNSFRecordShareRequest> shares)
+        {
+            if (shares == null || shares.Count == 0)
+            {
+                throw new ArgumentException("At least one share is required.", nameof(shares));
+            }
+
+            var results = new KeeperNSFRecordShareResult[shares.Count];
+            for (var i = 0; i < shares.Count; i++)
+            {
+                if (shares[i] == null)
+                {
+                    throw new ArgumentException($"Share at index {i} is null.", nameof(shares));
+                }
+            }
+
+            var uniqueRecordUids = shares
+                .Select(s => s.RecordUid?.Trim())
+                .Where(uid => !string.IsNullOrEmpty(uid) && vault.TryGetKeeperNSFRecord(uid, out _))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var shareDeniedByUid = await KeeperNSFAccessHelpers
+                .EvaluateKeeperNSFRecordSharePermissionsAsync(vault, uniqueRecordUids)
                 .ConfigureAwait(false);
 
-            var userAccesses = await GetRecordUserAccessRowsAsync(vault, recordUid, userEmail).ConfigureAwait(false);
-            var hasDirect = userAccesses.Any(a => !a.Inherited);
-            var hasInherited = userAccesses.Any(a => a.Inherited);
+            var uniqueEmails = shares
+                .Select(s => s.UserEmail?.Trim())
+                .Where(email => !string.IsNullOrEmpty(email))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var publicKeysByEmail = await ResolveKeeperNSFPublicKeysAsync(vault, uniqueEmails).ConfigureAwait(false);
 
-            if (hasDirect)
+            var seenShareKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var prepared = new List<(int Index, KeeperNSFRecordShareRequest Request, RecordSharingProto.Permissions Permission)>();
+            for (var i = 0; i < shares.Count; i++)
             {
-                await RevokeDirectKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+                var request = shares[i];
+                var recordUid = request.RecordUid?.Trim();
+                var userEmail = request.UserEmail?.Trim();
+                var role = string.IsNullOrWhiteSpace(request.Role) ? "viewer" : request.Role.Trim();
+
+                results[i] = new KeeperNSFRecordShareResult
+                {
+                    RecordUid = recordUid,
+                    UserEmail = userEmail,
+                    Role = role,
+                    Success = false,
+                };
+
+                if (string.IsNullOrEmpty(recordUid))
+                {
+                    results[i].Status = "invalid";
+                    results[i].Message = "Record UID cannot be empty.";
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    results[i].Status = "invalid";
+                    results[i].Message = "User email cannot be empty.";
+                    continue;
+                }
+
+                var shareKey = $"{recordUid}|{userEmail}";
+                if (!seenShareKeys.Add(shareKey))
+                {
+                    results[i].Status = "duplicate";
+                    results[i].Message =
+                        $"Duplicate share for record '{recordUid}' and user '{userEmail}' in this request.";
+                    continue;
+                }
+
+                if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Keeper NSF record '{recordUid}' not found.";
+                    continue;
+                }
+
+                if (shareDeniedByUid.TryGetValue(recordUid, out var denyMessage))
+                {
+                    results[i].Status = "access_denied";
+                    results[i].Message = denyMessage;
+                    continue;
+                }
+
+                if (record.RecordKey == null)
+                {
+                    results[i].Status = "missing_key";
+                    results[i].Message = $"Record key not available for record '{recordUid}'.";
+                    continue;
+                }
+
+                if (!publicKeysByEmail.TryGetValue(userEmail, out var pkRs) || pkRs == null)
+                {
+                    results[i].Status = "user_not_found";
+                    results[i].Message = $"User '{userEmail}' not found or has no public key.";
+                    continue;
+                }
+
+                if (pkRs.PublicEccKey.IsEmpty && pkRs.PublicKey.IsEmpty)
+                {
+                    results[i].Status = "public_key_error";
+                    results[i].Message = string.IsNullOrEmpty(pkRs.Message)
+                        ? $"User '{userEmail}' not found or has no public key."
+                        : pkRs.Message;
+                    continue;
+                }
+
+                try
+                {
+                    var permission = BuildRecordSharePermissionsFromPublicKey(
+                        recordUid, record.RecordKey, role, pkRs, request.Options);
+                    prepared.Add((i, request, permission));
+                }
+                catch (Exception ex)
+                {
+                    results[i].Status = "prepare_failed";
+                    results[i].Message = ex.Message;
+                }
             }
 
-            if (hasInherited)
+            var pendingUpdate = new List<(int Index, RecordSharingProto.Permissions Permission)>();
+            for (var offset = 0; offset < prepared.Count; offset += MaxKeeperNSFRecordsShareBatchSize)
             {
-                await DenyInheritedKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+                var chunk = prepared.Skip(offset).Take(MaxKeeperNSFRecordsShareBatchSize).ToList();
+                var createRq = new RecordSharingProto.Request();
+                foreach (var item in chunk)
+                {
+                    createRq.CreateSharingPermissions.Add(item.Permission);
+                }
+
+                var createRs = await vault.Auth
+                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                        "vault/records/v3/share", createRq)
+                    .ConfigureAwait(false);
+
+                var statusByKey = IndexShareStatuses(createRs.CreatedSharingStatus);
+                for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
+                {
+                    var item = chunk[chunkIndex];
+                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
+                    if (!statusByKey.TryGetValue(key, out var status)
+                        && chunkIndex < createRs.CreatedSharingStatus.Count)
+                    {
+                        status = createRs.CreatedSharingStatus[chunkIndex];
+                    }
+
+                    if (status == null)
+                    {
+                        results[item.Index].Status = "missing";
+                        results[item.Index].Message = "Server returned no status for this share.";
+                        continue;
+                    }
+
+                    if (status.Status_ == RecordSharingProto.SharingStatus.AlreadyShared)
+                    {
+                        pendingUpdate.Add((item.Index, item.Permission));
+                        continue;
+                    }
+
+                    ApplyShareStatusToResult(results[item.Index], status);
+                }
             }
 
-            if (!hasDirect && !hasInherited)
+            for (var offset = 0; offset < pendingUpdate.Count; offset += MaxKeeperNSFRecordsShareBatchSize)
             {
-                await RevokeDirectKeeperNSFRecordShareAsync(vault, recordUid, userEmail).ConfigureAwait(false);
+                var chunk = pendingUpdate.Skip(offset).Take(MaxKeeperNSFRecordsShareBatchSize).ToList();
+                var updateRq = new RecordSharingProto.Request();
+                foreach (var item in chunk)
+                {
+                    updateRq.UpdateSharingPermissions.Add(item.Permission);
+                }
+
+                var updateRs = await vault.Auth
+                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                        "vault/records/v3/share", updateRq)
+                    .ConfigureAwait(false);
+
+                var statusByKey = IndexShareStatuses(updateRs.UpdatedSharingStatus);
+                for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
+                {
+                    var item = chunk[chunkIndex];
+                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
+                    if (!statusByKey.TryGetValue(key, out var status)
+                        && chunkIndex < updateRs.UpdatedSharingStatus.Count)
+                    {
+                        status = updateRs.UpdatedSharingStatus[chunkIndex];
+                    }
+
+                    if (status == null)
+                    {
+                        results[item.Index].Status = "missing";
+                        results[item.Index].Message = "Server returned no status for this share update.";
+                        continue;
+                    }
+
+                    ApplyShareStatusToResult(results[item.Index], status);
+                }
             }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Batch revoke Keeper NSF record shares via vault/records/v3/share.
+        /// Shared implementation used by <see cref="UnshareKeeperNSFRecordInternal"/>.
+        /// </summary>
+        public static async Task<IReadOnlyList<KeeperNSFRecordUnshareResult>> UnshareKeeperNSFRecordsInternal(
+            this VaultOnline vault,
+            IReadOnlyList<KeeperNSFRecordUnshareRequest> unshares)
+        {
+            if (unshares == null || unshares.Count == 0)
+            {
+                throw new ArgumentException("At least one unshare is required.", nameof(unshares));
+            }
+
+            var results = new KeeperNSFRecordUnshareResult[unshares.Count];
+            for (var i = 0; i < unshares.Count; i++)
+            {
+                if (unshares[i] == null)
+                {
+                    throw new ArgumentException($"Unshare at index {i} is null.", nameof(unshares));
+                }
+            }
+
+            var uniqueRecordUids = unshares
+                .Select(s => s.RecordUid?.Trim())
+                .Where(uid => !string.IsNullOrEmpty(uid) && vault.TryGetKeeperNSFRecord(uid, out _))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var shareDeniedByUid = await KeeperNSFAccessHelpers
+                .EvaluateKeeperNSFRecordSharePermissionsAsync(vault, uniqueRecordUids)
+                .ConfigureAwait(false);
+
+            var uniqueEmails = unshares
+                .Select(s => s.UserEmail?.Trim())
+                .Where(email => !string.IsNullOrEmpty(email))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var publicKeysByEmail = await ResolveKeeperNSFPublicKeysAsync(vault, uniqueEmails).ConfigureAwait(false);
+
+            RecordDetailsProto.RecordAccessResponse accessDetails = null;
+            var accessLookupSucceeded = false;
+            try
+            {
+                accessDetails = await KeeperNSFAccessHelpers
+                    .FetchRecordAccessDetailsAsync(vault, uniqueRecordUids)
+                    .ConfigureAwait(false);
+                accessLookupSucceeded = true;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning(
+                    $"KeeperNSF: Could not batch-fetch record access for unshare; will revoke and deny: {ex.Message}");
+            }
+
+            var accessFlags = BuildRecordUserAccessFlags(accessDetails);
+
+            var seenUnshareKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pendingRevoke = new List<(int Index, RecordSharingProto.Permissions Permission)>();
+            var pendingDeny = new List<(int Index, RecordSharingProto.Permissions Permission)>();
+            var needRevoke = new bool[unshares.Count];
+            var needDeny = new bool[unshares.Count];
+            var revokeOk = new bool[unshares.Count];
+            var denyOk = new bool[unshares.Count];
+            var revokeStatus = new RecordSharingProto.Status[unshares.Count];
+            var denyStatus = new RecordSharingProto.Status[unshares.Count];
+
+            for (var i = 0; i < unshares.Count; i++)
+            {
+                var request = unshares[i];
+                var recordUid = request.RecordUid?.Trim();
+                var userEmail = request.UserEmail?.Trim();
+
+                results[i] = new KeeperNSFRecordUnshareResult
+                {
+                    RecordUid = recordUid,
+                    UserEmail = userEmail,
+                    Success = false,
+                };
+
+                if (string.IsNullOrEmpty(recordUid))
+                {
+                    results[i].Status = "invalid";
+                    results[i].Message = "Record UID cannot be empty.";
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    results[i].Status = "invalid";
+                    results[i].Message = "User email cannot be empty.";
+                    continue;
+                }
+
+                var unshareKey = $"{recordUid}|{userEmail}";
+                if (!seenUnshareKeys.Add(unshareKey))
+                {
+                    results[i].Status = "duplicate";
+                    results[i].Message =
+                        $"Duplicate unshare for record '{recordUid}' and user '{userEmail}' in this request.";
+                    continue;
+                }
+
+                if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Keeper NSF record '{recordUid}' not found.";
+                    continue;
+                }
+
+                if (shareDeniedByUid.TryGetValue(recordUid, out var denyMessage))
+                {
+                    results[i].Status = "access_denied";
+                    results[i].Message = denyMessage;
+                    continue;
+                }
+
+                if (!publicKeysByEmail.TryGetValue(userEmail, out var pkRs) || pkRs == null)
+                {
+                    results[i].Status = "user_not_found";
+                    results[i].Message = $"User '{userEmail}' not found or has no public key.";
+                    continue;
+                }
+
+                if (pkRs.AccountUid.IsEmpty)
+                {
+                    results[i].Status = "user_not_found";
+                    results[i].Message = $"User '{userEmail}' not found.";
+                    continue;
+                }
+
+                var accountUid = CryptoUtils.Base64UrlEncode(pkRs.AccountUid.ToByteArray());
+                var hasDirect = false;
+                var hasInherited = false;
+                if (accessLookupSucceeded
+                    && accessFlags.TryGetValue((recordUid, accountUid), out var flags))
+                {
+                    hasDirect = flags.HasDirect;
+                    hasInherited = flags.HasInherited;
+                }
+                else if (!accessLookupSucceeded)
+                {
+                    // Unknown access model: revoke direct share and deny inherited (safe fallback).
+                    hasDirect = true;
+                    hasInherited = true;
+                }
+
+                RecordSharingProto.Permissions denyPermission = null;
+                if (hasInherited)
+                {
+                    if (record.RecordKey == null)
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Record key not available for record '{recordUid}'.";
+                        continue;
+                    }
+
+                    if (pkRs.PublicEccKey.IsEmpty && pkRs.PublicKey.IsEmpty)
+                    {
+                        results[i].Status = "public_key_error";
+                        results[i].Message = string.IsNullOrEmpty(pkRs.Message)
+                            ? $"User '{userEmail}' not found or has no public key."
+                            : pkRs.Message;
+                        continue;
+                    }
+
+                    try
+                    {
+                        denyPermission = BuildRecordDenySharePermissionsFromPublicKey(
+                            recordUid, record.RecordKey, pkRs);
+                    }
+                    catch (Exception ex)
+                    {
+                        results[i].Status = "prepare_failed";
+                        results[i].Message = ex.Message;
+                        continue;
+                    }
+                }
+
+                if (hasDirect || (!hasDirect && !hasInherited))
+                {
+                    needRevoke[i] = true;
+                    pendingRevoke.Add((i, BuildRecordRevokePermissions(recordUid, pkRs.AccountUid)));
+                }
+
+                if (denyPermission != null)
+                {
+                    needDeny[i] = true;
+                    pendingDeny.Add((i, denyPermission));
+                }
+            }
+
+            for (var offset = 0; offset < pendingRevoke.Count; offset += MaxKeeperNSFRecordsShareBatchSize)
+            {
+                var chunk = pendingRevoke.Skip(offset).Take(MaxKeeperNSFRecordsShareBatchSize).ToList();
+                var revokeRq = new RecordSharingProto.Request();
+                foreach (var item in chunk)
+                {
+                    revokeRq.RevokeSharingPermissions.Add(item.Permission);
+                }
+
+                var revokeRs = await vault.Auth
+                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                        "vault/records/v3/share", revokeRq)
+                    .ConfigureAwait(false);
+
+                var statusByKey = IndexShareStatuses(revokeRs.RevokedSharingStatus);
+                for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
+                {
+                    var item = chunk[chunkIndex];
+                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
+                    if (!statusByKey.TryGetValue(key, out var status)
+                        && chunkIndex < revokeRs.RevokedSharingStatus.Count)
+                    {
+                        status = revokeRs.RevokedSharingStatus[chunkIndex];
+                    }
+
+                    revokeStatus[item.Index] = status;
+                    revokeOk[item.Index] = status != null
+                        && (status.Status_ == RecordSharingProto.SharingStatus.Success
+                            || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept);
+                }
+            }
+
+            for (var offset = 0; offset < pendingDeny.Count; offset += MaxKeeperNSFRecordsShareBatchSize)
+            {
+                var chunk = pendingDeny.Skip(offset).Take(MaxKeeperNSFRecordsShareBatchSize).ToList();
+                var denyRq = new RecordSharingProto.Request();
+                foreach (var item in chunk)
+                {
+                    denyRq.CreateSharingPermissions.Add(item.Permission);
+                }
+
+                var denyRs = await vault.Auth
+                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                        "vault/records/v3/share", denyRq)
+                    .ConfigureAwait(false);
+
+                var statusByKey = IndexShareStatuses(denyRs.CreatedSharingStatus);
+                for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
+                {
+                    var item = chunk[chunkIndex];
+                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
+                    if (!statusByKey.TryGetValue(key, out var status)
+                        && chunkIndex < denyRs.CreatedSharingStatus.Count)
+                    {
+                        status = denyRs.CreatedSharingStatus[chunkIndex];
+                    }
+
+                    denyStatus[item.Index] = status;
+                    denyOk[item.Index] = status != null
+                        && (status.Status_ == RecordSharingProto.SharingStatus.Success
+                            || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept);
+                }
+            }
+
+            for (var i = 0; i < unshares.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(results[i].Status) && !needRevoke[i] && !needDeny[i])
+                {
+                    continue;
+                }
+
+                if (!needRevoke[i] && !needDeny[i])
+                {
+                    if (string.IsNullOrEmpty(results[i].Status))
+                    {
+                        results[i].Status = "skipped";
+                        results[i].Message = "No revoke or deny action was prepared.";
+                    }
+
+                    continue;
+                }
+
+                var revokeFailed = needRevoke[i] && !revokeOk[i];
+                var denyFailed = needDeny[i] && !denyOk[i];
+                if (revokeFailed || denyFailed)
+                {
+                    var failedStatus = revokeFailed ? revokeStatus[i] : denyStatus[i];
+                    results[i].Status = failedStatus != null
+                        ? FormatSharingStatus(failedStatus.Status_)
+                        : "missing";
+                    results[i].Message = failedStatus?.Message
+                        ?? (revokeFailed
+                            ? "Server returned no status for this revoke."
+                            : "Server returned no status for this deny.");
+                    results[i].Success = false;
+                    continue;
+                }
+
+                var okStatus = needRevoke[i] ? revokeStatus[i] : denyStatus[i];
+                results[i].Status = okStatus != null
+                    ? FormatSharingStatus(okStatus.Status_)
+                    : "Success";
+                results[i].Message = okStatus?.Message;
+                results[i].Success = true;
+            }
+
+            return results;
+        }
+
+        private static Dictionary<(string RecordUid, string AccountUid), (bool HasDirect, bool HasInherited)>
+            BuildRecordUserAccessFlags(RecordDetailsProto.RecordAccessResponse accessDetails)
+        {
+            var map = new Dictionary<(string, string), (bool, bool)>(new RecordAccountUidComparer());
+            if (accessDetails?.RecordAccesses == null)
+            {
+                return map;
+            }
+
+            foreach (var ra in accessDetails.RecordAccesses)
+            {
+                var data = ra?.Data;
+                if (data == null) continue;
+                if (data.AccessType != FolderProto.AccessType.AtUser) continue;
+                if (data.Owner) continue;
+                if (data.RecordUid == null || data.RecordUid.IsEmpty) continue;
+                if (data.AccessTypeUid == null || data.AccessTypeUid.IsEmpty) continue;
+
+                var recordUid = CryptoUtils.Base64UrlEncode(data.RecordUid.ToByteArray());
+                var accountUid = CryptoUtils.Base64UrlEncode(data.AccessTypeUid.ToByteArray());
+                var key = (recordUid, accountUid);
+                map.TryGetValue(key, out var flags);
+                if (data.Inherited)
+                {
+                    flags.Item2 = true;
+                }
+                else
+                {
+                    flags.Item1 = true;
+                }
+
+                map[key] = flags;
+            }
+
+            return map;
+        }
+
+        private sealed class RecordAccountUidComparer : IEqualityComparer<(string RecordUid, string AccountUid)>
+        {
+            public bool Equals((string RecordUid, string AccountUid) x, (string RecordUid, string AccountUid) y)
+            {
+                return string.Equals(x.RecordUid, y.RecordUid, StringComparison.Ordinal)
+                    && string.Equals(x.AccountUid, y.AccountUid, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode((string RecordUid, string AccountUid) obj)
+            {
+                unchecked
+                {
+                    return ((obj.RecordUid?.GetHashCode() ?? 0) * 397) ^ (obj.AccountUid?.GetHashCode() ?? 0);
+                }
+            }
+        }
+
+        private static RecordSharingProto.Permissions BuildRecordRevokePermissions(
+            string recordUid,
+            ByteString recipientUid)
+        {
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = recipientUid,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+            perm.Rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = recipientUid,
+                AccessType = FolderProto.AccessType.AtUser,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+            return perm;
+        }
+
+        private static RecordSharingProto.Permissions BuildRecordDenySharePermissionsFromPublicKey(
+            string recordUid,
+            byte[] recordKey,
+            AuthProto.PublicKeyResponse pkRs)
+        {
+            byte[] encryptedRecordKey;
+            bool useEcc;
+            if (!pkRs.PublicKey.IsEmpty)
+            {
+                var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptRsa(recordKey, rsaPk);
+                useEcc = false;
+            }
+            else
+            {
+                var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptEc(recordKey, ecPk);
+                useEcc = true;
+            }
+
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = pkRs.AccountUid,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                RecordKey = ByteString.CopyFrom(encryptedRecordKey),
+                UseEccKey = useEcc,
+            };
+            perm.Rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = pkRs.AccountUid,
+                AccessType = FolderProto.AccessType.AtUser,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Owner = false,
+                DeniedAccess = true,
+            };
+            return perm;
+        }
+
+        private static async Task<Dictionary<string, AuthProto.PublicKeyResponse>> ResolveKeeperNSFPublicKeysAsync(
+            VaultOnline vault,
+            IReadOnlyList<string> emails)
+        {
+            var map = new Dictionary<string, AuthProto.PublicKeyResponse>(StringComparer.OrdinalIgnoreCase);
+            if (emails == null || emails.Count == 0)
+            {
+                return map;
+            }
+
+            for (var offset = 0; offset < emails.Count; offset += MaxKeeperNSFRecordsShareBatchSize)
+            {
+                var chunk = emails.Skip(offset).Take(MaxKeeperNSFRecordsShareBatchSize).ToList();
+                var pkRq = new AuthProto.GetPublicKeysRequest();
+                foreach (var email in chunk)
+                {
+                    pkRq.Usernames.Add(email);
+                }
+
+                var pkRss = await vault.Auth
+                    .ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>(
+                        "vault/get_public_keys", pkRq)
+                    .ConfigureAwait(false);
+
+                foreach (var pkRs in pkRss.KeyResponses)
+                {
+                    // Only map by username. Positional fallback is unsafe when the server
+                    // omits or reorders usernames (could encrypt a record key to the wrong account).
+                    if (string.IsNullOrEmpty(pkRs.Username) || pkRs.AccountUid.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    map[pkRs.Username] = pkRs;
+                }
+            }
+
+            return map;
+        }
+
+        private static RecordSharingProto.Permissions BuildRecordSharePermissionsFromPublicKey(
+            string recordUid,
+            byte[] recordKey,
+            string role,
+            AuthProto.PublicKeyResponse pkRs,
+            SharedFolderRecordOptions options)
+        {
+            byte[] encryptedRecordKey;
+            bool useEcc;
+            if (!pkRs.PublicKey.IsEmpty)
+            {
+                var rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptRsa(recordKey, rsaPk);
+                useEcc = false;
+            }
+            else
+            {
+                var ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+                encryptedRecordKey = CryptoUtils.EncryptEc(recordKey, ecPk);
+                useEcc = true;
+            }
+
+            var accessRole = ResolveAccessRole(role);
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = pkRs.AccountUid,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                RecordKey = ByteString.CopyFrom(encryptedRecordKey),
+                UseEccKey = useEcc,
+            };
+            var rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = pkRs.AccountUid,
+                AccessType = FolderProto.AccessType.AtUser,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Owner = false,
+                AccessRoleType = accessRole,
+            };
+            var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(options);
+            if (tlaProperties != null)
+            {
+                rules.TlaProperties = tlaProperties;
+            }
+
+            perm.Rules = rules;
+            return perm;
+        }
+
+        private static Dictionary<string, RecordSharingProto.Status> IndexShareStatuses(
+            IEnumerable<RecordSharingProto.Status> statuses)
+        {
+            var map = new Dictionary<string, RecordSharingProto.Status>(StringComparer.Ordinal);
+            if (statuses == null)
+            {
+                return map;
+            }
+
+            foreach (var status in statuses)
+            {
+                if (status?.RecordUid == null || status.RecordUid.IsEmpty
+                    || status.RecipientUid == null || status.RecipientUid.IsEmpty)
+                {
+                    continue;
+                }
+
+                map[BuildShareStatusKey(status.RecordUid, status.RecipientUid)] = status;
+            }
+
+            return map;
+        }
+
+        private static string BuildShareStatusKey(ByteString recordUid, ByteString recipientUid)
+        {
+            return $"{CryptoUtils.Base64UrlEncode(recordUid.ToByteArray())}|{CryptoUtils.Base64UrlEncode(recipientUid.ToByteArray())}";
+        }
+
+        private static void ApplyShareStatusToResult(
+            KeeperNSFRecordShareResult result,
+            RecordSharingProto.Status status)
+        {
+            result.Status = FormatSharingStatus(status.Status_);
+            result.Message = status.Message;
+            result.Success = status.Status_ == RecordSharingProto.SharingStatus.Success
+                || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept;
+        }
+
+        private static string FormatSharingStatus(RecordSharingProto.SharingStatus status)
+        {
+            return Enum.GetName(typeof(RecordSharingProto.SharingStatus), status) ?? status.ToString();
         }
 
         private static string GetRoleLabel(int roleType)
@@ -1661,6 +2604,8 @@ namespace KeeperSecurity.Vault
             return result;
         }
 
+        private const int MaxRecordDetailsUidsPerRequest = 100;
+
         private static async Task<RecordDetailsProto.RecordDataResponse> FetchKeeperNSFRecordDetailsDataAsync(
             this VaultOnline vault, IReadOnlyList<string> recordUids)
         {
@@ -1669,26 +2614,48 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "at least one record UID required");
             }
 
-            var request = new RecordDetailsProto.RecordDataRequest
-            {
-                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            };
-
+            var validUids = new List<string>();
             foreach (var uid in recordUids.Where(u => !string.IsNullOrWhiteSpace(u)))
             {
-                var uidBytes = uid.Trim().Base64UrlDecode();
+                var trimmed = uid.Trim();
+                var uidBytes = trimmed.Base64UrlDecode();
                 if (uidBytes == null || uidBytes.Length == 0)
                 {
                     Trace.TraceWarning($"KeeperNSF: Skipping record details request with malformed UID '{uid}'");
                     continue;
                 }
 
-                request.RecordUids.Add(ByteString.CopyFrom(uidBytes));
+                validUids.Add(trimmed);
             }
 
-            if (request.RecordUids.Count == 0)
+            if (validUids.Count == 0)
             {
                 throw new KeeperInvalidParameter("GetKeeperNSFRecordDetails", nameof(recordUids), "", "no valid record UIDs");
+            }
+
+            var merged = new RecordDetailsProto.RecordDataResponse();
+            for (var offset = 0; offset < validUids.Count; offset += MaxRecordDetailsUidsPerRequest)
+            {
+                var chunk = validUids.Skip(offset).Take(MaxRecordDetailsUidsPerRequest);
+                var chunkResponse = await vault.FetchKeeperNSFRecordDetailsDataChunkAsync(chunk).ConfigureAwait(false);
+                merged.Data.AddRange(chunkResponse.Data);
+                merged.ForbiddenRecords.AddRange(chunkResponse.ForbiddenRecords);
+            }
+
+            return merged;
+        }
+
+        private static async Task<RecordDetailsProto.RecordDataResponse> FetchKeeperNSFRecordDetailsDataChunkAsync(
+            this VaultOnline vault, IEnumerable<string> recordUids)
+        {
+            var request = new RecordDetailsProto.RecordDataRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            };
+
+            foreach (var uid in recordUids)
+            {
+                request.RecordUids.Add(ByteString.CopyFrom(uid.Base64UrlDecode()));
             }
 
             return await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordDataRequest, RecordDetailsProto.RecordDataResponse>(

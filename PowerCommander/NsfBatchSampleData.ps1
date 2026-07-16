@@ -22,12 +22,12 @@ function Get-KeeperNSFBatchSampleJson {
     {
       "title": "Batch Demo - Bank Card",
       "$type": "bankCard",
-      "notes": "Payment card record",
+      "notes": "Payment card record (placeholders only — replace before import)",
       "custom_fields": {
         "$paymentCard": {
-          "cardNumber": "4111111111111111",
-          "cardExpirationDate": "04/2028",
-          "cardSecurityCode": "123"
+          "cardNumber": "REPLACE_WITH_CARD_NUMBER",
+          "cardExpirationDate": "MM/YYYY",
+          "cardSecurityCode": "REPLACE_WITH_CVV"
         }
       }
     },
@@ -118,10 +118,113 @@ function Get-KeeperNSFBatchSampleJson {
       "custom_fields": {
         "$bankAccount": {
           "accountType": "Checking",
-          "routingNumber": "021000021",
-          "accountNumber": "1234567890"
+          "routingNumber": "REPLACE_WITH_ROUTING_NUMBER",
+          "accountNumber": "REPLACE_WITH_ACCOUNT_NUMBER"
         }
       }
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFBatchUpdateSampleJson {
+    @'
+{
+  "records": [
+    {
+      "uid": "REPLACE_WITH_EXISTING_RECORD_UID_1",
+      "title": "Batch Update Demo - Login",
+      "$type": "login",
+      "login": "updated.login@example.com",
+      "password": "Replace-With-Your-Password",
+      "login_url": "https://portal.example.com",
+      "notes": "Updated via NSF batch update"
+    },
+    {
+      "uid": "REPLACE_WITH_EXISTING_RECORD_UID_2",
+      "title": "Batch Update Demo - Title Only",
+      "notes": "Only title and notes changed; fields omitted are left as-is"
+    },
+    {
+      "uid": "REPLACE_WITH_EXISTING_RECORD_UID_3",
+      "$type": "databaseCredentials",
+      "login": "db_app_user",
+      "password": "Replace-With-Your-Password",
+      "custom_fields": {
+        "$host": { "hostName": "192.168.1.20", "port": "1433" },
+        "$databaseType": "sqlServer"
+      }
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFShareBatchSampleJson {
+    @'
+{
+  "shares": [
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_1",
+      "email": "colleague@example.com",
+      "role": "viewer"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_2",
+      "email": "colleague@example.com",
+      "role": "content-manager",
+      "expire_in": "30d"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_1",
+      "email": "another.user@example.com",
+      "role": "viewer",
+      "expire_at": "2027-01-01T00:00:00Z"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFUnshareBatchSampleJson {
+    @'
+{
+  "unshares": [
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_1",
+      "email": "colleague@example.com"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_2",
+      "email": "colleague@example.com"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_1",
+      "email": "another.user@example.com"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFRemoveBatchSampleJson {
+    @'
+{
+  "removals": [
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_1",
+      "operation": "owner-trash"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_2",
+      "folder": "REPLACE_WITH_FOLDER_UID",
+      "operation": "folder-trash"
+    },
+    {
+      "uid": "REPLACE_WITH_RECORD_UID_3",
+      "folder": "REPLACE_WITH_FOLDER_UID",
+      "operation": "unlink"
     }
   ]
 }
