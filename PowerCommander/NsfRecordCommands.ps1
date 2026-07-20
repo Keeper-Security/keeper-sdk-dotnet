@@ -2219,10 +2219,6 @@ function Remove-KeeperNSFRecords {
         return
     }
 
-    if (-not $PSCmdlet.ShouldProcess("$($removals.Count) Keeper NSF record(s)", "Remove Keeper NSF records")) {
-        return
-    }
-
     if (-not $Force) {
         $confirmation = Read-Host "Are you sure you want to remove the record(s) above? (yes/No)"
         if ($confirmation -notmatch '^(y|yes)$') {

@@ -296,16 +296,6 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), "newName/color/inheritPermissions", "", "at least one field required");
             }
 
-            // Same as PowerCommander nsf-rndir / batch update: can disable inheritance, not re-enable.
-            if (inheritPermissions == true)
-            {
-                throw new KeeperInvalidParameter(
-                    nameof(UpdateKeeperNSFFolder),
-                    "inheritPermissions",
-                    "true",
-                    "inherit_permissions can only be set to false on update; enabling inheritance is not supported");
-            }
-
             if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
             {
                 throw new VaultException($"Keeper NSF folder \"{folderUidOrName}\" was not found.");

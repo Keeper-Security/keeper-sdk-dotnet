@@ -374,7 +374,8 @@ function Share-KeeperNSFFolderAccesses {
 	Uses vault/folders/v3/access_update (FolderAccessAdds). Independent of Set-KeeperNSFFolderAccess.
 	Caller must have share/update-access permission on each folder.
 	JSON schema: an "accesses" array. Each item: folder_uid, accessor (email/team name/UID),
-	optional role (default viewer), optional as_team, optional expire_in / expire_at.
+	optional role (default viewer), optional expire_in / expire_at.
+	Omit as_team for team names/UIDs so resolution matches nsf-share-folder auto-detect.
 
 	.Parameter FilePath
 	Path to a UTF-8 JSON folder access grant batch file.
@@ -496,8 +497,8 @@ function Update-KeeperNSFFolderAccesses {
 
 	.Description
 	Uses vault/folders/v3/access_update (FolderAccessUpdates). Independent of Set-KeeperNSFFolderAccess.
-	JSON schema: an "accesses" array. Each item: folder_uid, accessor, role and/or expire_in/expire_at,
-	optional as_team.
+	JSON schema: an "accesses" array. Each item: folder_uid, accessor, role and/or expire_in/expire_at.
+	Omit as_team for team names/UIDs so resolution matches nsf-share-folder auto-detect.
 
 	.Parameter FilePath
 	Path to a UTF-8 JSON folder access update batch file.
@@ -619,7 +620,8 @@ function Unshare-KeeperNSFFolderAccesses {
 
 	.Description
 	Uses vault/folders/v3/access_update (FolderAccessRemoves). Independent of Set-KeeperNSFFolderAccess.
-	JSON schema: an "accesses" array. Each item: folder_uid, accessor, optional as_team.
+	JSON schema: an "accesses" array. Each item: folder_uid, accessor.
+	Omit as_team for team names/UIDs so resolution matches nsf-share-folder auto-detect.
 
 	.Parameter FilePath
 	Path to a UTF-8 JSON folder access revoke batch file.
@@ -1027,8 +1029,8 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    $newNameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { $null }
-    $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { $null }
+    $newNameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
+    $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
     $inheritVal = if ($NoInheritPermissions.IsPresent) { $false } else { $null }
 
     $target = if ([string]::IsNullOrEmpty($folderNode.FolderUid)) { $Folder } else { "$($folderNode.Name) ($($folderNode.FolderUid))" }

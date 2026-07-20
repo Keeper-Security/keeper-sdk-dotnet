@@ -10,7 +10,10 @@ function Get-KeeperNSFBatchSampleJson {
       "login": "batch.demo.login@example.com",
       "password": "Replace-With-Your-Password",
       "login_url": "https://portal.example.com",
-      "notes": "Standard login record. Replace credentials before importing."
+      "notes": "Standard login record. Replace credentials before importing.",
+      "folders": [
+        { "folder": "REPLACE_WITH_NSF_FOLDER_UID_OR_NAME" }
+      ]
     },
     {
       "title": "Batch Demo - Legacy General",
@@ -311,8 +314,7 @@ function Get-KeeperNSFFolderAccessGrantBatchSampleJson {
     {
       "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
       "accessor": "Engineering Team",
-      "role": "content-manager",
-      "as_team": true
+      "role": "content-manager"
     },
     {
       "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
@@ -338,7 +340,6 @@ function Get-KeeperNSFFolderAccessUpdateBatchSampleJson {
       "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
       "accessor": "Engineering Team",
       "role": "full-manager",
-      "as_team": true,
       "expire_at": "2027-01-01T00:00:00Z"
     }
   ]
@@ -356,8 +357,7 @@ function Get-KeeperNSFFolderAccessRevokeBatchSampleJson {
     },
     {
       "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
-      "accessor": "Engineering Team",
-      "as_team": true
+      "accessor": "Engineering Team"
     },
     {
       "folder_uid": "REPLACE_WITH_FOLDER_UID_2",

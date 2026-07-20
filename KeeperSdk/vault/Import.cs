@@ -682,10 +682,10 @@ namespace KeeperSecurity
                                             switch (ppair.Key)
                                             {
                                                 case "uid":
-                                                    perm.Uid = (ppair.Value ?? "").ToString();
+                                                    perm.Uid = (ppair.Value ?? String.Empty).ToString();
                                                     break;
                                                 case "name":
-                                                    perm.Name = (ppair.Value ?? "").ToString();
+                                                    perm.Name = (ppair.Value ?? String.Empty).ToString();
                                                     break;
                                                 case "manage_records":
                                                     perm.ManageRecords = ppair.Value is true;
