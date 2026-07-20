@@ -72,11 +72,18 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Fetch folder accessors for one or more folder UIDs.
         /// Supports batching up to 100 folder UIDs per request.
+        /// When nested <see cref="FolderProto.FolderAccessData.FolderUid"/> is empty, stamps the parent
+        /// <c>GetFolderAccessResult.FolderUid</c> so callers can key accessors by folder.
         /// </summary>
+        /// <param name="errorsByFolderUid">
+        /// Optional map populated with per-folder fetch errors (folder UID → message).
+        /// Folders present here should not be treated as having an empty ACL.
+        /// </param>
         internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
             VaultOnline vault,
             IEnumerable<string> folderUids,
-            int pageSize = 100)
+            int pageSize = 100,
+            IDictionary<string, string> errorsByFolderUid = null)
         {
             if (vault == null) throw new ArgumentNullException(nameof(vault));
             if (folderUids == null) throw new ArgumentNullException(nameof(folderUids));
@@ -130,15 +137,48 @@ namespace KeeperSecurity.Vault
                                 continue;
                             }
 
+                            var resultFolderUid = result.FolderUid != null && !result.FolderUid.IsEmpty
+                                ? result.FolderUid
+                                : ByteString.Empty;
+                            var resultFolderUidB64 = resultFolderUid.IsEmpty
+                                ? null
+                                : CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+
                             if (result.Error != null)
                             {
-                                System.Diagnostics.Trace.TraceWarning($"GetFolderAccessResult error: {result.Error}");
+                                var errorMessage = string.IsNullOrWhiteSpace(result.Error.Message)
+                                    ? result.Error.ToString()
+                                    : result.Error.Message;
+                                System.Diagnostics.Trace.TraceWarning($"GetFolderAccessResult error: {errorMessage}");
+                                if (errorsByFolderUid != null && !string.IsNullOrEmpty(resultFolderUidB64))
+                                {
+                                    errorsByFolderUid[resultFolderUidB64] = string.IsNullOrWhiteSpace(errorMessage)
+                                        ? "Failed to fetch folder access."
+                                        : errorMessage;
+                                }
                                 continue;
                             }
 
-                            if (result.Accessors != null && result.Accessors.Count > 0)
+                            if (result.Accessors == null || result.Accessors.Count == 0)
                             {
-                                allAccessors.AddRange(result.Accessors);
+                                continue;
+                            }
+
+                            foreach (var accessor in result.Accessors)
+                            {
+                                if (accessor == null)
+                                {
+                                    continue;
+                                }
+
+                                // Nested accessors often omit FolderUid; stamp from the parent result.
+                                if ((accessor.FolderUid == null || accessor.FolderUid.IsEmpty)
+                                    && !resultFolderUid.IsEmpty)
+                                {
+                                    accessor.FolderUid = resultFolderUid;
+                                }
+
+                                allAccessors.Add(accessor);
                             }
                         }
                     }
@@ -242,6 +282,43 @@ namespace KeeperSecurity.Vault
                 "You do not have permission to share this folder.").ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Batch-evaluates share permission for the current user on many folders.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderSharePermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+
+            var denied = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (folderUids == null)
+            {
+                return denied;
+            }
+
+            var uids = folderUids
+                .Where(uid => !string.IsNullOrWhiteSpace(uid))
+                .Select(uid => uid.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var folderUid in uids)
+            {
+                try
+                {
+                    await RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    denied[folderUid] = ex.Message;
+                }
+            }
+
+            return denied;
+        }
+
         internal static async Task RequireKeeperNSFFolderAddPermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -249,6 +326,76 @@ namespace KeeperSecurity.Vault
                 folderUid,
                 "can_add",
                 "You do not have permission to add content to this folder.").ConfigureAwait(false);
+        }
+
+        internal static async Task RequireKeeperNSFFolderRemovePermissionAsync(VaultOnline vault, string folderUid)
+        {
+            await RequireKeeperNSFFolderPermissionAsync(
+                vault,
+                folderUid,
+                "can_remove",
+                "You do not have permission to remove content from this folder.").ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Batch-evaluates folder add permission for the current user.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderAddPermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            return await EvaluateKeeperNSFFolderPermissionsAsync(
+                vault,
+                folderUids,
+                RequireKeeperNSFFolderAddPermissionAsync).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Batch-evaluates folder remove permission for the current user.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderRemovePermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            return await EvaluateKeeperNSFFolderPermissionsAsync(
+                vault,
+                folderUids,
+                RequireKeeperNSFFolderRemovePermissionAsync).ConfigureAwait(false);
+        }
+
+        private static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderPermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids,
+            Func<VaultOnline, string, Task> requireAsync)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+
+            var denied = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (folderUids == null)
+            {
+                return denied;
+            }
+
+            var uids = folderUids
+                .Select(uid => uid?.Trim() ?? string.Empty)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var folderUid in uids)
+            {
+                try
+                {
+                    await requireAsync(vault, folderUid).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    denied[folderUid] = ex.Message;
+                }
+            }
+
+            return denied;
         }
 
         internal static async Task RequireKeeperNSFRecordSharePermissionAsync(VaultOnline vault, string recordUid)
@@ -460,6 +607,12 @@ namespace KeeperSecurity.Vault
             string permissionKey,
             string errorMessage)
         {
+            // NSF vault root has no folder-access ACL payload; owners operate via data key.
+            if (IsKeeperNSFVaultRootFolderUid(folderUid))
+            {
+                return;
+            }
+
             if (IsKeeperNSFFolderOwnerUser(vault, folderUid))
             {
                 return;
@@ -508,6 +661,14 @@ namespace KeeperSecurity.Vault
             }
 
             throw new VaultException(errorMessage);
+        }
+
+        private static bool IsKeeperNSFVaultRootFolderUid(string folderUid)
+        {
+            return string.IsNullOrEmpty(folderUid)
+                || string.Equals(folderUid, "/", StringComparison.Ordinal)
+                || string.Equals(folderUid, "root", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(folderUid, KeeperNSFConstants.KeeperDriveRootFolderUid, StringComparison.Ordinal);
         }
 
         internal static async Task RequireKeeperNSFRecordPermissionAsync(

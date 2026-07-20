@@ -396,6 +396,19 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderCreateResult>> CreateKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderCreateRequest> folders)
+        {
+            var results = await this.CreateKeeperNSFFoldersInternal(folders).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
         public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer", SharedFolderUserOptions options = null)
         {
             await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role, options);
@@ -403,10 +416,49 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> GrantKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessGrantRequest> grants)
+        {
+            var results = await this.GrantKeeperNSFFolderAccessesInternal(grants).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> UpdateKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessUpdateRequest> updates)
+        {
+            var results = await this.UpdateKeeperNSFFolderAccessesInternal(updates).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
         public async Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail)
         {
             await this.RevokeKeeperNSFFolderAccessInternal(folderUid, userEmail);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> RevokeKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessRevokeRequest> revokes)
+        {
+            var results = await this.RevokeKeeperNSFFolderAccessesInternal(revokes).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
         }
 
         /// <summary>
