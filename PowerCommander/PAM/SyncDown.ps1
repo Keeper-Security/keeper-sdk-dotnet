@@ -13,7 +13,13 @@ function script:getPamPlugin {
         return $Script:PamPlugin
     }
     try {
-        $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader)
+        # Prefer Auth ctor when available (more reliable than loader-only in some sessions).
+        if ($enterprise.loader.Auth) {
+            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader.Auth)
+        }
+        else {
+            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader)
+        }
         return $Script:PamPlugin
     }
     catch {
@@ -31,13 +37,47 @@ function script:getPamControllerList {
     )
 
     $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Plugins.PAM.PamController]'
-    foreach ($controller in $Plugin.Controllers.GetAll()) {
-        if ($null -ne $controller) {
-            [void]$list.Add($controller)
+    try {
+        foreach ($controller in $Plugin.Controllers.GetAll()) {
+            if ($null -ne $controller) {
+                [void]$list.Add($controller)
+            }
         }
     }
+    catch {}
     # Prevent PowerShell from unrolling the list into Object[] for the caller.
     return , $list
+}
+
+function script:syncPamPlugin {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [object] $Plugin,
+        [bool] $Reload = $false,
+        [bool] $ThrowOnError = $false
+    )
+
+    try {
+        $task = $Plugin.SyncDownAsync($Reload)
+        if ($null -eq $task) {
+            throw 'SyncDownAsync returned null.'
+        }
+        $task.GetAwaiter().GetResult() | Out-Null
+        return $true
+    }
+    catch {
+        $msg = $_.Exception.Message
+        $inner = $_.Exception.InnerException
+        while ($null -ne $inner) {
+            $msg = $inner.Message
+            $inner = $inner.InnerException
+        }
+        if ($ThrowOnError) {
+            throw "PAM sync failed: $msg"
+        }
+        Write-Warning "PAM sync failed: $msg"
+        return $false
+    }
 }
 
 function script:ensurePamPlugin {
@@ -55,7 +95,7 @@ function script:ensurePamPlugin {
         $controllers = getPamControllerList -Plugin $plugin
         if ($controllers.Count -eq 0) {
             Write-Host "Syncing PAM data..."
-            $plugin.SyncDownAsync($false).GetAwaiter().GetResult() | Out-Null
+            [void](syncPamPlugin -Plugin $plugin -Reload $false -ThrowOnError $false)
         }
     }
     return $plugin
@@ -67,13 +107,16 @@ function Sync-KeeperPam {
         Sync PAM data from the server.
 
         .Description
-        Sync PAM data from the server.
+        Sync PAM data from the server. Equivalent to pam-sync / pam-sync-down.
 
         .Parameter Reload
         Perform a full sync.
 
         .Example
         Sync-KeeperPam
+
+        .Example
+        Sync-KeeperPam -Reload
     #>
     [CmdletBinding()]
     Param (
@@ -94,11 +137,21 @@ function Sync-KeeperPam {
     }
 
     try {
-        $plugin.SyncDownAsync($Reload.IsPresent).GetAwaiter().GetResult() | Out-Null
+        $task = $plugin.SyncDownAsync($Reload.IsPresent)
+        if ($null -eq $task) {
+            Write-Error -Message "PAM sync failed: SyncDownAsync returned null." -ErrorAction Stop
+        }
+        $task.GetAwaiter().GetResult() | Out-Null
         Write-Output "PAM sync completed."
     }
     catch {
-        Write-Error -Message "PAM sync failed: $($_.Exception.Message)" -ErrorAction Stop
+        $msg = $_.Exception.Message
+        $inner = $_.Exception.InnerException
+        while ($null -ne $inner) {
+            $msg = $inner.Message
+            $inner = $inner.InnerException
+        }
+        Write-Error -Message "PAM sync failed: $msg. Tip: Sync-Keeper; then retry Sync-KeeperPam." -ErrorAction Stop
     }
 }
 

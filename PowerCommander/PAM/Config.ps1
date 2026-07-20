@@ -1,0 +1,1435 @@
+#requires -Version 5.1
+
+function script:toStringList {
+    Param ($Value)
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($item in @($Value)) {
+        if ($null -ne $item -and -not [string]::IsNullOrWhiteSpace([string]$item)) {
+            [void]$list.Add([string]$item)
+        }
+    }
+
+    if ($list.Count -eq 0) {
+        return $null
+    }
+
+    return $list
+}
+
+function script:preparePamConfigValuesFromBoundParameters {
+    Param (
+        [hashtable] $BoundParameters,
+        [string[]] $ExcludeKeys = @()
+    )
+
+    $values = @{}
+    $skip = @(
+        'Verbose', 'Debug', 'ErrorAction', 'WarningAction', 'InformationAction',
+        'ErrorVariable', 'WarningVariable', 'OutVariable', 'OutBuffer', 'PipelineVariable',
+        'WhatIf', 'Confirm'
+    ) + @($ExcludeKeys)
+
+    foreach ($key in $BoundParameters.Keys) {
+        if ($key -in $skip) { continue }
+        $values[$key] = $BoundParameters[$key]
+    }
+
+    if ($BoundParameters.ContainsKey('PortMapping')) {
+        $values['PortMapping'] = (toStringList $BoundParameters['PortMapping'])
+    }
+    if ($BoundParameters.ContainsKey('RegionNames')) {
+        $values['RegionNames'] = (toStringList $BoundParameters['RegionNames'])
+    }
+    if ($BoundParameters.ContainsKey('ResourceGroups')) {
+        $values['ResourceGroups'] = (toStringList $BoundParameters['ResourceGroups'])
+    }
+    if ($BoundParameters.ContainsKey('GcpRegionNames')) {
+        $values['GcpRegionNames'] = (toStringList $BoundParameters['GcpRegionNames'])
+    }
+    if ($BoundParameters.ContainsKey('RemoveResourceRecords')) {
+        $values['RemoveResourceRecords'] = (toStringList $BoundParameters['RemoveResourceRecords'])
+    }
+    if ($BoundParameters.ContainsKey('ForceDomainAdmin') -and $BoundParameters['ForceDomainAdmin']) {
+        $values['ForceDomainAdmin'] = $true
+    }
+
+    return $values
+}
+
+function script:setPamTypedFieldValue {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [Parameter(Mandatory = $true)]
+        [string] $FieldType,
+        [string] $FieldLabel,
+        [AllowEmptyString()]
+        [object] $Value
+    )
+
+    $rtf = New-Object KeeperSecurity.Vault.RecordTypeField($FieldType, $FieldLabel)
+    [KeeperSecurity.Vault.ITypedField]$field = $null
+    if (-not [KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($Record, $rtf, [ref]$field)) {
+        if ($null -eq $Value -or [string]::IsNullOrEmpty([string]$Value)) {
+            return
+        }
+        $field = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($FieldType, $FieldLabel)
+        if ($field) {
+            $Record.Fields.Add($field)
+        }
+    }
+
+    if (-not $field) {
+        return
+    }
+
+    if ($null -eq $Value -or [string]::IsNullOrEmpty([string]$Value)) {
+        while ($field.Count -gt 0) {
+            $field.DeleteValueAt(0)
+        }
+        return
+    }
+
+    $field.ObjectValue = $Value
+}
+
+function script:setPamCheckboxField {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [Parameter(Mandatory = $true)]
+        [string] $Label,
+        [string] $TriBool
+    )
+
+    if ([string]::IsNullOrWhiteSpace($TriBool)) {
+        return
+    }
+
+    $normalized = $TriBool.Trim().ToLowerInvariant()
+    if ($normalized -notin @('true', 'false')) {
+        return
+    }
+
+    setPamTypedFieldValue -Record $Record -FieldType 'checkbox' -FieldLabel $Label -Value ($normalized -eq 'true')
+}
+
+function script:getPamHostnameField {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record
+    )
+
+    $rtf = New-Object KeeperSecurity.Vault.RecordTypeField('pamHostname', $null)
+    [KeeperSecurity.Vault.ITypedField]$field = $null
+    if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($Record, $rtf, [ref]$field) -and
+        $field.Count -gt 0 -and
+        $field.GetValueAt(0) -is [KeeperSecurity.Vault.FieldTypeHost]) {
+        return [KeeperSecurity.Vault.FieldTypeHost]$field.GetValueAt(0)
+    }
+
+    return $null
+}
+
+function script:setPamHostnameField {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [string] $HostName,
+        [string] $Port
+    )
+
+    $hostObj = New-Object KeeperSecurity.Vault.FieldTypeHost
+    $hostObj.HostName = if ($null -eq $HostName) { '' } else { $HostName }
+    $hostObj.Port = if ($null -eq $Port) { '' } else { $Port }
+    setPamTypedFieldValue -Record $Record -FieldType 'pamHostname' -FieldLabel $null -Value $hostObj
+}
+
+function script:applyPamConfigSchedule {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [string] $DefaultSchedule,
+        [bool] $IsEdit
+    )
+
+    # On edit, omit schedule unless explicitly provided (preserve existing).
+    if ($IsEdit -and [string]::IsNullOrWhiteSpace($DefaultSchedule)) {
+        return
+    }
+
+    try {
+        $schedule = New-Object KeeperSecurity.Vault.FieldSchedule
+        if (-not [string]::IsNullOrWhiteSpace($DefaultSchedule)) {
+            $cron = $DefaultSchedule.Trim()
+            $validation = [KeeperSecurity.Plugins.PAM.PamCronUtils]::ValidateCronExpression($cron, $true)
+            if (-not $validation.Item1) {
+                throw "Invalid CRON `"$cron`" Error: $($validation.Item2)"
+            }
+            $schedule.Type = 'CRON'
+            $schedule.Cron = $cron
+            $schedule.TimeZone = 'Etc/UTC'
+        }
+        else {
+            $schedule.Type = 'ON_DEMAND'
+        }
+
+        setPamTypedFieldValue -Record $Record -FieldType 'schedule' -FieldLabel 'defaultRotationSchedule' -Value $schedule
+    }
+    catch {
+        if ($_.Exception.Message -match 'Invalid CRON') { throw }
+        Write-Warning "Could not set default rotation schedule: $($_.Exception.Message). Ensure PAM record types are synced (Sync-Keeper)."
+    }
+}
+
+function script:applyPamConfigEnvironmentFields {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [Parameter(Mandatory = $true)]
+        [hashtable] $Values,
+        [bool] $IsEdit
+    )
+
+    $supplied = {
+        param([string]$key)
+        if ($IsEdit) {
+            return $Values.ContainsKey($key)
+        }
+        return $Values.ContainsKey($key) -and -not [string]::IsNullOrWhiteSpace([string]$Values[$key])
+    }
+
+    switch ($Record.TypeName) {
+        'pamNetworkConfiguration' {
+            if (& $supplied 'NetworkId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'networkId' -Value ([string]$Values['NetworkId'])
+            }
+            if (& $supplied 'NetworkCidr') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'networkCIDR' -Value ([string]$Values['NetworkCidr'])
+            }
+        }
+        'pamAwsConfiguration' {
+            if (& $supplied 'AwsId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'awsId' -Value ([string]$Values['AwsId'])
+            }
+            if (& $supplied 'AccessKeyId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'accessKeyId' -Value ([string]$Values['AccessKeyId'])
+            }
+            if (& $supplied 'AccessSecretKey') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'accessSecretKey' -Value ([string]$Values['AccessSecretKey'])
+            }
+            if ($Values.ContainsKey('RegionNames') -and $Values['RegionNames']) {
+                setPamTypedFieldValue -Record $Record -FieldType 'multiline' -FieldLabel 'regionNames' -Value (($Values['RegionNames'] -join "`n"))
+            }
+        }
+        'pamAzureConfiguration' {
+            if (& $supplied 'AzureId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'azureId' -Value ([string]$Values['AzureId'])
+            }
+            if (& $supplied 'ClientId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'clientId' -Value ([string]$Values['ClientId'])
+            }
+            if (& $supplied 'ClientSecret') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'clientSecret' -Value ([string]$Values['ClientSecret'])
+            }
+            if (& $supplied 'SubscriptionId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'subscriptionId' -Value ([string]$Values['SubscriptionId'])
+            }
+            if (& $supplied 'TenantId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'tenantId' -Value ([string]$Values['TenantId'])
+            }
+            if ($Values.ContainsKey('ResourceGroups') -and $Values['ResourceGroups']) {
+                setPamTypedFieldValue -Record $Record -FieldType 'multiline' -FieldLabel 'resourceGroups' -Value (($Values['ResourceGroups'] -join "`n"))
+            }
+        }
+        'pamGcpConfiguration' {
+            if (& $supplied 'GcpId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'pamGcpId' -Value ([string]$Values['GcpId'])
+            }
+            if (& $supplied 'ServiceAccountKey') {
+                $sak = [string]$Values['ServiceAccountKey']
+                # Accept raw JSON or a path to a JSON key file (sheet uses service-account.json).
+                if (-not [string]::IsNullOrWhiteSpace($sak) -and (Test-Path -LiteralPath $sak)) {
+                    try {
+                        $sak = Get-Content -LiteralPath $sak -Raw -ErrorAction Stop
+                    }
+                    catch {
+                        Write-Warning "Could not read service-account key file `"$($Values['ServiceAccountKey'])`": $($_.Exception.Message)"
+                    }
+                }
+                try {
+                    setPamTypedFieldValue -Record $Record -FieldType 'json' -FieldLabel 'pamServiceAccountKey' -Value $sak
+                }
+                catch {
+                    Write-Warning "Could not set GCP service-account key field: $($_.Exception.Message). Ensure PAM record types are synced (Sync-Keeper)."
+                }
+            }
+            if (& $supplied 'GoogleAdminEmail') {
+                setPamTypedFieldValue -Record $Record -FieldType 'email' -FieldLabel 'pamGoogleAdminEmail' -Value ([string]$Values['GoogleAdminEmail'])
+            }
+            if ($Values.ContainsKey('GcpRegionNames') -and $Values['GcpRegionNames']) {
+                setPamTypedFieldValue -Record $Record -FieldType 'multiline' -FieldLabel 'pamGcpRegionName' -Value (($Values['GcpRegionNames'] -join "`n"))
+            }
+        }
+        'pamDomainConfiguration' {
+            if (& $supplied 'DomainId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'pamDomainId' -Value ([string]$Values['DomainId'])
+            }
+            if ($IsEdit) {
+                if ($Values.ContainsKey('DomainHostname') -or $Values.ContainsKey('DomainPort')) {
+                    $existing = getPamHostnameField -Record $Record
+                    $hostName = if ($Values.ContainsKey('DomainHostname')) {
+                        [string]$Values['DomainHostname']
+                    }
+                    else {
+                        if ($existing) { $existing.HostName } else { '' }
+                    }
+                    $port = if ($Values.ContainsKey('DomainPort')) {
+                        [string]$Values['DomainPort']
+                    }
+                    else {
+                        if ($existing) { $existing.Port } else { '' }
+                    }
+                    setPamHostnameField -Record $Record -HostName $hostName -Port $port
+                }
+            }
+            else {
+                $hostName = if ($Values.ContainsKey('DomainHostname')) { [string]$Values['DomainHostname'] } else { '' }
+                $port = if ($Values.ContainsKey('DomainPort')) { [string]$Values['DomainPort'] } else { '' }
+                if (-not [string]::IsNullOrWhiteSpace($hostName) -or -not [string]::IsNullOrWhiteSpace($port)) {
+                    setPamHostnameField -Record $Record -HostName $hostName -Port $port
+                }
+            }
+
+            if ($Values.ContainsKey('DomainUseSsl')) {
+                setPamCheckboxField -Record $Record -Label 'useSSL' -TriBool ([string]$Values['DomainUseSsl'])
+            }
+            if ($Values.ContainsKey('DomainScanDcCidr')) {
+                setPamCheckboxField -Record $Record -Label 'scanDCCIDR' -TriBool ([string]$Values['DomainScanDcCidr'])
+            }
+            if (& $supplied 'DomainNetworkCidr') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'networkCIDR' -Value ([string]$Values['DomainNetworkCidr'])
+            }
+            if (& $supplied 'DomainUserMatch') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'userMatch' -Value ([string]$Values['DomainUserMatch'])
+            }
+            if ($Values.ContainsKey('DomainAdministrativeCredential') -and -not [string]::IsNullOrWhiteSpace([string]$Values['DomainAdministrativeCredential'])) {
+                $dac = ([string]$Values['DomainAdministrativeCredential']).Trim()
+                $force = [bool]$Values['ForceDomainAdmin']
+                if ($force) {
+                    if ($dac -notmatch '^[A-Za-z0-9\-_]{22}$') {
+                        Write-Warning "Invalid Domain Admin User UID: `"$dac`" (skipped)"
+                    }
+                    else {
+                        (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $dac
+                    }
+                }
+                else {
+                    try {
+                        $admin = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+                            $Vault, $dac, @('pamUser'))
+                        if ($admin) {
+                            (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $admin.Uid
+                        }
+                        else {
+                            Write-Warning "Domain Admin User UID: `"$dac`" not found (skipped)."
+                        }
+                    }
+                    catch {
+                        Write-Warning "Domain Admin User UID: `"$dac`" not found (skipped)."
+                    }
+                }
+            }
+        }
+        'pamOciConfiguration' {
+            $resolveMaybeFile = {
+                param([string]$value)
+                if ([string]::IsNullOrWhiteSpace($value)) { return $value }
+                if (Test-Path -LiteralPath $value) {
+                    try { return (Get-Content -LiteralPath $value -Raw -ErrorAction Stop) }
+                    catch { return $value }
+                }
+                return $value
+            }
+            if (& $supplied 'OciId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'pamOciId' -Value ([string]$Values['OciId'])
+            }
+            if (& $supplied 'OciAdminId') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'adminOcid' -Value ([string]$Values['OciAdminId'])
+            }
+            if (& $supplied 'OciAdminPublicKey') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'adminPublicKey' -Value (& $resolveMaybeFile ([string]$Values['OciAdminPublicKey']))
+            }
+            if (& $supplied 'OciAdminPrivateKey') {
+                setPamTypedFieldValue -Record $Record -FieldType 'secret' -FieldLabel 'adminPrivateKey' -Value (& $resolveMaybeFile ([string]$Values['OciAdminPrivateKey']))
+            }
+            if (& $supplied 'OciTenancy') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'tenancyOci' -Value ([string]$Values['OciTenancy'])
+            }
+            if (& $supplied 'OciRegion') {
+                setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'regionOci' -Value ([string]$Values['OciRegion'])
+            }
+        }
+    }
+
+    if ($Values.ContainsKey('PortMapping') -and $Values['PortMapping']) {
+        setPamTypedFieldValue -Record $Record -FieldType 'multiline' -FieldLabel 'portMapping' -Value (($Values['PortMapping'] -join "`n"))
+    }
+    if ($Values.ContainsKey('IdentityProvider') -and -not [string]::IsNullOrWhiteSpace([string]$Values['IdentityProvider'])) {
+        setPamTypedFieldValue -Record $Record -FieldType 'text' -FieldLabel 'identityProviderUid' -Value ([string]$Values['IdentityProvider'])
+    }
+}
+
+function script:applyPamConfigResources {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Plugins.PAM.IPamPlugin] $Plugin,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [hashtable] $Values,
+        [bool] $IsEdit
+    )
+
+    $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)
+
+    if ($Values.ContainsKey('Gateway') -and -not [string]::IsNullOrWhiteSpace([string]$Values['Gateway'])) {
+        $gateway = resolvePamGatewayController -Plugin $Plugin -Identifier ([string]$Values['Gateway']) -Vault $Vault
+        if ($gateway) {
+            $facade.ControllerUid = if ($gateway.ControllerUid) { $gateway.ControllerUid } else { $gateway.Uid }
+        }
+        elseif (-not $IsEdit) {
+            Write-Host "Warning: Gateway `"$($Values['Gateway'])`" not found."
+        }
+    }
+
+    if ($Values.ContainsKey('SharedFolder') -and -not [string]::IsNullOrWhiteSpace([string]$Values['SharedFolder'])) {
+        $folderUid = resolvePamConfigurationFolderUid -Vault $Vault -Identifier ([string]$Values['SharedFolder'])
+        if (-not [string]::IsNullOrEmpty($folderUid)) {
+            $resolved = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamResourcesFolderUid($Vault, $folderUid)
+            $facade.FolderUid = if ($resolved) { $resolved } else { $folderUid }
+        }
+    }
+    elseif ($IsEdit -and [string]::IsNullOrEmpty($facade.FolderUid)) {
+        throw 'Shared Folder not found'
+    }
+
+    if ($Values.ContainsKey('RemoveResourceRecords') -and $Values['RemoveResourceRecords']) {
+        $toRemove = New-Object 'System.Collections.Generic.List[string]'
+        foreach ($removeRef in @($Values['RemoveResourceRecords'])) {
+            if ([string]::IsNullOrWhiteSpace([string]$removeRef)) { continue }
+            $trimmed = ([string]$removeRef).Trim()
+            try {
+                $resolved = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+                    $Vault, $trimmed, [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation)
+                if ($resolved) {
+                    [void]$toRemove.Add($resolved.Uid)
+                    continue
+                }
+            }
+            catch {}
+
+            $titleMatches = 0
+            $titleUid = $null
+            foreach ($record in $Vault.KeeperRecords) {
+                if ($null -eq $record) { continue }
+                $tn = ''
+                try { $tn = [string]$record.TypeName } catch {}
+                if (-not $tn) { $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record) }
+                if (-not [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation.Contains($tn)) { continue }
+                if (-not [string]::Equals([string]$record.Title, $trimmed, [StringComparison]::OrdinalIgnoreCase)) { continue }
+                $titleMatches++
+                $titleUid = [string]$record.Uid
+            }
+            if ($titleMatches -eq 1 -and $titleUid) {
+                [void]$toRemove.Add($titleUid)
+                continue
+            }
+
+            Write-Warning "Failed to find PAM record: $removeRef"
+        }
+        if ($toRemove.Count -gt 0) {
+            $facade.RemoveResourceRefs($toRemove)
+        }
+    }
+
+    return $facade
+}
+
+function script:configurePamTunnelingIfNeeded {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Authentication.IAuthentication] $Auth,
+        [Parameter(Mandatory = $true)]
+        [string] $ConfigUid,
+        [hashtable] $Values
+    )
+
+    $keys = @(
+        'Connections', 'Tunneling', 'Rotation', 'ConnectionsRecording',
+        'TypescriptRecording', 'RemoteBrowserIsolation',
+        'AiThreatDetection', 'AiTerminateSessionOnDetection'
+    )
+    $hasAny = $false
+    foreach ($key in $keys) {
+        if ($Values.ContainsKey($key) -and $null -ne $Values[$key]) {
+            $hasAny = $true
+            break
+        }
+    }
+    if (-not $hasAny) {
+        return
+    }
+
+    $get = {
+        param($k)
+        if ($Values.ContainsKey($k)) { return [string]$Values[$k] }
+        return $null
+    }
+
+    [KeeperSecurity.Plugins.PAM.ConfigUtils]::ConfigureTunnelingAsync(
+        $Auth,
+        $ConfigUid,
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'Connections')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'Tunneling')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'Rotation')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'ConnectionsRecording')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'TypescriptRecording')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'RemoteBrowserIsolation')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'AiThreatDetection')),
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::ParseTriState((& $get 'AiTerminateSessionOnDetection'))
+    ).GetAwaiter().GetResult() | Out-Null
+}
+
+function script:movePamConfigToFolder {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [Parameter(Mandatory = $true)]
+        [string] $DestinationFolderUid
+    )
+
+    $Vault.CacheKeeperRecord($Record)
+    $sourceFolderUid = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecordSourceFolderUid($Vault, $Record.Uid)
+    if ($null -eq $sourceFolderUid) {
+        throw 'Cannot move PAM configuration: record is not initialized.'
+    }
+    if ([string]::Equals($sourceFolderUid, $DestinationFolderUid, [StringComparison]::Ordinal)) {
+        return
+    }
+
+    $path = New-Object KeeperSecurity.Vault.RecordPath
+    $path.RecordUid = $Record.Uid
+    $path.FolderUid = $sourceFolderUid
+    $Vault.MoveRecordToFolder($path, $DestinationFolderUid).GetAwaiter().GetResult() | Out-Null
+}
+
+function script:getPamConfigurationTypeSet {
+    # Return HashSet as a single object via unary comma (unenumerated).
+    # Do NOT use `return , @(hashSet)` — that nests Object[] and [string[]] binding
+    # collapses it to one space-joined string, so every type match fails.
+    try {
+        $fromSdk = [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Configuration
+        if ($null -ne $fromSdk -and $fromSdk.Count -gt 0) {
+            return , $fromSdk
+        }
+    }
+    catch {}
+
+    $fallback = [System.Collections.Generic.HashSet[string]]::new(
+        [string[]]@(
+            'pamAwsConfiguration'
+            'pamAzureConfiguration'
+            'pamGcpConfiguration'
+            'pamDomainConfiguration'
+            'pamNetworkConfiguration'
+            'pamOciConfiguration'
+        ),
+        [StringComparer]::Ordinal)
+    return , $fallback
+}
+
+function script:isPamConfigurationTypeName {
+    Param (
+        [string] $TypeName,
+        $AllowedTypes
+    )
+
+    if ([string]::IsNullOrEmpty($TypeName) -or $null -eq $AllowedTypes) {
+        return $false
+    }
+
+    try {
+        return [bool]$AllowedTypes.Contains($TypeName)
+    }
+    catch {
+        foreach ($allowed in @($AllowedTypes)) {
+            if ($allowed -is [string] -and [string]::Equals($TypeName, $allowed, [StringComparison]::Ordinal)) {
+                return $true
+            }
+        }
+        return $false
+    }
+}
+
+function script:resolvePamConfigSharedFolder {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [string] $ConfigUid,
+        # List must match Commander: folder-tree only (FindParentTopSharedFolders).
+        # Permission-based FindSharedFolderForRecord is for create/edit display helpers only —
+        # using it on list hides NSF "not in the shared folder" lines.
+        [bool] $ListMode = $false
+    )
+
+    if ([string]::IsNullOrEmpty($ConfigUid)) {
+        return $null
+    }
+
+    # Same tree walk Commander uses (UID-only; no TypedRecord round-trip through PowerShell).
+    try {
+        $parents = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindParentTopSharedFolders($Vault, $ConfigUid)
+        if ($null -ne $parents) {
+            foreach ($sf in $parents) {
+                if ($null -ne $sf) { return $sf }
+            }
+        }
+    }
+    catch {}
+
+    if ($ListMode) {
+        return $null
+    }
+
+    try {
+        return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($Vault, $ConfigUid, $null)
+    }
+    catch {
+        return $null
+    }
+}
+
+function script:writePamConfigNotInSharedFolder {
+    Param (
+        [string] $Uid,
+        [string] $Title
+    )
+
+    # Match Python Commander list output (plain text, no PowerShell WARNING: prefix).
+    $line = "Following configuration is not in the shared folder: UID: $Uid, Title: $Title"
+    [Console]::Out.WriteLine($line)
+}
+
+function script:getPamFieldDisplayName {
+    Param ($Field)
+
+    $type = if ($Field.FieldName) { [string]$Field.FieldName } else { '' }
+    $label = if ($Field.FieldLabel) { [string]$Field.FieldLabel } else { '' }
+
+    if ($type -eq 'schedule' -and $label -eq 'defaultRotationSchedule') {
+        return 'Default Schedule'
+    }
+    if ($type -and $label) {
+        if ($type -eq 'schedule') { return 'Default Schedule' }
+        return "($type).$label"
+    }
+    if ($type) {
+        if ($type -eq 'schedule') { return 'Default Schedule' }
+        return "($type)"
+    }
+    return $label
+}
+
+function script:extractPamConfigDisplayFields {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Config
+    )
+
+    $fields = [ordered]@{}
+    $all = @($Config.Fields) + @($Config.Custom)
+    foreach ($field in $all) {
+        if ($null -eq $field) { continue }
+        $fname = [string]$field.FieldName
+        if ($fname -eq 'pamResources' -or $fname -eq 'fileRef') { continue }
+        if ($fname -eq 'schedule' -and [string]$field.FieldLabel -ne 'defaultRotationSchedule') {
+            continue
+        }
+
+        $vals = New-Object 'System.Collections.Generic.List[string]'
+        if ($fname -eq 'schedule') {
+            for ($i = 0; $i -lt $field.Count; $i++) {
+                $sched = $field.GetValueAt($i)
+                if ($null -eq $sched) { continue }
+                $stype = ''
+                try { $stype = [string]$sched.Type } catch {}
+                if ($stype -eq 'CRON') {
+                    $cron = ''
+                    try { $cron = [string]$sched.Cron } catch {}
+                    if (-not [string]::IsNullOrWhiteSpace($cron)) {
+                        [void]$vals.Add($cron.Trim())
+                    }
+                }
+                # ON_DEMAND intentionally omitted (matches Commander display)
+            }
+        }
+        else {
+            foreach ($v in @([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldValues($field))) {
+                if ($null -ne $v -and -not [string]::IsNullOrWhiteSpace([string]$v)) {
+                    [void]$vals.Add([string]$v)
+                }
+            }
+        }
+
+        if ($vals.Count -eq 0) { continue }
+        $fields[(getPamFieldDisplayName $field)] = ($vals -join ', ')
+    }
+
+    return $fields
+}
+
+function script:buildPamConfigListRow {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [string] $ConfigUid,
+        [string] $FallbackTitle = '',
+        [string] $FallbackTypeName = '',
+        [bool] $VerboseOutput,
+        [bool] $AsCommanderJson = $false,
+        [bool] $IsDetail = $false
+    )
+
+    if ([string]::IsNullOrEmpty($ConfigUid)) {
+        return $null
+    }
+
+    [KeeperSecurity.Vault.KeeperRecord]$loaded = $null
+    [void]$Vault.TryGetKeeperRecord($ConfigUid, [ref]$loaded)
+
+    $title = $FallbackTitle
+    $typeName = $FallbackTypeName
+    $gatewayUid = ''
+    $resourceUidList = New-Object 'System.Collections.Generic.List[string]'
+    $fields = $null
+    $adminCred = ''
+
+    if ($null -ne $loaded) {
+        if (-not $title) { $title = [string]$loaded.Title }
+        try {
+            if (-not $typeName) { $typeName = [string]$loaded.TypeName }
+        }
+        catch {}
+        if (-not $typeName) {
+            $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($loaded)
+        }
+
+        $typed = $loaded -as [KeeperSecurity.Vault.TypedRecord]
+        if ($null -ne $typed) {
+            try {
+                $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($typed)
+                $gatewayUid = [string]$facade.ControllerUid
+                foreach ($ref in @($facade.ResourceRef)) {
+                    [void]$resourceUidList.Add([string]$ref)
+                }
+                $adminCred = [string]$facade.AdminCredentialRef
+                if ($VerboseOutput -or $IsDetail) {
+                    $fields = extractPamConfigDisplayFields -Config $typed
+                }
+            }
+            catch {}
+        }
+    }
+
+    $sharedFolder = resolvePamConfigSharedFolder -Vault $Vault -ConfigUid $ConfigUid -ListMode:$false
+    $sharedFolderText = if ($sharedFolder) { "$($sharedFolder.Name) ($($sharedFolder.Uid))" } else { '' }
+    $resourceJoined = ($resourceUidList -join ', ')
+
+    if ($AsCommanderJson) {
+        $sfObj = $null
+        if ($sharedFolder) {
+            $sfObj = [ordered]@{
+                name = [string]$sharedFolder.Name
+                uid  = [string]$sharedFolder.Uid
+            }
+        }
+
+        if ($IsDetail) {
+            $row = [ordered]@{
+                uid                   = $ConfigUid
+                name                  = $title
+                config_type           = $typeName
+                shared_folder         = $sfObj
+                gateway_uid           = $gatewayUid
+                resource_record_uids  = @($resourceUidList.ToArray())
+                fields                = if ($fields) { $fields } else { [ordered]@{} }
+            }
+            if ($typeName -eq 'pamDomainConfiguration') {
+                $row['domain_administrative_credential'] = $adminCred
+            }
+            return [PSCustomObject]$row
+        }
+
+        $row = [ordered]@{
+            uid                  = $ConfigUid
+            config_name          = $title
+            config_type          = $typeName
+            shared_folder        = $sfObj
+            gateway_uid          = $gatewayUid
+            resource_record_uids = @($resourceUidList.ToArray())
+        }
+        if ($VerboseOutput -and $fields) {
+            $row['fields'] = $fields
+        }
+        return [PSCustomObject]$row
+    }
+
+    $row = [ordered]@{
+        Uid                = $ConfigUid
+        ConfigName         = $title
+        ConfigType         = $typeName
+        SharedFolder       = $sharedFolderText
+        GatewayUid         = $gatewayUid
+        ResourceRecordUids = $resourceJoined
+    }
+    if ($VerboseOutput -and $fields -and $fields.Count -gt 0) {
+        $parts = foreach ($k in $fields.Keys) { "$k`: $($fields[$k])" }
+        $row['Fields'] = ($parts -join '; ')
+    }
+
+    return [PSCustomObject]$row
+}
+
+function Get-KeeperPamConfig {
+    <#
+        .SYNOPSIS
+        List PAM configurations.
+
+        .DESCRIPTION
+        Lists PAM configurations. Equivalent to Commander: pam-config list
+        See: https://docs.keeper.io/keeperpam/commander-cli/command-reference/keeperpam-commands#sub-command-config
+
+        .EXAMPLE
+        Get-KeeperPamConfig
+
+        .EXAMPLE
+        Get-KeeperPamConfig -Config '<CONFIG_UID>' -VerboseOutput -Format json
+    #>
+    [CmdletBinding()]
+    [Alias('pam-config-list', 'pam-cfg-list')]
+    Param (
+        [Parameter(Position = 0)]
+        [Alias('c')]
+        [string] $Config,
+
+        [Parameter()]
+        [Alias('v')]
+        [switch] $VerboseOutput,
+
+        [Parameter()]
+        [ValidateSet('table', 'json')]
+        [string] $Format = 'table'
+    )
+
+    $vault = getPamVault
+    $allowedTypes = getPamConfigurationTypeSet
+
+    if (-not [string]::IsNullOrWhiteSpace($Config)) {
+        $configId = $Config.Trim()
+        $resolvedUid = $null
+        $resolvedTitle = ''
+        $resolvedType = ''
+
+        [KeeperSecurity.Vault.KeeperRecord]$byUid = $null
+        if ($vault.TryGetKeeperRecord($configId, [ref]$byUid) -and $null -ne $byUid) {
+            $tn = ''
+            try { $tn = [string]$byUid.TypeName } catch {}
+            if (-not $tn) {
+                $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($byUid)
+            }
+            if (isPamConfigurationTypeName -TypeName $tn -AllowedTypes $allowedTypes) {
+                $resolvedUid = [string]$byUid.Uid
+                $resolvedTitle = [string]$byUid.Title
+                $resolvedType = $tn
+            }
+        }
+
+        if (-not $resolvedUid) {
+            foreach ($record in $vault.KeeperRecords) {
+                if ($null -eq $record -or [string]::IsNullOrEmpty($record.Uid)) { continue }
+                $tn = ''
+                try { $tn = [string]$record.TypeName } catch {}
+                if (-not $tn) {
+                    $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+                }
+                if (-not (isPamConfigurationTypeName -TypeName $tn -AllowedTypes $allowedTypes)) { continue }
+                if (-not [string]::Equals([string]$record.Title, $configId, [StringComparison]::OrdinalIgnoreCase)) { continue }
+                if ($resolvedUid) {
+                    if ($Format -eq 'json') {
+                        @{ error = "Configuration $Config not found" } | ConvertTo-Json -Depth 5
+                    }
+                    else {
+                        Write-Output "Configuration `"$Config`" is not unique. Use configuration UID."
+                    }
+                    return
+                }
+                $resolvedUid = [string]$record.Uid
+                $resolvedTitle = [string]$record.Title
+                $resolvedType = $tn
+            }
+        }
+
+        if (-not $resolvedUid) {
+            if ($Format -eq 'json') {
+                @{ error = "Configuration $Config not found" } | ConvertTo-Json -Depth 5
+            }
+            else {
+                Write-Output "Configuration `"$Config`" not found."
+            }
+            return
+        }
+
+        $detail = buildPamConfigListRow -Vault $vault -ConfigUid $resolvedUid `
+            -FallbackTitle $resolvedTitle -FallbackTypeName $resolvedType `
+            -VerboseOutput $true -AsCommanderJson:($Format -eq 'json') -IsDetail $true
+        if ($Format -eq 'json') {
+            $detail | ConvertTo-Json -Depth 8
+        }
+        else {
+            # Match Commander detail labels: UID / Name / Config Type / ...
+            [PSCustomObject][ordered]@{
+                UID                    = $detail.Uid
+                Name                   = $detail.ConfigName
+                'Config Type'          = $detail.ConfigType
+                'Shared Folder'        = $detail.SharedFolder
+                'Gateway UID'          = $detail.GatewayUid
+                'Resource Record UIDs' = $detail.ResourceRecordUids
+            } | Format-List
+            if ($detail.Fields) {
+                Write-Output "Fields: $($detail.Fields)"
+            }
+        }
+        return
+    }
+
+    # Discover UID/Title/TypeName strings only. Never store TypedRecord / Dictionary.Values /
+    # List[TypedRecord] for later PowerShell indexing — those paths yield empty UID/Title shells.
+    $prepared = New-Object 'System.Collections.Generic.List[object]'
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    $vaultRecordCount = 0
+
+    foreach ($record in $vault.KeeperRecords) {
+        $vaultRecordCount++
+        if ($null -eq $record) { continue }
+        $uid = [string]$record.Uid
+        if ([string]::IsNullOrEmpty($uid) -or -not $seen.Add($uid)) { continue }
+
+        $typeName = ''
+        try { $typeName = [string]$record.TypeName } catch {}
+        if ([string]::IsNullOrEmpty($typeName)) {
+            $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+        }
+        if (-not (isPamConfigurationTypeName -TypeName $typeName -AllowedTypes $allowedTypes)) {
+            continue
+        }
+
+        $title = ''
+        try { $title = [string]$record.Title } catch {}
+        [void]$prepared.Add([PSCustomObject]@{
+                Uid      = $uid
+                Title    = $title
+                TypeName = $typeName
+            })
+    }
+
+    Write-Verbose ("Vault records scanned: {0}; PAM configurations matched: {1}" -f $vaultRecordCount, $prepared.Count)
+
+    $sorted = @($prepared | Sort-Object -Property @{ Expression = { $_.Title }; Ascending = $true })
+    $rows = New-Object 'System.Collections.Generic.List[object]'
+
+    foreach ($item in $sorted) {
+        $uid = [string]$item.Uid
+        if ([string]::IsNullOrEmpty($uid)) { continue }
+
+        # Commander list: folder-tree membership only. NSF / unlinked configs print a line and are omitted.
+        $sharedFolder = resolvePamConfigSharedFolder -Vault $vault -ConfigUid $uid -ListMode $true
+        if ($null -eq $sharedFolder) {
+            writePamConfigNotInSharedFolder -Uid $uid -Title ([string]$item.Title)
+            continue
+        }
+
+        $row = buildPamConfigListRow -Vault $vault -ConfigUid $uid `
+            -FallbackTitle ([string]$item.Title) -FallbackTypeName ([string]$item.TypeName) `
+            -VerboseOutput:$VerboseOutput.IsPresent -AsCommanderJson:($Format -eq 'json')
+        if ($null -ne $row) {
+            [void]$rows.Add($row)
+        }
+    }
+
+    if ($Format -eq 'json') {
+        @{ configurations = @($rows.ToArray()) } | ConvertTo-Json -Depth 8
+        return
+    }
+
+    if ($rows.Count -eq 0) {
+        Write-Output 'No PAM configurations found.'
+        if ($prepared.Count -eq 0) {
+            Write-Output ("Vault records scanned: {0}" -f $vaultRecordCount)
+            Write-Output 'Tip: Import-Module /Applications/keeper-sdk-dotnet/PowerCommander/PowerCommander.psd1 -Force; Sync-Keeper; Get-KeeperPamConfig -Verbose'
+        }
+        return
+    }
+
+    $rows.ToArray() | Format-Table -AutoSize
+}
+
+function New-KeeperPamConfig {
+    <#
+        .SYNOPSIS
+        Create a new PAM configuration.
+
+        .DESCRIPTION
+        Creates a PAM configuration. Equivalent to Commander: pam-config new
+
+        .EXAMPLE
+        New-KeeperPamConfig -Environment local -Title 'Network Config' -SharedFolder '<SF_UID>' -Gateway '<GATEWAY>' -NetworkId 'net1' -NetworkCidr '10.0.0.0/24'
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    [Alias('pam-config-new', 'pam-cfg-new')]
+    Param (
+        [Parameter(Mandatory = $true)]
+        [Alias('env')]
+        [ValidateSet('local', 'aws', 'azure', 'gcp', 'domain', 'oci', 'network', 'github')]
+        [string] $Environment,
+
+        [Parameter(Mandatory = $true)]
+        [Alias('t')]
+        [string] $Title,
+
+        [Parameter(Mandatory = $true)]
+        [Alias('sf', 'shared-folder')]
+        [string] $SharedFolder,
+
+        [Parameter()]
+        [Alias('g')]
+        [string] $Gateway,
+
+        [Parameter()]
+        [Alias('sc', 'schedule')]
+        [string] $DefaultSchedule,
+
+        [Parameter()]
+        [Alias('pm', 'port-mapping')]
+        [string[]] $PortMapping,
+
+        [Parameter()]
+        [Alias('idp', 'identity-provider')]
+        [string] $IdentityProvider,
+
+        [Parameter()]
+        [Alias('c')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Connections,
+
+        [Parameter()]
+        [Alias('u')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Tunneling,
+
+        [Parameter()]
+        [Alias('r')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Rotation,
+
+        [Parameter()]
+        [Alias('rbi', 'remote-browser-isolation')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $RemoteBrowserIsolation,
+
+        [Parameter()]
+        [Alias('cr', 'connections-recording')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $ConnectionsRecording,
+
+        [Parameter()]
+        [Alias('tr', 'typescript-recording')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $TypescriptRecording,
+
+        [Parameter()]
+        [Alias('ai-threat-detection')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $AiThreatDetection,
+
+        [Parameter()]
+        [Alias('ai-terminate-session-on-detection')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $AiTerminateSessionOnDetection,
+
+        [Parameter()][Alias('network-id')][string] $NetworkId,
+        [Parameter()][Alias('network-cidr')][string] $NetworkCidr,
+        [Parameter()][Alias('aws-id')][string] $AwsId,
+        [Parameter()][Alias('access-key-id')][string] $AccessKeyId,
+        [Parameter()][Alias('access-secret-key')][string] $AccessSecretKey,
+        [Parameter()][Alias('region-name')][string[]] $RegionNames,
+        [Parameter()][Alias('azure-id')][string] $AzureId,
+        [Parameter()][Alias('client-id')][string] $ClientId,
+        [Parameter()][Alias('client-secret')][string] $ClientSecret,
+        [Parameter()][Alias('subscription-id', 'subscription_id')][string] $SubscriptionId,
+        [Parameter()][Alias('tenant-id')][string] $TenantId,
+        [Parameter()][Alias('resource-group')][string[]] $ResourceGroups,
+        [Parameter()][Alias('gcp-id')][string] $GcpId,
+        [Parameter()][Alias('service-account-key')][string] $ServiceAccountKey,
+        [Parameter()][Alias('google-admin-email')][string] $GoogleAdminEmail,
+        [Parameter()][Alias('gcp-region')][string[]] $GcpRegionNames,
+        [Parameter()][Alias('domain-id')][string] $DomainId,
+        [Parameter()][Alias('domain-hostname')][string] $DomainHostname,
+        [Parameter()][Alias('domain-port')][string] $DomainPort,
+        [Parameter()][Alias('domain-use-ssl')][ValidateSet('true', 'false')][string] $DomainUseSsl,
+        [Parameter()][Alias('domain-scan-dc-cidr')][ValidateSet('true', 'false')][string] $DomainScanDcCidr,
+        [Parameter()][Alias('domain-network-cidr')][string] $DomainNetworkCidr,
+        [Parameter()][Alias('domain-admin')][string] $DomainAdministrativeCredential,
+        [Parameter()][Alias('domain-user-match')][string] $DomainUserMatch,
+        [Parameter()][Alias('force-domain-admin')][switch] $ForceDomainAdmin,
+        [Parameter()][Alias('oci-id')][string] $OciId,
+        [Parameter()][Alias('oci-admin-id')][string] $OciAdminId,
+        [Parameter()][Alias('oci-admin-public-key')][string] $OciAdminPublicKey,
+        [Parameter()][Alias('oci-admin-private-key')][string] $OciAdminPrivateKey,
+        [Parameter()][Alias('oci-tenancy')][string] $OciTenancy,
+        [Parameter()][Alias('oci-region')][string] $OciRegion
+    )
+
+    $plugin = ensurePamPlugin
+    if (-not $plugin) {
+        Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
+    }
+
+    $vault = getPamVault
+    $auth = getPamEnterpriseAuth
+
+    if (-not $PSCmdlet.ShouldProcess($Title, 'Create PAM configuration')) {
+        return
+    }
+
+    if (writePamComingSoonMessage -Environment $Environment) {
+        return
+    }
+
+    [string]$recordType = $null
+    if (-not [KeeperSecurity.Plugins.PAM.PamConfigTypes]::TryResolveRecordType($Environment, [ref]$recordType)) {
+        throw "Environment parameter is required. Supported options: $([KeeperSecurity.Plugins.PAM.PamConfigTypes]::GetSupportedConfigTypes())"
+    }
+
+    [KeeperSecurity.Vault.SyncDownRestExtension]::EnsurePamRecordTypesAsync($vault).GetAwaiter().GetResult() | Out-Null
+
+    $values = preparePamConfigValuesFromBoundParameters -BoundParameters $PSBoundParameters
+
+    $record = [KeeperSecurity.Plugins.PAM.ConfigUtils]::CreateConfigurationRecord($vault, $recordType, $Title)
+    $facade = applyPamConfigResources -Vault $vault -Plugin $plugin -Record $record -Values $values -IsEdit:$false
+    applyPamConfigEnvironmentFields -Vault $vault -Record $record -Values $values -IsEdit:$false
+    applyPamConfigSchedule -Record $record -DefaultSchedule $DefaultSchedule -IsEdit:$false
+
+    $moveDestinationUid = resolvePamConfigurationFolderUid -Vault $vault -Identifier $SharedFolder
+    $sharedFolderUid = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamResourcesFolderUid($vault, $facade.FolderUid)
+    if (-not $sharedFolderUid) {
+        $sharedFolderUid = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamResourcesFolderUid($vault, $moveDestinationUid)
+    }
+    if ($sharedFolderUid) {
+        $facade.FolderUid = $sharedFolderUid
+    }
+
+    if (-not $sharedFolderUid -or -not $moveDestinationUid) {
+        throw "Could not resolve shared folder `"$SharedFolder`". Provide a shared folder UID, name, or path."
+    }
+
+    [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
+    [KeeperSecurity.Plugins.PAM.ConfigUtils]::AddConfigurationRecordAsync($vault, $record).GetAwaiter().GetResult() | Out-Null
+
+    try {
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::EnsureConfigurationNetworkGraphAsync($auth, $record.Uid).GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+        Write-Warning "Could not register PAM configuration network graph: $($_.Exception.Message)"
+    }
+
+    configurePamTunnelingIfNeeded -Auth $auth -ConfigUid $record.Uid -Values $values
+    movePamConfigToFolder -Vault $vault -Record $record -DestinationFolderUid $moveDestinationUid
+    $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+
+    if (-not [string]::IsNullOrEmpty($facade.ControllerUid)) {
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationControllerAsync(
+            $auth, $record.Uid, $facade.ControllerUid).GetAwaiter().GetResult() | Out-Null
+    }
+
+    $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+    try {
+        [void](syncPamPlugin -Plugin $plugin -Reload $true -ThrowOnError $false)
+    }
+    catch {}
+    Write-Output $record.Uid
+}
+
+function Set-KeeperPamConfig {
+    <#
+        .SYNOPSIS
+        Edit an existing PAM configuration.
+
+        .DESCRIPTION
+        Updates a PAM configuration. Equivalent to Commander: pam-config edit
+
+        .EXAMPLE
+        Set-KeeperPamConfig -Uid '<CONFIG_UID>' -Title 'Updated Title'
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    [Alias('pam-config-edit', 'pam-cfg-edit')]
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Uid,
+
+        [Parameter()]
+        [Alias('env')]
+        [ValidateSet('local', 'aws', 'azure', 'gcp', 'domain', 'oci', 'network', 'github')]
+        [string] $Environment,
+
+        [Parameter()]
+        [Alias('t')]
+        [string] $Title,
+
+        [Parameter()]
+        [Alias('sf', 'shared-folder')]
+        [string] $SharedFolder,
+
+        [Parameter()]
+        [Alias('g')]
+        [string] $Gateway,
+
+        [Parameter()]
+        [Alias('sc', 'schedule')]
+        [string] $DefaultSchedule,
+
+        [Parameter()]
+        [Alias('pm', 'port-mapping')]
+        [string[]] $PortMapping,
+
+        [Parameter()]
+        [Alias('idp', 'identity-provider')]
+        [string] $IdentityProvider,
+
+        [Parameter()]
+        [Alias('rrr', 'remove-resource-record')]
+        [string[]] $RemoveResourceRecords,
+
+        [Parameter()]
+        [Alias('c')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Connections,
+
+        [Parameter()]
+        [Alias('u')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Tunneling,
+
+        [Parameter()]
+        [Alias('r')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $Rotation,
+
+        [Parameter()]
+        [Alias('rbi', 'remote-browser-isolation')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $RemoteBrowserIsolation,
+
+        [Parameter()]
+        [Alias('cr', 'connections-recording')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $ConnectionsRecording,
+
+        [Parameter()]
+        [Alias('tr', 'typescript-recording')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $TypescriptRecording,
+
+        [Parameter()]
+        [Alias('ai-threat-detection')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $AiThreatDetection,
+
+        [Parameter()]
+        [Alias('ai-terminate-session-on-detection')]
+        [ValidateSet('on', 'off', 'default')]
+        [string] $AiTerminateSessionOnDetection,
+
+        [Parameter()][Alias('network-id')][string] $NetworkId,
+        [Parameter()][Alias('network-cidr')][string] $NetworkCidr,
+        [Parameter()][Alias('aws-id')][string] $AwsId,
+        [Parameter()][Alias('access-key-id')][string] $AccessKeyId,
+        [Parameter()][Alias('access-secret-key')][string] $AccessSecretKey,
+        [Parameter()][Alias('region-name')][string[]] $RegionNames,
+        [Parameter()][Alias('azure-id')][string] $AzureId,
+        [Parameter()][Alias('client-id')][string] $ClientId,
+        [Parameter()][Alias('client-secret')][string] $ClientSecret,
+        [Parameter()][Alias('subscription-id', 'subscription_id')][string] $SubscriptionId,
+        [Parameter()][Alias('tenant-id')][string] $TenantId,
+        [Parameter()][Alias('resource-group')][string[]] $ResourceGroups,
+        [Parameter()][Alias('gcp-id')][string] $GcpId,
+        [Parameter()][Alias('service-account-key')][string] $ServiceAccountKey,
+        [Parameter()][Alias('google-admin-email')][string] $GoogleAdminEmail,
+        [Parameter()][Alias('gcp-region')][string[]] $GcpRegionNames,
+        [Parameter()][Alias('domain-id')][string] $DomainId,
+        [Parameter()][Alias('domain-hostname')][string] $DomainHostname,
+        [Parameter()][Alias('domain-port')][string] $DomainPort,
+        [Parameter()][Alias('domain-use-ssl')][ValidateSet('true', 'false')][string] $DomainUseSsl,
+        [Parameter()][Alias('domain-scan-dc-cidr')][ValidateSet('true', 'false')][string] $DomainScanDcCidr,
+        [Parameter()][Alias('domain-network-cidr')][string] $DomainNetworkCidr,
+        [Parameter()][Alias('domain-admin')][string] $DomainAdministrativeCredential,
+        [Parameter()][Alias('domain-user-match')][string] $DomainUserMatch,
+        [Parameter()][Alias('force-domain-admin')][switch] $ForceDomainAdmin,
+        [Parameter()][Alias('oci-id')][string] $OciId,
+        [Parameter()][Alias('oci-admin-id')][string] $OciAdminId,
+        [Parameter()][Alias('oci-admin-public-key')][string] $OciAdminPublicKey,
+        [Parameter()][Alias('oci-admin-private-key')][string] $OciAdminPrivateKey,
+        [Parameter()][Alias('oci-tenancy')][string] $OciTenancy,
+        [Parameter()][Alias('oci-region')][string] $OciRegion
+    )
+
+    $plugin = ensurePamPlugin -SyncIfNeeded $false
+    if (-not $plugin) {
+        Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
+    }
+
+    $vault = getPamVault
+    $auth = getPamEnterpriseAuth
+
+    if (-not $PSCmdlet.ShouldProcess($Uid, 'Update PAM configuration')) {
+        return
+    }
+
+    if ($PSBoundParameters.ContainsKey('Environment') -and (writePamComingSoonMessage -Environment $Environment)) {
+        return
+    }
+
+    try {
+        $configuration = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+            $vault, $Uid.Trim(), [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Configuration)
+    }
+    catch {
+        $configuration = $null
+    }
+    if (-not $configuration) {
+        throw "PAM configuration `"$Uid`" not found"
+    }
+
+    [KeeperSecurity.Vault.SyncDownRestExtension]::EnsurePamRecordTypesAsync($vault).GetAwaiter().GetResult() | Out-Null
+
+    if ($PSBoundParameters.ContainsKey('Environment')) {
+        [string]$newType = $null
+        if ([KeeperSecurity.Plugins.PAM.PamConfigTypes]::TryResolveRecordType($Environment, [ref]$newType) -and
+            -not [string]::Equals($newType, $configuration.TypeName, [StringComparison]::Ordinal)) {
+            $configuration.TypeName = $newType
+        }
+    }
+    [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $configuration)
+
+    if ($PSBoundParameters.ContainsKey('Title') -and -not [string]::IsNullOrWhiteSpace($Title)) {
+        $configuration.Title = $Title.Trim()
+    }
+
+    $values = preparePamConfigValuesFromBoundParameters -BoundParameters $PSBoundParameters -ExcludeKeys @('Uid')
+
+    $facadeBefore = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($configuration)
+    $origGatewayUid = $facadeBefore.ControllerUid
+    $origSharedFolderUid = $facadeBefore.FolderUid
+    $origAdminCredRef = $facadeBefore.AdminCredentialRef
+
+    $facade = applyPamConfigResources -Vault $vault -Plugin $plugin -Record $configuration -Values $values -IsEdit:$true
+    applyPamConfigEnvironmentFields -Vault $vault -Record $configuration -Values $values -IsEdit:$true
+    applyPamConfigSchedule -Record $configuration -DefaultSchedule $DefaultSchedule -IsEdit:$true
+
+    [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $configuration)
+    $vault.UpdateRecord($configuration).GetAwaiter().GetResult() | Out-Null
+
+    $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($configuration)
+    if (-not [string]::Equals($facade.ControllerUid, $origGatewayUid, [StringComparison]::Ordinal) -and
+        -not [string]::IsNullOrEmpty($facade.ControllerUid)) {
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationControllerAsync(
+            $auth, $configuration.Uid, $facade.ControllerUid).GetAwaiter().GetResult() | Out-Null
+    }
+
+    if (-not [string]::Equals($facade.FolderUid, $origSharedFolderUid, [StringComparison]::Ordinal) -and
+        -not [string]::IsNullOrEmpty($facade.FolderUid)) {
+        $moveFolderUid = resolvePamConfigurationFolderUid -Vault $vault -Identifier $facade.FolderUid
+        if (-not $moveFolderUid) { $moveFolderUid = $facade.FolderUid }
+        movePamConfigToFolder -Vault $vault -Record $configuration -DestinationFolderUid $moveFolderUid
+    }
+
+    $tunnelKeys = @('Connections', 'Tunneling', 'Rotation', 'ConnectionsRecording', 'TypescriptRecording',
+        'RemoteBrowserIsolation', 'AiThreatDetection', 'AiTerminateSessionOnDetection')
+    $needTunnel = $false
+    foreach ($k in $tunnelKeys) {
+        if ($values.ContainsKey($k)) { $needTunnel = $true; break }
+    }
+    if ($needTunnel -or -not [string]::Equals($facade.AdminCredentialRef, $origAdminCredRef, [StringComparison]::Ordinal)) {
+        configurePamTunnelingIfNeeded -Auth $auth -ConfigUid $configuration.Uid -Values $values
+    }
+
+    $vault.ScheduleSyncDown([TimeSpan]::FromMilliseconds(100)).GetAwaiter().GetResult() | Out-Null
+    # Prefer UID (matches create output / sheet note "Better to return UID").
+    Write-Output "PAM configuration `"$($configuration.Title)`" updated."
+}
+
+function Remove-KeeperPamConfig {
+    <#
+        .SYNOPSIS
+        Remove a PAM configuration.
+
+        .DESCRIPTION
+        Removes a PAM configuration. Equivalent to Commander: pam-config remove
+
+        .EXAMPLE
+        Remove-KeeperPamConfig -Uid '<CONFIG_UID>'
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [Alias('pam-config-remove', 'pam-cfg-remove', 'pam-config-rm')]
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $Uid
+    )
+
+    $plugin = ensurePamPlugin -SyncIfNeeded $false
+    if (-not $plugin) {
+        Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
+    }
+
+    $vault = getPamVault
+    try {
+        $config = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+            $vault, $Uid.Trim(), [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Configuration)
+    }
+    catch {
+        $config = $null
+    }
+    if (-not $config) {
+        Write-Error -Message "Configuration `"$Uid`" not found" -ErrorAction Stop
+    }
+
+    if (-not $PSCmdlet.ShouldProcess($config.Title, 'Remove PAM configuration')) {
+        return
+    }
+
+    [KeeperSecurity.Plugins.PAM.ConfigUtils]::RemovePamConfigurationAsync($vault, $config.Uid).GetAwaiter().GetResult() | Out-Null
+    $vault.ScheduleSyncDown([TimeSpan]::FromMilliseconds(100)).GetAwaiter().GetResult() | Out-Null
+    Write-Output "PAM configuration `"$($config.Title)`" removed."
+}
