@@ -97,13 +97,21 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | Unshare-KeeperNSFRecords                                | nsf-unshare-records | Batch revoke NSF record access from JSON (`-DownloadSampleUnshares`)
 | Set-KeeperNSFRecordPermission                           | nsf-record-permission | Bulk grant or revoke record permissions in an NSF folder
 | Link-KeeperNSFRecord                                    | nsf-ln           | Link a record into an NSF folder
+| Link-KeeperNSFRecords                                   | nsf-lns          | Batch link records into NSF folders from JSON (`-DownloadSampleLinks`; max 500 per folder)
+| Unlink-KeeperNSFRecords                                 | nsf-unln         | Batch unlink records from NSF folders from JSON (`-DownloadSampleUnlinks`; max 500)
 | Transfer-KeeperNSFRecordOwnership                       | nsf-transfer-record | Transfer NSF record ownership
 | Get-KeeperNSFShortcut                                   | nsf-shortcut-list | List NSF shortcut records
 | Set-KeeperNSFShortcutKeep                               | nsf-shortcut-keep | Keep a record in one NSF folder only
 | New-KeeperNSFFolder                                     | nsf-mkdir        | Create a Keeper NSF folder
-| Set-KeeperNSFFolder                                     | nsf-rndir        | Rename or recolor an NSF folder
-| Remove-KeeperNSFFolder                                  | nsf-rmdir        | Remove NSF folder(s)
+| New-KeeperNSFFolders                                    | nsf-mkdirs       | Batch create NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
+| Set-KeeperNSFFolder                                     | nsf-rndir        | Update a single NSF folder (name/color/inherit)
+| Set-KeeperNSFFolders                                    | nsf-folders-update | Batch update NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
+| Remove-KeeperNSFFolder                                  | nsf-rmdir        | Remove NSF folder(s) by UID/name
+| Remove-KeeperNSFFolders                                 | nsf-rmdirs       | Batch remove NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
 | Set-KeeperNSFFolderAccess                               | nsf-share-folder | Grant or revoke user or **team** access to an NSF folder
+| Share-KeeperNSFFolderAccesses                           | nsf-share-folders | Batch grant NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
+| Update-KeeperNSFFolderAccesses                          | nsf-update-folder-access | Batch update NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
+| Unshare-KeeperNSFFolderAccesses                         | nsf-unshare-folders | Batch revoke NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
 
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description

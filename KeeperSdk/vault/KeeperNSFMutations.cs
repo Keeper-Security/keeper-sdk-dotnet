@@ -47,7 +47,20 @@ namespace KeeperSecurity.Vault
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun = false)
         {
             var result = await ExecuteKeeperNSFFolderRemovalAsync(removals, dryRun).ConfigureAwait(false);
-            if (!dryRun && result.Confirmed)
+            if (!dryRun && (result.Confirmed || result.PartialSuccess))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult)
+        {
+            var result = await ConfirmKeeperNSFFolderRemovalAsync(removals, previewResult).ConfigureAwait(false);
+            if (result.Confirmed || result.PartialSuccess)
             {
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
@@ -75,98 +88,189 @@ namespace KeeperSecurity.Vault
                 folderUidOrName, newName, color, inheritPermissions, requestSync: true).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Update multiple Keeper NSF folders in batches. The server supports up to 100 folders per update request.
-        /// Returns the list of per-folder modify results in the same order as the provided updates.
-        /// </summary>
-        public async Task<IReadOnlyList<FolderProto.FolderModifyResult>> UpdateKeeperNSFFolders(
-            IEnumerable<(string FolderUidOrName, string NewName, string Color, bool? InheritPermissions)> updates)
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderUpdateResult>> UpdateKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderUpdateRequest> folders)
         {
-            if (updates == null) throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolders), "updates", "", "at least one update required");
-            var list = updates.Where(u => !string.IsNullOrWhiteSpace(u.FolderUidOrName)).ToList();
-            if (list.Count == 0) throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolders), "updates", "", "at least one update required");
+            if (folders == null || folders.Count == 0)
+            {
+                throw new ArgumentException("At least one folder update is required.", nameof(folders));
+            }
+
+            for (var i = 0; i < folders.Count; i++)
+            {
+                if (folders[i] == null)
+                {
+                    throw new ArgumentException($"Folder update at index {i} is null.", nameof(folders));
+                }
+
+                if (string.IsNullOrWhiteSpace(folders[i].FolderUid))
+                {
+                    throw new ArgumentException($"Folder UID cannot be empty (index {i}).", nameof(folders));
+                }
+
+                if (folders[i].Name == null
+                    && folders[i].Color == null
+                    && !folders[i].InheritPermissions.HasValue)
+                {
+                    throw new ArgumentException(
+                        $"At least one of name, color, or inherit_permissions is required (index {i}).",
+                        nameof(folders));
+                }
+
+                // Updates can only disable inheritance (same as single UpdateKeeperNSFFolder / nsf-rndir).
+                if (folders[i].InheritPermissions == true)
+                {
+                    throw new ArgumentException(
+                        $"inherit_permissions can only be set to false on update (index {i}); enabling inheritance is not supported.",
+                        nameof(folders));
+                }
+            }
 
             const int MaxPerRequest = 100;
-            var allResults = new List<FolderProto.FolderModifyResult>(list.Count);
-            var anySuccess = false;
+            var results = new KeeperNSFFolderUpdateResult[folders.Count];
+            var prepared = new List<(int Index, KeeperNSFFolderUpdateRequest Request, FolderNode Folder, string DisplayName, FolderProto.FolderData FolderData)>();
 
-            for (int i = 0; i < list.Count; i += MaxPerRequest)
+            for (var i = 0; i < folders.Count; i++)
             {
-                var batch = list.Skip(i).Take(MaxPerRequest).ToList();
+                var request = folders[i];
+                var folderRef = request.FolderUid.Trim();
 
-                var request = new FolderProto.FolderUpdateRequest();
-                var batchFolderNodes = new List<FolderNode>(batch.Count);
-                var batchFolderUids = new List<string>(batch.Count);
-
-                foreach (var item in batch)
+                results[i] = new KeeperNSFFolderUpdateResult
                 {
-                    if (!TryResolveKeeperNSFFolder(item.FolderUidOrName, out var folder))
-                    {
-                        throw new VaultException($"Keeper NSF folder \"{item.FolderUidOrName}\" was not found.");
-                    }
+                    FolderUid = folderRef,
+                    Name = request.Name,
+                    Success = false,
+                };
 
-                    if (folder.FolderKey == null || folder.FolderKey.Length == 0)
-                    {
-                        throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
-                    }
+                if (!TryResolveKeeperNSFFolder(folderRef, out var folder))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Keeper NSF folder '{folderRef}' was not found.";
+                    continue;
+                }
 
-                    if (item.InheritPermissions.HasValue)
+                results[i].FolderUid = folder.FolderUid;
+
+                if (folder.FolderKey == null || folder.FolderKey.Length == 0)
+                {
+                    results[i].Status = "missing_key";
+                    results[i].Message = $"Folder key is not available for '{folder.FolderUid}'.";
+                    continue;
+                }
+
+                if (request.InheritPermissions.HasValue)
+                {
+                    try
                     {
                         await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(this, folder.FolderUid)
                             .ConfigureAwait(false);
                     }
+                    catch (Exception ex)
+                    {
+                        results[i].Status = "access_denied";
+                        results[i].Message = ex.Message;
+                        continue;
+                    }
+                }
 
-                    var folderJson = BuildKeeperNSFFolderUpdateData(folder, item.NewName, item.Color);
+                try
+                {
+                    var folderJson = BuildKeeperNSFFolderUpdateData(folder, request.Name, request.Color);
+                    // AES-GCM: folder name/color live in encrypted FolderData.Data
                     var encryptedData = CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(folderJson), folder.FolderKey);
-
                     var folderData = new FolderProto.FolderData
                     {
                         FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
                         Data = ByteString.CopyFrom(encryptedData),
                     };
-                    if (item.InheritPermissions.HasValue)
+                    if (request.InheritPermissions.HasValue)
                     {
-                        folderData.InheritUserPermissions = item.InheritPermissions.Value
+                        folderData.InheritUserPermissions = request.InheritPermissions.Value
                             ? FolderProto.SetBooleanValue.BooleanTrue
                             : FolderProto.SetBooleanValue.BooleanFalse;
                     }
 
-                    request.FolderData.Add(folderData);
-                    batchFolderNodes.Add(folder);
-                    batchFolderUids.Add(folder.FolderUid);
+                    prepared.Add((i, request, folder, folderJson.name, folderData));
+                    results[i].Name = folderJson.name;
+                }
+                catch (Exception ex)
+                {
+                    results[i].Status = "prepare_failed";
+                    results[i].Message = ex.Message;
+                }
+            }
+
+            var anySuccess = false;
+            for (var offset = 0; offset < prepared.Count; offset += MaxPerRequest)
+            {
+                var chunk = prepared.Skip(offset).Take(MaxPerRequest).ToList();
+                var request = new FolderProto.FolderUpdateRequest();
+                foreach (var item in chunk)
+                {
+                    request.FolderData.Add(item.FolderData);
                 }
 
                 var response = await Auth.ExecuteAuthRest<FolderProto.FolderUpdateRequest, FolderProto.FolderUpdateResponse>(
                     "vault/folders/v3/update", request).ConfigureAwait(false);
 
-                var results = response?.FolderUpdateResults ?? new Google.Protobuf.Collections.RepeatedField<FolderProto.FolderModifyResult>();
-
-                for (int j = 0; j < Math.Max(results.Count, batchFolderNodes.Count); j++)
+                var statusByUid = new Dictionary<string, FolderProto.FolderModifyResult>(StringComparer.Ordinal);
+                var serverResults = response?.FolderUpdateResults;
+                if (serverResults != null)
                 {
-                    var modifyResult = j < results.Count ? results[j] : null;
-                    allResults.Add(modifyResult);
-
-                    if (modifyResult != null && modifyResult.Status == FolderProto.FolderModifyStatus.Success)
+                    foreach (var status in serverResults)
                     {
-                        anySuccess = true;
-                        if (j < batchFolderNodes.Count)
+                        if (status?.FolderUid == null || status.FolderUid.IsEmpty)
                         {
-                            var folderNode = batchFolderNodes[j];
-                            var displayName = BuildKeeperNSFFolderUpdateData(folderNode, batch[j].NewName, batch[j].Color).name;
-                            PersistKdFolderData(folderNode.FolderUid, folderNode.FolderKey, CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(BuildKeeperNSFFolderUpdateData(folderNode, batch[j].NewName, batch[j].Color)), folderNode.FolderKey));
-                            if (batch[j].InheritPermissions.HasValue)
-                            {
-                                PersistKdFolderInheritPermissions(folderNode.FolderUid, batch[j].InheritPermissions.Value);
-                            }
-
-                            if (KeeperNSFFolders.TryGetValue(folderNode.FolderUid, out var cachedFolder))
-                            {
-                                var nameToUse = displayName;
-                                cachedFolder.Name = string.IsNullOrEmpty(nameToUse)
-                                    ? KeeperNSFConstants.FolderPlaceholderName
-                                    : nameToUse;
-                            }
+                            continue;
                         }
+
+                        statusByUid[CryptoUtils.Base64UrlEncode(status.FolderUid.ToByteArray())] = status;
+                    }
+                }
+
+                for (var j = 0; j < chunk.Count; j++)
+                {
+                    var item = chunk[j];
+                    if (!statusByUid.TryGetValue(item.Folder.FolderUid, out var modifyResult)
+                        && serverResults != null
+                        && j < serverResults.Count)
+                    {
+                        modifyResult = serverResults[j];
+                    }
+
+                    if (modifyResult == null)
+                    {
+                        results[item.Index].Status = "missing";
+                        results[item.Index].Message = "Server returned no status for this folder.";
+                        continue;
+                    }
+
+                    results[item.Index].Status = Enum.GetName(typeof(FolderProto.FolderModifyStatus), modifyResult.Status)
+                        ?? modifyResult.Status.ToString();
+                    results[item.Index].Message = modifyResult.Message;
+                    results[item.Index].Success = modifyResult.Status == FolderProto.FolderModifyStatus.Success;
+
+                    if (!results[item.Index].Success)
+                    {
+                        continue;
+                    }
+
+                    anySuccess = true;
+                    PersistKdFolderData(
+                        item.Folder.FolderUid,
+                        item.Folder.FolderKey,
+                        item.FolderData.Data.ToByteArray());
+                    if (item.Request.InheritPermissions.HasValue)
+                    {
+                        PersistKdFolderInheritPermissions(item.Folder.FolderUid, item.Request.InheritPermissions.Value);
+                    }
+
+                    if (KeeperNSFFolders.TryGetValue(item.Folder.FolderUid, out var cachedFolder))
+                    {
+                        cachedFolder.Name = string.IsNullOrEmpty(item.DisplayName)
+                            ? KeeperNSFConstants.FolderPlaceholderName
+                            : item.DisplayName;
                     }
                 }
             }
@@ -176,18 +280,7 @@ namespace KeeperSecurity.Vault
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
 
-            return allResults;
-        }
-
-        /// <summary>
-        /// Accepts a simple DTO that can be used from PowerShell.
-        /// </summary>
-        public async Task<IReadOnlyList<FolderProto.FolderModifyResult>> UpdateKeeperNSFFolders(
-            IEnumerable<KeeperNSFFolderUpdate> updates)
-        {
-            if (updates == null) throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolders), "updates", "", "at least one update required");
-            var list = updates.Select(u => (u.FolderUidOrName, u.NewName, u.Color, u.InheritPermissions)).ToList();
-            return await UpdateKeeperNSFFolders(list).ConfigureAwait(false);
+            return results;
         }
 
         internal async Task<FolderProto.FolderModifyResult> UpdateKeeperNSFFolderCore(
@@ -201,6 +294,16 @@ namespace KeeperSecurity.Vault
             if (newName == null && color == null && !inheritPermissions.HasValue)
             {
                 throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), "newName/color/inheritPermissions", "", "at least one field required");
+            }
+
+            // Same as PowerCommander nsf-rndir / batch update: can disable inheritance, not re-enable.
+            if (inheritPermissions == true)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(UpdateKeeperNSFFolder),
+                    "inheritPermissions",
+                    "true",
+                    "inherit_permissions can only be set to false on update; enabling inheritance is not supported");
             }
 
             if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
@@ -350,6 +453,339 @@ namespace KeeperSecurity.Vault
 
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             return linkResult;
+        }
+
+        private const int MaxKeeperNSFFolderRecordBatchSize = 500;
+
+        private enum KeeperNSFFolderRecordBatchOperation
+        {
+            Link,
+            Unlink,
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderRecordResult>> LinkKeeperNSFRecordsToFolders(
+            IReadOnlyList<KeeperNSFFolderRecordLinkRequest> links)
+        {
+            if (links == null || links.Count == 0)
+            {
+                throw new ArgumentException("At least one folder-record link is required.", nameof(links));
+            }
+
+            for (var i = 0; i < links.Count; i++)
+            {
+                if (links[i] == null)
+                {
+                    throw new ArgumentException($"Link at index {i} is null.", nameof(links));
+                }
+            }
+
+            var items = links
+                .Select(l => (FolderUid: l.FolderUid, RecordUid: l.RecordUid))
+                .ToList();
+            var results = await ExecuteKeeperNSFFolderRecordBatchAsync(
+                items, KeeperNSFFolderRecordBatchOperation.Link).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderRecordResult>> UnlinkKeeperNSFRecordsFromFolders(
+            IReadOnlyList<KeeperNSFFolderRecordUnlinkRequest> unlinks)
+        {
+            if (unlinks == null || unlinks.Count == 0)
+            {
+                throw new ArgumentException("At least one folder-record unlink is required.", nameof(unlinks));
+            }
+
+            for (var i = 0; i < unlinks.Count; i++)
+            {
+                if (unlinks[i] == null)
+                {
+                    throw new ArgumentException($"Unlink at index {i} is null.", nameof(unlinks));
+                }
+            }
+
+            var items = unlinks
+                .Select(u => (FolderUid: u.FolderUid, RecordUid: u.RecordUid))
+                .ToList();
+            var results = await ExecuteKeeperNSFFolderRecordBatchAsync(
+                items, KeeperNSFFolderRecordBatchOperation.Unlink).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        private async Task<IReadOnlyList<KeeperNSFFolderRecordResult>> ExecuteKeeperNSFFolderRecordBatchAsync(
+            IReadOnlyList<(string FolderUid, string RecordUid)> items,
+            KeeperNSFFolderRecordBatchOperation operation)
+        {
+            var results = new KeeperNSFFolderRecordResult[items.Count];
+            var folderRefs = items
+                .Select(i => i.FolderUid?.Trim() ?? string.Empty)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            var resolvedFolders = new Dictionary<string, FolderNode>(StringComparer.Ordinal);
+            var folderResolveErrors = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var folderRef in folderRefs)
+            {
+                var resolveKey = string.IsNullOrEmpty(folderRef) ? "/" : folderRef;
+                if (!TryResolveKeeperNSFFolder(resolveKey, out var folder))
+                {
+                    folderResolveErrors[folderRef] = $"Keeper NSF folder \"{resolveKey}\" was not found.";
+                    continue;
+                }
+
+                resolvedFolders[folderRef] = folder;
+            }
+
+            var permissionDenied = operation == KeeperNSFFolderRecordBatchOperation.Unlink
+                ? await KeeperNSFAccessHelpers.EvaluateKeeperNSFFolderRemovePermissionsAsync(
+                    this,
+                    resolvedFolders.Values.Select(f => f.FolderUid ?? string.Empty)).ConfigureAwait(false)
+                : await KeeperNSFAccessHelpers.EvaluateKeeperNSFFolderAddPermissionsAsync(
+                    this,
+                    resolvedFolders.Values.Select(f => f.FolderUid ?? string.Empty)).ConfigureAwait(false);
+
+            var preparedByFolder =
+                new Dictionary<string, List<(int Index, string RecordUid, FolderProto.RecordMetadata Metadata)>>(
+                    StringComparer.Ordinal);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                var folderRef = items[i].FolderUid?.Trim() ?? string.Empty;
+                var recordRef = items[i].RecordUid?.Trim();
+
+                results[i] = new KeeperNSFFolderRecordResult
+                {
+                    FolderUid = folderRef,
+                    RecordUid = recordRef,
+                    Success = false,
+                };
+
+                if (string.IsNullOrEmpty(recordRef))
+                {
+                    results[i].Status = "invalid";
+                    results[i].Message = "Record UID cannot be empty.";
+                    continue;
+                }
+
+                if (folderResolveErrors.TryGetValue(folderRef, out var folderError))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = folderError;
+                    continue;
+                }
+
+                if (!resolvedFolders.TryGetValue(folderRef, out var folder))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Keeper NSF folder \"{(string.IsNullOrEmpty(folderRef) ? "/" : folderRef)}\" was not found.";
+                    continue;
+                }
+
+                results[i].FolderUid = folder.FolderUid ?? string.Empty;
+                var folderPermKey = folder.FolderUid ?? string.Empty;
+                if (permissionDenied.TryGetValue(folderPermKey, out var denyMessage))
+                {
+                    results[i].Status = "access_denied";
+                    results[i].Message = denyMessage;
+                    continue;
+                }
+
+                if (!TryResolveKeeperNSFRecord(recordRef, out var record))
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Keeper NSF record \"{recordRef}\" was not found.";
+                    continue;
+                }
+
+                results[i].RecordUid = record.RecordUid;
+                var apiFolderUid = GetKeeperNSFApiFolderUid(folder);
+                var dupKey = $"{apiFolderUid}|{record.RecordUid}|{operation}";
+                if (!seen.Add(dupKey))
+                {
+                    results[i].Status = "duplicate";
+                    results[i].Message =
+                        $"Duplicate {operation.ToString().ToLowerInvariant()} for record '{record.RecordUid}' and folder '{apiFolderUid}'.";
+                    continue;
+                }
+
+                var alreadyLinked = IsRecordLinkedToKeeperNSFFolder(record.RecordUid, apiFolderUid);
+                if (operation == KeeperNSFFolderRecordBatchOperation.Link && alreadyLinked)
+                {
+                    results[i].Status = "already_exists";
+                    results[i].Message = $"Record \"{record.RecordUid}\" is already linked to this folder.";
+                    continue;
+                }
+
+                if (operation == KeeperNSFFolderRecordBatchOperation.Unlink && !alreadyLinked)
+                {
+                    results[i].Status = "not_found";
+                    results[i].Message = $"Record \"{record.RecordUid}\" is not linked to this folder.";
+                    continue;
+                }
+
+                FolderProto.RecordMetadata metadata;
+                if (operation == KeeperNSFFolderRecordBatchOperation.Unlink)
+                {
+                    metadata = new FolderProto.RecordMetadata
+                    {
+                        RecordUid = ByteString.CopyFrom(record.RecordUid.Base64UrlDecode()),
+                        EncryptedRecordKey = ByteString.Empty,
+                        EncryptedRecordKeyType = FolderProto.EncryptedKeyType.NoKey,
+                    };
+                }
+                else
+                {
+                    if (folder.FolderKey == null || folder.FolderKey.Length == 0)
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Folder key is not available for \"{folder.FolderUid}\".";
+                        continue;
+                    }
+
+                    if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message =
+                            $"Record key is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.";
+                        continue;
+                    }
+
+                    if (!TryGetKeeperNSFRecordKeyType(record.RecordUid, out var recordKeyType))
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message =
+                            $"Record key type is not available for \"{record.RecordUid}\". Try running Sync-Keeper first.";
+                        continue;
+                    }
+
+                    try
+                    {
+                        metadata = BuildKeeperNSFRecordMetadata(
+                            record.RecordUid, recordKey, recordKeyType, folder.FolderKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        results[i].Status = "prepare_failed";
+                        results[i].Message = ex.Message;
+                        continue;
+                    }
+                }
+
+                var groupKey = apiFolderUid ?? string.Empty;
+                if (!preparedByFolder.TryGetValue(groupKey, out var list))
+                {
+                    list = new List<(int Index, string RecordUid, FolderProto.RecordMetadata Metadata)>();
+                    preparedByFolder[groupKey] = list;
+                }
+
+                list.Add((i, record.RecordUid, metadata));
+            }
+
+            foreach (var pair in preparedByFolder)
+            {
+                var apiFolderUid = pair.Key;
+                var prepared = pair.Value;
+                for (var offset = 0; offset < prepared.Count; offset += MaxKeeperNSFFolderRecordBatchSize)
+                {
+                    var chunk = prepared.Skip(offset).Take(MaxKeeperNSFFolderRecordBatchSize).ToList();
+                    var request = new FolderProto.FolderRecordUpdateRequest
+                    {
+                        FolderUid = string.IsNullOrEmpty(apiFolderUid)
+                            ? ByteString.Empty
+                            : ByteString.CopyFrom(apiFolderUid.Base64UrlDecode()),
+                    };
+
+                    foreach (var item in chunk)
+                    {
+                        if (operation == KeeperNSFFolderRecordBatchOperation.Link)
+                        {
+                            request.AddRecords.Add(item.Metadata);
+                        }
+                        else
+                        {
+                            request.RemoveRecords.Add(item.Metadata);
+                        }
+                    }
+
+                    FolderProto.FolderRecordUpdateResponse response;
+                    try
+                    {
+                        response = await Auth
+                            .ExecuteAuthRest<FolderProto.FolderRecordUpdateRequest, FolderProto.FolderRecordUpdateResponse>(
+                                "vault/folders/v3/record_update", request)
+                            .ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        foreach (var item in chunk)
+                        {
+                            results[item.Index].Status = "request_failed";
+                            results[item.Index].Message = ex.Message;
+                        }
+
+                        continue;
+                    }
+
+                    var statusByRecordUid = new Dictionary<string, FolderProto.FolderRecordUpdateResult>(StringComparer.Ordinal);
+                    var serverResults = response?.FolderRecordUpdateResult;
+                    if (serverResults != null)
+                    {
+                        foreach (var status in serverResults)
+                        {
+                            if (status?.RecordUid == null || status.RecordUid.IsEmpty)
+                            {
+                                continue;
+                            }
+
+                            statusByRecordUid[CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray())] = status;
+                        }
+                    }
+
+                    for (var j = 0; j < chunk.Count; j++)
+                    {
+                        var item = chunk[j];
+                        if (!statusByRecordUid.TryGetValue(item.RecordUid, out var modifyResult))
+                        {
+                            // Positional fallback only when every server result lacks a usable UID
+                            // and counts align — otherwise risk attributing another record's status.
+                            if (serverResults != null
+                                && serverResults.Count == chunk.Count
+                                && statusByRecordUid.Count == 0
+                                && j < serverResults.Count
+                                && (serverResults[j]?.RecordUid == null || serverResults[j].RecordUid.IsEmpty))
+                            {
+                                modifyResult = serverResults[j];
+                            }
+                        }
+
+                        if (modifyResult == null)
+                        {
+                            results[item.Index].Status = "missing";
+                            results[item.Index].Message = "Server returned no status for this folder-record entry.";
+                            continue;
+                        }
+
+                        results[item.Index].Status = Enum.GetName(typeof(FolderProto.FolderModifyStatus), modifyResult.Status)
+                            ?? modifyResult.Status.ToString();
+                        results[item.Index].Message = modifyResult.Message;
+                        results[item.Index].Success = modifyResult.Status == FolderProto.FolderModifyStatus.Success;
+                    }
+                }
+            }
+
+            return results;
         }
 
         /// <inheritdoc/>
@@ -993,20 +1429,182 @@ namespace KeeperSecurity.Vault
             return result;
         }
 
+        private const int MaxKeeperNSFFolderRemovalBatchSize = 100;
+
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun)
         {
-            if (removals == null || removals.Count == 0)
+            var validated = ValidateKeeperNSFFolderRemovals(removals);
+
+            var mergedPreview = new RemoveResponse();
+            var confirmedChunkCount = 0;
+            var failedChunkCount = 0;
+            var chunkErrors = new List<string>();
+            var chunkTokens = new List<byte[]>();
+            long? earliestExpiry = null;
+
+            for (var offset = 0; offset < validated.Count; offset += MaxKeeperNSFFolderRemovalBatchSize)
             {
-                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFFolders), "removals", "", "at least one folder required");
+                var chunk = validated.Skip(offset).Take(MaxKeeperNSFFolderRemovalBatchSize).ToList();
+                try
+                {
+                    var chunkResult = await ExecuteKeeperNSFFolderRemovalChunkAsync(chunk, dryRun)
+                        .ConfigureAwait(false);
+                    MergeRemovePreviewResponse(mergedPreview, chunkResult.PreviewResponse);
+                    chunkTokens.Add(ExtractConfirmationTokenBytes(chunkResult.PreviewResponse));
+
+                    if (chunkResult.TokenExpiresAt.HasValue)
+                    {
+                        earliestExpiry = earliestExpiry.HasValue
+                            ? Math.Min(earliestExpiry.Value, chunkResult.TokenExpiresAt.Value)
+                            : chunkResult.TokenExpiresAt;
+                    }
+
+                    if (dryRun)
+                    {
+                        continue;
+                    }
+
+                    if (chunkResult.Confirmed)
+                    {
+                        confirmedChunkCount++;
+                    }
+                    else
+                    {
+                        failedChunkCount++;
+                        chunkErrors.Add(
+                            $"Chunk at offset {offset} ({chunk.Count} folders): confirmation did not complete.");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    failedChunkCount++;
+                    chunkErrors.Add($"Chunk at offset {offset} ({chunk.Count} folders): {ex.Message}");
+                    if (dryRun)
+                    {
+                        chunkTokens.Add(Array.Empty<byte>());
+                    }
+                }
             }
 
-            if (removals.Count > 100)
+            if (dryRun && failedChunkCount > 0)
             {
-                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFFolders), "removals", removals.Count.ToString(), "maximum 100 folders per request");
+                throw new VaultException(
+                    $"Folder remove preview failed for {failedChunkCount} chunk(s): {string.Join("; ", chunkErrors)}");
             }
 
+            return new KeeperNSFRemoveResult
+            {
+                PreviewResponse = mergedPreview,
+                Confirmed = !dryRun && failedChunkCount == 0 && confirmedChunkCount > 0,
+                ConfirmedChunkCount = confirmedChunkCount,
+                FailedChunkCount = failedChunkCount,
+                ChunkErrors = chunkErrors,
+                TokenExpiresAt = earliestExpiry,
+                ChunkConfirmationTokens = chunkTokens,
+            };
+        }
+
+        private async Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolderRemovalAsync(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult)
+        {
+            var validated = ValidateKeeperNSFFolderRemovals(removals);
+            var tokens = previewResult?.ChunkConfirmationTokens;
+            if (tokens == null || tokens.Count == 0)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "previewResult",
+                    "",
+                    "preview result has no confirmation tokens; run RemoveKeeperNSFFolders with dryRun: true first");
+            }
+
+            var expectedChunks = (validated.Count + MaxKeeperNSFFolderRemovalBatchSize - 1)
+                / MaxKeeperNSFFolderRemovalBatchSize;
+            if (tokens.Count != expectedChunks)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "previewResult",
+                    "",
+                    $"preview token count ({tokens.Count}) does not match folder chunk count ({expectedChunks}); re-run preview");
+            }
+
+            var mergedPreview = previewResult.PreviewResponse ?? new RemoveResponse();
+            var confirmedChunkCount = 0;
+            var failedChunkCount = 0;
+            var chunkErrors = new List<string>();
+            var chunkIndex = 0;
+
+            for (var offset = 0; offset < validated.Count; offset += MaxKeeperNSFFolderRemovalBatchSize)
+            {
+                var chunk = validated.Skip(offset).Take(MaxKeeperNSFFolderRemovalBatchSize).ToList();
+                var tokenBytes = tokens[chunkIndex++];
+                try
+                {
+                    if (tokenBytes == null || tokenBytes.Length == 0)
+                    {
+                        throw new VaultException(
+                            $"Chunk at offset {offset} has an empty confirmation token; re-run preview.");
+                    }
+
+                    await ConfirmKeeperNSFFolderRemovalChunkAsync(chunk, ByteString.CopyFrom(tokenBytes))
+                        .ConfigureAwait(false);
+                    confirmedChunkCount++;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    failedChunkCount++;
+                    chunkErrors.Add($"Chunk at offset {offset} ({chunk.Count} folders): {ex.Message}");
+                }
+            }
+
+            return new KeeperNSFRemoveResult
+            {
+                PreviewResponse = mergedPreview,
+                Confirmed = failedChunkCount == 0 && confirmedChunkCount > 0,
+                ConfirmedChunkCount = confirmedChunkCount,
+                FailedChunkCount = failedChunkCount,
+                ChunkErrors = chunkErrors,
+                TokenExpiresAt = previewResult.TokenExpiresAt,
+                ChunkConfirmationTokens = tokens.ToList(),
+            };
+        }
+
+        private async Task ConfirmKeeperNSFFolderRemovalChunkAsync(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, ByteString confirmationToken)
+        {
+            var foldersRequest = BuildRemoveFolderRequest(removals, RemoveAction.Confirm);
+            var confirmRequest = new RemoveFolderRequest
+            {
+                Action = RemoveAction.Confirm,
+                ConfirmationToken = confirmationToken,
+            };
+            confirmRequest.Folders.Add(foldersRequest.Folders);
+
+            var confirmResponse = await Auth.ExecuteAuthRest<RemoveFolderRequest, RemoveResponse>(
+                "vault/folders/v3/remove_folder", confirmRequest).ConfigureAwait(false);
+
+            ValidateRemoveResponse(confirmResponse, true);
+        }
+
+        private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFFolderRemovalChunkAsync(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun)
+        {
             var previewRequest = BuildRemoveFolderRequest(removals, RemoveAction.Preview);
+            if (previewRequest.Folders.Count == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(RemoveKeeperNSFFolders), "removals", "", "no valid folder UIDs");
+            }
+
             var previewResponse = await Auth.ExecuteAuthRest<RemoveFolderRequest, RemoveResponse>(
                 "vault/folders/v3/remove_folder", previewRequest).ConfigureAwait(false);
 
@@ -1034,6 +1632,89 @@ namespace KeeperSecurity.Vault
             ValidateRemoveResponse(confirmResponse, true);
             result.Confirmed = true;
             return result;
+        }
+
+        private static byte[] ExtractConfirmationTokenBytes(RemoveResponse previewResponse)
+        {
+            if (previewResponse?.ConfirmationToken == null || previewResponse.ConfirmationToken.IsEmpty)
+            {
+                return Array.Empty<byte>();
+            }
+
+            return previewResponse.ConfirmationToken.ToByteArray();
+        }
+
+        private static IReadOnlyList<KeeperNSFFolderRemoval> ValidateKeeperNSFFolderRemovals(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals)
+        {
+            if (removals == null || removals.Count == 0)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(RemoveKeeperNSFFolders), "removals", "", "folders must not be empty");
+            }
+
+            var validated = new List<KeeperNSFFolderRemoval>(removals.Count);
+            var seenUids = new HashSet<string>(StringComparer.Ordinal);
+
+            for (var i = 0; i < removals.Count; i++)
+            {
+                var removal = removals[i];
+                if (removal == null)
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "removals", i.ToString(),
+                        $"folder removal at index {i} is null");
+                }
+
+                var folderUid = removal.FolderUid?.Trim();
+                if (string.IsNullOrEmpty(folderUid))
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "folder_uid", i.ToString(),
+                        $"folder removal at index {i} requires a valid folder_uid");
+                }
+
+                byte[] folderUidBytes;
+                try
+                {
+                    folderUidBytes = folderUid.Base64UrlDecode();
+                }
+                catch (Exception)
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "folder_uid", folderUid,
+                        $"folder removal at index {i} has an invalid folder_uid");
+                }
+
+                if (folderUidBytes == null || folderUidBytes.Length == 0)
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "folder_uid", folderUid,
+                        $"folder removal at index {i} has an invalid folder_uid");
+                }
+
+                if (!seenUids.Add(folderUid))
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "folder_uid", folderUid,
+                        $"duplicate folder_uid '{folderUid}' in the same request");
+                }
+
+                if (!Enum.IsDefined(typeof(KeeperNSFFolderRemoveOperation), removal.Operation))
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "operation_type", removal.Operation.ToString(),
+                        $"folder removal at index {i} has an unsupported operation_type");
+                }
+
+                validated.Add(new KeeperNSFFolderRemoval
+                {
+                    FolderUid = folderUid,
+                    Operation = removal.Operation,
+                });
+            }
+
+            return validated;
         }
 
         private static void MergeRemovePreviewResponse(RemoveResponse target, RemoveResponse source)
@@ -1108,20 +1789,36 @@ namespace KeeperSecurity.Vault
         private static RemoveFolderRequest BuildRemoveFolderRequest(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, RemoveAction action)
         {
+            if (action != RemoveAction.Preview && action != RemoveAction.Confirm)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(RemoveKeeperNSFFolders), "action", action.ToString(),
+                    "action must be PREVIEW or CONFIRM");
+            }
+
             var request = new RemoveFolderRequest { Action = action };
-            foreach (var removal in removals.Where(r => r != null && !string.IsNullOrEmpty(r.FolderUid)))
+            foreach (var removal in removals)
             {
                 var folderUidBytes = removal.FolderUid.Base64UrlDecode();
-                if (folderUidBytes == null || folderUidBytes.Length == 0)
+                var operationType = MapFolderOperation(removal.Operation);
+                if (operationType == FolderOperationType.FolderOperationUnknown)
                 {
-                    Trace.TraceWarning($"KeeperNSF: Skipping folder removal with malformed FolderUid '{removal.FolderUid}'");
-                    continue;
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "operation_type", removal.Operation.ToString(),
+                        "operation_type must not be FOLDER_OPERATION_UNKNOWN");
+                }
+
+                if (operationType == FolderOperationType.FolderMoveToOwnerTrash)
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "operation_type", "FOLDER_MOVE_TO_OWNER_TRASH",
+                        "FOLDER_MOVE_TO_OWNER_TRASH is not supported yet");
                 }
 
                 request.Folders.Add(new FolderRemoval
                 {
                     FolderUid = ByteString.CopyFrom(folderUidBytes),
-                    OperationType = MapFolderOperation(removal.Operation),
+                    OperationType = operationType,
                 });
             }
 
@@ -1260,17 +1957,6 @@ namespace KeeperSecurity.Vault
 
         [DataMember(Name = "color", EmitDefaultValue = false)]
         public string color { get; set; }
-    }
-
-    /// <summary>
-    /// DTO for PowerShell or other callers to describe a folder update.
-    /// </summary>
-    public class KeeperNSFFolderUpdate
-    {
-        public string FolderUidOrName { get; set; }
-        public string NewName { get; set; }
-        public string Color { get; set; }
-        public bool? InheritPermissions { get; set; }
     }
 
     internal static class KeeperNSFConstants

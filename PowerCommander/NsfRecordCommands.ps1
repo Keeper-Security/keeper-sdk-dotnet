@@ -2268,6 +2268,10 @@ function Link-KeeperNSFRecord {
 	.Synopsis
 	Links a Keeper NSF record into a Keeper NSF folder (Keeper NSF v3 API).
 
+	.Description
+	Uses vault/folders/v3/record_update (AddRecords) for a single link.
+	For bulk linking from JSON, use Link-KeeperNSFRecords (nsf-lns).
+
 	.Parameter Record
 	Record UID or title.
 
@@ -2316,6 +2320,358 @@ function Link-KeeperNSFRecord {
     Write-Host "Keeper NSF record linked into folder." -ForegroundColor Green
 }
 New-Alias -Name nsf-ln -Value Link-KeeperNSFRecord
+
+function Link-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-link Keeper NSF records into folders (up to 500 records per folder API request).
+
+	.Description
+	Uses vault/folders/v3/record_update (AddRecords). Independent of Link-KeeperNSFRecord / nsf-ln.
+	JSON schema: a "links" array. Each item: folder_uid, record_uid (or uid / record_uid aliases).
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON link batch file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleLinks
+	Writes a sample link batch JSON file and exits without linking.
+
+	.EXAMPLE
+	PS> Link-KeeperNSFRecords -DownloadSampleLinks
+
+	.EXAMPLE
+	PS> Link-KeeperNSFRecords -FilePath .\nsf-folder-records-link-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleLinks
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleLinks) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-folder-records-link-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFFolderRecordLinkBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF folder-record link batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Replace placeholders, then run:"
+        Write-Host "    Link-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleLinks is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $requests = ConvertTo-KeeperNSFFolderRecordLinkRequests -JsonText $jsonText
+        if (-not $requests -or $requests.Count -eq 0) {
+            throw "Link file contains no entries."
+        }
+
+        if ($requests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest]'
+            foreach ($item in @($requests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $requests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing folder-record link payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($requests.Count) Keeper NSF folder-record link(s)", "Link Keeper NSF records into folders")) {
+        return
+    }
+
+    try {
+        Write-Host "Linking $($requests.Count) Keeper NSF record(s) into folders in batch..."
+        $list = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest]]$requests
+        $results = $vault.LinkKeeperNSFRecordsToFolders($list).GetAwaiter().GetResult()
+        Write-KeeperNSFFolderRecordBatchResults -Results $results -ActionLabel 'link'
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error linking records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-lns -Value Link-KeeperNSFRecords
+
+
+function Unlink-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-unlink Keeper NSF records from folders (up to 500 records per folder API request).
+
+	.Description
+	Uses vault/folders/v3/record_update (RemoveRecords). Record remains in other folders.
+	JSON schema: an "unlinks" array. Each item: folder_uid (empty/"/" for NSF root), record_uid.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON unlink batch file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleUnlinks
+	Writes a sample unlink batch JSON file and exits without unlinking.
+
+	.EXAMPLE
+	PS> Unlink-KeeperNSFRecords -DownloadSampleUnlinks
+
+	.EXAMPLE
+	PS> Unlink-KeeperNSFRecords -FilePath .\nsf-folder-records-unlink-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleUnlinks
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleUnlinks) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-folder-records-unlink-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFFolderRecordUnlinkBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF folder-record unlink batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Replace placeholders, then run:"
+        Write-Host "    Unlink-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleUnlinks is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $requests = ConvertTo-KeeperNSFFolderRecordUnlinkRequests -JsonText $jsonText
+        if (-not $requests -or $requests.Count -eq 0) {
+            throw "Unlink file contains no entries."
+        }
+
+        if ($requests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest]'
+            foreach ($item in @($requests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $requests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing folder-record unlink payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($requests.Count) Keeper NSF folder-record unlink(s)", "Unlink Keeper NSF records from folders")) {
+        return
+    }
+
+    try {
+        Write-Host "Unlinking $($requests.Count) Keeper NSF record(s) from folders in batch..."
+        $list = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest]]$requests
+        $results = $vault.UnlinkKeeperNSFRecordsFromFolders($list).GetAwaiter().GetResult()
+        Write-KeeperNSFFolderRecordBatchResults -Results $results -ActionLabel 'unlink'
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error unlinking records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-unln -Value Unlink-KeeperNSFRecords
+
+function Script:Write-KeeperNSFFolderRecordBatchResults {
+    Param(
+        [Parameter(Mandatory = $true)]
+        $Results,
+        [string] $ActionLabel = 'folder-record'
+    )
+
+    $ok = @($Results | Where-Object { $_.Success })
+    $fail = @($Results | Where-Object { -not $_.Success })
+    Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+    Write-Host ""
+
+    foreach ($result in $Results) {
+        $folderLabel = if ([string]::IsNullOrEmpty($result.FolderUid)) { 'root' } else { $result.FolderUid }
+        if ($result.Success) {
+            Write-Host "  [OK]   $($result.RecordUid) @ $folderLabel" -ForegroundColor Green
+        }
+        else {
+            $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+            Write-Host "  [FAIL] $($result.RecordUid) @ $folderLabel  status=$($result.Status)  $msg" -ForegroundColor Red
+        }
+    }
+}
+
+function Script:Get-KeeperNSFFolderRecordJsonItems {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText,
+        [Parameter(Mandatory = $true)]
+        [string] $ArrayName
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    if ($null -ne $parsed.$ArrayName) {
+        return @($parsed.$ArrayName)
+    }
+    if ($parsed -is [System.Array]) {
+        return @($parsed)
+    }
+    throw "JSON must contain a '$ArrayName' array (or be a root array of objects)."
+}
+
+function Script:Get-KeeperNSFFolderRecordItemFields {
+    Param($Item, [int] $Index)
+
+    $folderUid = $null
+    if ($Item.folder_uid) { $folderUid = [string]$Item.folder_uid }
+    elseif ($Item.FolderUid) { $folderUid = [string]$Item.FolderUid }
+    elseif ($Item.folder) { $folderUid = [string]$Item.folder }
+
+    $recordUid = $null
+    if ($Item.record_uid) { $recordUid = [string]$Item.record_uid }
+    elseif ($Item.uid) { $recordUid = [string]$Item.uid }
+    elseif ($Item.RecordUid) { $recordUid = [string]$Item.RecordUid }
+    elseif ($Item.record) { $recordUid = [string]$Item.record }
+
+    if ([string]::IsNullOrWhiteSpace($recordUid)) {
+        throw "Item at index $Index is missing required 'record_uid' (or uid)."
+    }
+
+    return @{
+        FolderUid = if ($null -eq $folderUid) { '' } else { $folderUid.Trim() }
+        RecordUid = $recordUid.Trim()
+    }
+}
+
+function Script:ConvertTo-KeeperNSFFolderRecordLinkRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $items = Get-KeeperNSFFolderRecordJsonItems -JsonText $JsonText -ArrayName 'links'
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest]'
+    $index = 0
+    foreach ($item in $items) {
+        $fields = Get-KeeperNSFFolderRecordItemFields -Item $item -Index $index
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFFolderRecordLinkRequest
+        $req.FolderUid = $fields.FolderUid
+        $req.RecordUid = $fields.RecordUid
+        $list.Add($req) | Out-Null
+        $index++
+    }
+    return ,$list
+}
+
+function Script:ConvertTo-KeeperNSFFolderRecordUnlinkRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $items = Get-KeeperNSFFolderRecordJsonItems -JsonText $JsonText -ArrayName 'unlinks'
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest]'
+    $index = 0
+    foreach ($item in $items) {
+        $fields = Get-KeeperNSFFolderRecordItemFields -Item $item -Index $index
+        # Empty folder_uid maps to NSF root (same as Link-KeeperNSFRecords / SDK).
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFFolderRecordUnlinkRequest
+        $req.FolderUid = $fields.FolderUid
+        $req.RecordUid = $fields.RecordUid
+        $list.Add($req) | Out-Null
+        $index++
+    }
+    return ,$list
+}
 
 function Transfer-KeeperNSFRecordOwnership {
     <#

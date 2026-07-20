@@ -230,3 +230,178 @@ function Get-KeeperNSFRemoveBatchSampleJson {
 }
 '@
 }
+
+function Get-KeeperNSFFolderBatchSampleJson {
+    @'
+{
+  "folders": [
+    {
+      "name": "Batch Demo - Root Folder",
+      "color": "#4A90D9",
+      "inherit_permissions": true
+    },
+    {
+      "name": "Batch Demo - Child Folder",
+      "parent": "REPLACE_WITH_PARENT_FOLDER_UID",
+      "color": "#33FF57",
+      "inherit_permissions": true
+    },
+    {
+      "name": "Batch Demo - No Inherit",
+      "parent": "REPLACE_WITH_PARENT_FOLDER_UID",
+      "inherit_permissions": false
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderUpdateBatchSampleJson {
+    @'
+{
+  "folders": [
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_1",
+      "name": "Batch Update Demo - Renamed",
+      "color": "#4A90D9"
+    },
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_2",
+      "color": "none"
+    },
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_3",
+      "inherit_permissions": false
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderRemoveBatchSampleJson {
+    @'
+{
+  "folders": [
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_1",
+      "operation": "folder-trash"
+    },
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_2",
+      "operation": "folder-trash"
+    },
+    {
+      "uid": "REPLACE_WITH_FOLDER_UID_3",
+      "operation": "delete-permanent"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderAccessGrantBatchSampleJson {
+    @'
+{
+  "accesses": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "user1@example.com",
+      "role": "viewer"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "Engineering Team",
+      "role": "content-manager",
+      "as_team": true
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
+      "accessor": "user2@example.com",
+      "role": "share-manager",
+      "expire_in": "30d"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderAccessUpdateBatchSampleJson {
+    @'
+{
+  "accesses": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "user1@example.com",
+      "role": "content-manager"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "Engineering Team",
+      "role": "full-manager",
+      "as_team": true,
+      "expire_at": "2027-01-01T00:00:00Z"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderAccessRevokeBatchSampleJson {
+    @'
+{
+  "accesses": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "user1@example.com"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "accessor": "Engineering Team",
+      "as_team": true
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
+      "accessor": "user2@example.com"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderRecordLinkBatchSampleJson {
+    @'
+{
+  "links": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "record_uid": "REPLACE_WITH_RECORD_UID_1"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "record_uid": "REPLACE_WITH_RECORD_UID_2"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
+      "record_uid": "REPLACE_WITH_RECORD_UID_3"
+    }
+  ]
+}
+'@
+}
+
+function Get-KeeperNSFFolderRecordUnlinkBatchSampleJson {
+    @'
+{
+  "unlinks": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "record_uid": "REPLACE_WITH_RECORD_UID_1"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
+      "record_uid": "REPLACE_WITH_RECORD_UID_3"
+    }
+  ]
+}
+'@
+}
