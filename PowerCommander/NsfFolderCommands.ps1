@@ -1415,7 +1415,7 @@ function Remove-KeeperNSFFolder {
             Write-Warning "Partial folder removal: $($confirmResult.ConfirmedChunkCount) chunk(s) succeeded, $($confirmResult.FailedChunkCount) failed."
             foreach ($err in @($confirmResult.ChunkErrors)) {
                 Write-Warning "  $err"
-            } 
+            }
             $vault.SyncDown($false).GetAwaiter().GetResult() | Out-Null
             return
         }
