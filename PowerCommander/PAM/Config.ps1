@@ -592,17 +592,98 @@ function script:findPamConfigSharedFolderByTree {
         return $parents
     }
 
-    $count = 0
-    try { $count = [int]$parents.Count } catch { return $null }
-    if ($count -lt 1) {
+    $count = -1
+    try {
+        if ($parents -is [System.Collections.ICollection]) {
+            $count = [int]($parents -as [System.Collections.ICollection]).Count
+        }
+        else {
+            $count = [int]$parents.Count
+        }
+    }
+    catch {
+        $count = -1
+    }
+
+    if ($count -eq 0) {
         return $null
     }
 
     try {
-        return $parents.get_Item(0)
+        $enumerator = $parents.GetEnumerator()
+        try {
+            while ($enumerator.MoveNext()) {
+                $current = $enumerator.Current
+                if ($null -ne $current -and ($current -is [KeeperSecurity.Vault.SharedFolder])) {
+                    return $current
+                }
+            }
+        }
+        finally {
+            if ($enumerator -is [System.IDisposable]) {
+                $enumerator.Dispose()
+            }
+        }
+    }
+    catch {}
+
+    if ($count -gt 0) {
+        try { return $parents.get_Item(0) } catch {}
+        try { return $parents.Item(0) } catch {}
+        try { return $parents[0] } catch {}
+    }
+
+    return $null
+}
+
+function script:testPamConfigInSharedFolderTree {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [string] $ConfigUid
+    )
+
+    if ([string]::IsNullOrEmpty($ConfigUid)) {
+        return $false
+    }
+
+    $parents = $null
+    try {
+        $parents = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindParentTopSharedFolders($Vault, $ConfigUid)
     }
     catch {
-        try { return $parents.Item(0) } catch { return $null }
+        return $false
+    }
+
+    if ($null -eq $parents) {
+        return $false
+    }
+    if ($parents -is [KeeperSecurity.Vault.SharedFolder]) {
+        return $true
+    }
+
+    try {
+        if ($parents -is [System.Collections.ICollection]) {
+            return (($parents -as [System.Collections.ICollection]).Count -gt 0)
+        }
+        return ([int]$parents.Count -gt 0)
+    }
+    catch {}
+
+    try {
+        $enumerator = $parents.GetEnumerator()
+        try {
+            return [bool]$enumerator.MoveNext()
+        }
+        finally {
+            if ($enumerator -is [System.IDisposable]) {
+                $enumerator.Dispose()
+            }
+        }
+    }
+    catch {
+        return $false
     }
 }
 
@@ -1059,9 +1140,17 @@ function Get-KeeperPamConfig {
     foreach ($item in $sorted) {
         $uid = [string]$item.Uid
         if ([string]::IsNullOrEmpty($uid)) { continue }
-
-        # List filter = folder-tree only.
-        if ($null -eq (findPamConfigSharedFolderByTree -Vault $vault -ConfigUid $uid)) {
+        $inSharedFolder = testPamConfigInSharedFolderTree -Vault $vault -ConfigUid $uid
+        if (-not $inSharedFolder) {
+            try {
+                $byPermission = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($vault, $uid, $null)
+                $inSharedFolder = ($null -ne $byPermission)
+            }
+            catch {
+                $inSharedFolder = $false
+            }
+        }
+        if (-not $inSharedFolder) {
             [void]$nsfLines.Add(("Warning: Following configuration is not in the shared folder: UID: {0}, Title: {1}" -f $uid, [string]$item.Title))
             continue
         }
