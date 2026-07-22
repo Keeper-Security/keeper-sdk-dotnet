@@ -100,7 +100,8 @@ namespace Commander
 
             try
             {
-                var pamPlugin = new PamPlugin(context.Enterprise);
+                var getConnection = Program.CommanderStorage.GetPamConnectionFactory();
+                var pamPlugin = new PamPlugin(context.Enterprise, getConnection);
                 _pamPlugins[context] = pamPlugin;
                 return pamPlugin;
             }
@@ -260,7 +261,7 @@ namespace Commander
                 new ParseableCommand<PamSyncDownOptions>
                 {
                     Order = 86,
-                    Description = "Sync PAM gateway data from server",
+                    Description = "Sync PAM data from server",
                     Action = async options => { await pamSyncDown.ExecuteAsync(options); },
                 });
             cli.Aliases["pam-sync"] = "pam-sync-down";
@@ -274,6 +275,16 @@ namespace Commander
                     Action = async options => { await pamGateway.ExecuteAsync(options); },
                 });
             cli.Aliases["pam-gw"] = "pam-gateway";
+
+            var pamRotation = new PamRotationCommand(context);
+            cli.Commands.Add("pam-rotation",
+                new ParseableCommand<PamRotationOptions>
+                {
+                    Order = 88,
+                    Description = "Manage PAM record rotation schedules",
+                    Action = async options => { await pamRotation.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-rot"] = "pam-rotation";
 
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>

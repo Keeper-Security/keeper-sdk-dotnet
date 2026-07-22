@@ -37,7 +37,7 @@ namespace Commander.PAM
         }
     }
 
-    internal class PamSyncDownOptions : EnterpriseGenericOptions
+    internal class PamSyncDownOptions
     {
         [Option('r', "reload", Required = false, Default = false, HelpText = "Perform full sync instead of incremental")]
         public bool Reload { get; set; }
