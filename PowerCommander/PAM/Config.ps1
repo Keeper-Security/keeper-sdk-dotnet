@@ -316,7 +316,7 @@ function script:applyPamConfigEnvironmentFields {
                 $force = [bool]$Values['ForceDomainAdmin']
                 if ($force) {
                     if ($dac -notmatch '^[A-Za-z0-9\-_]{22}$') {
-                        Write-Warning "Invalid Domain Admin User UID: `"$dac`" (skipped)"
+                        Write-Host "Warning: Invalid Domain Admin User UID: `"$dac`" (skipped)"
                     }
                     else {
                         (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $dac
@@ -330,11 +330,11 @@ function script:applyPamConfigEnvironmentFields {
                             (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $admin.Uid
                         }
                         else {
-                            Write-Warning "Domain Admin User UID: `"$dac`" not found (skipped)."
+                            Write-Host "Warning: Domain Admin User UID: `"$dac`" not found (skipped)."
                         }
                     }
                     catch {
-                        Write-Warning "Domain Admin User UID: `"$dac`" not found (skipped)."
+                        Write-Host "Warning: Domain Admin User UID: `"$dac`" not found (skipped)."
                     }
                 }
             }
@@ -385,11 +385,11 @@ function script:applyPamConfigResources {
 
     if ($Values.ContainsKey('Gateway') -and -not [string]::IsNullOrWhiteSpace([string]$Values['Gateway'])) {
         $gateway = resolvePamGatewayController -Plugin $Plugin -Identifier ([string]$Values['Gateway']) -Vault $Vault
-        if ($gateway) {
+        if ($gateway -is [KeeperSecurity.Plugins.PAM.PamController]) {
             $facade.ControllerUid = if ($gateway.ControllerUid) { $gateway.ControllerUid } else { $gateway.Uid }
         }
         elseif (-not $IsEdit) {
-            Write-Output "Warning: Gateway `"$($Values['Gateway'])`" not found."
+            Write-Host "Warning: Gateway `"$($Values['Gateway'])`" not found."
         }
     }
 
@@ -700,7 +700,7 @@ function script:resolvePamConfigSharedFolder {
         return $byTree
     }
 
-    # Permission fallback for create/edit/detail display only — never for list filter.
+    # Permission fallback for create/edit/detail display (and list membership when tree is empty on Win).
     try {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($Vault, $ConfigUid, $null)
     }
@@ -772,9 +772,16 @@ function script:resolvePamConfigurationRecord {
     }
 
     if ($titleMatchUids.Count -eq 1) {
-        [KeeperSecurity.Vault.KeeperRecord]$byTitle = $null
-        if ($Vault.TryGetKeeperRecord($titleMatchUids.get_Item(0), [ref]$byTitle)) {
-            return ($byTitle -as [KeeperSecurity.Vault.TypedRecord])
+        $matchUid = $null
+        foreach ($u in $titleMatchUids) {
+            $matchUid = [string]$u
+            break
+        }
+        if ($matchUid) {
+            [KeeperSecurity.Vault.KeeperRecord]$byTitle = $null
+            if ($Vault.TryGetKeeperRecord($matchUid, [ref]$byTitle)) {
+                return ($byTitle -as [KeeperSecurity.Vault.TypedRecord])
+            }
         }
     }
     if ($titleMatchUids.Count -gt 1) {
@@ -914,7 +921,10 @@ function script:buildPamConfigListRow {
                 $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($typed)
                 $gatewayUid = [string]$facade.ControllerUid
                 foreach ($ref in @($facade.ResourceRef)) {
-                    [void]$resourceUidList.Add([string]$ref)
+                    $refUid = [string]$ref
+                    if (-not [string]::IsNullOrWhiteSpace($refUid)) {
+                        [void]$resourceUidList.Add($refUid)
+                    }
                 }
                 $adminCred = [string]$facade.AdminCredentialRef
                 if ($VerboseOutput -or $IsDetail) {
@@ -1327,6 +1337,9 @@ function New-KeeperPamConfig {
 
     $record = [KeeperSecurity.Plugins.PAM.ConfigUtils]::CreateConfigurationRecord($vault, $recordType, $Title)
     $facade = applyPamConfigResources -Vault $vault -Plugin $plugin -Record $record -Values $values -IsEdit:$false
+    if (-not ($facade -is [KeeperSecurity.Plugins.PAM.PamConfigurationFacade])) {
+        throw 'Failed to initialize PAM configuration resources.'
+    }
     applyPamConfigEnvironmentFields -Vault $vault -Record $record -Values $values -IsEdit:$false
     applyPamConfigSchedule -Record $record -DefaultSchedule $DefaultSchedule -IsEdit:$false
 
@@ -1537,6 +1550,9 @@ function Set-KeeperPamConfig {
     $origAdminCredRef = $facadeBefore.AdminCredentialRef
 
     $facade = applyPamConfigResources -Vault $vault -Plugin $plugin -Record $configuration -Values $values -IsEdit:$true
+    if (-not ($facade -is [KeeperSecurity.Plugins.PAM.PamConfigurationFacade])) {
+        throw 'Failed to update PAM configuration resources.'
+    }
     applyPamConfigEnvironmentFields -Vault $vault -Record $configuration -Values $values -IsEdit:$true
     applyPamConfigSchedule -Record $configuration -DefaultSchedule $DefaultSchedule -IsEdit:$true
 

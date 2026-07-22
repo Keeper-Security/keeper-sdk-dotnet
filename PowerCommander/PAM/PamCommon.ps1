@@ -971,7 +971,7 @@ function script:resolvePamGatewayController {
     if ($null -ne $Vault) {
         [KeeperSecurity.Vault.SharedFolder]$sf = $null
         if ($Vault.TryGetSharedFolder($trimmed, [ref]$sf) -and $null -ne $sf) {
-            Write-Output ("Gateway `"$trimmed`" matches shared folder `"$($sf.Name)`". " +
+            Write-Host ("Gateway `"$trimmed`" matches shared folder `"$($sf.Name)`". " +
                 'Use a gateway/controller UID or name, not the shared-folder UID.')
             return $null
         }
