@@ -62,4 +62,5 @@ namespace KeeperSecurity.Plugins.PAM
     public bool KsmAppAccessible { get; set; }
     public IList<PamGatewayOnlineInstance> OnlineInstances { get; set; } = new List<PamGatewayOnlineInstance>();
   }
+
 }
