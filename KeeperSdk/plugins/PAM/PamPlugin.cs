@@ -1,33 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
-using PamProto = PAM;
 
 namespace KeeperSecurity.Plugins.PAM
 {
   public interface IPamPlugin
   {
+    IPamStorage Storage { get; }
     IEntityStorage<PamController> Controllers { get; }
     string EnterpriseUid { get; }
 
     Task SyncDownAsync(bool reload = false);
   }
 
+  /// <summary>
+  /// Caches PAM gateways for enterprise admins.
+  /// Record rotation metadata comes from normal <see cref="KeeperSecurity.Vault.VaultOnline.SyncDown"/>
+  /// (Commander <c>record_rotation_cache</c>), not a separate vault/sync_down.
+  /// Uses SQLite when Commander offline storage is on; otherwise keeps everything in memory.
+  /// </summary>
   public class PamPlugin : IPamPlugin
   {
     private readonly IAuthentication _auth;
+    private readonly int _enterpriseId;
     private readonly InMemoryEntityStorage<PamController> _controllers = new();
 
-    public PamPlugin(IAuthentication auth)
+    public PamPlugin(IAuthentication auth, Func<IDbConnection> getConnection = null)
     {
       if (auth?.AuthContext == null)
       {
-        throw new ArgumentNullException(nameof(auth));
+        throw new ArgumentNullException(nameof(auth), "Enterprise admin access is required");
       }
 
       if (!auth.AuthContext.IsEnterpriseAdmin)
@@ -36,24 +44,31 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       _auth = auth;
-      var enterpriseId = auth.AuthContext.License?.EnterpriseId ?? 0;
-      if (enterpriseId == 0)
+      _enterpriseId = auth.AuthContext.License?.EnterpriseId ?? 0;
+      if (_enterpriseId == 0)
       {
         throw new InvalidOperationException("Enterprise ID is required for PAM plugin");
       }
 
-      var enterpriseIdBytes = BitConverter.GetBytes(enterpriseId);
+      var enterpriseIdBytes = BitConverter.GetBytes(_enterpriseId);
       if (BitConverter.IsLittleEndian)
       {
         Array.Reverse(enterpriseIdBytes);
       }
 
       EnterpriseUid = enterpriseIdBytes.Base64UrlEncode();
+      Storage = getConnection != null
+        ? new SqlitePamStorage(getConnection, _enterpriseId)
+        : new MemoryPamStorage();
+      LoadFromStorage();
     }
 
-    public PamPlugin(IEnterpriseLoader loader) : this(loader?.Auth ?? throw new ArgumentNullException(nameof(loader)))
+    public PamPlugin(IEnterpriseLoader loader, Func<IDbConnection> getConnection = null)
+      : this(loader?.Auth ?? throw new ArgumentNullException(nameof(loader)), getConnection)
     {
     }
+
+    public IPamStorage Storage { get; }
 
     public IEntityStorage<PamController> Controllers => _controllers;
 
@@ -61,36 +76,69 @@ namespace KeeperSecurity.Plugins.PAM
 
     public async Task SyncDownAsync(bool reload = false)
     {
-      _ = reload;
-      _controllers.Clear();
-
-      var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
-      if (controllers.Count == 0)
+      if (reload)
       {
-        return;
+        Storage.Reset();
+        _controllers.Clear();
       }
 
-      _controllers.PutEntities(
-        controllers
-          .Where(c => c?.ControllerUid != null && !c.ControllerUid.IsEmpty)
-          .Select(FromProto));
+      var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
+      var storageRows = new List<IPamStorageController>();
+      var domainRows = new List<PamController>();
+      foreach (var controller in controllers)
+      {
+        if (controller?.ControllerUid == null || controller.ControllerUid.IsEmpty)
+        {
+          continue;
+        }
+
+        var (storageRow, domainRow) = PamStorageMapper.FromProto(controller);
+        storageRows.Add(storageRow);
+        domainRows.Add(domainRow);
+      }
+
+      ApplyGatewayEntities(storageRows, domainRows);
     }
 
-    private static PamController FromProto(PamProto.PAMController controller)
+    private void LoadFromStorage()
     {
-      return new PamController
+      var controllers = Storage.Controllers.GetAll()
+        .Select(PamStorageMapper.ToDomainController)
+        .ToList();
+      if (controllers.Count > 0)
       {
-        ControllerUid = controller.ControllerUid.ToByteArray().Base64UrlEncode(),
-        ControllerName = controller.ControllerName,
-        DeviceToken = controller.DeviceToken,
-        DeviceName = controller.DeviceName,
-        NodeId = controller.NodeId,
-        Created = controller.Created,
-        LastModified = controller.LastModified,
-        ApplicationUid = controller.ApplicationUid?.ToByteArray().Base64UrlEncode() ?? "",
-        AppClientType = controller.AppClientType,
-        IsInitialized = controller.IsInitialized,
-      };
+        _controllers.PutEntities(controllers);
+      }
+    }
+
+    private void ApplyGatewayEntities(
+      IReadOnlyList<IPamStorageController> storageRows,
+      IReadOnlyList<PamController> domainRows)
+    {
+      var serverUids = new HashSet<string>(
+        domainRows.Select(c => c.Uid),
+        StringComparer.Ordinal);
+
+      var staleUids = _controllers.GetAll()
+        .Select(c => c.Uid)
+        .Where(uid => !serverUids.Contains(uid))
+        .ToList();
+
+      if (staleUids.Count > 0)
+      {
+        _controllers.DeleteUids(staleUids);
+        Storage.Controllers.DeleteUids(staleUids);
+      }
+
+      if (storageRows.Count > 0)
+      {
+        Storage.Controllers.PutEntities(storageRows);
+      }
+
+      if (domainRows.Count > 0)
+      {
+        _controllers.PutEntities(domainRows);
+      }
     }
   }
 }

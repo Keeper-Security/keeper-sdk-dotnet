@@ -57,13 +57,14 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="fileName">File name.</param>
         /// <param name="thumbnail">Thumbnail upload task. Optional.</param>
-        public FileAttachmentUploadTask(string fileName, IThumbnailUploadTask thumbnail = null)
+        public FileAttachmentUploadTask(string fileName, IThumbnailUploadTask thumbnail = null, bool isScript = false)
             : base(null, thumbnail)
         {
             if (!File.Exists(fileName))
             {
                 throw new Exception($"Cannot open file \"{fileName}\"");
             }
+            IsScript = isScript;
             Name = Path.GetFileName(fileName);
             Title = Name;
             try
@@ -74,6 +75,11 @@ namespace KeeperSecurity.Vault
 
             Stream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
+
+        /// <summary>
+        /// When true, uploads as a PAM post-rotation script file.
+        /// </summary>
+        public bool IsScript { get; }
 
         public void Dispose()
         {
@@ -408,6 +414,7 @@ namespace KeeperSecurity.Vault
             }
 
             var fileUid = CryptoUtils.GenerateUid();
+            var isScript = uploadTask is FileAttachmentUploadTask scriptUpload && scriptUpload.IsScript;
             var fileRq = new Records.File
             {
                 RecordUid = ByteString.CopyFrom(fileUid.Base64UrlDecode()),
@@ -415,6 +422,7 @@ namespace KeeperSecurity.Vault
                 Data = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(fileData), fileKey)),
                 FileSize = encryptedData.Length + 100,
                 ThumbSize = encryptedThumb?.Length ?? 0,
+                IsScript = isScript,
             };
             var rq = new Records.FilesAddRequest
             {
@@ -423,6 +431,17 @@ namespace KeeperSecurity.Vault
             rq.Files.Add(fileRq);
             var fileRs = await Auth.ExecuteAuthRest<Records.FilesAddRequest, Records.FilesAddResponse>("vault/files_add", rq);
             var uploadRs = fileRs.Files[0];
+            if (uploadRs.Status != Records.FileAddResult.FaSuccess)
+            {
+                if (isScript)
+                {
+                    throw new Exception(
+                        $"Uploading rotation script {uploadTask.Name}: only the record owner can attach post-rotation scripts.");
+                }
+
+                throw new Exception($"Uploading file {uploadTask.Name}: Get upload URL error ({uploadRs.Status}).");
+            }
+
             var fileUpload = new UploadParameters
             {
                 Url = uploadRs.Url,
