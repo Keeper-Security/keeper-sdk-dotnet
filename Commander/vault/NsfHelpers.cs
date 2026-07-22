@@ -414,12 +414,16 @@ namespace Commander
             }
         }
 
-        internal static async Task<bool> ConfirmAsync(string prompt)
+        internal static async Task<bool> ConfirmAsync(string prompt, bool defaultYes = false)
         {
             Console.Write(prompt);
-            var answer = await Program.GetInputManager().ReadLine();
-            return string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase)
-                   || string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase);
+            var answer = (await Program.GetInputManager().ReadLine())?.Trim().ToLowerInvariant() ?? "";
+            if (string.IsNullOrEmpty(answer))
+            {
+                return defaultYes;
+            }
+
+            return answer.StartsWith("y", StringComparison.Ordinal);
         }
 
         internal static void WriteCsv(string path, IEnumerable<string[]> rows)

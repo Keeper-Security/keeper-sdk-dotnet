@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Commander;
@@ -60,7 +61,23 @@ namespace Commander.PAM
             return null;
         }
 
-        protected async Task SyncPamAsync()
+        protected static TypedRecord TryResolvePamRecord(
+            VaultOnline vault,
+            string identifier,
+            IEnumerable<string> allowedTypes)
+        {
+            try
+            {
+                return PamVaultHelpers.ResolveRecord(vault, identifier, allowedTypes);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
+
+        protected async Task SyncPamAsync(bool reload = false)
         {
             if (Plugin == null)
             {
@@ -69,7 +86,7 @@ namespace Commander.PAM
 
             if (Plugin != null)
             {
-                await Plugin.SyncDownAsync();
+                await Plugin.SyncDownAsync(reload);
             }
         }
     }
