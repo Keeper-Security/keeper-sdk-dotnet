@@ -236,9 +236,14 @@ namespace Commander
                     // NSF folders are shared via AT_APPLICATION and may still need revoke even if not listed yet.
                     uid = nsfFolder.FolderUid;
                 }
+                else if (share == null && context.Vault.TryResolveKeeperNSFRecord(uid, out var nsfRecord))
+                {
+                    uid = nsfRecord.RecordUid;
+                }
                 else if (share == null)
                 {
                     Console.WriteLine($"\"{arguments.Secret}\" is not shared to application {application.Title}");
+                    return;
                 }
                 app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(context.Vault, app);

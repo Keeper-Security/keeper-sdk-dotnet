@@ -799,7 +799,8 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Grants Shared Folder, classic Record, NSF folder, or NSF Record Access to Secret Manager Application.
-        /// Classic secrets use vault/app_share_add; NSF folders use folders/v3/access_update with AT_APPLICATION.
+        /// Classic secrets use vault/app_share_add; NSF folders use folders/v3/access_update;
+        /// NSF records use vault/records/v3/share (AT_APPLICATION).
         /// </summary>
         /// <param name="applicationId">Application ID</param>
         /// <param name="sharedFolderOrRecordUid">Shared Folder, Record, NSF folder, or NSF Record UID/name</param>
@@ -810,7 +811,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Updates editable vs read-only on a secret already shared with the application.
-        /// NSF folders use folders/v3/access_update; classic/NSF records remove then re-add the app share.
+        /// NSF folders/records use V3 access APIs; classic secrets remove then re-add the app share.
         /// </summary>
         Task<SecretsManagerApplication> UpdateSecretManagerApplicationShare(string applicationId,
             string sharedFolderOrRecordUid, bool canEdit);
