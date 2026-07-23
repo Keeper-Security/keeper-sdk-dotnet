@@ -17,13 +17,6 @@ function script:getPamRotationScheduleRows {
         $schedules = @($schedulesResponse.Schedules)
     }
 
-    $controllerMap = @{}
-    foreach ($controller in $Plugin.Controllers.GetAll()) {
-        if ($null -ne $controller -and -not [string]::IsNullOrEmpty($controller.ControllerUid)) {
-            $controllerMap[$controller.ControllerUid] = $controller
-        }
-    }
-
     $configs = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::GetConfigurationRecords($Vault)
     $rows = New-Object 'System.Collections.Generic.List[object]'
 
@@ -54,11 +47,6 @@ function script:getPamRotationScheduleRows {
         $recordUid = $item.RecordUid
 
         $controllerUid = encodePamByteString $schedule.ControllerUid
-        $controller = $null
-        if (-not [string]::IsNullOrEmpty($controllerUid)) {
-            $controller = $controllerMap[$controllerUid]
-        }
-
         $configUid = encodePamByteString $schedule.ConfigurationUid
         $configRecord = $null
         if (-not [string]::IsNullOrEmpty($configUid) -and $configs.ContainsKey($configUid)) {
@@ -66,7 +54,7 @@ function script:getPamRotationScheduleRows {
         }
 
         $scheduleText = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatScheduleDisplay($schedule.ScheduleData, $schedule.NoSchedule)
-        $gatewayName = if ($controller) { $controller.ControllerName } else { '[Does not exist]' }
+        $gatewayName = resolvePamRotationGatewayName -Plugin $Plugin -GatewayUid $controllerUid -FallbackName $null
         $configText = if ($configRecord) {
             "$($configRecord.Title) ($($configRecord.TypeName))"
         }
@@ -142,84 +130,7 @@ function script:resolvePamRotationGatewayName {
     return '-'
 }
 
-function script:writePamRotationInfoTable {
-    Param (
-        [Parameter(Mandatory = $true)]
-        [object] $RotationInfo,
-        [Parameter(Mandatory = $true)]
-        [KeeperSecurity.Vault.TypedRecord] $Record,
-        [object] $Schedule,
-        [object] $Plugin = $null
-    )
-
-    $statusName = [string]$RotationInfo.Status
-    $isReady = ($RotationInfo.Status.ToString() -eq 'RrsOnline')
-    $configUid = encodePamByteString $RotationInfo.ConfigurationUid
-    $gatewayUid = encodePamByteString $RotationInfo.ControllerUid
-    if ([string]::IsNullOrEmpty($gatewayUid)) { $gatewayUid = '-' }
-    $gatewayName = resolvePamRotationGatewayName -Plugin $Plugin -GatewayUid $gatewayUid -FallbackName $RotationInfo.ControllerName
-    $adminResourceUid = encodePamByteString $RotationInfo.ResourceUid
-    if ([string]::IsNullOrEmpty($adminResourceUid)) { $adminResourceUid = $null }
-
-    $pwdComplexityRaw = $null
-    if (-not [string]::IsNullOrEmpty($RotationInfo.PwdComplexity)) {
-        $pwdComplexityRaw = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($RotationInfo.PwdComplexity)
-    }
-    $pwdComplexityDetail = $null
-    $pwdComplexityDecryptFailed = $false
-    if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) {
-        $pwdComplexityDecryptFailed = -not [KeeperSecurity.Plugins.PAM.RotationUtils]::TryDecryptPasswordComplexity(
-            $pwdComplexityRaw, $Record.RecordKey, [ref]$pwdComplexityDetail)
-    }
-
-    if ($isReady) {
-        Write-Output "Rotation Status: Ready to rotate ($statusName)"
-        Write-Output "PAM Config UID: $configUid"
-        Write-Output "Node ID: $($RotationInfo.NodeId)"
-        Write-Output "Gateway Name: $gatewayName"
-        Write-Output "Gateway UID: $gatewayUid"
-
-        if ($adminResourceUid) {
-            Write-Output "Admin Resource Uid: $adminResourceUid"
-        }
-
-        if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) {
-            Write-Output "Password Complexity: $($RotationInfo.PwdComplexity)"
-            if ($pwdComplexityDecryptFailed) {
-                Write-Output 'Password Complexity Data: [decrypt failed]'
-            }
-            else {
-                $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityDisplay($pwdComplexityDetail)
-                if (-not [string]::IsNullOrEmpty($complexityDisplay)) {
-                    Write-Output "Password Complexity Data: $complexityDisplay"
-                }
-            }
-        }
-        else {
-            Write-Output 'Password Complexity: [not set]'
-        }
-
-        Write-Output "Is Rotation Disabled: $($RotationInfo.Disabled)"
-
-        if ($Schedule) {
-            $scheduleText = if ($Schedule.NoSchedule) {
-                'Manual Rotation'
-            }
-            else {
-                [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatScheduleDisplay($Schedule.ScheduleData, $false)
-            }
-            Write-Output "Schedule: $scheduleText"
-        }
-
-        Write-Output ''
-        Write-Output "Command to manually rotate: pam-action --command rotate --record $($Record.Uid)"
-    }
-    else {
-        Write-Output "Rotation Status: Not ready to rotate ($statusName)"
-    }
-}
-
-function script:writePamRotationInfoJson {
+function script:getPamRotationInfoModel {
     Param (
         [Parameter(Mandatory = $true)]
         [object] $RotationInfo,
@@ -251,36 +162,138 @@ function script:writePamRotationInfoJson {
 
     $scheduleType = $null
     $scheduleData = $null
+    $scheduleText = $null
     if ($Schedule) {
         $scheduleType = if ($Schedule.NoSchedule) { 'manual' } else { 'scheduled' }
         $scheduleData = $Schedule.ScheduleData
+        $scheduleText = if ($Schedule.NoSchedule) {
+            'Manual Rotation'
+        }
+        else {
+            [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatScheduleDisplay($Schedule.ScheduleData, $false)
+        }
     }
 
     $complexityDetailOut = $null
+    $complexityDisplay = $null
     if ($pwdComplexityDecryptFailed) {
         $complexityDetailOut = '[decrypt failed]'
+        $complexityDisplay = '[decrypt failed]'
     }
     elseif ($null -ne $pwdComplexityDetail) {
         $complexityDetailOut = [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail)
+        $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityDisplay($pwdComplexityDetail)
     }
 
+    $hasComplexity = ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0)
+
+    return [PSCustomObject]@{
+        StatusName           = $statusName
+        IsReady              = $isReady
+        ConfigUid            = $configUid
+        NodeId               = $RotationInfo.NodeId
+        GatewayName          = $gatewayName
+        GatewayUid           = $gatewayUid
+        AdminResourceUid     = $adminResourceUid
+        HasComplexity        = $hasComplexity
+        PasswordComplexity   = if ($hasComplexity) { $RotationInfo.PwdComplexity } else { $null }
+        ComplexityDetail     = $complexityDetailOut
+        ComplexityDisplay    = $complexityDisplay
+        ScheduleType         = $scheduleType
+        ScheduleData         = $scheduleData
+        ScheduleText         = $scheduleText
+        Disabled             = $RotationInfo.Disabled
+    }
+}
+
+function script:writePamRotationInfoTable {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [object] $Model
+    )
+
+    if ($Model.IsReady) {
+        Write-Output "Rotation Status: Ready to rotate ($($Model.StatusName))"
+        Write-Output "PAM Config UID: $($Model.ConfigUid)"
+        Write-Output "Node ID: $($Model.NodeId)"
+        Write-Output "Gateway Name: $($Model.GatewayName)"
+        Write-Output "Gateway UID: $($Model.GatewayUid)"
+
+        if ($Model.AdminResourceUid) {
+            Write-Output "Admin Resource Uid: $($Model.AdminResourceUid)"
+        }
+
+        if ($Model.HasComplexity) {
+            Write-Output "Password Complexity: $($Model.PasswordComplexity)"
+            if (-not [string]::IsNullOrEmpty($Model.ComplexityDisplay)) {
+                Write-Output "Password Complexity Data: $($Model.ComplexityDisplay)"
+            }
+        }
+        else {
+            Write-Output 'Password Complexity: [not set]'
+        }
+
+        Write-Output "Is Rotation Disabled: $($Model.Disabled)"
+
+        if (-not [string]::IsNullOrEmpty($Model.ScheduleText)) {
+            Write-Output "Schedule: $($Model.ScheduleText)"
+        }
+
+        Write-Output ''
+        Write-Output 'Manual rotation is not supported yet. Coming soon.'
+    }
+    else {
+        Write-Output "Rotation Status: Not ready to rotate ($($Model.StatusName))"
+    }
+}
+
+function script:writePamRotationInfoJson {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [object] $Model
+    )
+
     $result = [ordered]@{
-        status                     = $statusName
-        ready_to_rotate            = $isReady
-        pam_config_uid             = $configUid
-        node_id                    = $RotationInfo.NodeId
-        gateway_name               = $gatewayName
-        gateway_uid                = $gatewayUid
-        admin_resource_uid         = $adminResourceUid
-        password_complexity        = if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) { $RotationInfo.PwdComplexity } else { $null }
-        password_complexity_detail = $complexityDetailOut
-        schedule_type              = $scheduleType
-        schedule_data              = $scheduleData
-        disabled                   = $RotationInfo.Disabled
+        status                     = $Model.StatusName
+        ready_to_rotate            = $Model.IsReady
+        pam_config_uid             = $Model.ConfigUid
+        node_id                    = $Model.NodeId
+        gateway_name               = $Model.GatewayName
+        gateway_uid                = $Model.GatewayUid
+        admin_resource_uid         = $Model.AdminResourceUid
+        password_complexity        = $Model.PasswordComplexity
+        password_complexity_detail = $Model.ComplexityDetail
+        schedule_type              = $Model.ScheduleType
+        schedule_data              = $Model.ScheduleData
+        disabled                   = $Model.Disabled
     }
 
     $json = [KeeperSecurity.Utils.JsonUtils]::DumpJson($result, $true)
     Write-Output ([System.Text.Encoding]::UTF8.GetString($json))
+}
+
+function script:writePamRotationInfoCsv {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [object] $Model
+    )
+
+    $row = [PSCustomObject]@{
+        status                     = $Model.StatusName
+        ready_to_rotate            = $Model.IsReady
+        pam_config_uid             = $Model.ConfigUid
+        node_id                    = $Model.NodeId
+        gateway_name               = $Model.GatewayName
+        gateway_uid                = $Model.GatewayUid
+        admin_resource_uid         = $Model.AdminResourceUid
+        password_complexity        = $Model.PasswordComplexity
+        password_complexity_detail = $Model.ComplexityDetail
+        schedule_type              = $Model.ScheduleType
+        schedule_data              = $Model.ScheduleData
+        disabled                   = $Model.Disabled
+    }
+
+    $row | ConvertTo-Csv -NoTypeInformation
 }
 
 function script:testPamRotationScriptField {
@@ -489,8 +502,7 @@ function script:getPamRotationRunCommand {
 function script:resolvePamRotationScriptRecordId {
     Param (
         [string] $Record,
-        [string] $RecordUid,
-        [string] $Argument
+        [string] $RecordUid
     )
 
     if (-not [string]::IsNullOrWhiteSpace($Record)) {
@@ -499,10 +511,6 @@ function script:resolvePamRotationScriptRecordId {
 
     if (-not [string]::IsNullOrWhiteSpace($RecordUid)) {
         return $RecordUid.Trim()
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($Argument)) {
-        return $Argument.Trim()
     }
 
     return $null
@@ -586,15 +594,7 @@ function script:resolvePamRotationScriptRecord {
         [string] $RecordId
     )
 
-    try {
-        return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
-            $Vault,
-            $RecordId,
-            [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Script)
-    }
-    catch {
-        return $null
-    }
+    return resolvePamRotationRecord -Vault $Vault -Identifier $RecordId -AllowedTypes ([KeeperSecurity.Plugins.PAM.PamRecordTypes]::Script)
 }
 
 function Get-KeeperPamRotationList {
@@ -603,11 +603,10 @@ function Get-KeeperPamRotationList {
         List PAM record rotation schedules.
 
         .Description
-        Equivalent to Commander `pam rotation list`.
         Shows pamUser rotation schedules with record, schedule, gateway, and PAM configuration details.
 
         .Parameter VerboseOutput
-        Include Gateway UID and PAM Configuration UID columns (Commander --verbose / -v).
+        Include Gateway UID and PAM Configuration UID columns.
 
         .Example
         Get-KeeperPamRotationList
@@ -636,9 +635,8 @@ function Get-KeeperPamRotationList {
         return
     }
 
-    $sorted = @($rows | Sort-Object RecordTitle)
     if ($VerboseOutput.IsPresent) {
-        $sorted | Select-Object `
+        $rows | Select-Object `
             @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
             @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
             @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
@@ -650,7 +648,7 @@ function Get-KeeperPamRotationList {
             Format-Table -AutoSize
     }
     else {
-        $sorted | Select-Object `
+        $rows | Select-Object `
             @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
             @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
             @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
@@ -661,7 +659,7 @@ function Get-KeeperPamRotationList {
     }
 
     Write-Output ''
-    Write-Output 'To manually rotate a record (Phase 7): pam-action --command rotate --record-uid [RECORD UID]'
+    Write-Output 'Manual rotation is not supported yet. Coming soon.'
 }
 
 function Get-KeeperPamRotationInfo {
@@ -670,17 +668,16 @@ function Get-KeeperPamRotationInfo {
         Show rotation status for a PAM record.
 
         .Description
-        Equivalent to Commander `pam rotation info`.
         Displays readiness, gateway, PAM config, schedule, password complexity, and disabled state.
 
         .Parameter Record
-        Record UID, name, or title (Commander --record / -r).
+        Record UID, name, or title.
 
         .Parameter RecordUid
-        Record UID alias (Commander --record-uid).
+        Record UID alias for -Record.
 
         .Parameter Format
-        Output format: table (default), csv (same as table), or json.
+        Output format: table (default), csv, or json.
 
         .Example
         Get-KeeperPamRotationInfo -Record "<uid>"
@@ -710,8 +707,7 @@ function Get-KeeperPamRotationInfo {
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
     $plugin = ensurePamPlugin -SyncIfNeeded $false
@@ -719,7 +715,7 @@ function Get-KeeperPamRotationInfo {
     try {
         $resolved = resolvePamRotationRecord -Vault $vault -Identifier $recordId -AllowedTypes ([KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation)
     }
-    catch {
+    catch [System.InvalidOperationException] {
         return
     }
     if (-not $resolved) {
@@ -739,11 +735,11 @@ function Get-KeeperPamRotationInfo {
         }
     }
 
-    if ($Format -eq 'json') {
-        writePamRotationInfoJson -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
-    }
-    else {
-        writePamRotationInfoTable -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
+    $model = getPamRotationInfoModel -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
+    switch ($Format) {
+        'json' { writePamRotationInfoJson -Model $model }
+        'csv' { writePamRotationInfoCsv -Model $model }
+        default { writePamRotationInfoTable -Model $model }
     }
 }
 
@@ -753,7 +749,7 @@ function Set-KeeperPamRotation {
         Create or update PAM record rotation configuration.
 
         .Description
-        Equivalent to Commander `pam rotation edit` (also used for new rotation setup).
+        Create or update rotation settings for a PAM record.
         Supports single record (-Record) or bulk folder setup (-Folder).
 
         .Parameter Record
@@ -807,7 +803,7 @@ function Set-KeeperPamRotation {
         Disable rotation for the record.
 
         .Parameter RotationProfile
-        Optional .NET SDK profile: general, iam_user, scripts_only, saas.
+        Optional rotation profile: general, iam_user, scripts_only, saas.
 
         .Parameter SaasConfigUid
         SaaS configuration UID when using the saas rotation profile.
@@ -901,14 +897,12 @@ function Set-KeeperPamRotation {
 
     $plugin = ensurePamPlugin
     if (-not $plugin) {
-        Write-Output 'PAM plugin is not available. Enterprise admin access is required.'
-        return
+        Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
     $auth = getPamEnterpriseAuth
 
@@ -933,7 +927,7 @@ function Set-KeeperPamRotation {
         Force           = $Force.IsPresent
     }
 
-    $service = New-Object KeeperSecurity.Plugins.PAM.PamRotationEditService($plugin, $auth, $vault)
+    $service = New-Object KeeperSecurity.Plugins.PAM.PamRotationEditService($auth, $vault)
     if (-not $Force.IsPresent) {
         $service.ConfirmAsync = newPamRotationConfirmHandler
     }
@@ -942,10 +936,10 @@ function Set-KeeperPamRotation {
         $service.ExecuteAsync($options).GetAwaiter().GetResult() | Out-Null
     }
     catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
     catch [System.ArgumentException] {
-        Write-Output $_.Exception.Message
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
 }
 
@@ -955,7 +949,7 @@ function Get-KeeperPamRotationScript {
         List post-rotation scripts on PAM records.
 
         .Description
-        Equivalent to Commander `pam rotation script list`.
+        Lists post-rotation scripts attached to PAM records.
 
         .Parameter Pattern
         Record UID or title filter.
@@ -976,8 +970,7 @@ function Get-KeeperPamRotationScript {
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
     $filter = if (-not [string]::IsNullOrWhiteSpace($Pattern)) { $Pattern.Trim() } else { $Record }
@@ -991,7 +984,7 @@ function Add-KeeperPamRotationScript {
         Upload and attach a post-rotation script to a PAM record.
 
         .Description
-        Equivalent to Commander `pam rotation script add` / `pam rotation script new`.
+        Uploads a local script file and attaches it as a post-rotation script.
 
         .Parameter Record
         Record UID or title (pamUser / pamDirectory).
@@ -1010,6 +1003,7 @@ function Add-KeeperPamRotationScript {
 
         .Example
         Add-KeeperPamRotationScript -Record "<uid>" -Script "C:\scripts\rotate.ps1" -RunCommand "powershell -File rotate.ps1"
+        Add-KeeperPamRotationScript -Record "<uid>" -Script "/tmp/rotate.sh" -RunCommand "bash rotate.sh"
         Add-KeeperPamRotationScript fajHNL7_T3qsuzt2MDGEiw -Script "C:\scripts\rotate.ps1"
     #>
     [CmdletBinding()]
@@ -1034,7 +1028,7 @@ function Add-KeeperPamRotationScript {
         [string[]] $AddCredential
     )
 
-    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid -Argument $null
+    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid
     if ([string]::IsNullOrWhiteSpace($recordId)) {
         Write-Output '--record is required (or provide record UID as a positional argument)'
         return
@@ -1047,11 +1041,15 @@ function Add-KeeperPamRotationScript {
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
-    $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    try {
+        $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    }
+    catch [System.InvalidOperationException] {
+        return
+    }
     if (-not $resolved) {
         Write-Output "Record '$recordId' not found"
         return
@@ -1107,7 +1105,7 @@ function Set-KeeperPamRotationScript {
         Update a post-rotation script on a PAM record.
 
         .Description
-        Equivalent to Commander `pam rotation script edit`.
+        Updates an existing post-rotation script on a PAM record.
 
         .Parameter Record
         Record UID or title.
@@ -1153,7 +1151,7 @@ function Set-KeeperPamRotationScript {
         [string[]] $RemoveCredential
     )
 
-    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid -Argument $null
+    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid
     if ([string]::IsNullOrWhiteSpace($recordId)) {
         Write-Output '--record is required (or provide record UID as a positional argument)'
         return
@@ -1166,11 +1164,15 @@ function Set-KeeperPamRotationScript {
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
-    $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    try {
+        $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    }
+    catch [System.InvalidOperationException] {
+        return
+    }
     if (-not $resolved) {
         Write-Output "Record '$recordId' not found"
         return
@@ -1239,7 +1241,7 @@ function Remove-KeeperPamRotationScript {
         Remove a post-rotation script from a PAM record.
 
         .Description
-        Equivalent to Commander `pam rotation script delete`.
+        Removes a post-rotation script from a PAM record.
 
         .Parameter Record
         Record UID or title.
@@ -1264,7 +1266,7 @@ function Remove-KeeperPamRotationScript {
         [string] $Script
     )
 
-    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid -Argument $null
+    $recordId = resolvePamRotationScriptRecordId -Record $Record -RecordUid $RecordUid
     if ([string]::IsNullOrWhiteSpace($recordId)) {
         Write-Output '--record is required (or provide record UID as a positional argument)'
         return
@@ -1277,11 +1279,15 @@ function Remove-KeeperPamRotationScript {
 
     $vault = getVault
     if (-not $vault) {
-        Write-Output 'Vault is not available.'
-        return
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
-    $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    try {
+        $resolved = resolvePamRotationScriptRecord -Vault $vault -RecordId $recordId
+    }
+    catch [System.InvalidOperationException] {
+        return
+    }
     if (-not $resolved) {
         Write-Output "Record '$recordId' not found"
         return

@@ -16,17 +16,16 @@ namespace KeeperSecurity.Plugins.PAM
 {
     public sealed class PamRotationEditService
     {
-        private readonly IPamPlugin _plugin;
         private readonly IAuthentication _auth;
         private readonly VaultOnline _vault;
 
         /// <summary>
-        /// Resolves a folder path or record path. Used by Commander; optional for PowerCommander.
+        /// Resolves a folder path or record path. Optional for callers that support path lookup.
         /// </summary>
         public delegate bool TryResolvePathHandler(string path, out FolderNode node, out string title);
 
         /// <summary>
-        /// Optional path resolver (e.g. Commander VaultContext.TryResolvePath).
+        /// Optional path resolver for folder/record path lookup.
         /// </summary>
         public TryResolvePathHandler PathResolver { get; set; }
 
@@ -36,20 +35,11 @@ namespace KeeperSecurity.Plugins.PAM
         public Func<string, bool, Task<bool>> ConfirmAsync { get; set; }
 
         public PamRotationEditService(
-            IPamPlugin plugin,
             IAuthentication auth,
             VaultOnline vault)
         {
-            _plugin = plugin;
             _auth = auth ?? throw new ArgumentNullException(nameof(auth));
             _vault = vault ?? throw new ArgumentNullException(nameof(vault));
-        }
-
-        public PamRotationEditService(
-            IAuthentication auth,
-            VaultOnline vault)
-            : this(null, auth, vault)
-        {
         }
 
         public async Task ExecuteAsync(PamRotationOptions options)

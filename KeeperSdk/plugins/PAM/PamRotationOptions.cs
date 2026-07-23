@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace KeeperSecurity.Plugins.PAM
 {
     /// <summary>
-    /// Options for PAM record rotation configuration commands.
-    /// Shared by Commander and PowerCommander.
+    /// Options for PAM record rotation configuration.
     /// </summary>
     public class PamRotationOptions
     {

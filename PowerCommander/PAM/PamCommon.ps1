@@ -26,7 +26,7 @@ function script:resolvePamRotationRecord {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord($Vault, $Identifier.Trim(), $AllowedTypes)
     }
     catch [System.InvalidOperationException] {
-        # Ambiguous title / validation — same message as Commander; caller must not also print "not found".
+        # Ambiguous title / validation — caller must not also print "not found".
         Write-Output $_.Exception.Message
         throw
     }

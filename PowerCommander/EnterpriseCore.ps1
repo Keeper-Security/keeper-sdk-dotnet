@@ -10,6 +10,7 @@ function getEnterprise {
     if ($null -ne $enterprise -and -not ($enterprise -is [Enterprise])) {
         $Script:Context.Enterprise = $null
         $Script:Context.ManagedCompanyId = 0
+        $Script:PamPlugin = $null
         $enterprise = $null
     }
     if (-not $enterprise) {

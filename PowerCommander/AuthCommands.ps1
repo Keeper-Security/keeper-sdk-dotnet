@@ -99,12 +99,18 @@ function Get-SqliteVaultStorageFromHelper {
         if ($failed -and $failed.Count -gt 0) {
             [System.Diagnostics.Trace]::TraceError(($failed -join "`n"))
         }
+
+        # Same shared keeper_db.sqlite as vault: ensure PAM gateway tables exist.
+        [KeeperSecurity.Plugins.PAM.SqlitePamStorage]::VerifyDatabase($verifyConn, $dialect)
     }
     finally {
         $verifyConn.Dispose()
     }
 
-    return $vaultStorage
+    return [PSCustomObject]@{
+        VaultStorage  = $vaultStorage
+        GetConnection = $getConnection
+    }
 }
 
 function Get-SqliteComplianceStorageFromHelper {
@@ -745,6 +751,8 @@ function Connect-Keeper {
         Write-Information -MessageData "Connected to Keeper as $($auth.Username)" -InformationAction Continue
 
         $vaultStorage = $null
+        $Script:PamSqliteConnectionFactory = $null
+        $Script:PamPlugin = $null
         if ($UseOfflineStorage) {
             $ownerUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($auth.AuthContext.AccountUid)
             if ($VaultDatabasePath) {
@@ -760,7 +768,10 @@ function Connect-Keeper {
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
             Write-Information -MessageData "Using vault database: $dbPath"
-            $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
+            $sqliteBundle = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
+            $vaultStorage = $sqliteBundle.VaultStorage
+            # Shared with PamPlugin for persistent gateway cache.
+            $Script:PamSqliteConnectionFactory = $sqliteBundle.GetConnection
         }
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
         if ($SkipSync.IsPresent) {
@@ -810,6 +821,8 @@ function Disconnect-Keeper {
     
     $Script:Context.ManagedCompanyId = 0
     $Script:Context.Enterprise = $null
+    $Script:PamPlugin = $null
+    $Script:PamSqliteConnectionFactory = $null
 
     $vault = $Script:Context.Vault
     if ($vault) {
