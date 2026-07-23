@@ -101,21 +101,63 @@ function script:getPamRotationScheduleRows {
     return $rows
 }
 
+function script:resolvePamRotationGatewayName {
+    Param (
+        [object] $Plugin,
+        [string] $GatewayUid,
+        [string] $FallbackName
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($GatewayUid) -and $GatewayUid -ne '-' -and $Plugin) {
+        $controller = $null
+        try {
+            $controller = $Plugin.Controllers.GetEntity($GatewayUid)
+        }
+        catch {
+            $controller = $null
+        }
+
+        if (-not $controller) {
+            foreach ($item in $Plugin.Controllers.GetAll()) {
+                if ($item -and [string]::Equals($item.ControllerUid, $GatewayUid, [StringComparison]::Ordinal)) {
+                    $controller = $item
+                    break
+                }
+            }
+        }
+
+        if ($controller -and -not [string]::IsNullOrWhiteSpace($controller.ControllerName)) {
+            return $controller.ControllerName
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($FallbackName)) {
+        return $FallbackName
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($GatewayUid) -and $GatewayUid -ne '-') {
+        return $GatewayUid
+    }
+
+    return '-'
+}
+
 function script:writePamRotationInfoTable {
     Param (
         [Parameter(Mandatory = $true)]
         [object] $RotationInfo,
         [Parameter(Mandatory = $true)]
         [KeeperSecurity.Vault.TypedRecord] $Record,
-        [object] $Schedule
+        [object] $Schedule,
+        [object] $Plugin = $null
     )
 
     $statusName = [string]$RotationInfo.Status
     $isReady = ($RotationInfo.Status.ToString() -eq 'RrsOnline')
     $configUid = encodePamByteString $RotationInfo.ConfigurationUid
-    $gatewayName = if ([string]::IsNullOrEmpty($RotationInfo.ControllerName)) { '-' } else { $RotationInfo.ControllerName }
     $gatewayUid = encodePamByteString $RotationInfo.ControllerUid
     if ([string]::IsNullOrEmpty($gatewayUid)) { $gatewayUid = '-' }
+    $gatewayName = resolvePamRotationGatewayName -Plugin $Plugin -GatewayUid $gatewayUid -FallbackName $RotationInfo.ControllerName
     $adminResourceUid = encodePamByteString $RotationInfo.ResourceUid
     if ([string]::IsNullOrEmpty($adminResourceUid)) { $adminResourceUid = $null }
 
@@ -173,15 +215,16 @@ function script:writePamRotationInfoJson {
         [object] $RotationInfo,
         [Parameter(Mandatory = $true)]
         [KeeperSecurity.Vault.TypedRecord] $Record,
-        [object] $Schedule
+        [object] $Schedule,
+        [object] $Plugin = $null
     )
 
     $statusName = [string]$RotationInfo.Status
     $isReady = ($RotationInfo.Status.ToString() -eq 'RrsOnline')
     $configUid = encodePamByteString $RotationInfo.ConfigurationUid
-    $gatewayName = if ([string]::IsNullOrEmpty($RotationInfo.ControllerName)) { '-' } else { $RotationInfo.ControllerName }
     $gatewayUid = encodePamByteString $RotationInfo.ControllerUid
     if ([string]::IsNullOrEmpty($gatewayUid)) { $gatewayUid = '-' }
+    $gatewayName = resolvePamRotationGatewayName -Plugin $Plugin -GatewayUid $gatewayUid -FallbackName $RotationInfo.ControllerName
     $adminResourceUid = encodePamByteString $RotationInfo.ResourceUid
     if ([string]::IsNullOrEmpty($adminResourceUid)) { $adminResourceUid = $null }
 
@@ -614,7 +657,7 @@ function Get-KeeperPamRotationInfo {
         Record UID alias (Commander --record-uid).
 
         .Parameter Format
-        Output format: table (default) or json.
+        Output format: table (default), csv (same as table), or json.
 
         .Example
         Get-KeeperPamRotationInfo -Record "<uid>"
@@ -622,6 +665,7 @@ function Get-KeeperPamRotationInfo {
         .Example
         Get-KeeperPamRotationInfo -r "My PAM User" -Format json
         pam-rot-info -r "<uid>"
+        pam-rot-info -RecordUid "<uid>" -Format csv
     #>
     [CmdletBinding()]
     Param (
@@ -631,7 +675,7 @@ function Get-KeeperPamRotationInfo {
         [Alias('record-uid')]
         [string] $RecordUid,
 
-        [ValidateSet('table', 'json')]
+        [ValidateSet('table', 'csv', 'json')]
         [string] $Format = 'table'
     )
 
@@ -647,6 +691,7 @@ function Get-KeeperPamRotationInfo {
         return
     }
 
+    $plugin = ensurePamPlugin -SyncIfNeeded $false
     $auth = getPamEnterpriseAuth
     $resolved = resolvePamRotationRecord -Vault $vault -Identifier $recordId -AllowedTypes ([KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation)
     if (-not $resolved) {
@@ -667,10 +712,10 @@ function Get-KeeperPamRotationInfo {
     }
 
     if ($Format -eq 'json') {
-        writePamRotationInfoJson -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule
+        writePamRotationInfoJson -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
     }
     else {
-        writePamRotationInfoTable -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule
+        writePamRotationInfoTable -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
     }
 }
 
@@ -751,7 +796,7 @@ function Set-KeeperPamRotation {
         .Example
         Set-KeeperPamRotation -Folder "<folder-uid>" -c "<config-uid>" -od -so -Force
     #>
-    [CmdletBinding()]
+    [CmdletBinding(PositionalBinding = $false)]
     Param (
         [Alias('r')]
         [string] $Record,
@@ -937,15 +982,18 @@ function Add-KeeperPamRotationScript {
 
         .Example
         Add-KeeperPamRotationScript -Record "<uid>" -Script "C:\scripts\rotate.ps1" -RunCommand "powershell -File rotate.ps1"
+        Add-KeeperPamRotationScript fajHNL7_T3qsuzt2MDGEiw -Script "C:\scripts\rotate.ps1"
     #>
     [CmdletBinding()]
     Param (
+        [Parameter(Position = 0)]
         [Alias('r')]
         [string] $Record,
 
         [Alias('record-uid')]
         [string] $RecordUid,
 
+        [Parameter(Position = 1)]
         [string] $Script,
 
         [Alias('script-command')]
@@ -1048,15 +1096,18 @@ function Set-KeeperPamRotationScript {
 
         .Example
         Set-KeeperPamRotationScript -Record "<uid>" -Script "rotate.ps1" -RunCommand "powershell -File rotate.ps1" -ac @("<cred-uid>")
+        Set-KeeperPamRotationScript fajHNL7_T3qsuzt2MDGEiw -Script E5HGAlv7lHIkGa5PzPXgbQ -RunCommand "powershell -File rotate_password_v2.ps1"
     #>
     [CmdletBinding()]
     Param (
+        [Parameter(Position = 0)]
         [Alias('r')]
         [string] $Record,
 
         [Alias('record-uid')]
         [string] $RecordUid,
 
+        [Parameter(Position = 1)]
         [string] $Script,
 
         [Alias('script-command')]
@@ -1166,15 +1217,18 @@ function Remove-KeeperPamRotationScript {
 
         .Example
         Remove-KeeperPamRotationScript -Record "<uid>" -Script "rotate.ps1"
+        Remove-KeeperPamRotationScript fajHNL7_T3qsuzt2MDGEiw -Script CTUH9gBqQK_iJoph_APtNQ
     #>
     [CmdletBinding()]
     Param (
+        [Parameter(Position = 0)]
         [Alias('r')]
         [string] $Record,
 
         [Alias('record-uid')]
         [string] $RecordUid,
 
+        [Parameter(Position = 1)]
         [string] $Script
     )
 
