@@ -25,8 +25,57 @@ function script:resolvePamRotationRecord {
     try {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord($Vault, $Identifier.Trim(), $AllowedTypes)
     }
+    catch [System.InvalidOperationException] {
+        # Ambiguous title / validation — same message as Commander; caller must not also print "not found".
+        Write-Output $_.Exception.Message
+        throw
+    }
+}
+
+function script:testPamRotationScriptOwnerException {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [System.Exception] $Exception
+    )
+
+    $ex = $Exception
+    while ($null -ne $ex) {
+        if ($ex -is [KeeperSecurity.Authentication.KeeperApiException]) {
+            $code = [string]$ex.Code
+            if ($code -eq 'only_owner_can_modify_scripts' -or $code -eq 'RS_ONLY_OWNER_CAN_MODIFY_SCRIPTS') {
+                return $true
+            }
+        }
+        $ex = $ex.InnerException
+    }
+    return $false
+}
+
+function script:updatePamRotationScriptRecord {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.TypedRecord] $Record,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('add', 'edit', 'remove')]
+        [string] $Action
+    )
+
+    try {
+        $Vault.UpdateRecord($Record).GetAwaiter().GetResult() | Out-Null
+        return $true
+    }
     catch {
-        return $null
+        if (testPamRotationScriptOwnerException -Exception $_.Exception) {
+            switch ($Action) {
+                'add' { Write-Output 'Only the record owner can attach post-rotation scripts.' }
+                'edit' { Write-Output 'Only the record owner can edit post-rotation scripts.' }
+                'remove' { Write-Output 'Only the record owner can remove post-rotation scripts.' }
+            }
+            return $false
+        }
+        throw
     }
 }
 

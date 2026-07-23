@@ -165,7 +165,12 @@ function script:writePamRotationInfoTable {
     if (-not [string]::IsNullOrEmpty($RotationInfo.PwdComplexity)) {
         $pwdComplexityRaw = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($RotationInfo.PwdComplexity)
     }
-    $pwdComplexityDetail = [KeeperSecurity.Plugins.PAM.RotationUtils]::DecryptPasswordComplexity($pwdComplexityRaw, $Record.RecordKey)
+    $pwdComplexityDetail = $null
+    $pwdComplexityDecryptFailed = $false
+    if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) {
+        $pwdComplexityDecryptFailed = -not [KeeperSecurity.Plugins.PAM.RotationUtils]::TryDecryptPasswordComplexity(
+            $pwdComplexityRaw, $Record.RecordKey, [ref]$pwdComplexityDetail)
+    }
 
     if ($isReady) {
         Write-Output "Rotation Status: Ready to rotate ($statusName)"
@@ -180,9 +185,14 @@ function script:writePamRotationInfoTable {
 
         if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) {
             Write-Output "Password Complexity: $($RotationInfo.PwdComplexity)"
-            $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityDisplay($pwdComplexityDetail)
-            if (-not [string]::IsNullOrEmpty($complexityDisplay)) {
-                Write-Output "Password Complexity Data: $complexityDisplay"
+            if ($pwdComplexityDecryptFailed) {
+                Write-Output 'Password Complexity Data: [decrypt failed]'
+            }
+            else {
+                $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityDisplay($pwdComplexityDetail)
+                if (-not [string]::IsNullOrEmpty($complexityDisplay)) {
+                    Write-Output "Password Complexity Data: $complexityDisplay"
+                }
             }
         }
         else {
@@ -232,13 +242,26 @@ function script:writePamRotationInfoJson {
     if (-not [string]::IsNullOrEmpty($RotationInfo.PwdComplexity)) {
         $pwdComplexityRaw = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($RotationInfo.PwdComplexity)
     }
-    $pwdComplexityDetail = [KeeperSecurity.Plugins.PAM.RotationUtils]::DecryptPasswordComplexity($pwdComplexityRaw, $Record.RecordKey)
+    $pwdComplexityDetail = $null
+    $pwdComplexityDecryptFailed = $false
+    if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) {
+        $pwdComplexityDecryptFailed = -not [KeeperSecurity.Plugins.PAM.RotationUtils]::TryDecryptPasswordComplexity(
+            $pwdComplexityRaw, $Record.RecordKey, [ref]$pwdComplexityDetail)
+    }
 
     $scheduleType = $null
     $scheduleData = $null
     if ($Schedule) {
         $scheduleType = if ($Schedule.NoSchedule) { 'manual' } else { 'scheduled' }
         $scheduleData = $Schedule.ScheduleData
+    }
+
+    $complexityDetailOut = $null
+    if ($pwdComplexityDecryptFailed) {
+        $complexityDetailOut = '[decrypt failed]'
+    }
+    elseif ($null -ne $pwdComplexityDetail) {
+        $complexityDetailOut = [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail)
     }
 
     $result = [ordered]@{
@@ -250,7 +273,7 @@ function script:writePamRotationInfoJson {
         gateway_uid                = $gatewayUid
         admin_resource_uid         = $adminResourceUid
         password_complexity        = if ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0) { $RotationInfo.PwdComplexity } else { $null }
-        password_complexity_detail = $pwdComplexityDetail
+        password_complexity_detail = $complexityDetailOut
         schedule_type              = $scheduleType
         schedule_data              = $scheduleData
         disabled                   = $RotationInfo.Disabled
@@ -693,7 +716,12 @@ function Get-KeeperPamRotationInfo {
 
     $plugin = ensurePamPlugin -SyncIfNeeded $false
     $auth = getPamEnterpriseAuth
-    $resolved = resolvePamRotationRecord -Vault $vault -Identifier $recordId -AllowedTypes ([KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation)
+    try {
+        $resolved = resolvePamRotationRecord -Vault $vault -Identifier $recordId -AllowedTypes ([KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation)
+    }
+    catch {
+        return
+    }
     if (-not $resolved) {
         Write-Output "Record '$recordId' not found"
         return
@@ -1067,7 +1095,9 @@ function Add-KeeperPamRotationScript {
     $scriptValue.Command = $runCommand
     $scriptField.Values.Add($scriptValue)
 
-    $vault.UpdateRecord($resolved).GetAwaiter().GetResult() | Out-Null
+    if (-not (updatePamRotationScriptRecord -Vault $vault -Record $resolved -Action add)) {
+        return
+    }
     Write-Output "Script added to record '$($resolved.Title)' ($($resolved.Uid))."
 }
 
@@ -1197,7 +1227,9 @@ function Set-KeeperPamRotationScript {
         return
     }
 
-    $vault.UpdateRecord($resolved).GetAwaiter().GetResult() | Out-Null
+    if (-not (updatePamRotationScriptRecord -Vault $vault -Record $resolved -Action edit)) {
+        return
+    }
     Write-Output "Script updated on record '$($resolved.Title)' ($($resolved.Uid))."
 }
 
@@ -1266,7 +1298,9 @@ function Remove-KeeperPamRotationScript {
     }
 
     [void]$scriptField.Values.Remove($scriptValue)
-    $vault.UpdateRecord($resolved).GetAwaiter().GetResult() | Out-Null
+    if (-not (updatePamRotationScriptRecord -Vault $vault -Record $resolved -Action remove)) {
+        return
+    }
     Write-Output "Script removed from record '$($resolved.Title)' ($($resolved.Uid))."
 }
 

@@ -278,7 +278,7 @@ namespace Commander
 
             var pamRotation = new PamRotationCommand(context);
             cli.Commands.Add("pam-rotation",
-                new ParseableCommand<PamRotationOptions>
+                new ParseableCommand<Commander.PAM.PamRotationOptions>
                 {
                     Order = 88,
                     Description = "Manage PAM record rotation schedules",
