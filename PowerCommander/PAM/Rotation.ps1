@@ -86,7 +86,48 @@ function script:getPamRotationScheduleRows {
         }
     }
 
-    return $rows
+    return $rows.ToArray()
+}
+
+function script:writePamRotationListTable {
+    Param (
+        $Rows,
+        [bool] $VerboseOutput = $false
+    )
+
+    $rowArray = @($Rows)
+    if ($rowArray.Count -eq 0) {
+        return
+    }
+
+    # Wide Out-String so Windows PS 5.1 Format-Table does not drop trailing columns
+    # (PAM Configuration UID) on a narrow console buffer.
+    if ($VerboseOutput) {
+        $table = $rowArray | Select-Object `
+            @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
+            @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
+            @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
+            @{ Name = 'Schedule'; Expression = { $_.Schedule } }, `
+            @{ Name = 'Gateway'; Expression = { $_.Gateway } }, `
+            @{ Name = 'Gateway UID'; Expression = { $_.GatewayUid } }, `
+            @{ Name = 'PAM Configuration (Type)'; Expression = { $_.PamConfiguration } }, `
+            @{ Name = 'PAM Configuration UID'; Expression = { $_.PamConfigurationUid } } |
+            Format-Table -AutoSize | Out-String -Width 4096
+    }
+    else {
+        $table = $rowArray | Select-Object `
+            @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
+            @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
+            @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
+            @{ Name = 'Schedule'; Expression = { $_.Schedule } }, `
+            @{ Name = 'Gateway'; Expression = { $_.Gateway } }, `
+            @{ Name = 'PAM Configuration (Type)'; Expression = { $_.PamConfiguration } } |
+            Format-Table -AutoSize | Out-String -Width 4096
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($table)) {
+        Write-Output $table.TrimEnd()
+    }
 }
 
 function script:resolvePamRotationGatewayName {
@@ -374,7 +415,7 @@ function script:getPamRotationFileRefUids {
         }
     }
 
-    return $uids
+    return , $uids
 }
 
 function script:resolvePamRotationCredentialUids {
@@ -518,26 +559,42 @@ function script:resolvePamRotationScriptRecordId {
 
 function script:writePamRotationScriptTable {
     Param (
-        [object[]] $Rows
+        $Rows
     )
 
-    $headers = @('Record UID', 'Title', 'Record Type', 'Script UID', 'Script Name', 'Records', 'Command')
-    Write-Output ($headers -join "`t")
-    foreach ($row in $Rows) {
-        if ($null -eq $row) {
-            continue
+    # Avoid @($List[object]) — PowerShell can throw "Argument types do not match".
+    if ($null -eq $Rows) {
+        return
+    }
+    if ($Rows -is [System.Array]) {
+        $rowArray = $Rows
+    }
+    elseif ($Rows.PSObject.Methods['ToArray']) {
+        $rowArray = $Rows.ToArray()
+    }
+    else {
+        $rowArray = [object[]]::new(0)
+        foreach ($row in $Rows) {
+            $rowArray += $row
         }
+    }
 
-        $cells = @(
-            [string]$row.RecordUid
-            [string]$row.Title
-            [string]$row.RecordType
-            [string]$row.ScriptUid
-            [string]$row.ScriptName
-            [string]$row.Records
-            [string]$row.Command
-        )
-        Write-Output ($cells -join "`t")
+    if ($rowArray.Count -eq 0) {
+        return
+    }
+
+    $table = $rowArray | Select-Object `
+        @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
+        @{ Name = 'Title'; Expression = { $_.Title } }, `
+        @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
+        @{ Name = 'Script UID'; Expression = { $_.ScriptUid } }, `
+        @{ Name = 'Script Name'; Expression = { $_.ScriptName } }, `
+        @{ Name = 'Records'; Expression = { $_.Records } }, `
+        @{ Name = 'Command'; Expression = { $_.Command } } |
+        Format-Table -AutoSize | Out-String -Width 4096
+
+    if (-not [string]::IsNullOrWhiteSpace($table)) {
+        Write-Output $table.TrimEnd()
     }
 }
 
@@ -583,7 +640,7 @@ function script:getPamRotationScriptListRows {
         }
     }
 
-    return , $rows
+    return $rows.ToArray()
 }
 
 function script:resolvePamRotationScriptRecord {
@@ -628,35 +685,14 @@ function Get-KeeperPamRotationList {
 
     $vault = getPamRotationVault
     $auth = getPamEnterpriseAuth
-    $rows = getPamRotationScheduleRows -Plugin $plugin -Vault $vault -Auth $auth -VerboseOutput:$VerboseOutput.IsPresent
+    $rows = @(getPamRotationScheduleRows -Plugin $plugin -Vault $vault -Auth $auth -VerboseOutput $VerboseOutput.IsPresent)
 
     if ($rows.Count -eq 0) {
         Write-Output 'No pamUser rotation schedules found.'
         return
     }
 
-    if ($VerboseOutput.IsPresent) {
-        $rows | Select-Object `
-            @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
-            @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
-            @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
-            @{ Name = 'Schedule'; Expression = { $_.Schedule } }, `
-            @{ Name = 'Gateway'; Expression = { $_.Gateway } }, `
-            @{ Name = 'Gateway UID'; Expression = { $_.GatewayUid } }, `
-            @{ Name = 'PAM Configuration (Type)'; Expression = { $_.PamConfiguration } }, `
-            @{ Name = 'PAM Configuration UID'; Expression = { $_.PamConfigurationUid } } |
-            Format-Table -AutoSize
-    }
-    else {
-        $rows | Select-Object `
-            @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
-            @{ Name = 'Record Title'; Expression = { $_.RecordTitle } }, `
-            @{ Name = 'Record Type'; Expression = { $_.RecordType } }, `
-            @{ Name = 'Schedule'; Expression = { $_.Schedule } }, `
-            @{ Name = 'Gateway'; Expression = { $_.Gateway } }, `
-            @{ Name = 'PAM Configuration (Type)'; Expression = { $_.PamConfiguration } } |
-            Format-Table -AutoSize
-    }
+    writePamRotationListTable -Rows $rows -VerboseOutput $VerboseOutput.IsPresent
 
     Write-Output ''
     Write-Output 'Manual rotation is not supported yet. Coming soon.'
@@ -928,9 +964,9 @@ function Set-KeeperPamRotation {
     }
 
     $service = New-Object KeeperSecurity.Plugins.PAM.PamRotationEditService($auth, $vault)
-    if (-not $Force.IsPresent) {
-        $service.ConfirmAsync = newPamRotationConfirmHandler
-    }
+    # Do not assign ConfirmAsync to a PowerShell scriptblock: ExecuteAsync continues on a
+    # thread-pool thread with no DefaultRunspace (Windows PS 5.1), which throws
+    # "There is no Runspace available...". SDK AskConfirmAsync uses Console.ReadLine instead.
 
     try {
         $service.ExecuteAsync($options).GetAwaiter().GetResult() | Out-Null
@@ -974,7 +1010,12 @@ function Get-KeeperPamRotationScript {
     }
 
     $filter = if (-not [string]::IsNullOrWhiteSpace($Pattern)) { $Pattern.Trim() } else { $Record }
-    $rows = getPamRotationScriptListRows -Vault $vault -Pattern $filter
+    $rows = @(getPamRotationScriptListRows -Vault $vault -Pattern $filter)
+    if ($rows.Count -eq 0) {
+        Write-Output 'No post-rotation scripts found.'
+        return
+    }
+
     writePamRotationScriptTable -Rows $rows
 }
 
@@ -1064,10 +1105,17 @@ function Add-KeeperPamRotationScript {
     $runCommand = getPamRotationRunCommand -RunCommand $RunCommand -ScriptCommand $ScriptCommand
     $scriptField = getOrCreatePamRotationScriptField -Record $resolved
     $preRefs = getPamRotationFileRefUids -Record $resolved
+    if ($null -eq $preRefs) {
+        $preRefs = New-Object 'System.Collections.Generic.HashSet[string]'
+    }
 
     $uploadTask = New-Object KeeperSecurity.Vault.FileAttachmentUploadTask($filePath, $null, $true)
     try {
         $vault.UploadAttachment($resolved, $uploadTask).GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+        Write-Output $_.Exception.Message
+        return
     }
     finally {
         if ($uploadTask) {
@@ -1076,7 +1124,14 @@ function Add-KeeperPamRotationScript {
     }
 
     $postRefs = getPamRotationFileRefUids -Record $resolved
-    $newUids = @($postRefs | Where-Object { -not $preRefs.Contains($_) })
+    if ($null -eq $postRefs) {
+        $postRefs = New-Object 'System.Collections.Generic.HashSet[string]'
+    }
+    $newUids = @(
+        $postRefs | Where-Object {
+            -not [string]::IsNullOrEmpty($_) -and -not $preRefs.Contains($_)
+        }
+    )
     if ($newUids.Count -ne 1) {
         Write-Output 'Failed to determine uploaded script file UID. Only the record owner can attach post-rotation scripts.'
         return

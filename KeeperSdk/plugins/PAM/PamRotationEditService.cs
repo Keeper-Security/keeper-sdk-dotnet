@@ -228,11 +228,9 @@ namespace KeeperSecurity.Plugins.PAM
             {
                 Console.WriteLine();
                 Console.WriteLine("The following record(s) were skipped:");
-                Console.WriteLine("Record UID\tRecord Title\tProblem\tDescription");
-                foreach (var row in skipped)
-                {
-                    Console.WriteLine(string.Join("\t", row.Select(x => x?.ToString() ?? "")));
-                }
+                PamRotationConsoleTable.Write(
+                    new[] { "Record UID", "Record Title", "Problem", "Description" },
+                    skipped);
             }
 
             if (configuredResources.Count > 0)
@@ -257,11 +255,13 @@ namespace KeeperSecurity.Plugins.PAM
             {
                 Console.WriteLine();
                 Console.WriteLine("The following record(s) will be updated:");
-                Console.WriteLine("Record UID\tRecord Title\tEnabled\tConfiguration UID\tResource UID\tSchedule\tComplexity");
-                foreach (var row in valid)
-                {
-                    Console.WriteLine(string.Join("\t", row.Select(x => x?.ToString() ?? "")));
-                }
+                PamRotationConsoleTable.Write(
+                    new[]
+                    {
+                        "Record UID", "Record Title", "Enabled", "Configuration UID", "Resource UID", "Schedule",
+                        "Complexity"
+                    },
+                    valid);
             }
 
             if (!options.Force)
@@ -525,7 +525,7 @@ namespace KeeperSecurity.Plugins.PAM
             {
                 record.Uid,
                 record.Title,
-                !disabled,
+                !disabled ? "X" : "-",
                 configUid,
                 resourceUid ?? "",
                 scheduleType,
@@ -1068,6 +1068,60 @@ namespace KeeperSecurity.Plugins.PAM
             }
 
             return Task.FromResult(defaultYes);
+        }
+    }
+
+    internal static class PamRotationConsoleTable
+    {
+        public static void Write(IReadOnlyList<string> headers, IEnumerable<object[]> rows)
+        {
+            if (headers == null || headers.Count == 0)
+            {
+                return;
+            }
+
+            var rowList = rows?.Where(r => r != null).ToList() ?? new List<object[]>();
+            var widths = new int[headers.Count];
+            for (var i = 0; i < headers.Count; i++)
+            {
+                widths[i] = headers[i]?.Length ?? 0;
+            }
+
+            foreach (var row in rowList)
+            {
+                for (var i = 0; i < headers.Count; i++)
+                {
+                    var cell = i < row.Length ? row[i]?.ToString() ?? "" : "";
+                    if (cell.Length > widths[i])
+                    {
+                        widths[i] = cell.Length;
+                    }
+                }
+            }
+
+            Console.WriteLine(FormatRow(headers.Select(h => h ?? "").ToArray(), widths));
+            foreach (var row in rowList)
+            {
+                var cells = new string[headers.Count];
+                for (var i = 0; i < headers.Count; i++)
+                {
+                    cells[i] = i < row.Length ? row[i]?.ToString() ?? "" : "";
+                }
+
+                Console.WriteLine(FormatRow(cells, widths));
+            }
+        }
+
+        private static string FormatRow(IReadOnlyList<string> cells, IReadOnlyList<int> widths)
+        {
+            var parts = new string[widths.Count];
+            for (var i = 0; i < widths.Count; i++)
+            {
+                var cell = i < cells.Count ? cells[i] ?? "" : "";
+                parts[i] = cell.PadRight(widths[i]);
+            }
+
+            return string.Join("  ", parts).TrimEnd();
         }
     }
 }
