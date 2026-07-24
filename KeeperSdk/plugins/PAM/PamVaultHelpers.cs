@@ -8,6 +8,8 @@ namespace KeeperSecurity.Plugins.PAM
 {
   /// <summary>
   /// Shared vault lookups for PAM rotation and configuration commands.
+  /// Resolves classic vault and Nested Shared Folder (NSF) records/folders.
+  /// Classic lookup is attempted first; NSF is an additive path (no classic behavior change).
   /// </summary>
   public static class PamVaultHelpers
   {
@@ -15,15 +17,26 @@ namespace KeeperSecurity.Plugins.PAM
     {
       if (vault == null)
       {
-        return new Dictionary<string, TypedRecord>();
+        return new Dictionary<string, TypedRecord>(StringComparer.Ordinal);
       }
 
-      return vault.KeeperRecords
-        .OfType<TypedRecord>()
-        .Where(x => PamRecordTypes.Configuration.Contains(x.TypeName ?? ""))
-        .ToDictionary(x => x.Uid, x => x);
+      var configs = new Dictionary<string, TypedRecord>(StringComparer.Ordinal);
+      foreach (var record in EnumerateTypedRecords(vault))
+      {
+        if (PamRecordTypes.Configuration.Contains(record.TypeName ?? "")
+            && !string.IsNullOrEmpty(record.Uid))
+        {
+          configs[record.Uid] = record;
+        }
+      }
+
+      return configs;
     }
 
+    /// <summary>
+    /// Resolves a typed record by UID or unique title from classic vault or NSF.
+    /// Returns null when not found. Throws when the title matches more than one record.
+    /// </summary>
     public static TypedRecord ResolveRecord(VaultOnline vault, string identifier, IEnumerable<string> allowedTypes)
     {
       if (vault == null || string.IsNullOrWhiteSpace(identifier))
@@ -31,9 +44,14 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      if (TryGetTypedRecord(vault, identifier, out var typedByUid))
+      var trimmed = identifier.Trim();
+      var allowed = allowedTypes == null
+        ? null
+        : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
+
+      if (TryGetTypedRecord(vault, trimmed, out var typedByUid))
       {
-        if (allowedTypes == null || allowedTypes.Contains(typedByUid.TypeName ?? string.Empty))
+        if (allowed == null || allowed.Contains(typedByUid.TypeName ?? string.Empty))
         {
           return typedByUid;
         }
@@ -41,13 +59,11 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      var allowed = allowedTypes == null
-        ? null
-        : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
-      var matches = vault.KeeperRecords
-        .OfType<TypedRecord>()
+      var matches = EnumerateTypedRecords(vault)
         .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
-        .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
+        .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
+        .GroupBy(x => x.Uid, StringComparer.Ordinal)
+        .Select(g => g.First())
         .ToList();
 
       if (matches.Count == 1)
@@ -352,6 +368,106 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
+    {
+      record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
+      return record != null;
+    }
+
+    /// <summary>
+    /// Resolves a classic or NSF folder by UID or unique name.
+    /// </summary>
+    public static bool TryResolveFolder(VaultOnline vault, string identifier, out FolderNode folder)
+    {
+      folder = null;
+      if (vault == null || string.IsNullOrWhiteSpace(identifier))
+      {
+        return false;
+      }
+
+      var trimmed = identifier.Trim();
+      if (vault.TryGetFolder(trimmed, out folder) && folder != null)
+      {
+        return true;
+      }
+
+      return vault.TryResolveKeeperNSFFolder(trimmed, out folder) && folder != null;
+    }
+
+    /// <summary>
+    /// Looks up a folder node in classic or NSF trees by UID.
+    /// </summary>
+    public static bool TryGetFolderNode(VaultOnline vault, string folderUid, out FolderNode folder)
+    {
+      folder = null;
+      if (vault == null || string.IsNullOrEmpty(folderUid))
+      {
+        return false;
+      }
+
+      if (vault.TryGetFolder(folderUid, out folder) && folder != null)
+      {
+        return true;
+      }
+
+      return vault.TryGetKeeperNSFFolder(folderUid, out folder) && folder != null;
+    }
+
+    public static void CollectFolderSubtree(VaultOnline vault, FolderNode folder, ISet<string> folderUids)
+    {
+      if (vault == null || folder == null || folderUids == null)
+      {
+        return;
+      }
+
+      if (!string.IsNullOrEmpty(folder.FolderUid))
+      {
+        folderUids.Add(folder.FolderUid);
+      }
+
+      foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
+      {
+        if (TryGetFolderNode(vault, subfolderUid, out var child))
+        {
+          CollectFolderSubtree(vault, child, folderUids);
+        }
+      }
+    }
+
+    public static IEnumerable<string> EnumerateFolderRecordUids(VaultOnline vault, FolderNode folder)
+    {
+      if (vault == null || folder == null)
+      {
+        yield break;
+      }
+
+      foreach (var recordUid in folder.Records ?? Array.Empty<string>())
+      {
+        if (!string.IsNullOrEmpty(recordUid))
+        {
+          yield return recordUid;
+        }
+      }
+
+      foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
+      {
+        if (TryGetFolderNode(vault, subfolderUid, out var child))
+        {
+          foreach (var uid in EnumerateFolderRecordUids(vault, child))
+          {
+            yield return uid;
+          }
+        }
+      }
+    }
+
+    public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
+    {
+      return vault != null
+             && !string.IsNullOrEmpty(recordUid)
+             && vault.TryGetKeeperNSFRecord(recordUid, out _);
+    }
+
     private static IEnumerable<string> GetFolderPathVariants(string path)
     {
       yield return path;
@@ -455,33 +571,66 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    /// <summary>
+    /// Enumerates classic then NSF typed records. Classic wins when the same UID appears in both.
+    /// </summary>
+    private static IEnumerable<TypedRecord> EnumerateTypedRecords(VaultOnline vault)
+    {
+      var seen = new HashSet<string>(StringComparer.Ordinal);
+
+      foreach (var record in vault.KeeperRecords?.OfType<TypedRecord>() ?? Enumerable.Empty<TypedRecord>())
+      {
+        if (!string.IsNullOrEmpty(record.Uid) && seen.Add(record.Uid))
+        {
+          yield return record;
+        }
+      }
+
+      foreach (var nsf in vault.KeeperNSFRecordEntries ?? Enumerable.Empty<KeeperNSFRecord>())
+      {
+        if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed)
+            || typed == null
+            || string.IsNullOrEmpty(typed.Uid)
+            || !seen.Add(typed.Uid))
+        {
+          continue;
+        }
+
+        yield return typed;
+      }
+    }
+
     private static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
       record = null;
-      if (!vault.TryGetKeeperRecord(recordUid, out var keeper))
+      if (string.IsNullOrEmpty(recordUid))
       {
         return false;
       }
 
-      if (keeper is TypedRecord typed)
+      if (vault.TryGetKeeperRecord(recordUid, out var keeper))
       {
-        record = typed;
-        return true;
+        if (keeper is TypedRecord typed)
+        {
+          record = typed;
+          return true;
+        }
+
+        if (vault.TryLoadKeeperRecord(recordUid, out keeper) && keeper is TypedRecord loaded)
+        {
+          record = loaded;
+          return true;
+        }
       }
 
-      if (vault.TryLoadKeeperRecord(recordUid, out keeper) && keeper is TypedRecord loaded)
+      if (vault.TryGetKeeperNSFRecord(recordUid, out var nsf)
+          && VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out record)
+          && record != null)
       {
-        record = loaded;
         return true;
       }
 
       return false;
-    }
-
-    public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
-    {
-      record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
-      return record != null;
     }
   }
 }

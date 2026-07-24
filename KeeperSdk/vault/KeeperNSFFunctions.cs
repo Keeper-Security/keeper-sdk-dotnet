@@ -2605,6 +2605,128 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        /// <summary>
+        /// Updates an NSF record from a <see cref="TypedRecord"/>, including script/fileRef links.
+        /// Used by <see cref="VaultOnline.UpdateRecord"/> when the UID is an NSF record.
+        /// </summary>
+        public static async Task UpdateKeeperNSFTypedRecordInternal(this VaultOnline vault, TypedRecord typed)
+        {
+            if (vault == null)
+            {
+                throw new ArgumentNullException(nameof(vault));
+            }
+
+            if (typed == null)
+            {
+                throw new ArgumentNullException(nameof(typed));
+            }
+
+            if (string.IsNullOrEmpty(typed.Uid))
+            {
+                throw new VaultException("Record UID cannot be empty");
+            }
+
+            if (!vault.TryGetKeeperNSFRecord(typed.Uid, out var nsf) || nsf == null)
+            {
+                throw new VaultException($"Keeper NSF record '{typed.Uid}' not found");
+            }
+
+            var recordKey = typed.RecordKey ?? nsf.RecordKey;
+            if (recordKey == null || recordKey.Length == 0)
+            {
+                throw new VaultException($"Record key not available for record '{typed.Uid}'");
+            }
+
+            typed.RecordKey = recordKey;
+            vault.AdjustTypedRecord(typed);
+
+            var recordData = typed.ExtractRecordV3Data();
+            var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
+            var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
+
+            var recordUpdate = new RecordUpdate
+            {
+                RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
+                ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Revision = nsf.Revision,
+                Data = ByteString.CopyFrom(encryptedData),
+            };
+
+            var existingRefs = new HashSet<string>(StringComparer.Ordinal);
+            if (VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var existingTyped)
+                && existingTyped != null)
+            {
+                existingRefs.UnionWith(existingTyped.ExtractTypedRecordRefs());
+            }
+
+            var currentRefs = typed.ExtractTypedRecordRefs() ?? new HashSet<string>(StringComparer.Ordinal);
+            foreach (var newRef in currentRefs.Except(existingRefs))
+            {
+                if (string.IsNullOrEmpty(newRef))
+                {
+                    continue;
+                }
+
+                byte[] refKey = null;
+                typed.LinkedKeys?.TryGetValue(newRef, out refKey);
+                if (refKey == null && vault.TryGetKeeperRecord(newRef, out var linked))
+                {
+                    refKey = linked.RecordKey;
+                }
+
+                if (refKey == null && vault.TryGetKeeperNSFRecord(newRef, out var linkedNsf))
+                {
+                    refKey = linkedNsf.RecordKey;
+                }
+
+                if (refKey != null)
+                {
+                    recordUpdate.RecordLinksAdd.Add(new RecordLink
+                    {
+                        RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
+                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, recordKey)),
+                    });
+                }
+                else
+                {
+                    Trace.TraceError($"Lost record reference: record UID: \"{newRef}\"");
+                }
+            }
+
+            recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+
+            var rq = new RecordsUpdateRequest();
+            rq.Records.Add(recordUpdate);
+
+            var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
+                "vault/records/v3/update", rq).ConfigureAwait(false);
+
+            if (rs?.Records != null && rs.Records.Count > 0)
+            {
+                var result = rs.Records[0];
+                if (result.Status != RecordModifyResult.RsSuccess)
+                {
+                    var status = Enum.GetName(typeof(RecordModifyResult), result.Status) ?? "";
+                    if (status.StartsWith("Rs", StringComparison.Ordinal))
+                    {
+                        status = status.Substring(2);
+                    }
+
+                    throw new KeeperApiException(status.ToSnakeCase(), result.Message ?? "Failed to update record");
+                }
+            }
+
+            nsf.Revision += 1;
+            nsf.Title = typed.Title;
+            nsf.Type = typed.TypeName;
+            nsf.Notes = typed.Notes;
+            nsf.Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false));
+            nsf.ClientModifiedTime = recordUpdate.ClientModifiedTime;
+            vault.KeeperNSFRecords[nsf.RecordUid] = nsf;
+        }
+
         private static async Task<RecordSharingProto.Permissions> BuildRecordSharePermissions(
             VaultOnline vault, string recordUid, string userEmail, string role, SharedFolderRecordOptions options = null)
         {

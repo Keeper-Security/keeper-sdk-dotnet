@@ -782,7 +782,7 @@ namespace Commander.PAM
                 else if (TryResolveRecordPath(recordName, out var folderNode, out var title))
                 {
                     recordPattern = title;
-                    CollectFolderUids(folderNode, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderNode, folderUids);
                 }
                 else if (!string.IsNullOrWhiteSpace(options.Folder))
                 {
@@ -797,15 +797,15 @@ namespace Commander.PAM
             if (!string.IsNullOrWhiteSpace(options.Folder))
             {
                 var folderName = options.Folder.Trim();
-                if (_vault.TryGetFolder(folderName, out var folderByUid))
+                if (PamVaultHelpers.TryResolveFolder(_vault, folderName, out var folderByUidOrName))
                 {
-                    CollectFolderUids(folderByUid, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderByUidOrName, folderUids);
                 }
                 else if (_pathContext != null
                          && _pathContext.TryResolvePath(folderName, out var folderByPath, out var title)
                          && string.IsNullOrEmpty(title))
                 {
-                    CollectFolderUids(folderByPath, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderByPath, folderUids);
                 }
                 else
                 {
@@ -824,12 +824,12 @@ namespace Commander.PAM
 
                 foreach (var folderUid in folderUids)
                 {
-                    if (!_vault.TryGetFolder(folderUid, out var folder))
+                    if (!PamVaultHelpers.TryGetFolderNode(_vault, folderUid, out var folder))
                     {
                         continue;
                     }
 
-                    foreach (var uid in EnumerateFolderRecordUids(folder))
+                    foreach (var uid in PamVaultHelpers.EnumerateFolderRecordUids(_vault, folder))
                     {
                         if (recordUids.Contains(uid))
                         {
@@ -863,51 +863,6 @@ namespace Commander.PAM
             }
 
             return records;
-        }
-
-        private IEnumerable<string> EnumerateFolderRecordUids(FolderNode folder)
-        {
-            if (folder == null)
-            {
-                yield break;
-            }
-
-            foreach (var recordUid in folder.Records ?? Array.Empty<string>())
-            {
-                yield return recordUid;
-            }
-
-            foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
-            {
-                if (_vault.TryGetFolder(subfolderUid, out var child))
-                {
-                    foreach (var uid in EnumerateFolderRecordUids(child))
-                    {
-                        yield return uid;
-                    }
-                }
-            }
-        }
-
-        private void CollectFolderUids(FolderNode folder, ISet<string> folderUids)
-        {
-            if (folder == null)
-            {
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(folder.FolderUid))
-            {
-                folderUids.Add(folder.FolderUid);
-            }
-
-            foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
-            {
-                if (_vault.TryGetFolder(subfolderUid, out var child))
-                {
-                    CollectFolderUids(child, folderUids);
-                }
-            }
         }
 
         private sealed class ResourceConfigureSummary

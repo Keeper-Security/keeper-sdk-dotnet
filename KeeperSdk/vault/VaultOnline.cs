@@ -192,7 +192,9 @@ namespace KeeperSecurity.Vault
         {
             try
             {
-                var recordUpdated = await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+                // Route through UpdateRecordAsync so NSF typed records use the NSF v3 update path
+                // and classic records keep PutRecord + out-of-sync retry behavior.
+                var recordUpdated = await UpdateRecordAsync(record, skipExtra).ConfigureAwait(false);
                 return new TryUpdateRecordResult(true, recordUpdated, null);
             }
             catch (Exception e)
@@ -209,6 +211,30 @@ namespace KeeperSecurity.Vault
 
         private async Task<KeeperRecord> UpdateRecordAsync(KeeperRecord record, bool skipExtra)
         {
+            if (record is TypedRecord typed
+                && !string.IsNullOrEmpty(typed.Uid)
+                && TryGetKeeperNSFRecord(typed.Uid, out _))
+            {
+                try
+                {
+                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                    return typed;
+                }
+                catch (KeeperApiException e) when (IsRecordOutOfSync(e))
+                {
+                    var refreshed = await this.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
+                    if (refreshed == null || string.IsNullOrEmpty(refreshed.RecordUid))
+                    {
+                        throw;
+                    }
+
+                    // Refresh updates revision/key; store so the typed NSF updater uses latest revision.
+                    KeeperNSFRecords[refreshed.RecordUid] = refreshed;
+                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                    return typed;
+                }
+            }
+
             try
             {
                 return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
