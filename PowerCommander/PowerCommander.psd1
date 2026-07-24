@@ -182,7 +182,6 @@
         'pam-rotation-list', 'pam-rot-list', 'pam-rotation-info', 'pam-rot-info',
         'pam-rotation-edit', 'pam-rot-edit', 'pam-rotation-new', 'pam-rot-new',
         'pam-rotation-script-list', 'pam-rot-script-list', 'pam-rotation-script-add', 'pam-rot-script-add',
-        'pam-rotation-script-new', 'pam-rot-script-new',
         'pam-rotation-script-edit', 'pam-rot-script-edit', 'pam-rotation-script-delete', 'pam-rot-script-delete')
 
     # List of all modules packaged with this module

@@ -223,7 +223,7 @@ function script:getPamRotationInfoModel {
     }
     elseif ($null -ne $pwdComplexityDetail) {
         $complexityDetailOut = [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail)
-        $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityDisplay($pwdComplexityDetail)
+        $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityInfoDisplay($pwdComplexityDetail)
     }
 
     $hasComplexity = ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0)
@@ -444,6 +444,32 @@ function script:resolvePamRotationCredentialUids {
     return [string[]]$refs.ToArray()
 }
 
+function script:normalizePamRotationScriptLookup {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [string] $Script
+    )
+
+    $trimmed = $Script.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+        return @()
+    }
+
+    $candidates = New-Object 'System.Collections.Generic.List[string]'
+    [void]$candidates.Add($trimmed)
+
+    try {
+        $fileName = [System.IO.Path]::GetFileName($trimmed)
+        if (-not [string]::IsNullOrWhiteSpace($fileName) -and $fileName -ne $trimmed) {
+            [void]$candidates.Add($fileName)
+        }
+    }
+    catch {
+    }
+
+    return , $candidates.ToArray()
+}
+
 function script:findPamRotationScriptValue {
     Param (
         [Parameter(Mandatory = $true)]
@@ -459,32 +485,39 @@ function script:findPamRotationScriptValue {
         return $null, $null
     }
 
-    foreach ($scriptValue in $scriptField.Values) {
-        if ($null -ne $scriptValue -and $scriptValue.FileRef -eq $ScriptName) {
-            return $scriptValue, $scriptField
+    $lookups = @(normalizePamRotationScriptLookup -Script $ScriptName)
+    foreach ($lookup in $lookups) {
+        foreach ($scriptValue in $scriptField.Values) {
+            if ($null -ne $scriptValue -and $scriptValue.FileRef -eq $lookup) {
+                return $scriptValue, $scriptField
+            }
         }
     }
 
-    $scriptNameFolded = $ScriptName.ToLowerInvariant()
-    foreach ($scriptValue in $scriptField.Values) {
-        if ([string]::IsNullOrEmpty($scriptValue.FileRef)) {
-            continue
-        }
+    foreach ($lookup in $lookups) {
+        $lookupFolded = $lookup.ToLowerInvariant()
+        foreach ($scriptValue in $scriptField.Values) {
+            if ([string]::IsNullOrEmpty($scriptValue.FileRef)) {
+                continue
+            }
 
-        $keeperRecord = $null
-        if (-not $Vault.TryGetKeeperRecord($scriptValue.FileRef, [ref]$keeperRecord)) {
-            continue
-        }
+            $keeperRecord = $null
+            if (-not $Vault.TryGetKeeperRecord($scriptValue.FileRef, [ref]$keeperRecord)) {
+                continue
+            }
 
-        $fileRecord = $keeperRecord -as [KeeperSecurity.Vault.FileRecord]
-        if (-not $fileRecord) {
-            continue
-        }
+            $fileRecord = $keeperRecord -as [KeeperSecurity.Vault.FileRecord]
+            if (-not $fileRecord) {
+                continue
+            }
 
-        if ([string]::Equals($fileRecord.Uid, $ScriptName, [System.StringComparison]::OrdinalIgnoreCase) `
-            -or [string]::Equals($fileRecord.Title, $ScriptName, [System.StringComparison]::OrdinalIgnoreCase) `
-            -or [string]::Equals($fileRecord.Title, $scriptNameFolded, [System.StringComparison]::OrdinalIgnoreCase)) {
-            return $scriptValue, $scriptField
+            if ([string]::Equals($fileRecord.Uid, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
+                -or [string]::Equals($fileRecord.Title, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
+                -or [string]::Equals($fileRecord.Title, $lookupFolded, [System.StringComparison]::OrdinalIgnoreCase) `
+                -or [string]::Equals($fileRecord.Name, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
+                -or [string]::Equals($fileRecord.Name, $lookupFolded, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $scriptValue, $scriptField
+            }
         }
     }
 
@@ -1239,7 +1272,7 @@ function Set-KeeperPamRotationScript {
         return
     }
     if (-not $scriptValue) {
-        Write-Output "Record '$($resolved.Title)' does not have script '$Script'."
+        Write-Output "Record '$($resolved.Title)' does not have script '$Script'. Use Script UID or name from Get-KeeperPamRotationScript (file path basename is also accepted)."
         return
     }
 
@@ -1377,8 +1410,6 @@ New-Alias -Name pam-rotation-script-list -Value Get-KeeperPamRotationScript -Err
 New-Alias -Name pam-rot-script-list -Value Get-KeeperPamRotationScript -ErrorAction SilentlyContinue
 New-Alias -Name pam-rotation-script-add -Value Add-KeeperPamRotationScript -ErrorAction SilentlyContinue
 New-Alias -Name pam-rot-script-add -Value Add-KeeperPamRotationScript -ErrorAction SilentlyContinue
-New-Alias -Name pam-rotation-script-new -Value Add-KeeperPamRotationScript -ErrorAction SilentlyContinue
-New-Alias -Name pam-rot-script-new -Value Add-KeeperPamRotationScript -ErrorAction SilentlyContinue
 New-Alias -Name pam-rotation-script-edit -Value Set-KeeperPamRotationScript -ErrorAction SilentlyContinue
 New-Alias -Name pam-rot-script-edit -Value Set-KeeperPamRotationScript -ErrorAction SilentlyContinue
 New-Alias -Name pam-rotation-script-delete -Value Remove-KeeperPamRotationScript -ErrorAction SilentlyContinue

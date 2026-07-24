@@ -623,6 +623,20 @@ namespace KeeperSecurity.Plugins.PAM
       return $"{rules.Length},{rules.Upper},{rules.Lower},{rules.Digit},{rules.Special},{chars}";
     }
 
+    /// <summary>
+    /// Human-readable complexity for rotation info output.
+    /// </summary>
+    public static string FormatPasswordComplexityInfoDisplay(PasswordGenerationOptions rules)
+    {
+      if (rules == null)
+      {
+        return "";
+      }
+
+      var chars = rules.SpecialCharacters ?? DefaultSpecialChars;
+      return $"Length: {rules.Length}; Lowercase: {rules.Lower}; Uppercase: {rules.Upper}; Digits: {rules.Digit}; Symbols: {rules.Special}; Symbols Chars: {chars}";
+    }
+
     public static Dictionary<string, object> PasswordComplexityToDetail(PasswordGenerationOptions rules)
     {
       if (rules == null)

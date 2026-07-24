@@ -417,18 +417,8 @@ namespace KeeperSecurity.Plugins.PAM
                 }
                 else if (options.ScheduleConfig)
                 {
-                    recordSchedule = GetScheduleFromConfig(pamConfig);
-                    if (recordSchedule == null)
-                    {
-                        skipped.Add(new object[]
-                        {
-                            record.Uid,
-                            record.Title,
-                            "No defaultRotationSchedule on PAM Configuration",
-                            "Set a default rotation schedule on the PAM config, or use --schedule-json/--schedule-cron",
-                        });
-                        return false;
-                    }
+                    // Missing/empty defaultRotationSchedule => On-Demand.
+                    recordSchedule = GetScheduleFromConfig(pamConfig) ?? new List<object>();
                 }
             }
 
@@ -637,11 +627,16 @@ namespace KeeperSecurity.Plugins.PAM
             }
 
             // Same as Python: get_typed_field('schedule', 'defaultRotationSchedule')
-            var scheduleField = EnumerateTypedFields(config)
+            var scheduleFields = EnumerateTypedFields(config)
                 .OfType<TypedField<FieldSchedule>>()
-                .FirstOrDefault(x =>
-                    string.Equals(x.FieldName, "schedule", StringComparison.Ordinal)
-                    && string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.Ordinal));
+                .Where(x => string.Equals(x.FieldName, "schedule", StringComparison.Ordinal))
+                .ToList();
+
+            var scheduleField = scheduleFields.FirstOrDefault(x =>
+                    string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.Ordinal))
+                ?? scheduleFields.FirstOrDefault(x =>
+                    string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.OrdinalIgnoreCase))
+                ?? scheduleFields.FirstOrDefault();
 
             var value = scheduleField?.Values?.FirstOrDefault();
             if (value == null)
