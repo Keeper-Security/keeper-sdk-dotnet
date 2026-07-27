@@ -68,10 +68,9 @@ namespace Commander.PAM
         return;
       }
 
-      var configId = options.ListConfig ?? options.Uid;
-      if (!string.IsNullOrWhiteSpace(configId))
+      if (!string.IsNullOrWhiteSpace(options.Uid))
       {
-        await ListSingleConfigurationAsync(vault, options, configId);
+        await ListSingleConfigurationAsync(vault, options, options.Uid);
         return;
       }
 
@@ -580,11 +579,8 @@ namespace Commander.PAM
     [Value(0, Required = false, HelpText = "Command: list, new, edit, remove")]
     public string Command { get; set; }
 
-    [Value(1, Required = false, HelpText = "Configuration UID or name (edit/remove)")]
+    [Value(1, Required = false, HelpText = "Configuration UID or name (list/edit/remove)")]
     public string Uid { get; set; }
-
-    [Option("config", Required = false, HelpText = "Specific PAM Configuration UID (list)")]
-    public string ListConfig { get; set; }
 
     [Option("environment", Required = false, HelpText = "PAM configuration type: local, aws, azure, gcp, domain, oci, github")]
     public string Environment { get; set; }
@@ -598,7 +594,7 @@ namespace Commander.PAM
     [Option("shared-folder", Required = false, HelpText = "Shared folder path or UID")]
     public string SharedFolder { get; set; }
 
-    [Option("schedule", Required = false, HelpText = "Default schedule CRON expression (e.g. 0 0 2 * * ?)")]
+    [Option("schedule", Required = false, HelpText = "Default schedule CRON (e.g. 0 0 2 * * ?) or On-Demand")]
     public string DefaultSchedule { get; set; }
 
     [Option("port-mapping", Required = false, HelpText = "Port mapping entry")]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
@@ -146,14 +145,14 @@ namespace KeeperSecurity.Plugins.PAM
     public static async Task SetConfigurationControllerAsync(
       IAuthentication auth,
       string configurationUid,
-      string controllerUid)
+      string gatewayUid)
     {
       if (auth == null)
       {
         throw new ArgumentNullException(nameof(auth));
       }
 
-      if (string.IsNullOrEmpty(configurationUid) || string.IsNullOrEmpty(controllerUid))
+      if (string.IsNullOrEmpty(configurationUid) || string.IsNullOrEmpty(gatewayUid))
       {
         return;
       }
@@ -161,7 +160,7 @@ namespace KeeperSecurity.Plugins.PAM
       var request = new PamProto.PAMConfigurationController
       {
         ConfigurationUid = ByteString.CopyFrom(configurationUid.Base64UrlDecode()),
-        ControllerUid = ByteString.CopyFrom(controllerUid.Base64UrlDecode()),
+        ControllerUid = ByteString.CopyFrom(gatewayUid.Base64UrlDecode()),
       };
 
       await auth.ExecuteAuthRest(SetConfigurationControllerEndpoint, request);
@@ -299,115 +298,6 @@ namespace KeeperSecurity.Plugins.PAM
         PamTriStateSetting.Default => null,
         _ => null,
       };
-    }
-  }
-
-  public static class PamCronUtils
-  {
-    private static readonly Regex CronFieldPattern = new(
-      @"^(\*|\d+L?|L[W]?|\d+-\d+|\*/\d+|\d+(,\d+)*|\d+-\d+/\d+)$",
-      RegexOptions.Compiled);
-
-    public static (bool IsValid, string Message) ValidateCronExpression(string expression, bool forRotation = false)
-    {
-      if (string.IsNullOrWhiteSpace(expression))
-      {
-        return (false, "CRON: Expression is required");
-      }
-
-      var parts = expression.Trim().Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
-      if (forRotation)
-      {
-        if (parts.Length != 6)
-        {
-          return (false,
-            $"CRON: Rotation schedules require all 6 parts incl. seconds - ex. Daily at 04:00:00 cron: 0 0 4 * * ? got {parts.Length} parts");
-        }
-
-        parts = (string[])parts.Clone();
-        parts[3] = parts[3] == "?" ? "*" : parts[3];
-        parts[5] = parts[5] == "?" ? "*" : parts[5];
-      }
-
-      if (parts.Length != 5 && parts.Length != 6)
-      {
-        return (false, $"CRON: Expected 5 or 6 fields, got {parts.Length}");
-      }
-
-      string minute;
-      string hour;
-      string dom;
-      string month;
-      string dow;
-      if (parts.Length == 6)
-      {
-        if (!ValidateCronField(parts[0], 0, 59))
-        {
-          return (false, "CRON: Invalid seconds field");
-        }
-
-        minute = parts[1];
-        hour = parts[2];
-        dom = parts[3];
-        month = parts[4];
-        dow = parts[5];
-      }
-      else
-      {
-        minute = parts[0];
-        hour = parts[1];
-        dom = parts[2];
-        month = parts[3];
-        dow = parts[4];
-      }
-
-      (string field, int min, int max, string name)[] validators =
-      {
-        (minute, 0, 59, "minute"),
-        (hour, 0, 23, "hour"),
-        (dom, 1, 31, "day of month"),
-        (month, 1, 12, "month"),
-        (dow, 0, 7, "day of week"),
-      };
-
-      foreach (var (field, min, max, name) in validators)
-      {
-        if (!ValidateCronField(field, min, max))
-        {
-          return (false, $"CRON: Invalid {name} field");
-        }
-      }
-
-      return (true, "Valid cron expression");
-    }
-
-    private static bool ValidateCronField(string field, int minVal, int maxVal)
-    {
-      if (!CronFieldPattern.IsMatch(field))
-      {
-        return false;
-      }
-
-      foreach (var part in Regex.Split(field, @"[,\-/]"))
-      {
-        if (part == "*" || part.Length == 0 || part == "L" || part == "LW")
-        {
-          continue;
-        }
-
-        var stripped = part.TrimEnd('L', 'W');
-        if (stripped.Length == 0 || !int.TryParse(stripped, out var number))
-        {
-          return false;
-        }
-
-        if (number < minVal || number > maxVal)
-        {
-          return false;
-        }
-      }
-
-      return true;
     }
   }
 }

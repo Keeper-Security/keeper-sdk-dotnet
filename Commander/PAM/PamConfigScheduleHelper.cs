@@ -16,29 +16,38 @@ namespace Commander.PAM
 
     public static void ApplyDefaultRotationSchedule(TypedRecord record, PamConfigOptions options, bool isEdit)
     {
-      var cron = options.DefaultSchedule?.Trim();
+      // Omitted --schedule: leave existing value on edit; default On-Demand on create.
+      if (options.DefaultSchedule == null)
+      {
+        if (!isEdit)
+        {
+          SetOnDemandSchedule(record);
+        }
 
-      if (isEdit && string.IsNullOrWhiteSpace(cron))
+        return;
+      }
+
+      var cron = options.DefaultSchedule.Trim();
+      if (string.IsNullOrEmpty(cron) || IsOnDemandScheduleValue(cron))
       {
         SetOnDemandSchedule(record);
         return;
       }
 
-      if (!string.IsNullOrWhiteSpace(cron))
+      cron = NormalizeRotationCronForStorage(cron);
+      var (isValid, message) = RotationUtils.ValidateCronExpression(cron, forRotation: true);
+      if (!isValid)
       {
-        cron = NormalizeRotationCronForStorage(cron);
-        var (isValid, message) = PamCronUtils.ValidateCronExpression(cron, forRotation: true);
-        if (!isValid)
-        {
-          throw new InvalidOperationException($"Invalid CRON \"{cron}\" Error: {message}");
-        }
+        throw new InvalidOperationException($"Invalid CRON \"{cron}\" Error: {message}");
+      }
 
-        SetCronSchedule(record, cron);
-      }
-      else
-      {
-        SetOnDemandSchedule(record);
-      }
+      SetCronSchedule(record, cron);
+    }
+
+    private static bool IsOnDemandScheduleValue(string value)
+    {
+      return string.Equals(value, "On-Demand", StringComparison.OrdinalIgnoreCase)
+             || string.Equals(value, "ON_DEMAND", StringComparison.OrdinalIgnoreCase);
     }
 
     public static void EnsureDefaultRotationScheduleIfEmpty(TypedRecord record)
