@@ -171,6 +171,30 @@ function script:resolvePamRotationGatewayName {
     return '-'
 }
 
+function script:convertPamRotationComplexityDetailToHashtable {
+    Param (
+        [object] $Detail
+    )
+
+    if ($null -eq $Detail) {
+        return $null
+    }
+
+    if ($Detail -is [string]) {
+        return $Detail
+    }
+
+    if ($Detail -isnot [System.Collections.IDictionary]) {
+        return $Detail
+    }
+
+    $ht = [ordered]@{}
+    foreach ($key in $Detail.Keys) {
+        $ht[[string]$key] = $Detail[$key]
+    }
+    return $ht
+}
+
 function script:getPamRotationInfoModel {
     Param (
         [Parameter(Mandatory = $true)]
@@ -178,7 +202,8 @@ function script:getPamRotationInfoModel {
         [Parameter(Mandatory = $true)]
         [KeeperSecurity.Vault.TypedRecord] $Record,
         [object] $Schedule,
-        [object] $Plugin = $null
+        [object] $Plugin = $null,
+        [KeeperSecurity.Vault.VaultOnline] $Vault = $null
     )
 
     $statusName = [string]$RotationInfo.Status
@@ -222,28 +247,42 @@ function script:getPamRotationInfoModel {
         $complexityDisplay = '[decrypt failed]'
     }
     elseif ($null -ne $pwdComplexityDetail) {
-        $complexityDetailOut = [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail)
+        $complexityDetailOut = convertPamRotationComplexityDetailToHashtable (
+            [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail))
         $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityInfoDisplay($pwdComplexityDetail)
     }
 
     $hasComplexity = ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0)
 
+    $scriptName = $null
+    if (-not [string]::IsNullOrWhiteSpace($RotationInfo.ScriptName)) {
+        $scriptName = [string]$RotationInfo.ScriptName
+    }
+
+    $useDefaultSchedule = $false
+    if ($null -ne $Vault -and -not [string]::IsNullOrWhiteSpace($configUid)) {
+        $useDefaultSchedule = [KeeperSecurity.Plugins.PAM.RotationUtils]::UsesDefaultRotationSchedule(
+            $Vault, $Record.Uid, $configUid)
+    }
+
     return [PSCustomObject]@{
-        StatusName           = $statusName
-        IsReady              = $isReady
-        ConfigUid            = $configUid
-        NodeId               = $RotationInfo.NodeId
-        GatewayName          = $gatewayName
-        GatewayUid           = $gatewayUid
-        AdminResourceUid     = $adminResourceUid
-        HasComplexity        = $hasComplexity
-        PasswordComplexity   = if ($hasComplexity) { $RotationInfo.PwdComplexity } else { $null }
-        ComplexityDetail     = $complexityDetailOut
-        ComplexityDisplay    = $complexityDisplay
-        ScheduleType         = $scheduleType
-        ScheduleData         = $scheduleData
-        ScheduleText         = $scheduleText
-        Disabled             = $RotationInfo.Disabled
+        StatusName                 = $statusName
+        IsReady                    = $isReady
+        ConfigUid                  = $configUid
+        NodeId                     = $RotationInfo.NodeId
+        GatewayName                = $gatewayName
+        GatewayUid                 = $gatewayUid
+        AdminResourceUid           = $adminResourceUid
+        HasComplexity              = $hasComplexity
+        PasswordComplexity         = if ($hasComplexity) { $RotationInfo.PwdComplexity } else { $null }
+        ComplexityDetail           = $complexityDetailOut
+        ComplexityDisplay          = $complexityDisplay
+        ScheduleType               = $scheduleType
+        ScheduleData               = $scheduleData
+        ScheduleText               = $scheduleText
+        UseDefaultRotationSchedule = $useDefaultSchedule
+        Disabled                   = $RotationInfo.Disabled
+        ScriptName                 = $scriptName
     }
 }
 
@@ -295,22 +334,23 @@ function script:writePamRotationInfoJson {
     )
 
     $result = [ordered]@{
-        status                     = $Model.StatusName
-        ready_to_rotate            = $Model.IsReady
-        pam_config_uid             = $Model.ConfigUid
-        node_id                    = $Model.NodeId
-        gateway_name               = $Model.GatewayName
-        gateway_uid                = $Model.GatewayUid
-        admin_resource_uid         = $Model.AdminResourceUid
-        password_complexity        = $Model.PasswordComplexity
-        password_complexity_detail = $Model.ComplexityDetail
-        schedule_type              = $Model.ScheduleType
-        schedule_data              = $Model.ScheduleData
-        disabled                   = $Model.Disabled
+        status                         = $Model.StatusName
+        ready_to_rotate                = $Model.IsReady
+        pam_config_uid                 = $Model.ConfigUid
+        node_id                        = $Model.NodeId
+        gateway_name                   = $Model.GatewayName
+        gateway_uid                    = $Model.GatewayUid
+        admin_resource_uid             = $Model.AdminResourceUid
+        password_complexity            = $Model.PasswordComplexity
+        password_complexity_detail     = $Model.ComplexityDetail
+        schedule_type                  = $Model.ScheduleType
+        schedule_data                  = $Model.ScheduleData
+        use_default_rotation_schedule  = [bool]$Model.UseDefaultRotationSchedule
+        disabled                       = $Model.Disabled
+        script_name                    = $Model.ScriptName
     }
 
-    $json = [KeeperSecurity.Utils.JsonUtils]::DumpJson($result, $true)
-    Write-Output ([System.Text.Encoding]::UTF8.GetString($json))
+    Write-Output ($result | ConvertTo-Json -Depth 8)
 }
 
 function script:writePamRotationInfoCsv {
@@ -320,18 +360,20 @@ function script:writePamRotationInfoCsv {
     )
 
     $row = [PSCustomObject]@{
-        status                     = $Model.StatusName
-        ready_to_rotate            = $Model.IsReady
-        pam_config_uid             = $Model.ConfigUid
-        node_id                    = $Model.NodeId
-        gateway_name               = $Model.GatewayName
-        gateway_uid                = $Model.GatewayUid
-        admin_resource_uid         = $Model.AdminResourceUid
-        password_complexity        = $Model.PasswordComplexity
-        password_complexity_detail = $Model.ComplexityDetail
-        schedule_type              = $Model.ScheduleType
-        schedule_data              = $Model.ScheduleData
-        disabled                   = $Model.Disabled
+        status                        = $Model.StatusName
+        ready_to_rotate               = $Model.IsReady
+        pam_config_uid                = $Model.ConfigUid
+        node_id                       = $Model.NodeId
+        gateway_name                  = $Model.GatewayName
+        gateway_uid                   = $Model.GatewayUid
+        admin_resource_uid            = $Model.AdminResourceUid
+        password_complexity           = $Model.PasswordComplexity
+        password_complexity_detail    = $Model.ComplexityDetail
+        schedule_type                 = $Model.ScheduleType
+        schedule_data                 = $Model.ScheduleData
+        use_default_rotation_schedule = $Model.UseDefaultRotationSchedule
+        disabled                      = $Model.Disabled
+        script_name                   = $Model.ScriptName
     }
 
     $row | ConvertTo-Csv -NoTypeInformation
@@ -441,33 +483,39 @@ function script:resolvePamRotationCredentialUids {
         }
     }
 
-    return [string[]]$refs.ToArray()
+    return (toPamStringArray -Collection $refs)
 }
 
-function script:normalizePamRotationScriptLookup {
-    Param (
-        [Parameter(Mandatory = $true)]
-        [string] $Script
-    )
+function script:toPamStringArray {
+    Param ($Collection)
 
-    $trimmed = $Script.Trim()
-    if ([string]::IsNullOrWhiteSpace($trimmed)) {
-        return @()
+    # PS 5.1 / .NET Framework: HashSet has no instance ToArray().
+    if ($null -eq $Collection) {
+        return [string[]]@()
     }
 
-    $candidates = New-Object 'System.Collections.Generic.List[string]'
-    [void]$candidates.Add($trimmed)
+    return [string[]]@($Collection)
+}
 
+function script:getPamScriptLeafName {
+    Param ([string] $Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return ''
+    }
+
+    $trimmed = $Value.Trim().Trim('"').Trim("'")
+    $normalized = $trimmed.Replace('/', [System.IO.Path]::DirectorySeparatorChar).Replace('\', [System.IO.Path]::DirectorySeparatorChar)
     try {
-        $fileName = [System.IO.Path]::GetFileName($trimmed)
-        if (-not [string]::IsNullOrWhiteSpace($fileName) -and $fileName -ne $trimmed) {
-            [void]$candidates.Add($fileName)
+        $leaf = [System.IO.Path]::GetFileName($normalized)
+        if (-not [string]::IsNullOrWhiteSpace($leaf)) {
+            return $leaf
         }
     }
     catch {
     }
 
-    return , $candidates.ToArray()
+    return $trimmed
 }
 
 function script:findPamRotationScriptValue {
@@ -485,38 +533,43 @@ function script:findPamRotationScriptValue {
         return $null, $null
     }
 
-    $lookups = @(normalizePamRotationScriptLookup -Script $ScriptName)
-    foreach ($lookup in $lookups) {
-        foreach ($scriptValue in $scriptField.Values) {
-            if ($null -ne $scriptValue -and $scriptValue.FileRef -eq $lookup) {
+    $input = $ScriptName.Trim().Trim('"').Trim("'")
+    $leaf = getPamScriptLeafName -Value $input
+    $needles = New-Object 'System.Collections.Generic.List[string]'
+    [void]$needles.Add($input)
+    if (-not [string]::IsNullOrWhiteSpace($leaf) -and -not [string]::Equals($leaf, $input, [System.StringComparison]::OrdinalIgnoreCase)) {
+        [void]$needles.Add($leaf)
+    }
+
+    foreach ($scriptValue in $scriptField.Values) {
+        if ($null -eq $scriptValue -or [string]::IsNullOrEmpty($scriptValue.FileRef)) {
+            continue
+        }
+
+        foreach ($needle in $needles) {
+            if ([string]::Equals($scriptValue.FileRef, $needle, [System.StringComparison]::OrdinalIgnoreCase)) {
                 return $scriptValue, $scriptField
             }
         }
-    }
 
-    foreach ($lookup in $lookups) {
-        $lookupFolded = $lookup.ToLowerInvariant()
-        foreach ($scriptValue in $scriptField.Values) {
-            if ([string]::IsNullOrEmpty($scriptValue.FileRef)) {
-                continue
-            }
+        $keeperRecord = $null
+        if (-not $Vault.TryGetKeeperRecord($scriptValue.FileRef, [ref]$keeperRecord) -or $null -eq $keeperRecord) {
+            continue
+        }
 
-            $keeperRecord = $null
-            if (-not $Vault.TryGetKeeperRecord($scriptValue.FileRef, [ref]$keeperRecord)) {
-                continue
-            }
+        $names = New-Object 'System.Collections.Generic.List[string]'
+        if (-not [string]::IsNullOrEmpty($keeperRecord.Uid)) { [void]$names.Add($keeperRecord.Uid) }
+        if (-not [string]::IsNullOrEmpty($keeperRecord.Title)) { [void]$names.Add($keeperRecord.Title) }
+        $fileRecord = $keeperRecord -as [KeeperSecurity.Vault.FileRecord]
+        if ($fileRecord -and -not [string]::IsNullOrEmpty($fileRecord.Name)) {
+            [void]$names.Add($fileRecord.Name)
+        }
 
-            $fileRecord = $keeperRecord -as [KeeperSecurity.Vault.FileRecord]
-            if (-not $fileRecord) {
-                continue
-            }
-
-            if ([string]::Equals($fileRecord.Uid, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
-                -or [string]::Equals($fileRecord.Title, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
-                -or [string]::Equals($fileRecord.Title, $lookupFolded, [System.StringComparison]::OrdinalIgnoreCase) `
-                -or [string]::Equals($fileRecord.Name, $lookup, [System.StringComparison]::OrdinalIgnoreCase) `
-                -or [string]::Equals($fileRecord.Name, $lookupFolded, [System.StringComparison]::OrdinalIgnoreCase)) {
-                return $scriptValue, $scriptField
+        foreach ($name in $names) {
+            foreach ($needle in $needles) {
+                if ([string]::Equals($name, $needle, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    return $scriptValue, $scriptField
+                }
             }
         }
     }
@@ -804,7 +857,7 @@ function Get-KeeperPamRotationInfo {
         }
     }
 
-    $model = getPamRotationInfoModel -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin
+    $model = getPamRotationInfoModel -RotationInfo $rotationInfo -Record $resolved -Schedule $schedule -Plugin $plugin -Vault $vault
     switch ($Format) {
         'json' { writePamRotationInfoJson -Model $model }
         'csv' { writePamRotationInfoCsv -Model $model }
@@ -997,9 +1050,7 @@ function Set-KeeperPamRotation {
     }
 
     $service = New-Object KeeperSecurity.Plugins.PAM.PamRotationEditService($auth, $vault)
-    # Do not assign ConfirmAsync to a PowerShell scriptblock: ExecuteAsync continues on a
-    # thread-pool thread with no DefaultRunspace (Windows PS 5.1), which throws
-    # "There is no Runspace available...". SDK AskConfirmAsync uses Console.ReadLine instead.
+    # Console.ReadLine confirm: PS scriptblock ConfirmAsync fails on PS 5.1 (no runspace on thread-pool).
 
     try {
         $service.ExecuteAsync($options).GetAwaiter().GetResult() | Out-Null
@@ -1303,7 +1354,7 @@ function Set-KeeperPamRotationScript {
     }
 
     if ($modified) {
-        $scriptValue.RecordRef = [string[]]$refs.ToArray()
+        $scriptValue.RecordRef = toPamStringArray -Collection $refs
     }
 
     $runCommand = getPamRotationRunCommand -RunCommand $RunCommand -ScriptCommand $ScriptCommand

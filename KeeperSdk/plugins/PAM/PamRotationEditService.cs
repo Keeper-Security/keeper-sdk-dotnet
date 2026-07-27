@@ -621,78 +621,7 @@ namespace KeeperSecurity.Plugins.PAM
 
         private static List<object> GetScheduleFromConfig(TypedRecord config)
         {
-            if (config == null)
-            {
-                return null;
-            }
-
-            // Same as Python: get_typed_field('schedule', 'defaultRotationSchedule')
-            var scheduleFields = EnumerateTypedFields(config)
-                .OfType<TypedField<FieldSchedule>>()
-                .Where(x => string.Equals(x.FieldName, "schedule", StringComparison.Ordinal))
-                .ToList();
-
-            var scheduleField = scheduleFields.FirstOrDefault(x =>
-                    string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.Ordinal))
-                ?? scheduleFields.FirstOrDefault(x =>
-                    string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.OrdinalIgnoreCase))
-                ?? scheduleFields.FirstOrDefault();
-
-            var value = scheduleField?.Values?.FirstOrDefault();
-            if (value == null)
-            {
-                return null;
-            }
-
-            // On-Demand / empty default => no scheduled entries
-            if (string.IsNullOrWhiteSpace(value.Type)
-                || string.Equals(value.Type, "On-Demand", StringComparison.OrdinalIgnoreCase))
-            {
-                return new List<object>();
-            }
-
-            var dict = new Dictionary<string, object>
-            {
-                ["type"] = value.Type,
-            };
-
-            if (!string.IsNullOrEmpty(value.Time))
-            {
-                dict["time"] = value.Time;
-                dict["utcTime"] = value.Time;
-            }
-
-            if (!string.IsNullOrEmpty(value.Weekday))
-            {
-                dict["weekday"] = value.Weekday;
-            }
-
-            if (!string.IsNullOrEmpty(value.Month))
-            {
-                dict["month"] = value.Month;
-            }
-
-            if (!string.IsNullOrEmpty(value.MonthDay))
-            {
-                dict["monthDay"] = value.MonthDay;
-            }
-
-            if (!string.IsNullOrEmpty(value.IntervalCount))
-            {
-                dict["intervalCount"] = value.IntervalCount;
-            }
-
-            if (!string.IsNullOrEmpty(value.Cron))
-            {
-                dict["cron"] = value.Cron;
-            }
-
-            if (!string.IsNullOrEmpty(value.TimeZone))
-            {
-                dict["tz"] = value.TimeZone;
-            }
-
-            return new List<object> { dict };
+            return RotationUtils.GetDefaultScheduleFromConfig(config);
         }
 
         private static IEnumerable<ITypedField> EnumerateTypedFields(TypedRecord config)

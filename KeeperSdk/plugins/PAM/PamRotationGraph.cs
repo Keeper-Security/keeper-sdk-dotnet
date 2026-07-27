@@ -682,7 +682,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// High-level rotation edit graph operations (Python Commander: config_resource / config_user).
+  /// High-level rotation edit graph operations.
   /// </summary>
   public static class PamRotationGraphEdit
   {
