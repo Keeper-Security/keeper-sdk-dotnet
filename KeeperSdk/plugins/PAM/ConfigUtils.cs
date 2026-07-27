@@ -142,7 +142,7 @@ namespace KeeperSecurity.Plugins.PAM
       vault.CacheKeeperRecord(record);
     }
 
-    public static async Task SetConfigurationControllerAsync(
+    public static async Task SetConfigurationGatewayAsync(
       IAuthentication auth,
       string configurationUid,
       string gatewayUid)

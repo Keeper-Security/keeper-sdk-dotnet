@@ -264,7 +264,7 @@ namespace Commander.PAM
 
       if (!string.IsNullOrEmpty(facade.ControllerUid))
       {
-        await ConfigUtils.SetConfigurationControllerAsync(Context.Enterprise.Auth, record.Uid, facade.ControllerUid);
+        await ConfigUtils.SetConfigurationGatewayAsync(Context.Enterprise.Auth, record.Uid, facade.ControllerUid);
       }
 
       await vault.SyncDown();
@@ -333,7 +333,7 @@ namespace Commander.PAM
       if (!string.Equals(afterEdit.ControllerUid, origGatewayUid, StringComparison.Ordinal)
           && !string.IsNullOrEmpty(afterEdit.ControllerUid))
       {
-        await ConfigUtils.SetConfigurationControllerAsync(
+        await ConfigUtils.SetConfigurationGatewayAsync(
           Context.Enterprise.Auth, configuration.Uid, afterEdit.ControllerUid);
       }
 
