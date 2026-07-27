@@ -358,8 +358,11 @@ namespace KeeperSecurity.Vault
             IAuthContext context)
         {
             var storage = vault.Storage;
+            var teams = vault.Teams
+                .Where(t => t?.TeamKey != null && t.TeamKey.Length > 0)
+                .ToDictionary(t => t.TeamUid, t => t, StringComparer.Ordinal);
 
-            var decryptedFolderKeys = DecryptFolderKeys(storage, context);
+            var decryptedFolderKeys = DecryptFolderKeys(storage, context, teams);
 
             var decryptedRecordKeys = DecryptRecordKeys(storage, decryptedFolderKeys, context);
 
@@ -389,13 +392,13 @@ namespace KeeperSecurity.Vault
 
         private static Dictionary<string, byte[]> DecryptFolderKeys(
             IKeeperStorage storage,
-            IAuthContext context)
+            IAuthContext context,
+            IReadOnlyDictionary<string, Team> teams)
         {
+            teams ??= new Dictionary<string, Team>();
             var decryptedKeys = new Dictionary<string, byte[]>();
-            var allKeys = storage.KdFolderKeys.GetAllLinks().ToList();
-
             var keysByFolder = new Dictionary<string, List<IStorageKdFolderKey>>();
-            foreach (var fk in allKeys)
+            foreach (var fk in storage.KdFolderKeys.GetAllLinks())
             {
                 if (!keysByFolder.TryGetValue(fk.FolderUid, out var list))
                 {
@@ -405,10 +408,18 @@ namespace KeeperSecurity.Vault
                 list.Add(fk);
             }
 
+            var folderRows = storage.KdFolders.GetAll().ToList();
+            var candidates = new HashSet<string>(keysByFolder.Keys, StringComparer.Ordinal);
+            foreach (var row in folderRows)
+            {
+                candidates.Add(row.FolderUid);
+            }
+
             bool progress;
             do
             {
                 progress = false;
+
                 foreach (var kvp in keysByFolder)
                 {
                     if (decryptedKeys.ContainsKey(kvp.Key)) continue;
@@ -423,42 +434,87 @@ namespace KeeperSecurity.Vault
                         }
                     }
                 }
-            } while (progress);
 
-            if (decryptedKeys.Count < keysByFolder.Count)
-            {
-                var undecrypted = keysByFolder.Keys.Where(k => !decryptedKeys.ContainsKey(k)).ToList();
-                foreach (var folderUid in undecrypted)
+                foreach (var row in folderRows)
                 {
-                    var folderKey = TryDecryptFromFolderAccess(folderUid, storage, context);
-                    if (folderKey != null)
+                    if (decryptedKeys.ContainsKey(row.FolderUid)) continue;
+                    var key = TryDecryptFolderEntityKey(row, context, decryptedKeys);
+                    if (key != null)
                     {
-                        decryptedKeys[folderUid] = folderKey;
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"Failed to decrypt folder key: {folderUid}");
+                        decryptedKeys[row.FolderUid] = key;
+                        progress = true;
                     }
                 }
-            }
 
-            foreach (var kdFolder in storage.KdFolders.GetAll())
-            {
-                if (decryptedKeys.ContainsKey(kdFolder.FolderUid)) continue;
-                var folderKey = TryDecryptFromFolderAccess(kdFolder.FolderUid, storage, context);
-                if (folderKey != null)
+                foreach (var folderUid in candidates)
                 {
-                    decryptedKeys[kdFolder.FolderUid] = folderKey;
+                    if (decryptedKeys.ContainsKey(folderUid)) continue;
+                    if (!FolderNeedsAccessFallback(folderUid, keysByFolder, decryptedKeys)) continue;
+
+                    var key = TryDecryptFromFolderAccess(folderUid, storage, context, teams);
+                    if (key != null)
+                    {
+                        decryptedKeys[folderUid] = key;
+                        progress = true;
+                    }
+                }
+            } while (progress);
+
+            foreach (var folderUid in candidates)
+            {
+                if (!decryptedKeys.ContainsKey(folderUid))
+                {
+                    Trace.TraceWarning($"Failed to decrypt folder key: {folderUid}");
                 }
             }
 
             return decryptedKeys;
         }
 
+        private static bool FolderNeedsAccessFallback(
+            string folderUid,
+            IReadOnlyDictionary<string, List<IStorageKdFolderKey>> keysByFolder,
+            IReadOnlyDictionary<string, byte[]> decryptedKeys)
+        {
+            if (decryptedKeys.ContainsKey(folderUid)) return false;
+
+            if (!keysByFolder.TryGetValue(folderUid, out var folderKeys) || folderKeys.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (var fk in folderKeys)
+            {
+                var encKeyType = (FolderProto.FolderKeyEncryptionType)fk.KeyType;
+                if (encKeyType == FolderProto.FolderKeyEncryptionType.EncryptedByTeamKey)
+                {
+                    return true;
+                }
+
+                if (encKeyType == FolderProto.FolderKeyEncryptionType.EncryptedByParentKey)
+                {
+                    if (string.IsNullOrEmpty(fk.ParentUid) || !decryptedKeys.ContainsKey(fk.ParentUid))
+                    {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if (encKeyType == FolderProto.FolderKeyEncryptionType.EncryptedByUserKey)
+                {
+                    // USER_KEY already tried; fall back to accesses.
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static byte[] TryDecryptFromFolderAccess(
             string folderUid,
             IKeeperStorage storage,
-            IAuthContext context)
+            IAuthContext context,
+            IReadOnlyDictionary<string, Team> teams)
         {
             foreach (var fa in storage.KdFolderAccesses.GetLinksForSubject(folderUid))
             {
@@ -468,31 +524,92 @@ namespace KeeperSecurity.Vault
                 {
                     var encKey = fa.EncryptedFolderKey.Base64UrlDecode();
                     var keyType = (FolderProto.EncryptedKeyType)fa.FolderKeyType;
+                    var accessUid = fa.AccessTypeUid;
+                    var useTeam = fa.AccessType == (int)FolderProto.AccessType.AtTeam
+                                  || (!string.IsNullOrEmpty(accessUid) && teams.ContainsKey(accessUid));
 
-                    switch (keyType)
+                    byte[] folderKey = null;
+                    if (useTeam && !string.IsNullOrEmpty(accessUid) && teams.TryGetValue(accessUid, out var team))
                     {
-                        case FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm:
-                            return CryptoUtils.DecryptAesV2(encKey, context.DataKey);
-                        case FolderProto.EncryptedKeyType.EncryptedByDataKey:
-                            return CryptoUtils.DecryptAesV1(encKey, context.DataKey);
-                        case FolderProto.EncryptedKeyType.EncryptedByPublicKey:
-                            if (context.PrivateRsaKey != null)
-                                return CryptoUtils.DecryptRsa(encKey, context.PrivateRsaKey);
-                            break;
-                        case FolderProto.EncryptedKeyType.EncryptedByPublicKeyEcc:
-                            if (context.PrivateEcKey != null)
-                                return CryptoUtils.DecryptEc(encKey, context.PrivateEcKey);
-                            break;
-                        default:
-                            var result = TryDecryptWithUserKeys(encKey, context);
-                            if (result != null) return result;
-                            break;
+                        folderKey = TryDecryptWithTypedKey(
+                            encKey,
+                            keyType,
+                            team.TeamKey,
+                            team.TeamRsaPrivateKey,
+                            team.TeamEcPrivateKey);
+                        folderKey ??= TryDecryptSymmetric(encKey, team.TeamKey);
+                        if (folderKey == null
+                            && team.TeamRsaPrivateKey != null
+                            && CryptoUtils.TryDecryptRsa(encKey, team.TeamRsaPrivateKey, out var rsaPlain))
+                        {
+                            folderKey = rsaPlain;
+                        }
+                        if (folderKey == null
+                            && team.TeamEcPrivateKey != null
+                            && CryptoUtils.TryDecryptEc(encKey, team.TeamEcPrivateKey, out var ecPlain))
+                        {
+                            folderKey = ecPlain;
+                        }
+                    }
+
+                    folderKey ??= TryDecryptWithTypedKey(
+                        encKey,
+                        keyType,
+                        context.DataKey,
+                        context.PrivateRsaKey,
+                        context.PrivateEcKey);
+
+                    folderKey ??= TryDecryptWithUserKeys(encKey, context);
+
+                    if (folderKey != null && folderKey.Length == 32)
+                    {
+                        return folderKey;
                     }
                 }
                 catch (Exception e)
                 {
                     Trace.TraceError($"KeeperNSF: Error decrypting folder access key for {folderUid}: {e.Message}");
                 }
+            }
+
+            return null;
+        }
+
+        private static byte[] TryDecryptWithTypedKey(
+            byte[] encryptedKey,
+            FolderProto.EncryptedKeyType keyType,
+            byte[] aesKey,
+            RsaPrivateKey rsaKey,
+            EcPrivateKey eccKey)
+        {
+            try
+            {
+                switch (keyType)
+                {
+                    case FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm:
+                        if (aesKey != null && CryptoUtils.TryDecryptAesV2(encryptedKey, aesKey, out var gcm))
+                            return gcm;
+                        break;
+                    case FolderProto.EncryptedKeyType.EncryptedByDataKey:
+                        if (aesKey != null)
+                        {
+                            try { return CryptoUtils.DecryptAesV1(encryptedKey, aesKey); }
+                            catch { /* fall through */ }
+                        }
+                        break;
+                    case FolderProto.EncryptedKeyType.EncryptedByPublicKey:
+                        if (rsaKey != null && CryptoUtils.TryDecryptRsa(encryptedKey, rsaKey, out var rsa))
+                            return rsa;
+                        break;
+                    case FolderProto.EncryptedKeyType.EncryptedByPublicKeyEcc:
+                        if (eccKey != null && CryptoUtils.TryDecryptEc(encryptedKey, eccKey, out var ec))
+                            return ec;
+                        break;
+                }
+            }
+            catch
+            {
+                return null;
             }
 
             return null;
@@ -525,6 +642,33 @@ namespace KeeperSecurity.Vault
             return null;
         }
 
+        private static byte[] TryDecryptFolderEntityKey(
+            IStorageKdFolder row,
+            IAuthContext context,
+            IReadOnlyDictionary<string, byte[]> decryptedKeys)
+        {
+            if (string.IsNullOrEmpty(row.FolderKey)) return null;
+
+            try
+            {
+                var encryptedKey = row.FolderKey.Base64UrlDecode();
+                var key = TryDecryptWithUserKeys(encryptedKey, context);
+                if (key != null) return key;
+
+                if (!string.IsNullOrEmpty(row.ParentUid)
+                    && decryptedKeys.TryGetValue(row.ParentUid, out var parentKey))
+                {
+                    return TryDecryptSymmetric(encryptedKey, parentKey);
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"KeeperNSF: Failed to decrypt folder entity key: {row.FolderUid}. {e.Message}");
+            }
+
+            return null;
+        }
+
         private static bool TryDecryptFolderKey(
             IStorageKdFolderKey fk,
             IAuthContext context,
@@ -535,6 +679,14 @@ namespace KeeperSecurity.Vault
             try
             {
                 var encKeyType = (FolderProto.FolderKeyEncryptionType)fk.KeyType;
+
+                if (encKeyType == FolderProto.FolderKeyEncryptionType.EncryptedByTeamKey)
+                {
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(fk.EncryptedKey)) return false;
+
                 var encryptedKey = fk.EncryptedKey.Base64UrlDecode();
 
                 switch (encKeyType)
@@ -548,9 +700,6 @@ namespace KeeperSecurity.Vault
                         if (!decryptedKeys.TryGetValue(fk.ParentUid, out var parentKey)) return false;
                         decryptedKey = TryDecryptSymmetric(encryptedKey, parentKey);
                         return decryptedKey != null;
-
-                    case FolderProto.FolderKeyEncryptionType.EncryptedByTeamKey:
-                        return false;
 
                     default:
                         Trace.TraceWarning($"KeeperNSF: Unknown folder key type {fk.KeyType}");
