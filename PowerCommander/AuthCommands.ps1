@@ -107,10 +107,9 @@ function Get-SqliteVaultStorageFromHelper {
         $verifyConn.Dispose()
     }
 
-    return [PSCustomObject]@{
-        VaultStorage  = $vaultStorage
-        GetConnection = $getConnection
-    }
+    # Script-scoped factory for PamPlugin (avoid returning a custom object bundle).
+    $Script:PamSqliteConnectionFactory = $getConnection
+    return $vaultStorage
 }
 
 function Get-SqliteComplianceStorageFromHelper {
@@ -768,10 +767,8 @@ function Connect-Keeper {
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
             Write-Information -MessageData "Using vault database: $dbPath"
-            $sqliteBundle = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
-            $vaultStorage = $sqliteBundle.VaultStorage
-            # Shared with PamPlugin for persistent gateway cache.
-            $Script:PamSqliteConnectionFactory = $sqliteBundle.GetConnection
+            # Helper returns vault storage and sets $Script:PamSqliteConnectionFactory for PamPlugin.
+            $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
         }
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
         if ($SkipSync.IsPresent) {

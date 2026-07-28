@@ -33,7 +33,7 @@ function script:getPamRotationScheduleRows {
         }
 
         $sortTitle = if ($record.Title) { $record.Title } else { $recordUid }
-        $prepared.Add([PSCustomObject]@{
+        $prepared.Add(@{
                 Schedule  = $schedule
                 Record    = $record
                 RecordUid = $recordUid
@@ -41,7 +41,7 @@ function script:getPamRotationScheduleRows {
             })
     }
 
-    foreach ($item in ($prepared | Sort-Object SortTitle)) {
+    foreach ($item in ($prepared | Sort-Object { $_.SortTitle })) {
         $schedule = $item.Schedule
         $record = $item.Record
         $recordUid = $item.RecordUid
@@ -63,19 +63,19 @@ function script:getPamRotationScheduleRows {
         }
 
         if ($VerboseOutput) {
-            $rows.Add([PSCustomObject]@{
-                    RecordUid             = $recordUid
-                    RecordTitle           = $record.Title
-                    RecordType            = $record.TypeName
-                    Schedule              = $scheduleText
-                    Gateway               = $gatewayName
-                    GatewayUid            = $controllerUid
-                    PamConfiguration      = $configText
-                    PamConfigurationUid   = $configUid
+            $rows.Add(@{
+                    RecordUid           = $recordUid
+                    RecordTitle         = $record.Title
+                    RecordType          = $record.TypeName
+                    Schedule            = $scheduleText
+                    Gateway             = $gatewayName
+                    GatewayUid          = $controllerUid
+                    PamConfiguration    = $configText
+                    PamConfigurationUid = $configUid
                 })
         }
         else {
-            $rows.Add([PSCustomObject]@{
+            $rows.Add(@{
                     RecordUid        = $recordUid
                     RecordTitle      = $record.Title
                     RecordType       = $record.TypeName
@@ -265,7 +265,7 @@ function script:getPamRotationInfoModel {
             $Vault, $Record.Uid, $configUid)
     }
 
-    return [PSCustomObject]@{
+    return @{
         StatusName                 = $statusName
         IsReady                    = $isReady
         ConfigUid                  = $configUid
@@ -353,30 +353,58 @@ function script:writePamRotationInfoJson {
     Write-Output ($result | ConvertTo-Json -Depth 8)
 }
 
+function script:escapePamCsvField {
+    Param ([object] $Value)
+
+    if ($null -eq $Value) {
+        return ''
+    }
+
+    $text = $null
+    if (($Value -is [System.Collections.IDictionary]) -or
+        (($Value -is [System.Collections.IEnumerable]) -and -not ($Value -is [string]))) {
+        $text = ($Value | ConvertTo-Json -Compress -Depth 8)
+    }
+    else {
+        $text = [string]$Value
+    }
+
+    if ($text -match '[,"\r\n]') {
+        return '"' + ($text.Replace('"', '""')) + '"'
+    }
+    return $text
+}
+
 function script:writePamRotationInfoCsv {
     Param (
         [Parameter(Mandatory = $true)]
         [object] $Model
     )
 
-    $row = [PSCustomObject]@{
-        status                        = $Model.StatusName
-        ready_to_rotate               = $Model.IsReady
-        pam_config_uid                = $Model.ConfigUid
-        node_id                       = $Model.NodeId
-        gateway_name                  = $Model.GatewayName
-        gateway_uid                   = $Model.GatewayUid
-        admin_resource_uid            = $Model.AdminResourceUid
-        password_complexity           = $Model.PasswordComplexity
-        password_complexity_detail    = $Model.ComplexityDetail
-        schedule_type                 = $Model.ScheduleType
-        schedule_data                 = $Model.ScheduleData
-        use_default_rotation_schedule = $Model.UseDefaultRotationSchedule
-        disabled                      = $Model.Disabled
-        script_name                   = $Model.ScriptName
-    }
+    $headers = @(
+        'status', 'ready_to_rotate', 'pam_config_uid', 'node_id', 'gateway_name', 'gateway_uid',
+        'admin_resource_uid', 'password_complexity', 'password_complexity_detail', 'schedule_type',
+        'schedule_data', 'use_default_rotation_schedule', 'disabled', 'script_name'
+    )
+    $values = @(
+        $Model.StatusName
+        $Model.IsReady
+        $Model.ConfigUid
+        $Model.NodeId
+        $Model.GatewayName
+        $Model.GatewayUid
+        $Model.AdminResourceUid
+        $Model.PasswordComplexity
+        $Model.ComplexityDetail
+        $Model.ScheduleType
+        $Model.ScheduleData
+        $Model.UseDefaultRotationSchedule
+        $Model.Disabled
+        $Model.ScriptName
+    )
 
-    $row | ConvertTo-Csv -NoTypeInformation
+    Write-Output ($headers -join ',')
+    Write-Output (($values | ForEach-Object { escapePamCsvField $_ }) -join ',')
 }
 
 function script:testPamRotationScriptField {
@@ -713,7 +741,7 @@ function script:getPamRotationScriptListRows {
                 $recordRefs = if ($script.RecordRef) { ($script.RecordRef -join ', ') } else { '' }
                 $scriptName = if ($fileRecord) { $fileRecord.Title } else { '[inaccessible]' }
 
-                $rows.Add([PSCustomObject]@{
+                $rows.Add(@{
                         RecordUid  = $typed.Uid
                         Title      = $typed.Title
                         RecordType = $typed.TypeName
