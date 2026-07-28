@@ -798,29 +798,26 @@ namespace KeeperSecurity.Vault
         Task<ApplicationRecord> UpdateSecretManagerApplication(string applicationId, string newTitle);
 
         /// <summary>
-        /// Grants Shared Folder, classic Record, NSF folder, or NSF Record Access to Secret Manager Application.
-        /// Classic secrets use vault/app_share_add; NSF folders use folders/v3/access_update;
-        /// NSF records use vault/records/v3/share (AT_APPLICATION).
+        /// Grants Shared Folder or Record Access to Secret Manager Application
         /// </summary>
         /// <param name="applicationId">Application ID</param>
-        /// <param name="sharedFolderOrRecordUid">Shared Folder, Record, NSF folder, or NSF Record UID/name</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
         /// <param name="canEdit">permission to edit</param>
         /// <returns>Secret Manager Application</returns>
         Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId,
             string sharedFolderOrRecordUid, bool canEdit);
 
         /// <summary>
-        /// Updates editable vs read-only on a secret already shared with the application.
-        /// NSF folders/records use V3 access APIs; classic secrets remove then re-add the app share.
+        /// Updates editable vs read-only permission for a secret already shared with the application.
         /// </summary>
         Task<SecretsManagerApplication> UpdateSecretManagerApplicationShare(string applicationId,
             string sharedFolderOrRecordUid, bool canEdit);
 
         /// <summary>
-        /// Revokes Shared Folder, classic Record, NSF folder, or NSF Record access from Secret Manager Application
+        /// Revokes Shared Folder or Record access from Secret Manager Application
         /// </summary>
         /// <param name="applicationId">Application ID</param>
-        /// <param name="sharedFolderOrRecordUid">Shared Folder, Record, NSF folder, or NSF Record UID/name</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
         /// <returns>Secret Manager Application</returns>
         Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId,
             string sharedFolderOrRecordUid);

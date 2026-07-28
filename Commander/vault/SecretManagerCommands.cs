@@ -194,15 +194,12 @@ namespace Commander
             {
                 if (string.IsNullOrEmpty(arguments.Secret))
                 {
-                    Console.Write("Secret (Shared Folder/Record/NSF UID or name) parameter is required.");
+                    Console.Write("Secret (Shared Folder/Record UID or name) parameter is required.");
                     return;
                 }
-                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret);
-                if (string.IsNullOrEmpty(uid))
-                {
-                    Console.Write($"Record, Shared Folder, or NSF folder/record \"{arguments.Secret}\" does not exist. Run sync-down and try again.");
-                    return;
-                }
+
+                // CLI resolves name/path → UID for UX; SDK classifies classic vs NSF and calls APIs.
+                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
 
                 SecretsManagerApplication app;
                 if (action == "share-update")
@@ -219,33 +216,13 @@ namespace Commander
             {
                 if (string.IsNullOrEmpty(arguments.Secret))
                 {
-                    Console.Write("Secret (Shared Folder/Record/NSF UID or name) parameter is required.");
+                    Console.Write("Secret (Shared Folder/Record UID or name) parameter is required.");
                     return;
                 }
 
-                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret);
-                if (string.IsNullOrEmpty(uid))
-                {
-                    uid = arguments.Secret;
-                }
-                var app = await context.Vault.GetSecretManagerApplication(application.Uid);
-                var share = app?.Shares?.FirstOrDefault(x => x.SecretUid == uid);
-
-                if (share == null && context.Vault.TryResolveKeeperNSFFolder(uid, out var nsfFolder))
-                {
-                    // NSF folders are shared via AT_APPLICATION and may still need revoke even if not listed yet.
-                    uid = nsfFolder.FolderUid;
-                }
-                else if (share == null && context.Vault.TryResolveKeeperNSFRecord(uid, out var nsfRecord))
-                {
-                    uid = nsfRecord.RecordUid;
-                }
-                else if (share == null)
-                {
-                    Console.WriteLine($"\"{arguments.Secret}\" is not shared to application {application.Title}");
-                    return;
-                }
-                app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
+                // Resolve when possible; otherwise pass raw value (same as pre-NSF unshare behavior).
+                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
+                var app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(context.Vault, app);
             }
             else if (action == "add-client")
