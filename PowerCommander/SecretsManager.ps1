@@ -42,57 +42,6 @@ $Keeper_KSMAppCompleter = {
     }
 }
 
-function script:getKeeperSecretManagerShareDisplay {
-    Param (
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline]$Vault,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SecretManagerShare]$Share
-    )
-
-    $shareType = if ($Share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
-        'Record'
-    }
-    else {
-        'Folder'
-    }
-    $shareTitle = ''
-
-    if ($Share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
-        $record = $null
-        if ($Vault.TryGetKeeperRecord($Share.SecretUid, [ref]$record) -and $record) {
-            $shareTitle = $record.Title
-        }
-        else {
-            $nsfRecord = $null
-            if ($Vault.TryGetKeeperNSFRecord($Share.SecretUid, [ref]$nsfRecord) -and $nsfRecord) {
-                $shareType = 'NSF Record'
-                $shareTitle = $nsfRecord.Title
-            }
-        }
-    }
-    else {
-        $sf = $null
-        if ($Vault.TryGetSharedFolder($Share.SecretUid, [ref]$sf) -and $sf) {
-            $shareType = 'SharedFolder'
-            $shareTitle = $sf.Name
-        }
-        else {
-            $nsfFolder = $null
-            if ($Vault.TryGetKeeperNSFFolder($Share.SecretUid, [ref]$nsfFolder) -and $nsfFolder) {
-                $shareType = 'NSF Folder'
-                $shareTitle = $nsfFolder.Name
-            }
-        }
-    }
-
-    return [PSCustomObject]@{
-        ShareType  = $shareType
-        ShareUid   = $Share.SecretUid
-        ShareTitle = $shareTitle
-        Editable   = $Share.Editable
-        CreatedOn  = $Share.CreatedOn
-    }
-}
-
 function script:writeKeeperSecretManagerAppDetail {
     Param (
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline]$Vault,
@@ -102,25 +51,54 @@ function script:writeKeeperSecretManagerAppDetail {
     Write-Host ("{0,20}: {1}" -f 'Application UID', $Application.Uid)
     Write-Host ("{0,20}: {1}" -f 'Title', $Application.Title)
     Write-Host ''
-
-    $shareRows = @(
-        foreach ($share in @($Application.Shares)) {
-            if ($null -ne $share) {
-                getKeeperSecretManagerShareDisplay -Vault $Vault -Share $share
-            }
-        }
-    )
-
     Write-Host 'Shares'
-    if ($shareRows.Count -eq 0) {
+    Write-Host ('{0,-12} {1,-24} {2,-30} {3,-8} {4}' -f 'ShareType', 'ShareUid', 'ShareTitle', 'Editable', 'CreatedOn')
+
+    $shares = @($Application.Shares)
+    if ($shares.Count -eq 0) {
         Write-Host '(none)'
     }
     else {
-        $shareRows |
-            Select-Object ShareType, ShareUid, ShareTitle, Editable, CreatedOn |
-            Format-Table -AutoSize |
-            Out-String |
-            ForEach-Object { Write-Host $_.TrimEnd() }
+        foreach ($share in $shares) {
+            if ($null -eq $share) { continue }
+
+            $shareType = if ($share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
+                'Record'
+            } else {
+                'Folder'
+            }
+            $shareTitle = ''
+
+            if ($share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
+                $record = $null
+                if ($Vault.TryGetKeeperRecord($share.SecretUid, [ref]$record) -and $record) {
+                    $shareTitle = $record.Title
+                }
+                else {
+                    $nsfRecord = $null
+                    if ($Vault.TryGetKeeperNSFRecord($share.SecretUid, [ref]$nsfRecord) -and $nsfRecord) {
+                        $shareType = 'NSF Record'
+                        $shareTitle = $nsfRecord.Title
+                    }
+                }
+            }
+            else {
+                $sf = $null
+                if ($Vault.TryGetSharedFolder($share.SecretUid, [ref]$sf) -and $sf) {
+                    $shareType = 'SharedFolder'
+                    $shareTitle = $sf.Name
+                }
+                else {
+                    $nsfFolder = $null
+                    if ($Vault.TryGetKeeperNSFFolder($share.SecretUid, [ref]$nsfFolder) -and $nsfFolder) {
+                        $shareType = 'NSF Folder'
+                        $shareTitle = $nsfFolder.Name
+                    }
+                }
+            }
+
+            Write-Host ('{0,-12} {1,-24} {2,-30} {3,-8} {4}' -f $shareType, $share.SecretUid, $shareTitle, $share.Editable, $share.CreatedOn)
+        }
     }
 
     Write-Host ''
@@ -130,23 +108,15 @@ function script:writeKeeperSecretManagerAppDetail {
         Write-Host '(none)'
     }
     else {
-        $devices |
-            Select-Object Name,
-                @{ Name = 'DeviceId'; Expression = {
-                    if ($_.DeviceId -and $_.DeviceId.Length -ge 6) { $_.DeviceId.Substring(0, 6) } else { $_.DeviceId }
-                } },
-                CreatedOn, LastAccess, AccessExpireOn |
-            Format-Table -AutoSize |
-            Out-String |
-            ForEach-Object { Write-Host $_.TrimEnd() }
-    }
-
-    return [PSCustomObject]@{
-        Uid             = $Application.Uid
-        Title           = $Application.Title
-        IsExternalShare = $Application.IsExternalShare
-        Shares          = $shareRows
-        Devices         = $devices
+        Write-Host ('{0,-20} {1,-12} {2,-22} {3,-22} {4}' -f 'Name', 'DeviceId', 'CreatedOn', 'LastAccess', 'AccessExpireOn')
+        foreach ($device in $devices) {
+            $shortId = if ($device.DeviceId -and $device.DeviceId.Length -ge 6) {
+                $device.DeviceId.Substring(0, 6)
+            } else {
+                $device.DeviceId
+            }
+            Write-Host ('{0,-20} {1,-12} {2,-22} {3,-22} {4}' -f $device.Name, $shortId, $device.CreatedOn, $device.LastAccess, $device.AccessExpireOn)
+        }
     }
 }
 
@@ -187,7 +157,8 @@ function Get-KeeperSecretManagerApp {
             }
             if ($Detail.IsPresent) {
                 $detailApp = $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
-                return writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp
+                writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp
+                return $detailApp
             }
             else {
                 return $application
@@ -210,7 +181,8 @@ function Get-KeeperSecretManagerApp {
             }
             if ($Detail.IsPresent) {
                 $detailApp = $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
-                $results += ,(writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp)
+                writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp
+                $results += ,$detailApp
             }
             else {
                 $results += $application
@@ -275,45 +247,46 @@ function Resolve-KeeperSecretManagerSecretForSdk {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $input = $Secret.Trim()
-    if ([string]::IsNullOrWhiteSpace($input)) {
+    # Do not use $input — reserved automatic variable in Windows PowerShell 5.1.
+    $secretInput = $Secret.Trim()
+    if ([string]::IsNullOrWhiteSpace($secretInput)) {
         Write-Error -Message 'Secret UID or name is required.' -ErrorAction Stop
     }
 
     $sf = $null
-    if ($vault.TryGetSharedFolder($input, [ref]$sf) -and $sf) {
+    if ($vault.TryGetSharedFolder($secretInput, [ref]$sf) -and $sf) {
         return $sf.Uid
     }
 
     $record = $null
-    if ($vault.TryGetKeeperRecord($input, [ref]$record) -and $record) {
+    if ($vault.TryGetKeeperRecord($secretInput, [ref]$record) -and $record) {
         if ($record -is [KeeperSecurity.Vault.PasswordRecord] -or $record -is [KeeperSecurity.Vault.TypedRecord]) {
             return $record.Uid
         }
     }
 
     $nsfFolder = $null
-    if ($vault.TryResolveKeeperNSFFolder($input, [ref]$nsfFolder) -and $nsfFolder) {
+    if ($vault.TryResolveKeeperNSFFolder($secretInput, [ref]$nsfFolder) -and $nsfFolder) {
         return $nsfFolder.FolderUid
     }
 
     $nsfRecord = $null
-    if ($vault.TryResolveKeeperNSFRecord($input, [ref]$nsfRecord) -and $nsfRecord) {
+    if ($vault.TryResolveKeeperNSFRecord($secretInput, [ref]$nsfRecord) -and $nsfRecord) {
         return $nsfRecord.RecordUid
     }
 
     # Exact classic title match (avoid Select-String substring false positives).
     $exactSf = @(Get-KeeperSharedFolder | Where-Object {
-            $_.Name -and [string]::Equals($_.Name, $input, [System.StringComparison]::OrdinalIgnoreCase)
+            $_.Name -and [string]::Equals($_.Name, $secretInput, [System.StringComparison]::OrdinalIgnoreCase)
         } | Select-Object -First 1)
-    if ($exactSf.Count -gt 0 -and $exactSf[0]) {
+    if ($exactSf.Count -gt 0 -and $null -ne $exactSf[0]) {
         return $exactSf[0].Uid
     }
 
     $exactRec = @(Get-KeeperRecord | Where-Object {
-            $_.Title -and [string]::Equals($_.Title, $input, [System.StringComparison]::OrdinalIgnoreCase)
+            $_.Title -and [string]::Equals($_.Title, $secretInput, [System.StringComparison]::OrdinalIgnoreCase)
         } | Select-Object -First 1)
-    if ($exactRec.Count -gt 0 -and $exactRec[0]) {
+    if ($exactRec.Count -gt 0 -and $null -ne $exactRec[0]) {
         return $exactRec[0].Uid
     }
 
@@ -343,8 +316,9 @@ function Grant-KeeperSecretManagerFolderAccess {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApp -Filter $App
-    if (-not $apps) {
+    # @() keeps a single match as a 1-element array (PS 5.1 indexing-safe).
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
@@ -373,8 +347,8 @@ function Revoke-KeeperSecretManagerFolderAccess {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApp -Filter $App
-    if (-not $apps) {
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
@@ -408,8 +382,8 @@ function Update-KeeperSecretManagerShare {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApp -Filter $App
-    if (-not $apps) {
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
