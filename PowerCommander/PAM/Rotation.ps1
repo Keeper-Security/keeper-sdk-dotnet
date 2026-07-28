@@ -100,8 +100,6 @@ function script:writePamRotationListTable {
         return
     }
 
-    # Wide Out-String so Windows PS 5.1 Format-Table does not drop trailing columns
-    # (PAM Configuration UID) on a narrow console buffer.
     if ($VerboseOutput) {
         $table = $rowArray | Select-Object `
             @{ Name = 'Record UID'; Expression = { $_.RecordUid } }, `
@@ -516,7 +514,6 @@ function script:resolvePamRotationCredentialUids {
 function script:toPamStringArray {
     Param ($Collection)
 
-    # PS 5.1 / .NET Framework: HashSet has no instance ToArray().
     if ($null -eq $Collection) {
         return [string[]]@()
     }
@@ -674,7 +671,6 @@ function script:writePamRotationScriptTable {
         $Rows
     )
 
-    # Avoid @($List[object]) — PowerShell can throw "Argument types do not match".
     if ($null -eq $Rows) {
         return
     }
@@ -1051,8 +1047,6 @@ function Set-KeeperPamRotation {
     $vault = getPamRotationVault
     $auth = getPamEnterpriseAuth
 
-    # Edit orchestration uses release SDK APIs (RotationUtils, PamRotationGraphEdit, RouterUtils)
-    # — same building blocks as Commander after PR #521; no duplicate SDK edit service.
     invokeKeeperPamRotationEdit -Auth $auth -Vault $vault -Options @{
         Record          = $Record
         Folder          = $Folder

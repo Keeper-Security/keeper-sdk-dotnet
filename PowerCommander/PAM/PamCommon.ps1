@@ -52,7 +52,6 @@ function script:resolvePamRotationRecord {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord($Vault, $Identifier.Trim(), $AllowedTypes)
     }
     catch [System.InvalidOperationException] {
-        # Ambiguous title / validation caller must not also print "not found".
         Write-Output $_.Exception.Message
         throw
     }
@@ -202,7 +201,6 @@ function script:getPamDefaultScheduleFromConfig {
 
     $list = New-Object 'System.Collections.Generic.List[object]'
     [void]$list.Add($dict)
-    # Comma prevents PS unwrapping a 1-item List into a Dictionary on return.
     return , $list
 }
 
