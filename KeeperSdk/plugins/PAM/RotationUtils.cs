@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
-using KeeperSecurity.Vault;
 using PamProto = PAM;
 using RouterProto = Router;
 
@@ -177,154 +176,6 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return rotationInfo;
-    }
-
-    /// <summary>
-    /// True when the record's cached schedule matches the PAM configuration default schedule.
-    /// </summary>
-    public static bool UsesDefaultRotationSchedule(
-      VaultOnline vault,
-      string recordUid,
-      string configurationUid)
-    {
-      if (vault == null
-          || string.IsNullOrWhiteSpace(recordUid)
-          || string.IsNullOrWhiteSpace(configurationUid))
-      {
-        return false;
-      }
-
-      if (!vault.TryGetKeeperRecord(configurationUid.Trim(), out var keeper)
-          || keeper is not TypedRecord config)
-      {
-        return false;
-      }
-
-      var defaultSchedule = GetDefaultScheduleFromConfig(config);
-      if (defaultSchedule == null || defaultSchedule.Count == 0)
-      {
-        return false;
-      }
-
-      var cached = vault.GetRecordRotation(recordUid.Trim());
-      if (cached == null || string.IsNullOrWhiteSpace(cached.Schedule))
-      {
-        return false;
-      }
-
-      List<object> recordSchedule;
-      try
-      {
-        recordSchedule = ParseScheduleJsonString(cached.Schedule);
-      }
-      catch (ArgumentException)
-      {
-        return false;
-      }
-
-      if (recordSchedule == null || recordSchedule.Count == 0)
-      {
-        return false;
-      }
-
-      return string.Equals(
-        SerializeScheduleData(recordSchedule),
-        SerializeScheduleData(defaultSchedule),
-        StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Reads <c>defaultRotationSchedule</c> from a PAM configuration record.
-    /// </summary>
-    public static List<object> GetDefaultScheduleFromConfig(TypedRecord config)
-    {
-      if (config == null)
-      {
-        return null;
-      }
-
-      var scheduleFields = EnumerateTypedFields(config)
-        .OfType<TypedField<FieldSchedule>>()
-        .Where(x => string.Equals(x.FieldName, "schedule", StringComparison.Ordinal))
-        .ToList();
-
-      var scheduleField = scheduleFields.FirstOrDefault(x =>
-          string.Equals(x.FieldLabel, "defaultRotationSchedule", StringComparison.OrdinalIgnoreCase))
-        ?? scheduleFields.FirstOrDefault();
-
-      var value = scheduleField?.Values?.FirstOrDefault();
-      if (value == null)
-      {
-        return null;
-      }
-
-      if (string.IsNullOrWhiteSpace(value.Type)
-          || string.Equals(value.Type, "On-Demand", StringComparison.OrdinalIgnoreCase))
-      {
-        return new List<object>();
-      }
-
-      var dict = new Dictionary<string, object>
-      {
-        ["type"] = value.Type,
-      };
-
-      if (!string.IsNullOrEmpty(value.Time))
-      {
-        dict["time"] = value.Time;
-        dict["utcTime"] = value.Time;
-      }
-
-      if (!string.IsNullOrEmpty(value.Weekday))
-      {
-        dict["weekday"] = value.Weekday;
-      }
-
-      if (!string.IsNullOrEmpty(value.Month))
-      {
-        dict["month"] = value.Month;
-      }
-
-      if (!string.IsNullOrEmpty(value.MonthDay))
-      {
-        dict["monthDay"] = value.MonthDay;
-      }
-
-      if (!string.IsNullOrEmpty(value.IntervalCount))
-      {
-        dict["intervalCount"] = value.IntervalCount;
-      }
-
-      if (!string.IsNullOrEmpty(value.Cron))
-      {
-        dict["cron"] = value.Cron;
-      }
-
-      if (!string.IsNullOrEmpty(value.TimeZone))
-      {
-        dict["tz"] = value.TimeZone;
-      }
-
-      return new List<object> { dict };
-    }
-
-    private static IEnumerable<ITypedField> EnumerateTypedFields(TypedRecord config)
-    {
-      if (config?.Fields != null)
-      {
-        foreach (var field in config.Fields)
-        {
-          yield return field;
-        }
-      }
-
-      if (config?.Custom != null)
-      {
-        foreach (var field in config.Custom)
-        {
-          yield return field;
-        }
-      }
     }
 
     public static bool? ResolveRotationEnabled(bool enable, bool disable)
@@ -770,20 +621,6 @@ namespace KeeperSecurity.Plugins.PAM
 
       var chars = rules.SpecialCharacters ?? DefaultSpecialChars;
       return $"{rules.Length},{rules.Upper},{rules.Lower},{rules.Digit},{rules.Special},{chars}";
-    }
-
-    /// <summary>
-    /// Human-readable complexity for rotation info output.
-    /// </summary>
-    public static string FormatPasswordComplexityInfoDisplay(PasswordGenerationOptions rules)
-    {
-      if (rules == null)
-      {
-        return "";
-      }
-
-      var chars = rules.SpecialCharacters ?? DefaultSpecialChars;
-      return $"Length: {rules.Length}; Lowercase: {rules.Lower}; Uppercase: {rules.Upper}; Digits: {rules.Digit}; Symbols: {rules.Special}; Symbols Chars: {chars}";
     }
 
     public static Dictionary<string, object> PasswordComplexityToDetail(PasswordGenerationOptions rules)

@@ -25,7 +25,6 @@ function Switch-KeeperMC {
     }
 
     $Script:Context.ManagedCompanyId = $mc[0].EnterpriseId
-    $Script:PamPlugin = $null
     Sync-KeeperEnterprise
 
     Write-Host "Switched to Managed Company `"$($mc[0].EnterpriseName)`" (ID: $($mc[0].EnterpriseId))."
@@ -42,7 +41,6 @@ function Switch-KeeperMSP {
     [Enterprise]$enterprise = getMspEnterprise
 
     $Script:Context.ManagedCompanyId = 0
-    $Script:PamPlugin = $null
     Sync-KeeperEnterprise
 
     Write-Host "Switched to MSP."

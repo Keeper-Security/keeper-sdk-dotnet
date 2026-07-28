@@ -4,7 +4,6 @@ function script:getPamPlugin {
     <#
         .Synopsis
         Returns the PAM plugin for the current enterprise context.
-        Uses SQLite PAM storage when Connect-Keeper -UseOfflineStorage was used; otherwise in-memory.
     #>
     [Enterprise] $enterprise = getEnterprise
     if (-not $enterprise -or -not $enterprise.loader) {
@@ -14,13 +13,7 @@ function script:getPamPlugin {
         return $Script:PamPlugin
     }
     try {
-        $getConnection = $Script:PamSqliteConnectionFactory
-        if ($getConnection) {
-            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader, $getConnection)
-        }
-        else {
-            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader)
-        }
+        $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader)
         return $Script:PamPlugin
     }
     catch {

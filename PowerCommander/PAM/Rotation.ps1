@@ -249,7 +249,7 @@ function script:getPamRotationInfoModel {
     elseif ($null -ne $pwdComplexityDetail) {
         $complexityDetailOut = convertPamRotationComplexityDetailToHashtable (
             [KeeperSecurity.Plugins.PAM.RotationUtils]::PasswordComplexityToDetail($pwdComplexityDetail))
-        $complexityDisplay = [KeeperSecurity.Plugins.PAM.RotationUtils]::FormatPasswordComplexityInfoDisplay($pwdComplexityDetail)
+        $complexityDisplay = formatPamPasswordComplexityInfoDisplay -Rules $pwdComplexityDetail
     }
 
     $hasComplexity = ($pwdComplexityRaw -and $pwdComplexityRaw.Length -gt 0)
@@ -261,8 +261,7 @@ function script:getPamRotationInfoModel {
 
     $useDefaultSchedule = $false
     if ($null -ne $Vault -and -not [string]::IsNullOrWhiteSpace($configUid)) {
-        $useDefaultSchedule = [KeeperSecurity.Plugins.PAM.RotationUtils]::UsesDefaultRotationSchedule(
-            $Vault, $Record.Uid, $configUid)
+        $useDefaultSchedule = testPamUsesDefaultRotationSchedule -Vault $Vault -RecordUid $Record.Uid -ConfigUid $configUid
     }
 
     return @{
@@ -645,8 +644,7 @@ function script:getPamRotationRunCommand {
 
     if (-not [string]::IsNullOrWhiteSpace($ScriptCommand)) {
         $trimmed = $ScriptCommand.Trim()
-        $verbs = [KeeperSecurity.Plugins.PAM.PamRotationOptions]::ScriptVerbs
-        if (-not $verbs.Contains($trimmed)) {
+        if (-not (testPamRotationScriptVerb -Value $trimmed)) {
             return $trimmed
         }
     }
@@ -1050,13 +1048,12 @@ function Set-KeeperPamRotation {
         Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
-    $vault = getVault
-    if (-not $vault) {
-        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
-    }
+    $vault = getPamRotationVault
     $auth = getPamEnterpriseAuth
 
-    $options = buildPamRotationOptions -Values @{
+    # Edit orchestration uses release SDK APIs (RotationUtils, PamRotationGraphEdit, RouterUtils)
+    # — same building blocks as Commander after PR #521; no duplicate SDK edit service.
+    invokeKeeperPamRotationEdit -Auth $auth -Vault $vault -Options @{
         Record          = $Record
         Folder          = $Folder
         Config          = $Config
@@ -1075,19 +1072,6 @@ function Set-KeeperPamRotation {
         Enable          = $Enable.IsPresent
         Disable         = $Disable.IsPresent
         Force           = $Force.IsPresent
-    }
-
-    $service = New-Object KeeperSecurity.Plugins.PAM.PamRotationEditService($auth, $vault)
-    # Console.ReadLine confirm: PS scriptblock ConfirmAsync fails on PS 5.1 (no runspace on thread-pool).
-
-    try {
-        $service.ExecuteAsync($options).GetAwaiter().GetResult() | Out-Null
-    }
-    catch [System.InvalidOperationException] {
-        Write-Error -Message $_.Exception.Message -ErrorAction Stop
-    }
-    catch [System.ArgumentException] {
-        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
 }
 

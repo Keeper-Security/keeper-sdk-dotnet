@@ -99,16 +99,11 @@ function Get-SqliteVaultStorageFromHelper {
         if ($failed -and $failed.Count -gt 0) {
             [System.Diagnostics.Trace]::TraceError(($failed -join "`n"))
         }
-
-        # Same shared keeper_db.sqlite as vault: ensure PAM gateway tables exist.
-        [KeeperSecurity.Plugins.PAM.SqlitePamStorage]::VerifyDatabase($verifyConn, $dialect)
     }
     finally {
         $verifyConn.Dispose()
     }
 
-    # Script-scoped factory for PamPlugin (avoid returning a custom object bundle).
-    $Script:PamSqliteConnectionFactory = $getConnection
     return $vaultStorage
 }
 
@@ -750,8 +745,6 @@ function Connect-Keeper {
         Write-Information -MessageData "Connected to Keeper as $($auth.Username)" -InformationAction Continue
 
         $vaultStorage = $null
-        $Script:PamSqliteConnectionFactory = $null
-        $Script:PamPlugin = $null
         if ($UseOfflineStorage) {
             $ownerUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($auth.AuthContext.AccountUid)
             if ($VaultDatabasePath) {
@@ -767,7 +760,6 @@ function Connect-Keeper {
             $dbPath = $PSCmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath($dbPath)
             $connectionString = "Data Source=$dbPath;Pooling=True;"
             Write-Information -MessageData "Using vault database: $dbPath"
-            # Helper returns vault storage and sets $Script:PamSqliteConnectionFactory for PamPlugin.
             $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
         }
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
@@ -818,8 +810,6 @@ function Disconnect-Keeper {
     
     $Script:Context.ManagedCompanyId = 0
     $Script:Context.Enterprise = $null
-    $Script:PamPlugin = $null
-    $Script:PamSqliteConnectionFactory = $null
 
     $vault = $Script:Context.Vault
     if ($vault) {
