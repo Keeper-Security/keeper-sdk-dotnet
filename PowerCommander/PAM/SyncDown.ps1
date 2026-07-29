@@ -64,10 +64,10 @@ function script:ensurePamPlugin {
 function Sync-KeeperPam {
     <#
         .Synopsis
-        Sync PAM gateway data from the server.
+        Sync PAM data from the server.
 
         .Description
-        Sync PAM gateway data from the server. Equivalent to pam-sync.
+        Sync PAM data from the server.
 
         .Parameter Reload
         Perform a full sync.

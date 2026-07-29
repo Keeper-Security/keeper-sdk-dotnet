@@ -632,7 +632,6 @@ namespace Commander.PAM
                 return null;
             }
 
-            // Same as Python: get_typed_field('schedule', 'defaultRotationSchedule')
             var scheduleField = EnumerateTypedFields(config)
                 .OfType<TypedField<FieldSchedule>>()
                 .FirstOrDefault(x =>

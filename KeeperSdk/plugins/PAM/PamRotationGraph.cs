@@ -386,24 +386,70 @@ namespace KeeperSecurity.Plugins.PAM
       bool? isLaunchCredential)
     {
       var user = GetOrCreateVertex(userUid, GraphSyncProto.RefType.RftPamUser);
-      user.TryGetAclContent(headUid, out var existing);
-      existing ??= new Dictionary<string, object>();
+      var acl = GetUserAcl(user, headUid);
 
-      MergeTriState(existing, "is_admin", isAdmin);
-      MergeTriState(existing, "belongs_to", belongsTo);
-      MergeTriState(existing, "is_launch_credential", isLaunchCredential);
+      if (isAdmin.HasValue)
+      {
+        acl.IsAdmin = isAdmin.Value;
+      }
 
-      user.SetEdge(headUid, PamGraphEdgeType.Acl, SerializeAclContent(existing), path: null, modified: true);
+      if (belongsTo.HasValue)
+      {
+        acl.BelongsTo = belongsTo.Value;
+      }
+
+      if (isLaunchCredential.HasValue)
+      {
+        acl.IsLaunchCredential = isLaunchCredential.Value;
+      }
+
+      EnsureRotationSettings(acl);
+      user.SetEdge(headUid, PamGraphEdgeType.Acl, SerializeUserAcl(acl), path: null, modified: true);
     }
 
-    private static void MergeTriState(IDictionary<string, object> content, string key, bool? value)
+    internal async Task RepairUserAclRotationSettingsAsync(string userUid, string resourceUid)
     {
-      if (value == null)
+      if (!_vertices.TryGetValue(userUid, out var user))
       {
         return;
       }
 
-      content[key] = value.Value;
+      var acl = GetUserAcl(user, resourceUid);
+      if (!NeedsRotationSettingsRepair(acl))
+      {
+        return;
+      }
+
+      EnsureRotationSettings(acl);
+      user.SetEdge(resourceUid, PamGraphEdgeType.Acl, SerializeUserAcl(acl), path: null, modified: true);
+      await SaveAsync();
+    }
+
+    private static PamUserAclContent GetUserAcl(PamGraphVertex user, string headUid)
+    {
+      if (user.TryGetAclBytes(headUid, out var bytes))
+      {
+        return ParseUserAcl(bytes);
+      }
+
+      return new PamUserAclContent();
+    }
+
+    private static void EnsureRotationSettings(PamUserAclContent acl)
+    {
+      acl.RotationSettings ??= new PamUserAclRotationSettings();
+      acl.RotationSettings.Schedule ??= "";
+      acl.RotationSettings.PwdComplexity ??= "";
+    }
+
+    private static bool NeedsRotationSettingsRepair(PamUserAclContent acl)
+    {
+      if (acl.RotationSettings == null)
+      {
+        return true;
+      }
+
+      return acl.RotationSettings.Schedule == null || acl.RotationSettings.PwdComplexity == null;
     }
 
     private async Task SaveAsync()
@@ -516,6 +562,71 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    private static byte[] SerializeUserAcl(PamUserAclContent acl)
+    {
+      return JsonUtils.DumpJson(acl ?? new PamUserAclContent());
+    }
+
+    private static PamUserAclContent ParseUserAcl(byte[] content)
+    {
+      if (content == null || content.Length == 0)
+      {
+        return new PamUserAclContent();
+      }
+
+      try
+      {
+        return JsonUtils.ParseJson<PamUserAclContent>(content) ?? new PamUserAclContent();
+      }
+      catch (Exception ex)
+      {
+        System.Diagnostics.Trace.TraceWarning("PAM: failed to parse user ACL content: {0}", ex.Message);
+        return new PamUserAclContent();
+      }
+    }
+
+    [DataContract]
+    private sealed class PamUserAclContent : IExtensibleDataObject
+    {
+      [DataMember(Name = "belongs_to", EmitDefaultValue = true)]
+      public bool BelongsTo { get; set; }
+
+      [DataMember(Name = "is_admin", EmitDefaultValue = true)]
+      public bool IsAdmin { get; set; }
+
+      [DataMember(Name = "is_iam_user", EmitDefaultValue = false)]
+      public bool? IsIamUser { get; set; }
+
+      [DataMember(Name = "is_launch_credential", EmitDefaultValue = true)]
+      public bool IsLaunchCredential { get; set; }
+
+      [DataMember(Name = "rotation_settings", EmitDefaultValue = true)]
+      public PamUserAclRotationSettings RotationSettings { get; set; }
+
+      public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    [DataContract]
+    private sealed class PamUserAclRotationSettings : IExtensibleDataObject
+    {
+      [DataMember(Name = "schedule", EmitDefaultValue = true)]
+      public string Schedule { get; set; }
+
+      [DataMember(Name = "pwd_complexity", EmitDefaultValue = true)]
+      public string PwdComplexity { get; set; }
+
+      [DataMember(Name = "disabled", EmitDefaultValue = true)]
+      public bool Disabled { get; set; }
+
+      [DataMember(Name = "noop", EmitDefaultValue = true)]
+      public bool Noop { get; set; }
+
+      [DataMember(Name = "saas_record_uid_list", EmitDefaultValue = false)]
+      public List<string> SaasRecordUidList { get; set; }
+
+      public ExtensionDataObject ExtensionData { get; set; }
+    }
+
     private sealed class PamGraphVertex
     {
       private readonly Dictionary<string, PamGraphEdge> _edges = new(StringComparer.Ordinal);
@@ -539,12 +650,24 @@ namespace KeeperSecurity.Plugins.PAM
       internal bool TryGetAclContent(string headUid, out Dictionary<string, object> content)
       {
         content = null;
+        if (!TryGetAclBytes(headUid, out var bytes))
+        {
+          return false;
+        }
+
+        content = ParseAclContent(bytes);
+        return true;
+      }
+
+      internal bool TryGetAclBytes(string headUid, out byte[] content)
+      {
+        content = null;
         if (!_edges.TryGetValue(EdgeKey(headUid, PamGraphEdgeType.Acl), out var edge))
         {
           return false;
         }
 
-        content = ParseAclContent(edge.Content);
+        content = edge.Content;
         return true;
       }
 
@@ -682,7 +805,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// High-level rotation edit graph operations (Python Commander: config_resource / config_user).
+  /// High-level rotation edit graph operations.
   /// </summary>
   public static class PamRotationGraphEdit
   {
@@ -790,6 +913,11 @@ namespace KeeperSecurity.Plugins.PAM
         }
 
         await graph.LinkUserToResourceAsync(userRecord.Uid, resourceUid, belongsTo: true);
+      }
+      else
+      {
+        // set_record_rotation can deserialize required fields.
+        await graph.RepairUserAclRotationSettingsAsync(userRecord.Uid, resourceUid);
       }
     }
   }
