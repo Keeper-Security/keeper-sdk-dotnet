@@ -652,23 +652,15 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Share an NSF (Keeper Drive) folder with a KSM application via AT_APPLICATION.
-        /// Classic vault/app_share_add rejects Drive folders; this uses folders/v3/access_update.
+        /// Share an NSF folder with a KSM application via AT_APPLICATION.
         /// </summary>
         public static async Task GrantKeeperNSFFolderToApplicationInternal(
             this VaultOnline vault, string folderUid, string applicationUid, bool editable)
         {
-            if (string.IsNullOrEmpty(folderUid))
-                throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(applicationUid))
-                throw new VaultException("Application UID cannot be empty");
-            if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder))
-                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application)
-                throw new VaultException($"Secrets Manager application '{applicationUid}' not found");
-            if (folder.FolderKey == null)
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder) || folder.FolderKey == null)
                 throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
-            if (application.RecordKey == null)
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
                 throw new VaultException($"Cannot share folder: application key is not available for '{applicationUid}'");
 
             var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
@@ -743,13 +735,6 @@ namespace KeeperSecurity.Vault
         public static async Task UpdateKeeperNSFFolderApplicationAccessInternal(
             this VaultOnline vault, string folderUid, string applicationUid, bool editable)
         {
-            if (string.IsNullOrEmpty(folderUid))
-                throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(applicationUid))
-                throw new VaultException("Application UID cannot be empty");
-            if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
-                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-
             var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
             var updateData = new FolderProto.FolderAccessData
             {
@@ -777,13 +762,6 @@ namespace KeeperSecurity.Vault
         public static async Task RevokeKeeperNSFFolderFromApplicationInternal(
             this VaultOnline vault, string folderUid, string applicationUid)
         {
-            if (string.IsNullOrEmpty(folderUid))
-                throw new VaultException("Folder UID cannot be empty");
-            if (string.IsNullOrEmpty(applicationUid))
-                throw new VaultException("Application UID cannot be empty");
-            if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
-                throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -813,10 +791,7 @@ namespace KeeperSecurity.Vault
             bool editable,
             bool includeKey)
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (string.IsNullOrEmpty(applicationUid))
-                throw new VaultException("Application UID cannot be empty");
+            // Key checks only when encrypting the record key for the application.
             if (includeKey && (recordKey == null || recordKey.Length == 0))
                 throw new VaultException($"Record key not available for record '{recordUid}'");
             if (includeKey && (applicationKey == null || applicationKey.Length == 0))
@@ -866,15 +841,16 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Share an NSF record with a KSM application via vault/records/v3/share (AT_APPLICATION).
+        /// Share an NSF record with a KSM application via v3/share.
         /// </summary>
         public static async Task GrantKeeperNSFRecordToApplicationInternal(
             this VaultOnline vault, string recordUid, string applicationUid, bool editable)
         {
-            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record == null)
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application)
-                throw new VaultException($"Secrets Manager application '{applicationUid}' not found");
+            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record?.RecordKey == null)
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
+                throw new VaultException($"Application key not available for '{applicationUid}'");
 
             var perm = BuildApplicationRecordSharePermission(
                 recordUid, record.RecordKey, applicationUid, application.RecordKey, editable, includeKey: true);
@@ -886,15 +862,16 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Update an NSF record's KSM application share role via vault/records/v3/share.
+        /// Update an NSF record's KSM application share role via v3/share.
         /// </summary>
         public static async Task UpdateKeeperNSFRecordApplicationAccessInternal(
             this VaultOnline vault, string recordUid, string applicationUid, bool editable)
         {
-            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record == null)
-                throw new VaultException($"Keeper NSF record '{recordUid}' not found");
-            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application)
-                throw new VaultException($"Secrets Manager application '{applicationUid}' not found");
+            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record?.RecordKey == null)
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
+                throw new VaultException($"Application key not available for '{applicationUid}'");
 
             var perm = BuildApplicationRecordSharePermission(
                 recordUid, record.RecordKey, applicationUid, application.RecordKey, editable, includeKey: true);
@@ -906,16 +883,11 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Revoke a KSM application's access to an NSF record via vault/records/v3/share.
+        /// Revoke a KSM application's access to an NSF record via v3/share.
         /// </summary>
         public static async Task RevokeKeeperNSFRecordFromApplicationInternal(
             this VaultOnline vault, string recordUid, string applicationUid)
         {
-            if (string.IsNullOrEmpty(recordUid))
-                throw new VaultException("Record UID cannot be empty");
-            if (string.IsNullOrEmpty(applicationUid))
-                throw new VaultException("Application UID cannot be empty");
-
             byte[] recordKey = null;
             if (vault.TryGetKeeperNSFRecord(recordUid, out var record) && record != null)
             {
@@ -931,71 +903,26 @@ namespace KeeperSecurity.Vault
             ThrowIfRecordShareStatusesFailed(rs.RevokedSharingStatus, "revoke");
         }
 
+        /// <summary>
+        /// Builds folder permissions for KSM app roles.
+        /// </summary>
         private static FolderProto.FolderPermissions GetFolderPermissionsForRole(FolderProto.AccessRoleType role)
         {
-            return role switch
+            var permissions = new FolderProto.FolderPermissions
             {
-                FolderProto.AccessRoleType.Viewer => new FolderProto.FolderPermissions
-                {
-                    CanListAccess = true,
-                    CanViewRecords = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
-                FolderProto.AccessRoleType.ContentManager => new FolderProto.FolderPermissions
-                {
-                    CanAdd = true,
-                    CanListAccess = true,
-                    CanEditRecords = true,
-                    CanViewRecords = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
-                FolderProto.AccessRoleType.SharedManager => new FolderProto.FolderPermissions
-                {
-                    CanListAccess = true,
-                    CanUpdateAccess = true,
-                    CanViewRecords = true,
-                    CanApproveAccess = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
-                FolderProto.AccessRoleType.ContentShareManager => new FolderProto.FolderPermissions
-                {
-                    CanAdd = true,
-                    CanRemove = true,
-                    CanListAccess = true,
-                    CanUpdateAccess = true,
-                    CanEditRecords = true,
-                    CanViewRecords = true,
-                    CanApproveAccess = true,
-                    CanUpdateSetting = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
-                FolderProto.AccessRoleType.Manager => new FolderProto.FolderPermissions
-                {
-                    CanAdd = true,
-                    CanRemove = true,
-                    CanDelete = true,
-                    CanListAccess = true,
-                    CanUpdateAccess = true,
-                    CanChangeOwnership = true,
-                    CanEditRecords = true,
-                    CanViewRecords = true,
-                    CanApproveAccess = true,
-                    CanUpdateSetting = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
-                _ => new FolderProto.FolderPermissions
-                {
-                    CanListAccess = true,
-                    CanViewRecords = true,
-                    CanListRecords = true,
-                    CanListFolders = true,
-                },
+                CanListAccess = true,
+                CanViewRecords = true,
+                CanListRecords = true,
+                CanListFolders = true,
             };
+
+            if (role == FolderProto.AccessRoleType.ContentManager)
+            {
+                permissions.CanAdd = true;
+                permissions.CanEditRecords = true;
+            }
+
+            return permissions;
         }
 
         public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
