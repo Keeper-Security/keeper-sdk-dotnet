@@ -28,6 +28,34 @@ namespace KeeperSecurity
             public bool? CanShare { get; set; }
         }
 
+        /// <summary>
+        /// One element of a structured import/NSF field (e.g. hostName/port).
+        /// </summary>
+        public class ImportCustomFieldElement
+        {
+            public string Name { get; set; }
+
+            public string Value { get; set; }
+        }
+
+        /// <summary>
+        /// Typed custom field for <see cref="ImportRecord.CustomFields"/>.
+        /// JSON <c>custom_fields</c> objects are converted into this array when parsing.
+        /// </summary>
+        public class ImportCustomField
+        {
+            /// <summary>Field key (e.g. <c>$host</c>, <c>$address:Work</c>, <c>TFC:Keeper</c>).</summary>
+            public string Name { get; set; }
+
+            /// <summary>Scalar value; empty string allowed (clear on update). Null when <see cref="Elements"/> is used.</summary>
+            public string TextValue { get; set; }
+
+            /// <summary>Structured value (host, address, paymentCard, …).</summary>
+            public ImportCustomFieldElement[] Elements { get; set; }
+
+            public bool HasValue => TextValue != null || Elements != null;
+        }
+
 
         [DataContract]
         public class ImportRecord
@@ -53,8 +81,12 @@ namespace KeeperSecurity
             [DataMember(Name = "notes", EmitDefaultValue = false)]
             public string Notes { get; set; }
 
-            [DataMember(Name = "custom_fields", EmitDefaultValue = false)]
-            public IDictionary<string, object> CustomFields { get; set; }
+            /// <summary>
+            /// Typed custom fields. Populated from JSON object <c>custom_fields</c> by <see cref="Vault.KeeperImport.LoadJsonDictionary(ImportJsonValue)"/>.
+            /// Not serialized via DataContract (wire shape is still a JSON object).
+            /// </summary>
+            [IgnoreDataMember]
+            public ImportCustomField[] CustomFields { get; set; }
 
             [DataMember(Name = "folders", EmitDefaultValue = false)]
             public ImportRecordFolder[] Folders { get; set; }
@@ -119,24 +151,28 @@ namespace KeeperSecurity
                 password.Notes = import.Notes;
                 if (import.CustomFields != null)
                 {
-                    foreach (var pair in import.CustomFields)
+                    foreach (var customField in import.CustomFields)
                     {
-                        var name = pair.Key;
-                        var value = pair.Value;
-                        if (value == null) continue;
-
-                        if (value is string strValue && !string.IsNullOrEmpty(strValue))
+                        if (customField == null || string.IsNullOrEmpty(customField.Name) || !customField.HasValue)
                         {
-                            if (name == TwoFactorCode)
-                            {
-                                password.Totp = strValue.StartsWith("otpauth://")
-                                    ? strValue
-                                    : $"otpauth://totp/?secret={strValue}";
-                            }
-                            else
-                            {
-                                password.SetCustomField(name, strValue);
-                            }
+                            continue;
+                        }
+
+                        var strValue = customField.TextValue;
+                        if (string.IsNullOrEmpty(strValue))
+                        {
+                            continue;
+                        }
+
+                        if (customField.Name == TwoFactorCode)
+                        {
+                            password.Totp = strValue.StartsWith("otpauth://")
+                                ? strValue
+                                : $"otpauth://totp/?secret={strValue}";
+                        }
+                        else
+                        {
+                            password.SetCustomField(customField.Name, strValue);
                         }
                     }
                 }
@@ -272,13 +308,21 @@ namespace KeeperSecurity
                 typed.Title = import.Title;
                 typed.Notes = import.Notes;
 
-                Dictionary<string, object> customFields = null;
+                Dictionary<string, ImportCustomField> customFields = null;
                 if (import.CustomFields != null)
                 {
-                    customFields = import.CustomFields.ToDictionary(entry => entry.Key, entry => entry.Value);
+                    customFields = import.CustomFields
+                        .Where(f => f != null && !string.IsNullOrEmpty(f.Name))
+                        .GroupBy(f => f.Name, StringComparer.Ordinal)
+                        .ToDictionary(g => g.Key, g => g.Last(), StringComparer.Ordinal);
                     if (customFields.TryGetValue(TwoFactorCode, out var tfa))
                     {
-                        customFields["$oneTimeCode"] = tfa;
+                        customFields["$oneTimeCode"] = new ImportCustomField
+                        {
+                            Name = "$oneTimeCode",
+                            TextValue = tfa.TextValue,
+                            Elements = tfa.Elements,
+                        };
                         customFields.Remove(TwoFactorCode);
                     }
                 }
@@ -328,10 +372,10 @@ namespace KeeperSecurity
                         }
 
                         if (string.IsNullOrEmpty(key)) continue;
-                        if (!customFields.TryGetValue(key, out var value)) continue;
-                        if (value != null)
+                        if (!customFields.TryGetValue(key, out var customField)) continue;
+                        if (customField != null && customField.HasValue)
                         {
-                            field.AssignValueToField(value);
+                            field.AssignValueToField(ToAssignValue(customField));
                         }
 
                         customFields.Remove(key);
@@ -365,8 +409,8 @@ namespace KeeperSecurity
                     foreach (var pair in customFields)
                     {
                         var fk = pair.Key;
-                        var value = pair.Value;
-                        if (value == null)
+                        var customField = pair.Value;
+                        if (customField == null || !customField.HasValue)
                         {
                             continue;
                         }
@@ -378,7 +422,7 @@ namespace KeeperSecurity
                         try
                         {
                             var field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
-                            field.AssignValueToField(value);
+                            field.AssignValueToField(ToAssignValue(customField));
                             typed.Custom.Add(field);
                         }
                         catch (Exception e)
@@ -405,193 +449,94 @@ namespace KeeperSecurity
                 return lastFolder;
             }
 
-            private static object UnwrapInteropValue(object value)
+            private static IEnumerable<ImportJsonValue> EnumerateImportItems(ImportJsonValue value)
             {
-                while (value != null)
-                {
-                    var type = value.GetType();
-                    if (!string.Equals(type.FullName, "System.Management.Automation.PSObject", StringComparison.Ordinal))
-                    {
-                        return value;
-                    }
-
-                    var baseObject = type.GetProperty("BaseObject")?.GetValue(value);
-                    if (baseObject == null || ReferenceEquals(baseObject, value))
-                    {
-                        return value;
-                    }
-
-                    value = baseObject;
-                }
-
-                return null;
-            }
-
-            private static IDictionary<string, object> AsStringObjectDictionary(object value)
-            {
-                value = UnwrapInteropValue(value);
-                if (value is IDictionary<string, object> typed)
-                {
-                    var normalized = new Dictionary<string, object>(typed.Count);
-                    foreach (var pair in typed)
-                    {
-                        normalized[pair.Key] = NormalizeImportValue(pair.Value);
-                    }
-
-                    return normalized;
-                }
-
-                if (value is not IDictionary dictionary)
-                {
-                    return null;
-                }
-
-                var result = new Dictionary<string, object>();
-                foreach (DictionaryEntry entry in dictionary)
-                {
-                    if (entry.Key is not string key)
-                    {
-                        continue;
-                    }
-
-                    result[key] = NormalizeImportValue(entry.Value);
-                }
-
-                return result;
-            }
-
-            private static object NormalizeImportValue(object value)
-            {
-                value = UnwrapInteropValue(value);
-                if (value is IDictionary<string, object> typed)
-                {
-                    var nested = new Dictionary<string, object>(typed.Count);
-                    foreach (var pair in typed)
-                    {
-                        nested[pair.Key] = NormalizeImportValue(pair.Value);
-                    }
-
-                    return nested;
-                }
-
-                if (value is IDictionary dictionary)
-                {
-                    return AsStringObjectDictionary(dictionary);
-                }
-
-                if (value is Array array)
-                {
-                    var items = new object[array.Length];
-                    for (var i = 0; i < array.Length; i++)
-                    {
-                        items[i] = NormalizeImportValue(array.GetValue(i));
-                    }
-
-                    return items;
-                }
-
-                return value;
-            }
-
-            /// <summary>
-            /// Parses JSON object to import type
-            /// </summary>
-            /// <param name="importFile">parsed JSON import file</param>
-            /// <returns>parsed import object</returns>
-            private static IEnumerable<object> EnumerateImportItems(object value)
-            {
-                value = UnwrapInteropValue(value);
-                if (value == null)
+                if (value == null || value.Kind == ImportJsonValue.JsonKind.Null)
                 {
                     yield break;
                 }
 
-                if (value is string || value is ValueType)
+                if (value.Kind == ImportJsonValue.JsonKind.Array)
                 {
-                    yield break;
-                }
-
-                if (value is Array array)
-                {
-                    for (var i = 0; i < array.Length; i++)
+                    if (value.ArrayValue == null)
                     {
-                        yield return array.GetValue(i);
+                        yield break;
+                    }
+
+                    foreach (var item in value.ArrayValue)
+                    {
+                        yield return item;
                     }
 
                     yield break;
                 }
 
                 // PowerShell unwraps single-element arrays to the element itself.
-                if (value is IDictionary || value is IDictionary<string, object>)
+                if (value.Kind == ImportJsonValue.JsonKind.Object)
                 {
                     yield return value;
-                    yield break;
-                }
-
-                if (value is IEnumerable enumerable)
-                {
-                    foreach (var item in enumerable)
-                    {
-                        yield return item;
-                    }
                 }
             }
 
-            private static ImportRecord ParseImportRecord(IDictionary<string, object> record)
+            private static ImportRecord ParseImportRecord(ImportJsonValue recordValue)
             {
                 var rec = new ImportRecord();
-                foreach (var pair in record)
+                if (recordValue?.Kind != ImportJsonValue.JsonKind.Object || recordValue.ObjectValue == null)
+                {
+                    return rec;
+                }
+
+                foreach (var pair in recordValue.ObjectValue)
                 {
                     switch (pair.Key)
                     {
                         case "title":
-                            rec.Title = pair.Value as string ?? pair.Value?.ToString();
+                            rec.Title = pair.Value?.AsString();
                             break;
                         case "uid":
-                            rec.Uid = pair.Value as string ?? pair.Value?.ToString();
+                            rec.Uid = pair.Value?.AsString();
                             break;
                         case "$type":
-                            rec.RecordType = pair.Value as string ?? pair.Value?.ToString();
+                            rec.RecordType = pair.Value?.AsString();
                             break;
                         case "login":
-                            rec.Login = pair.Value as string ?? pair.Value?.ToString();
+                            rec.Login = pair.Value?.AsString();
                             break;
                         case "password":
-                            rec.Password = pair.Value as string ?? pair.Value?.ToString();
+                            rec.Password = pair.Value?.AsString();
                             break;
                         case "login_url":
-                            rec.LoginUrl = pair.Value as string ?? pair.Value?.ToString();
+                            rec.LoginUrl = pair.Value?.AsString();
                             break;
                         case "notes":
-                            rec.Notes = pair.Value as string ?? pair.Value?.ToString();
+                            rec.Notes = pair.Value?.AsString();
                             break;
                         case "folders":
                         {
                             var fl = new List<ImportRecordFolder>();
                             foreach (var fo in EnumerateImportItems(pair.Value))
                             {
-                                var folder = AsStringObjectDictionary(fo);
-                                if (folder == null)
+                                if (fo?.Kind != ImportJsonValue.JsonKind.Object || fo.ObjectValue == null)
                                 {
                                     continue;
                                 }
 
                                 var irf = new ImportRecordFolder();
-                                foreach (var fp in folder)
+                                foreach (var fp in fo.ObjectValue)
                                 {
                                     switch (fp.Key)
                                     {
                                         case "folder":
-                                            irf.FolderName = fp.Value as string ?? fp.Value?.ToString();
+                                            irf.FolderName = fp.Value?.AsString();
                                             break;
                                         case "shared_folder":
-                                            irf.SharedFolderName = fp.Value as string ?? fp.Value?.ToString();
+                                            irf.SharedFolderName = fp.Value?.AsString();
                                             break;
                                         case "can_edit":
-                                            irf.CanEdit = fp.Value as bool?;
+                                            irf.CanEdit = fp.Value?.AsBoolean();
                                             break;
                                         case "can_share":
-                                            irf.CanShare = fp.Value as bool?;
+                                            irf.CanShare = fp.Value?.AsBoolean();
                                             break;
                                     }
                                 }
@@ -606,7 +551,7 @@ namespace KeeperSecurity
                         }
                             break;
                         case "custom_fields":
-                            rec.CustomFields = AsStringObjectDictionary(pair.Value);
+                            rec.CustomFields = ParseCustomFieldsFromImportJson(pair.Value);
                             break;
                     }
                 }
@@ -614,84 +559,84 @@ namespace KeeperSecurity
                 return rec;
             }
 
-            public static ImportFile LoadJsonDictionary(IDictionary<string, object> importFile)
+            /// <summary>
+            /// Parses a typed JSON document (from PowerCommander) into an import file.
+            /// </summary>
+            public static ImportFile LoadJsonDictionary(ImportJsonValue importFile)
             {
+                if (importFile == null || importFile.Kind != ImportJsonValue.JsonKind.Object || importFile.ObjectValue == null)
+                {
+                    throw new ArgumentException("Import JSON root must be an object.", nameof(importFile));
+                }
+
                 var import = new ImportFile();
-                if (importFile.TryGetValue("records", out var r))
+                if (importFile.ObjectValue.TryGetValue("records", out var recordsValue))
                 {
                     var recordList = new List<ImportRecord>();
-                    foreach (var ro in EnumerateImportItems(r))
+                    foreach (var ro in EnumerateImportItems(recordsValue))
                     {
-                        var record = AsStringObjectDictionary(ro);
-                        if (record == null)
-                        {
-                            continue;
-                        }
-
-                        recordList.Add(ParseImportRecord(record));
+                        recordList.Add(ParseImportRecord(ro));
                     }
 
                     import.Records = recordList.ToArray();
                 }
 
-                if (importFile.TryGetValue("shared_folders", out var sfs))
+                if (importFile.ObjectValue.TryGetValue("shared_folders", out var sharedFoldersValue))
                 {
                     var sharedFolderList = new List<ImportSharedFolder>();
-                    foreach (var sfo in EnumerateImportItems(sfs))
+                    foreach (var sfo in EnumerateImportItems(sharedFoldersValue))
                     {
-                        var sharedFolder = AsStringObjectDictionary(sfo);
-                        if (sharedFolder == null)
+                        if (sfo?.Kind != ImportJsonValue.JsonKind.Object || sfo.ObjectValue == null)
                         {
                             continue;
                         }
 
                         var sf = new ImportSharedFolder();
-                        foreach (var pair in sharedFolder)
+                        foreach (var pair in sfo.ObjectValue)
                         {
                             switch (pair.Key)
                             {
                                 case "path":
-                                    sf.Path = pair.Value as string ?? pair.Value?.ToString();
+                                    sf.Path = pair.Value?.AsString();
                                     break;
                                 case "can_edit":
-                                    sf.CanEdit = pair.Value is true;
+                                    sf.CanEdit = pair.Value?.AsBoolean() == true;
                                     break;
                                 case "can_share":
-                                    sf.CanShare = pair.Value is true;
+                                    sf.CanShare = pair.Value?.AsBoolean() == true;
                                     break;
                                 case "manage_records":
-                                    sf.ManageRecords = pair.Value is true;
+                                    sf.ManageRecords = pair.Value?.AsBoolean() == true;
                                     break;
                                 case "manage_users":
-                                    sf.ManageUsers = pair.Value is true;
+                                    sf.ManageUsers = pair.Value?.AsBoolean() == true;
                                     break;
                                 case "permissions":
                                 {
                                     var permissions = new List<ImportSharedFolderPermissions>();
                                     foreach (var sfp in EnumerateImportItems(pair.Value))
                                     {
-                                        var permission = AsStringObjectDictionary(sfp);
-                                        if (permission == null)
+                                        if (sfp?.Kind != ImportJsonValue.JsonKind.Object || sfp.ObjectValue == null)
                                         {
                                             continue;
                                         }
 
                                         var perm = new ImportSharedFolderPermissions();
-                                        foreach (var ppair in permission)
+                                        foreach (var ppair in sfp.ObjectValue)
                                         {
                                             switch (ppair.Key)
                                             {
                                                 case "uid":
-                                                    perm.Uid = (ppair.Value ?? String.Empty).ToString();
+                                                    perm.Uid = ppair.Value?.AsString() ?? string.Empty;
                                                     break;
                                                 case "name":
-                                                    perm.Name = (ppair.Value ?? String.Empty).ToString();
+                                                    perm.Name = ppair.Value?.AsString() ?? string.Empty;
                                                     break;
                                                 case "manage_records":
-                                                    perm.ManageRecords = ppair.Value is true;
+                                                    perm.ManageRecords = ppair.Value?.AsBoolean() == true;
                                                     break;
                                                 case "manage_users":
-                                                    perm.ManageUsers = ppair.Value is true;
+                                                    perm.ManageUsers = ppair.Value?.AsBoolean() == true;
                                                     break;
                                             }
                                         }
@@ -715,6 +660,15 @@ namespace KeeperSecurity
                 }
 
                 return import;
+            }
+
+            /// <summary>
+            /// Parses a legacy untyped JSON dictionary into an import file.
+            /// Prefer <see cref="LoadJsonDictionary(ImportJsonValue)"/> from PowerCommander.
+            /// </summary>
+            public static ImportFile LoadJsonDictionary(IDictionary<string, object> importFile)
+            {
+                return LoadJsonDictionary(ImportJsonValue.FromLegacyObject(importFile));
             }
 
             /// <summary>
@@ -845,14 +799,14 @@ namespace KeeperSecurity
                             }
 
                             // Snapshot custom_fields before PopulateTypedRecord mutates/removes keys.
-                            var customSnapshot = record.CustomFields != null
-                                ? new Dictionary<string, object>(record.CustomFields)
-                                : null;
+                            var customSnapshot = record.CustomFields?
+                                .Select(CloneImportCustomField)
+                                .ToArray();
 
                             var typedRecord = new TypedRecord(record.RecordType);
                             record.PopulateTypedRecord(typedRecord, recordType.Fields);
 
-                            // Re-apply nested custom_fields dictionaries onto any schema/custom fields
+                            // Re-apply nested custom_fields onto any schema/custom fields
                             // that did not receive values (classic vault import parity with NSF).
                             ApplyImportCustomFieldDictionaries(typedRecord, customSnapshot);
 
@@ -931,7 +885,7 @@ namespace KeeperSecurity
                         RecordType = string.IsNullOrEmpty(record.RecordType) ? "login" : record.RecordType,
                         Notes = record.Notes,
                         FolderUid = ResolveKeeperNSFFolderUid(vault, record, defaultFolderUid),
-                        Fields = BuildNsfFieldsFromImportRecord(vault, record),
+                        Fields = ToNsfRequestFields(BuildNsfFieldsFromImportRecord(vault, record)),
                     });
                 }
 
@@ -981,7 +935,7 @@ namespace KeeperSecurity
                         RecordType = string.IsNullOrEmpty(record.RecordType) ? null : record.RecordType,
                         Notes = record.Notes,
                         Fields = HasImportFieldPayload(record)
-                            ? BuildNsfFieldsFromImportRecord(vault, record)
+                            ? ToNsfRequestFields(BuildNsfFieldsFromImportRecord(vault, record))
                             : null,
                     });
                 }
@@ -1003,7 +957,7 @@ namespace KeeperSecurity
                 return import.Login != null
                     || import.Password != null
                     || import.LoginUrl != null
-                    || (import.CustomFields != null && import.CustomFields.Count > 0);
+                    || (import.CustomFields != null && import.CustomFields.Length > 0);
             }
 
             private static string ResolveKeeperNSFFolderUid(
@@ -1035,7 +989,7 @@ namespace KeeperSecurity
                     Password = import.Password,
                     LoginUrl = import.LoginUrl,
                     Notes = import.Notes,
-                    CustomFields = import.CustomFields?.ToDictionary(entry => entry.Key, entry => entry.Value),
+                    CustomFields = import.CustomFields?.Select(CloneImportCustomField).ToArray(),
                     Folders = import.Folders?.Select(f => new ImportRecordFolder
                     {
                         FolderName = f.FolderName,
@@ -1048,21 +1002,24 @@ namespace KeeperSecurity
 
             private static void ApplyImportCustomFieldDictionaries(
                 TypedRecord typed,
-                IDictionary<string, object> customSnapshot)
+                ImportCustomField[] customSnapshot)
             {
-                if (typed == null || customSnapshot == null || customSnapshot.Count == 0)
+                if (typed == null || customSnapshot == null || customSnapshot.Length == 0)
                 {
                     return;
                 }
 
-                foreach (var pair in customSnapshot)
+                foreach (var customField in customSnapshot)
                 {
-                    if (pair.Value is not IDictionary && pair.Value is not IDictionary<string, object>)
+                    if (customField == null
+                        || string.IsNullOrEmpty(customField.Name)
+                        || customField.Elements == null
+                        || customField.Elements.Length == 0)
                     {
                         continue;
                     }
 
-                    var split = SplitFieldKey(pair.Key);
+                    var split = SplitFieldKey(customField.Name);
                     var fieldType = split.Item1;
                     var fieldLabel = split.Item2;
                     if (string.IsNullOrEmpty(fieldType))
@@ -1084,19 +1041,19 @@ namespace KeeperSecurity
                         }
                         catch (Exception e)
                         {
-                            Trace.TraceError($"Create field \"{pair.Key}\" error: {e.Message}");
+                            Trace.TraceError($"Create field \"{customField.Name}\" error: {e.Message}");
                             continue;
                         }
                     }
 
                     if (field.Count == 0)
                     {
-                        field.ObjectValue = pair.Value;
+                        field.ObjectValue = ToAssignValue(customField);
                     }
                 }
             }
 
-            private static IDictionary<string, object> BuildNsfFieldsFromImportRecord(
+            private static ImportCustomField[] BuildNsfFieldsFromImportRecord(
                 VaultOnline vault,
                 ImportRecord import)
             {
@@ -1106,10 +1063,13 @@ namespace KeeperSecurity
                     return BuildNsfFieldsFromLegacyImportRecord(copy);
                 }
 
-                // Start from raw custom_fields dictionaries so complex objects (host, paymentCard, …)
+                // Start from typed fields so complex objects (host, paymentCard, …)
                 // survive even when typed schema matching is incomplete. NSF CoerceNsfFieldValue
-                // converts these dictionaries into typed field objects.
-                var fields = BuildNsfFieldsFromLegacyImportRecord(copy);
+                // converts element dictionaries into typed field objects.
+                var fieldsByName = BuildNsfFieldsFromLegacyImportRecord(copy)
+                    .Where(f => f?.Name != null)
+                    .GroupBy(f => f.Name, StringComparer.Ordinal)
+                    .ToDictionary(g => g.Key, g => g.Last(), StringComparer.Ordinal);
 
                 var recordTypeName = copy.RecordType;
                 if (!vault.TryGetRecordTypeByName(recordTypeName, out var recordType))
@@ -1120,52 +1080,60 @@ namespace KeeperSecurity
 
                 var typed = new TypedRecord(recordTypeName);
                 copy.PopulateTypedRecord(typed, recordType.Fields);
-                foreach (var pair in ExtractNsfFieldsFromTypedRecord(typed))
+                foreach (var field in ExtractNsfFieldsFromTypedRecord(typed))
                 {
-                    fields[pair.Key] = pair.Value;
+                    if (field?.Name != null)
+                    {
+                        fieldsByName[field.Name] = field;
+                    }
                 }
 
-                return fields;
+                return fieldsByName.Values.ToArray();
             }
 
-            private static IDictionary<string, object> BuildNsfFieldsFromLegacyImportRecord(ImportRecord import)
+            private static ImportCustomField[] BuildNsfFieldsFromLegacyImportRecord(ImportRecord import)
             {
-                var fields = new Dictionary<string, object>();
+                var fields = new List<ImportCustomField>();
                 // null = omitted from import JSON; empty string clears the field on update.
                 if (import.Login != null)
                 {
-                    fields["login"] = import.Login;
+                    fields.Add(new ImportCustomField { Name = "login", TextValue = import.Login });
                 }
 
                 if (import.Password != null)
                 {
-                    fields["password"] = import.Password;
+                    fields.Add(new ImportCustomField { Name = "password", TextValue = import.Password });
                 }
 
                 if (import.LoginUrl != null)
                 {
-                    fields["url"] = import.LoginUrl;
+                    fields.Add(new ImportCustomField { Name = "url", TextValue = import.LoginUrl });
                 }
 
                 if (import.CustomFields == null)
                 {
-                    return fields;
+                    return fields.ToArray();
                 }
 
-                foreach (var pair in import.CustomFields)
+                foreach (var customField in import.CustomFields)
                 {
-                    if (pair.Value == null)
+                    if (customField == null || string.IsNullOrEmpty(customField.Name) || !customField.HasValue)
                     {
                         continue;
                     }
 
-                    if (string.Equals(pair.Key, TwoFactorCode, StringComparison.Ordinal))
+                    if (string.Equals(customField.Name, TwoFactorCode, StringComparison.Ordinal))
                     {
-                        fields["oneTimeCode"] = pair.Value;
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = "oneTimeCode",
+                            TextValue = customField.TextValue,
+                            Elements = customField.Elements,
+                        });
                         continue;
                     }
 
-                    var split = SplitFieldKey(pair.Key);
+                    var split = SplitFieldKey(customField.Name);
                     var fieldType = split.Item1;
                     var fieldLabel = split.Item2;
                     if (string.IsNullOrEmpty(fieldType))
@@ -1176,15 +1144,20 @@ namespace KeeperSecurity
                     var key = string.IsNullOrEmpty(fieldLabel)
                         ? fieldType
                         : $"{fieldType}:{fieldLabel}";
-                    fields[key] = pair.Value;
+                    fields.Add(new ImportCustomField
+                    {
+                        Name = key,
+                        TextValue = customField.TextValue,
+                        Elements = customField.Elements,
+                    });
                 }
 
-                return fields;
+                return fields.ToArray();
             }
 
-            private static IDictionary<string, object> ExtractNsfFieldsFromTypedRecord(TypedRecord typed)
+            private static ImportCustomField[] ExtractNsfFieldsFromTypedRecord(TypedRecord typed)
             {
-                var fields = new Dictionary<string, object>();
+                var fields = new List<ImportCustomField>();
                 foreach (var field in typed.Fields.Concat(typed.Custom))
                 {
                     if (string.IsNullOrEmpty(field.FieldName) || field.Count == 0)
@@ -1194,7 +1167,7 @@ namespace KeeperSecurity
 
                     // Use GetValueAt (not ObjectValue) so empty schema fields are not auto-materialized.
                     var value = field.GetValueAt(0);
-                    if (!HasNsfFieldValue(value))
+                    if (value == null)
                     {
                         continue;
                     }
@@ -1203,10 +1176,194 @@ namespace KeeperSecurity
                     var key = string.IsNullOrEmpty(field.FieldLabel)
                         ? field.FieldName
                         : $"{field.FieldName}:{field.FieldLabel}";
-                    fields[key] = value;
+
+                    // Empty string is kept (explicit NSF update clear); other empty payloads are skipped.
+                    if (value is string text)
+                    {
+                        fields.Add(new ImportCustomField { Name = key, TextValue = text });
+                        continue;
+                    }
+
+                    if (!HasNsfFieldValue(value))
+                    {
+                        continue;
+                    }
+
+                    var customField = ToImportCustomField(key, value);
+                    if (customField != null)
+                    {
+                        fields.Add(customField);
+                    }
                 }
 
-                return fields;
+                return fields.ToArray();
+            }
+
+            private static ImportCustomField ToImportCustomField(string name, object value)
+            {
+                if (string.IsNullOrEmpty(name) || value == null)
+                {
+                    return null;
+                }
+
+                if (value is string text)
+                {
+                    return new ImportCustomField { Name = name, TextValue = text };
+                }
+
+                if (value is IFieldTypeSerialize serializer)
+                {
+                    var elementNames = serializer.Elements?.ToArray() ?? Array.Empty<string>();
+                    var elementValues = serializer.ElementValues?.ToArray() ?? Array.Empty<string>();
+                    var count = Math.Min(elementNames.Length, elementValues.Length);
+                    var elements = new ImportCustomFieldElement[count];
+                    for (var i = 0; i < count; i++)
+                    {
+                        elements[i] = new ImportCustomFieldElement
+                        {
+                            Name = elementNames[i],
+                            Value = elementValues[i],
+                        };
+                    }
+
+                    return new ImportCustomField { Name = name, Elements = elements };
+                }
+
+                if (value is IDictionary dictionary)
+                {
+                    var elements = new List<ImportCustomFieldElement>();
+                    foreach (DictionaryEntry entry in dictionary)
+                    {
+                        if (entry.Key is not string elementName)
+                        {
+                            continue;
+                        }
+
+                        elements.Add(new ImportCustomFieldElement
+                        {
+                            Name = elementName,
+                            Value = entry.Value as string ?? entry.Value?.ToString(),
+                        });
+                    }
+
+                    return new ImportCustomField { Name = name, Elements = elements.ToArray() };
+                }
+
+                return new ImportCustomField { Name = name, TextValue = value.ToString() };
+            }
+
+            private static ImportCustomField CloneImportCustomField(ImportCustomField field)
+            {
+                if (field == null)
+                {
+                    return null;
+                }
+
+                return new ImportCustomField
+                {
+                    Name = field.Name,
+                    TextValue = field.TextValue,
+                    Elements = field.Elements?
+                        .Select(e => e == null
+                            ? null
+                            : new ImportCustomFieldElement { Name = e.Name, Value = e.Value })
+                        .ToArray(),
+                };
+            }
+
+            private static ImportCustomField[] ParseCustomFieldsFromImportJson(ImportJsonValue value)
+            {
+                if (value?.Kind != ImportJsonValue.JsonKind.Object || value.ObjectValue == null || value.ObjectValue.Count == 0)
+                {
+                    return null;
+                }
+
+                var fields = new List<ImportCustomField>(value.ObjectValue.Count);
+                foreach (var pair in value.ObjectValue)
+                {
+                    if (string.IsNullOrEmpty(pair.Key) || pair.Value == null || pair.Value.Kind == ImportJsonValue.JsonKind.Null)
+                    {
+                        continue;
+                    }
+
+                    if (pair.Value.Kind == ImportJsonValue.JsonKind.Object)
+                    {
+                        var elements = new List<ImportCustomFieldElement>();
+                        if (pair.Value.ObjectValue != null)
+                        {
+                            foreach (var element in pair.Value.ObjectValue)
+                            {
+                                elements.Add(new ImportCustomFieldElement
+                                {
+                                    Name = element.Key,
+                                    Value = element.Value?.AsString(),
+                                });
+                            }
+                        }
+
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = pair.Key,
+                            Elements = elements.ToArray(),
+                        });
+                        continue;
+                    }
+
+                    fields.Add(new ImportCustomField
+                    {
+                        Name = pair.Key,
+                        TextValue = pair.Value.AsString() ?? string.Empty,
+                    });
+                }
+
+                return fields.Count > 0 ? fields.ToArray() : null;
+            }
+
+            private static object ToAssignValue(ImportCustomField field)
+            {
+                if (field == null)
+                {
+                    return null;
+                }
+
+                if (field.Elements != null)
+                {
+                    var dict = new Dictionary<string, object>(field.Elements.Length);
+                    foreach (var element in field.Elements)
+                    {
+                        if (element?.Name == null)
+                        {
+                            continue;
+                        }
+
+                        dict[element.Name] = element.Value;
+                    }
+
+                    return dict;
+                }
+
+                return field.TextValue;
+            }
+
+            private static IDictionary<string, object> ToNsfRequestFields(IEnumerable<ImportCustomField> fields)
+            {
+                var result = new Dictionary<string, object>();
+                if (fields == null)
+                {
+                    return result;
+                }
+
+                foreach (var field in fields)
+                {
+                    if (field == null || string.IsNullOrEmpty(field.Name) || !field.HasValue)
+                    {
+                        continue;
+                    }
+
+                    result[field.Name] = ToAssignValue(field);
+                }
+
+                return result;
             }
 
             private static bool HasNsfFieldValue(object value)

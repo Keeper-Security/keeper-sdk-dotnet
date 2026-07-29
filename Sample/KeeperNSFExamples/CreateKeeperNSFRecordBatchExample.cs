@@ -284,13 +284,17 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "bankCard",
                 Notes = "Payment card record",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$paymentCard"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["cardNumber"] = "4111111111111111",
-                        ["cardExpirationDate"] = "04/2028",
-                        ["cardSecurityCode"] = "123",
+                        Name = "$paymentCard",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "cardNumber", Value = "4111111111111111" },
+                            new ImportCustomFieldElement { Name = "cardExpirationDate", Value = "04/2028" },
+                            new ImportCustomFieldElement { Name = "cardSecurityCode", Value = "123" },
+                        },
                     },
                 },
             };
@@ -304,14 +308,18 @@ namespace Sample.KeeperNSFExamples
                 Password = "BatchDemo-DB-2026!",
                 Notes = "SQL Server application login",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$host"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["hostName"] = "192.168.1.10",
-                        ["port"] = "1433",
+                        Name = "$host",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "hostName", Value = "192.168.1.10" },
+                            new ImportCustomFieldElement { Name = "port", Value = "1433" },
+                        },
                     },
-                    ["$databaseType"] = "sqlServer",
+                    new ImportCustomField { Name = "$databaseType", TextValue = "sqlServer" },
                 },
             };
 
@@ -324,12 +332,16 @@ namespace Sample.KeeperNSFExamples
                 Password = "BatchDemo-Server-2026!",
                 Notes = "Linux admin account",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$host"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["hostName"] = "server.example.com",
-                        ["port"] = "22",
+                        Name = "$host",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "hostName", Value = "server.example.com" },
+                            new ImportCustomFieldElement { Name = "port", Value = "22" },
+                        },
                     },
                 },
             };
@@ -341,12 +353,16 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "sshKeys",
                 Notes = "SSH key pair (demo placeholders)",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$keyPair"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["publicKey"] = "LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0=",
-                        ["privateKey"] = "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ==",
+                        Name = "$keyPair",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "publicKey", Value = "LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0=" },
+                            new ImportCustomFieldElement { Name = "privateKey", Value = "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQ==" },
+                        },
                     },
                 },
             };
@@ -358,16 +374,20 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "address",
                 Notes = "Office location",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$address:Work"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["street1"] = "123 Main Street",
-                        ["street2"] = "Suite 400",
-                        ["city"] = "San Jose",
-                        ["state"] = "CA",
-                        ["zip"] = "95110",
-                        ["country"] = "US",
+                        Name = "$address:Work",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "street1", Value = "123 Main Street" },
+                            new ImportCustomFieldElement { Name = "street2", Value = "Suite 400" },
+                            new ImportCustomFieldElement { Name = "city", Value = "San Jose" },
+                            new ImportCustomFieldElement { Name = "state", Value = "CA" },
+                            new ImportCustomFieldElement { Name = "zip", Value = "95110" },
+                            new ImportCustomFieldElement { Name = "country", Value = "US" },
+                        },
                     },
                 },
             };
@@ -379,21 +399,29 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "contact",
                 Notes = "Sample contact card",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$name"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["first"] = "Jane",
-                        ["middle"] = "",
-                        ["last"] = "Doe",
+                        Name = "$name",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "first", Value = "Jane" },
+                            new ImportCustomFieldElement { Name = "middle", Value = "" },
+                            new ImportCustomFieldElement { Name = "last", Value = "Doe" },
+                        },
                     },
-                    ["$email"] = "jane.doe@example.com",
-                    ["$phone:Mobile"] = new Dictionary<string, object>
+                    new ImportCustomField { Name = "$email", TextValue = "jane.doe@example.com" },
+                    new ImportCustomField
                     {
-                        ["region"] = "US",
-                        ["number"] = "5551234567",
-                        ["ext"] = "",
-                        ["type"] = "mobile",
+                        Name = "$phone:Mobile",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "region", Value = "US" },
+                            new ImportCustomFieldElement { Name = "number", Value = "5551234567" },
+                            new ImportCustomFieldElement { Name = "ext", Value = "" },
+                            new ImportCustomFieldElement { Name = "type", Value = "mobile" },
+                        },
                     },
                 },
             };
@@ -405,9 +433,9 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "secureNote",
                 Notes = "Record-level notes",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$note"] = "Sensitive information stored in the secure note field.",
+                    new ImportCustomField { Name = "$note", TextValue = "Sensitive information stored in the secure note field." },
                 },
             };
 
@@ -418,13 +446,17 @@ namespace Sample.KeeperNSFExamples
                 RecordType = "bankAccount",
                 Notes = "Business checking account",
                 Folders = folders,
-                CustomFields = new Dictionary<string, object>
+                CustomFields = new[]
                 {
-                    ["$bankAccount"] = new Dictionary<string, object>
+                    new ImportCustomField
                     {
-                        ["accountType"] = "Checking",
-                        ["routingNumber"] = "021000021",
-                        ["accountNumber"] = "1234567890",
+                        Name = "$bankAccount",
+                        Elements = new[]
+                        {
+                            new ImportCustomFieldElement { Name = "accountType", Value = "Checking" },
+                            new ImportCustomFieldElement { Name = "routingNumber", Value = "021000021" },
+                            new ImportCustomFieldElement { Name = "accountNumber", Value = "1234567890" },
+                        },
                     },
                 },
             };

@@ -3,6 +3,11 @@
 . "$PSScriptRoot/NsfBatchSampleData.ps1"
 
 function Script:ConvertTo-NSFJsonValue {
+    <#
+    .SYNOPSIS
+    Converts PowerShell values to Dictionary[string,object] / scalars for NSF record Fields bags
+    (KeeperNSFRecordCreateRequest.Fields). For import-file JSON use ConvertTo-ImportJsonValue instead.
+    #>
     Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
 
     if ($null -eq $InputObject) { return $null }
@@ -18,7 +23,7 @@ function Script:ConvertTo-NSFJsonValue {
     }
 
     if ($base -is [System.Collections.IDictionary]) {
-        # Use Dictionary[string,object] so KeeperImport.LoadJsonDictionary accepts custom_fields.
+        # Use Dictionary[string,object] so NSF create/update Fields accepts custom values.
         $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         foreach ($key in $base.Keys) {
             $ht[[string]$key] = ConvertTo-NSFJsonValue -InputObject $base[$key]
@@ -271,26 +276,16 @@ function Script:Read-KeeperNSFImportFile {
     }
 
     try {
-        # ConvertFrom-Json + LoadJsonDictionary preserves nested custom_fields.
+        # ConvertFrom-Json + ImportJsonValue preserves nested custom_fields.
         # JsonUtils.ParseJson / DataContractJsonSerializer turns those into empty System.Object.
         $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
-        $dict = ConvertTo-NSFJsonValue -InputObject $parsed
-        if ($dict -isnot [System.Collections.Generic.Dictionary[string, object]]) {
-            $generic = New-Object 'System.Collections.Generic.Dictionary[string,object]'
-            foreach ($key in $dict.Keys) {
-                $generic[[string]$key] = $dict[$key]
-            }
-            $dict = $generic
+        $jsonValue = ConvertTo-ImportJsonValue -InputObject $parsed
+        if ($null -eq $jsonValue -or $jsonValue.Kind -ne [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+            throw "Import JSON root must be an object."
         }
 
-        # PowerShell unwraps single-element arrays; restore them before calling C#.
-        foreach ($arrayKey in @('records', 'shared_folders')) {
-            if ($dict.ContainsKey($arrayKey) -and $null -ne $dict[$arrayKey] -and $dict[$arrayKey] -isnot [System.Array]) {
-                $dict[$arrayKey] = @($dict[$arrayKey])
-            }
-        }
-
-        return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($dict)
+        $jsonValue = Repair-ImportJsonSingleElementArrays -JsonValue $jsonValue
+        return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($jsonValue)
     }
     catch {
         $msg = $_.Exception.Message

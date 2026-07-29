@@ -806,9 +806,16 @@ function Export-KeeperVault {
 New-Alias -Name kexport -Value Export-KeeperVault
 
 function Script:ConvertTo-ImportJsonValue {
+    <#
+    .SYNOPSIS
+    Converts PowerShell/ConvertFrom-Json output into KeeperSecurity.Commands.ImportJsonValue
+    for KeeperImport.LoadJsonDictionary. (Not for NSF record Fields bags — use ConvertTo-NSFJsonValue.)
+    #>
     Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
 
-    if ($null -eq $InputObject) { return $null }
+    if ($null -eq $InputObject) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::Null
+    }
 
     $base = $InputObject
     if ($InputObject -is [System.Management.Automation.PSObject] -and $null -ne $InputObject.PSObject) {
@@ -816,36 +823,88 @@ function Script:ConvertTo-ImportJsonValue {
         if ($null -ne $bo) { $base = $bo }
     }
 
-    if ($base -is [string] -or $base -is [System.ValueType]) {
+    if ($base -is [string]) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+    }
+
+    if ($base -is [bool]) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromBoolean([bool]$base)
+    }
+
+    if ($base -is [byte] -or $base -is [sbyte] -or $base -is [int16] -or $base -is [uint16] -or
+        $base -is [int] -or $base -is [uint32] -or $base -is [int64] -or $base -is [uint64] -or
+        $base -is [single] -or $base -is [double] -or $base -is [decimal]) {
+        # Store as string to avoid double precision loss (e.g. large numeric uids).
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+    }
+
+    if ($base -is [KeeperSecurity.Commands.ImportJsonValue]) {
         return $base
     }
 
     if ($base -is [System.Collections.IDictionary]) {
-        # Dictionary[string,object] so KeeperImport.LoadJsonDictionary accepts custom_fields.
-        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
         foreach ($key in $base.Keys) {
             $ht[[string]$key] = ConvertTo-ImportJsonValue -InputObject $base[$key]
         }
-        return $ht
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($ht)
     }
 
     if ($base -is [System.Collections.IEnumerable]) {
-        $list = New-Object 'System.Collections.Generic.List[object]'
+        $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ImportJsonValue]'
         foreach ($item in $base) {
             $list.Add((ConvertTo-ImportJsonValue -InputObject $item)) | Out-Null
         }
-        return ,$list.ToArray()
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromArray($list)
     }
 
     if ($null -ne $InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
-        $ht = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
         foreach ($prop in $InputObject.PSObject.Properties) {
             $ht[$prop.Name] = ConvertTo-ImportJsonValue -InputObject $prop.Value
         }
-        return $ht
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($ht)
     }
 
-    return $base
+    return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+}
+
+function Script:Repair-ImportJsonSingleElementArrays {
+    <#
+    .SYNOPSIS
+    PowerShell unwraps single-element arrays to the element; restore records/shared_folders as arrays.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Commands.ImportJsonValue] $JsonValue
+    )
+
+    if ($null -eq $JsonValue -or $JsonValue.Kind -ne [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+        return $JsonValue
+    }
+
+    $changed = $false
+    $map = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
+    foreach ($key in $JsonValue.ObjectValue.Keys) {
+        $existing = $JsonValue.ObjectValue[$key]
+        if (($key -eq 'records' -or $key -eq 'shared_folders') -and
+            $null -ne $existing -and
+            $existing.Kind -eq [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+            $single = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ImportJsonValue]'
+            $single.Add($existing) | Out-Null
+            $map[$key] = [KeeperSecurity.Commands.ImportJsonValue]::FromArray($single)
+            $changed = $true
+        }
+        else {
+            $map[$key] = $existing
+        }
+    }
+
+    if (-not $changed) {
+        return $JsonValue
+    }
+
+    return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($map)
 }
 
 function Script:Read-KeeperImportFile {
@@ -858,25 +917,16 @@ function Script:Read-KeeperImportFile {
         throw "JSON text cannot be empty."
     }
 
-    # ConvertFrom-Json + LoadJsonDictionary preserves nested custom_fields.
+    # ConvertFrom-Json + ImportJsonValue preserves nested custom_fields.
     # JsonUtils.ParseJson / DataContractJsonSerializer turns those into empty System.Object.
     $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
-    $dict = ConvertTo-ImportJsonValue -InputObject $parsed
-    if ($dict -isnot [System.Collections.Generic.Dictionary[string, object]]) {
-        $generic = New-Object 'System.Collections.Generic.Dictionary[string,object]'
-        foreach ($key in $dict.Keys) {
-            $generic[[string]$key] = $dict[$key]
-        }
-        $dict = $generic
+    $jsonValue = ConvertTo-ImportJsonValue -InputObject $parsed
+    if ($null -eq $jsonValue -or $jsonValue.Kind -ne [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+        throw "Import JSON root must be an object."
     }
 
-    foreach ($arrayKey in @('records', 'shared_folders')) {
-        if ($dict.ContainsKey($arrayKey) -and $null -ne $dict[$arrayKey] -and $dict[$arrayKey] -isnot [System.Array]) {
-            $dict[$arrayKey] = @($dict[$arrayKey])
-        }
-    }
-
-    return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($dict)
+    $jsonValue = Repair-ImportJsonSingleElementArrays -JsonValue $jsonValue
+    return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($jsonValue)
 }
 
 function Import-KeeperVault {
