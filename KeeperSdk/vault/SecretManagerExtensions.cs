@@ -287,7 +287,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Classify a secret for KSM share operations (classic app_share_* vs NSF V3 AT_APPLICATION).
+        /// Classify a secret for KSM share operations.
         /// </summary>
         private bool TryClassifySecretManagerSecret(
             string secretUidOrName,
@@ -327,8 +327,7 @@ namespace KeeperSecurity.Vault
                 return true;
             }
 
-            // Found a classic vault record that is not shareable as a KSM secret (e.g. app record).
-            // Do not fall through to NSF resolution for the same UID.
+            // Found a classic vault record that is not shareable as a KSM secret.
             if (TryGetKeeperRecord(input, out _))
             {
                 return false;

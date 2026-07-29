@@ -198,7 +198,6 @@ namespace Commander
                     return;
                 }
 
-                // CLI resolves name/path → UID for UX; SDK classifies classic vs NSF and calls APIs.
                 var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
 
                 SecretsManagerApplication app;
@@ -220,7 +219,6 @@ namespace Commander
                     return;
                 }
 
-                // Resolve when possible; otherwise pass raw value (same as pre-NSF unshare behavior).
                 var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
                 var app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(context.Vault, app);
@@ -617,7 +615,6 @@ namespace Commander
             {
                 if (!vault.TryGetSharedFolder(shareUid, out SharedFolder sharedFolder) || sharedFolder == null)
                 {
-                    // NSF / unknown folder shares are not updated via classic shared-folder APIs.
                     return false;
                 }
 

@@ -237,17 +237,16 @@ function Remove-KeeperSecretManagerApp {
 }
 New-Alias -Name ksm-delete -Value Remove-KeeperSecretManagerApp
 
-function Resolve-KeeperSecretManagerSecretForSdk {
+function Resolve-KeeperSecretManagerSecret {
     <#
         .Synopsis
-        Resolves classic/NSF shared-folder or record UID/name for KSM share commands.
+        Resolves classic or NSF shared-folder / record UID or name for KSM share commands.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Secret
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    # Do not use $input — reserved automatic variable in Windows PowerShell 5.1.
     $secretInput = $Secret.Trim()
     if ([string]::IsNullOrWhiteSpace($secretInput)) {
         Write-Error -Message 'Secret UID or name is required.' -ErrorAction Stop
@@ -275,7 +274,6 @@ function Resolve-KeeperSecretManagerSecretForSdk {
         return $nsfRecord.RecordUid
     }
 
-    # Exact classic title match (avoid Select-String substring false positives).
     $exactSf = @(Get-KeeperSharedFolder | Where-Object {
             $_.Name -and [string]::Equals($_.Name, $secretInput, [System.StringComparison]::OrdinalIgnoreCase)
         } | Select-Object -First 1)
@@ -322,7 +320,7 @@ function Grant-KeeperSecretManagerFolderAccess {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
-    $uid = Resolve-KeeperSecretManagerSecretForSdk -Secret $Secret
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
     $vault.ShareToSecretManagerApplication($application.Uid, $uid, $CanEdit.IsPresent).GetAwaiter().GetResult()
 }
 Register-ArgumentCompleter -CommandName Grant-KeeperSecretManagerFolderAccess -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
@@ -352,7 +350,7 @@ function Revoke-KeeperSecretManagerFolderAccess {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
-    $uid = Resolve-KeeperSecretManagerSecretForSdk -Secret $Secret
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
     $vault.UnshareFromSecretManagerApplication($application.Uid, $uid).GetAwaiter().GetResult()
 }
 Register-ArgumentCompleter -CommandName Revoke-KeeperSecretManagerFolderAccess -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
@@ -387,7 +385,7 @@ function Update-KeeperSecretManagerShare {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
-    $uid = Resolve-KeeperSecretManagerSecretForSdk -Secret $Secret
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
     $vault.UpdateSecretManagerApplicationShare($application.Uid, $uid, $CanEdit.IsPresent).GetAwaiter().GetResult()
 }
 Register-ArgumentCompleter -CommandName Update-KeeperSecretManagerShare -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
