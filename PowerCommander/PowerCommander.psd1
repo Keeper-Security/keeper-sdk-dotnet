@@ -77,7 +77,7 @@
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
         'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
-        'PAM\SyncDown.ps1', 'PAM\Gateway.ps1'
+        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1'
         )
 
     # Functions to export from this module
@@ -141,7 +141,9 @@
         'Remove-KeeperNSFRecord', 'Remove-KeeperNSFRecords', 'Link-KeeperNSFRecord', 'Link-KeeperNSFRecords', 'Unlink-KeeperNSFRecords', 'Transfer-KeeperNSFRecordOwnership',
         'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep',
         'Sync-KeeperPam', 'Get-KeeperPamGatewayList', 'New-KeeperPamGateway',
-        'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances'
+        'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances',
+        'Get-KeeperPamRotationList', 'Get-KeeperPamRotationInfo', 'Set-KeeperPamRotation',
+        'Get-KeeperPamRotationScript', 'Add-KeeperPamRotationScript', 'Set-KeeperPamRotationScript', 'Remove-KeeperPamRotationScript'
         #'Test-Keeper',
     )
 
@@ -176,7 +178,11 @@
         'nsf-shortcut-list', 'nsf-shortcut-keep',
         'pam-sync', 'pam-gateway-list', 'pam-gw-list', 'pam-gateway-new', 'pam-gw-new',
         'pam-gateway-edit', 'pam-gw-edit', 'pam-gateway-remove', 'pam-gw-remove', 'pam-gateway-rm',
-        'pam-gateway-set-max-instances', 'pam-gw-set-max-instances')
+        'pam-gateway-set-max-instances', 'pam-gw-set-max-instances',
+        'pam-rotation-list', 'pam-rot-list', 'pam-rotation-info', 'pam-rot-info',
+        'pam-rotation-edit', 'pam-rot-edit', 'pam-rotation-new', 'pam-rot-new',
+        'pam-rotation-script-list', 'pam-rot-script-list', 'pam-rotation-script-add', 'pam-rot-script-add',
+        'pam-rotation-script-edit', 'pam-rot-script-edit', 'pam-rotation-script-delete', 'pam-rot-script-delete')
 
     # List of all modules packaged with this module
     # ModuleList = @()

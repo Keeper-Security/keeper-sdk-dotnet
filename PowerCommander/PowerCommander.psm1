@@ -203,10 +203,17 @@ Export-ModuleMember -Alias kepm-policy-list, kepm-policy-view, kepm-policy-add, 
 kepm-policy-delete, kepm-policy-remove, kepm-policy-agents, kepm-policy-assign
 
 Export-ModuleMember -Function Sync-KeeperPam, Get-KeeperPamGatewayList, New-KeeperPamGateway,
-Set-KeeperPamGateway, Remove-KeeperPamGateway, Set-KeeperPamGatewayMaxInstances
+Set-KeeperPamGateway, Remove-KeeperPamGateway, Set-KeeperPamGatewayMaxInstances,
+Get-KeeperPamRotationList, Get-KeeperPamRotationInfo, Set-KeeperPamRotation,
+Get-KeeperPamRotationScript, Add-KeeperPamRotationScript, Set-KeeperPamRotationScript, Remove-KeeperPamRotationScript
 Export-ModuleMember -Alias pam-sync, pam-gateway-list, pam-gw-list, pam-gateway-new, pam-gw-new,
 pam-gateway-edit, pam-gw-edit, pam-gateway-remove, pam-gw-remove, pam-gateway-rm,
-pam-gateway-set-max-instances, pam-gw-set-max-instances
+pam-gateway-set-max-instances, pam-gw-set-max-instances,
+pam-rotation-list, pam-rot-list, pam-rotation-info, pam-rot-info,
+pam-rotation-edit, pam-rot-edit, pam-rotation-new, pam-rot-new, pam-rotation-script-list, pam-rot-script-list,
+pam-rotation-script-add, pam-rot-script-add,
+pam-rotation-script-edit, pam-rot-script-edit,
+pam-rotation-script-delete, pam-rot-script-delete
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
