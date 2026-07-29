@@ -37,6 +37,7 @@ namespace Commander
 
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();
+            _vaultContext.EnterpriseContext = this;
             _vaultContext.EnterpriseData = EnterpriseData;
             lock (Commands)
             {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Enterprise;
 using KeeperSecurity.Storage;
@@ -26,6 +27,24 @@ namespace KeeperSecurity.Plugins.PAM
     public bool IsInitialized { get; set; }
 
     public string Uid => ControllerUid;
+  }
+
+  /// <summary>
+  /// Vault record rotation row exposed by <see cref="PamPlugin"/> (offline-capable).
+  /// </summary>
+  public class PamRecordRotationInfo : IUid
+  {
+    public string RecordUid { get; set; } = "";
+    public long Revision { get; set; }
+    public string ConfigurationUid { get; set; } = "";
+    public string Schedule { get; set; } = "";
+    public byte[] PwdComplexity { get; set; } = Array.Empty<byte>();
+    public bool Disabled { get; set; }
+    public string ResourceUid { get; set; } = "";
+    public long LastRotation { get; set; }
+    public int LastRotationStatus { get; set; }
+
+    public string Uid => RecordUid;
   }
 
   public class PamGatewaySystemInfo

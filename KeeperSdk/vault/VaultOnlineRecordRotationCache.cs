@@ -25,6 +25,7 @@ namespace KeeperSecurity.Vault
     {
         private readonly Dictionary<string, RecordRotationInfo> _recordRotationCache =
             new(StringComparer.Ordinal);
+        private bool _recordRotationsCleared;
 
         /// <summary>
         /// Full record-rotation map populated by normal vault sync-down.
@@ -47,9 +48,21 @@ namespace KeeperSecurity.Vault
             return TryGetRecordRotation(recordUid, out var rotation) ? rotation : null;
         }
 
+        /// <summary>
+        /// Returns whether the rotation cache was cleared since the last consume, then clears the flag.
+        /// Used when merging vault rotations into PAM offline storage (replace-all).
+        /// </summary>
+        public bool ConsumeRotationsCleared()
+        {
+            var cleared = _recordRotationsCleared;
+            _recordRotationsCleared = false;
+            return cleared;
+        }
+
         internal void ClearRecordRotationCache()
         {
             _recordRotationCache.Clear();
+            _recordRotationsCleared = true;
         }
 
         internal void RemoveFromRecordRotationCache(IEnumerable<string> recordUids)

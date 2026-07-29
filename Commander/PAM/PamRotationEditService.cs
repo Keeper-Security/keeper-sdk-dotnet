@@ -287,6 +287,7 @@ namespace Commander.PAM
             }
 
             await _vault.SyncDown();
+            _pathContext?.EnterpriseContext?.RefreshRecordRotations();
 
             if (failures.Count > 0)
             {

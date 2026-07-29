@@ -105,9 +105,38 @@ namespace Commander
                 _pamPlugins[context] = pamPlugin;
                 return pamPlugin;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Failed to initialize PAM plugin: {ex.Message}");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Copy vault sync_down rotations into PAM offline storage.
+        /// </summary>
+        internal static void RefreshRecordRotations(this IEnterpriseContext context)
+        {
+            var vault = context.GetVault();
+            if (vault == null)
+            {
+                return;
+            }
+
+            var plugin = context.GetPamPlugin();
+            if (plugin == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var replaceAll = vault.ConsumeRotationsCleared();
+                plugin.MergeRecordRotationsFromVault(vault, replaceAll);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"RefreshRecordRotations failed: {ex.Message}");
             }
         }
     }

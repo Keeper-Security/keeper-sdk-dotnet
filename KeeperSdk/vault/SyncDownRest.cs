@@ -726,6 +726,10 @@ namespace KeeperSecurity.Vault
                         storage.ClearKeeperNSF();
                     }
                     KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage);
+                    if (rs.KeeperDriveData.RecordRotationData.Count > 0)
+                    {
+                        vault.UpdateRecordRotationCache(rs.KeeperDriveData.RecordRotationData);
+                    }
                 }
 
                 if (rs.BreachWatchRecords.Count > 0)
