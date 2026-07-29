@@ -141,7 +141,7 @@ namespace KeeperSecurity
         {
             private const string TwoFactorCode = "TFC:Keeper";
 
-            internal static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
+            private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
                 password.Uid = import.Uid;
                 password.Title = import.Title;
@@ -178,7 +178,7 @@ namespace KeeperSecurity
                 }
             }
 
-            internal static Tuple<string, string> SplitFieldKey(string fieldKey)
+            private static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
                 var fieldLabel = "";
@@ -289,8 +289,32 @@ namespace KeeperSecurity
                             }
                             case IDictionary dict:
                             {
-                                // Prefer ObjectValue path (same coercion style NSF uses for nested objects).
-                                field.ObjectValue = dict;
+                                var obj = field.AppendValue();
+                                if (obj is IFieldTypeSerialize fts)
+                                {
+                                    foreach (var key in dict.Keys)
+                                    {
+                                        var val = dict[key];
+                                        if (key is string element)
+                                        {
+                                            var elementValue = val is IDictionary d
+                                                ? System.Text.Encoding.UTF8.GetString(Utils.JsonUtils.DumpJson(d))
+                                                : val?.ToString();
+
+                                            if (!string.IsNullOrEmpty(elementValue) && !fts.SetElementValue(element, elementValue))
+                                            {
+                                                Trace.TraceWarning(
+                                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Trace.TraceWarning(
+                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
+                                }
+
                                 break;
                             }
                         default:
@@ -302,7 +326,7 @@ namespace KeeperSecurity
                 }
             }
 
-            internal static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
+            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
                 typed.Uid = import.Uid;
                 typed.Title = import.Title;
@@ -807,7 +831,7 @@ namespace KeeperSecurity
                             record.PopulateTypedRecord(typedRecord, recordType.Fields);
 
                             // Re-apply nested custom_fields onto any schema/custom fields
-                            // that did not receive values (classic vault import parity with NSF).
+                            // that did not receive values (classic vault import).
                             ApplyImportCustomFieldDictionaries(typedRecord, customSnapshot);
 
                             keeperRecord = typedRecord;
