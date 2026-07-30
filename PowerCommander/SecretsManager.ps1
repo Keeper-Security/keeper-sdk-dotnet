@@ -42,6 +42,84 @@ $Keeper_KSMAppCompleter = {
     }
 }
 
+function script:writeKeeperSecretManagerAppDetail {
+    Param (
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline]$Vault,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SecretsManagerApplication]$Application
+    )
+
+    Write-Host ("{0,20}: {1}" -f 'Application UID', $Application.Uid)
+    Write-Host ("{0,20}: {1}" -f 'Title', $Application.Title)
+    Write-Host ''
+    Write-Host 'Shares'
+    Write-Host ('{0,-12} {1,-24} {2,-30} {3,-8} {4}' -f 'ShareType', 'ShareUid', 'ShareTitle', 'Editable', 'CreatedOn')
+
+    $shares = @($Application.Shares)
+    if ($shares.Count -eq 0) {
+        Write-Host '(none)'
+    }
+    else {
+        foreach ($share in $shares) {
+            if ($null -eq $share) { continue }
+
+            $shareType = if ($share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
+                'Record'
+            } else {
+                'Folder'
+            }
+            $shareTitle = ''
+
+            if ($share.SecretType -eq [KeeperSecurity.Vault.SecretManagerSecretType]::Record) {
+                $record = $null
+                if ($Vault.TryGetKeeperRecord($share.SecretUid, [ref]$record) -and $record) {
+                    $shareTitle = $record.Title
+                }
+                else {
+                    $nsfRecord = $null
+                    if ($Vault.TryGetKeeperNSFRecord($share.SecretUid, [ref]$nsfRecord) -and $nsfRecord) {
+                        $shareType = 'NSF Record'
+                        $shareTitle = $nsfRecord.Title
+                    }
+                }
+            }
+            else {
+                $sf = $null
+                if ($Vault.TryGetSharedFolder($share.SecretUid, [ref]$sf) -and $sf) {
+                    $shareType = 'SharedFolder'
+                    $shareTitle = $sf.Name
+                }
+                else {
+                    $nsfFolder = $null
+                    if ($Vault.TryGetKeeperNSFFolder($share.SecretUid, [ref]$nsfFolder) -and $nsfFolder) {
+                        $shareType = 'NSF Folder'
+                        $shareTitle = $nsfFolder.Name
+                    }
+                }
+            }
+
+            Write-Host ('{0,-12} {1,-24} {2,-30} {3,-8} {4}' -f $shareType, $share.SecretUid, $shareTitle, $share.Editable, $share.CreatedOn)
+        }
+    }
+
+    Write-Host ''
+    Write-Host 'Devices'
+    $devices = @($Application.Devices)
+    if ($devices.Count -eq 0) {
+        Write-Host '(none)'
+    }
+    else {
+        Write-Host ('{0,-20} {1,-12} {2,-22} {3,-22} {4}' -f 'Name', 'DeviceId', 'CreatedOn', 'LastAccess', 'AccessExpireOn')
+        foreach ($device in $devices) {
+            $shortId = if ($device.DeviceId -and $device.DeviceId.Length -ge 6) {
+                $device.DeviceId.Substring(0, 6)
+            } else {
+                $device.DeviceId
+            }
+            Write-Host ('{0,-20} {1,-12} {2,-22} {3,-22} {4}' -f $device.Name, $shortId, $device.CreatedOn, $device.LastAccess, $device.AccessExpireOn)
+        }
+    }
+}
+
 function Get-KeeperSecretManagerApp {
     <#
         .Synopsis
@@ -54,7 +132,14 @@ function Get-KeeperSecretManagerApp {
         Return matching applications only
 
         .Parameter Detail
-        Application details
+        Application details. Share table labels classic vs NSF Folder/Record titles.
+
+        .Example
+        Get-KeeperSecretManagerApp
+
+        .Example
+        Get-KeeperSecretManagerApp -Uid "<app-uid>" -Detail
+        ksm -Filter "My App" -Detail
     #>
     [CmdletBinding()]
     Param (
@@ -67,11 +152,13 @@ function Get-KeeperSecretManagerApp {
     if ($Uid) {
         [KeeperSecurity.Vault.ApplicationRecord] $application = $null
         if ($vault.TryGetKeeperRecord($Uid, [ref]$application)) {
-            if (-not $application.Type -eq 'app') {
+            if (-not ($application.Type -eq 'app')) {
                 throw "No application found with UID '$Uid'."
             }
             if ($Detail.IsPresent) {
-                return $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                $detailApp = $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp
+                return $detailApp
             }
             else {
                 return $application
@@ -93,7 +180,9 @@ function Get-KeeperSecretManagerApp {
                 }
             }
             if ($Detail.IsPresent) {
-                $results += $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                $detailApp = $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                writeKeeperSecretManagerAppDetail -Vault $vault -Application $detailApp
+                $results += ,$detailApp
             }
             else {
                 $results += $application
@@ -148,16 +237,70 @@ function Remove-KeeperSecretManagerApp {
 }
 New-Alias -Name ksm-delete -Value Remove-KeeperSecretManagerApp
 
+function Resolve-KeeperSecretManagerSecret {
+    <#
+        .Synopsis
+        Resolves classic or NSF shared-folder / record UID or name for KSM share commands.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Secret
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $secretInput = $Secret.Trim()
+    if ([string]::IsNullOrWhiteSpace($secretInput)) {
+        Write-Error -Message 'Secret UID or name is required.' -ErrorAction Stop
+    }
+
+    $sf = $null
+    if ($vault.TryGetSharedFolder($secretInput, [ref]$sf) -and $sf) {
+        return $sf.Uid
+    }
+
+    $record = $null
+    if ($vault.TryGetKeeperRecord($secretInput, [ref]$record) -and $record) {
+        if ($record -is [KeeperSecurity.Vault.PasswordRecord] -or $record -is [KeeperSecurity.Vault.TypedRecord]) {
+            return $record.Uid
+        }
+    }
+
+    $nsfFolder = $null
+    if ($vault.TryResolveKeeperNSFFolder($secretInput, [ref]$nsfFolder) -and $nsfFolder) {
+        return $nsfFolder.FolderUid
+    }
+
+    $nsfRecord = $null
+    if ($vault.TryResolveKeeperNSFRecord($secretInput, [ref]$nsfRecord) -and $nsfRecord) {
+        return $nsfRecord.RecordUid
+    }
+
+    $exactSf = @(Get-KeeperSharedFolder | Where-Object {
+            $_.Name -and [string]::Equals($_.Name, $secretInput, [System.StringComparison]::OrdinalIgnoreCase)
+        } | Select-Object -First 1)
+    if ($exactSf.Count -gt 0 -and $null -ne $exactSf[0]) {
+        return $exactSf[0].Uid
+    }
+
+    $exactRec = @(Get-KeeperRecord | Where-Object {
+            $_.Title -and [string]::Equals($_.Title, $secretInput, [System.StringComparison]::OrdinalIgnoreCase)
+        } | Select-Object -First 1)
+    if ($exactRec.Count -gt 0 -and $null -ne $exactRec[0]) {
+        return $exactRec[0].Uid
+    }
+
+    Write-Error -Message "Cannot find Shared Folder, Record, or NSF folder/record: $Secret. Run Sync-Keeper and try again." -ErrorAction Stop
+}
+
 function Grant-KeeperSecretManagerFolderAccess {
     <#
         .Synopsis
-        Adds shared folder to KSM Application
+        Adds a secret (classic shared folder/record, or NSF folder/record) to a KSM Application.
 
         .Parameter App
        KSM Application UID or Title
 
         .Parameter Secret
-       Shared Folder UID or Name
+       Shared Folder / Record / NSF folder or record UID or Name
 
         .Parameter CanEdit
         Enable write access to shared secrets
@@ -171,26 +314,13 @@ function Grant-KeeperSecretManagerFolderAccess {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApp -Filter $App
-    if (-not $apps) {
+    # @() keeps a single match as a 1-element array (PS 5.1 indexing-safe).
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
-
-    [string]$uid = $null
-    $sfs = Get-KeeperSharedFolder -Filter $Secret
-    if ($sfs) {
-        $uid = $sfs[0].Uid
-    }
-    else {
-        $recs = Get-KeeperRecord -Filter $Secret
-        if ($recs) {
-            $uid = $recs[0].Uid
-        }
-    }
-    if (-not $uid) {
-        Write-Error -Message "Cannot find Shared Folder: $Secret" -ErrorAction Stop
-    }
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
     $vault.ShareToSecretManagerApplication($application.Uid, $uid, $CanEdit.IsPresent).GetAwaiter().GetResult()
 }
 Register-ArgumentCompleter -CommandName Grant-KeeperSecretManagerFolderAccess -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
@@ -200,13 +330,13 @@ New-Alias -Name ksm-share -Value Grant-KeeperSecretManagerFolderAccess
 function Revoke-KeeperSecretManagerFolderAccess {
     <#
         .Synopsis
-        Removes Shared Folder from KSM Application
+        Removes a secret (classic shared folder/record, or NSF folder/record) from a KSM Application
 
         .Parameter App
         Secret Manager Application
 
         .Parameter Secret
-       Shared Folder UID or Name
+       Shared Folder / Record / NSF folder or record UID or Name
     #>
     [CmdletBinding()]
     Param (
@@ -215,31 +345,52 @@ function Revoke-KeeperSecretManagerFolderAccess {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApp -Filter $App
-    if (-not $apps) {
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
-
-    [string]$uid = $null
-    $sfs = Get-KeeperSharedFolder -Filter $Secret
-    if ($sfs) {
-        $uid = $sfs[0].Uid
-    }
-    else {
-        $recs = Get-KeeperRecord -Filter $Secret
-        if ($recs) {
-            $uid = $recs[0].Uid
-        }
-    }
-    if (-not $uid) {
-        Write-Error -Message "Cannot find Shared Folder: $Secret" -ErrorAction Stop
-    }
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
     $vault.UnshareFromSecretManagerApplication($application.Uid, $uid).GetAwaiter().GetResult()
 }
 Register-ArgumentCompleter -CommandName Revoke-KeeperSecretManagerFolderAccess -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
 Register-ArgumentCompleter -CommandName Revoke-KeeperSecretManagerFolderAccess -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
 New-Alias -Name ksm-unshare -Value Revoke-KeeperSecretManagerFolderAccess
+
+function Update-KeeperSecretManagerShare {
+    <#
+        .Synopsis
+        Updates editable vs read-only on a secret already shared with a KSM Application.
+        Calls SDK UpdateSecretManagerApplicationShare (classic remove+re-add; NSF folder/record V3 update).
+
+        .Parameter App
+        KSM Application UID or Title
+
+        .Parameter Secret
+        Shared Folder / Record / NSF folder or record UID or Name
+
+        .Parameter CanEdit
+        Enable write access to shared secrets
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string]$App,
+        [Parameter(Mandatory = $true)][string]$Secret,
+        [Parameter()][switch]$CanEdit
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $apps = @(Get-KeeperSecretManagerApp -Filter $App)
+    if ($apps.Count -eq 0) {
+        Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
+    }
+    [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
+    $uid = Resolve-KeeperSecretManagerSecret -Secret $Secret
+    $vault.UpdateSecretManagerApplicationShare($application.Uid, $uid, $CanEdit.IsPresent).GetAwaiter().GetResult()
+}
+Register-ArgumentCompleter -CommandName Update-KeeperSecretManagerShare -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
+Register-ArgumentCompleter -CommandName Update-KeeperSecretManagerShare -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
+New-Alias -Name ksm-share-update -Value Update-KeeperSecretManagerShare
 
 function Add-KeeperSecretManagerClient {
     <#
