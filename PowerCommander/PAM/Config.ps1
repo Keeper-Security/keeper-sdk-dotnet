@@ -158,25 +158,27 @@ function script:applyPamConfigSchedule {
         [bool] $IsEdit
     )
 
-    # On edit, omit schedule unless explicitly provided (preserve existing).
     if ($IsEdit -and [string]::IsNullOrWhiteSpace($DefaultSchedule)) {
         return
     }
 
     try {
         $schedule = New-Object KeeperSecurity.Vault.FieldSchedule
-        if (-not [string]::IsNullOrWhiteSpace($DefaultSchedule)) {
-            $cron = $DefaultSchedule.Trim()
-            $validation = [KeeperSecurity.Plugins.PAM.PamCronUtils]::ValidateCronExpression($cron, $true)
+        $cron = if ($null -eq $DefaultSchedule) { '' } else { $DefaultSchedule.Trim() }
+        if ([string]::IsNullOrEmpty($cron) -or
+            [string]::Equals($cron, 'On-Demand', [StringComparison]::OrdinalIgnoreCase) -or
+            [string]::Equals($cron, 'ON_DEMAND', [StringComparison]::OrdinalIgnoreCase)) {
+            $schedule.Type = 'ON_DEMAND'
+        }
+        else {
+            # Rotation CRON must be 6 fields, e.g. "0 0 3 * * ?" (daily 03:00 UTC).
+            $validation = [KeeperSecurity.Plugins.PAM.RotationUtils]::ValidateCronExpression($cron, $true)
             if (-not $validation.Item1) {
                 throw "Invalid CRON `"$cron`" Error: $($validation.Item2)"
             }
             $schedule.Type = 'CRON'
             $schedule.Cron = $cron
             $schedule.TimeZone = 'Etc/UTC'
-        }
-        else {
-            $schedule.Type = 'ON_DEMAND'
         }
 
         setPamTypedFieldValue -Record $Record -FieldType 'schedule' -FieldLabel 'defaultRotationSchedule' -Value $schedule
@@ -421,15 +423,15 @@ function script:applyPamConfigResources {
 
             $titleMatches = 0
             $titleUid = $null
-            foreach ($record in $Vault.KeeperRecords) {
-                if ($null -eq $record) { continue }
+            foreach ($vaultRec in $Vault.KeeperRecords) {
+                if ($null -eq $vaultRec) { continue }
                 $tn = ''
-                try { $tn = [string]$record.TypeName } catch {}
-                if (-not $tn) { $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record) }
+                try { $tn = [string]$vaultRec.TypeName } catch {}
+                if (-not $tn) { $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($vaultRec) }
                 if (-not [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation.Contains($tn)) { continue }
-                if (-not [string]::Equals([string]$record.Title, $trimmed, [StringComparison]::OrdinalIgnoreCase)) { continue }
+                if (-not [string]::Equals([string]$vaultRec.Title, $trimmed, [StringComparison]::OrdinalIgnoreCase)) { continue }
                 $titleMatches++
-                $titleUid = [string]$record.Uid
+                $titleUid = [string]$vaultRec.Uid
             }
             if ($titleMatches -eq 1 -and $titleUid) {
                 [void]$toRemove.Add($titleUid)
@@ -1371,7 +1373,7 @@ function New-KeeperPamConfig {
     $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
 
     if (-not [string]::IsNullOrEmpty($facade.ControllerUid)) {
-        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationControllerAsync(
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationGatewayAsync(
             $auth, $record.Uid, $facade.ControllerUid).GetAwaiter().GetResult() | Out-Null
     }
 
@@ -1562,7 +1564,7 @@ function Set-KeeperPamConfig {
     $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($configuration)
     if (-not [string]::Equals($facade.ControllerUid, $origGatewayUid, [StringComparison]::Ordinal) -and
         -not [string]::IsNullOrEmpty($facade.ControllerUid)) {
-        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationControllerAsync(
+        [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationGatewayAsync(
             $auth, $configuration.Uid, $facade.ControllerUid).GetAwaiter().GetResult() | Out-Null
     }
 
