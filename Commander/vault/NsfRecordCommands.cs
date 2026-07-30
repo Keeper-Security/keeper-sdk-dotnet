@@ -23,10 +23,19 @@ namespace Commander
 
             try
             {
+                string folderUid = options.FolderUid;
+                if (!string.IsNullOrWhiteSpace(folderUid)
+                    && !context.Vault.TryGetKeeperNSFFolder(folderUid, out _)
+                    && context.Vault.TryResolveKeeperNSFFolder(folderUid, out var folderNode)
+                    && folderNode != null)
+                {
+                    folderUid = folderNode.FolderUid;
+                }
+
                 var recordUid = await context.Vault.CreateKeeperNSFRecord(
                     options.Title,
                     options.RecordType ?? "login",
-                    options.FolderUid,
+                    folderUid,
                     options.Notes,
                     fieldDict);
                 Console.WriteLine($"Record '{options.Title}' created successfully (UID: {recordUid}).");
@@ -706,7 +715,7 @@ namespace Commander
         [Option('t', "type", Required = false, Default = "login", HelpText = "Record type")]
         public string RecordType { get; set; }
 
-        [Option("folder", Required = false, HelpText = "Folder UID")]
+        [Option("folder", Required = false, HelpText = "Folder UID or name")]
         public string FolderUid { get; set; }
 
         [Option("notes", Required = false, HelpText = "Record notes")]
