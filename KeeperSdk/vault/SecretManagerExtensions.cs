@@ -82,18 +82,6 @@ namespace KeeperSecurity.Vault
                     AccessExpireOn = x.AccessExpireOn > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.AccessExpireOn) : (DateTimeOffset?)null,
                 }).ToArray(),
                 Shares = appInfo.Shares
-                .Where(x =>
-                {
-                    var uid = x.SecretUid.ToByteArray().Base64UrlEncode();
-                    if (x.ShareType == AuthProto.ApplicationShareType.ShareTypeRecord)
-                    {
-                        return TryGetKeeperRecord(uid, out _);
-                    }
-                    else
-                    {
-                        return TryGetSharedFolder(uid, out _);
-                    }
-                })
                 .Select(x => new SecretManagerShare
                 {
                     SecretUid = x.SecretUid.ToByteArray().Base64UrlEncode(),
@@ -218,6 +206,210 @@ namespace KeeperSecurity.Vault
             await this.DeleteVaultObjects(new[] { new RecordPath { RecordUid = applicationId } }, true);
         }
 
+        private enum SecretManagerShareChannel
+        {
+            Classic,
+            NsfRecord,
+            NsfFolder,
+        }
+
+        private bool TryResolveClassicSharedFolderSecret(
+            string input,
+            out string resolvedUid,
+            out byte[] secretKey)
+        {
+            resolvedUid = null;
+            secretKey = null;
+            if (!TryGetSharedFolder(input, out var sf) || sf.SharedFolderKey == null)
+            {
+                return false;
+            }
+            resolvedUid = sf.Uid;
+            secretKey = sf.SharedFolderKey;
+            return true;
+        }
+
+        private bool TryResolveClassicRecordSecret(
+            string input,
+            out string resolvedUid,
+            out byte[] secretKey)
+        {
+            resolvedUid = null;
+            secretKey = null;
+            if (!TryGetKeeperRecord(input, out var classicRecord))
+            {
+                return false;
+            }
+
+            if (!(classicRecord is PasswordRecord || classicRecord is TypedRecord)
+                || classicRecord.RecordKey == null)
+            {
+                return false;
+            }
+
+            resolvedUid = classicRecord.Uid;
+            secretKey = classicRecord.RecordKey;
+            return true;
+        }
+
+        private bool TryResolveNsfFolderSecret(
+            string input,
+            out string resolvedUid,
+            out byte[] secretKey)
+        {
+            resolvedUid = null;
+            secretKey = null;
+            if (!TryResolveKeeperNSFFolder(input, out var nsfFolder) || nsfFolder == null
+                || string.IsNullOrEmpty(nsfFolder.FolderUid))
+            {
+                return false;
+            }
+            resolvedUid = nsfFolder.FolderUid;
+            secretKey = nsfFolder.FolderKey;
+            return true;
+        }
+
+        private bool TryResolveNsfRecordSecret(
+            string input,
+            out string resolvedUid,
+            out byte[] secretKey)
+        {
+            resolvedUid = null;
+            secretKey = null;
+            if (!TryResolveKeeperNSFRecord(input, out var nsfRecord) || nsfRecord == null
+                || nsfRecord.RecordKey == null || string.IsNullOrEmpty(nsfRecord.RecordUid))
+            {
+                return false;
+            }
+            resolvedUid = nsfRecord.RecordUid;
+            secretKey = nsfRecord.RecordKey;
+            return true;
+        }
+
+        /// <summary>
+        /// Classify a secret for KSM share operations.
+        /// </summary>
+        private bool TryClassifySecretManagerSecret(
+            string secretUidOrName,
+            string callerName,
+            out SecretManagerShareChannel channel,
+            out string resolvedUid,
+            out byte[] secretKey,
+            out AuthProto.ApplicationShareType shareType)
+        {
+            channel = SecretManagerShareChannel.Classic;
+            resolvedUid = null;
+            secretKey = null;
+            shareType = AuthProto.ApplicationShareType.ShareTypeRecord;
+
+            if (string.IsNullOrWhiteSpace(secretUidOrName))
+            {
+                throw new KeeperInvalidParameter(
+                    callerName,
+                    "sharedFolderOrRecordUid",
+                    secretUidOrName ?? "",
+                    "Shared folder or Record UID cannot be empty");
+            }
+
+            var input = secretUidOrName.Trim();
+
+            if (TryResolveClassicSharedFolderSecret(input, out resolvedUid, out secretKey))
+            {
+                channel = SecretManagerShareChannel.Classic;
+                shareType = AuthProto.ApplicationShareType.ShareTypeFolder;
+                return true;
+            }
+
+            if (TryResolveClassicRecordSecret(input, out resolvedUid, out secretKey))
+            {
+                channel = SecretManagerShareChannel.Classic;
+                shareType = AuthProto.ApplicationShareType.ShareTypeRecord;
+                return true;
+            }
+
+            // Found a classic vault record that is not shareable as a KSM secret.
+            if (TryGetKeeperRecord(input, out _))
+            {
+                return false;
+            }
+
+            if (TryResolveNsfFolderSecret(input, out resolvedUid, out secretKey))
+            {
+                channel = SecretManagerShareChannel.NsfFolder;
+                shareType = AuthProto.ApplicationShareType.ShareTypeFolder;
+                return true;
+            }
+
+            if (TryResolveNsfRecordSecret(input, out resolvedUid, out secretKey))
+            {
+                channel = SecretManagerShareChannel.NsfRecord;
+                shareType = AuthProto.ApplicationShareType.ShareTypeRecord;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ThrowIfSecretNotClassified(string callerName, string sharedFolderOrRecordUid)
+        {
+            if (TryGetKeeperRecord(sharedFolderOrRecordUid?.Trim(), out var record)
+                && !(record is PasswordRecord || record is TypedRecord))
+            {
+                throw new KeeperInvalidParameter(
+                    callerName,
+                    "sharedFolderOrRecordUid",
+                    sharedFolderOrRecordUid,
+                    "Invalid record type");
+            }
+
+            throw new KeeperInvalidParameter(
+                callerName,
+                "sharedFolderOrRecordUid",
+                sharedFolderOrRecordUid,
+                "Shared folder or Record do not exist");
+        }
+
+        private async Task AddClassicAppShare(
+            ApplicationRecord application, string resolvedUid, byte[] secretKey,
+            AuthProto.ApplicationShareType shareType, bool editable)
+        {
+            var addRq = new AuthProto.AppShareAdd
+            {
+                SecretUid = ByteString.CopyFrom(resolvedUid.Base64UrlDecode()),
+                ShareType = shareType,
+                EncryptedSecretKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(secretKey, application.RecordKey)),
+                Editable = editable,
+            };
+            var rq = new AuthProto.AddAppSharesRequest
+            {
+                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode())
+            };
+            rq.Shares.Add(addRq);
+            await Auth.ExecuteAuthRest("vault/app_share_add", rq);
+        }
+
+        private async Task RemoveClassicAppShares(ApplicationRecord application, params string[] secretUids)
+        {
+            var rq = new AuthProto.RemoveAppSharesRequest
+            {
+                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode())
+            };
+            foreach (var uid in secretUids)
+            {
+                if (string.IsNullOrEmpty(uid)) continue;
+                var uidBytes = uid.Base64UrlDecode();
+                if (uidBytes.Length > 0)
+                {
+                    rq.Shares.Add(ByteString.CopyFrom(uidBytes));
+                }
+            }
+            if (rq.Shares.Count == 0)
+            {
+                return;
+            }
+            await Auth.ExecuteAuthRest("vault/app_share_remove", rq);
+        }
+
         /// <inheritdoc/>
         public async Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool editable)
         {
@@ -231,42 +423,114 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "applicationId", applicationId, "Application not found");
             }
 
-            var isRecord = false;
-            byte[] secretKey;
-            if (TryGetSharedFolder(sharedFolderOrRecordUid, out var sf))
+            if (!TryClassifySecretManagerSecret(
+                    sharedFolderOrRecordUid,
+                    "ShareToSecretManagerApplication",
+                    out var channel,
+                    out var resolvedUid,
+                    out var secretKey,
+                    out var shareType))
             {
-                secretKey = sf.SharedFolderKey;
+                ThrowIfSecretNotClassified("ShareToSecretManagerApplication", sharedFolderOrRecordUid);
             }
-            else if (TryGetKeeperRecord(sharedFolderOrRecordUid, out var r))
+
+            switch (channel)
             {
-                if (r is PasswordRecord || r is TypedRecord)
-                {
-                    isRecord = true;
-                    secretKey = r.RecordKey;
-                }
-                else
-                {
-                    throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "sharedFolderOrRecordUid", sharedFolderOrRecordUid, "Invalid record type");
-                }
+                case SecretManagerShareChannel.NsfFolder:
+                    await this.GrantKeeperNSFFolderToApplicationInternal(resolvedUid, application.Uid, editable);
+                    break;
+                case SecretManagerShareChannel.NsfRecord:
+                    await this.GrantKeeperNSFRecordToApplicationInternal(resolvedUid, application.Uid, editable);
+                    break;
+                case SecretManagerShareChannel.Classic:
+                    if (secretKey == null)
+                    {
+                        throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "sharedFolderOrRecordUid", resolvedUid, "Secret key is not available");
+                    }
+                    await AddClassicAppShare(application, resolvedUid, secretKey, shareType, editable);
+                    break;
+                default:
+                    throw new KeeperInvalidParameter(
+                        "ShareToSecretManagerApplication",
+                        "sharedFolderOrRecordUid",
+                        sharedFolderOrRecordUid,
+                        "Unsupported secret share channel");
             }
-            else
-            {
-                throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "sharedFolderOrRecordUid", sharedFolderOrRecordUid, "Shared folder or Record do not exist");
-            }
-            var addRq = new AuthProto.AppShareAdd
-            {
-                SecretUid = ByteString.CopyFrom(sharedFolderOrRecordUid.Base64UrlDecode()),
-                ShareType = isRecord ? AuthProto.ApplicationShareType.ShareTypeRecord : AuthProto.ApplicationShareType.ShareTypeFolder,
-                EncryptedSecretKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(secretKey, application.RecordKey)),
-                Editable = editable,
-            };
-            var rq = new AuthProto.AddAppSharesRequest
-            {
-                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode())
-            };
-            rq.Shares.Add(addRq);
-            await Auth.ExecuteAuthRest("vault/app_share_add", rq);
+
+            await SyncDown();
             return await GetSecretManagerApplication(application.Uid, true);
+        }
+
+        /// <inheritdoc/>
+        public async Task<SecretsManagerApplication> UpdateSecretManagerApplicationShare(string applicationId, string sharedFolderOrRecordUid, bool editable)
+        {
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplicationShare", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
+            {
+                throw new KeeperInvalidParameter("UpdateSecretManagerApplicationShare", "applicationId", applicationId, "Application not found");
+            }
+
+            if (!TryClassifySecretManagerSecret(
+                    sharedFolderOrRecordUid,
+                    "UpdateSecretManagerApplicationShare",
+                    out var channel,
+                    out var resolvedUid,
+                    out var secretKey,
+                    out var shareType))
+            {
+                ThrowIfSecretNotClassified("UpdateSecretManagerApplicationShare", sharedFolderOrRecordUid);
+            }
+
+            switch (channel)
+            {
+                case SecretManagerShareChannel.NsfFolder:
+                    await this.UpdateKeeperNSFFolderApplicationAccessInternal(resolvedUid, application.Uid, editable);
+                    await SyncDown();
+                    return await GetSecretManagerApplication(application.Uid, true);
+
+                case SecretManagerShareChannel.NsfRecord:
+                    await this.UpdateKeeperNSFRecordApplicationAccessInternal(resolvedUid, application.Uid, editable);
+                    await SyncDown();
+                    return await GetSecretManagerApplication(application.Uid, true);
+
+                case SecretManagerShareChannel.Classic:
+                    {
+                        var app = await GetSecretManagerApplication(application.Uid, true);
+                        var existing = app?.Shares?.FirstOrDefault(x => x.SecretUid == resolvedUid);
+                        if (existing == null)
+                        {
+                            throw new KeeperInvalidParameter(
+                                "UpdateSecretManagerApplicationShare",
+                                "sharedFolderOrRecordUid",
+                                resolvedUid,
+                                "Secret is not currently shared with this application. Use ShareToSecretManagerApplication first.");
+                        }
+                        if (existing.Editable == editable)
+                        {
+                            return app;
+                        }
+
+                        if (secretKey == null)
+                        {
+                            throw new KeeperInvalidParameter("UpdateSecretManagerApplicationShare", "sharedFolderOrRecordUid", resolvedUid, "Secret key is not available");
+                        }
+
+                        await RemoveClassicAppShares(application, resolvedUid);
+                        await AddClassicAppShare(application, resolvedUid, secretKey, shareType, editable);
+                        return await GetSecretManagerApplication(application.Uid, true);
+                    }
+
+                default:
+                    throw new KeeperInvalidParameter(
+                        "UpdateSecretManagerApplicationShare",
+                        "sharedFolderOrRecordUid",
+                        sharedFolderOrRecordUid,
+                        "Unsupported secret share channel");
+            }
         }
 
         /// <inheritdoc/>
@@ -282,18 +546,38 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter("UnshareFromSecretManagerApplication", "applicationId", applicationId, "Application not found");
             }
 
-            var rq = new AuthProto.RemoveAppSharesRequest
+            if (TryClassifySecretManagerSecret(
+                    sharedFolderOrRecordUid,
+                    "UnshareFromSecretManagerApplication",
+                    out var channel,
+                    out var resolvedUid,
+                    out _,
+                    out _))
             {
-                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode())
-            };
-            var uidBytes = sharedFolderOrRecordUid.Base64UrlDecode();
-            if (uidBytes.Length > 0)
+                switch (channel)
+                {
+                    case SecretManagerShareChannel.NsfFolder:
+                        await this.RevokeKeeperNSFFolderFromApplicationInternal(resolvedUid, application.Uid);
+                        break;
+                    case SecretManagerShareChannel.NsfRecord:
+                        await this.RevokeKeeperNSFRecordFromApplicationInternal(resolvedUid, application.Uid);
+                        break;
+                    case SecretManagerShareChannel.Classic:
+                        await RemoveClassicAppShares(application, resolvedUid);
+                        break;
+                    default:
+                        await RemoveClassicAppShares(application, resolvedUid ?? sharedFolderOrRecordUid?.Trim());
+                        break;
+                }
+            }
+            else
             {
-                rq.Shares.Add(ByteString.CopyFrom(uidBytes));
+                // Classic shares can be revoked by UID even if the secret is no longer in local cache.
+                var uid = sharedFolderOrRecordUid?.Trim();
+                await RemoveClassicAppShares(application, uid);
             }
 
-            await Auth.ExecuteAuthRest("vault/app_share_remove", rq);
-
+            await SyncDown();
             return await GetSecretManagerApplication(application.Uid, true);
         }
 

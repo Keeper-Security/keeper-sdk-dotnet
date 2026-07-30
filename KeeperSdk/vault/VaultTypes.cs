@@ -958,6 +958,12 @@ namespace KeeperSecurity.Vault
             string sharedFolderOrRecordUid, bool canEdit);
 
         /// <summary>
+        /// Updates editable vs read-only permission for a secret already shared with the application.
+        /// </summary>
+        Task<SecretsManagerApplication> UpdateSecretManagerApplicationShare(string applicationId,
+            string sharedFolderOrRecordUid, bool canEdit);
+
+        /// <summary>
         /// Revokes Shared Folder or Record access from Secret Manager Application
         /// </summary>
         /// <param name="applicationId">Application ID</param>

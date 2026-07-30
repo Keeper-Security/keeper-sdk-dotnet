@@ -253,7 +253,7 @@ namespace Commander.PAM
                         : RotationUtils.PasswordComplexityToDetail(pwdComplexityDetail),
                     ["schedule_type"] = scheduleType,
                     ["schedule_data"] = scheduleData,
-                    ["use_default_rotation_schedule"] = RotationUtils.UsesDefaultRotationSchedule(
+                    ["use_default_rotation_schedule"] = PamRotationEditService.UsesDefaultRotationSchedule(
                         vault, record.Uid, configUid),
                     ["disabled"] = rotationInfo.Disabled,
                     ["script_name"] = string.IsNullOrWhiteSpace(rotationInfo.ScriptName)
