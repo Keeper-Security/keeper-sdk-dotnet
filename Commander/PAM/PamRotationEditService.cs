@@ -625,6 +625,49 @@ namespace Commander.PAM
             return refs[0];
         }
 
+        internal static bool UsesDefaultRotationSchedule(
+            VaultOnline vault,
+            string recordUid,
+            string configurationUid)
+        {
+            if (string.IsNullOrWhiteSpace(configurationUid))
+            {
+                return false;
+            }
+
+            var config = PamVaultHelpers.ResolveRecord(
+                vault, configurationUid.Trim(), PamRecordTypes.Configuration);
+            var defaultSchedule = GetScheduleFromConfig(config);
+            if (defaultSchedule == null || defaultSchedule.Count == 0)
+            {
+                return false;
+            }
+
+            var cached = vault.GetRecordRotation(recordUid);
+            if (string.IsNullOrWhiteSpace(cached?.Schedule))
+            {
+                return false;
+            }
+
+            try
+            {
+                var recordSchedule = RotationUtils.ParseScheduleJsonString(cached.Schedule);
+                if (recordSchedule == null || recordSchedule.Count == 0)
+                {
+                    return false;
+                }
+
+                return string.Equals(
+                    RotationUtils.SerializeScheduleData(recordSchedule),
+                    RotationUtils.SerializeScheduleData(defaultSchedule),
+                    StringComparison.Ordinal);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+        }
+
         private static List<object> GetScheduleFromConfig(TypedRecord config)
         {
             if (config == null)
