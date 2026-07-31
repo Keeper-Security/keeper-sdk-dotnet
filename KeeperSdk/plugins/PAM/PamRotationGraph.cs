@@ -40,15 +40,15 @@ namespace KeeperSecurity.Plugins.PAM
       _pendingSave.Clear();
 
       var data = await PamGraphSyncClient.MultiSyncAsync(_auth, _configUid);
+      var linkCount = 0;
+      var aclCount = 0;
+      var dataCount = 0;
+      var otherCount = 0;
+
       foreach (var item in data)
       {
         var edge = item.Data;
         if (edge == null)
-        {
-          continue;
-        }
-
-        if (edge.Type == GraphSyncProto.GraphSyncDataType.GseData)
         {
           continue;
         }
@@ -67,13 +67,70 @@ namespace KeeperSecurity.Plugins.PAM
 
         if (edge.Type == GraphSyncProto.GraphSyncDataType.GseDeletion)
         {
-          RemoveEdge(tailUid, headUid, MapEdgeType(edge.Type));
+          if (_vertices.TryGetValue(tailUid, out var deletedTail))
+          {
+            if (IsMetaPath(edge.Path))
+            {
+              deletedTail.ClearDataEdge();
+            }
+
+            deletedTail.RemoveEdge(headUid, PamGraphEdgeType.Link);
+            deletedTail.RemoveEdge(headUid, PamGraphEdgeType.Acl);
+            deletedTail.RemoveEdge(headUid, PamGraphEdgeType.Key);
+          }
+
           continue;
         }
 
         var tail = GetOrCreateVertex(tailUid, edge.Ref?.Type ?? GraphSyncProto.RefType.RftGeneral);
         GetOrCreateVertex(headUid, edge.ParentRef?.Type ?? GraphSyncProto.RefType.RftGeneral);
+
+        // DATA edges carry vertex meta (allowedSettings)
+        // Previously skipped here, which made all connection/rotation flags appear Disabled.
+        if (edge.Type == GraphSyncProto.GraphSyncDataType.GseData)
+        {
+          dataCount++;
+          var path = string.IsNullOrEmpty(edge.Path) ? "meta" : edge.Path;
+          tail.SetEdge(headUid, PamGraphEdgeType.Data, edge.Content?.ToByteArray(), path, modified: false);
+          PamDebug($"LoadAsync DATA uid={tailUid} path={path} bytes={edge.Content?.Length ?? 0}");
+          continue;
+        }
+
+        switch (edge.Type)
+        {
+          case GraphSyncProto.GraphSyncDataType.GseLink:
+            linkCount++;
+            break;
+          case GraphSyncProto.GraphSyncDataType.GseAcl:
+            aclCount++;
+            break;
+          default:
+            otherCount++;
+            break;
+        }
+
         tail.SetEdge(headUid, MapEdgeType(edge.Type), edge.Content?.ToByteArray(), edge.Path, modified: false);
+      }
+
+      PamDebug(
+        $"LoadAsync config={_configUid} vertices={_vertices.Count} "
+        + $"data={dataCount} link={linkCount} acl={aclCount} other={otherCount}");
+    }
+
+    private static bool IsMetaPath(string path)
+    {
+      return string.IsNullOrEmpty(path)
+             || string.Equals(path, "meta", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static void PamDebug(string message)
+    {
+      var line = $"[PAM-connection] {message}";
+      System.Diagnostics.Debug.WriteLine(line);
+      // Opt-in only: set KEEPER_PAM_DEBUG=1 to print diagnostics to the console.
+      if (string.Equals(Environment.GetEnvironmentVariable("KEEPER_PAM_DEBUG"), "1", StringComparison.Ordinal))
+      {
+        Console.WriteLine(line);
       }
     }
 
@@ -253,7 +310,7 @@ namespace KeeperSecurity.Plugins.PAM
         RecordUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
         NetworkSettings = new RouterProto.PAMNetworkSettings
         {
-          AllowedSettings = ByteString.CopyFrom(JsonUtils.DumpJson(allowedSettings)),
+          AllowedSettings = ByteString.CopyFrom(JsonUtils.DumpJson(allowedSettings, indent: false)),
         },
       };
 
@@ -324,7 +381,7 @@ namespace KeeperSecurity.Plugins.PAM
       {
         RecordUid = ByteString.CopyFrom(resourceUid.Base64UrlDecode()),
         NetworkUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
-        Meta = ByteString.CopyFrom(JsonUtils.DumpJson(metaContent)),
+        Meta = ByteString.CopyFrom(JsonUtils.DumpJson(metaContent, indent: false)),
       };
 
       const string endpoint = "configure_resource";
@@ -349,6 +406,662 @@ namespace KeeperSecurity.Plugins.PAM
 
       resource.SetDataEdge("meta", JsonUtils.DumpJson(metaContent), modified: true);
       await SaveAsync();
+    }
+
+    /// <summary>
+    /// Enable/disable connection-related allowedSettings on the PAM configuration (network) vertex.
+    /// Tri-state values: "on", "off", "default" (remove key). Null skips that setting.
+    /// </summary>
+    public async Task SetNetworkConnectionAllowedAsync(
+      string connections = null,
+      string sessionRecording = null,
+      string typescriptRecording = null)
+    {
+      if (connections == null && sessionRecording == null && typescriptRecording == null)
+      {
+        return;
+      }
+
+      var config = GetOrCreateVertex(_configUid, GraphSyncProto.RefType.RftPamNetwork);
+      var meta = config.TryGetMetaContent() ?? new PamGraphMetaContent();
+      var settings = GetOrCreateAllowedSettings(meta);
+      var dirty = ApplyTriStateToTyped(settings, nameof(settings.Connections), connections, v => settings.Connections = v)
+                  | ApplyTriStateToTyped(settings, nameof(settings.SessionRecording), sessionRecording, v => settings.SessionRecording = v)
+                  | ApplyTriStateToTyped(settings, nameof(settings.TypescriptRecording), typescriptRecording, v => settings.TypescriptRecording = v);
+      if (!dirty)
+      {
+        return;
+      }
+
+      var resetting = IsDefaultReset(connections)
+                      || IsDefaultReset(sessionRecording)
+                      || IsDefaultReset(typescriptRecording);
+      var settingsJson = JsonUtils.DumpJson(settings, indent: false);
+
+      if (!resetting)
+      {
+        var request = new RouterProto.PAMNetworkConfigurationRequest
+        {
+          RecordUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
+          NetworkSettings = new RouterProto.PAMNetworkSettings
+          {
+            AllowedSettings = ByteString.CopyFrom(settingsJson),
+          },
+        };
+
+        const string endpoint = "configure_network_graph";
+        var host = GetRouterHost();
+        if (!PamLayerB.IsFeatureDisabled(host, endpoint))
+        {
+          try
+          {
+            await RouterUtils.ConfigureNetworkGraphAsync(_auth, request);
+            config.SetDataEdge("meta", JsonUtils.DumpJson(meta, indent: false), modified: true);
+            await SaveAsync();
+            return;
+          }
+          catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+          {
+            PamLayerB.TraceFallback(endpoint, _configUid, ex);
+          }
+          catch (Exception ex)
+          {
+            PamLayerB.TraceNoFallback(endpoint, ex);
+            throw;
+          }
+        }
+      }
+
+      config.SetDataEdge("meta", JsonUtils.DumpJson(meta, indent: false), modified: true);
+      await SaveAsync();
+    }
+
+    /// <summary>
+    /// Enable/disable connection-related allowedSettings on a PAM resource vertex.
+    /// </summary>
+    public async Task SetResourceConnectionAllowedAsync(
+      string resourceUid,
+      GraphSyncProto.RefType resourceType,
+      string connections = null,
+      string sessionRecording = null,
+      string typescriptRecording = null,
+      bool? rotateOnTermination = null,
+      string allowedSettingsName = "allowedSettings")
+    {
+      if (connections == null
+          && sessionRecording == null
+          && typescriptRecording == null
+          && rotateOnTermination == null)
+      {
+        return;
+      }
+
+      // Resource connection flags always use allowedSettings (or pamRemoteBrowserSettings key
+      // via dictionary path below when name differs).
+      if (!string.Equals(allowedSettingsName, "allowedSettings", StringComparison.Ordinal))
+      {
+        await SetResourceConnectionAllowedDictionaryAsync(
+          resourceUid, resourceType, connections, sessionRecording, typescriptRecording,
+          rotateOnTermination, allowedSettingsName);
+        return;
+      }
+
+      var resource = GetOrCreateVertex(resourceUid, resourceType);
+      var meta = resource.TryGetMetaContent() ?? new PamGraphMetaContent();
+      var settings = GetOrCreateAllowedSettings(meta);
+      var dirty = ApplyTriStateToTyped(settings, nameof(settings.Connections), connections, v => settings.Connections = v)
+                  | ApplyTriStateToTyped(settings, nameof(settings.SessionRecording), sessionRecording, v => settings.SessionRecording = v)
+                  | ApplyTriStateToTyped(settings, nameof(settings.TypescriptRecording), typescriptRecording, v => settings.TypescriptRecording = v);
+
+      if (rotateOnTermination != null && meta.RotateOnTermination != rotateOnTermination)
+      {
+        meta.Version = 1;
+        meta.RotateOnTermination = rotateOnTermination;
+        dirty = true;
+      }
+
+      if (!dirty)
+      {
+        return;
+      }
+
+      var resetting = IsDefaultReset(connections)
+                      || IsDefaultReset(sessionRecording)
+                      || IsDefaultReset(typescriptRecording);
+
+      if (!resetting)
+      {
+        var request = new PamProto.PAMResourceConfig
+        {
+          RecordUid = ByteString.CopyFrom(resourceUid.Base64UrlDecode()),
+          NetworkUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
+          Meta = ByteString.CopyFrom(JsonUtils.DumpJson(meta, indent: false)),
+        };
+
+        const string endpoint = "configure_resource";
+        var host = GetRouterHost();
+        if (!PamLayerB.IsFeatureDisabled(host, endpoint))
+        {
+          try
+          {
+            await RouterUtils.ConfigureResourceAsync(_auth, request);
+            resource.SetDataEdge("meta", JsonUtils.DumpJson(meta, indent: false), modified: true);
+            await SaveAsync();
+            return;
+          }
+          catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+          {
+            PamLayerB.TraceFallback(endpoint, resourceUid, ex);
+          }
+          catch (Exception ex)
+          {
+            PamLayerB.TraceNoFallback(endpoint, ex);
+            throw;
+          }
+        }
+      }
+
+      resource.SetDataEdge("meta", JsonUtils.DumpJson(meta, indent: false), modified: true);
+      await SaveAsync();
+    }
+
+    private async Task SetResourceConnectionAllowedDictionaryAsync(
+      string resourceUid,
+      GraphSyncProto.RefType resourceType,
+      string connections,
+      string sessionRecording,
+      string typescriptRecording,
+      bool? rotateOnTermination,
+      string allowedSettingsName)
+    {
+      var resource = GetOrCreateVertex(resourceUid, resourceType);
+      var meta = GetMetaDictionary(resource) ?? new Dictionary<string, object>();
+      var settings = GetOrCreateSettingsDictionary(meta, allowedSettingsName);
+      var dirty = ApplyTriStateSetting(settings, "connections", connections)
+                  | ApplyTriStateSetting(settings, "sessionRecording", sessionRecording)
+                  | ApplyTriStateSetting(settings, "typescriptRecording", typescriptRecording);
+
+      if (rotateOnTermination != null)
+      {
+        var current = ReadBool(meta, "rotateOnTermination");
+        if (current != rotateOnTermination.Value)
+        {
+          meta["version"] = 1;
+          meta["rotateOnTermination"] = rotateOnTermination.Value;
+          dirty = true;
+        }
+      }
+
+      if (!dirty)
+      {
+        return;
+      }
+
+      meta[allowedSettingsName] = settings;
+      resource.SetDataEdge("meta", JsonUtils.DumpJson(meta, indent: false), modified: true);
+      await SaveAsync();
+    }
+
+    /// <summary>
+    /// Applies on/off/default onto a typed nullable bool. Returns true when changed.
+    /// </summary>
+    private static bool ApplyTriStateToTyped(
+      PamGraphAllowedSettings settings,
+      string propertyName,
+      string value,
+      Action<bool?> assign)
+    {
+      if (value == null || settings == null)
+      {
+        return false;
+      }
+
+      var converted = ConvertAllowedSetting(value);
+      bool? current = propertyName switch
+      {
+        nameof(PamGraphAllowedSettings.Connections) => settings.Connections,
+        nameof(PamGraphAllowedSettings.SessionRecording) => settings.SessionRecording,
+        nameof(PamGraphAllowedSettings.TypescriptRecording) => settings.TypescriptRecording,
+        _ => null,
+      };
+
+      if (converted == null)
+      {
+        // "default" → clear
+        if (current == null)
+        {
+          return false;
+        }
+
+        assign(null);
+        return true;
+      }
+
+      if (current == converted.Value)
+      {
+        return false;
+      }
+
+      assign(converted.Value);
+      return true;
+    }
+
+    /// <summary>
+    /// Set or clear launch credential (and optionally admin) in one configure_resource call.
+    /// </summary>
+    public async Task SetLaunchCredentialsAsync(
+      string resourceUid,
+      string launchUid,
+      string adminUid = null)
+    {
+      if (!ResourceBelongsToConfig(resourceUid))
+      {
+        throw new InvalidOperationException(
+          $"Resource \"{resourceUid}\" does not belong to configuration \"{_configUid}\".");
+      }
+
+      // Version-only meta bump so vault reads ACL launch credentials without re-asserting flags.
+      var upgradedMeta = new Dictionary<string, object>
+      {
+        ["version"] = 1,
+        ["allowedSettings"] = new Dictionary<string, object>(),
+      };
+
+      var request = new PamProto.PAMResourceConfig
+      {
+        RecordUid = ByteString.CopyFrom(resourceUid.Base64UrlDecode()),
+        NetworkUid = ByteString.CopyFrom(_configUid.Base64UrlDecode()),
+        ConnectUsers = new PamProto.UidList(),
+        Meta = ByteString.CopyFrom(JsonUtils.DumpJson(upgradedMeta, indent: false)),
+      };
+
+      if (!string.IsNullOrEmpty(launchUid))
+      {
+        request.ConnectUsers.Uids.Add(ByteString.CopyFrom(launchUid.Base64UrlDecode()));
+      }
+
+      if (!string.IsNullOrEmpty(adminUid))
+      {
+        request.AdminUid = ByteString.CopyFrom(adminUid.Base64UrlDecode());
+      }
+
+      const string endpoint = "configure_resource";
+      var host = GetRouterHost();
+      if (!PamLayerB.IsFeatureDisabled(host, endpoint))
+      {
+        try
+        {
+          await RouterUtils.ConfigureResourceAsync(_auth, request);
+          if (!string.IsNullOrEmpty(launchUid))
+          {
+            ApplyUserAclLink(launchUid, resourceUid, isAdmin: null, belongsTo: true, isLaunchCredential: true);
+            await SaveAsync();
+          }
+
+          return;
+        }
+        catch (Exception ex) when (PamLayerB.ShouldFallbackOnError(ex, host, endpoint))
+        {
+          PamLayerB.TraceFallback(endpoint, resourceUid, ex);
+        }
+        catch (Exception ex)
+        {
+          // configure_resource can 500 on some admin/launch combinations; fall back to DAG ACL writes.
+          PamLayerB.TraceFallback(endpoint, resourceUid, ex);
+        }
+      }
+
+      ClearLaunchCredentialFlags(resourceUid, excludeUserUid: launchUid);
+      if (!string.IsNullOrEmpty(adminUid))
+      {
+        ApplyUserAclLink(adminUid, resourceUid, isAdmin: true, belongsTo: true, isLaunchCredential: null);
+      }
+
+      if (!string.IsNullOrEmpty(launchUid))
+      {
+        ApplyUserAclLink(launchUid, resourceUid, isAdmin: null, belongsTo: true, isLaunchCredential: true);
+      }
+
+      await SaveAsync();
+    }
+
+    /// <summary>
+    /// Returns whether a resource allowedSettings flag is enabled.
+    /// </summary>
+    public bool CheckIfResourceAllowed(string resourceUid, string setting)
+    {
+      return GetResourceAllowedSetting(resourceUid, setting) == true;
+    }
+
+    /// <summary>
+    /// Returns nullable allowedSettings flag for a resource (null = unset / default).
+    /// </summary>
+    public bool? GetResourceAllowedSetting(string resourceUid, string setting)
+    {
+      if (!_vertices.TryGetValue(resourceUid, out var resource))
+      {
+        return null;
+      }
+
+      var typed = resource.TryGetMetaContent()?.AllowedSettings;
+      if (typed != null)
+      {
+        return setting switch
+        {
+          "connections" => typed.Connections,
+          "sessionRecording" => typed.SessionRecording,
+          "typescriptRecording" => typed.TypescriptRecording,
+          "rotation" => typed.Rotation,
+          "portForwards" => typed.PortForwards,
+          "aiEnabled" => typed.AiEnabled,
+          "aiSessionTerminate" => typed.AiSessionTerminate,
+          "remoteBrowserIsolation" => typed.RemoteBrowserIsolation,
+          _ => null,
+        };
+      }
+
+      var meta = GetMetaDictionary(resource);
+      var settings = CoerceStringObjectDictionary(
+        meta != null && meta.TryGetValue("allowedSettings", out var raw) ? raw : null);
+      if (settings == null || !settings.ContainsKey(setting))
+      {
+        return null;
+      }
+
+      return ReadBool(settings, setting);
+    }
+
+    /// <summary>
+    /// Returns whether a config-level allowedSettings flag is enabled.
+    /// </summary>
+    public bool CheckIfConfigAllowed(string setting)
+    {
+      return GetConfigAllowedSetting(setting) == true;
+    }
+
+    /// <summary>
+    /// Returns nullable config allowedSettings flag (null = unset / default).
+    /// </summary>
+    public bool? GetConfigAllowedSetting(string setting)
+    {
+      if (!HasGraph || !_vertices.TryGetValue(_configUid, out var config))
+      {
+        return null;
+      }
+
+      var typed = config.TryGetMetaContent()?.AllowedSettings;
+      if (typed != null)
+      {
+        return setting switch
+        {
+          "connections" => typed.Connections,
+          "sessionRecording" => typed.SessionRecording,
+          "typescriptRecording" => typed.TypescriptRecording,
+          "rotation" => typed.Rotation,
+          "portForwards" => typed.PortForwards,
+          "aiEnabled" => typed.AiEnabled,
+          "aiSessionTerminate" => typed.AiSessionTerminate,
+          "remoteBrowserIsolation" => typed.RemoteBrowserIsolation,
+          _ => null,
+        };
+      }
+
+      var meta = GetMetaDictionary(config);
+      var settings = CoerceStringObjectDictionary(
+        meta != null && meta.TryGetValue("allowedSettings", out var raw) ? raw : null);
+      if (settings == null || !settings.ContainsKey(setting))
+      {
+        return null;
+      }
+
+      return ReadBool(settings, setting);
+    }
+
+    /// <summary>
+    /// rotation is Enabled unless explicitly false.
+    /// </summary>
+    public static string FormatRotationStatus(bool? rotation)
+    {
+      return rotation == false ? "Disabled" : "Enabled";
+    }
+
+    /// <summary>
+    /// flag Enabled only when explicitly true.
+    /// </summary>
+    public static string FormatFlagStatus(bool? flag)
+    {
+      return flag == true ? "Enabled" : "Disabled";
+    }
+
+    /// <summary>
+    /// Returns false when enabling a feature that the PAM configuration has not allowed.
+    /// </summary>
+    public bool CheckConfigAllows(
+      bool? enableConnections = null,
+      bool? enableSessionRecording = null,
+      bool? enableTypescriptRecording = null)
+    {
+      if (enableConnections != true
+          && enableSessionRecording != true
+          && enableTypescriptRecording != true)
+      {
+        return true;
+      }
+
+      if (!HasGraph || !_vertices.TryGetValue(_configUid, out var config))
+      {
+        return false;
+      }
+
+      // Prefer typed meta (reliable with DataContractJsonSerializer nested objects).
+      var typed = config.TryGetMetaContent()?.AllowedSettings;
+      if (typed != null)
+      {
+        if (enableConnections == true && typed.Connections != true)
+        {
+          return false;
+        }
+
+        if (typed.Connections == true)
+        {
+          if (enableSessionRecording == true && typed.SessionRecording != true)
+          {
+            return false;
+          }
+
+          if (enableTypescriptRecording == true && typed.TypescriptRecording != true)
+          {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      var meta = GetMetaDictionary(config);
+      var settings = CoerceStringObjectDictionary(
+        meta != null && meta.TryGetValue("allowedSettings", out var raw) ? raw : null);
+      if (settings == null || settings.Count == 0)
+      {
+        return false;
+      }
+
+      if (enableConnections == true && !ReadBool(settings, "connections"))
+      {
+        return false;
+      }
+
+      if (ReadBool(settings, "connections"))
+      {
+        if (enableSessionRecording == true && !ReadBool(settings, "sessionRecording"))
+        {
+          return false;
+        }
+
+        if (enableTypescriptRecording == true && !ReadBool(settings, "typescriptRecording"))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    private void ClearLaunchCredentialFlags(string resourceUid, string excludeUserUid)
+    {
+      foreach (var userUid in GetUsersLinkedToResource(resourceUid).ToList())
+      {
+        if (!string.IsNullOrEmpty(excludeUserUid)
+            && string.Equals(userUid, excludeUserUid, StringComparison.Ordinal))
+        {
+          continue;
+        }
+
+        if (!_vertices.TryGetValue(userUid, out var user)
+            || !user.TryGetAclContent(resourceUid, out var content)
+            || !ReadBool(content, "is_launch_credential"))
+        {
+          continue;
+        }
+
+        content.Remove("is_launch_credential");
+        user.SetEdge(resourceUid, PamGraphEdgeType.Acl, SerializeAclContent(content), path: null, modified: true);
+      }
+    }
+
+    private static Dictionary<string, object> GetMetaDictionary(PamGraphVertex vertex)
+    {
+      return vertex?.TryGetMetaDictionary();
+    }
+
+    private static Dictionary<string, object> GetOrCreateSettingsDictionary(
+      Dictionary<string, object> meta,
+      string settingsName)
+    {
+      if (meta.TryGetValue(settingsName, out var raw))
+      {
+        var existing = CoerceStringObjectDictionary(raw);
+        if (existing != null)
+        {
+          meta[settingsName] = existing;
+          return existing;
+        }
+      }
+
+      var created = new Dictionary<string, object>();
+      meta[settingsName] = created;
+      return created;
+    }
+
+    private static Dictionary<string, object> CoerceStringObjectDictionary(object raw)
+    {
+      if (raw == null)
+      {
+        return null;
+      }
+
+      if (raw is Dictionary<string, object> typed)
+      {
+        return typed;
+      }
+
+      if (raw is System.Collections.IDictionary map)
+      {
+        var result = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (System.Collections.DictionaryEntry entry in map)
+        {
+          if (entry.Key == null)
+          {
+            continue;
+          }
+
+          result[entry.Key.ToString()] = entry.Value;
+        }
+
+        return result;
+      }
+
+      if (raw is string json && !string.IsNullOrWhiteSpace(json))
+      {
+        try
+        {
+          return JsonUtils.ParseJson<Dictionary<string, object>>(Encoding.UTF8.GetBytes(json));
+        }
+        catch (Exception ex)
+        {
+          System.Diagnostics.Trace.TraceWarning("PAM: failed to coerce settings JSON: {0}", ex.Message);
+        }
+      }
+
+      return null;
+    }
+
+    /// <summary>
+    /// Applies on/off/default. Returns true when the dictionary changed.
+    /// "default" removes the key. Null input skips.
+    /// </summary>
+    private static bool ApplyTriStateSetting(Dictionary<string, object> settings, string key, string value)
+    {
+      if (value == null)
+      {
+        return false;
+      }
+
+      var converted = ConvertAllowedSetting(value);
+      settings.TryGetValue(key, out var currentRaw);
+      bool? current = currentRaw switch
+      {
+        bool b => b,
+        string s when bool.TryParse(s, out var parsed) => parsed,
+        _ => null,
+      };
+
+      if (converted == null)
+      {
+        if (!settings.ContainsKey(key))
+        {
+          return false;
+        }
+
+        settings.Remove(key);
+        return true;
+      }
+
+      if (current == converted.Value)
+      {
+        return false;
+      }
+
+      settings[key] = converted.Value;
+      return true;
+    }
+
+    /// <summary>
+    /// Converts on/off/default to true/false/null. Null input returns null (skip).
+    /// </summary>
+    public static bool? ConvertAllowedSetting(string value)
+    {
+      if (value == null)
+      {
+        return null;
+      }
+
+      if (bool.TryParse(value, out var asBool))
+      {
+        return asBool;
+      }
+
+      return value.Trim().ToLowerInvariant() switch
+      {
+        "on" => true,
+        "off" => false,
+        _ => null, // default / unknown -> remove key when applied
+      };
+    }
+
+    private static bool IsDefaultReset(string value)
+    {
+      return value != null && ConvertAllowedSetting(value) == null;
     }
 
     private string GetRouterHost()
@@ -497,15 +1210,42 @@ namespace KeeperSecurity.Plugins.PAM
     [DataContract]
     private sealed class PamGraphAllowedSettings
     {
-      [DataMember(Name = "rotation")]
-      public bool Rotation { get; set; }
+      [DataMember(Name = "rotation", EmitDefaultValue = false)]
+      public bool? Rotation { get; set; }
+
+      [DataMember(Name = "connections", EmitDefaultValue = false)]
+      public bool? Connections { get; set; }
+
+      [DataMember(Name = "sessionRecording", EmitDefaultValue = false)]
+      public bool? SessionRecording { get; set; }
+
+      [DataMember(Name = "typescriptRecording", EmitDefaultValue = false)]
+      public bool? TypescriptRecording { get; set; }
+
+      [DataMember(Name = "portForwards", EmitDefaultValue = false)]
+      public bool? PortForwards { get; set; }
+
+      [DataMember(Name = "aiEnabled", EmitDefaultValue = false)]
+      public bool? AiEnabled { get; set; }
+
+      [DataMember(Name = "aiSessionTerminate", EmitDefaultValue = false)]
+      public bool? AiSessionTerminate { get; set; }
+
+      [DataMember(Name = "remoteBrowserIsolation", EmitDefaultValue = false)]
+      public bool? RemoteBrowserIsolation { get; set; }
     }
 
     [DataContract]
     private sealed class PamGraphMetaContent
     {
+      [DataMember(Name = "version", EmitDefaultValue = false)]
+      public int? Version { get; set; }
+
       [DataMember(Name = "allowedSettings", EmitDefaultValue = false)]
       public PamGraphAllowedSettings AllowedSettings { get; set; }
+
+      [DataMember(Name = "rotateOnTermination", EmitDefaultValue = false)]
+      public bool? RotateOnTermination { get; set; }
     }
 
     private enum PamGraphEdgeType
@@ -700,22 +1440,52 @@ namespace KeeperSecurity.Plugins.PAM
         _dataEdge = new PamGraphEdge(Uid, Uid, PamGraphEdgeType.Data, content, path, modified);
       }
 
+      internal void ClearDataEdge()
+      {
+        _dataEdge = null;
+      }
+
       internal PamGraphMetaContent TryGetMetaContent()
       {
-        if (_dataEdge?.Content == null
-            || _dataEdge.Content.Length == 0
-            || !string.Equals(_dataEdge.Path, "meta", StringComparison.Ordinal))
+        if (_dataEdge?.Content == null || _dataEdge.Content.Length == 0 || !IsMetaPath(_dataEdge.Path))
+        {
+          PamDebug($"TryGetMetaContent uid={Uid}: no data edge (path={_dataEdge?.Path ?? "null"}, bytes={_dataEdge?.Content?.Length ?? 0})");
+          return null;
+        }
+
+        try
+        {
+          var parsed = JsonUtils.ParseJson<PamGraphMetaContent>(_dataEdge.Content);
+          PamDebug(
+            $"TryGetMetaContent uid={Uid} path={_dataEdge.Path} "
+            + $"rotation={parsed?.AllowedSettings?.Rotation} "
+            + $"connections={parsed?.AllowedSettings?.Connections} "
+            + $"portForwards={parsed?.AllowedSettings?.PortForwards}");
+          return parsed;
+        }
+        catch (Exception ex)
+        {
+          PamDebug($"TryGetMetaContent uid={Uid} PARSE FAIL: {ex.Message}; raw={Encoding.UTF8.GetString(_dataEdge.Content)}");
+          System.Diagnostics.Trace.TraceWarning("PAM: failed to parse graph meta content: {0}", ex.Message);
+          return null;
+        }
+      }
+
+      internal Dictionary<string, object> TryGetMetaDictionary()
+      {
+        if (_dataEdge?.Content == null || _dataEdge.Content.Length == 0 || !IsMetaPath(_dataEdge.Path))
         {
           return null;
         }
 
         try
         {
-          return JsonUtils.ParseJson<PamGraphMetaContent>(_dataEdge.Content);
+          return JsonUtils.ParseJson<Dictionary<string, object>>(_dataEdge.Content);
         }
         catch (Exception ex)
         {
-          System.Diagnostics.Trace.TraceWarning("PAM: failed to parse graph meta content: {0}", ex.Message);
+          PamDebug($"TryGetMetaDictionary uid={Uid} PARSE FAIL: {ex.Message}");
+          System.Diagnostics.Trace.TraceWarning("PAM: failed to parse graph meta dictionary: {0}", ex.Message);
           return null;
         }
       }

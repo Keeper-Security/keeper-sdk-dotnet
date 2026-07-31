@@ -951,7 +951,7 @@ namespace Commander.PAM
         [Option("add-credential", Required = false, HelpText = "Record UID with rotation credential (add/edit)")]
         public IEnumerable<string> AddCredential { get; set; }
 
-        [Option("remove-credential", Required = false, HelpText = "Remove rotation credential record UID (edit)")]
+        [Option("remove-credential", Required = false, HelpText = "Remove rotation credential record UID")]
         public IEnumerable<string> RemoveCredential { get; set; }
 
         [Option("pattern", Required = false, HelpText = "Record UID or title filter for script list")]

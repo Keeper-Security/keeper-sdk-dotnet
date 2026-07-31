@@ -57,10 +57,12 @@ namespace KeeperSecurity.Storage
         {
             foreach (var entity in data)
             {
-                if (entity != null)
+                if (entity == null || string.IsNullOrEmpty(entity.Uid))
                 {
-                    _items[entity.Uid] = entity;
+                    continue;
                 }
+
+                _items[entity.Uid] = entity;
             }
         }
 

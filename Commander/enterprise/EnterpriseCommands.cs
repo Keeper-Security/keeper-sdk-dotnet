@@ -334,6 +334,46 @@ namespace Commander
                 });
             cli.Aliases["pam-cfg"] = "pam-config";
 
+            var pamAction = new PamActionCommand(context);
+            cli.Commands.Add("pam-action",
+                new ParseableCommand<PamActionOptions>
+                {
+                    Order = 90,
+                    Description = "Execute PAM gateway actions (rotate, job-info)",
+                    Action = async options => { await pamAction.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-act"] = "pam-action";
+
+            var pamConnection = new PamConnectionCommand(context);
+            cli.Commands.Add("pam-connection",
+                new ParseableCommand<PamConnectionOptions>
+                {
+                    Order = 91,
+                    Description = "Configure PAM connections on resources",
+                    Action = async options => { await pamConnection.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-conn"] = "pam-connection";
+
+            var pamLaunch = new PamLaunchCommand(context);
+            cli.Commands.Add("pam-launch",
+                new ParseableCommand<PamLaunchCliOptions>
+                {
+                    Order = 92,
+                    Description = "Validate a PAM launch (preflight)",
+                    Action = async options => { await pamLaunch.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-l"] = "pam-launch";
+
+            var pamRbi = new PamRbiCommand(context);
+            cli.Commands.Add("pam-rbi",
+                new ParseableCommand<PamRbiOptions>
+                {
+                    Order = 93,
+                    Description = "Configure PAM Remote Browser Isolation settings",
+                    Action = async options => { await pamRbi.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-remote-browser"] = "pam-rbi";
+
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>
                 {

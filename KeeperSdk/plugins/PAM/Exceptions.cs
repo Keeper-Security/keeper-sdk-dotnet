@@ -90,4 +90,55 @@ namespace KeeperSecurity.Plugins.PAM
 
     public PamRouterException(string message, Exception innerException) : base(message, innerException) { }
   }
+
+  /// <summary>
+  /// PAM gateway action (rotate / job-info) failed.
+  /// </summary>
+  public class PamActionException : PamException
+  {
+    public PamActionException(string message) : base(message) { }
+
+    public PamActionException(string message, Exception innerException) : base(message, innerException) { }
+  }
+
+  /// <summary>
+  /// Rotation is blocked by enterprise enforcement.
+  /// </summary>
+  public class PamRotationNotAllowedException : PamActionException
+  {
+    public PamRotationNotAllowedException()
+      : base("Rotation is not allowed for this account by enterprise enforcement (allow_rotate_credentials).")
+    {
+    }
+  }
+
+  /// <summary>
+  /// PAM connection configuration failed.
+  /// </summary>
+  public class PamConnectionException : PamException
+  {
+    public PamConnectionException(string message) : base(message) { }
+
+    public PamConnectionException(string message, Exception innerException) : base(message, innerException) { }
+  }
+
+  /// <summary>
+  /// PAM Remote Browser Isolation configuration failed.
+  /// </summary>
+  public class PamRbiException : PamException
+  {
+    public PamRbiException(string message) : base(message) { }
+
+    public PamRbiException(string message, Exception innerException) : base(message, innerException) { }
+  }
+
+  /// <summary>
+  /// PAM launch preflight failed.
+  /// </summary>
+  public class PamLaunchException : PamException
+  {
+    public PamLaunchException(string message) : base(message) { }
+
+    public PamLaunchException(string message, Exception innerException) : base(message, innerException) { }
+  }
 }

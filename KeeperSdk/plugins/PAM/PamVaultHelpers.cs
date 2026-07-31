@@ -20,8 +20,10 @@ namespace KeeperSecurity.Plugins.PAM
 
       return vault.KeeperRecords
         .OfType<TypedRecord>()
+        .Where(x => !string.IsNullOrEmpty(x.Uid))
         .Where(x => PamRecordTypes.Configuration.Contains(x.TypeName ?? ""))
-        .ToDictionary(x => x.Uid, x => x);
+        .GroupBy(x => x.Uid, StringComparer.Ordinal)
+        .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
     }
 
     public static TypedRecord ResolveRecord(VaultOnline vault, string identifier, IEnumerable<string> allowedTypes)
@@ -455,33 +457,84 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
-    private static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
+    /// <summary>
+    /// Resolve any typed vault record by UID (loads from storage if present but not decrypted in-memory).
+    /// </summary>
+    public static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
       record = null;
-      if (!vault.TryGetKeeperRecord(recordUid, out var keeper))
+      if (vault == null || string.IsNullOrEmpty(recordUid))
       {
         return false;
       }
 
-      if (keeper is TypedRecord typed)
+      if (vault.TryGetKeeperRecord(recordUid, out var keeper))
       {
-        record = typed;
-        return true;
+        if (keeper is TypedRecord typed)
+        {
+          record = typed;
+          return true;
+        }
+
+        if (vault.TryLoadKeeperRecord(recordUid, out keeper) && keeper is TypedRecord loaded)
+        {
+          record = loaded;
+          return true;
+        }
+
+        return false;
       }
 
-      if (vault.TryLoadKeeperRecord(recordUid, out keeper) && keeper is TypedRecord loaded)
-      {
-        record = loaded;
-        return true;
-      }
-
-      return false;
+      // Fallback: scan in case dictionary lookup missed a matching UID.
+      record = vault.KeeperRecords
+        .OfType<TypedRecord>()
+        .FirstOrDefault(x => string.Equals(x.Uid, recordUid, StringComparison.Ordinal));
+      return record != null;
     }
 
     public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
       record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
       return record != null;
+    }
+
+    public static bool TryGetPamResources(VaultOnline vault, string configUid, out FieldPamResources resources)
+    {
+      resources = null;
+      if (vault == null || string.IsNullOrEmpty(configUid))
+      {
+        return false;
+      }
+
+      if (!TryGetTypedRecord(vault, configUid, out var config))
+      {
+        return false;
+      }
+
+      return TryGetPamResources(config, out resources);
+    }
+
+    public static bool TryGetPamResources(TypedRecord record, out FieldPamResources resources)
+    {
+      resources = null;
+      if (record == null || !record.FindTypedField("pamResources", null, out var field))
+      {
+        return false;
+      }
+
+      if (field is TypedField<FieldPamResources> typed && typed.Values.Count > 0)
+      {
+        resources = typed.Values[0];
+        return resources != null;
+      }
+
+      if (field.ObjectValue is FieldPamResources pam)
+      {
+        resources = pam;
+        return true;
+      }
+
+      return false;
     }
   }
 }

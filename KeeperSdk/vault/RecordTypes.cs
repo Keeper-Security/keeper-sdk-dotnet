@@ -269,6 +269,146 @@ namespace KeeperSecurity.Vault
         public string AdminCredentialRef { get; set; }
     }
 
+    /// <summary>
+    /// Connection subsection of <c>pamSettings</c> (protocol, port override, recording keys, scrollback).
+    /// Implements <see cref="IExtensibleDataObject"/> so unknown Web Vault / tunnel keys round-trip.
+    /// </summary>
+    [DataContract]
+    public class FieldPamConnectionSettings : IExtensibleDataObject
+    {
+        [DataMember(Name = "protocol", EmitDefaultValue = false)]
+        public string Protocol { get; set; }
+
+        [DataMember(Name = "port", EmitDefaultValue = false)]
+        public int? Port { get; set; }
+
+        [DataMember(Name = "databaseType", EmitDefaultValue = false)]
+        public string DatabaseType { get; set; }
+
+        [DataMember(Name = "allowSupplyUser", EmitDefaultValue = false)]
+        public bool? AllowSupplyUser { get; set; }
+
+        [DataMember(Name = "userRecords", EmitDefaultValue = false)]
+        public List<string> UserRecords { get; set; }
+
+        [DataMember(Name = "recordingIncludeKeys", EmitDefaultValue = false)]
+        public bool? RecordingIncludeKeys { get; set; }
+
+        [DataMember(Name = "scrollback", EmitDefaultValue = false)]
+        public int? Scrollback { get; set; }
+
+        [DataMember(Name = "allowKeeperDBProxy", EmitDefaultValue = false)]
+        public bool? AllowKeeperDbProxy { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// Port-forward / tunneling subsection of <c>pamSettings</c>
+    /// </summary>
+    [DataContract]
+    public class FieldPamPortForwardSettings : IExtensibleDataObject
+    {
+        /// <summary>Tunnel override port</summary>
+        [DataMember(Name = "port", EmitDefaultValue = false)]
+        public string Port { get; set; }
+
+        /// <summary>Reuse last connected local port when available.</summary>
+        [DataMember(Name = "reusePort", EmitDefaultValue = false)]
+        public bool? ReusePort { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// Typed field <c>pamSettings</c> for PAM resources (connection + portForward).
+    /// </summary>
+    [DataContract]
+    public class FieldPamSettings : FieldTypeBase
+    {
+        [DataMember(Name = "allowSupplyHost", EmitDefaultValue = false)]
+        public bool? AllowSupplyHost { get; set; }
+
+        [DataMember(Name = "connection", EmitDefaultValue = false)]
+        public FieldPamConnectionSettings Connection { get; set; }
+
+        [DataMember(Name = "portForward", EmitDefaultValue = false)]
+        public FieldPamPortForwardSettings PortForward { get; set; }
+    }
+
+    /// <summary>
+    /// Connection subsection of <c>pamRemoteBrowserSettings</c> for Remote Browser Isolation.
+    /// </summary>
+    [DataContract]
+    public class FieldPamRemoteBrowserConnectionSettings : IExtensibleDataObject
+    {
+        [DataMember(Name = "protocol", EmitDefaultValue = false)]
+        public string Protocol { get; set; }
+
+        [DataMember(Name = "httpCredentialsUid", EmitDefaultValue = false)]
+        public string HttpCredentialsUid { get; set; }
+
+        [DataMember(Name = "recordingIncludeKeys", EmitDefaultValue = false)]
+        public bool? RecordingIncludeKeys { get; set; }
+
+        [DataMember(Name = "allowUrlManipulation", EmitDefaultValue = false)]
+        public bool? AllowUrlManipulation { get; set; }
+
+        [DataMember(Name = "ignoreInitialSslCert", EmitDefaultValue = false)]
+        public bool? IgnoreInitialSslCert { get; set; }
+
+        [DataMember(Name = "allowFileUploads", EmitDefaultValue = false)]
+        public bool? AllowFileUploads { get; set; }
+
+        [DataMember(Name = "allowFileDownloads", EmitDefaultValue = false)]
+        public bool? AllowFileDownloads { get; set; }
+
+        [DataMember(Name = "allowedUrlPatterns", EmitDefaultValue = false)]
+        public string AllowedUrlPatterns { get; set; }
+
+        [DataMember(Name = "allowedResourceUrlPatterns", EmitDefaultValue = false)]
+        public string AllowedResourceUrlPatterns { get; set; }
+
+        [DataMember(Name = "autofillConfiguration", EmitDefaultValue = false)]
+        public string AutofillConfiguration { get; set; }
+
+        [DataMember(Name = "disableCopy", EmitDefaultValue = false)]
+        public bool? DisableCopy { get; set; }
+
+        [DataMember(Name = "disablePaste", EmitDefaultValue = false)]
+        public bool? DisablePaste { get; set; }
+
+        [DataMember(Name = "disableAudio", EmitDefaultValue = false)]
+        public bool? DisableAudio { get; set; }
+
+        [DataMember(Name = "audioChannels", EmitDefaultValue = false)]
+        public int? AudioChannels { get; set; }
+
+        [DataMember(Name = "audioBps", EmitDefaultValue = false)]
+        public int? AudioBps { get; set; }
+
+        [DataMember(Name = "audioSampleRate", EmitDefaultValue = false)]
+        public int? AudioSampleRate { get; set; }
+
+        [DataMember(Name = "sessionPersistence", EmitDefaultValue = false)]
+        public string SessionPersistence { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// Typed field <c>pamRemoteBrowserSettings</c> for pamRemoteBrowser records.
+    /// </summary>
+    [DataContract]
+    public class FieldPamRemoteBrowserSettings : FieldTypeBase
+    {
+        [DataMember(Name = "connection", EmitDefaultValue = false)]
+        public FieldPamRemoteBrowserConnectionSettings Connection { get; set; }
+    }
+
     /// <exclude />
     [DataContract]
     public class FieldSchedule : FieldTypeBase
@@ -1449,6 +1589,9 @@ namespace KeeperSecurity.Vault
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
                 new FieldType("script", typeof(FieldScript), "{'fileRef': '', 'command': '', 'recordRef': []}", "Post rotation script"),
                 new FieldType("pamResources", typeof(FieldPamResources), "{'controllerUid': '', 'folderUid': '', 'resourceRef': []}", "PAM resources"),
+                new FieldType("pamSettings", typeof(FieldPamSettings), "{'connection': {}, 'portForward': {}}", "PAM connection settings"),
+                new FieldType("pamRemoteBrowserSettings", typeof(FieldPamRemoteBrowserSettings),
+                    "{'connection': {'protocol': 'http'}}", "PAM Remote Browser Isolation settings"),
                 new FieldType("schedule", typeof(FieldSchedule), "{'type': '', 'time': '', 'cron', 'month': '', 'weekday': '', 'monthDay': ''}", "schedule information"),
             };
 
@@ -1475,7 +1618,10 @@ namespace KeeperSecurity.Vault
                 new RecordField("fileRef", _fieldTypes["fileRef"], RecordFieldMultiple.Always),
 
                 new RecordField("pamResources", _fieldTypes["pamResources"], RecordFieldMultiple.Never),
+                new RecordField("pamSettings", _fieldTypes["pamSettings"], RecordFieldMultiple.Never),
+                new RecordField("pamRemoteBrowserSettings", _fieldTypes["pamRemoteBrowserSettings"], RecordFieldMultiple.Never),
                 new RecordField("pamHostname", _fieldTypes["host"], RecordFieldMultiple.Never),
+                new RecordField("trafficEncryptionSeed", _fieldTypes["secret"], RecordFieldMultiple.Never),
                 new RecordField("databaseType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
                 new RecordField("directoryType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
             };
