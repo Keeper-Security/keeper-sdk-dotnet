@@ -45,6 +45,11 @@ namespace KeeperSecurity.Plugins.PAM
       var dataCount = 0;
       var otherCount = 0;
 
+      var linkCount = 0;
+      var aclCount = 0;
+      var dataCount = 0;
+      var otherCount = 0;
+
       foreach (var item in data)
       {
         var edge = item.Data;
@@ -1575,7 +1580,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// High-level rotation edit graph operations.
+  /// High-level rotation edit graph operations
   /// </summary>
   public static class PamRotationGraphEdit
   {

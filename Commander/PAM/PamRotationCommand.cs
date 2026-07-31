@@ -945,7 +945,7 @@ namespace Commander.PAM
         [Option("script", Required = false, HelpText = "Script file path (add) or script UID/name (edit/delete)")]
         public string Script { get; set; }
 
-        [Option("run-command", Required = false, HelpText = "Script command line to run")]
+        [Option("run-command", Required = false, HelpText = "Script command line to run)")]
         public string RunCommand { get; set; }
 
         [Option("add-credential", Required = false, HelpText = "Record UID with rotation credential (add/edit)")]
