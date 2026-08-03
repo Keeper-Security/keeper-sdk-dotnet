@@ -1,4 +1,4 @@
-﻿using Cli;
+using Cli;
 using CommandLine;
 using System;
 using System.Collections.Generic;
@@ -548,10 +548,24 @@ namespace Commander
             {
                 foreach (var atta in attas)
                 {
-                    Console.Write($"Downloading {atta.Name} ...");
+                    string safePath;
                     try
                     {
-                        using (var stream = File.OpenWrite(Path.Combine(options.OutputDirectory, atta.Name)))
+                        // Prefer Title when present (display name); fall back to Name.
+                        // Both are attacker-controlled for shared records — must sanitize.
+                        var downloadName = !string.IsNullOrWhiteSpace(atta.Title) ? atta.Title : atta.Name;
+                        safePath = PathUtils.GetSafeDownloadPath(options.OutputDirectory, downloadName);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Skipping attachment: {e.Message}");
+                        continue;
+                    }
+
+                    Console.Write($"Downloading {Path.GetFileName(safePath)} ...");
+                    try
+                    {
+                        using (var stream = File.OpenWrite(safePath))
                         {
                             switch (atta)
                             {
