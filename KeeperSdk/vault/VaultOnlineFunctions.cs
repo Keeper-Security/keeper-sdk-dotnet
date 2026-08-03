@@ -244,6 +244,13 @@ namespace KeeperSecurity.Vault
             return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
 
+        private static string EncryptRecordTransitionKey(KeeperRecord record, byte[] encryptionKey)
+        {
+            return record.Version >= 3
+                ? CryptoUtils.EncryptAesV2(record.RecordKey, encryptionKey).Base64UrlEncode()
+                : CryptoUtils.EncryptAesV1(record.RecordKey, encryptionKey).Base64UrlEncode();
+        }
+
         public static async Task MoveToFolder(this VaultOnline vault, IEnumerable<RecordPath> objects, string toFolderUid, bool link = false)
         {
             var destinationFolder = vault.GetFolder(toFolderUid);
@@ -285,7 +292,7 @@ namespace KeeperSecurity.Vault
                                 new TransitionKey
                                 {
                                     uid = recordUid,
-                                    key = CryptoUtils.EncryptAesV1(record.RecordKey, encryptionKey).Base64UrlEncode(),
+                                    key = EncryptRecordTransitionKey(record, encryptionKey),
                                 });
                         }
                     }
@@ -343,7 +350,7 @@ namespace KeeperSecurity.Vault
                             new TransitionKey
                             {
                                 uid = mo.RecordUid,
-                                key = CryptoUtils.EncryptAesV1(record.RecordKey, encryptionKey).Base64UrlEncode(),
+                                key = EncryptRecordTransitionKey(record, encryptionKey),
                             });
                     }
 

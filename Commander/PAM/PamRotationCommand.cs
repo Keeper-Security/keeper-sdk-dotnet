@@ -741,7 +741,6 @@ namespace Commander.PAM
                     continue;
                 }
 
-                // Match UID, title, or filename (Python Commander parity).
                 if (string.Equals(fileRecord.Uid, scriptName, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(fileRecord.Title, scriptName, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(fileRecord.Title, scriptNameFolded, StringComparison.OrdinalIgnoreCase)
@@ -944,13 +943,13 @@ namespace Commander.PAM
         [Option("script", Required = false, HelpText = "Script file path (add) or script UID/name (edit/delete)")]
         public string Script { get; set; }
 
-        [Option("run-command", Required = false, HelpText = "Script command line to run (Python: --script-command)")]
+        [Option("run-command", Required = false, HelpText = "Script command line to run (--script-command)")]
         public string RunCommand { get; set; }
 
-        [Option("add-credential", Required = false, HelpText = "Record UID with rotation credential (add/edit, -ac in Python Commander)")]
+        [Option("add-credential", Required = false, HelpText = "Record UID with rotation credential (add/edit, -ac)")]
         public IEnumerable<string> AddCredential { get; set; }
 
-        [Option("remove-credential", Required = false, HelpText = "Remove rotation credential record UID (edit, -rc in Python Commander)")]
+        [Option("remove-credential", Required = false, HelpText = "Remove rotation credential record UID (edit, -rc)")]
         public IEnumerable<string> RemoveCredential { get; set; }
 
         [Option("pattern", Required = false, HelpText = "Record UID or title filter for script list")]
