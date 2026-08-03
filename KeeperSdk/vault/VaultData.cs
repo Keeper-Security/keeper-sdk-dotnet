@@ -116,6 +116,19 @@ namespace KeeperSecurity.Vault
             return _keeperRecords.TryGetValue(recordUid, out record);
         }
 
+        /// <summary>
+        /// Caches a record created outside the normal vault/records_add flow (e.g. PAM configuration).
+        /// </summary>
+        public void CacheKeeperRecord(KeeperRecord record)
+        {
+            if (record == null || string.IsNullOrEmpty(record.Uid))
+            {
+                return;
+            }
+
+            _keeperRecords[record.Uid] = record;
+        }
+
         /// <inheritdoc/>
         public bool TryLoadKeeperRecord(string recordUid, out KeeperRecord record)
         {
@@ -327,6 +340,11 @@ namespace KeeperSecurity.Vault
         }
 
 
+        internal void RefreshRecordTypes()
+        {
+            LoadRecordTypes();
+        }
+
         private void LoadRecordTypes()
         {
             _keeperRecordTypes.Clear();
@@ -379,13 +397,13 @@ namespace KeeperSecurity.Vault
                         .Where(x => x != null)
                         .ToArray(),
                 };
-                if (recordType.Scope == RecordTypeScope.Standard)
-                {
-                    _keeperRecordTypes.TryAdd(recordType.Name, recordType);
-                }
-                else if (recordType.Scope == RecordTypeScope.Enterprise)
+                if (recordType.Scope == RecordTypeScope.Enterprise)
                 {
                     _customRecordTypes.Add(recordType);
+                }
+                else
+                {
+                    _keeperRecordTypes.TryAdd(recordType.Name, recordType);
                 }
             }
         }

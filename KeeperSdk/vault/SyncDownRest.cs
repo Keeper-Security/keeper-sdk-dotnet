@@ -767,6 +767,7 @@ namespace KeeperSecurity.Vault
                     Standard = true,
                     Enterprise = true,
                     User = true,
+                    Pam = true,
                 };
                 var recordTypesRs =
                     await auth.ExecuteAuthRest<RecordProto.RecordTypesRequest, RecordProto.RecordTypesResponse>(
@@ -801,6 +802,7 @@ namespace KeeperSecurity.Vault
 
                 storage.RecordTypes.PutEntities(recordTypes);
                 vault.RecordTypesLoaded = true;
+                vault.RefreshRecordTypes();
             }
 
             Debug.WriteLine("Rebuild Data: Enter");
@@ -829,6 +831,78 @@ namespace KeeperSecurity.Vault
                     context.PrivateEcKey),
                 _ => throw new Exception($"Unsupported key type {keyType}"),
             };
+        }
+
+        /// <summary>
+        /// Ensures PAM record type schemas (e.g. pamNetworkConfiguration) are loaded into the vault.
+        /// </summary>
+        public static async Task EnsurePamRecordTypesAsync(this VaultOnline vault)
+        {
+            if (vault == null)
+            {
+                throw new ArgumentNullException(nameof(vault));
+            }
+
+            if (vault.TryGetRecordTypeByName("pamNetworkConfiguration", out _))
+            {
+                return;
+            }
+
+            await vault.SyncRecordTypesFromServerAsync();
+        }
+
+        /// <summary>
+        /// Downloads record types from Keeper and refreshes the in-memory schema cache.
+        /// </summary>
+        public static async Task SyncRecordTypesFromServerAsync(this VaultOnline vault)
+        {
+            if (vault == null)
+            {
+                throw new ArgumentNullException(nameof(vault));
+            }
+
+            var recordTypesRq = new RecordProto.RecordTypesRequest
+            {
+                Standard = true,
+                Enterprise = true,
+                User = true,
+                Pam = true,
+            };
+            var recordTypesRs =
+                await vault.Auth.ExecuteAuthRest<RecordProto.RecordTypesRequest, RecordProto.RecordTypesResponse>(
+                    "vault/get_record_types", recordTypesRq);
+            var recordTypes = recordTypesRs.RecordTypes.Select(x =>
+            {
+                try
+                {
+                    var cnt = JsonUtils.ParseJson<RecordTypeContent>(Encoding.UTF8.GetBytes(x.Content));
+                    return new StorageRecordType
+                    {
+                        Name = cnt.Name,
+                        RecordTypeId = x.RecordTypeId,
+                        Content = x.Content,
+                        Scope = (int) x.Scope
+                    };
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"Error parsing record type: {e}");
+                }
+
+                return null;
+            }).Where(x => x != null).ToList();
+            var existingRecordTypes = new HashSet<string>(
+                vault.Storage.RecordTypes.GetAll().Select(x => x.Name),
+                StringComparer.InvariantCultureIgnoreCase);
+            existingRecordTypes.ExceptWith(recordTypes.Select(x => x.Name));
+            if (existingRecordTypes.Count > 0)
+            {
+                vault.Storage.RecordTypes.DeleteUids(existingRecordTypes);
+            }
+
+            vault.Storage.RecordTypes.PutEntities(recordTypes);
+            vault.RecordTypesLoaded = true;
+            vault.RefreshRecordTypes();
         }
     }
 }
