@@ -610,6 +610,7 @@ function script:invokeKeeperPamRotationEdit {
         }
     }
 
+    $unsupportedRevision = $false
     $failures = New-Object System.Collections.Generic.List[string]
     foreach ($request in $requests) {
         $recordUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($request.RecordUid.ToByteArray())
@@ -617,19 +618,26 @@ function script:invokeKeeperPamRotationEdit {
             [KeeperSecurity.Plugins.PAM.RouterUtils]::SetRecordRotationAsync($Auth, $request).GetAwaiter().GetResult() | Out-Null
         }
         catch {
-            $message = ("Record `"{0}`": Set rotation error: {1}" -f $recordUid, $_.Exception.Message)
-            Write-Output $message
-            [void]$failures.Add($message)
+            $raw = [string]$_.Exception.Message
+            if ($raw -match 'mismatched_revision_blocking_update' -or
+                $raw -match 'revision does not correspond to the rotation entry' -or
+                $raw -match 'revision 0 less than') {
+                $unsupportedRevision = $true
+            }
+            else {
+                [void]$failures.Add(("Record `"{0}`": Set rotation error: {1}" -f $recordUid, $raw))
+            }
         }
     }
 
     $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
 
+    if ($unsupportedRevision) {
+        Write-Output 'Rotation was not updated because this feature is not supported in production yet. Coming soon.'
+    }
+
     if ($failures.Count -gt 0) {
-        Write-Error -Message (
-            ("{0} of {1} record(s) failed to update rotation:`n{2}" -f `
-                $failures.Count, $requests.Count, ([string]::Join([Environment]::NewLine, $failures)))
-        ) -ErrorAction Stop
+        Write-Error -Message ([string]::Join([Environment]::NewLine, $failures)) -ErrorAction Stop
     }
 }
 

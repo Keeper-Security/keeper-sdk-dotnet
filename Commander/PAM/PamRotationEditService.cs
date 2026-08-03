@@ -198,6 +198,7 @@ namespace Commander.PAM
                             valid,
                             out var request))
                     {
+                        request.Revision = await _vault.ResolveRecordRotationRevisionAsync(record.Uid);
                         requests.Add(request);
                     }
                 }
@@ -268,6 +269,7 @@ namespace Commander.PAM
                 }
             }
 
+            var unsupportedRevision = false;
             var failures = new List<string>();
             foreach (var request in requests)
             {
@@ -280,9 +282,15 @@ namespace Commander.PAM
                 }
                 catch (Exception ex)
                 {
-                    var message = $"Record \"{recordUid}\": Set rotation error: {ex.Message}";
-                    Console.WriteLine(message);
-                    failures.Add(message);
+                    var detail = ex?.Message ?? "";
+                    if (IsUnsupportedRotationRevisionError(detail))
+                    {
+                        unsupportedRevision = true;
+                    }
+                    else
+                    {
+                        failures.Add($"Record \"{recordUid}\": Set rotation error: {detail}");
+                    }
                 }
             }
 
@@ -296,13 +304,28 @@ namespace Commander.PAM
                 Console.WriteLine($"Warning: could not refresh PAM record rotations cache: {ex.Message}");
             }
 
+            if (unsupportedRevision)
+            {
+                Console.WriteLine(
+                    "Rotation was not updated because this feature is not supported in production yet. Coming soon.");
+            }
+
             if (failures.Count > 0)
             {
-                throw new InvalidOperationException(
-                    $"{failures.Count} of {requests.Count} record(s) failed to update rotation:"
-                    + Environment.NewLine
-                    + string.Join(Environment.NewLine, failures));
+                throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
             }
+        }
+
+        private static bool IsUnsupportedRotationRevisionError(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                return false;
+            }
+
+            return message.IndexOf("mismatched_revision_blocking_update", StringComparison.OrdinalIgnoreCase) >= 0
+                   || message.IndexOf("revision does not correspond to the rotation entry", StringComparison.OrdinalIgnoreCase) >= 0
+                   || message.IndexOf("revision 0 less than", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private sealed class RecordEditContext
@@ -544,7 +567,6 @@ namespace Commander.PAM
                 PwdComplexity = ByteString.CopyFrom(pwdComplexity ?? Array.Empty<byte>()),
                 Disabled = disabled,
                 Noop = noop,
-                Revision = cached?.Revision ?? 0,
             };
 
             if (!noop && !string.IsNullOrEmpty(resourceUid))
