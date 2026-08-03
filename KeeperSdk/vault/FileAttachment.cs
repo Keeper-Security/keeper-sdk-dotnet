@@ -32,10 +32,21 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public string Name { get; set; }
+        public string Name
+        {
+            get => _name;
+            set => _name = string.IsNullOrWhiteSpace(value) ? value : PathUtils.SanitizeFileName(value);
+        }
 
         /// <inheritdoc/>
-        public string Title { get; set; }
+        public string Title
+        {
+            get => _title;
+            set => _title = string.IsNullOrWhiteSpace(value) ? value : PathUtils.SanitizeFileName(value);
+        }
+
+        private string _name;
+        private string _title;
 
         /// <inheritdoc/>
         public string MimeType { get; set; }
@@ -65,7 +76,8 @@ namespace KeeperSecurity.Vault
                 throw new Exception($"Cannot open file \"{fileName}\"");
             }
             IsScript = isScript;
-            Name = Path.GetFileName(fileName);
+            // Local path → basename only (also re-applied when writing metadata).
+            Name = PathUtils.SanitizeFileName(fileName);
             Title = Name;
             try
             {
@@ -170,6 +182,11 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task UploadAttachment(KeeperRecord record, IAttachmentUploadTask uploadTask)
         {
+            if (uploadTask == null)
+            {
+                throw new ArgumentNullException(nameof(uploadTask));
+            }
+
             switch (record)
             {
                 case PasswordRecord password:
@@ -182,6 +199,19 @@ namespace KeeperSecurity.Vault
                 default:
                     throw new KeeperInvalidParameter("Vault::UploadAttachment", "record", record.GetType().Name, "unsupported record type");
             }
+        }
+
+        /// <summary>
+        /// Sanitizes Name/Title at the last moment before they enter encrypted metadata.
+        /// Closes the public-setter bypass on <see cref="AttachmentUploadTask"/>.
+        /// </summary>
+        private static void GetSanitizedUploadNames(IAttachmentUploadTask uploadTask, out string name, out string title)
+        {
+            name = PathUtils.SanitizeFileName(
+                string.IsNullOrWhiteSpace(uploadTask.Name) ? "attachment" : uploadTask.Name);
+            title = string.IsNullOrWhiteSpace(uploadTask.Title)
+                ? name
+                : PathUtils.SanitizeFileName(uploadTask.Title);
         }
 
         /// <inheritdoc/>
@@ -325,12 +355,14 @@ namespace KeeperSecurity.Vault
                 thumbUpload = rs.ThumbnailUploads[0];
             }
 
+            GetSanitizedUploadNames(uploadTask, out var safeName, out var safeTitle);
+
             var key = CryptoUtils.GenerateEncryptionKey();
             var atta = new AttachmentFile
             {
                 Id = fileUpload.FileId,
-                Name = uploadTask.Name,
-                Title = uploadTask.Title,
+                Name = safeName,
+                Title = safeTitle,
                 Key = key.Base64UrlEncode(),
                 MimeType = uploadTask.MimeType,
                 LastModified = DateTimeOffset.Now,
@@ -380,11 +412,13 @@ namespace KeeperSecurity.Vault
                 throw new KeeperInvalidParameter("Vault::UploadAttachment", "uploadTask", "GetStream()", "null");
             }
 
+            GetSanitizedUploadNames(uploadTask, out var safeName, out var safeTitle);
+
             var fileData = new RecordFileData
             {
                 Type = uploadTask.MimeType,
-                Name = uploadTask.Name,
-                Title = uploadTask.Title,
+                Name = safeName,
+                Title = safeTitle,
                 Size = null,
                 ThumbnailSize = null,
                 LastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),

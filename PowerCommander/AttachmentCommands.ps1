@@ -74,16 +74,28 @@ function Copy-KeeperFileAttachment {
                 } elseif ($atta.Name) {
                     $fileName = $atta.Name
                 }
-                $filePath = Join-Path $path $fileName
-                if (Test-Path $filePath -PathType Leaf) {
-                    $filePath = Join-Path $path "$($atta.Id) - $fileName"
-                    if (Test-Path $filePath -PathType Leaf) {
+                try {
+                    $safeName = [KeeperSecurity.Utils.PathUtils]::SanitizeFileName($fileName)
+                    $filePath = [KeeperSecurity.Utils.PathUtils]::GetSafeDownloadPath($Path, $safeName)
+                } catch {
+                    Write-Warning "Skipping attachment `"$fileName`": $($_.Exception.Message)"
+                    continue
+                }
+                if (Test-Path -LiteralPath $filePath -PathType Leaf) {
+                    $altName = "$($atta.Id) - $safeName"
+                    try {
+                        $filePath = [KeeperSecurity.Utils.PathUtils]::GetSafeDownloadPath($Path, $altName)
+                    } catch {
+                        Write-Warning "Skipping attachment `"$fileName`": $($_.Exception.Message)"
+                        continue
+                    }
+                    if (Test-Path -LiteralPath $filePath -PathType Leaf) {
                         Write-Information -MessageData "File `"$filePath`" already exists"
                         continue
                     }
                 }
-                Write-Information -MessageData "Downloading `"$fileName`" into `"$filePath`""
-                $newFile = New-Item -Name $filePath -ItemType File
+                Write-Information -MessageData "Downloading `"$safeName`" into `"$filePath`""
+                $newFile = New-Item -Path $filePath -ItemType File -Force
                 $fileStream = $newFile.OpenWrite()
                 try {
                     $vault.DownloadAttachment($keeperRecord, $atta.Id, $fileStream).GetAwaiter().GetResult() | Out-Null
