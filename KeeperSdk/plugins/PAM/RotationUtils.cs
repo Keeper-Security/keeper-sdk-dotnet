@@ -40,6 +40,8 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       var parts = expression.Trim().Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+      // - forRotation: require exactly 6 fields (incl. seconds)
+      // - otherwise: allow standard 5 or 6 fields
       if (forRotation)
       {
         if (parts.Length != 6)
@@ -50,7 +52,7 @@ namespace KeeperSecurity.Plugins.PAM
 
         if (parts[3] != "?" && parts[5] != "?")
         {
-          return (false,
+          Trace.TraceWarning(
             "CRON: Rotation schedule CRON format - must use ? character in one of these fields: day-of-week, day-of-month");
         }
 
@@ -58,8 +60,7 @@ namespace KeeperSecurity.Plugins.PAM
         parts[3] = parts[3] == "?" ? "*" : parts[3];
         parts[5] = parts[5] == "?" ? "*" : parts[5];
       }
-
-      if (parts.Length != 5 && parts.Length != 6)
+      else if (parts.Length != 5 && parts.Length != 6)
       {
         return (false, $"CRON: Expected 5 or 6 fields, got {parts.Length}");
       }
