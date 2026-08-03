@@ -715,14 +715,14 @@ namespace Commander.PAM
                 dict["month"] = value.Month;
             }
 
-            if (!string.IsNullOrEmpty(value.MonthDay))
+            if (value.MonthDay.HasValue)
             {
-                dict["monthDay"] = value.MonthDay;
+                dict["monthDay"] = value.MonthDay.Value;
             }
 
-            if (!string.IsNullOrEmpty(value.IntervalCount))
+            if (value.IntervalCount.HasValue)
             {
-                dict["intervalCount"] = value.IntervalCount;
+                dict["intervalCount"] = value.IntervalCount.Value;
             }
 
             if (!string.IsNullOrEmpty(value.Cron))
@@ -914,23 +914,22 @@ namespace Commander.PAM
         private static void PrintResourceConfigureSummary(IReadOnlyList<ResourceConfigureSummary> summaries)
         {
             Console.WriteLine();
+
             foreach (var summary in summaries)
             {
                 Console.WriteLine(
                     $"Resource \"{summary.RecordTitle}\" ({summary.RecordUid}) configured for PAM rotation.");
                 Console.WriteLine($"  PAM Configuration: {summary.ConfigUid}");
+
                 if (!string.IsNullOrEmpty(summary.AdminUserUid))
                 {
                     Console.WriteLine($"  Admin user linked: {summary.AdminUserUid}");
                 }
 
-                if (summary.RotationEnabled == true)
+                if (summary.RotationEnabled.HasValue)
                 {
-                    Console.WriteLine("  Rotation: Enabled");
-                }
-                else if (summary.RotationEnabled == false)
-                {
-                    Console.WriteLine("  Rotation: Disabled");
+                    Console.WriteLine(
+                        $"  Rotation: {(summary.RotationEnabled.Value ? "Enabled" : "Disabled")}");
                 }
             }
         }
