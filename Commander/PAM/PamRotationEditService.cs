@@ -184,6 +184,7 @@ namespace Commander.PAM
                             configUidForDag,
                             editContext.Noop,
                             options.ScheduleOnly);
+                        await _vault.SyncDown();
                     }
 
                     if (TryBuildUserRotationRequest(
@@ -283,7 +284,8 @@ namespace Commander.PAM
                 catch (Exception ex)
                 {
                     var detail = ex?.Message ?? "";
-                    if (IsUnsupportedRotationRevisionError(detail))
+                    if (IsUnsupportedRotationRevisionError(detail)
+                        && PamVaultHelpers.IsKeeperNSFRecord(_vault, recordUid))
                     {
                         unsupportedRevision = true;
                     }
