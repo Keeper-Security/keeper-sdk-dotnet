@@ -1,4 +1,4 @@
-﻿using KeeperSecurity.Utils;
+using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -265,6 +265,8 @@ namespace KeeperSecurity.Vault
         public string FolderUid { get; set; }
         [DataMember(Name = "resourceRef", EmitDefaultValue = true)]
         public string[] ResourceRef { get; set; }
+        [DataMember(Name = "adminCredentialRef", EmitDefaultValue = true)]
+        public string AdminCredentialRef { get; set; }
     }
 
     /// <exclude />
@@ -273,20 +275,27 @@ namespace KeeperSecurity.Vault
     {
         [DataMember(Name = "type", EmitDefaultValue = true)]
         public string Type { get; set; }
-        [DataMember(Name = "time", EmitDefaultValue = true)]
+        [DataMember(Name = "time", EmitDefaultValue = false)]
         public string Time { get; set; }
-        [DataMember(Name = "tz", EmitDefaultValue = true)]
+        [DataMember(Name = "tz", EmitDefaultValue = false)]
         public string TimeZone { get; set; }
         [DataMember(Name = "weekday", EmitDefaultValue = false)]
         public string Weekday { get; set; }
         [DataMember(Name = "month", EmitDefaultValue = false)]
         public string Month { get; set; }
         [DataMember(Name = "monthDay", EmitDefaultValue = false)]
-        public string MonthDay { get; set; }
+        public int? MonthDay { get; set; }
         [DataMember(Name = "cron", EmitDefaultValue = false)]
         public string Cron { get; set; }
-        [DataMember(Name = "intervalCount", EmitDefaultValue = true)]
-        public string IntervalCount { get; set; }
+        [DataMember(Name = "intervalCount", EmitDefaultValue = false)]
+        public int? IntervalCount { get; set; }
+        [DataMember(Name = "endDate", EmitDefaultValue = false)]
+        public string EndDate { get; set; }
+        [DataMember(Name = "occurrences", EmitDefaultValue = false)]
+        public int? Occurrences { get; set; }
+        /// <summary>MONTHLY_BY_WEEKDAY: FIRST | SECOND | THIRD | FOURTH | LAST</summary>
+        [DataMember(Name = "occurrence", EmitDefaultValue = false)]
+        public string Occurrence { get; set; }
     }
 
     /// <summary>
@@ -1416,6 +1425,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("text", typeof(string), "''", "plain text"),
                 new FieldType("url", typeof(string), "''", "url string, can be clicked"),
                 new FieldType("multiline", typeof(string), "''", "multiline text"),
+                new FieldType("json", typeof(string), "''", "json text; only validated data persisted"),
                 new FieldType("fileRef", typeof(string), "''", "reference to the file field on another record"),
                 new FieldType("email", typeof(string), "''", "valid email address plus tag"),
                 new FieldType("host", typeof(FieldTypeHost), "{'hostName': '', 'port': ''}", "multiple fields to capture host information"),
