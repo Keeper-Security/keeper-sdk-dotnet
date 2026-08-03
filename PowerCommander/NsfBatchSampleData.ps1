@@ -1,5 +1,9 @@
 #requires -Version 5.1
 
+# Sample batch JSON for NSF PowerShell commands.
+# Values are placeholders only (example.com emails, Replace-With-Your-Password, REPLACE_WITH_* UIDs).
+# Do not put real secrets in sample files checked into source control.
+
 function Get-KeeperNSFBatchSampleJson {
     @'
 {

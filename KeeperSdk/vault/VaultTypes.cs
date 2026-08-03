@@ -1106,7 +1106,11 @@ namespace KeeperSecurity.Vault
         /// <summary>Number of removal chunks that failed (preview or confirm).</summary>
         public int FailedChunkCount { get; set; }
 
-        /// <summary>True when some chunks confirmed and others failed.</summary>
+        /// <summary>
+        /// True when some chunks confirmed and others failed.
+        /// Callers should treat this as a non-fatal aggregated result (do not assume all items were removed).
+        /// Preview (dry-run) failures for folders throw; confirm/execute returns this flag instead of throwing.
+        /// </summary>
         public bool PartialSuccess => ConfirmedChunkCount > 0 && FailedChunkCount > 0;
 
         /// <summary>Per-chunk failure messages when multi-chunk removal partially fails.</summary>
@@ -1116,7 +1120,10 @@ namespace KeeperSecurity.Vault
         public long? TokenExpiresAt { get; set; }
 
         /// <summary>
-        /// Per-chunk confirmation tokens from a dry-run preview (one per API chunk, in order).
+        /// Per-chunk confirmation tokens from a dry-run preview.
+        /// Contract: one token per API chunk, in the same order as preview chunking
+        /// (folders: batches of 100, ascending offset). Confirm must pass the same removals list
+        /// so chunk boundaries and token indices still align.
         /// Use with <see cref="IVault.ConfirmKeeperNSFFolders"/> to confirm without re-running PREVIEW.
         /// </summary>
         public IList<byte[]> ChunkConfirmationTokens { get; set; } = new List<byte[]>();

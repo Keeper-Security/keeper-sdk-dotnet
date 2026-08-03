@@ -28,31 +28,35 @@ namespace KeeperSecurity
             public bool? CanShare { get; set; }
         }
 
-        /// <summary>
-        /// One element of a structured import/NSF field (e.g. hostName/port).
-        /// </summary>
+        /// <summary>Name/value pair inside a structured custom field (e.g. hostName, port).</summary>
         public class ImportCustomFieldElement
         {
+            /// <summary>Element name.</summary>
             public string Name { get; set; }
 
+            /// <summary>Element value.</summary>
             public string Value { get; set; }
         }
 
         /// <summary>
-        /// Typed custom field for <see cref="ImportRecord.CustomFields"/>.
-        /// JSON <c>custom_fields</c> objects are converted into this array when parsing.
+        /// A single custom_fields entry from import JSON.
+        /// Use <see cref="TextValue"/> for plain text, or <see cref="Elements"/> for objects like host/address.
         /// </summary>
         public class ImportCustomField
         {
-            /// <summary>Field key (e.g. <c>$host</c>, <c>$address:Work</c>, <c>TFC:Keeper</c>).</summary>
+            /// <summary>Field name, e.g. $host, $address:Work, TFC:Keeper.</summary>
             public string Name { get; set; }
 
-            /// <summary>Scalar value; empty string allowed (clear on update). Null when <see cref="Elements"/> is used.</summary>
+            /// <summary>
+            /// Plain text value. null = leave alone; "" = clear on update.
+            /// Leave null when using <see cref="Elements"/>.
+            /// </summary>
             public string TextValue { get; set; }
 
-            /// <summary>Structured value (host, address, paymentCard, …).</summary>
+            /// <summary>Object-style value (host, address, etc.).</summary>
             public ImportCustomFieldElement[] Elements { get; set; }
 
+            /// <summary>Whether this field has something to apply (text or elements).</summary>
             public bool HasValue => TextValue != null || Elements != null;
         }
 
@@ -82,8 +86,7 @@ namespace KeeperSecurity
             public string Notes { get; set; }
 
             /// <summary>
-            /// Typed custom fields. Populated from JSON object <c>custom_fields</c> by <see cref="Vault.KeeperImport.LoadJsonDictionary(ImportJsonValue)"/>.
-            /// Not serialized via DataContract (wire shape is still a JSON object).
+            /// Custom fields loaded from JSON. Not part of DataContract serialization.
             /// </summary>
             [IgnoreDataMember]
             public ImportCustomField[] CustomFields { get; set; }
@@ -135,12 +138,16 @@ namespace KeeperSecurity
     namespace Vault
     {
         /// <summary>
-        /// Keeper Import methods
+        /// Helpers for Keeper import JSON — load files, import into the vault, or build NSF batch requests.
         /// </summary>
         public static class KeeperImport
         {
             private const string TwoFactorCode = "TFC:Keeper";
 
+            /// <summary>
+            /// Fills a <see cref="PasswordRecord"/> from an import record (login, password, notes, text custom fields).
+            /// TFC:Keeper becomes Totp. Object-style custom fields are skipped.
+            /// </summary>
             private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
                 password.Uid = import.Uid;
@@ -178,6 +185,10 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>
+            /// Pulls field type and label out of a key like $host or $address:Work.
+            /// Plain names become text fields.
+            /// </summary>
             private static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
@@ -231,6 +242,7 @@ namespace KeeperSecurity
                 return Tuple.Create(fieldType, fieldLabel);
             }
 
+            /// <summary>Sets a typed field from a string, array, or dictionary value.</summary>
             static void AssignValueToField(this ITypedField field, object value)
             {
                 if (value is string str && field is ISerializeTypedField sf)
@@ -326,6 +338,10 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>
+            /// Builds a <see cref="TypedRecord"/> from an import record.
+            /// Duplicate custom field names log a warning and keep the last value.
+            /// </summary>
             static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
                 typed.Uid = import.Uid;
@@ -335,9 +351,21 @@ namespace KeeperSecurity
                 Dictionary<string, ImportCustomField> customFields = null;
                 if (import.CustomFields != null)
                 {
-                    customFields = import.CustomFields
+                    var customFieldGroups = import.CustomFields
                         .Where(f => f != null && !string.IsNullOrEmpty(f.Name))
                         .GroupBy(f => f.Name, StringComparer.Ordinal)
+                        .ToList();
+
+                    foreach (var duplicate in customFieldGroups.Where(g => g.Count() > 1))
+                    {
+                        var recordLabel = !string.IsNullOrEmpty(import.Title)
+                            ? import.Title
+                            : (!string.IsNullOrEmpty(import.Uid) ? import.Uid : "(untitled)");
+                        Trace.TraceWarning(
+                            $"Import record \"{recordLabel}\": custom field \"{duplicate.Key}\" appears {duplicate.Count()} times; using the last value.");
+                    }
+
+                    customFields = customFieldGroups
                         .ToDictionary(g => g.Key, g => g.Last(), StringComparer.Ordinal);
                     if (customFields.TryGetValue(TwoFactorCode, out var tfa))
                     {
@@ -457,6 +485,7 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>Creates any missing folders in the path for a batch import.</summary>
             private static FolderNode CreateFolderPath(this BatchVaultOperations bvo, string folderPath,
                 SharedFolderOptions options = null)
             {
@@ -473,6 +502,9 @@ namespace KeeperSecurity
                 return lastFolder;
             }
 
+            /// <summary>
+            /// Treats a JSON array or a single object the same (PowerShell often unwraps one-item arrays).
+            /// </summary>
             private static IEnumerable<ImportJsonValue> EnumerateImportItems(ImportJsonValue value)
             {
                 if (value == null || value.Kind == ImportJsonValue.JsonKind.Null)
@@ -495,13 +527,13 @@ namespace KeeperSecurity
                     yield break;
                 }
 
-                // PowerShell unwraps single-element arrays to the element itself.
                 if (value.Kind == ImportJsonValue.JsonKind.Object)
                 {
                     yield return value;
                 }
             }
 
+            /// <summary>Reads one record object from import JSON.</summary>
             private static ImportRecord ParseImportRecord(ImportJsonValue recordValue)
             {
                 var rec = new ImportRecord();
@@ -584,7 +616,7 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Parses a typed JSON document (from PowerCommander) into an import file.
+            /// Loads an import file from typed JSON (preferred — keeps nested custom_fields intact).
             /// </summary>
             public static ImportFile LoadJsonDictionary(ImportJsonValue importFile)
             {
@@ -686,21 +718,18 @@ namespace KeeperSecurity
                 return import;
             }
 
-            /// <summary>
-            /// Parses a legacy untyped JSON dictionary into an import file.
-            /// Prefer <see cref="LoadJsonDictionary(ImportJsonValue)"/> from PowerCommander.
-            /// </summary>
+            /// <summary>Loads an import file from a plain dictionary (older path).</summary>
             public static ImportFile LoadJsonDictionary(IDictionary<string, object> importFile)
             {
                 return LoadJsonDictionary(ImportJsonValue.FromLegacyObject(importFile));
             }
 
             /// <summary>
-            /// Import Keeper JSON file
+            /// Imports records and shared folders into the vault.
             /// </summary>
-            /// <param name="vault">Vault instance</param>
-            /// <param name="import">Import object</param>
-            /// <returns></returns>
+            /// <param name="vault">Vault to import into.</param>
+            /// <param name="import">Parsed import data.</param>
+            /// <returns>Batch result.</returns>
             public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import)
             {
                 var bo = new BatchVaultOperations(vault);
@@ -822,7 +851,6 @@ namespace KeeperSecurity
                                 vault.TryGetRecordTypeByName(record.RecordType, out recordType);
                             }
 
-                            // Snapshot custom_fields before PopulateTypedRecord mutates/removes keys.
                             var customSnapshot = record.CustomFields?
                                 .Select(CloneImportCustomField)
                                 .ToArray();
@@ -830,8 +858,6 @@ namespace KeeperSecurity
                             var typedRecord = new TypedRecord(record.RecordType);
                             record.PopulateTypedRecord(typedRecord, recordType.Fields);
 
-                            // Re-apply nested custom_fields onto any schema/custom fields
-                            // that did not receive values (classic vault import).
                             ApplyImportCustomFieldDictionaries(typedRecord, customSnapshot);
 
                             keeperRecord = typedRecord;
@@ -869,10 +895,7 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Converts import records to Keeper NSF batch create requests.
-            /// Uses the same record JSON shape as <see cref="ImportJson"/> / Export-KeeperVault.
-            /// Folder placement uses <c>folders[].folder</c> as an NSF folder name or UID;
-            /// <c>can_edit</c>, <c>can_share</c>, and <c>shared_folder</c> are ignored.
+            /// Turns import records into NSF create requests (same JSON layout as vault import).
             /// </summary>
             public static IReadOnlyList<KeeperNSFRecordCreateRequest> ToKeeperNSFCreateRequests(
                 VaultOnline vault,
@@ -917,11 +940,8 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Converts import records to Keeper NSF batch update requests.
-            /// Uses the same record JSON shape as <see cref="ImportJson"/> / Export-KeeperVault.
-            /// Each record must include <c>uid</c>. <c>folders</c> and <c>shared_folders</c> are ignored.
-            /// Null properties leave existing values unchanged; empty strings clear title/notes/login/password/url
-            /// when those keys were present in the import JSON.
+            /// Turns import records into NSF update requests. Each record needs a uid.
+            /// null = don't change; empty string = clear. Fields are only sent when the import included them.
             /// </summary>
             public static IReadOnlyList<KeeperNSFRecordUpdateRequest> ToKeeperNSFUpdateRequests(
                 VaultOnline vault,
@@ -954,7 +974,6 @@ namespace KeeperSecurity
                     requests.Add(new KeeperNSFRecordUpdateRequest
                     {
                         RecordUid = record.Uid.Trim(),
-                        // null = omit (leave unchanged); empty/whitespace = clear
                         Title = record.Title == null ? null : record.Title.Trim(),
                         RecordType = string.IsNullOrEmpty(record.RecordType) ? null : record.RecordType,
                         Notes = record.Notes,
@@ -967,10 +986,7 @@ namespace KeeperSecurity
                 return requests;
             }
 
-            /// <summary>
-            /// True when the import record explicitly provided login, password, URL, and/or custom fields
-            /// (including empty strings, which clear those values on update).
-            /// </summary>
+            /// <summary>True if the import set login, password, url, or any custom fields.</summary>
             private static bool HasImportFieldPayload(ImportRecord import)
             {
                 if (import == null)
@@ -984,6 +1000,7 @@ namespace KeeperSecurity
                     || (import.CustomFields != null && import.CustomFields.Length > 0);
             }
 
+            /// <summary>Picks the NSF folder from the record's first folder entry, or the default.</summary>
             private static string ResolveKeeperNSFFolderUid(
                 VaultOnline vault,
                 ImportRecord record,
@@ -1002,6 +1019,7 @@ namespace KeeperSecurity
                 return string.IsNullOrWhiteSpace(defaultFolderUid) ? null : defaultFolderUid.Trim();
             }
 
+            /// <summary>Copy of an import record so we can mutate without touching the original.</summary>
             private static ImportRecord CloneImportRecord(ImportRecord import)
             {
                 return new ImportRecord
@@ -1024,6 +1042,9 @@ namespace KeeperSecurity
                 };
             }
 
+            /// <summary>
+            /// Fills in object-style custom fields that didn't get set during typed populate.
+            /// </summary>
             private static void ApplyImportCustomFieldDictionaries(
                 TypedRecord typed,
                 ImportCustomField[] customSnapshot)
@@ -1077,6 +1098,7 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>Builds the field list used for an NSF create/update request.</summary>
             private static ImportCustomField[] BuildNsfFieldsFromImportRecord(
                 VaultOnline vault,
                 ImportRecord import)
@@ -1115,6 +1137,7 @@ namespace KeeperSecurity
                 return fieldsByName.Values.ToArray();
             }
 
+            /// <summary>Simple field list from login/password/url and custom_fields (no record type).</summary>
             private static ImportCustomField[] BuildNsfFieldsFromLegacyImportRecord(ImportRecord import)
             {
                 var fields = new List<ImportCustomField>();
@@ -1179,6 +1202,7 @@ namespace KeeperSecurity
                 return fields.ToArray();
             }
 
+            /// <summary>Reads filled fields off a <see cref="TypedRecord"/> for NSF.</summary>
             private static ImportCustomField[] ExtractNsfFieldsFromTypedRecord(TypedRecord typed)
             {
                 var fields = new List<ImportCustomField>();
@@ -1223,6 +1247,7 @@ namespace KeeperSecurity
                 return fields.ToArray();
             }
 
+            /// <summary>Wraps a field value as an <see cref="ImportCustomField"/>.</summary>
             private static ImportCustomField ToImportCustomField(string name, object value)
             {
                 if (string.IsNullOrEmpty(name) || value == null)
@@ -1276,6 +1301,7 @@ namespace KeeperSecurity
                 return new ImportCustomField { Name = name, TextValue = value.ToString() };
             }
 
+            /// <summary>Clones a custom field.</summary>
             private static ImportCustomField CloneImportCustomField(ImportCustomField field)
             {
                 if (field == null)
@@ -1295,6 +1321,7 @@ namespace KeeperSecurity
                 };
             }
 
+            /// <summary>Parses the custom_fields object from import JSON.</summary>
             private static ImportCustomField[] ParseCustomFieldsFromImportJson(ImportJsonValue value)
             {
                 if (value?.Kind != ImportJsonValue.JsonKind.Object || value.ObjectValue == null || value.ObjectValue.Count == 0)
@@ -1343,6 +1370,7 @@ namespace KeeperSecurity
                 return fields.Count > 0 ? fields.ToArray() : null;
             }
 
+            /// <summary>Gets the value to assign — dictionary for Elements, otherwise TextValue.</summary>
             private static object ToAssignValue(ImportCustomField field)
             {
                 if (field == null)
@@ -1369,6 +1397,7 @@ namespace KeeperSecurity
                 return field.TextValue;
             }
 
+            /// <summary>Builds the Fields dictionary for an NSF create/update request.</summary>
             private static IDictionary<string, object> ToNsfRequestFields(IEnumerable<ImportCustomField> fields)
             {
                 var result = new Dictionary<string, object>();
@@ -1390,6 +1419,7 @@ namespace KeeperSecurity
                 return result;
             }
 
+            /// <summary>True if the value is worth sending (not empty).</summary>
             private static bool HasNsfFieldValue(object value)
             {
                 if (value == null)

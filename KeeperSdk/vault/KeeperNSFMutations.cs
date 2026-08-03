@@ -159,6 +159,14 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (!IsValidAesV2Key(folder.FolderKey))
+                {
+                    results[i].Status = "invalid_key";
+                    results[i].Message =
+                        $"Folder key for '{folder.FolderUid}' has invalid length {folder.FolderKey.Length}; expected 32 bytes.";
+                    continue;
+                }
+
                 if (request.InheritPermissions.HasValue)
                 {
                     try
@@ -216,27 +224,41 @@ namespace KeeperSecurity.Vault
 
                 var statusByUid = new Dictionary<string, FolderProto.FolderModifyResult>(StringComparer.Ordinal);
                 var serverResults = response?.FolderUpdateResults;
+                var missingServerUidCount = 0;
                 if (serverResults != null)
                 {
                     foreach (var status in serverResults)
                     {
                         if (status?.FolderUid == null || status.FolderUid.IsEmpty)
                         {
+                            missingServerUidCount++;
                             continue;
                         }
 
                         statusByUid[CryptoUtils.Base64UrlEncode(status.FolderUid.ToByteArray())] = status;
+                    }
+
+                    if (missingServerUidCount > 0)
+                    {
+                        Trace.TraceWarning(
+                            $"KeeperNSF folder update: server returned {missingServerUidCount} result(s) without FolderUid; those cannot be attributed by UID.");
                     }
                 }
 
                 for (var j = 0; j < chunk.Count; j++)
                 {
                     var item = chunk[j];
-                    if (!statusByUid.TryGetValue(item.Folder.FolderUid, out var modifyResult)
-                        && serverResults != null
-                        && j < serverResults.Count)
+                    FolderProto.FolderModifyResult modifyResult = null;
+                    if (!statusByUid.TryGetValue(item.Folder.FolderUid, out modifyResult))
                     {
-                        modifyResult = serverResults[j];
+                        // Positional fallback only when server omitted FolderUid on some results.
+                        if (serverResults != null && j < serverResults.Count
+                            && (serverResults[j]?.FolderUid == null || serverResults[j].FolderUid.IsEmpty))
+                        {
+                            Trace.TraceWarning(
+                                $"KeeperNSF folder update: attributing server result at index {j} to folder '{item.Folder.FolderUid}' by position (missing FolderUid).");
+                            modifyResult = serverResults[j];
+                        }
                     }
 
                     if (modifyResult == null)
@@ -304,6 +326,12 @@ namespace KeeperSecurity.Vault
             if (folder.FolderKey == null || folder.FolderKey.Length == 0)
             {
                 throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
+            }
+
+            if (!IsValidAesV2Key(folder.FolderKey))
+            {
+                throw new VaultException(
+                    $"Folder key for \"{folder.FolderUid}\" has invalid length {folder.FolderKey.Length}; expected 32 bytes.");
             }
 
             if (inheritPermissions.HasValue)
@@ -405,6 +433,12 @@ namespace KeeperSecurity.Vault
             if (folder.FolderKey == null || folder.FolderKey.Length == 0)
             {
                 throw new VaultException($"Folder key is not available for \"{folder.FolderUid}\".");
+            }
+
+            if (!IsValidAesV2Key(folder.FolderKey))
+            {
+                throw new VaultException(
+                    $"Folder key for \"{folder.FolderUid}\" has invalid length {folder.FolderKey.Length}; expected 32 bytes.");
             }
 
             if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
@@ -641,6 +675,14 @@ namespace KeeperSecurity.Vault
                     {
                         results[i].Status = "missing_key";
                         results[i].Message = $"Folder key is not available for \"{folder.FolderUid}\".";
+                        continue;
+                    }
+
+                    if (!IsValidAesV2Key(folder.FolderKey))
+                    {
+                        results[i].Status = "invalid_key";
+                        results[i].Message =
+                            $"Folder key for \"{folder.FolderUid}\" has invalid length {folder.FolderKey.Length}; expected 32 bytes.";
                         continue;
                     }
 
@@ -1502,6 +1544,9 @@ namespace KeeperSecurity.Vault
         private async Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult)
         {
+            // Tokens are indexed in preview chunk order (same MaxKeeperNSFFolderRemovalBatchSize
+            // and the same validated removals sequence). Reordering or changing the removals list
+            // between preview and confirm breaks this contract.
             var validated = ValidateKeeperNSFFolderRemovals(removals);
             var tokens = previewResult?.ChunkConfirmationTokens;
             if (tokens == null || tokens.Count == 0)
@@ -1521,7 +1566,7 @@ namespace KeeperSecurity.Vault
                     nameof(ConfirmKeeperNSFFolders),
                     "previewResult",
                     "",
-                    $"preview token count ({tokens.Count}) does not match folder chunk count ({expectedChunks}); re-run preview");
+                    $"preview token count ({tokens.Count}) does not match folder chunk count ({expectedChunks}); re-run preview with the same removals list");
             }
 
             var mergedPreview = previewResult.PreviewResponse ?? new RemoveResponse();
@@ -1790,6 +1835,13 @@ namespace KeeperSecurity.Vault
             foreach (var removal in removals)
             {
                 var folderUidBytes = removal.FolderUid.Base64UrlDecode();
+                if (folderUidBytes == null || folderUidBytes.Length == 0)
+                {
+                    throw new KeeperInvalidParameter(
+                        nameof(RemoveKeeperNSFFolders), "folder_uid", removal.FolderUid ?? "",
+                        "folder_uid is missing or not valid base64url");
+                }
+
                 var operationType = MapFolderOperation(removal.Operation);
                 if (operationType == FolderOperationType.FolderOperationUnknown)
                 {
@@ -1813,6 +1865,12 @@ namespace KeeperSecurity.Vault
             }
 
             return request;
+        }
+
+        private static bool IsValidAesV2Key(byte[] key)
+        {
+            // Keeper folder keys are AES-256 (32 bytes), matching CryptoUtils.GenerateEncryptionKey().
+            return key != null && key.Length == 32;
         }
 
         private static RecordOperationType MapRecordOperation(KeeperNSFRecordRemoveOperation operation)

@@ -137,12 +137,13 @@ namespace KeeperSecurity.Vault
                                 continue;
                             }
 
-                            var resultFolderUid = result.FolderUid != null && !result.FolderUid.IsEmpty
-                                ? result.FolderUid
-                                : ByteString.Empty;
-                            var resultFolderUidB64 = resultFolderUid.IsEmpty
-                                ? null
-                                : CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+                            ByteString resultFolderUid = null;
+                            string resultFolderUidB64 = null;
+                            if (result.FolderUid != null && !result.FolderUid.IsEmpty)
+                            {
+                                resultFolderUid = result.FolderUid;
+                                resultFolderUidB64 = CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+                            }
 
                             if (result.Error != null)
                             {
@@ -173,7 +174,7 @@ namespace KeeperSecurity.Vault
 
                                 // Nested accessors often omit FolderUid; stamp from the parent result.
                                 if ((accessor.FolderUid == null || accessor.FolderUid.IsEmpty)
-                                    && !resultFolderUid.IsEmpty)
+                                    && resultFolderUid != null)
                                 {
                                     accessor.FolderUid = resultFolderUid;
                                 }

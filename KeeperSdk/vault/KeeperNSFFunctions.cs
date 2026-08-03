@@ -1028,6 +1028,14 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (folder.FolderKey.Length != 32)
+                {
+                    results[i].Status = "invalid_key";
+                    results[i].Message =
+                        $"Folder key for '{folderUid}' has invalid length {folder.FolderKey.Length}; expected 32 bytes.";
+                    continue;
+                }
+
                 if (!TryResolveFolderAccessRecipient(
                         context, folderUid, accessor, request.AsTeam, results[i], out var recipient, out var accessTypeUid,
                         requirePublicKey: true))
