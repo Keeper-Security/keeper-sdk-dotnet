@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class LinkKeeperNSFRecordsToFoldersBatchExample
     {
+        /// <summary>
+        /// Runs the batch link-to-folder API and prints per-link results.
+        /// </summary>
         public static async Task LinkBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderRecordLinkRequest> links)
@@ -54,6 +57,9 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        /// <summary>
+        /// Sample link payloads; replace folder and record UIDs before use.
+        /// </summary>
         public static IReadOnlyList<KeeperNSFFolderRecordLinkRequest> BuildSampleLinks()
         {
             return new[]

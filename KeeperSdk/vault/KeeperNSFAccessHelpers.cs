@@ -13,14 +13,14 @@ namespace KeeperSecurity.Vault
 {
     internal sealed class KeeperNSFAccessorInfo
     {
-        public string AccessTypeUid { get; set; }
-        public int AccessType { get; set; }
+        public string AccessTypeUid { get; set; }  
+        public int AccessType { get; set; }        
         public bool Owner { get; set; }
         public bool Inherited { get; set; }
         public bool DeniedAccess { get; set; }
-        public string Username { get; set; }
-        public Dictionary<string, bool> Permissions { get; set; }
-        public bool CanUpdateAccess { get; set; }
+        public string Username { get; set; }       
+        public Dictionary<string, bool> Permissions { get; set; }  
+        public bool CanUpdateAccess { get; set; }  
         public bool CanChangeOwnership { get; set; }
     }
 
@@ -69,16 +69,10 @@ namespace KeeperSecurity.Vault
             return FetchFolderAccessDataAsync(vault, new[] { folderUid }, pageSize: 100);
         }
 
-        /// <summary>
-        /// Fetch folder accessors for one or more folder UIDs.
-        /// Supports batching up to 100 folder UIDs per request.
-        /// When nested <see cref="FolderProto.FolderAccessData.FolderUid"/> is empty, stamps the parent
-        /// <c>GetFolderAccessResult.FolderUid</c> so callers can key accessors by folder.
-        /// </summary>
-        /// <param name="errorsByFolderUid">
-        /// Optional map populated with per-folder fetch errors (folder UID → message).
-        /// Folders present here should not be treated as having an empty ACL.
-        /// </param>
+        // Loads who has access to the given NSF folders (up to 100 UIDs per request).
+        // Used by folder-access batch prepare and permission checks.
+        // If a row is missing its folder UID, we copy it from the parent result so callers can group by folder.
+        // Optional errorsByFolderUid gets per-folder fetch failures — don't treat those as an empty ACL.
         internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
             VaultOnline vault,
             IEnumerable<string> folderUids,
@@ -192,6 +186,7 @@ namespace KeeperSecurity.Vault
             return allAccessors;
         }
 
+        // Batched vault/records/v3/details/access call; merges pages and UID chunks for permission checks.
         internal static async Task<RecordDetailsProto.RecordAccessResponse> FetchRecordAccessDetailsAsync(
             VaultOnline vault,
             IEnumerable<string> recordUids)
@@ -263,6 +258,7 @@ namespace KeeperSecurity.Vault
             return merged;
         }
 
+        // Record access API limits 
         private const int MaxRecordAccessUidsPerRequest = 100;
         private const int DefaultRecordAccessPageNumber = 0;
         private const int DefaultRecordAccessPageSize = 500;
@@ -274,6 +270,7 @@ namespace KeeperSecurity.Vault
             return Math.Min(pageSize, MaxRecordAccessPageSize);
         }
 
+        // Throws when the current user lacks can_update_access on the folder (share/revoke/inherit changes).
         internal static async Task RequireKeeperNSFFolderSharePermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -320,6 +317,7 @@ namespace KeeperSecurity.Vault
             return denied;
         }
 
+        // Throws when the current user lacks can_add (link records into the folder).
         internal static async Task RequireKeeperNSFFolderAddPermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -329,6 +327,7 @@ namespace KeeperSecurity.Vault
                 "You do not have permission to add content to this folder.").ConfigureAwait(false);
         }
 
+        // Throws when the current user lacks can_remove (unlink records from the folder).
         internal static async Task RequireKeeperNSFFolderRemovePermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -366,6 +365,7 @@ namespace KeeperSecurity.Vault
                 RequireKeeperNSFFolderRemovePermissionAsync).ConfigureAwait(false);
         }
 
+        // Runs a folder permission check per UID without throwing; used by batch link/unlink prep.
         private static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderPermissionsAsync(
             VaultOnline vault,
             IEnumerable<string> folderUids,
@@ -399,6 +399,7 @@ namespace KeeperSecurity.Vault
             return denied;
         }
 
+        // Throws when the current user lacks can_update_access on the record (share/unshare).
         internal static async Task RequireKeeperNSFRecordSharePermissionAsync(VaultOnline vault, string recordUid)
         {
             await RequireKeeperNSFRecordPermissionAsync(

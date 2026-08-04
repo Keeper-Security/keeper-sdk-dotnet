@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class UpdateKeeperNSFFoldersBatchExample
     {
+        /// <summary>
+        /// Runs the batch folder-update API and prints per-folder results.
+        /// </summary>
         public static async Task UpdateBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderUpdateRequest> folders)

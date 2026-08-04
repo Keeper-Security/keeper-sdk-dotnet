@@ -199,6 +199,7 @@ function New-KeeperNSFFolders {
 
 New-Alias -Name nsf-mkdirs -Value New-KeeperNSFFolders
 
+# Parse batch folder-create JSON into KeeperNSFFolderCreateRequest objects.
 function Script:ConvertTo-KeeperNSFFolderCreateRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -736,6 +737,7 @@ function Unshare-KeeperNSFFolderAccesses {
 
 New-Alias -Name nsf-unshare-folders -Value Unshare-KeeperNSFFolderAccesses
 
+# Print per-item OK/FAIL lines after a folder-access batch call.
 function Script:Write-KeeperNSFFolderAccessBatchResults {
     Param(
         [Parameter(Mandatory = $true)]
@@ -761,6 +763,7 @@ function Script:Write-KeeperNSFFolderAccessBatchResults {
     }
 }
 
+# Pull the access array out of grant/update/revoke batch JSON (accesses, shares, or root array).
 function Script:Get-KeeperNSFFolderAccessJsonItems {
     Param(
         [Parameter(Mandatory = $true)]
@@ -780,6 +783,7 @@ function Script:Get-KeeperNSFFolderAccessJsonItems {
     throw "JSON must contain an 'accesses' array (or be a root array of access objects)."
 }
 
+# Normalize one JSON access object to folder_uid, accessor, role, team flag, and expiration.
 function Script:Get-KeeperNSFFolderAccessItemFields {
     Param($Item, [int] $Index, [switch] $RequireRole)
 
@@ -850,6 +854,7 @@ function Script:Get-KeeperNSFFolderAccessItemFields {
     }
 }
 
+# Build grant requests from folder-access batch JSON.
 function Script:ConvertTo-KeeperNSFFolderAccessGrantRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -873,6 +878,7 @@ function Script:ConvertTo-KeeperNSFFolderAccessGrantRequests {
     return ,$list
 }
 
+# Build role/expiration update requests from folder-access batch JSON.
 function Script:ConvertTo-KeeperNSFFolderAccessUpdateRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -899,6 +905,7 @@ function Script:ConvertTo-KeeperNSFFolderAccessUpdateRequests {
     return ,$list
 }
 
+# Build revoke requests from folder-access batch JSON.
 function Script:ConvertTo-KeeperNSFFolderAccessRevokeRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -1195,6 +1202,7 @@ function Set-KeeperNSFFolders {
 
 New-Alias -Name nsf-folders-update -Value Set-KeeperNSFFolders
 
+# Parse batch folder-update JSON into KeeperNSFFolderUpdateRequest objects.
 function Script:ConvertTo-KeeperNSFFolderUpdateRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -1708,6 +1716,7 @@ function Remove-KeeperNSFFolders {
 
 New-Alias -Name nsf-rmdirs -Value Remove-KeeperNSFFolders
 
+# Parse batch folder-remove JSON into removal specs (uid + operation, deduped).
 function Script:ConvertTo-KeeperNSFFolderRemovalSpecs {
     Param(
         [Parameter(Mandatory = $true)]

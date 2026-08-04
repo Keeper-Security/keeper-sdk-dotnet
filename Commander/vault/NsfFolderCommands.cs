@@ -63,6 +63,7 @@ namespace Commander
             }
         }
 
+        // nsf-rmdir: preview batch remove, prompt, then confirm via stored chunk tokens.
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
         {
             var vault = context.Vault;
@@ -290,6 +291,7 @@ namespace Commander
         public bool NoInheritPermissions { get; set; }
     }
 
+    // CLI options for nsf-rmdir (supports multiple folders; uses batch preview/confirm APIs).
     class NsfRmdirOptions
     {
         [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]

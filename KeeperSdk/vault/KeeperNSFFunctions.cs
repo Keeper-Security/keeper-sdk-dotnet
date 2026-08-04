@@ -319,10 +319,7 @@ namespace KeeperSecurity.Vault
         private const int MaxKeeperNSFFoldersAddBatchSize = 100;
 
         /// <summary>
-        /// Batch-create Keeper NSF folders (up to 100 per request).
-        /// Reuses <see cref="KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync"/> for parent
-        /// create/add permission, AES-GCM (<see cref="CryptoUtils.EncryptAesV2"/>) for folder key and data,
-        /// and <see cref="FolderDataJson"/> so the folder name is in encrypted FolderData.Data.
+        /// Creates many NSF folders in chunks of 100. Used by IVault.CreateKeeperNSFFolders.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFFolderCreateResult>> CreateKeeperNSFFoldersInternal(
             this VaultOnline vault,
@@ -363,7 +360,6 @@ namespace KeeperSecurity.Vault
                     throw new VaultException($"Folder key not available for parent folder '{parentUid}'");
                 }
 
-                // create_folder / add content on the parent
                 await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, parentUid)
                     .ConfigureAwait(false);
             }
@@ -386,6 +382,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // builds encrypted folder payload + new UID for one create item
         private static string BuildKeeperNSFFolderAdd(
             VaultOnline vault,
             KeeperNSFFolderCreateRequest request,
@@ -399,7 +396,6 @@ namespace KeeperSecurity.Vault
             var folderUid = CryptoUtils.GenerateUid();
             var folderKey = CryptoUtils.GenerateEncryptionKey();
 
-            // AES-GCM (EncryptAesV2): folder key wrapped by user data key or parent folder key.
             var encryptionKey = vault.Auth.AuthContext.DataKey;
             if (!string.IsNullOrEmpty(parentFolderUid)
                 && vault.TryGetKeeperNSFFolder(parentFolderUid, out var parentFolder)
@@ -437,6 +433,7 @@ namespace KeeperSecurity.Vault
             return folderUid;
         }
 
+        // posts one folder-add chunk and maps server status to results
         private static async Task<IReadOnlyList<KeeperNSFFolderCreateResult>> ExecuteKeeperNSFFoldersAddBatchAsync(
             VaultOnline vault,
             IReadOnlyList<(KeeperNSFFolderCreateRequest Request, string FolderUid, Folder.FolderData FolderData)> batch)
@@ -948,10 +945,11 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        // max grant/update/revoke entries per access_update request
         private const int MaxKeeperNSFFolderAccessBatchSize = 500;
 
         /// <summary>
-        /// Batch grant Keeper NSF folder access (FolderAccessAdds). Max 500 entries per API request.
+        /// Grants folder access in batches of 500. Used by IVault.GrantKeeperNSFFolderAccesses.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> GrantKeeperNSFFolderAccessesInternal(
             this VaultOnline vault,
@@ -1152,7 +1150,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Batch update Keeper NSF folder access (FolderAccessUpdates). Max 500 entries per API request.
+        /// Updates folder access in batches of 500. Used by IVault.UpdateKeeperNSFFolderAccesses.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> UpdateKeeperNSFFolderAccessesInternal(
             this VaultOnline vault,
@@ -1316,7 +1314,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Batch revoke Keeper NSF folder access (FolderAccessRemoves). Max 500 entries per API request.
+        /// Revokes folder access in batches of 500. Used by IVault.RevokeKeeperNSFFolderAccesses.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> RevokeKeeperNSFFolderAccessesInternal(
             this VaultOnline vault,
@@ -1425,6 +1423,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // holds keys, recipients, and existing ACLs while preparing a folder-access batch
         private sealed class FolderAccessBatchContext
         {
             public IReadOnlyDictionary<string, string> ShareDeniedByUid { get; set; }
@@ -1438,6 +1437,7 @@ namespace KeeperSecurity.Vault
             public Dictionary<string, string> ExistingAccessLookupErrorsByFolderUid { get; set; }
         }
 
+        // loads share perms, keys, recipients, and existing access for the batch
         private static async Task<FolderAccessBatchContext> BuildFolderAccessBatchContextAsync(
             VaultOnline vault,
             IReadOnlyList<(string FolderUid, string Accessor, bool? AsTeam)> items,
@@ -1587,6 +1587,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        // marks the item failed if we couldn't load existing ACL
         private static bool TryEnsureExistingAccessLookup(
             FolderAccessBatchContext context,
             string folderUid,
@@ -1611,6 +1612,7 @@ namespace KeeperSecurity.Vault
             return true;
         }
 
+        // resolves user/team accessor and gets the key/uid needed for the share
         private static bool TryResolveFolderAccessRecipient(
             FolderAccessBatchContext context,
             string folderUid,
@@ -1754,6 +1756,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        // sends prepared access adds/updates/removes in chunks of 500
         private static async Task SendFolderAccessBatchesAsync(
             VaultOnline vault,
             List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)> prepared,
@@ -1848,6 +1851,9 @@ namespace KeeperSecurity.Vault
 
         private const int MaxKeeperNSFRecordsAddBatchSize = 1000;
 
+        /// <summary>
+        /// Creates many NSF records in chunks of 1000. Used by IVault.CreateKeeperNSFRecords.
+        /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsInternal(
             this VaultOnline vault, IReadOnlyList<KeeperNSFRecordCreateRequest> records)
         {
@@ -1908,6 +1914,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // builds encrypted RecordAdd for one batch create item
         private static string BuildKeeperNSFRecordAdd(
             VaultOnline vault,
             KeeperNSFRecordCreateRequest request,
@@ -1962,6 +1969,7 @@ namespace KeeperSecurity.Vault
             return recordUid;
         }
 
+        // posts one record-add chunk and maps statuses to results
         private static async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> ExecuteKeeperNSFRecordsAddBatchAsync(
             VaultOnline vault,
             IReadOnlyList<(KeeperNSFRecordCreateRequest Request, string RecordUid, RecordProto.RecordAdd RecordAdd)> batch)
@@ -2135,6 +2143,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // clones record data, applies edits, builds RecordUpdate for the batch
         private static bool TryPrepareKeeperNSFRecordUpdate(
             KeeperNSFRecord record,
             KeeperNSFRecordUpdateRequest request,
@@ -2208,6 +2217,7 @@ namespace KeeperSecurity.Vault
             return true;
         }
 
+        // refreshes revision and retries one record after OutOfSync
         private static async Task<KeeperNSFRecordUpdateResult> RetryKeeperNSFRecordUpdateOutOfSyncAsync(
             VaultOnline vault,
             KeeperNSFRecordUpdateRequest request)
@@ -2263,6 +2273,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        // posts one record-update chunk and maps statuses to results
         private static async Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> ExecuteKeeperNSFRecordsUpdateBatchAsync(
             VaultOnline vault,
             IReadOnlyList<(KeeperNSFRecordUpdateRequest Request, string Title, RecordUpdate RecordUpdate)> batch)
@@ -2555,11 +2566,11 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        // max share/unshare entries per request
         private const int MaxKeeperNSFRecordsShareBatchSize = 1000;
 
         /// <summary>
-        /// Batch grant Keeper NSF record shares.
-        /// Shared implementation used by <see cref="ShareKeeperNSFRecordInternal"/>.
+        /// Shares records in chunks of 1000. Used by IVault.ShareKeeperNSFRecords.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFRecordShareResult>> ShareKeeperNSFRecordsInternal(
             this VaultOnline vault,
@@ -2768,8 +2779,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Batch revoke Keeper NSF record shares via vault/records/v3/share.
-        /// Shared implementation used by <see cref="UnshareKeeperNSFRecordInternal"/>.
+        /// Unshares records in chunks of 1000. Used by IVault.UnshareKeeperNSFRecords.
         /// </summary>
         public static async Task<IReadOnlyList<KeeperNSFRecordUnshareResult>> UnshareKeeperNSFRecordsInternal(
             this VaultOnline vault,
@@ -3176,6 +3186,7 @@ namespace KeeperSecurity.Vault
             return perm;
         }
 
+        // fetches public keys for share recipients
         private static async Task<Dictionary<string, AuthProto.PublicKeyResponse>> ResolveKeeperNSFPublicKeysAsync(
             VaultOnline vault,
             IReadOnlyList<string> emails)
@@ -3216,6 +3227,7 @@ namespace KeeperSecurity.Vault
             return map;
         }
 
+        // builds encrypted share permissions from a user's public key
         private static RecordSharingProto.Permissions BuildRecordSharePermissionsFromPublicKey(
             string recordUid,
             byte[] recordKey,
@@ -3264,6 +3276,7 @@ namespace KeeperSecurity.Vault
             return perm;
         }
 
+        // indexes share response statuses by record+recipient key
         private static Dictionary<string, RecordSharingProto.Status> IndexShareStatuses(
             IEnumerable<RecordSharingProto.Status> statuses)
         {
@@ -3287,11 +3300,13 @@ namespace KeeperSecurity.Vault
             return map;
         }
 
+        // lookup key for matching a share status to a prepared item
         private static string BuildShareStatusKey(ByteString recordUid, ByteString recipientUid)
         {
             return $"{CryptoUtils.Base64UrlEncode(recordUid.ToByteArray())}|{CryptoUtils.Base64UrlEncode(recipientUid.ToByteArray())}";
         }
 
+        // copies share status fields onto the per-item result
         private static void ApplyShareStatusToResult(
             KeeperNSFRecordShareResult result,
             RecordSharingProto.Status status)

@@ -96,6 +96,7 @@ namespace Sample.KeeperNSFExamples
             return KeeperImport.LoadJsonDictionary(jsonDict);
         }
 
+        // Print OK/FAIL lines from an update batch response.
         private static void PrintResults(IReadOnlyList<KeeperNSFRecordUpdateResult> results)
         {
             var succeeded = 0;

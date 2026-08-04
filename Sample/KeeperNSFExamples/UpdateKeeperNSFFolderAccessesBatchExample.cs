@@ -11,6 +11,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class UpdateKeeperNSFFolderAccessesBatchExample
     {
+        /// <summary>
+        /// Runs the batch folder-access update API and prints per-entry results.
+        /// </summary>
         public static async Task UpdateBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderAccessUpdateRequest> updates)
@@ -53,6 +56,9 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        /// <summary>
+        /// Sample access-update payloads; replace folder UIDs and accessor emails/names before use.
+        /// </summary>
         public static IReadOnlyList<KeeperNSFFolderAccessUpdateRequest> BuildSampleUpdates()
         {
             return new[]

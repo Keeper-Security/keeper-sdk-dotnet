@@ -479,8 +479,10 @@ namespace KeeperSecurity.Vault
             return linkResult;
         }
 
+        // Max records per record_update call
         private const int MaxKeeperNSFFolderRecordBatchSize = 500;
 
+        // Shared link/unlink path for batch folder-record APIs.
         private enum KeeperNSFFolderRecordBatchOperation
         {
             Link,
@@ -547,6 +549,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // Resolves folders/records, checks add/remove permission, then posts record_update in 500-record chunks per folder.
         private async Task<IReadOnlyList<KeeperNSFFolderRecordResult>> ExecuteKeeperNSFFolderRecordBatchAsync(
             IReadOnlyList<(string FolderUid, string RecordUid)> items,
             KeeperNSFFolderRecordBatchOperation operation)
@@ -868,6 +871,7 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        // One transfer call for all prepared records; falls back to share when already_shared.
         private async Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnershipBatchAsync(
             IReadOnlyList<(string RecordUid, byte[] RecordKey)> transfers,
             string ownerEmail,
@@ -1350,8 +1354,10 @@ namespace KeeperSecurity.Vault
                 .ToList();
         }
 
+        // Max records per remove_record preview/confirm pair.
         private const int MaxKeeperNSFRecordRemovalBatchSize = 500;
 
+        // Splits large remove lists into chunks; merges preview responses and aggregates chunk outcomes.
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFRecordRemovalAsync(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun)
         {
@@ -1423,6 +1429,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        // Single-chunk preview; auto-confirms when dryRun is false and the server returns a token.
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFRecordRemovalChunkAsync(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun)
         {
@@ -1461,8 +1468,10 @@ namespace KeeperSecurity.Vault
             return result;
         }
 
+        // Max folders per remove_folder preview/confirm pair.
         private const int MaxKeeperNSFFolderRemovalBatchSize = 100;
 
+        // Chunks folder removals; stores per-chunk confirmation tokens for a later ConfirmKeeperNSFFolders call.
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun)
         {
@@ -1541,6 +1550,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        // Confirms each preview chunk using stored tokens (see nsf-rmdir two-step flow).
         private async Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult)
         {
@@ -1614,6 +1624,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        // Posts one remove_folder confirm for a single chunk and its preview token.
         private async Task ConfirmKeeperNSFFolderRemovalChunkAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, ByteString confirmationToken)
         {
@@ -1631,6 +1642,7 @@ namespace KeeperSecurity.Vault
             ValidateRemoveResponse(confirmResponse, true);
         }
 
+        // Single-chunk folder preview; auto-confirms when dryRun is false and the server returns a token.
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFFolderRemovalChunkAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun)
         {
@@ -1669,6 +1681,7 @@ namespace KeeperSecurity.Vault
             return result;
         }
 
+        // Pulls the preview token bytes for ChunkConfirmationTokens (empty when preview had no token).
         private static byte[] ExtractConfirmationTokenBytes(RemoveResponse previewResponse)
         {
             if (previewResponse?.ConfirmationToken == null || previewResponse.ConfirmationToken.IsEmpty)
@@ -1679,6 +1692,7 @@ namespace KeeperSecurity.Vault
             return previewResponse.ConfirmationToken.ToByteArray();
         }
 
+        // Normalizes folder UIDs and rejects duplicates before batch remove/confirm.
         private static IReadOnlyList<KeeperNSFFolderRemoval> ValidateKeeperNSFFolderRemovals(
             IReadOnlyList<KeeperNSFFolderRemoval> removals)
         {
@@ -1752,6 +1766,7 @@ namespace KeeperSecurity.Vault
             return validated;
         }
 
+        // Combines chunk preview results into one response for callers (results, errors, earliest expiry).
         private static void MergeRemovePreviewResponse(RemoveResponse target, RemoveResponse source)
         {
             if (target == null || source == null)
@@ -1785,6 +1800,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        // Builds remove_record protobuf for one chunk; skips malformed UIDs with a trace warning.
         private static RemoveRecordRequest BuildRemoveRecordRequest(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, RemoveAction action)
         {
@@ -1821,6 +1837,7 @@ namespace KeeperSecurity.Vault
             return request;
         }
 
+        // Builds remove_folder protobuf for one chunk (preview or confirm).
         private static RemoveFolderRequest BuildRemoveFolderRequest(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, RemoveAction action)
         {

@@ -39,7 +39,7 @@ namespace Sample.KeeperNSFExamples
         }
 
         /// <summary>
-        /// Creates records from an <see cref="ImportFile"/> payload.
+        /// Runs the batch record-create API and prints per-record results.
         /// </summary>
         public static async Task CreateBatch(
             VaultOnline vault,
@@ -247,6 +247,7 @@ namespace Sample.KeeperNSFExamples
             };
         }
 
+        // Optional default-folder entry when a folder UID is passed in.
         private static ImportRecordFolder[] BuildFolderEntry(string defaultFolderUid)
         {
             return string.IsNullOrEmpty(defaultFolderUid)
@@ -254,6 +255,7 @@ namespace Sample.KeeperNSFExamples
                 : new[] { new ImportRecordFolder { FolderName = defaultFolderUid } };
         }
 
+        // Sample login record for the in-memory import payload.
         private static ImportRecord BuildLoginRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -266,6 +268,7 @@ namespace Sample.KeeperNSFExamples
                 Folders = folders,
             };
 
+        // Legacy general record (no explicit $type).
         private static ImportRecord BuildLegacyGeneralRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -277,6 +280,7 @@ namespace Sample.KeeperNSFExamples
                 Folders = folders,
             };
 
+        // Sample bankCard record with $paymentCard custom field.
         private static ImportRecord BuildBankCardRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -299,6 +303,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample databaseCredentials record with host/port custom fields.
         private static ImportRecord BuildDatabaseCredentialsRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -323,6 +328,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample serverCredentials record with SSH host/port.
         private static ImportRecord BuildServerCredentialsRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -346,6 +352,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample sshKeys record with placeholder key pair.
         private static ImportRecord BuildSshKeysRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -367,6 +374,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample address record with work address custom field.
         private static ImportRecord BuildAddressRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -392,6 +400,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample contact record with name, email, and phone fields.
         private static ImportRecord BuildContactRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -426,6 +435,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample secureNote record with $note custom field.
         private static ImportRecord BuildSecureNoteRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {
@@ -439,6 +449,7 @@ namespace Sample.KeeperNSFExamples
                 },
             };
 
+        // Sample bankAccount record with routing/account numbers.
         private static ImportRecord BuildBankAccountRecord(string stamp, ImportRecordFolder[] folders) =>
             new ImportRecord
             {

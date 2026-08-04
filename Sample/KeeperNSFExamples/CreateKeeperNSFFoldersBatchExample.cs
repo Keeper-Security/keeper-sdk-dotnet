@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class CreateKeeperNSFFoldersBatchExample
     {
+        /// <summary>
+        /// Runs the batch folder-create API and prints per-folder results.
+        /// </summary>
         public static async Task CreateBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderCreateRequest> folders)

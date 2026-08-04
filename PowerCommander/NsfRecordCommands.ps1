@@ -1033,6 +1033,7 @@ function Share-KeeperNSFRecords {
 
 New-Alias -Name nsf-share-records -Value Share-KeeperNSFRecords
 
+# Parse batch share JSON into KeeperNSFRecordShareRequest objects.
 function Script:ConvertTo-KeeperNSFShareRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -1248,6 +1249,7 @@ function Unshare-KeeperNSFRecords {
 
 New-Alias -Name nsf-unshare-records -Value Unshare-KeeperNSFRecords
 
+# Parse batch unshare JSON into KeeperNSFRecordUnshareRequest objects.
 function Script:ConvertTo-KeeperNSFUnshareRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -1300,6 +1302,7 @@ function Script:ConvertTo-KeeperNSFUnshareRequests {
     return ,$list
 }
 
+# Parse batch record-remove JSON into removal specs (uid, folder, operation).
 function Script:ConvertTo-KeeperNSFRemovalSpecs {
     Param(
         [Parameter(Mandatory = $true)]
@@ -2557,6 +2560,7 @@ function Unlink-KeeperNSFRecords {
 
 New-Alias -Name nsf-unln -Value Unlink-KeeperNSFRecords
 
+# Print per-item OK/FAIL lines after a folder-record link/unlink batch call.
 function Script:Write-KeeperNSFFolderRecordBatchResults {
     Param(
         [Parameter(Mandatory = $true)]
@@ -2581,6 +2585,7 @@ function Script:Write-KeeperNSFFolderRecordBatchResults {
     }
 }
 
+# Pull the links/unlinks array out of folder-record batch JSON (or accept a root array).
 function Script:Get-KeeperNSFFolderRecordJsonItems {
     Param(
         [Parameter(Mandatory = $true)]
@@ -2599,6 +2604,7 @@ function Script:Get-KeeperNSFFolderRecordJsonItems {
     throw "JSON must contain a '$ArrayName' array (or be a root array of objects)."
 }
 
+# Normalize one JSON link/unlink object to folder_uid and record_uid.
 function Script:Get-KeeperNSFFolderRecordItemFields {
     Param($Item, [int] $Index)
 
@@ -2623,6 +2629,7 @@ function Script:Get-KeeperNSFFolderRecordItemFields {
     }
 }
 
+# Build link requests from folder-record batch JSON.
 function Script:ConvertTo-KeeperNSFFolderRecordLinkRequests {
     Param(
         [Parameter(Mandatory = $true)]
@@ -2643,6 +2650,7 @@ function Script:ConvertTo-KeeperNSFFolderRecordLinkRequests {
     return ,$list
 }
 
+# Build unlink requests from folder-record batch JSON.
 function Script:ConvertTo-KeeperNSFFolderRecordUnlinkRequests {
     Param(
         [Parameter(Mandatory = $true)]

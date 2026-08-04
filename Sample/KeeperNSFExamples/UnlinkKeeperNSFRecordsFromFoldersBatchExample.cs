@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class UnlinkKeeperNSFRecordsFromFoldersBatchExample
     {
+        /// <summary>
+        /// Runs the batch unlink-from-folder API and prints per-unlink results.
+        /// </summary>
         public static async Task UnlinkBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderRecordUnlinkRequest> unlinks)
@@ -54,6 +57,9 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        /// <summary>
+        /// Sample unlink payloads; replace folder and record UIDs before use.
+        /// </summary>
         public static IReadOnlyList<KeeperNSFFolderRecordUnlinkRequest> BuildSampleUnlinks()
         {
             return new[]

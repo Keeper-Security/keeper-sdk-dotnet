@@ -559,7 +559,8 @@ namespace KeeperSecurity.Vault
         Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
-        /// Creates multiple Keeper NSF records in one or more batch requests.
+        /// Creates multiple Keeper NSF records in batch requests (up to 1000 records per API call).
+        /// Used by nsf-add and bulk import paths.
         /// </summary>
         /// <param name="records">Record payloads to create.</param>
         /// <returns>Per-record create results in the same order as <paramref name="records"/>.</returns>
@@ -621,8 +622,7 @@ namespace KeeperSecurity.Vault
         Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer", SharedFolderRecordOptions options = null);
 
         /// <summary>
-        /// Grants users access to Keeper NSF records in one or more batch share requests (up to 1000 shares per request).
-        /// Shared implementation used by <see cref="ShareKeeperNSFRecord"/>.
+        /// Grants user access to Keeper NSF records in batch requests (up to 1000 per API call).
         /// </summary>
         /// <param name="shares">Share payloads. Each item requires record UID and user email.</param>
         /// <returns>Per-share results in the same order as <paramref name="shares"/>.</returns>
@@ -637,8 +637,7 @@ namespace KeeperSecurity.Vault
         Task UnshareKeeperNSFRecord(string recordUid, string userEmail);
 
         /// <summary>
-        /// Revokes users' access from Keeper NSF records in one or more batch share requests (up to 1000 per request).
-        /// Shared implementation used by <see cref="UnshareKeeperNSFRecord"/>.
+        /// Revokes user access from Keeper NSF records in batch requests (up to 1000 per API call).
         /// </summary>
         /// <param name="unshares">Unshare payloads. Each item requires record UID and user email.</param>
         /// <returns>Per-unshare results in the same order as <paramref name="unshares"/>.</returns>
@@ -664,7 +663,7 @@ namespace KeeperSecurity.Vault
         IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null);
 
         /// <summary>
-        /// Fetches Keeper NSF record metadata
+        /// Fetches Keeper NSF record metadata for one or more UIDs (batched API calls).
         /// </summary>
         /// <param name="recordUids">Record UIDs to query.</param>
         /// <returns>Record metadata and any UIDs the server refused to return.</returns>
@@ -678,7 +677,9 @@ namespace KeeperSecurity.Vault
         /// <returns>Result describing what was kept and what was removed.</returns>
         Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid);
 
-        /// <summary>Removes Keeper NSF records (preview/confirm). Chunks up to 500 records per API request.</summary>
+        /// <summary>
+        /// Removes Keeper NSF records via preview/confirm. Large lists are chunked (500 records per API call).
+        /// </summary>
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecords(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false);
 
@@ -1427,7 +1428,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Result of creating a Keeper NSF record.
+    /// Per-record outcome from a batch create (<see cref="IVault.CreateKeeperNSFRecords"/>).
     /// </summary>
     public class KeeperNSFRecordCreateResult
     {
@@ -1471,7 +1472,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Result of updating a Keeper NSF record.
+    /// Per-record outcome from a batch update (<see cref="IVault.UpdateKeeperNSFRecords"/>).
     /// </summary>
     public class KeeperNSFRecordUpdateResult
     {

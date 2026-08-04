@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class RevokeKeeperNSFFolderAccessesBatchExample
     {
+        /// <summary>
+        /// Runs the batch folder-access revoke API and prints per-entry results.
+        /// </summary>
         public static async Task RevokeBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderAccessRevokeRequest> revokes)
@@ -54,6 +57,9 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        /// <summary>
+        /// Sample revoke payloads; replace folder UIDs and accessor emails/names before use.
+        /// </summary>
         public static IReadOnlyList<KeeperNSFFolderAccessRevokeRequest> BuildSampleRevokes()
         {
             return new[]

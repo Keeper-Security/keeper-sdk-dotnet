@@ -11,6 +11,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class UnshareKeeperNSFRecordsBatchExample
     {
+        /// <summary>
+        /// Runs the batch record-unshare API and prints per-entry results.
+        /// </summary>
         public static async Task UnshareBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFRecordUnshareRequest> unshares)

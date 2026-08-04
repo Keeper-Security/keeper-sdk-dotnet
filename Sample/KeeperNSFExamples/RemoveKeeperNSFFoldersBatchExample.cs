@@ -143,6 +143,7 @@ namespace Sample.KeeperNSFExamples
             };
         }
 
+        // Dump preview rows from a dry-run remove response.
         private static void PrintPreview(KeeperNSFRemoveResult result)
         {
             var preview = result?.PreviewResponse;
@@ -169,6 +170,7 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        // Log chunk-level errors when only part of a batch remove succeeds.
         private static void PrintChunkErrors(KeeperNSFRemoveResult result)
         {
             if (result?.ChunkErrors == null || result.ChunkErrors.Count == 0)

@@ -4,6 +4,7 @@
 # Values are placeholders only (example.com emails, Replace-With-Your-Password, REPLACE_WITH_* UIDs).
 # Do not put real secrets in sample files checked into source control.
 
+# Placeholder JSON for New-KeeperNSFRecords / -DownloadSampleRecords.
 function Get-KeeperNSFBatchSampleJson {
     @'
 {
@@ -135,6 +136,7 @@ function Get-KeeperNSFBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Set-KeeperNSFRecords / -DownloadSampleRecords (update batch).
 function Get-KeeperNSFBatchUpdateSampleJson {
     @'
 {
@@ -168,6 +170,7 @@ function Get-KeeperNSFBatchUpdateSampleJson {
 '@
 }
 
+# Placeholder JSON for Share-KeeperNSFRecords / -DownloadSampleShares.
 function Get-KeeperNSFShareBatchSampleJson {
     @'
 {
@@ -194,6 +197,7 @@ function Get-KeeperNSFShareBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Unshare-KeeperNSFRecords / -DownloadSampleUnshares.
 function Get-KeeperNSFUnshareBatchSampleJson {
     @'
 {
@@ -215,6 +219,7 @@ function Get-KeeperNSFUnshareBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Remove-KeeperNSFRecords / -DownloadSampleRemovals.
 function Get-KeeperNSFRemoveBatchSampleJson {
     @'
 {
@@ -238,6 +243,7 @@ function Get-KeeperNSFRemoveBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for New-KeeperNSFFolders / -DownloadSampleFolders.
 function Get-KeeperNSFFolderBatchSampleJson {
     @'
 {
@@ -263,6 +269,7 @@ function Get-KeeperNSFFolderBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Set-KeeperNSFFolders / -DownloadSampleFolders (update batch).
 function Get-KeeperNSFFolderUpdateBatchSampleJson {
     @'
 {
@@ -285,6 +292,7 @@ function Get-KeeperNSFFolderUpdateBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Remove-KeeperNSFFolders / -DownloadSampleFolders.
 function Get-KeeperNSFFolderRemoveBatchSampleJson {
     @'
 {
@@ -306,6 +314,7 @@ function Get-KeeperNSFFolderRemoveBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Share-KeeperNSFFolderAccesses / -DownloadSampleAccesses (grant).
 function Get-KeeperNSFFolderAccessGrantBatchSampleJson {
     @'
 {
@@ -331,6 +340,7 @@ function Get-KeeperNSFFolderAccessGrantBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Update-KeeperNSFFolderAccesses / -DownloadSampleAccesses.
 function Get-KeeperNSFFolderAccessUpdateBatchSampleJson {
     @'
 {
@@ -351,6 +361,7 @@ function Get-KeeperNSFFolderAccessUpdateBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Unshare-KeeperNSFFolderAccesses / -DownloadSampleAccesses (revoke).
 function Get-KeeperNSFFolderAccessRevokeBatchSampleJson {
     @'
 {
@@ -372,6 +383,7 @@ function Get-KeeperNSFFolderAccessRevokeBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Link-KeeperNSFRecords / -DownloadSampleLinks.
 function Get-KeeperNSFFolderRecordLinkBatchSampleJson {
     @'
 {
@@ -393,6 +405,7 @@ function Get-KeeperNSFFolderRecordLinkBatchSampleJson {
 '@
 }
 
+# Placeholder JSON for Unlink-KeeperNSFRecords / -DownloadSampleUnlinks.
 function Get-KeeperNSFFolderRecordUnlinkBatchSampleJson {
     @'
 {

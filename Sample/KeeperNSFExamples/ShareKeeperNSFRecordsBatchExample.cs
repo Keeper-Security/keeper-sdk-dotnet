@@ -11,6 +11,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class ShareKeeperNSFRecordsBatchExample
     {
+        /// <summary>
+        /// Runs the batch record-share API and prints per-share results.
+        /// </summary>
         public static async Task ShareBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFRecordShareRequest> shares)

@@ -12,6 +12,9 @@ namespace Sample.KeeperNSFExamples
     /// </summary>
     public static class GrantKeeperNSFFolderAccessesBatchExample
     {
+        /// <summary>
+        /// Runs the batch folder-access grant API and prints per-entry results.
+        /// </summary>
         public static async Task GrantBatch(
             VaultOnline vault,
             IReadOnlyList<KeeperNSFFolderAccessGrantRequest> grants)
@@ -54,6 +57,9 @@ namespace Sample.KeeperNSFExamples
             }
         }
 
+        /// <summary>
+        /// Sample grant payloads; replace folder UIDs and accessor emails/names before use.
+        /// </summary>
         public static IReadOnlyList<KeeperNSFFolderAccessGrantRequest> BuildSampleGrants()
         {
             return new[]

@@ -6,11 +6,13 @@ using System.Globalization;
 namespace KeeperSecurity.Commands
 {
     /// <summary>
-    /// Typed JSON value used at the PowerShell/import parse boundary
-    /// (replaces loose <c>object</c> / untyped dictionaries for <see cref="Vault.KeeperImport.LoadJsonDictionary(ImportJsonValue)"/>).
+    /// Typed JSON node used when parsing import/PowerShell payloads.
     /// </summary>
     public sealed class ImportJsonValue
     {
+        /// <summary>
+        /// What kind of JSON value this node holds.
+        /// </summary>
         public enum JsonKind
         {
             Null,
@@ -26,35 +28,64 @@ namespace KeeperSecurity.Commands
             Kind = kind;
         }
 
+        /// <summary>
+        /// Discriminator for which value field is populated.
+        /// </summary>
         public JsonKind Kind { get; }
 
+        /// <summary>
+        /// String payload when <see cref="Kind"/> is <see cref="JsonKind.String"/>.
+        /// </summary>
         public string StringValue { get; private set; }
 
+        /// <summary>
+        /// Boolean payload when <see cref="Kind"/> is <see cref="JsonKind.Boolean"/>.
+        /// </summary>
         public bool BooleanValue { get; private set; }
 
+        /// <summary>
+        /// Number payload when <see cref="Kind"/> is <see cref="JsonKind.Number"/>.
+        /// </summary>
         public double NumberValue { get; private set; }
 
+        /// <summary>
+        /// Object properties when <see cref="Kind"/> is <see cref="JsonKind.Object"/>.
+        /// </summary>
         public IReadOnlyDictionary<string, ImportJsonValue> ObjectValue { get; private set; }
 
+        /// <summary>
+        /// Array items when <see cref="Kind"/> is <see cref="JsonKind.Array"/>.
+        /// </summary>
         public IReadOnlyList<ImportJsonValue> ArrayValue { get; private set; }
 
+        /// <summary>
+        /// Shared null node. Used when a field is omitted.
+        /// </summary>
         public static ImportJsonValue Null { get; } = new ImportJsonValue(JsonKind.Null);
 
         /// <summary>
-        /// Creates a string value. <paramref name="value"/> null becomes <see cref="Null"/>
-        /// (omit); empty string is preserved (clear).
+        /// Builds a string node. Null becomes <see cref="Null"/>; empty string is kept.
         /// </summary>
         public static ImportJsonValue FromString(string value) =>
             value == null
                 ? Null
                 : new ImportJsonValue(JsonKind.String) { StringValue = value };
 
+        /// <summary>
+        /// Builds a boolean node.
+        /// </summary>
         public static ImportJsonValue FromBoolean(bool value) =>
             new ImportJsonValue(JsonKind.Boolean) { BooleanValue = value };
 
+        /// <summary>
+        /// Builds a number node.
+        /// </summary>
         public static ImportJsonValue FromNumber(double value) =>
             new ImportJsonValue(JsonKind.Number) { NumberValue = value };
 
+        /// <summary>
+        /// Builds an object node from a property map.
+        /// </summary>
         public static ImportJsonValue FromObject(IDictionary<string, ImportJsonValue> value) =>
             new ImportJsonValue(JsonKind.Object)
             {
@@ -63,6 +94,9 @@ namespace KeeperSecurity.Commands
                     : new Dictionary<string, ImportJsonValue>(value),
             };
 
+        /// <summary>
+        /// Builds an array node from a list of values.
+        /// </summary>
         public static ImportJsonValue FromArray(IList<ImportJsonValue> value)
         {
             if (value == null || value.Count == 0)
@@ -80,8 +114,7 @@ namespace KeeperSecurity.Commands
         }
 
         /// <summary>
-        /// Converts a legacy untyped dictionary (C# JSON parsers / samples) into <see cref="ImportJsonValue"/>.
-        /// Numeric values are stored as strings to avoid double precision loss (e.g. large UIDs).
+        /// Converts untyped JSON (C# parsers, samples, PowerShell) into <see cref="ImportJsonValue"/>.
         /// </summary>
         public static ImportJsonValue FromLegacyObject(object value)
         {
@@ -103,7 +136,7 @@ namespace KeeperSecurity.Commands
                 case bool b:
                     return FromBoolean(b);
                 case byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal:
-                    // Keep exact decimal representation as string (uid-safe).
+                    // Keep the exact digits as a string (safer for UIDs).
                     return FromString(Convert.ToString(value, CultureInfo.InvariantCulture));
                 case ImportJsonValue already:
                     return already;
@@ -166,6 +199,9 @@ namespace KeeperSecurity.Commands
             return FromString(value.ToString());
         }
 
+        /// <summary>
+        /// Returns a string view of this value, or null for null/object/array.
+        /// </summary>
         public string AsString()
         {
             return Kind switch
@@ -178,6 +214,9 @@ namespace KeeperSecurity.Commands
             };
         }
 
+        /// <summary>
+        /// Tries to read this value as a boolean. Returns null when it can't.
+        /// </summary>
         public bool? AsBoolean()
         {
             return Kind switch
@@ -191,6 +230,9 @@ namespace KeeperSecurity.Commands
             };
         }
 
+        /// <summary>
+        /// Converts back to the older untyped object/dictionary shape for callers that still need it.
+        /// </summary>
         public object ToLegacyObject()
         {
             switch (Kind)
@@ -236,6 +278,7 @@ namespace KeeperSecurity.Commands
             }
         }
 
+        // Peel PowerShell PSObject wrappers so we get the real BaseObject.
         private static object UnwrapLegacyInteropValue(object value)
         {
             while (value != null)
