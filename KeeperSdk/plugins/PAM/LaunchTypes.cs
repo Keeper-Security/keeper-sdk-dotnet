@@ -35,15 +35,54 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamLaunchPrepareResult
   {
+    /// <summary>
+    /// Resolved PAM resource record for the launch.
+    /// </summary>
     public TypedRecord Record { get; set; }
+
+    /// <summary>
+    /// Connection protocol resolved for the resource (for example ssh).
+    /// </summary>
     public string Protocol { get; set; }
+
+    /// <summary>
+    /// PAM configuration UID for the resource, if found.
+    /// </summary>
     public string ConfigUid { get; set; }
+
+    /// <summary>
+    /// pamUser credential that will be used for launch, if any.
+    /// </summary>
     public TypedRecord LaunchCredential { get; set; }
+
+    /// <summary>
+    /// Resolved hostname / IP for the session.
+    /// </summary>
     public string Host { get; set; }
+
+    /// <summary>
+    /// Resolved port for the session, if known.
+    /// </summary>
     public int? Port { get; set; }
+
+    /// <summary>
+    /// Where the host came from (record, --host, or --host-record).
+    /// </summary>
     public string HostSource { get; set; }
+
+    /// <summary>
+    /// Gateway controller UID selected for launch.
+    /// </summary>
     public string GatewayUid { get; set; }
+
+    /// <summary>
+    /// Display name of the selected gateway.
+    /// </summary>
     public string GatewayName { get; set; }
+
+    /// <summary>
+    /// Whether that gateway is currently connected; null if unknown.
+    /// </summary>
     public bool? GatewayOnline { get; set; }
   }
 }

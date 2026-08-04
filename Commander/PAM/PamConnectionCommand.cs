@@ -8,12 +8,18 @@ using KeeperSecurity.Vault;
 
 namespace Commander.PAM
 {
+    /// <summary>
+    /// pam-connection: edit connection settings on PAM resources.
+    /// </summary>
     internal class PamConnectionCommand : PamCommandBase
     {
         public PamConnectionCommand(IEnterpriseContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Runs the edit subcommand (default when no subcommand is given).
+        /// </summary>
         public async Task ExecuteAsync(PamConnectionOptions options)
         {
             if (options == null)

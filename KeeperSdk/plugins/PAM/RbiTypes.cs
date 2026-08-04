@@ -26,16 +26,24 @@ namespace KeeperSecurity.Plugins.PAM
     /// <summary>login or pamUser record for HTTP autofill credentials.</summary>
     public string AutofillCredentials { get; set; }
 
-    /// <summary>allowUrlManipulation.</summary>
+    /// <summary>
+    /// Allow navigating URLs in the remote browser (allowUrlManipulation).
+    /// </summary>
     public string AllowUrlNavigation { get; set; }
 
-    /// <summary>ignoreInitialSslCert.</summary>
+    /// <summary>
+    /// Ignore the initial SSL certificate check (ignoreInitialSslCert).
+    /// </summary>
     public string IgnoreServerCert { get; set; }
 
-    /// <summary>allowFileUploads.</summary>
+    /// <summary>
+    /// Allow file uploads in the RBI session.
+    /// </summary>
     public string AllowFileUploads { get; set; }
 
-    /// <summary>allowFileDownloads.</summary>
+    /// <summary>
+    /// Allow file downloads in the RBI session.
+    /// </summary>
     public string AllowFileDownloads { get; set; }
 
     /// <summary>URL allow-list patterns (joined with newlines).</summary>
@@ -53,7 +61,9 @@ namespace KeeperSecurity.Plugins.PAM
     /// <summary>Allow clipboard paste (inverted to disablePaste).</summary>
     public string AllowPaste { get; set; }
 
-    /// <summary>disableAudio.</summary>
+    /// <summary>
+    /// Mute audio in the RBI session (disableAudio).
+    /// </summary>
     public string DisableAudio { get; set; }
 
     /// <summary>Audio channel count.</summary>
@@ -77,10 +87,29 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamRbiEditResult
   {
+    /// <summary>
+    /// UID of the pamRemoteBrowser record that was edited.
+    /// </summary>
     public string RecordUid { get; set; }
+
+    /// <summary>
+    /// PAM configuration UID used for graph updates.
+    /// </summary>
     public string ConfigUid { get; set; }
+
+    /// <summary>
+    /// True when RBI record fields were saved to the vault.
+    /// </summary>
     public bool RecordUpdated { get; set; }
+
+    /// <summary>
+    /// True when connection/RBI flags were updated in the graph.
+    /// </summary>
     public bool GraphUpdated { get; set; }
+
+    /// <summary>
+    /// Warnings / summary messages for the caller.
+    /// </summary>
     public IList<string> Messages { get; set; } = new List<string>();
   }
 }

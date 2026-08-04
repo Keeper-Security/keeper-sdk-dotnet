@@ -297,11 +297,9 @@ namespace KeeperSecurity.Plugins.PAM
              || options.SessionPersistence != null;
     }
 
-    /// <summary>
-    /// True when the caller explicitly provided a multi-value option.
-    /// Empty sequences from the CLI binder are treated as not provided.
-    /// An explicit empty string (e.g. --allowed-urls "") is provided and clears the field.
-    /// </summary>
+    // True when the caller explicitly provided a multi-value option.
+    // Empty sequences from the CLI binder are treated as not provided.
+    // An explicit empty string (e.g. --allowed-urls "") is provided and clears the field.
     private static bool HasMultiValueOption(IList<string> values)
     {
       if (values == null || values.Count == 0)
@@ -623,9 +621,7 @@ namespace KeeperSecurity.Plugins.PAM
       return true;
     }
 
-    /// <summary>
-    /// Splits CLI multi-values on newlines/commas and trims whitespace/trailing commas.
-    /// </summary>
+    // Splits CLI multi-values on newlines/commas and trims whitespace/trailing commas.
     private static List<string> NormalizeMultiValues(IEnumerable<string> values)
     {
       var result = new List<string>();

@@ -8,12 +8,18 @@ using KeeperSecurity.Vault;
 
 namespace Commander.PAM
 {
+    /// <summary>
+    /// pam-action: rotate credentials and check job status.
+    /// </summary>
     internal class PamActionCommand : PamCommandBase
     {
         public PamActionCommand(IEnterpriseContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Runs rotate or job-info subcommands.
+        /// </summary>
         public async Task ExecuteAsync(PamActionOptions options)
         {
             if (options == null)

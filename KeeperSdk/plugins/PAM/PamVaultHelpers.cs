@@ -458,7 +458,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Resolve any typed vault record by UID (loads from storage if present but not decrypted in-memory).
+    /// Resolve a typed vault record by UID, loading from storage when it is not yet decrypted in memory.
     /// </summary>
     public static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
@@ -498,6 +498,9 @@ namespace KeeperSecurity.Plugins.PAM
       return record != null;
     }
 
+    /// <summary>
+    /// Read the <c>pamResources</c> field from a PAM configuration record by UID.
+    /// </summary>
     public static bool TryGetPamResources(VaultOnline vault, string configUid, out FieldPamResources resources)
     {
       resources = null;
@@ -514,6 +517,9 @@ namespace KeeperSecurity.Plugins.PAM
       return TryGetPamResources(config, out resources);
     }
 
+    /// <summary>
+    /// Read the <c>pamResources</c> field from an already-resolved configuration record.
+    /// </summary>
     public static bool TryGetPamResources(TypedRecord record, out FieldPamResources resources)
     {
       resources = null;

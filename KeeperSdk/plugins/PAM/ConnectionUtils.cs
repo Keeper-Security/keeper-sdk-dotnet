@@ -610,9 +610,7 @@ namespace KeeperSecurity.Plugins.PAM
       return dirty;
     }
 
-    /// <summary>
-    /// Ensures a pamSettings typed field exists. Returns true when a new field was added.
-    /// </summary>
+    // Ensures a pamSettings typed field exists. Returns true when a new field was added.
     private static bool GetOrCreatePamSettings(
       TypedRecord record,
       out TypedField<FieldPamSettings> settingsField,

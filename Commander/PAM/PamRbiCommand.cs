@@ -10,12 +10,18 @@ using KeeperSecurity.Vault;
 
 namespace Commander.PAM
 {
+    /// <summary>
+    /// pam-rbi: edit Remote Browser Isolation settings.
+    /// </summary>
     internal class PamRbiCommand : PamCommandBase
     {
         public PamRbiCommand(IEnterpriseContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Runs the edit subcommand (default when no subcommand is given).
+        /// </summary>
         public async Task ExecuteAsync(PamRbiOptions options)
         {
             if (options == null)

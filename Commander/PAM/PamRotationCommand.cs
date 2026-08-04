@@ -17,12 +17,16 @@ using RouterProto = Router;
 
 namespace Commander.PAM
 {
+    // Commander entry point for pam-rotation (list, info, edit, script subcommands).
     internal class PamRotationCommand : PamCommandBase
     {
         public PamRotationCommand(IEnterpriseContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Dispatches pam-rotation CLI subcommands: list, info, edit, and script management.
+        /// </summary>
         public async Task ExecuteAsync(PamRotationOptions options)
         {
             if (options == null)

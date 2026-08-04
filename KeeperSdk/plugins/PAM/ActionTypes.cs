@@ -8,12 +8,39 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamGatewayActionResult
   {
+    /// <summary>
+    /// Conversation / job id returned by the gateway.
+    /// </summary>
     public string ConversationId { get; set; }
+
+    /// <summary>
+    /// Gateway that handled the action.
+    /// </summary>
     public string GatewayUid { get; set; }
+
+    /// <summary>
+    /// True when the gateway accepted this as a scheduled job.
+    /// </summary>
     public bool IsScheduled { get; set; }
+
+    /// <summary>
+    /// True when the gateway reported success.
+    /// </summary>
     public bool IsOk { get; set; }
+
+    /// <summary>
+    /// Raw JSON payload from the gateway controller.
+    /// </summary>
     public string RawPayloadJson { get; set; }
+
+    /// <summary>
+    /// Parsed payload dictionary for callers that need structured fields.
+    /// </summary>
     public Dictionary<string, object> Payload { get; set; }
+
+    /// <summary>
+    /// Job-status details when the response includes job info.
+    /// </summary>
     public PamJobInfoDetails JobInfo { get; set; }
   }
 
@@ -44,8 +71,19 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamRotateResult
   {
+    /// <summary>
+    /// Gateway result when rotating a single record.
+    /// </summary>
     public PamGatewayActionResult RecordResult { get; set; }
+
+    /// <summary>
+    /// Folder-mode rotate summary when using a folder selector.
+    /// </summary>
     public PamRotateFolderResult FolderResult { get; set; }
+
+    /// <summary>
+    /// True when the rotate ran (or dry-ran) in folder mode.
+    /// </summary>
     public bool IsFolderMode => FolderResult != null;
   }
 
@@ -54,11 +92,34 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamRotateFolderResult
   {
+    /// <summary>
+    /// Number of shared folders matched by the folder selector.
+    /// </summary>
     public int FolderCount { get; set; }
+
+    /// <summary>
+    /// Number of pamUser records selected for rotation.
+    /// </summary>
     public int RecordCount { get; set; }
+
+    /// <summary>
+    /// True when selection was reported without scheduling rotates.
+    /// </summary>
     public bool DryRun { get; set; }
+
+    /// <summary>
+    /// UIDs of pamUser records selected in folder mode.
+    /// </summary>
     public IList<string> RecordUids { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Per-record gateway results from a live folder rotate.
+    /// </summary>
     public IList<PamGatewayActionResult> Results { get; set; } = new List<PamGatewayActionResult>();
+
+    /// <summary>
+    /// Per-record failures skipped during folder bulk rotate.
+    /// </summary>
     public IList<PamRotateRecordError> Errors { get; set; } = new List<PamRotateRecordError>();
   }
 
@@ -67,21 +128,44 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamRotateRecordError
   {
+    /// <summary>
+    /// UID of the record that failed.
+    /// </summary>
     public string RecordUid { get; set; }
+
+    /// <summary>
+    /// Error message for that record.
+    /// </summary>
     public string Message { get; set; }
   }
 
   /// <summary>
-  /// Parsed job-info fields for CLI display
+  /// Parsed job-info fields for CLI display.
   /// </summary>
   public class PamJobInfoDetails
   {
+    /// <summary>
+    /// Job status or reason from the gateway.
+    /// </summary>
     public string Status { get; set; }
+
+    /// <summary>
+    /// Reported execution duration of the job.
+    /// </summary>
     public string Duration { get; set; }
+
+    /// <summary>
+    /// Success / response message from the job payload.
+    /// </summary>
     public string ResponseMessage { get; set; }
+
+    /// <summary>
+    /// Exception text when the gateway job failed.
+    /// </summary>
     public string ExecutionException { get; set; }
   }
 
+  // Wire DTOs for gateway JSON (snake_case / camelCase variants).
   [DataContract]
   internal class GatewayActionResponseDto
   {

@@ -113,7 +113,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// PAM connection configuration failed.
+  /// Thrown when PAM interactive connection setup fails.
   /// </summary>
   public class PamConnectionException : PamException
   {
@@ -123,7 +123,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// PAM Remote Browser Isolation configuration failed.
+  /// Thrown when Remote Browser Isolation (RBI) setup or launch fails.
   /// </summary>
   public class PamRbiException : PamException
   {
@@ -133,7 +133,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// PAM launch preflight failed.
+  /// Thrown when PAM session launch preflight checks fail.
   /// </summary>
   public class PamLaunchException : PamException
   {

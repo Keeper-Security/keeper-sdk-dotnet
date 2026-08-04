@@ -55,11 +55,34 @@ namespace KeeperSecurity.Plugins.PAM
   /// </summary>
   public class PamConnectionEditResult
   {
+    /// <summary>
+    /// UID of the resource or configuration record that was edited.
+    /// </summary>
     public string RecordUid { get; set; }
+
+    /// <summary>
+    /// PAM configuration UID linked or used for the edit.
+    /// </summary>
     public string ConfigUid { get; set; }
+
+    /// <summary>
+    /// True when the edit target was a PAM configuration record.
+    /// </summary>
     public bool IsConfigurationRecord { get; set; }
+
+    /// <summary>
+    /// True when vault record fields (for example pamSettings) were saved.
+    /// </summary>
     public bool RecordUpdated { get; set; }
+
+    /// <summary>
+    /// True when the PAM rotation/connection graph was updated.
+    /// </summary>
     public bool GraphUpdated { get; set; }
+
+    /// <summary>
+    /// Short summary lines for CLI / caller display.
+    /// </summary>
     public IList<string> Messages { get; set; } = new List<string>();
   }
 }

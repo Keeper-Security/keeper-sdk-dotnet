@@ -18,6 +18,9 @@ namespace Commander.PAM
         {
         }
 
+        /// <summary>
+        /// Runs launch preflight and prints a summary.
+        /// </summary>
         public async Task ExecuteAsync(PamLaunchCliOptions options)
         {
             if (options == null)

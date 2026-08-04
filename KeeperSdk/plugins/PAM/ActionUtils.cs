@@ -452,10 +452,8 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
-    /// <summary>
-    /// Deny only when allow_rotate_credentials is explicitly false.
-    /// Missing key => allow (DotNet flattens all enforcement types; matching boolean-list semantics exactly is unreliable).
-    /// </summary>
+    // Deny only when allow_rotate_credentials is explicitly false.
+    // Missing key => allow (DotNet flattens all enforcement types; matching boolean-list semantics exactly is unreliable).
     private static void EnsureRotationAllowed(IAuthContext authContext)
     {
       if (authContext?.Enforcements == null || authContext.Enforcements.Count == 0)
@@ -484,10 +482,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-    /// <summary>
-    /// Builds gateway action JSON
-    /// (avoids DataContractJsonSerializer dictionary quirks).
-    /// </summary>
+    // Builds gateway action JSON (avoids DataContractJsonSerializer dictionary quirks).
     private static byte[] BuildGatewayActionJson(
       string action,
       bool isScheduled,
@@ -657,9 +652,7 @@ namespace KeeperSecurity.Plugins.PAM
       return result;
     }
 
-    /// <summary>
-    /// Unwraps gateway envelope and fills result flags / job-info fields
-    /// </summary>
+    // Unwraps gateway envelope and fills result flags / job-info fields.
     private static void ApplyGatewayResponse(PamGatewayActionResult result, string controllerPayload)
     {
       result.RawPayloadJson = controllerPayload;

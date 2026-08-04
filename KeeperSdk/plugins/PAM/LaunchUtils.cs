@@ -413,9 +413,7 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
-    /// <summary>
-    /// Abort only if connections is explicitly turned off on the config.
-    /// </summary>
+    // Abort only if connections is explicitly turned off on the config.
     private static void EnsureConnectionsAllowed(PamRotationGraph graph, string configUid)
     {
       if (graph == null || !graph.HasGraph)
@@ -557,9 +555,7 @@ namespace KeeperSecurity.Plugins.PAM
       return (null, null, null);
     }
 
-    /// <summary>
-    /// Resolve gateway: --gateway override, else pamResources.controllerUid on the config.
-    /// </summary>
+    // Resolve gateway: --gateway override, else pamResources.controllerUid on the config.
     private static PamController ResolveLaunchGateway(
       VaultOnline vault,
       IList<PamController> controllers,
