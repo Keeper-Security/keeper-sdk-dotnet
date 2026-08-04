@@ -551,6 +551,8 @@ namespace Commander
                     string safePath;
                     try
                     {
+                        // Prefer Title for the saved file name; fall back to Name.
+                        // Shared attachment names aren't trusted — keep the file under the output folder.
                         var downloadName = !string.IsNullOrWhiteSpace(atta.Title) ? atta.Title : atta.Name;
                         safePath = PathUtils.GetSafeDownloadPath(options.OutputDirectory, downloadName);
                     }

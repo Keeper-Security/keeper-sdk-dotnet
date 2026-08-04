@@ -75,6 +75,7 @@ function Copy-KeeperFileAttachment {
                     $fileName = $atta.Name
                 }
                 try {
+                    # Clean the name and keep the download under $Path (shared names aren't trusted).
                     $safeName = [KeeperSecurity.Utils.PathUtils]::SanitizeFileName($fileName)
                     $filePath = [KeeperSecurity.Utils.PathUtils]::GetSafeDownloadPath($Path, $safeName)
                 } catch {
@@ -84,6 +85,7 @@ function Copy-KeeperFileAttachment {
                 if (Test-Path -LiteralPath $filePath -PathType Leaf) {
                     $altName = "$($atta.Id) - $safeName"
                     try {
+                        # Same folder check when we fall back to an id-prefixed name.
                         $filePath = [KeeperSecurity.Utils.PathUtils]::GetSafeDownloadPath($Path, $altName)
                     } catch {
                         Write-Warning "Skipping attachment `"$fileName`": $($_.Exception.Message)"
