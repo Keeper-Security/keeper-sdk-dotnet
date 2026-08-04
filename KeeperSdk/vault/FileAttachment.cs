@@ -76,7 +76,6 @@ namespace KeeperSecurity.Vault
                 throw new Exception($"Cannot open file \"{fileName}\"");
             }
             IsScript = isScript;
-            // Local path → basename only (also re-applied when writing metadata).
             Name = PathUtils.SanitizeFileName(fileName);
             Title = Name;
             try
