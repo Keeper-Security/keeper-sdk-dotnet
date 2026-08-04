@@ -551,8 +551,6 @@ namespace Commander
                     string safePath;
                     try
                     {
-                        // Prefer Title when present (display name); fall back to Name.
-                        // Both are attacker-controlled for shared records — must sanitize.
                         var downloadName = !string.IsNullOrWhiteSpace(atta.Title) ? atta.Title : atta.Name;
                         safePath = PathUtils.GetSafeDownloadPath(options.OutputDirectory, downloadName);
                     }

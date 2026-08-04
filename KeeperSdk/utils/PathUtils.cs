@@ -57,7 +57,6 @@ namespace KeeperSecurity.Utils
             var root = directoryFull.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                        + Path.DirectorySeparatorChar;
 
-            // Defense in depth: even after SanitizeFileName, refuse any escape.
             if (!combined.StartsWith(root, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(
