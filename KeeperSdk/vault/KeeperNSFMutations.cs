@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Folder.V3.Remove;
 using FolderProto = Folder;
@@ -1471,11 +1473,13 @@ namespace KeeperSecurity.Vault
         // Max folders per remove_folder preview/confirm pair.
         private const int MaxKeeperNSFFolderRemovalBatchSize = 100;
 
-        // Chunks folder removals; stores per-chunk confirmation tokens for a later ConfirmKeeperNSFFolders call.
+        // Chunks folder removals; stores per-chunk tokens + a fingerprint for ConfirmKeeperNSFFolders.
         private async Task<KeeperNSFRemoveResult> ExecuteKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun)
         {
             var validated = ValidateKeeperNSFFolderRemovals(removals);
+            var fingerprint = BuildFolderRemovalPreviewFingerprint(
+                validated, MaxKeeperNSFFolderRemovalBatchSize);
 
             var mergedPreview = new RemoveResponse();
             var confirmedChunkCount = 0;
@@ -1547,18 +1551,59 @@ namespace KeeperSecurity.Vault
                 ChunkErrors = chunkErrors,
                 TokenExpiresAt = earliestExpiry,
                 ChunkConfirmationTokens = chunkTokens,
+                PreviewRemovalsFingerprint = fingerprint,
+                PreviewItemCount = validated.Count,
+                PreviewChunkSize = MaxKeeperNSFFolderRemovalBatchSize,
             };
         }
 
-        // Confirms each preview chunk using stored tokens (see nsf-rmdir two-step flow).
+        // Confirms each preview chunk. Removals must match the dry-run preview (order included).
         private async Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolderRemovalAsync(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult)
         {
-            // Tokens are indexed in preview chunk order (same MaxKeeperNSFFolderRemovalBatchSize
-            // and the same validated removals sequence). Reordering or changing the removals list
-            // between preview and confirm breaks this contract.
             var validated = ValidateKeeperNSFFolderRemovals(removals);
-            var tokens = previewResult?.ChunkConfirmationTokens;
+            if (previewResult == null)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "previewResult",
+                    "",
+                    "preview result is required; run RemoveKeeperNSFFolders with dryRun: true first");
+            }
+
+            var chunkSize = previewResult.PreviewChunkSize > 0
+                ? previewResult.PreviewChunkSize
+                : MaxKeeperNSFFolderRemovalBatchSize;
+            var expectedFingerprint = BuildFolderRemovalPreviewFingerprint(validated, chunkSize);
+            if (string.IsNullOrEmpty(previewResult.PreviewRemovalsFingerprint))
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "previewResult",
+                    "",
+                    "preview result is missing the removals fingerprint; re-run RemoveKeeperNSFFolders with dryRun: true");
+            }
+
+            if (!string.Equals(previewResult.PreviewRemovalsFingerprint, expectedFingerprint, StringComparison.Ordinal))
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "removals",
+                    "",
+                    "removals list does not match the dry-run preview (UID, operation, or order changed). "
+                    + "Pass the same list used for preview, or re-run preview.");
+            }
+
+            if (previewResult.PreviewItemCount > 0 && previewResult.PreviewItemCount != validated.Count)
+            {
+                throw new KeeperInvalidParameter(
+                    nameof(ConfirmKeeperNSFFolders),
+                    "removals",
+                    "",
+                    $"removals count ({validated.Count}) does not match preview count ({previewResult.PreviewItemCount}); re-run preview");
+            }
+
+            var tokens = previewResult.ChunkConfirmationTokens;
             if (tokens == null || tokens.Count == 0)
             {
                 throw new KeeperInvalidParameter(
@@ -1568,8 +1613,7 @@ namespace KeeperSecurity.Vault
                     "preview result has no confirmation tokens; run RemoveKeeperNSFFolders with dryRun: true first");
             }
 
-            var expectedChunks = (validated.Count + MaxKeeperNSFFolderRemovalBatchSize - 1)
-                / MaxKeeperNSFFolderRemovalBatchSize;
+            var expectedChunks = (validated.Count + chunkSize - 1) / chunkSize;
             if (tokens.Count != expectedChunks)
             {
                 throw new KeeperInvalidParameter(
@@ -1585,9 +1629,9 @@ namespace KeeperSecurity.Vault
             var chunkErrors = new List<string>();
             var chunkIndex = 0;
 
-            for (var offset = 0; offset < validated.Count; offset += MaxKeeperNSFFolderRemovalBatchSize)
+            for (var offset = 0; offset < validated.Count; offset += chunkSize)
             {
-                var chunk = validated.Skip(offset).Take(MaxKeeperNSFFolderRemovalBatchSize).ToList();
+                var chunk = validated.Skip(offset).Take(chunkSize).ToList();
                 var tokenBytes = tokens[chunkIndex++];
                 try
                 {
@@ -1621,6 +1665,9 @@ namespace KeeperSecurity.Vault
                 ChunkErrors = chunkErrors,
                 TokenExpiresAt = previewResult.TokenExpiresAt,
                 ChunkConfirmationTokens = tokens.ToList(),
+                PreviewRemovalsFingerprint = previewResult.PreviewRemovalsFingerprint,
+                PreviewItemCount = previewResult.PreviewItemCount,
+                PreviewChunkSize = chunkSize,
             };
         }
 
@@ -1690,6 +1737,31 @@ namespace KeeperSecurity.Vault
             }
 
             return previewResponse.ConfirmationToken.ToByteArray();
+        }
+
+        // Hash of chunk size + ordered uid|operation lines so confirm can reject reordered/changed lists.
+        private static string BuildFolderRemovalPreviewFingerprint(
+            IReadOnlyList<KeeperNSFFolderRemoval> validated, int chunkSize)
+        {
+            var sb = new StringBuilder(32 + (validated?.Count ?? 0) * 48);
+            sb.Append("chunk=").Append(chunkSize).Append('\n');
+            if (validated != null)
+            {
+                for (var i = 0; i < validated.Count; i++)
+                {
+                    var removal = validated[i];
+                    sb.Append(removal?.FolderUid ?? string.Empty)
+                        .Append('|')
+                        .Append((int)(removal?.Operation ?? 0))
+                        .Append('\n');
+                }
+            }
+
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+                return Convert.ToBase64String(hash);
+            }
         }
 
         // Normalizes folder UIDs and rejects duplicates before batch remove/confirm.

@@ -697,15 +697,17 @@ namespace KeeperSecurity.Vault
         /// <see cref="KeeperNSFFolderRemoveOperation.FolderTrash"/> and
         /// <see cref="KeeperNSFFolderRemoveOperation.DeletePermanent"/> are supported;
         /// owner-trash is not supported for folders.
-        /// Prefer <c>dryRun: true</c> then <see cref="ConfirmKeeperNSFFolders"/> to avoid a second PREVIEW.
+        /// Prefer <c>dryRun: true</c> then <see cref="ConfirmKeeperNSFFolders"/> with the same
+        /// removals list (same UIDs, operations, and order) — do not reorder or dedupe between steps.
         /// </summary>
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolders(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun = false);
 
         /// <summary>
-        /// Confirms a prior Keeper NSF folder-remove preview without re-running PREVIEW.
-        /// <paramref name="previewResult"/> must come from <see cref="RemoveKeeperNSFFolders"/> with
-        /// <c>dryRun: true</c> on the same <paramref name="removals"/> list.
+        /// Confirms a prior folder-remove preview without calling PREVIEW again.
+        /// Pass the same removals list used for dry-run preview (same order) and the
+        /// <paramref name="previewResult"/> from that call. The SDK checks a fingerprint and
+        /// token/chunk counts; a mismatch means re-run preview.
         /// </summary>
         Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolders(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult);
@@ -1121,13 +1123,23 @@ namespace KeeperSecurity.Vault
         public long? TokenExpiresAt { get; set; }
 
         /// <summary>
-        /// Per-chunk confirmation tokens from a dry-run preview.
-        /// Contract: one token per API chunk, in the same order as preview chunking
-        /// (folders: batches of 100, ascending offset). Confirm must pass the same removals list
-        /// so chunk boundaries and token indices still align.
-        /// Use with <see cref="IVault.ConfirmKeeperNSFFolders"/> to confirm without re-running PREVIEW.
+        /// Per-chunk confirmation tokens from a dry-run folder preview.
+        /// One token per chunk, in preview order. Confirm must use the same removals list
+        /// (same UIDs, operations, and order) so tokens still line up.
         /// </summary>
         public IList<byte[]> ChunkConfirmationTokens { get; set; } = new List<byte[]>();
+
+        /// <summary>
+        /// Fingerprint of the validated folder removals used for preview
+        /// (order + UID + operation + chunk size). Confirm checks this and rejects mismatches.
+        /// </summary>
+        public string PreviewRemovalsFingerprint { get; set; }
+
+        /// <summary>Folder count used when the preview fingerprint was built.</summary>
+        public int PreviewItemCount { get; set; }
+
+        /// <summary>Chunk size used for the preview (folders: 100).</summary>
+        public int PreviewChunkSize { get; set; }
     }
 
     /// <summary>

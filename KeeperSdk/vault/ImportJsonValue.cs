@@ -6,13 +6,13 @@ using System.Globalization;
 namespace KeeperSecurity.Commands
 {
     /// <summary>
-    /// Typed JSON node used when parsing import/PowerShell payloads.
+    /// One JSON value from an import file or PowerShell payload.
+    /// Numbers coming from dictionaries / ConvertFrom-Json are kept as text so large UIDs
+    /// don't lose digits. Prefer AsString() when reading a value.
     /// </summary>
     public sealed class ImportJsonValue
     {
-        /// <summary>
-        /// What kind of JSON value this node holds.
-        /// </summary>
+        /// <summary>Kind of value stored in this node.</summary>
         public enum JsonKind
         {
             Null,
@@ -28,64 +28,49 @@ namespace KeeperSecurity.Commands
             Kind = kind;
         }
 
-        /// <summary>
-        /// Discriminator for which value field is populated.
-        /// </summary>
+        /// <summary>Which payload field is in use.</summary>
         public JsonKind Kind { get; }
 
-        /// <summary>
-        /// String payload when <see cref="Kind"/> is <see cref="JsonKind.String"/>.
-        /// </summary>
+        /// <summary>Text when Kind is String.</summary>
         public string StringValue { get; private set; }
 
-        /// <summary>
-        /// Boolean payload when <see cref="Kind"/> is <see cref="JsonKind.Boolean"/>.
-        /// </summary>
+        /// <summary>True/false when Kind is Boolean.</summary>
         public bool BooleanValue { get; private set; }
 
         /// <summary>
-        /// Number payload when <see cref="Kind"/> is <see cref="JsonKind.Number"/>.
+        /// Number when Kind is Number.
+        /// Most import paths store numbers as text instead (see class summary).
         /// </summary>
         public double NumberValue { get; private set; }
 
-        /// <summary>
-        /// Object properties when <see cref="Kind"/> is <see cref="JsonKind.Object"/>.
-        /// </summary>
+        /// <summary>Properties when Kind is Object.</summary>
         public IReadOnlyDictionary<string, ImportJsonValue> ObjectValue { get; private set; }
 
-        /// <summary>
-        /// Array items when <see cref="Kind"/> is <see cref="JsonKind.Array"/>.
-        /// </summary>
+        /// <summary>Items when Kind is Array.</summary>
         public IReadOnlyList<ImportJsonValue> ArrayValue { get; private set; }
 
-        /// <summary>
-        /// Shared null node. Used when a field is omitted.
-        /// </summary>
+        /// <summary>Shared null node for missing values.</summary>
         public static ImportJsonValue Null { get; } = new ImportJsonValue(JsonKind.Null);
 
-        /// <summary>
-        /// Builds a string node. Null becomes <see cref="Null"/>; empty string is kept.
-        /// </summary>
+        /// <summary>Creates a string node. Null input becomes Null; empty string is kept.</summary>
         public static ImportJsonValue FromString(string value) =>
             value == null
                 ? Null
                 : new ImportJsonValue(JsonKind.String) { StringValue = value };
 
-        /// <summary>
-        /// Builds a boolean node.
-        /// </summary>
+        /// <summary>Creates a boolean node.</summary>
         public static ImportJsonValue FromBoolean(bool value) =>
             new ImportJsonValue(JsonKind.Boolean) { BooleanValue = value };
 
         /// <summary>
-        /// Builds a number node.
+        /// Creates a Number node.
+        /// For UIDs or other values that need exact digits, use FromString instead.
+        /// Import code does not use this — it turns numbers into strings.
         /// </summary>
         public static ImportJsonValue FromNumber(double value) =>
             new ImportJsonValue(JsonKind.Number) { NumberValue = value };
 
-        /// <summary>
-        /// Builds an object node from a property map.
-        /// </summary>
+        /// <summary>Creates an object node from a property map.</summary>
         public static ImportJsonValue FromObject(IDictionary<string, ImportJsonValue> value) =>
             new ImportJsonValue(JsonKind.Object)
             {
@@ -94,9 +79,7 @@ namespace KeeperSecurity.Commands
                     : new Dictionary<string, ImportJsonValue>(value),
             };
 
-        /// <summary>
-        /// Builds an array node from a list of values.
-        /// </summary>
+        /// <summary>Creates an array node from a list of values.</summary>
         public static ImportJsonValue FromArray(IList<ImportJsonValue> value)
         {
             if (value == null || value.Count == 0)
@@ -114,7 +97,8 @@ namespace KeeperSecurity.Commands
         }
 
         /// <summary>
-        /// Converts untyped JSON (C# parsers, samples, PowerShell) into <see cref="ImportJsonValue"/>.
+        /// Turns plain objects (dictionaries, PowerShell, samples) into ImportJsonValue.
+        /// Numbers are stored as strings so digits stay exact.
         /// </summary>
         public static ImportJsonValue FromLegacyObject(object value)
         {
@@ -136,7 +120,7 @@ namespace KeeperSecurity.Commands
                 case bool b:
                     return FromBoolean(b);
                 case byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal:
-                    // Keep the exact digits as a string (safer for UIDs).
+                    // Keep digits as text — safer for UIDs than storing as double.
                     return FromString(Convert.ToString(value, CultureInfo.InvariantCulture));
                 case ImportJsonValue already:
                     return already;
@@ -199,9 +183,7 @@ namespace KeeperSecurity.Commands
             return FromString(value.ToString());
         }
 
-        /// <summary>
-        /// Returns a string view of this value, or null for null/object/array.
-        /// </summary>
+        /// <summary>Text form of this value, or null for null / object / array.</summary>
         public string AsString()
         {
             return Kind switch
@@ -214,9 +196,7 @@ namespace KeeperSecurity.Commands
             };
         }
 
-        /// <summary>
-        /// Tries to read this value as a boolean. Returns null when it can't.
-        /// </summary>
+        /// <summary>Reads this as a boolean when possible; otherwise null.</summary>
         public bool? AsBoolean()
         {
             return Kind switch
@@ -230,9 +210,7 @@ namespace KeeperSecurity.Commands
             };
         }
 
-        /// <summary>
-        /// Converts back to the older untyped object/dictionary shape for callers that still need it.
-        /// </summary>
+        /// <summary>Converts back to a plain object / dictionary for older callers.</summary>
         public object ToLegacyObject()
         {
             switch (Kind)

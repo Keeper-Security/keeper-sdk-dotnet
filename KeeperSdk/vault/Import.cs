@@ -56,8 +56,36 @@ namespace KeeperSecurity
             /// <summary>Object-style value (host, address, etc.).</summary>
             public ImportCustomFieldElement[] Elements { get; set; }
 
-            /// <summary>Whether this field has something to apply (text or elements).</summary>
-            public bool HasValue => TextValue != null || Elements != null;
+            /// <summary>
+            /// True if this field has something to write.
+            /// Text that is not null counts (use "" to clear a field on update).
+            /// Object fields count when Elements has at least one named entry; empty lists do not.
+            /// </summary>
+            public bool HasValue
+            {
+                get
+                {
+                    if (TextValue != null)
+                    {
+                        return true;
+                    }
+
+                    if (Elements == null)
+                    {
+                        return false;
+                    }
+
+                    for (var i = 0; i < Elements.Length; i++)
+                    {
+                        if (Elements[i]?.Name != null)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            }
         }
 
 
@@ -145,8 +173,10 @@ namespace KeeperSecurity
             private const string TwoFactorCode = "TFC:Keeper";
 
             /// <summary>
-            /// Fills a <see cref="PasswordRecord"/> from an import record (login, password, notes, text custom fields).
-            /// TFC:Keeper becomes Totp. Object-style custom fields are skipped.
+            /// Fills a PasswordRecord from an import record (login, password, notes, text custom fields).
+            /// TFC:Keeper becomes Totp — accepts a full otpauth:// URL or a raw secret
+            /// (spaces stripped, then wrapped as otpauth://totp/?secret=...).
+            /// Object-style custom fields are skipped.
             /// </summary>
             private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
@@ -173,9 +203,7 @@ namespace KeeperSecurity
 
                         if (customField.Name == TwoFactorCode)
                         {
-                            password.Totp = strValue.StartsWith("otpauth://")
-                                ? strValue
-                                : $"otpauth://totp/?secret={strValue}";
+                            password.Totp = NormalizeImportTotpValue(strValue);
                         }
                         else
                         {
@@ -183,6 +211,29 @@ namespace KeeperSecurity
                         }
                     }
                 }
+            }
+
+            /// <summary>
+            /// Normalizes an import TOTP value for PasswordRecord / oneTimeCode.
+            /// Full otpauth:// URLs are kept as-is. Anything else is treated as a secret
+            /// (spaces removed) and wrapped as otpauth://totp/?secret=...
+            /// Secrets are URL-encoded; base32 shape is not strictly validated here.
+            /// </summary>
+            private static string NormalizeImportTotpValue(string value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+
+                value = value.Trim();
+                if (value.StartsWith("otpauth://", StringComparison.OrdinalIgnoreCase))
+                {
+                    return value;
+                }
+
+                var secret = value.Replace(" ", string.Empty);
+                return $"otpauth://totp/?secret={Uri.EscapeDataString(secret)}";
             }
 
             /// <summary>
@@ -339,8 +390,9 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Builds a <see cref="TypedRecord"/> from an import record.
+            /// Builds a TypedRecord from an import record.
             /// Duplicate custom field names log a warning and keep the last value.
+            /// TFC:Keeper is mapped to $oneTimeCode (same otpauth / raw-secret rules as PasswordRecord).
             /// </summary>
             static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
@@ -372,7 +424,9 @@ namespace KeeperSecurity
                         customFields["$oneTimeCode"] = new ImportCustomField
                         {
                             Name = "$oneTimeCode",
-                            TextValue = tfa.TextValue,
+                            TextValue = string.IsNullOrEmpty(tfa.TextValue)
+                                ? tfa.TextValue
+                                : NormalizeImportTotpValue(tfa.TextValue),
                             Elements = tfa.Elements,
                         };
                         customFields.Remove(TwoFactorCode);
@@ -986,7 +1040,7 @@ namespace KeeperSecurity
                 return requests;
             }
 
-            /// <summary>True if the import set login, password, url, or any custom fields.</summary>
+            /// <summary>True if the import has login, password, URL, or a custom field to apply.</summary>
             private static bool HasImportFieldPayload(ImportRecord import)
             {
                 if (import == null)
@@ -994,10 +1048,26 @@ namespace KeeperSecurity
                     return false;
                 }
 
-                return import.Login != null
-                    || import.Password != null
-                    || import.LoginUrl != null
-                    || (import.CustomFields != null && import.CustomFields.Length > 0);
+                if (import.Login != null || import.Password != null || import.LoginUrl != null)
+                {
+                    return true;
+                }
+
+                if (import.CustomFields == null)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < import.CustomFields.Length; i++)
+                {
+                    var field = import.CustomFields[i];
+                    if (field != null && !string.IsNullOrEmpty(field.Name) && field.HasValue)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             /// <summary>Picks the NSF folder from the record's first folder entry, or the default.</summary>
@@ -1093,7 +1163,11 @@ namespace KeeperSecurity
 
                     if (field.Count == 0)
                     {
-                        field.ObjectValue = ToAssignValue(customField);
+                        var assignValue = ToAssignValue(customField);
+                        if (assignValue != null)
+                        {
+                            field.ObjectValue = assignValue;
+                        }
                     }
                 }
             }
@@ -1174,7 +1248,9 @@ namespace KeeperSecurity
                         fields.Add(new ImportCustomField
                         {
                             Name = "oneTimeCode",
-                            TextValue = customField.TextValue,
+                            TextValue = string.IsNullOrEmpty(customField.TextValue)
+                                ? customField.TextValue
+                                : NormalizeImportTotpValue(customField.TextValue),
                             Elements = customField.Elements,
                         });
                         continue;
@@ -1301,7 +1377,7 @@ namespace KeeperSecurity
                 return new ImportCustomField { Name = name, TextValue = value.ToString() };
             }
 
-            /// <summary>Clones a custom field.</summary>
+            /// <summary>Copies a custom field and its elements.</summary>
             private static ImportCustomField CloneImportCustomField(ImportCustomField field)
             {
                 if (field == null)
@@ -1321,7 +1397,11 @@ namespace KeeperSecurity
                 };
             }
 
-            /// <summary>Parses the custom_fields object from import JSON.</summary>
+            /// <summary>
+            /// Reads custom_fields from import JSON.
+            /// Plain values go into TextValue; objects go into Elements.
+            /// Empty objects are skipped.
+            /// </summary>
             private static ImportCustomField[] ParseCustomFieldsFromImportJson(ImportJsonValue value)
             {
                 if (value?.Kind != ImportJsonValue.JsonKind.Object || value.ObjectValue == null || value.ObjectValue.Count == 0)
@@ -1344,12 +1424,22 @@ namespace KeeperSecurity
                         {
                             foreach (var element in pair.Value.ObjectValue)
                             {
+                                if (string.IsNullOrEmpty(element.Key))
+                                {
+                                    continue;
+                                }
+
                                 elements.Add(new ImportCustomFieldElement
                                 {
                                     Name = element.Key,
                                     Value = element.Value?.AsString(),
                                 });
                             }
+                        }
+
+                        if (elements.Count == 0)
+                        {
+                            continue;
                         }
 
                         fields.Add(new ImportCustomField
@@ -1370,7 +1460,11 @@ namespace KeeperSecurity
                 return fields.Count > 0 ? fields.ToArray() : null;
             }
 
-            /// <summary>Gets the value to assign — dictionary for Elements, otherwise TextValue.</summary>
+            /// <summary>
+            /// Value to write for a custom field.
+            /// Named Elements become a dictionary; otherwise TextValue is used
+            /// ("" clears the field). Empty element lists are not sent.
+            /// </summary>
             private static object ToAssignValue(ImportCustomField field)
             {
                 if (field == null)
@@ -1380,7 +1474,7 @@ namespace KeeperSecurity
 
                 if (field.Elements != null)
                 {
-                    var dict = new Dictionary<string, object>(field.Elements.Length);
+                    var dict = new Dictionary<string, object>();
                     foreach (var element in field.Elements)
                     {
                         if (element?.Name == null)
@@ -1391,13 +1485,16 @@ namespace KeeperSecurity
                         dict[element.Name] = element.Value;
                     }
 
-                    return dict;
+                    if (dict.Count > 0)
+                    {
+                        return dict;
+                    }
                 }
 
                 return field.TextValue;
             }
 
-            /// <summary>Builds the Fields dictionary for an NSF create/update request.</summary>
+            /// <summary>Builds the Fields map for an NSF create/update, skipping empty fields.</summary>
             private static IDictionary<string, object> ToNsfRequestFields(IEnumerable<ImportCustomField> fields)
             {
                 var result = new Dictionary<string, object>();
@@ -1413,7 +1510,13 @@ namespace KeeperSecurity
                         continue;
                     }
 
-                    result[field.Name] = ToAssignValue(field);
+                    var value = ToAssignValue(field);
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    result[field.Name] = value;
                 }
 
                 return result;
