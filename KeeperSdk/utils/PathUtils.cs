@@ -4,19 +4,16 @@ using System.IO;
 namespace KeeperSecurity.Utils
 {
     /// <summary>
-    /// Path helpers for attachment upload/download.
-    /// Attachment names are encrypted client-side (zero-knowledge), so the client
-    /// must sanitize before writing metadata or saving files to disk.
+    /// Helpers to keep attachment file names and download paths safe.
+    /// Used by attachment upload/download in the SDK, Commander, PowerCommander, and samples.
+    /// Names are encrypted client-side, so the server can't validate them — we clean them here.
     /// </summary>
     public static class PathUtils
     {
         /// <summary>
-        /// Returns a bare file name suitable for storage or disk write.
-        /// Strips directories and absolute paths.
+        /// Takes a name (or full path) and returns just the file name with no folders.
+        /// Used when setting attachment Name/Title, building download paths, and from PowerCommander.
         /// </summary>
-        /// <param name="name">Attachment name from local path or record metadata.</param>
-        /// <returns>Sanitized file name with no directory components.</returns>
-        /// <exception cref="ArgumentException">Name is missing or resolves to empty / "." / "..".</exception>
         public static string SanitizeFileName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -37,12 +34,9 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
-        /// Builds an absolute path under <paramref name="outputDirectory"/> using a sanitized
-        /// attachment name, and verifies the result cannot escape that directory
+        /// Builds a full path under the output folder and checks it cannot escape that folder.
+        /// Used by Commander download, PowerCommander Copy-KeeperFileAttachment, and the sample download.
         /// </summary>
-        /// <param name="outputDirectory">Target folder for the download.</param>
-        /// <param name="attachmentName">Attacker-influenced name from record metadata.</param>
-        /// <returns>Full path that is guaranteed to stay inside <paramref name="outputDirectory"/>.</returns>
         public static string GetSafeDownloadPath(string outputDirectory, string attachmentName)
         {
             if (string.IsNullOrWhiteSpace(outputDirectory))
@@ -57,6 +51,7 @@ namespace KeeperSecurity.Utils
             var root = directoryFull.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                        + Path.DirectorySeparatorChar;
 
+            // Extra check after sanitize — block anything that still points outside the folder.
             if (!combined.StartsWith(root, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(

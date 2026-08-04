@@ -31,6 +31,10 @@ namespace KeeperSecurity.Vault
             Stream = attachmentStream;
         }
 
+        // Backing fields — values are cleaned through the setters below.
+        private string _name;
+        private string _title;
+
         /// <inheritdoc/>
         public string Name
         {
@@ -42,11 +46,9 @@ namespace KeeperSecurity.Vault
         public string Title
         {
             get => _title;
+            // Same as Name — keep Title as a bare file name.
             set => _title = string.IsNullOrWhiteSpace(value) ? value : PathUtils.SanitizeFileName(value);
         }
-
-        private string _name;
-        private string _title;
 
         /// <inheritdoc/>
         public string MimeType { get; set; }
@@ -200,10 +202,8 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        /// <summary>
-        /// Sanitizes Name/Title at the last moment before they enter encrypted metadata.
-        /// Closes the public-setter bypass on <see cref="AttachmentUploadTask"/>.
-        /// </summary>
+        // Cleans Name/Title right before they go into encrypted attachment metadata.
+        // Called from UploadPasswordAttachment and UploadTypedAttachment so a bad value can't slip past the setter.
         private static void GetSanitizedUploadNames(IAttachmentUploadTask uploadTask, out string name, out string title)
         {
             name = PathUtils.SanitizeFileName(
