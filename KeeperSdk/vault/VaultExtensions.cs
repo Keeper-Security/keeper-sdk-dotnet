@@ -610,11 +610,12 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Build a TypedRecord from an NSF record so PAM can read fields the same way as classic.
         /// Returns false if UID/key is missing or data cannot be parsed.
+        /// Prefer raw DataJson so complex fields are not collapsed by object[] deserialization.
         /// </summary>
         public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
         {
             typed = null;
-            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null)
+            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null || nsf.RecordKey.Length == 0)
             {
                 return false;
             }
@@ -663,7 +664,13 @@ namespace KeeperSecurity.Vault
             bool shared,
             long clientModifiedTime)
         {
+            if (rtd == null)
+            {
+                return null;
+            }
+
             var typedRecord = new TypedRecord(rtd.Type ?? "")
+
             {
                 Uid = recordUid,
                 Version = version,

@@ -523,6 +523,15 @@ namespace KeeperSecurity.Vault
             return recordUid;
         }
 
+        /// <summary>
+        /// Creates a typed record in a Keeper NSF folder.
+        /// </summary>
+        public async Task CreateKeeperNSFTypedRecord(TypedRecord typed, string folderUid)
+        {
+            await this.CreateKeeperNSFTypedRecordInternal(typed, folderUid).ConfigureAwait(false);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+        }
+
         /// <inheritdoc/>
         public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecords(
             IReadOnlyList<KeeperNSFRecordCreateRequest> records)

@@ -7,7 +7,18 @@ using KeeperSecurity.Vault;
 namespace KeeperSecurity.Plugins.PAM
 {
   /// <summary>
+  /// Folder display info for PAM configuration list/detail output.
+  /// </summary>
+  public sealed class PamConfigurationFolderInfo
+  {
+    public string Uid { get; set; }
+    public string Name { get; set; }
+    public bool IsNsf { get; set; }
+  }
+
+  /// <summary>
   /// Shared lookups for PAM rotation/config. Checks classic vault first, then NSF.
+  /// Resolves classic vault and Nested Shared Folder (NSF) records/folders.
   /// </summary>
   public static class PamVaultHelpers
   {
@@ -19,14 +30,12 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return EnumerateTypedRecords(vault)
-        .Where(x => PamRecordTypes.Configuration.Contains(x.TypeName ?? ""))
         .Where(x => !string.IsNullOrEmpty(x.Uid))
-        .ToDictionary(x => x.Uid, x => x, StringComparer.Ordinal);
+        .Where(x => PamRecordTypes.Configuration.Contains(x.TypeName ?? ""))
+        .GroupBy(x => x.Uid, StringComparer.Ordinal)
+        .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
     }
 
-    /// <summary>
-    /// Find a record by UID or title (classic or NSF). Throws if the title matches more than one record.
-    /// </summary>
     public static TypedRecord ResolveRecord(VaultOnline vault, string identifier, IEnumerable<string> allowedTypes)
     {
       if (vault == null || string.IsNullOrWhiteSpace(identifier))
@@ -63,9 +72,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       if (matches.Count > 1)
       {
-        var uids = string.Join(", ", matches.Select(x => x.Uid).Where(x => !string.IsNullOrEmpty(x)));
-        throw new InvalidOperationException(
-          $"Record name '{trimmed}' is not unique ({matches.Count} matches: {uids}). Use record UID.");
+        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
       }
 
       return null;
@@ -102,7 +109,13 @@ namespace KeeperSecurity.Plugins.PAM
         return treeFound;
       }
 
-      return PickContainingFolder(FindAllContainingFolders(vault, recordUid), folderUidHint);
+      var classic = PickContainingFolder(FindAllContainingFolders(vault, recordUid), folderUidHint);
+      if (!string.IsNullOrEmpty(classic))
+      {
+        return classic;
+      }
+
+      return vault.GetKeeperNSFFoldersForRecord(recordUid).FirstOrDefault();
     }
 
     /// <summary>
@@ -115,6 +128,11 @@ namespace KeeperSecurity.Plugins.PAM
       if (!string.IsNullOrEmpty(folderUid))
       {
         return folderUid;
+      }
+
+      if (vault != null && IsKeeperNSFRecord(vault, recordUid))
+      {
+        return null;
       }
 
       return vault != null && vault.TryGetKeeperRecord(recordUid, out _)
@@ -189,14 +207,36 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Deletes a PAM configuration record. Falls back to root_folder.
-    /// RecordRemoveCommand(record=uid, force=True).
+    /// Deletes a PAM configuration record from classic vault or NSF.
     /// </summary>
     public static async Task DeletePamConfigurationRecordAsync(VaultOnline vault, string configurationUid)
     {
       if (vault == null || string.IsNullOrEmpty(configurationUid))
       {
         throw new ArgumentException("Configuration UID is required.", nameof(configurationUid));
+      }
+
+      if (IsKeeperNSFRecord(vault, configurationUid))
+      {
+        var folderUid = vault.GetKeeperNSFFoldersForRecord(configurationUid).FirstOrDefault();
+        var result = await vault.RemoveKeeperNSFRecords(
+          new[]
+          {
+            new KeeperNSFRecordRemoval
+            {
+              RecordUid = configurationUid,
+              FolderUid = folderUid,
+              Operation = KeeperNSFRecordRemoveOperation.OwnerTrash,
+            },
+          }).ConfigureAwait(false);
+
+        if (!result.Confirmed)
+        {
+          throw new InvalidOperationException(
+            $"PAM Configuration NSF removal was not confirmed for \"{configurationUid}\".");
+        }
+
+        return;
       }
 
       if (!EnsureKeeperRecordLoaded(vault, configurationUid))
@@ -250,9 +290,67 @@ namespace KeeperSecurity.Plugins.PAM
       return FindParentTopSharedFolders(vault, config.Uid).FirstOrDefault();
     }
 
+    /// <summary>
+    /// Returns classic shared folder or NSF folder display info for a PAM configuration.
+    /// </summary>
+    public static bool TryGetConfigurationFolderInfo(
+      VaultOnline vault,
+      TypedRecord config,
+      out PamConfigurationFolderInfo folderInfo)
+    {
+      folderInfo = null;
+      if (vault == null || config == null || string.IsNullOrEmpty(config.Uid))
+      {
+        return false;
+      }
+
+      var sharedFolder = GetConfigurationSharedFolder(vault, config)
+                        ?? FindSharedFolderForRecord(vault, config.Uid);
+      if (sharedFolder != null)
+      {
+        folderInfo = new PamConfigurationFolderInfo
+        {
+          Uid = sharedFolder.Uid,
+          Name = sharedFolder.Name ?? string.Empty,
+          IsNsf = false,
+        };
+        return true;
+      }
+
+      var facadeFolderUid = new PamConfigurationFacade(config).FolderUid;
+      if (!string.IsNullOrEmpty(facadeFolderUid)
+          && vault.TryGetKeeperNSFFolder(facadeFolderUid, out var nsfByFacade)
+          && nsfByFacade != null)
+      {
+        folderInfo = new PamConfigurationFolderInfo
+        {
+          Uid = nsfByFacade.FolderUid,
+          Name = nsfByFacade.Name ?? string.Empty,
+          IsNsf = true,
+        };
+        return true;
+      }
+
+      foreach (var nsfFolderUid in vault.GetKeeperNSFFoldersForRecord(config.Uid))
+      {
+        if (vault.TryGetKeeperNSFFolder(nsfFolderUid, out var nsfFolder) && nsfFolder != null)
+        {
+          folderInfo = new PamConfigurationFolderInfo
+          {
+            Uid = nsfFolder.FolderUid,
+            Name = nsfFolder.Name ?? string.Empty,
+            IsNsf = true,
+          };
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     public static bool IsConfigurationInSharedFolder(VaultOnline vault, TypedRecord config)
     {
-      return GetConfigurationSharedFolder(vault, config) != null;
+      return TryGetConfigurationFolderInfo(vault, config, out _);
     }
 
     public static void WarnConfigurationNotInSharedFolder(TypedRecord config)
@@ -267,7 +365,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// pamResources.folderUid is the top-level shared folder UID.
+    /// pamResources.folderUid is the top-level shared folder UID, or NSF folder UID.
     /// </summary>
     public static string ResolvePamResourcesFolderUid(VaultOnline vault, string destinationFolderUid)
     {
@@ -281,6 +379,11 @@ namespace KeeperSecurity.Plugins.PAM
         return destinationFolderUid;
       }
 
+      if (vault.TryGetKeeperNSFFolder(destinationFolderUid, out _))
+      {
+        return destinationFolderUid;
+      }
+
       if (vault.TryGetFolder(destinationFolderUid, out var folderNode))
       {
         return ResolveSharedFolderUid(vault, folderNode) ?? destinationFolderUid;
@@ -290,7 +393,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Resolves the destination folder UID for pamResources.folderUid.
+    /// Resolves classic shared folder or NSF folder UID for PAM configuration placement.
     /// </summary>
     public static string ResolvePamConfigurationFolderUid(
       VaultOnline vault,
@@ -308,12 +411,22 @@ namespace KeeperSecurity.Plugins.PAM
         return trimmed;
       }
 
+      if (vault.TryGetKeeperNSFFolder(trimmed, out var nsfByUid) && nsfByUid != null)
+      {
+        return nsfByUid.FolderUid;
+      }
+
       var nameMatches = vault.SharedFolders
         .Where(sf => string.Equals(sf.Name, trimmed, StringComparison.OrdinalIgnoreCase))
         .ToList();
       if (nameMatches.Count == 1)
       {
         return nameMatches[0].Uid;
+      }
+
+      if (vault.TryResolveKeeperNSFFolder(trimmed, out var nsfByName) && nsfByName != null)
+      {
+        return nsfByName.FolderUid;
       }
 
       if (vault.TryGetFolder(trimmed, out var folderByUid) && IsPamSharedFolderDestination(folderByUid))
@@ -325,7 +438,7 @@ namespace KeeperSecurity.Plugins.PAM
       foreach (var path in GetFolderPathVariants(trimmed))
       {
         var node = tryResolveFolderNode?.Invoke(path) ?? folderByPath.GetFolderByPath(path);
-        if (node != null && IsPamSharedFolderDestination(node))
+        if (node != null && IsPamConfigurationFolderDestination(vault, node))
         {
           return node.FolderUid;
         }
@@ -338,6 +451,26 @@ namespace KeeperSecurity.Plugins.PAM
     {
       return folderNode != null
              && folderNode.FolderType is FolderType.SharedFolder or FolderType.SharedFolderFolder;
+    }
+
+    public static bool IsPamConfigurationFolderDestination(VaultOnline vault, FolderNode folderNode)
+    {
+      if (IsPamSharedFolderDestination(folderNode))
+      {
+        return true;
+      }
+
+      return vault != null
+             && folderNode != null
+             && !string.IsNullOrEmpty(folderNode.FolderUid)
+             && vault.TryGetKeeperNSFFolder(folderNode.FolderUid, out _);
+    }
+
+    public static bool IsKeeperNSFFolder(VaultOnline vault, string folderUid)
+    {
+      return vault != null
+             && !string.IsNullOrEmpty(folderUid)
+             && vault.TryGetKeeperNSFFolder(folderUid, out _);
     }
 
     public static string ResolveSharedFolderUid(VaultOnline vault, FolderNode folderNode)
@@ -360,6 +493,54 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    /// <summary>
+    /// Places a PAM configuration into a classic shared folder or NSF folder.
+    /// </summary>
+    public static async Task PlacePamConfigurationInFolderAsync(
+      VaultOnline vault,
+      TypedRecord record,
+      string destinationFolderUid)
+    {
+      if (vault == null || record == null || string.IsNullOrEmpty(destinationFolderUid))
+      {
+        return;
+      }
+
+      if (IsKeeperNSFFolder(vault, destinationFolderUid))
+      {
+        if (IsKeeperNSFRecord(vault, record.Uid))
+        {
+          var currentFolders = vault.GetKeeperNSFFoldersForRecord(record.Uid).ToList();
+          if (currentFolders.Any(x => string.Equals(x, destinationFolderUid, StringComparison.Ordinal)))
+          {
+            return;
+          }
+
+          await vault.LinkKeeperNSFRecordToFolder(record.Uid, destinationFolderUid).ConfigureAwait(false);
+          return;
+        }
+
+        throw new InvalidOperationException(
+          "Cannot move a classic PAM configuration into an NSF folder. Create the configuration in the NSF folder.");
+      }
+
+      vault.CacheKeeperRecord(record);
+      var sourceFolderUid = ResolveRecordSourceFolderUid(vault, record.Uid);
+      if (sourceFolderUid == null)
+      {
+        throw new VaultException("Cannot move PAM configuration: record is not initialized.");
+      }
+
+      if (string.Equals(sourceFolderUid, destinationFolderUid, StringComparison.Ordinal))
+      {
+        return;
+      }
+
+      await vault.MoveRecordToFolder(
+        new RecordPath { RecordUid = record.Uid, FolderUid = sourceFolderUid },
+        destinationFolderUid).ConfigureAwait(false);
+    }
+
     public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
       record = null;
@@ -375,8 +556,9 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+
     /// <summary>
-    /// Folder by UID or name. Classic first, then NSF.
+    /// Resolves a classic or NSF folder by UID or unique name.
     /// </summary>
     public static bool TryResolveFolder(VaultOnline vault, string identifier, out FolderNode folder)
     {
@@ -396,7 +578,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Folder node by UID. Classic first, then NSF.
+    /// Looks up a folder node in classic or NSF trees by UID.
     /// </summary>
     public static bool TryGetFolderNode(VaultOnline vault, string folderUid, out FolderNode folder)
     {
@@ -413,6 +595,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       return vault.TryGetKeeperNSFFolder(folderUid, out folder) && folder != null;
     }
+
 
     public static void CollectFolderSubtree(VaultOnline vault, FolderNode folder, ISet<string> folderUids)
     {
@@ -462,18 +645,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-    /// <summary>
-    /// True if this UID is an NSF record (in NSF cache, not classic KeeperRecords).
-    /// Callers use this for Coming soon / sync gating.
-    /// </summary>
-    public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
-    {
-      return vault != null
-             && !string.IsNullOrEmpty(recordUid)
-             && vault.TryGetKeeperNSFRecord(recordUid, out _);
-    }
-
-    /// <summary>
+/// <summary>
     /// Phrases from set_record_rotation when NSF revision is wrong.
     /// </summary>
     public static bool IsUnsupportedRotationRevisionError(string message)
@@ -494,12 +666,23 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
-    private static readonly string[] UnsupportedRotationRevisionMarkers =
+private static readonly string[] UnsupportedRotationRevisionMarkers =
     {
       "mismatched_revision_blocking_update",
       "revision does not correspond to the rotation entry",
       "revision 0 less than",
     };
+
+    /// <summary>
+    /// True if this UID is an NSF record (in NSF cache, not classic KeeperRecords).
+    /// Callers use this for Coming soon / sync gating.
+    /// </summary>
+    public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
+    {
+      return vault != null
+             && !string.IsNullOrEmpty(recordUid)
+             && vault.TryGetKeeperNSFRecord(recordUid, out _);
+    }
 
     private static IEnumerable<string> GetFolderPathVariants(string path)
     {
@@ -542,7 +725,8 @@ namespace KeeperSecurity.Plugins.PAM
     private static bool EnsureKeeperRecordLoaded(VaultOnline vault, string recordUid)
     {
       return vault.TryGetKeeperRecord(recordUid, out _)
-             || vault.TryLoadKeeperRecord(recordUid, out _);
+             || vault.TryLoadKeeperRecord(recordUid, out _)
+             || IsKeeperNSFRecord(vault, recordUid);
     }
 
     private static List<FolderNode> FindAllContainingFolders(VaultOnline vault, string recordUid)
@@ -604,9 +788,6 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
-    /// <summary>
-    /// Classic typed records first, then NSF. If the same UID exists in both, classic wins.
-    /// </summary>
     private static IEnumerable<TypedRecord> EnumerateTypedRecords(VaultOnline vault)
     {
       var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -619,15 +800,12 @@ namespace KeeperSecurity.Plugins.PAM
         }
       }
 
-      // KeeperNSFRecordEntries == KeeperNSFRecords.Values (public list API).
       foreach (var nsf in vault.KeeperNSFRecordEntries ?? Enumerable.Empty<KeeperNSFRecord>())
       {
-        if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed) || typed == null)
-        {
-          continue;
-        }
-
-        if (string.IsNullOrEmpty(typed.Uid) || !seen.Add(typed.Uid))
+        if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed)
+            || typed == null
+            || string.IsNullOrEmpty(typed.Uid)
+            || !seen.Add(typed.Uid))
         {
           continue;
         }
@@ -637,7 +815,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Resolve a typed vault record by UID (classic first, then NSF), loading from storage when needed.
+    /// Resolve a typed vault record by UID, loading from storage when it is not yet decrypted in memory.
     /// </summary>
     public static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
@@ -647,7 +825,6 @@ namespace KeeperSecurity.Plugins.PAM
         return false;
       }
 
-      // Classic cache, then load. NSF only if classic does not have this UID.
       if (vault.TryGetKeeperRecord(recordUid, out var keeper))
       {
         if (keeper is TypedRecord typed)
@@ -670,7 +847,12 @@ namespace KeeperSecurity.Plugins.PAM
         return true;
       }
 
-      return false;
+      // Fallback: scan in case dictionary lookup missed a matching UID.
+      record = vault.KeeperRecords?
+        .OfType<TypedRecord>()
+        .Where(x => !string.IsNullOrEmpty(x.Uid))
+        .FirstOrDefault(x => string.Equals(x.Uid, recordUid, StringComparison.Ordinal));
+      return record != null;
     }
 
     /// <summary>
