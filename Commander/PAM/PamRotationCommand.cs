@@ -732,7 +732,18 @@ namespace Commander.PAM
                 }
             }
 
-            var scriptNameFolded = scriptName.ToLowerInvariant();
+            if (string.IsNullOrEmpty(scriptName))
+            {
+                return null;
+            }
+
+            // Normalize for UID/title/filename script matching.
+            var scriptKey = scriptName.Trim();
+            if (scriptKey.Length == 0)
+            {
+                return null;
+            }
+
             foreach (var scriptValue in scriptField.Values)
             {
                 if (string.IsNullOrEmpty(scriptValue?.FileRef))
@@ -743,12 +754,10 @@ namespace Commander.PAM
                 if (vault.TryGetKeeperRecord(scriptValue.FileRef, out var keeperRecord)
                     && keeperRecord is FileRecord fileRecord)
                 {
-                    // Match UID, title, or filename (Python Commander parity).
-                    if (string.Equals(fileRecord.Uid, scriptName, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(fileRecord.Title, scriptName, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(fileRecord.Title, scriptNameFolded, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(fileRecord.Name, scriptName, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(fileRecord.Name, scriptNameFolded, StringComparison.OrdinalIgnoreCase))
+                    // Match UID, title, or filename.
+                    if (MatchesScriptIdentifier(fileRecord.Uid, scriptKey)
+                        || MatchesScriptIdentifier(fileRecord.Title, scriptKey)
+                        || MatchesScriptIdentifier(fileRecord.Name, scriptKey))
                     {
                         return scriptValue;
                     }
@@ -756,17 +765,21 @@ namespace Commander.PAM
                     continue;
                 }
 
-                if (vault.TryGetKeeperNSFRecord(scriptValue.FileRef, out var nsf)
-                    && nsf != null
-                    && (string.Equals(nsf.RecordUid, scriptName, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(nsf.Title, scriptName, StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(nsf.Title, scriptNameFolded, StringComparison.OrdinalIgnoreCase)))
+                if (vault.TryGetKeeperNSFRecord(scriptValue.FileRef, out var nsf) && nsf != null
+                    && (MatchesScriptIdentifier(nsf.RecordUid, scriptKey)
+                        || MatchesScriptIdentifier(nsf.Title, scriptKey)))
                 {
                     return scriptValue;
                 }
             }
 
             return null;
+        }
+
+        private static bool MatchesScriptIdentifier(string value, string scriptKey)
+        {
+            return !string.IsNullOrEmpty(value)
+                   && string.Equals(value.Trim(), scriptKey, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string[] ResolveCredentialUids(VaultOnline vault, IEnumerable<string> credentials)
@@ -780,12 +793,20 @@ namespace Commander.PAM
             foreach (var credential in credentials.Where(x => !string.IsNullOrWhiteSpace(x)))
             {
                 var trimmed = credential.Trim();
-                // Prefer pamUser (rotation credential), then any typed record (classic or NSF).
-                var resolved = PamVaultHelpers.ResolveRecord(vault, trimmed, new[] { "pamUser" })
-                               ?? PamVaultHelpers.ResolveRecord(vault, trimmed, null);
-                if (resolved != null && !string.IsNullOrEmpty(resolved.Uid))
+                try
                 {
-                    refs.Add(resolved.Uid);
+                    // Prefer pamUser (rotation credential), then any typed record (classic or NSF).
+                    var resolved = PamVaultHelpers.ResolveRecord(vault, trimmed, new[] { "pamUser" })
+                                   ?? PamVaultHelpers.ResolveRecord(vault, trimmed, null);
+                    if (resolved != null && !string.IsNullOrEmpty(resolved.Uid))
+                    {
+                        refs.Add(resolved.Uid);
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException(
+                        $"Ambiguous credential '{trimmed}'. Use a record UID. {ex.Message}", ex);
                 }
             }
 
@@ -840,6 +861,7 @@ namespace Commander.PAM
 
         private static IEnumerable<TypedRecord> EnumerateScriptRecords(VaultOnline vault)
         {
+            // UID dedupe.
             var seen = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var record in vault.KeeperRecords.OfType<TypedRecord>().Where(MatchesScriptRecord))
@@ -865,11 +887,13 @@ namespace Commander.PAM
             }
         }
 
+        private const string InaccessibleScriptName = "[inaccessible]";
+
         private static string ResolveScriptFileName(VaultOnline vault, string fileRef)
         {
             if (string.IsNullOrEmpty(fileRef) || vault == null)
             {
-                return "[inaccessible]";
+                return InaccessibleScriptName;
             }
 
             if (vault.TryGetKeeperRecord(fileRef, out var fileKeeper) && fileKeeper is FileRecord fileRecord)
@@ -885,12 +909,19 @@ namespace Commander.PAM
                 }
             }
 
-            if (vault.TryGetKeeperNSFRecord(fileRef, out var nsf) && !string.IsNullOrEmpty(nsf?.Title))
+            try
             {
-                return nsf.Title;
+                if (vault.TryGetKeeperNSFRecord(fileRef, out var nsf) && !string.IsNullOrEmpty(nsf?.Title))
+                {
+                    return nsf.Title;
+                }
+            }
+            catch
+            {
+                //show inaccessible rather than failing script list.
             }
 
-            return "[inaccessible]";
+            return InaccessibleScriptName;
         }
 
         private static bool MatchesScriptRecord(TypedRecord record)

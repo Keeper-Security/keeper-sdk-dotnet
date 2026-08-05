@@ -614,7 +614,7 @@ namespace KeeperSecurity.Vault
         public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
         {
             typed = null;
-            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null || nsf.RecordKey.Length == 0)
+            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null)
             {
                 return false;
             }
@@ -636,6 +636,7 @@ namespace KeeperSecurity.Vault
                     };
                 }
 
+                // NSF typed records default to v3 when Version is unset.
                 typed = CreateTypedRecordFromData(
                     rtd,
                     nsf.RecordUid,
@@ -660,11 +661,6 @@ namespace KeeperSecurity.Vault
             bool shared,
             long clientModifiedTime)
         {
-            if (rtd == null)
-            {
-                return null;
-            }
-
             var typedRecord = new TypedRecord(rtd.Type ?? "")
             {
                 Uid = recordUid,

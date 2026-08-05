@@ -73,7 +73,9 @@ namespace KeeperSecurity.Plugins.PAM
 
       if (matches.Count > 1)
       {
-        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
+        var uids = string.Join(", ", matches.Select(x => x.Uid).Where(x => !string.IsNullOrEmpty(x)));
+        throw new InvalidOperationException(
+          $"Record name '{trimmed}' is not unique ({matches.Count} matches: {uids}). Use record UID.");
       }
 
       return null;
@@ -375,7 +377,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Resolves a classic or NSF folder by UID or unique name.
+    /// Resolves a classic or NSF folder by UID or unique name. Classic first, then NSF.
     /// </summary>
     public static bool TryResolveFolder(VaultOnline vault, string identifier, out FolderNode folder)
     {
@@ -395,7 +397,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Looks up a folder node in classic or NSF trees by UID.
+    /// Looks up a folder node in classic or NSF trees by UID. Classic first.
     /// </summary>
     public static bool TryGetFolderNode(VaultOnline vault, string folderUid, out FolderNode folder)
     {
@@ -461,6 +463,9 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    /// <summary>
+    /// True when the UID is present in the NSF record cache (not classic KeeperRecords).
+    /// </summary>
     public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
     {
       return vault != null
@@ -576,6 +581,7 @@ namespace KeeperSecurity.Plugins.PAM
     /// </summary>
     private static IEnumerable<TypedRecord> EnumerateTypedRecords(VaultOnline vault)
     {
+      // UID dedupe (base64url UIDs are case-sensitive). Classic wins when UID overlaps NSF.
       var seen = new HashSet<string>(StringComparer.Ordinal);
 
       foreach (var record in vault.KeeperRecords?.OfType<TypedRecord>() ?? Enumerable.Empty<TypedRecord>())
@@ -608,6 +614,7 @@ namespace KeeperSecurity.Plugins.PAM
         return false;
       }
 
+      // Classic first (cache, then load). NSF convert only when classic UID is absent.
       if (vault.TryGetKeeperRecord(recordUid, out var keeper))
       {
         if (keeper is TypedRecord typed)
@@ -616,6 +623,7 @@ namespace KeeperSecurity.Plugins.PAM
           return true;
         }
 
+        // Classic fallback when cache has a non-typed entry.
         if (vault.TryLoadKeeperRecord(recordUid, out keeper) && keeper is TypedRecord loaded)
         {
           record = loaded;

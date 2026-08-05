@@ -215,23 +215,27 @@ namespace KeeperSecurity.Vault
                 && !string.IsNullOrEmpty(typed.Uid)
                 && TryGetKeeperNSFRecord(typed.Uid, out _))
             {
-                try
+                const int maxOutOfSyncRetries = 1;
+                var attempt = 0;
+                while (true)
                 {
-                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
-                    return typed;
-                }
-                catch (KeeperApiException e) when (IsRecordOutOfSync(e))
-                {
-                    var refreshed = await this.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
-                    if (refreshed == null || string.IsNullOrEmpty(refreshed.RecordUid))
+                    try
                     {
-                        throw;
+                        await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                        return typed;
                     }
+                    catch (KeeperApiException e) when (IsRecordOutOfSync(e) && attempt < maxOutOfSyncRetries)
+                    {
+                        attempt++;
+                        var refreshed = await this.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
+                        if (refreshed == null || string.IsNullOrEmpty(refreshed.RecordUid))
+                        {
+                            throw;
+                        }
 
-                    // Refresh updates revision/key; store so the typed NSF updater uses latest revision.
-                    KeeperNSFRecords[refreshed.RecordUid] = refreshed;
-                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
-                    return typed;
+                        // Refresh updates revision/key; store so the typed NSF updater uses latest revision.
+                        KeeperNSFRecords[refreshed.RecordUid] = refreshed;
+                    }
                 }
             }
 

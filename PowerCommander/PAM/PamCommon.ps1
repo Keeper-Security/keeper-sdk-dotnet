@@ -619,11 +619,9 @@ function script:invokeKeeperPamRotationEdit {
         }
         catch {
             $raw = [string]$_.Exception.Message
-            $isNsf = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFRecord($Vault, $recordUid)
-            if ($isNsf -and (
-                    $raw -match 'mismatched_revision_blocking_update' -or
-                    $raw -match 'revision does not correspond to the rotation entry' -or
-                    $raw -match 'revision 0 less than')) {
+            if ($raw -match 'mismatched_revision_blocking_update' -or
+                $raw -match 'revision does not correspond to the rotation entry' -or
+                $raw -match 'revision 0 less than') {
                 $unsupportedRevision = $true
             }
             else {
@@ -844,8 +842,8 @@ function script:tryBuildPamUserRotationRequest {
             $pwdComplexity = [KeeperSecurity.Plugins.PAM.RotationUtils]::EncryptPasswordComplexity($ComplexityRules, $Record.RecordKey)
         }
     }
-    elseif ($null -ne $cached -and $null -ne $cached.PwdComplexity) {
-        $pwdComplexity = $cached.PwdComplexity
+    elseif ($null -ne $cached -and $null -ne $cached.PasswordComplexity) {
+        $pwdComplexity = $cached.PasswordComplexity
     }
 
     $disabled = if ($null -ne $cached) { [bool]$cached.Disabled } else { $false }
@@ -921,7 +919,7 @@ function script:tryBuildPamUserRotationRequest {
     $rq.PwdComplexity = [Google.Protobuf.ByteString]::CopyFrom($pwdComplexity)
     $rq.Disabled = $disabled
     $rq.Noop = $noop
-    $rq.Revision = [long]$Vault.ResolveRecordRotationRevisionAsync($Record.Uid).GetAwaiter().GetResult()
+    $rq.Revision = if ($null -ne $cached) { [long]$cached.Revision } else { [long]0 }
 
     if (-not $noop -and -not [string]::IsNullOrEmpty($resourceUid)) {
         $rq.ResourceUid = [Google.Protobuf.ByteString]::CopyFrom((toPamUidBytes -Uid $resourceUid))

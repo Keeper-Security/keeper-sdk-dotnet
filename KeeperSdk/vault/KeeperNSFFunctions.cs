@@ -2611,31 +2611,18 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public static async Task UpdateKeeperNSFTypedRecordInternal(this VaultOnline vault, TypedRecord typed)
         {
-            if (vault == null)
-            {
-                throw new ArgumentNullException(nameof(vault));
-            }
-
             if (typed == null)
-            {
                 throw new ArgumentNullException(nameof(typed));
-            }
 
             if (string.IsNullOrEmpty(typed.Uid))
-            {
                 throw new VaultException("Record UID cannot be empty");
-            }
 
-            if (!vault.TryGetKeeperNSFRecord(typed.Uid, out var nsf) || nsf == null)
-            {
+            if (!vault.TryGetKeeperNSFRecord(typed.Uid, out var nsf))
                 throw new VaultException($"Keeper NSF record '{typed.Uid}' not found");
-            }
 
             var recordKey = typed.RecordKey ?? nsf.RecordKey;
-            if (recordKey == null || recordKey.Length == 0)
-            {
+            if (recordKey == null)
                 throw new VaultException($"Record key not available for record '{typed.Uid}'");
-            }
 
             typed.RecordKey = recordKey;
             vault.AdjustTypedRecord(typed);
@@ -2681,6 +2668,7 @@ namespace KeeperSecurity.Vault
 
                 if (refKey != null)
                 {
+                    // linked record key encrypted with this record's key.
                     recordUpdate.RecordLinksAdd.Add(new RecordLink
                     {
                         RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
@@ -2689,7 +2677,7 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    Trace.TraceError($"Lost record reference: record UID: \"{newRef}\"");
+                    Trace.TraceError("Lost record reference while updating NSF typed record.");
                 }
             }
 
@@ -2718,7 +2706,8 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            nsf.Revision += 1;
+            // Prefer server revision when present; otherwise bump locally.
+            nsf.Revision = rs != null && rs.Revision > 0 ? rs.Revision : nsf.Revision + 1;
             nsf.Title = typed.Title;
             nsf.Type = typed.TypeName;
             nsf.Notes = typed.Notes;

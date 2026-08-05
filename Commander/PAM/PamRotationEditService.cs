@@ -184,7 +184,11 @@ namespace Commander.PAM
                             configUidForDag,
                             editContext.Noop,
                             options.ScheduleOnly);
-                        await _vault.SyncDown();
+                        // After graph link, refresh rotation revision for NSF only.
+                        if (PamVaultHelpers.IsKeeperNSFRecord(_vault, record.Uid))
+                        {
+                            await _vault.SyncDown();
+                        }
                     }
 
                     if (TryBuildUserRotationRequest(
@@ -199,6 +203,7 @@ namespace Commander.PAM
                             valid,
                             out var request))
                     {
+                        // Revision from resolver after build (cache → NSF → sync → 0).
                         request.Revision = await _vault.ResolveRecordRotationRevisionAsync(record.Uid);
                         requests.Add(request);
                     }
@@ -318,6 +323,13 @@ namespace Commander.PAM
             }
         }
 
+        private static readonly string[] UnsupportedRotationRevisionMarkers =
+        {
+            "mismatched_revision_blocking_update",
+            "revision does not correspond to the rotation entry",
+            "revision 0 less than",
+        };
+
         private static bool IsUnsupportedRotationRevisionError(string message)
         {
             if (string.IsNullOrEmpty(message))
@@ -325,9 +337,15 @@ namespace Commander.PAM
                 return false;
             }
 
-            return message.IndexOf("mismatched_revision_blocking_update", StringComparison.OrdinalIgnoreCase) >= 0
-                   || message.IndexOf("revision does not correspond to the rotation entry", StringComparison.OrdinalIgnoreCase) >= 0
-                   || message.IndexOf("revision 0 less than", StringComparison.OrdinalIgnoreCase) >= 0;
+            foreach (var marker in UnsupportedRotationRevisionMarkers)
+            {
+                if (message.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private sealed class RecordEditContext
