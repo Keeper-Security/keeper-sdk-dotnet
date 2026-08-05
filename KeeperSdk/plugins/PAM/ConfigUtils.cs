@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
+using Records;
 using PamProto = PAM;
 using RouterProto = Router;
+using RecordProto = Record.V3;
+using FolderProto = Folder;
 
 namespace KeeperSecurity.Plugins.PAM
 {
@@ -79,6 +84,7 @@ namespace KeeperSecurity.Plugins.PAM
   public static class ConfigUtils
   {
     private const string AddConfigurationRecordEndpoint = "pam/add_configuration_record";
+    private const string AddPamConfigurationNsfEndpoint = "vault/records/v3/add_pam_configuration";
     private const string SetConfigurationControllerEndpoint = "pam/set_configuration_controller";
 
     public static TypedRecord CreateConfigurationRecord(VaultOnline vault, string recordType, string title)
@@ -105,6 +111,18 @@ namespace KeeperSecurity.Plugins.PAM
 
     public static async Task AddConfigurationRecordAsync(VaultOnline vault, TypedRecord record)
     {
+      await AddConfigurationRecordAsync(vault, record, destinationFolderUid: null).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Creates a PAM configuration in classic vault, or in an NSF folder via
+    /// vault/records/v3/add_pam_configuration (registers PAM config context).
+    /// </summary>
+    public static async Task AddConfigurationRecordAsync(
+      VaultOnline vault,
+      TypedRecord record,
+      string destinationFolderUid)
+    {
       if (vault == null)
       {
         throw new ArgumentNullException(nameof(vault));
@@ -125,6 +143,12 @@ namespace KeeperSecurity.Plugins.PAM
         record.RecordKey = CryptoUtils.GenerateEncryptionKey();
       }
 
+      if (PamVaultHelpers.IsKeeperNSFFolder(vault, destinationFolderUid))
+      {
+        await AddPamConfigurationToNsfAsync(vault, record, destinationFolderUid).ConfigureAwait(false);
+        return;
+      }
+
       record.Version = 6;
       vault.AdjustTypedRecord(record);
       var recordData = record.ExtractRecordV3Data();
@@ -140,6 +164,108 @@ namespace KeeperSecurity.Plugins.PAM
 
       await vault.Auth.ExecuteAuthRest(AddConfigurationRecordEndpoint, request);
       vault.CacheKeeperRecord(record);
+    }
+
+    /// <summary>
+    /// Creates a PAM configuration record inside an NSF folder and registers PAM config context.
+    /// </summary>
+    private static async Task AddPamConfigurationToNsfAsync(
+      VaultOnline vault,
+      TypedRecord record,
+      string folderUid)
+    {
+      if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder) || folder == null)
+      {
+        throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+      }
+
+      if (folder.FolderKey == null || folder.FolderKey.Length == 0)
+      {
+        throw new VaultException($"Folder key not available for folder '{folderUid}'");
+      }
+
+      await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
+        .ConfigureAwait(false);
+
+      record.Version = 6;
+      vault.AdjustTypedRecord(record);
+      var recordData = record.ExtractRecordV3Data();
+      var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
+      var encryptedData = CryptoUtils.EncryptAesV2(jsonData, record.RecordKey);
+      var encryptedRecordKey = CryptoUtils.EncryptAesV2(record.RecordKey, folder.FolderKey);
+      var clientModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+      var ra = new RecordProto.RecordAdd
+      {
+        RecordUid = ByteString.CopyFrom(record.Uid.Base64UrlDecode()),
+        RecordKey = ByteString.CopyFrom(encryptedRecordKey),
+        RecordKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
+        RecordKeyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey,
+        ClientModifiedTime = clientModified,
+        Data = ByteString.CopyFrom(encryptedData),
+        FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+      };
+
+      foreach (var recordRef in record.ExtractTypedRecordRefs() ?? Enumerable.Empty<string>())
+      {
+        if (string.IsNullOrEmpty(recordRef))
+        {
+          continue;
+        }
+
+        byte[] refKey = null;
+        record.LinkedKeys?.TryGetValue(recordRef, out refKey);
+        if (refKey == null && vault.TryGetKeeperRecord(recordRef, out var linked))
+        {
+          refKey = linked.RecordKey;
+        }
+
+        if (refKey == null && vault.TryGetKeeperNSFRecord(recordRef, out var linkedNsf))
+        {
+          refKey = linkedNsf.RecordKey;
+        }
+
+        if (refKey == null)
+        {
+          Trace.TraceError($"Lost record reference while creating NSF PAM configuration: \"{recordRef}\"");
+          continue;
+        }
+
+        ra.RecordLinks.Add(new RecordLink
+        {
+          RecordUid = ByteString.CopyFrom(recordRef.Base64UrlDecode()),
+          RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, record.RecordKey)),
+        });
+      }
+
+      var rq = new RecordProto.RecordsAddRequest();
+      rq.Records.Add(ra);
+      rq.ClientTime = clientModified;
+
+      var rs = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
+        AddPamConfigurationNsfEndpoint, rq).ConfigureAwait(false);
+
+      if (rs.Records.Count > 0)
+      {
+        var result = rs.Records[0];
+        if (result.Status != RecordModifyResult.RsSuccess)
+        {
+          throw new VaultException($"Failed to create NSF PAM configuration: {result.Message}");
+        }
+      }
+
+      vault.KeeperNSFRecords[record.Uid] = new KeeperNSFRecord
+      {
+        RecordUid = record.Uid,
+        RecordKey = record.RecordKey,
+        Title = record.Title,
+        Type = record.TypeName,
+        Notes = record.Notes,
+        Version = record.Version,
+        Revision = 0,
+        ClientModifiedTime = clientModified,
+        Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false)),
+      };
     }
 
     public static async Task SetConfigurationGatewayAsync(

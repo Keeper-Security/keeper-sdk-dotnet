@@ -604,14 +604,74 @@ namespace KeeperSecurity.Vault
         {
             var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
             var rtd = JsonUtils.ParseJson<RecordTypeData>(data);
-            var typedRecord = new TypedRecord(rtd.Type)
+            return CreateTypedRecordFromData(rtd, r.RecordUid, r.Version, key, r.Shared, r.ClientModifiedTime);
+        }
+
+        /// <summary>
+        /// Converts a synced Keeper NSF record into a <see cref="TypedRecord"/>.
+        /// </summary>
+        public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
+        {
+            typed = null;
+            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null || nsf.RecordKey.Length == 0)
             {
-                Uid = r.RecordUid,
-                Version = r.Version,
+                return false;
+            }
+
+            try
+            {
+                RecordTypeData rtd;
+                if (nsf.Data != null)
+                {
+                    rtd = JsonUtils.ParseJson<RecordTypeData>(JsonUtils.DumpJson(nsf.Data, indent: false));
+                }
+                else
+                {
+                    rtd = new RecordTypeData
+                    {
+                        Type = nsf.Type ?? "",
+                        Title = nsf.Title ?? "",
+                        Notes = nsf.Notes ?? "",
+                    };
+                }
+
+                typed = CreateTypedRecordFromData(
+                    rtd,
+                    nsf.RecordUid,
+                    nsf.Version > 0 ? nsf.Version : 3,
+                    nsf.RecordKey,
+                    nsf.Shared,
+                    nsf.ClientModifiedTime);
+                return typed != null;
+            }
+            catch (Exception)
+            {
+                typed = null;
+                return false;
+            }
+        }
+
+        private static TypedRecord CreateTypedRecordFromData(
+            RecordTypeData rtd,
+            string recordUid,
+            int version,
+            byte[] key,
+            bool shared,
+            long clientModifiedTime)
+        {
+            if (rtd == null)
+            {
+                return null;
+            }
+
+            var typedRecord = new TypedRecord(rtd.Type ?? "")
+            {
+                Uid = recordUid,
+                Version = version,
                 RecordKey = key,
-                Shared = r.Shared,
-                ClientModified = r.ClientModifiedTime != 0
-                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                Shared = shared,
+                ClientModified = clientModifiedTime != 0
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(clientModifiedTime)
                     : DateTimeOffset.Now,
                 Title = rtd.Title,
                 Notes = rtd.Notes,

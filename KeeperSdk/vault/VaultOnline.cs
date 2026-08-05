@@ -192,7 +192,7 @@ namespace KeeperSecurity.Vault
         {
             try
             {
-                var recordUpdated = await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+                var recordUpdated = await UpdateRecordAsync(record, skipExtra).ConfigureAwait(false);
                 return new TryUpdateRecordResult(true, recordUpdated, null);
             }
             catch (Exception e)
@@ -209,6 +209,29 @@ namespace KeeperSecurity.Vault
 
         private async Task<KeeperRecord> UpdateRecordAsync(KeeperRecord record, bool skipExtra)
         {
+            if (record is TypedRecord typed
+                && !string.IsNullOrEmpty(typed.Uid)
+                && TryGetKeeperNSFRecord(typed.Uid, out _))
+            {
+                try
+                {
+                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                    return typed;
+                }
+                catch (KeeperApiException e) when (IsRecordOutOfSync(e))
+                {
+                    var refreshed = await this.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
+                    if (refreshed == null || string.IsNullOrEmpty(refreshed.RecordUid))
+                    {
+                        throw;
+                    }
+
+                    KeeperNSFRecords[refreshed.RecordUid] = refreshed;
+                    await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                    return typed;
+                }
+            }
+
             try
             {
                 return await this.PutRecord(record, skipExtra).ConfigureAwait(false);
@@ -492,6 +515,15 @@ namespace KeeperSecurity.Vault
             var recordUid = await this.CreateKeeperNSFRecordInternal(title, recordType, folderUid, notes, fields);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return recordUid;
+        }
+
+        /// <summary>
+        /// Creates a typed record in a Keeper NSF folder.
+        /// </summary>
+        public async Task CreateKeeperNSFTypedRecord(TypedRecord typed, string folderUid)
+        {
+            await this.CreateKeeperNSFTypedRecordInternal(typed, folderUid).ConfigureAwait(false);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
