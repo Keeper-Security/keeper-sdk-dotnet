@@ -318,7 +318,7 @@ function script:applyPamConfigEnvironmentFields {
                 $force = [bool]$Values['ForceDomainAdmin']
                 if ($force) {
                     if ($dac -notmatch '^[A-Za-z0-9\-_]{22}$') {
-                        Write-Host "Warning: Invalid Domain Admin User UID: `"$dac`" (skipped)"
+                        Write-Host ("Warning: Invalid Domain Admin User UID: `"{0}`" (skipped)" -f (maskPamUid $dac))
                     }
                     else {
                         (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $dac
@@ -332,11 +332,12 @@ function script:applyPamConfigEnvironmentFields {
                             (New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($Record)).AdminCredentialRef = $admin.Uid
                         }
                         else {
-                            Write-Host "Warning: Domain Admin User UID: `"$dac`" not found (skipped)."
+                            Write-Host ("Warning: Domain Admin User UID: `"{0}`" not found (skipped)." -f (maskPamUid $dac))
                         }
                     }
                     catch {
-                        Write-Host "Warning: Domain Admin User UID: `"$dac`" not found (skipped)."
+                        Write-Host ("Warning: Domain Admin User UID: `"{0}`" not found (skipped)." -f (maskPamUid $dac))
+                        Write-Debug "Domain admin resolve failed: $($_.Exception.Message)"
                     }
                 }
             }
@@ -419,14 +420,18 @@ function script:applyPamConfigResources {
                     continue
                 }
             }
-            catch {}
+            catch {
+                Write-Debug "PAM resource resolve failed for remove-ref: $($_.Exception.Message)"
+            }
 
             $titleMatches = 0
             $titleUid = $null
             foreach ($vaultRec in $Vault.KeeperRecords) {
                 if ($null -eq $vaultRec) { continue }
                 $tn = ''
-                try { $tn = [string]$vaultRec.TypeName } catch {}
+                try { $tn = [string]$vaultRec.TypeName } catch {
+                    Write-Debug "Record TypeName read failed: $($_.Exception.Message)"
+                }
                 if (-not $tn) { $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($vaultRec) }
                 if (-not [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Rotation.Contains($tn)) { continue }
                 if (-not [string]::Equals([string]$vaultRec.Title, $trimmed, [StringComparison]::OrdinalIgnoreCase)) { continue }
@@ -526,7 +531,9 @@ function script:getPamConfigurationTypeSet {
             return , $fromSdk
         }
     }
-    catch {}
+    catch {
+        Write-Debug "PAM configuration type set from SDK unavailable: $($_.Exception.Message)"
+    }
 
     $fallback = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]@(
@@ -583,7 +590,9 @@ function script:resolvePamConfigSharedFolder {
                 return $bySdk
             }
         }
-        catch {}
+        catch {
+            Write-Debug "GetConfigurationSharedFolder failed: $($_.Exception.Message)"
+        }
     }
 
     # Permission fallback when folder-tree lookup is empty.
@@ -591,6 +600,7 @@ function script:resolvePamConfigSharedFolder {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($Vault, $ConfigUid, $null)
     }
     catch {
+        Write-Debug "FindSharedFolderForRecord failed: $($_.Exception.Message)"
         return $null
     }
 }
@@ -629,7 +639,9 @@ function script:resolvePamConfigurationRecord {
             return $resolved
         }
     }
-    catch {}
+    catch {
+        Write-Debug "ResolveRecord for PAM configuration failed: $($_.Exception.Message)"
+    }
 
     # Fallback when ResolveRecord fails across assembly/session loads.
     # Collect title match UIDs only — avoid List[TypedRecord] indexing from PowerShell.
@@ -638,7 +650,9 @@ function script:resolvePamConfigurationRecord {
     foreach ($record in $Vault.KeeperRecords) {
         if ($null -eq $record -or [string]::IsNullOrEmpty($record.Uid)) { continue }
         $tn = ''
-        try { $tn = [string]$record.TypeName } catch {}
+        try { $tn = [string]$record.TypeName } catch {
+            Write-Debug "Record TypeName read failed: $($_.Exception.Message)"
+        }
         if (-not $tn) {
             $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
         }
@@ -677,22 +691,68 @@ function script:resolvePamConfigurationRecord {
     return $null
 }
 
+function script:maskPamUid {
+    Param ([string] $Uid)
+    if ([string]::IsNullOrWhiteSpace($Uid)) { return '****' }
+    $trimmed = $Uid.Trim()
+    if ($trimmed.Length -lt 8) { return '****' }
+    return ($trimmed.Substring(0, 4) + '...' + $trimmed.Substring($trimmed.Length - 4))
+}
+
+function script:testPamSecretFieldType {
+    Param (
+        [string] $FieldName,
+        [string] $FieldLabel
+    )
+
+    $name = if ($FieldName) { $FieldName.ToLowerInvariant() } else { '' }
+    $label = if ($FieldLabel) { $FieldLabel.ToLowerInvariant() } else { '' }
+    $secretTypes = @('secret', 'password', 'hidden', 'privatekey', 'keypair', 'passkey')
+    foreach ($t in $secretTypes) {
+        if ($name -eq $t) { return $true }
+    }
+    # GCP service-account JSON and similar sensitive payloads
+    if ($name -eq 'json') { return $true }
+    if ($label -match 'secret|password|private|apikey|accesskey|clientsecret|serviceaccount') {
+        return $true
+    }
+    return $false
+}
+
 function script:readPamMaybeFileContent {
     Param (
-        [string] $Value
+        [string] $Value,
+        [int] $MaxBytes = 2097152
     )
 
     if ([string]::IsNullOrWhiteSpace($Value)) {
         return $Value
     }
-    if (-not (Test-Path -LiteralPath $Value)) {
-        return $Value
-    }
+
+    $path = $Value.Trim()
+    $exists = $false
     try {
-        return (Get-Content -LiteralPath $Value -Raw -ErrorAction Stop)
+        $exists = Test-Path -LiteralPath $path -PathType Leaf -ErrorAction Stop
     }
     catch {
+        # Not a readable path — treat as inline value.
         return $Value
+    }
+    if (-not $exists) {
+        return $Value
+    }
+
+    try {
+        $item = Get-Item -LiteralPath $path -ErrorAction Stop
+        if ($item.Length -gt $MaxBytes) {
+            $maxMb = [math]::Round($MaxBytes / 1MB, 2)
+            throw "File `"$path`" exceeds the ${maxMb} MB limit."
+        }
+        # Returned to caller for secret fields only.
+        return (Get-Content -LiteralPath $path -Raw -Encoding UTF8 -ErrorAction Stop)
+    }
+    catch {
+        throw "Could not read file `"$path`": $($_.Exception.Message)"
     }
 }
 
@@ -733,15 +793,23 @@ function script:extractPamConfigDisplayFields {
         }
 
         $vals = New-Object 'System.Collections.Generic.List[string]'
-        if ($fname -eq 'schedule') {
+        $flabel = [string]$field.FieldLabel
+        if (testPamSecretFieldType -FieldName $fname -FieldLabel $flabel) {
+            [void]$vals.Add('***')
+        }
+        elseif ($fname -eq 'schedule') {
             for ($i = 0; $i -lt $field.Count; $i++) {
                 $sched = $field.GetValueAt($i)
                 if ($null -eq $sched) { continue }
                 $stype = ''
-                try { $stype = [string]$sched.Type } catch {}
+                try { $stype = [string]$sched.Type } catch {
+                    Write-Debug "Schedule type read failed: $($_.Exception.Message)"
+                }
                 if ($stype -eq 'CRON') {
                     $cron = ''
-                    try { $cron = [string]$sched.Cron } catch {}
+                    try { $cron = [string]$sched.Cron } catch {
+                        Write-Debug "Schedule cron read failed: $($_.Exception.Message)"
+                    }
                     if (-not [string]::IsNullOrWhiteSpace($cron)) {
                         [void]$vals.Add($cron.Trim())
                     }
@@ -796,7 +864,9 @@ function script:buildPamConfigListRow {
         try {
             if (-not $typeName) { $typeName = [string]$loaded.TypeName }
         }
-        catch {}
+        catch {
+            Write-Debug "Config TypeName read failed: $($_.Exception.Message)"
+        }
         if (-not $typeName) {
             $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($loaded)
         }
@@ -817,7 +887,9 @@ function script:buildPamConfigListRow {
                     $fields = extractPamConfigDisplayFields -Config $typed
                 }
             }
-            catch {}
+            catch {
+                Write-Debug "PAM configuration facade/fields read failed: $($_.Exception.Message)"
+            }
         }
     }
 
@@ -844,8 +916,8 @@ function script:buildPamConfigListRow {
                 resource_record_uids  = @($resourceUidList.ToArray())
                 fields                = if ($fields) { $fields } else { [ordered]@{} }
             }
-            if ($typeName -eq 'pamDomainConfiguration') {
-                $row['domain_administrative_credential'] = $adminCred
+            if ($typeName -eq 'pamDomainConfiguration' -and -not [string]::IsNullOrWhiteSpace($adminCred)) {
+                $row['domain_administrative_credential'] = (maskPamUid $adminCred)
             }
             return [PSCustomObject]$row
         }
@@ -872,9 +944,15 @@ function script:buildPamConfigListRow {
         GatewayUid         = $gatewayUid
         ResourceRecordUids = $resourceJoined
     }
-    if ($VerboseOutput -and $fields -and $fields.Count -gt 0) {
-        $parts = foreach ($k in $fields.Keys) { "$k`: $($fields[$k])" }
-        $row['Fields'] = ($parts -join '; ')
+    if ($fields -and $fields.Count -gt 0) {
+        if ($IsDetail) {
+            # Keep as map so detail view can print one field per line.
+            $row['Fields'] = $fields
+        }
+        elseif ($VerboseOutput) {
+            $parts = foreach ($k in $fields.Keys) { "$k`: $($fields[$k])" }
+            $row['Fields'] = ($parts -join '; ')
+        }
     }
 
     return [PSCustomObject]$row
@@ -928,7 +1006,9 @@ function Get-KeeperPamConfig {
         [KeeperSecurity.Vault.KeeperRecord]$byUid = $null
         if ($vault.TryGetKeeperRecord($configId, [ref]$byUid) -and $null -ne $byUid) {
             $tn = ''
-            try { $tn = [string]$byUid.TypeName } catch {}
+            try { $tn = [string]$byUid.TypeName } catch {
+                Write-Debug "Record TypeName read failed: $($_.Exception.Message)"
+            }
             if (-not $tn) {
                 $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($byUid)
             }
@@ -943,7 +1023,9 @@ function Get-KeeperPamConfig {
             foreach ($record in $vault.KeeperRecords) {
                 if ($null -eq $record -or [string]::IsNullOrEmpty($record.Uid)) { continue }
                 $tn = ''
-                try { $tn = [string]$record.TypeName } catch {}
+                try { $tn = [string]$record.TypeName } catch {
+                    Write-Debug "Record TypeName read failed: $($_.Exception.Message)"
+                }
                 if (-not $tn) {
                     $tn = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
                 }
@@ -981,23 +1063,37 @@ function Get-KeeperPamConfig {
             $detail | ConvertTo-Json -Depth 8
         }
         else {
-            # Detail labels match Commander list/detail output.
-            [PSCustomObject][ordered]@{
-                UID                    = $detail.Uid
-                Name                   = $detail.ConfigName
-                'Config Type'          = $detail.ConfigType
-                'Shared Folder'        = $detail.SharedFolder
-                'Gateway UID'          = $detail.GatewayUid
-                'Resource Record UIDs' = $detail.ResourceRecordUids
-            } | Format-List
-            if ($detail.Fields) {
-                Write-Output "Fields: $($detail.Fields)"
+            $detailRows = New-Object 'System.Collections.Generic.List[object]'
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'UID'; Value = [string]$detail.Uid })
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'Name'; Value = [string]$detail.ConfigName })
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'Config Type'; Value = [string]$detail.ConfigType })
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'Shared Folder'; Value = [string]$detail.SharedFolder })
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'Gateway UID'; Value = [string]$detail.GatewayUid })
+            [void]$detailRows.Add([PSCustomObject]@{ Label = 'Resource Record UIDs'; Value = [string]$detail.ResourceRecordUids })
+
+            if ($null -ne $detail.Fields) {
+                foreach ($key in @($detail.Fields.Keys)) {
+                    [void]$detailRows.Add([PSCustomObject]@{
+                            Label = [string]$key
+                            Value = [string]$detail.Fields[$key]
+                        })
+                }
+            }
+
+            $labelWidth = 0
+            foreach ($r in $detailRows) {
+                $len = ([string]$r.Label).Length
+                if ($len -gt $labelWidth) { $labelWidth = $len }
+            }
+            $fmt = "{0,$labelWidth}  {1}"
+            foreach ($r in $detailRows) {
+                Write-Output ($fmt -f [string]$r.Label, [string]$r.Value)
             }
         }
         return
     }
 
-    # Use SDK config discovery; keep UID/Title strings for PS 5.1-safe sorting/output.
+    # keep UID/Title strings for PS 5.1-safe sorting/output.
     $prepared = New-Object 'System.Collections.Generic.List[object]'
     $configMap = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::GetConfigurationRecords($vault)
     if ($null -ne $configMap) {
@@ -1038,6 +1134,7 @@ function Get-KeeperPamConfig {
             }
             catch {
                 $inSharedFolder = $false
+                Write-Debug "Shared-folder permission fallback failed: $($_.Exception.Message)"
             }
         }
         if (-not $inSharedFolder) {
@@ -1248,7 +1345,6 @@ function New-KeeperPamConfig {
 
     configurePamTunnelingIfNeeded -Auth $auth -ConfigUid $record.Uid -Values $values
     movePamConfigToFolder -Vault $vault -Record $record -DestinationFolderUid $moveDestinationUid
-    $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
 
     if (-not [string]::IsNullOrEmpty($facade.ControllerUid)) {
         [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationGatewayAsync(
@@ -1256,10 +1352,7 @@ function New-KeeperPamConfig {
     }
 
     $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
-    try {
-        [void](syncPamPlugin -Plugin $plugin -Reload $true -ThrowOnError $false)
-    }
-    catch {}
+    [void](syncPamPlugin -Plugin $plugin -Reload $true -ThrowOnError $false)
     Write-Output $record.Uid
 }
 
@@ -1414,6 +1507,8 @@ function Set-KeeperPamConfig {
         if ([KeeperSecurity.Plugins.PAM.PamConfigTypes]::TryResolveRecordType($Environment, [ref]$newType) -and
             -not [string]::Equals($newType, $configuration.TypeName, [StringComparison]::Ordinal)) {
             $configuration.TypeName = $newType
+            # AdjustTypedRecord remaps fields to the new schema.
+            Write-Warning "Environment type changed to `"$Environment`". Review fields after edit."
         }
     }
     [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $configuration)

@@ -77,7 +77,7 @@
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
         'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
-        'PAM\SyncDown.ps1', 'PAM\Gateway.ps1', 'PAM\PamCommon.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1'
+        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1'
         )
 
     # Functions to export from this module

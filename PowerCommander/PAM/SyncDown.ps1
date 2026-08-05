@@ -6,19 +6,26 @@ function script:getPamPlugin {
         Returns the PAM plugin for the current enterprise context.
     #>
     [Enterprise] $enterprise = getEnterprise
-    if (-not $enterprise -or -not $enterprise.loader) {
+    if ($null -eq $enterprise) {
+        return $null
+    }
+    $loader = $enterprise.loader
+    if ($null -eq $loader) {
         return $null
     }
     if ($Script:PamPlugin -and $Script:PamPlugin -is [KeeperSecurity.Plugins.PAM.PamPlugin]) {
         return $Script:PamPlugin
     }
     try {
-        # Prefer Auth ctor when available (more reliable than loader-only in some sessions).
-        if ($enterprise.loader.Auth) {
-            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader.Auth)
+        $auth = $null
+        try { $auth = $loader.Auth } catch {
+            Write-Debug "PAM plugin Auth lookup failed: $($_.Exception.Message)"
+        }
+        if ($null -ne $auth) {
+            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($auth)
         }
         else {
-            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($enterprise.loader)
+            $Script:PamPlugin = New-Object KeeperSecurity.Plugins.PAM.PamPlugin($loader)
         }
         return $Script:PamPlugin
     }
@@ -44,7 +51,9 @@ function script:getPamControllerList {
             }
         }
     }
-    catch {}
+    catch {
+        Write-Debug "Could not enumerate PAM controllers: $($_.Exception.Message)"
+    }
     # Prevent PowerShell from unrolling the list into Object[] for the caller.
     return , $list
 }

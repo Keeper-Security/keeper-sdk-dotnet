@@ -1,8 +1,6 @@
 #requires -Version 5.1
 
-# Shared PAM helpers (getPamPlugin / ensurePamPlugin / syncPamPlugin / getPamControllerList)
-# live in PAM\SyncDown.ps1 (release). This file keeps rotation + config helpers.
-
+# Shared PAM helpers
 
 $script:PamRotationScriptVerbs = New-Object 'System.Collections.Generic.HashSet[string]'
 [void]$script:PamRotationScriptVerbs.Add('list')
@@ -1066,7 +1064,9 @@ function script:writePamComingSoonMessage {
             return $true
         }
     }
-    catch {}
+    catch {
+        Write-Debug "IsComingSoonEnvironment check failed: $($_.Exception.Message)"
+    }
 
     return $false
 }
