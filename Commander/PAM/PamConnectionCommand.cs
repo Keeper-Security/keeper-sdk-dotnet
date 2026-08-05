@@ -86,14 +86,14 @@ namespace Commander.PAM
                     Silent = options.Silent,
                 });
 
-                foreach (var message in result.Messages)
-                {
-                    Console.WriteLine(message);
-                }
-
                 if (options.Silent)
                 {
                     return;
+                }
+
+                foreach (var message in result.Messages)
+                {
+                    Console.WriteLine(message);
                 }
 
                 if (result.RecordUpdated || result.GraphUpdated)

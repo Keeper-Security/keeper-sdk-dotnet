@@ -75,6 +75,8 @@ namespace KeeperSecurity.Plugins.PAM
         throw new PamActionException("Record UID is required.");
       }
 
+      var auth = vault.Auth ?? throw new PamActionException("Authentication is required.");
+      
       EnsureRotationAllowed(vault.Auth?.AuthContext);
 
       if (!vault.TryGetKeeperRecord(recordUid.Trim(), out var keeperRecord) || keeperRecord is not TypedRecord record)
@@ -82,7 +84,6 @@ namespace KeeperSecurity.Plugins.PAM
         throw new PamActionException($"Record [{recordUid}] is not available.");
       }
 
-      var auth = vault.Auth ?? throw new PamActionException("Authentication is required.");
       RouterProto.RouterRotationInfo rotationInfo;
       try
       {
