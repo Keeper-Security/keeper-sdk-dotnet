@@ -171,7 +171,7 @@ function script:applyPamConfigSchedule {
             $schedule.Type = 'ON_DEMAND'
         }
         else {
-            # Rotation CRON must be 6 fields, e.g. "0 0 3 * * ?" (daily 03:00 UTC).
+            # Rotation CRON: 6 fields, e.g. "0 0 3 * * ?"
             $validation = [KeeperSecurity.Plugins.PAM.RotationUtils]::ValidateCronExpression($cron, $true)
             if (-not $validation.Item1) {
                 throw "Invalid CRON `"$cron`" Error: $($validation.Item2)"
@@ -519,9 +519,7 @@ function script:movePamConfigToFolder {
 }
 
 function script:getPamConfigurationTypeSet {
-    # Return HashSet as a single object via unary comma (unenumerated).
-    # Do NOT use `return , @(hashSet)` — that nests Object[] and [string[]] binding
-    # collapses it to one space-joined string, so every type match fails.
+    # Unary comma keeps HashSet as one object (avoids PS enumerating it).
     try {
         $fromSdk = [KeeperSecurity.Plugins.PAM.PamRecordTypes]::Configuration
         if ($null -ne $fromSdk -and $fromSdk.Count -gt 0) {
@@ -567,128 +565,6 @@ function script:isPamConfigurationTypeName {
     }
 }
 
-function script:findPamConfigSharedFolderByTree {
-    Param (
-        [Parameter(Mandatory = $true)]
-        [KeeperSecurity.Vault.VaultOnline] $Vault,
-        [Parameter(Mandatory = $true)]
-        [string] $ConfigUid
-    )
-
-    if ([string]::IsNullOrEmpty($ConfigUid)) {
-        return $null
-    }
-
-    $parents = $null
-    try {
-        $parents = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindParentTopSharedFolders($Vault, $ConfigUid)
-    }
-    catch {
-        return $null
-    }
-
-    if ($null -eq $parents) {
-        return $null
-    }
-    if ($parents -is [KeeperSecurity.Vault.SharedFolder]) {
-        return $parents
-    }
-
-    $count = -1
-    try {
-        if ($parents -is [System.Collections.ICollection]) {
-            $count = [int]($parents -as [System.Collections.ICollection]).Count
-        }
-        else {
-            $count = [int]$parents.Count
-        }
-    }
-    catch {
-        $count = -1
-    }
-
-    if ($count -eq 0) {
-        return $null
-    }
-
-    try {
-        $enumerator = $parents.GetEnumerator()
-        try {
-            while ($enumerator.MoveNext()) {
-                $current = $enumerator.Current
-                if ($null -ne $current -and ($current -is [KeeperSecurity.Vault.SharedFolder])) {
-                    return $current
-                }
-            }
-        }
-        finally {
-            if ($enumerator -is [System.IDisposable]) {
-                $enumerator.Dispose()
-            }
-        }
-    }
-    catch {}
-
-    if ($count -gt 0) {
-        try { return $parents.get_Item(0) } catch {}
-        try { return $parents.Item(0) } catch {}
-        try { return $parents[0] } catch {}
-    }
-
-    return $null
-}
-
-function script:testPamConfigInSharedFolderTree {
-    Param (
-        [Parameter(Mandatory = $true)]
-        [KeeperSecurity.Vault.VaultOnline] $Vault,
-        [Parameter(Mandatory = $true)]
-        [string] $ConfigUid
-    )
-
-    if ([string]::IsNullOrEmpty($ConfigUid)) {
-        return $false
-    }
-
-    $parents = $null
-    try {
-        $parents = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindParentTopSharedFolders($Vault, $ConfigUid)
-    }
-    catch {
-        return $false
-    }
-
-    if ($null -eq $parents) {
-        return $false
-    }
-    if ($parents -is [KeeperSecurity.Vault.SharedFolder]) {
-        return $true
-    }
-
-    try {
-        if ($parents -is [System.Collections.ICollection]) {
-            return (($parents -as [System.Collections.ICollection]).Count -gt 0)
-        }
-        return ([int]$parents.Count -gt 0)
-    }
-    catch {}
-
-    try {
-        $enumerator = $parents.GetEnumerator()
-        try {
-            return [bool]$enumerator.MoveNext()
-        }
-        finally {
-            if ($enumerator -is [System.IDisposable]) {
-                $enumerator.Dispose()
-            }
-        }
-    }
-    catch {
-        return $false
-    }
-}
-
 function script:resolvePamConfigSharedFolder {
     Param (
         [Parameter(Mandatory = $true)]
@@ -697,12 +573,20 @@ function script:resolvePamConfigSharedFolder {
         [string] $ConfigUid
     )
 
-    $byTree = findPamConfigSharedFolderByTree -Vault $Vault -ConfigUid $ConfigUid
-    if ($null -ne $byTree) {
-        return $byTree
+    [KeeperSecurity.Vault.KeeperRecord]$keeperRec = $null
+    if ($Vault.TryGetKeeperRecord($ConfigUid, [ref]$keeperRec) -and
+        ($keeperRec -is [KeeperSecurity.Vault.TypedRecord])) {
+        try {
+            $bySdk = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::GetConfigurationSharedFolder(
+                $Vault, [KeeperSecurity.Vault.TypedRecord]$keeperRec)
+            if ($null -ne $bySdk) {
+                return $bySdk
+            }
+        }
+        catch {}
     }
 
-    # Permission fallback for create/edit/detail display (and list membership when tree is empty on Win).
+    # Permission fallback when folder-tree lookup is empty.
     try {
         return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($Vault, $ConfigUid, $null)
     }
@@ -1097,7 +981,7 @@ function Get-KeeperPamConfig {
             $detail | ConvertTo-Json -Depth 8
         }
         else {
-            # Match Commander detail labels: UID / Name / Config Type / ...
+            # Detail labels match Commander list/detail output.
             [PSCustomObject][ordered]@{
                 UID                    = $detail.Uid
                 Name                   = $detail.ConfigName
@@ -1113,37 +997,20 @@ function Get-KeeperPamConfig {
         return
     }
 
-    # Discover UID/Title/TypeName strings only. Never store TypedRecord / Dictionary.Values /
-    # List[TypedRecord] for later PowerShell indexing — those paths yield empty UID/Title shells.
+    # Use SDK config discovery; keep UID/Title strings for PS 5.1-safe sorting/output.
     $prepared = New-Object 'System.Collections.Generic.List[object]'
-    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
-    $vaultRecordCount = 0
-
-    foreach ($record in $vault.KeeperRecords) {
-        $vaultRecordCount++
-        if ($null -eq $record) { continue }
-        $uid = [string]$record.Uid
-        if ([string]::IsNullOrEmpty($uid) -or -not $seen.Add($uid)) { continue }
-
-        $typeName = ''
-        try { $typeName = [string]$record.TypeName } catch {}
-        if ([string]::IsNullOrEmpty($typeName)) {
-            $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+    $configMap = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::GetConfigurationRecords($vault)
+    if ($null -ne $configMap) {
+        foreach ($entry in $configMap.GetEnumerator()) {
+            $typed = $entry.Value
+            if ($null -eq $typed -or [string]::IsNullOrEmpty($typed.Uid)) { continue }
+            [void]$prepared.Add([PSCustomObject]@{
+                    Uid      = [string]$typed.Uid
+                    Title    = [string]$typed.Title
+                    TypeName = [string]$typed.TypeName
+                })
         }
-        if (-not (isPamConfigurationTypeName -TypeName $typeName -AllowedTypes $allowedTypes)) {
-            continue
-        }
-
-        $title = ''
-        try { $title = [string]$record.Title } catch {}
-        [void]$prepared.Add([PSCustomObject]@{
-                Uid      = $uid
-                Title    = $title
-                TypeName = $typeName
-            })
     }
-
-    Write-Verbose ("Vault records scanned: {0}; PAM configurations matched: {1}" -f $vaultRecordCount, $prepared.Count)
 
     $sorted = @($prepared | Sort-Object -Property @{ Expression = { $_.Title }; Ascending = $true })
     $rows = New-Object 'System.Collections.Generic.List[object]'
@@ -1152,8 +1019,19 @@ function Get-KeeperPamConfig {
     foreach ($item in $sorted) {
         $uid = [string]$item.Uid
         if ([string]::IsNullOrEmpty($uid)) { continue }
-        $inSharedFolder = testPamConfigInSharedFolderTree -Vault $vault -ConfigUid $uid
+
+        [KeeperSecurity.Vault.KeeperRecord]$keeperRec = $null
+        $typed = $null
+        if ($vault.TryGetKeeperRecord($uid, [ref]$keeperRec) -and ($keeperRec -is [KeeperSecurity.Vault.TypedRecord])) {
+            $typed = [KeeperSecurity.Vault.TypedRecord]$keeperRec
+        }
+
+        $inSharedFolder = $false
+        if ($null -ne $typed) {
+            $inSharedFolder = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsConfigurationInSharedFolder($vault, $typed)
+        }
         if (-not $inSharedFolder) {
+            # Permission-based fallback (helps Windows when folder tree lookup is empty).
             try {
                 $byPermission = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($vault, $uid, $null)
                 $inSharedFolder = ($null -ne $byPermission)
@@ -1176,7 +1054,7 @@ function Get-KeeperPamConfig {
     }
 
     if ($Format -eq 'json') {
-        # NSF lines to host so JSON on the success stream stays parseable.
+        # Keep NSF warnings off the success stream so JSON stays parseable.
         foreach ($line in $nsfLines) {
             Write-Host $line
         }

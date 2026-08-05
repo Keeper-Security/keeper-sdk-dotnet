@@ -932,9 +932,6 @@ function script:tryBuildPamUserRotationRequest {
 
 # --- PAM config helpers ---
 
-
-# --- PAM config helpers ---
-
 function script:getPamEnterpriseAuth {
     $enterprise = getEnterprise
     if (-not $enterprise -or -not $enterprise.loader -or -not $enterprise.loader.Auth) {
@@ -1059,39 +1056,17 @@ function script:writePamComingSoonMessage {
         return $false
     }
 
-    $envKey = $Environment.Trim()
     $displayName = $null
-
-    # Local fallback first — avoids failures when a stale KeeperSdk.dll is loaded in the session
-    # without IsComingSoonEnvironment (common after Import-Module without unloading assemblies).
-    $localComingSoon = @{
-        'oci'    = 'OCI'
-        'github' = 'GitHub'
-    }
-    foreach ($key in $localComingSoon.Keys) {
-        if ([string]::Equals($envKey, $key, [StringComparison]::OrdinalIgnoreCase)) {
-            $displayName = $localComingSoon[$key]
-            break
-        }
-    }
-
-    if (-not $displayName) {
-        try {
-            $method = [KeeperSecurity.Plugins.PAM.PamConfigTypes].GetMethod('IsComingSoonEnvironment')
-            if ($null -ne $method) {
-                $args = @($envKey, $null)
-                if ([bool]$method.Invoke($null, $args)) {
-                    $displayName = if ($args[1]) { [string]$args[1] } else { $envKey }
-                }
+    try {
+        if ([KeeperSecurity.Plugins.PAM.PamConfigTypes]::IsComingSoonEnvironment($Environment.Trim(), [ref]$displayName)) {
+            if ([string]::IsNullOrWhiteSpace($displayName)) {
+                $displayName = $Environment.Trim()
             }
+            Write-Host "Environment $displayName is not supported yet. It will be supported in a future release."
+            return $true
         }
-        catch {}
     }
+    catch {}
 
-    if (-not $displayName) {
-        return $false
-    }
-
-    Write-Host "Environment $displayName is not supported yet. It will be supported in a future release."
-    return $true
+    return $false
 }
