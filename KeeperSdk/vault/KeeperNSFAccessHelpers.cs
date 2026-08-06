@@ -14,7 +14,7 @@ namespace KeeperSecurity.Vault
     internal sealed class KeeperNSFAccessorInfo
     {
         public string AccessTypeUid { get; set; }
-        public int AccessType { get; set; }
+        public int AccessType { get; set; } 
         public bool Owner { get; set; }
         public bool Inherited { get; set; }
         public bool DeniedAccess { get; set; }
@@ -69,14 +69,15 @@ namespace KeeperSecurity.Vault
             return FetchFolderAccessDataAsync(vault, new[] { folderUid }, pageSize: 100);
         }
 
-        /// <summary>
-        /// Fetch folder accessors for one or more folder UIDs.
-        /// Supports batching up to 100 folder UIDs per request.
-        /// </summary>
+        // Loads who has access to the given NSF folders (up to 100 UIDs per request).
+        // Used by folder-access batch prepare and permission checks.
+        // If a row is missing its folder UID, we copy it from the parent result so callers can group by folder.
+        // Optional errorsByFolderUid gets per-folder fetch failures — don't treat those as an empty ACL.
         internal static async Task<IReadOnlyList<FolderProto.FolderAccessData>> FetchFolderAccessDataAsync(
             VaultOnline vault,
             IEnumerable<string> folderUids,
-            int pageSize = 100)
+            int pageSize = 100,
+            IDictionary<string, string> errorsByFolderUid = null)
         {
             if (vault == null) throw new ArgumentNullException(nameof(vault));
             if (folderUids == null) throw new ArgumentNullException(nameof(folderUids));
@@ -130,15 +131,49 @@ namespace KeeperSecurity.Vault
                                 continue;
                             }
 
+                            ByteString resultFolderUid = null;
+                            string resultFolderUidB64 = null;
+                            if (result.FolderUid != null && !result.FolderUid.IsEmpty)
+                            {
+                                resultFolderUid = result.FolderUid;
+                                resultFolderUidB64 = CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+                            }
+
                             if (result.Error != null)
                             {
-                                System.Diagnostics.Trace.TraceWarning($"GetFolderAccessResult error: {result.Error}");
+                                var errorMessage = string.IsNullOrWhiteSpace(result.Error.Message)
+                                    ? result.Error.ToString()
+                                    : result.Error.Message;
+                                System.Diagnostics.Trace.TraceWarning($"GetFolderAccessResult error: {errorMessage}");
+                                if (errorsByFolderUid != null && !string.IsNullOrEmpty(resultFolderUidB64))
+                                {
+                                    errorsByFolderUid[resultFolderUidB64] = string.IsNullOrWhiteSpace(errorMessage)
+                                        ? "Failed to fetch folder access."
+                                        : errorMessage;
+                                }
                                 continue;
                             }
 
-                            if (result.Accessors != null && result.Accessors.Count > 0)
+                            if (result.Accessors == null || result.Accessors.Count == 0)
                             {
-                                allAccessors.AddRange(result.Accessors);
+                                continue;
+                            }
+
+                            foreach (var accessor in result.Accessors)
+                            {
+                                if (accessor == null)
+                                {
+                                    continue;
+                                }
+
+                                // Nested accessors often omit FolderUid; stamp from the parent result.
+                                if ((accessor.FolderUid == null || accessor.FolderUid.IsEmpty)
+                                    && resultFolderUid != null)
+                                {
+                                    accessor.FolderUid = resultFolderUid;
+                                }
+
+                                allAccessors.Add(accessor);
                             }
                         }
                     }
@@ -151,20 +186,91 @@ namespace KeeperSecurity.Vault
             return allAccessors;
         }
 
+        // Batched vault/records/v3/details/access call; merges pages and UID chunks for permission checks.
         internal static async Task<RecordDetailsProto.RecordAccessResponse> FetchRecordAccessDetailsAsync(
             VaultOnline vault,
             IEnumerable<string> recordUids)
         {
-            var rq = new RecordDetailsProto.RecordAccessRequest();
-            foreach (var recordUid in recordUids)
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+            if (recordUids == null) throw new ArgumentNullException(nameof(recordUids));
+
+            var uids = recordUids
+                .Where(uid => !string.IsNullOrWhiteSpace(uid))
+                .Select(uid => uid.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            var merged = new RecordDetailsProto.RecordAccessResponse();
+            if (uids.Count == 0)
             {
-                rq.RecordUids.Add(ByteString.CopyFrom(recordUid.Base64UrlDecode()));
+                return merged;
             }
 
-            return await vault.Auth.ExecuteAuthRest<RecordDetailsProto.RecordAccessRequest, RecordDetailsProto.RecordAccessResponse>(
-                "vault/records/v3/details/access", rq).ConfigureAwait(false);
+            for (var offset = 0; offset < uids.Count; offset += MaxRecordAccessUidsPerRequest)
+            {
+                var chunk = uids.Skip(offset).Take(MaxRecordAccessUidsPerRequest).ToList();
+                var page = new Keeper.Api.Common.Page
+                {
+                    PageNumber = DefaultRecordAccessPageNumber,
+                    PageSize = DefaultRecordAccessPageSize,
+                };
+
+                while (true)
+                {
+                    var rq = new RecordDetailsProto.RecordAccessRequest
+                    {
+                        Page = page,
+                    };
+                    foreach (var recordUid in chunk)
+                    {
+                        rq.RecordUids.Add(ByteString.CopyFrom(recordUid.Base64UrlDecode()));
+                    }
+
+                    var rs = await vault.Auth
+                        .ExecuteAuthRest<RecordDetailsProto.RecordAccessRequest, RecordDetailsProto.RecordAccessResponse>(
+                            "vault/records/v3/details/access", rq)
+                        .ConfigureAwait(false);
+
+                    if (rs == null)
+                    {
+                        break;
+                    }
+
+                    merged.RecordAccesses.AddRange(rs.RecordAccesses);
+                    merged.ForbiddenRecords.AddRange(rs.ForbiddenRecords);
+
+                    if (rs.PageInfo == null || !rs.PageInfo.HasMore)
+                    {
+                        break;
+                    }
+
+                    page = new Keeper.Api.Common.Page
+                    {
+                        PageNumber = rs.PageInfo.PageNumber + 1,
+                        PageSize = ClampRecordAccessPageSize(rs.PageInfo.PageSize > 0
+                            ? rs.PageInfo.PageSize
+                            : DefaultRecordAccessPageSize),
+                        CursorToken = rs.PageInfo.CursorToken ?? string.Empty,
+                    };
+                }
+            }
+
+            return merged;
         }
 
+        // Record access API limits 
+        private const int MaxRecordAccessUidsPerRequest = 100;
+        private const int DefaultRecordAccessPageNumber = 0;
+        private const int DefaultRecordAccessPageSize = 500;
+        private const int MaxRecordAccessPageSize = 500;
+
+        private static int ClampRecordAccessPageSize(int pageSize)
+        {
+            if (pageSize <= 0) return DefaultRecordAccessPageSize;
+            return Math.Min(pageSize, MaxRecordAccessPageSize);
+        }
+
+        // Throws when the current user lacks can_update_access on the folder (share/revoke/inherit changes).
         internal static async Task RequireKeeperNSFFolderSharePermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -174,6 +280,44 @@ namespace KeeperSecurity.Vault
                 "You do not have permission to share this folder.").ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Batch-evaluates share permission for the current user on many folders.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderSharePermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+
+            var denied = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (folderUids == null)
+            {
+                return denied;
+            }
+
+            var uids = folderUids
+                .Where(uid => !string.IsNullOrWhiteSpace(uid))
+                .Select(uid => uid.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var folderUid in uids)
+            {
+                try
+                {
+                    await RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    denied[folderUid] = ex.Message;
+                }
+            }
+
+            return denied;
+        }
+
+        // Throws when the current user lacks can_add (link records into the folder).
         internal static async Task RequireKeeperNSFFolderAddPermissionAsync(VaultOnline vault, string folderUid)
         {
             await RequireKeeperNSFFolderPermissionAsync(
@@ -183,6 +327,79 @@ namespace KeeperSecurity.Vault
                 "You do not have permission to add content to this folder.").ConfigureAwait(false);
         }
 
+        // Throws when the current user lacks can_remove (unlink records from the folder).
+        internal static async Task RequireKeeperNSFFolderRemovePermissionAsync(VaultOnline vault, string folderUid)
+        {
+            await RequireKeeperNSFFolderPermissionAsync(
+                vault,
+                folderUid,
+                "can_remove",
+                "You do not have permission to remove content from this folder.").ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Batch-evaluates folder add permission for the current user.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderAddPermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            return await EvaluateKeeperNSFFolderPermissionsAsync(
+                vault,
+                folderUids,
+                RequireKeeperNSFFolderAddPermissionAsync).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Batch-evaluates folder remove permission for the current user.
+        /// </summary>
+        /// <returns>Map of folder UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderRemovePermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids)
+        {
+            return await EvaluateKeeperNSFFolderPermissionsAsync(
+                vault,
+                folderUids,
+                RequireKeeperNSFFolderRemovePermissionAsync).ConfigureAwait(false);
+        }
+
+        // Runs a folder permission check per UID without throwing; used by batch link/unlink prep.
+        private static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFFolderPermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> folderUids,
+            Func<VaultOnline, string, Task> requireAsync)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+
+            var denied = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (folderUids == null)
+            {
+                return denied;
+            }
+
+            var uids = folderUids
+                .Select(uid => uid?.Trim() ?? string.Empty)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            foreach (var folderUid in uids)
+            {
+                try
+                {
+                    await requireAsync(vault, folderUid).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    denied[folderUid] = ex.Message;
+                }
+            }
+
+            return denied;
+        }
+
+        // Throws when the current user lacks can_update_access on the record (share/unshare).
         internal static async Task RequireKeeperNSFRecordSharePermissionAsync(VaultOnline vault, string recordUid)
         {
             await RequireKeeperNSFRecordPermissionAsync(
@@ -190,6 +407,191 @@ namespace KeeperSecurity.Vault
                 recordUid,
                 "can_update_access",
                 "You do not have permission to share this record.").ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Batch-evaluates share permission for the current user on many records.
+        /// Uses local cache when the current user is present; otherwise one batched access API call.
+        /// </summary>
+        /// <returns>Map of record UID → denial message. UIDs not present are allowed.</returns>
+        internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFRecordSharePermissionsAsync(
+            VaultOnline vault,
+            IEnumerable<string> recordUids)
+        {
+            if (vault == null) throw new ArgumentNullException(nameof(vault));
+
+            var denied = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (recordUids == null)
+            {
+                return denied;
+            }
+
+            var uids = recordUids
+                .Where(uid => !string.IsNullOrWhiteSpace(uid))
+                .Select(uid => uid.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            if (uids.Count == 0)
+            {
+                return denied;
+            }
+
+            const string permissionKey = "can_update_access";
+            const string errorMessage = "You do not have permission to share this record.";
+            var accountUidB64 = GetCurrentUserAccountUidB64(vault);
+            var needsApi = new List<string>();
+
+            foreach (var recordUid in uids)
+            {
+                var localAccessors = vault.Storage.KdRecordAccesses
+                    .GetLinksForSubject(recordUid)
+                    .Select(FromStoredRecordAccess)
+                    .ToList();
+
+                if (localAccessors.Count > 0
+                    && localAccessors.Any(a => IsCurrentUserNsfAccessor(a, vault, accountUidB64)))
+                {
+                    if (!TryEvaluateRecordPermission(
+                            localAccessors, vault, accountUidB64, permissionKey, errorMessage, out var denyMessage))
+                    {
+                        denied[recordUid] = denyMessage;
+                    }
+
+                    continue;
+                }
+
+                needsApi.Add(recordUid);
+            }
+
+            if (needsApi.Count == 0)
+            {
+                return denied;
+            }
+
+            RecordDetailsProto.RecordAccessResponse accessRs;
+            try
+            {
+                accessRs = await FetchRecordAccessDetailsAsync(vault, needsApi).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                foreach (var recordUid in needsApi)
+                {
+                    denied[recordUid] = $"Could not verify share permission: {ex.Message}";
+                }
+
+                return denied;
+            }
+
+            var forbidden = new HashSet<string>(StringComparer.Ordinal);
+            if (accessRs?.ForbiddenRecords != null)
+            {
+                foreach (var forbiddenUid in accessRs.ForbiddenRecords)
+                {
+                    if (forbiddenUid == null || forbiddenUid.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    forbidden.Add(forbiddenUid.ToByteArray().Base64UrlEncode());
+                }
+            }
+
+            var accessorsByRecord = new Dictionary<string, List<KeeperNSFAccessorInfo>>(StringComparer.Ordinal);
+            if (accessRs?.RecordAccesses != null)
+            {
+                foreach (var row in accessRs.RecordAccesses)
+                {
+                    var data = row?.Data;
+                    if (data?.RecordUid == null || data.RecordUid.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    var recordUid = data.RecordUid.ToByteArray().Base64UrlEncode();
+                    if (!accessorsByRecord.TryGetValue(recordUid, out var list))
+                    {
+                        list = new List<KeeperNSFAccessorInfo>();
+                        accessorsByRecord[recordUid] = list;
+                    }
+
+                    list.Add(new KeeperNSFAccessorInfo
+                    {
+                        AccessTypeUid = data.AccessTypeUid.ToByteArray().Base64UrlEncode(),
+                        AccessType = (int)data.AccessType,
+                        Owner = data.Owner,
+                        Inherited = data.Inherited,
+                        DeniedAccess = data.DeniedAccess,
+                        Username = row.AccessorInfo?.Name,
+                        CanUpdateAccess = data.CanUpdateAccess,
+                        CanChangeOwnership = data.CanChangeOwnership,
+                    });
+                }
+            }
+
+            foreach (var recordUid in needsApi)
+            {
+                if (forbidden.Contains(recordUid))
+                {
+                    denied[recordUid] = errorMessage;
+                    continue;
+                }
+
+                if (!accessorsByRecord.TryGetValue(recordUid, out var accessors) || accessors.Count == 0)
+                {
+                    denied[recordUid] = $"No accessors data found for record {recordUid}.";
+                    continue;
+                }
+
+                if (!TryEvaluateRecordPermission(
+                        accessors, vault, accountUidB64, permissionKey, errorMessage, out var denyMessage))
+                {
+                    denied[recordUid] = denyMessage;
+                }
+            }
+
+            return denied;
+        }
+
+        private static bool TryEvaluateRecordPermission(
+            IReadOnlyList<KeeperNSFAccessorInfo> accessors,
+            VaultOnline vault,
+            string accountUidB64,
+            string permissionKey,
+            string errorMessage,
+            out string denyMessage)
+        {
+            denyMessage = null;
+            if (accessors == null || accessors.Count == 0)
+            {
+                denyMessage = "No accessors data found.";
+                return false;
+            }
+
+            var foundCurrentUser = false;
+            foreach (var accessor in accessors)
+            {
+                if (!IsCurrentUserNsfAccessor(accessor, vault, accountUidB64))
+                {
+                    continue;
+                }
+
+                foundCurrentUser = true;
+                if (accessor.DeniedAccess)
+                {
+                    continue;
+                }
+
+                if (accessor.Owner || GetRecordPermissionValue(accessor, permissionKey))
+                {
+                    return true;
+                }
+            }
+
+            denyMessage = foundCurrentUser
+                ? errorMessage
+                : "No accessors data found for the current user.";
+            return false;
         }
 
         internal static async Task RequireKeeperNSFRecordOwnershipPermissionAsync(VaultOnline vault, string recordUid)
@@ -207,6 +609,12 @@ namespace KeeperSecurity.Vault
             string permissionKey,
             string errorMessage)
         {
+            // NSF vault root has no folder-access ACL payload; owners operate via data key.
+            if (IsKeeperNSFVaultRootFolderUid(folderUid))
+            {
+                return;
+            }
+
             if (IsKeeperNSFFolderOwnerUser(vault, folderUid))
             {
                 return;
@@ -255,6 +663,14 @@ namespace KeeperSecurity.Vault
             }
 
             throw new VaultException(errorMessage);
+        }
+
+        private static bool IsKeeperNSFVaultRootFolderUid(string folderUid)
+        {
+            return string.IsNullOrEmpty(folderUid)
+                || string.Equals(folderUid, "/", StringComparison.Ordinal)
+                || string.Equals(folderUid, "root", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(folderUid, KeeperNSFConstants.KeeperDriveRootFolderUid, StringComparison.Ordinal);
         }
 
         internal static async Task RequireKeeperNSFRecordPermissionAsync(

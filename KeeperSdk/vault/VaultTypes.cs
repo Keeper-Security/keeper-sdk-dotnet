@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
@@ -491,7 +492,17 @@ namespace KeeperSecurity.Vault
         Task<string> CreateKeeperNSFFolder(string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true);
 
         /// <summary>
-        /// Grants a user access to a Keeper NSF folder.
+        /// Creates multiple Keeper NSF folders in one or more batch requests (up to 100 folders per request).
+        /// Creating under an existing parent requires add/create permission on that parent.
+        /// Folder keys are AES-GCM encrypted; the folder name is stored in encrypted <c>FolderData.Data</c>.
+        /// </summary>
+        /// <param name="folders">Folder payloads to create.</param>
+        /// <returns>Per-folder create results in the same order as <paramref name="folders"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderCreateResult>> CreateKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderCreateRequest> folders);
+
+        /// <summary>
+        /// Grants a user or team access to a Keeper NSF folder.
         /// </summary>
         /// <param name="folderUid">Folder UID to share.</param>
         /// <param name="userEmail">User email, team name, or team UID to grant access.</param>
@@ -501,12 +512,40 @@ namespace KeeperSecurity.Vault
         Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer", SharedFolderUserOptions options = null);
 
         /// <summary>
-        /// Revokes a user's access from a Keeper NSF folder.
+        /// Grants user/team access to Keeper NSF folders in batch (up to 500 access entries per request).
+        /// Actor must have share/update-access permission on each folder. Independent of
+        /// <see cref="GrantKeeperNSFFolderAccess"/> (which may update an existing share).
+        /// </summary>
+        /// <param name="grants">Grant payloads. Each item requires folder UID and accessor.</param>
+        /// <returns>Per-entry results in the same order as <paramref name="grants"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderAccessResult>> GrantKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessGrantRequest> grants);
+
+        /// <summary>
+        /// Updates existing user/team access on Keeper NSF folders in batch (up to 500 entries per request).
+        /// Actor must have share/update-access permission on each folder.
+        /// </summary>
+        /// <param name="updates">Update payloads. Each item requires folder UID, accessor, and role and/or options.</param>
+        /// <returns>Per-entry results in the same order as <paramref name="updates"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderAccessResult>> UpdateKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessUpdateRequest> updates);
+
+        /// <summary>
+        /// Revokes a user's or team's access from a Keeper NSF folder.
         /// </summary>
         /// <param name="folderUid">Folder UID to revoke access from.</param>
         /// <param name="userEmail">User email, team name, or team UID to revoke.</param>
         /// <returns>Awaitable task.</returns>
         Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail);
+
+        /// <summary>
+        /// Revokes user/team access from Keeper NSF folders in batch (up to 500 entries per request).
+        /// Actor must have share/update-access permission on each folder.
+        /// </summary>
+        /// <param name="revokes">Revoke payloads. Each item requires folder UID and accessor.</param>
+        /// <returns>Per-entry results in the same order as <paramref name="revokes"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderAccessResult>> RevokeKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessRevokeRequest> revokes);
 
         /// <summary>
         /// Creates a new Keeper NSF record.
@@ -520,6 +559,24 @@ namespace KeeperSecurity.Vault
         Task<string> CreateKeeperNSFRecord(string title, string recordType = "login", string folderUid = null, string notes = null, IDictionary<string, object> fields = null);
 
         /// <summary>
+        /// Creates multiple Keeper NSF records in batch requests (up to 1000 records per API call).
+        /// Used by nsf-add and bulk import paths.
+        /// </summary>
+        /// <param name="records">Record payloads to create.</param>
+        /// <returns>Per-record create results in the same order as <paramref name="records"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordCreateRequest> records);
+
+        /// <summary>
+        /// Creates multiple Keeper NSF records from an import file payload (same JSON record shape as Export/Import-KeeperVault).
+        /// </summary>
+        /// <param name="import">Import file containing records. <c>shared_folders</c> are ignored.</param>
+        /// <param name="defaultFolderUid">Optional NSF folder UID for records without <c>folders[].folder</c>.</param>
+        Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
+            ImportFile import,
+            string defaultFolderUid = null);
+
+        /// <summary>
         /// Updates an existing Keeper NSF record.
         /// </summary>
         /// <param name="recordUid">Record UID to update.</param>
@@ -528,6 +585,21 @@ namespace KeeperSecurity.Vault
         /// <param name="notes">New notes (null to keep existing).</param>
         /// <param name="fields">Fields to add or update. Values may be strings (plain scalars) or complex objects (e.g. host = { hostName, port } on a databaseCredentials record).</param>
         Task UpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null);
+
+        /// <summary>
+        /// Updates multiple Keeper NSF records in one or more batch requests (up to 1000 records per request).
+        /// </summary>
+        /// <param name="records">Record payloads to update. Each item requires <see cref="KeeperNSFRecordUpdateRequest.RecordUid"/>.</param>
+        /// <returns>Per-record update results in the same order as <paramref name="records"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> UpdateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordUpdateRequest> records);
+
+        /// <summary>
+        /// Updates multiple Keeper NSF records from an import file payload (same JSON record shape as Export/Import-KeeperVault).
+        /// Each record must include <c>uid</c>.
+        /// </summary>
+        /// <param name="import">Import file containing records with UIDs. <c>shared_folders</c> and <c>folders</c> are ignored.</param>
+        Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> UpdateKeeperNSFRecordsFromImport(ImportFile import);
 
         /// <summary>
         /// Attempts to update a Keeper NSF record without throwing.
@@ -550,11 +622,27 @@ namespace KeeperSecurity.Vault
         Task ShareKeeperNSFRecord(string recordUid, string userEmail, string role = "viewer", SharedFolderRecordOptions options = null);
 
         /// <summary>
+        /// Grants user access to Keeper NSF records in batch requests (up to 1000 per API call).
+        /// </summary>
+        /// <param name="shares">Share payloads. Each item requires record UID and user email.</param>
+        /// <returns>Per-share results in the same order as <paramref name="shares"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordShareResult>> ShareKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordShareRequest> shares);
+
+        /// <summary>
         /// Revokes a user's access from a Keeper NSF record.
         /// </summary>
         /// <param name="recordUid">Record UID to unshare.</param>
         /// <param name="userEmail">Email of the user to revoke access from.</param>
-        Task UnshareKeeperNSFRecord(string recordUid, string userEmail);       
+        Task UnshareKeeperNSFRecord(string recordUid, string userEmail);
+
+        /// <summary>
+        /// Revokes user access from Keeper NSF records in batch requests (up to 1000 per API call).
+        /// </summary>
+        /// <param name="unshares">Unshare payloads. Each item requires record UID and user email.</param>
+        /// <returns>Per-unshare results in the same order as <paramref name="unshares"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordUnshareResult>> UnshareKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordUnshareRequest> unshares);
 
         /// <summary>
         /// Bulk grant or revoke record-level sharing permissions for all records in a Keeper NSF folder.
@@ -575,7 +663,7 @@ namespace KeeperSecurity.Vault
         IList<KeeperNSFShortcutEntry> GetKeeperNSFShortcuts(string recordUid = null, string folderUid = null);
 
         /// <summary>
-        /// Fetches Keeper NSF record metadata
+        /// Fetches Keeper NSF record metadata for one or more UIDs (batched API calls).
         /// </summary>
         /// <param name="recordUids">Record UIDs to query.</param>
         /// <returns>Record metadata and any UIDs the server refused to return.</returns>
@@ -589,22 +677,84 @@ namespace KeeperSecurity.Vault
         /// <returns>Result describing what was kept and what was removed.</returns>
         Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid);
 
-        /// <summary>Removes Keeper NSF records (preview/confirm).</summary>
+        /// <summary>
+        /// Removes Keeper NSF records via preview/confirm. Large lists are chunked (500 records per API call).
+        /// </summary>
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecords(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false);
 
-        /// <summary>Removes Keeper NSF folders (preview/confirm).</summary>
+        /// <summary>
+        /// Removes a single Keeper NSF record (preview/confirm).
+        /// Thin wrapper over <see cref="RemoveKeeperNSFRecords"/>.
+        /// </summary>
+        Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecord(
+            KeeperNSFRecordRemoval removal, bool dryRun = false);
+
+        /// <summary>
+        /// Removes Keeper NSF folders (preview/confirm) via <c>vault/folders/v3/remove_folder</c>.
+        /// Chunks up to 100 folders per API request. Each item requires a valid
+        /// <see cref="KeeperNSFFolderRemoval.FolderUid"/>; duplicate UIDs in the same request are rejected.
+        /// <see cref="KeeperNSFFolderRemoveOperation.FolderTrash"/> and
+        /// <see cref="KeeperNSFFolderRemoveOperation.DeletePermanent"/> are supported;
+        /// owner-trash is not supported for folders.
+        /// Prefer <c>dryRun: true</c> then <see cref="ConfirmKeeperNSFFolders"/> with the same
+        /// removals list (same UIDs, operations, and order) — do not reorder or dedupe between steps.
+        /// </summary>
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolders(
             IReadOnlyList<KeeperNSFFolderRemoval> removals, bool dryRun = false);
 
-        /// <summary>Renames, recolors, or updates permission inheritance for a Keeper NSF folder.</summary>
-        /// <param name="inheritPermissions">When set, controls whether the folder inherits parent folder permissions.</param>
+        /// <summary>
+        /// Confirms a prior folder-remove preview without calling PREVIEW again.
+        /// Pass the same removals list used for dry-run preview (same order) and the
+        /// <paramref name="previewResult"/> from that call. The SDK checks a fingerprint and
+        /// token/chunk counts; a mismatch means re-run preview.
+        /// </summary>
+        Task<KeeperNSFRemoveResult> ConfirmKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderRemoval> removals, KeeperNSFRemoveResult previewResult);
+
+        /// <summary>
+        /// Removes a single Keeper NSF folder (preview/confirm).
+        /// Thin wrapper over <see cref="RemoveKeeperNSFFolders"/>.
+        /// </summary>
+        Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolder(
+            KeeperNSFFolderRemoval removal, bool dryRun = false);
+
+        /// <summary>Renames, recolors, or disables permission inheritance for a Keeper NSF folder.</summary>
+        /// <param name="inheritPermissions">When set to <c>false</c>, disables inheriting parent folder permissions.
+        /// Setting <c>true</c> is not supported on update (create-time only).</param>
         Task<Folder.FolderModifyResult> UpdateKeeperNSFFolder(
             string folderUidOrName, string newName = null, string color = null, bool? inheritPermissions = null);
+
+        /// <summary>
+        /// Updates multiple Keeper NSF folders in one or more batch requests (up to 100 folders per request).
+        /// Folder name/color are AES-GCM encrypted into <c>FolderData.Data</c>.
+        /// <see cref="KeeperNSFFolderUpdateRequest.InheritPermissions"/> may only be set to <c>false</c>
+        /// (disabling inheritance); enabling requires create-time setting. Changing inherit permissions
+        /// requires share/update-access permission on each folder.
+        /// </summary>
+        /// <param name="folders">Folder update payloads. Each item requires <see cref="KeeperNSFFolderUpdateRequest.FolderUid"/>.</param>
+        /// <returns>Per-folder update results in the same order as <paramref name="folders"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderUpdateResult>> UpdateKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderUpdateRequest> folders);
 
         /// <summary>Links a Keeper NSF record into a Keeper NSF folder (hard-link).</summary>
         Task<Folder.FolderRecordUpdateResult> LinkKeeperNSFRecordToFolder(
             string recordUidOrTitle, string folderUidOrName);
+
+        /// <summary>
+        /// Links Keeper NSF records into folders in batch via <c>vault/folders/v3/record_update</c>
+        /// (AddRecords). Max 500 records per folder request. Actor needs folder add permission.
+        /// </summary>
+        Task<IReadOnlyList<KeeperNSFFolderRecordResult>> LinkKeeperNSFRecordsToFolders(
+            IReadOnlyList<KeeperNSFFolderRecordLinkRequest> links);
+
+        /// <summary>
+        /// Unlinks Keeper NSF records from folders in batch via <c>vault/folders/v3/record_update</c>
+        /// (RemoveRecords). Max 500 records per folder request. Actor needs folder remove permission.
+        /// Record remains in other folders.
+        /// </summary>
+        Task<IReadOnlyList<KeeperNSFFolderRecordResult>> UnlinkKeeperNSFRecordsFromFolders(
+            IReadOnlyList<KeeperNSFFolderRecordUnlinkRequest> unlinks);
 
         /// <summary>Transfers ownership of Keeper NSF record(s) to another user.</summary>
         Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnership(
@@ -956,11 +1106,46 @@ namespace KeeperSecurity.Vault
         /// <summary>Preview response from the server.</summary>
         public Folder.V3.Remove.RemoveResponse PreviewResponse { get; set; }
 
-        /// <summary>True when the removal was confirmed on the server.</summary>
+        /// <summary>True when every removal chunk was confirmed on the server.</summary>
         public bool Confirmed { get; set; }
+
+        /// <summary>Number of removal chunks that confirmed successfully.</summary>
+        public int ConfirmedChunkCount { get; set; }
+
+        /// <summary>Number of removal chunks that failed (preview or confirm).</summary>
+        public int FailedChunkCount { get; set; }
+
+        /// <summary>
+        /// True when some chunks confirmed and others failed.
+        /// Callers should treat this as a non-fatal aggregated result (do not assume all items were removed).
+        /// Preview (dry-run) failures for folders throw; confirm/execute returns this flag instead of throwing.
+        /// </summary>
+        public bool PartialSuccess => ConfirmedChunkCount > 0 && FailedChunkCount > 0;
+
+        /// <summary>Per-chunk failure messages when multi-chunk removal partially fails.</summary>
+        public IList<string> ChunkErrors { get; set; } = new List<string>();
 
         /// <summary>Confirmation token expiration (epoch ms), when preview succeeded.</summary>
         public long? TokenExpiresAt { get; set; }
+
+        /// <summary>
+        /// Per-chunk confirmation tokens from a dry-run folder preview.
+        /// One token per chunk, in preview order. Confirm must use the same removals list
+        /// (same UIDs, operations, and order) so tokens still line up.
+        /// </summary>
+        public IList<byte[]> ChunkConfirmationTokens { get; set; } = new List<byte[]>();
+
+        /// <summary>
+        /// Fingerprint of the validated folder removals used for preview
+        /// (order + UID + operation + chunk size). Confirm checks this and rejects mismatches.
+        /// </summary>
+        public string PreviewRemovalsFingerprint { get; set; }
+
+        /// <summary>Folder count used when the preview fingerprint was built.</summary>
+        public int PreviewItemCount { get; set; }
+
+        /// <summary>Chunk size used for the preview (folders: 100).</summary>
+        public int PreviewChunkSize { get; set; }
     }
 
     /// <summary>
@@ -993,6 +1178,7 @@ namespace KeeperSecurity.Vault
 
     /// <summary>
     /// Keeper NSF folder removal operation (maps to Folder v3 remove API).
+    /// Owner-trash (<c>FOLDER_MOVE_TO_OWNER_TRASH</c>) is not supported by the server yet.
     /// </summary>
     public enum KeeperNSFFolderRemoveOperation
     {
@@ -1012,6 +1198,393 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Removal operation.</summary>
         public KeeperNSFFolderRemoveOperation Operation { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for creating a Keeper NSF folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderCreateRequest
+    {
+        /// <summary>Folder name (required; stored in encrypted FolderData.Data).</summary>
+        public string Name { get; set; }
+
+        /// <summary>Optional parent folder UID. Null creates at Keeper NSF root.</summary>
+        public string ParentFolderUid { get; set; }
+
+        /// <summary>Optional folder color.</summary>
+        public string Color { get; set; }
+
+        /// <summary>Whether to inherit permissions from the parent. Default is true.</summary>
+        public bool InheritPermissions { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Result of creating a Keeper NSF folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderCreateResult
+    {
+        /// <summary>Assigned folder UID on success (client-generated UID used in the request).</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Folder name from the request.</summary>
+        public string Name { get; set; }
+
+        /// <summary>Parent folder UID from the request (when set).</summary>
+        public string ParentFolderUid { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the folder was created successfully.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for updating a Keeper NSF folder in a batch request.
+    /// Null name/color/inherit leave existing values unchanged.
+    /// </summary>
+    public class KeeperNSFFolderUpdateRequest
+    {
+        /// <summary>Folder UID (or resolvable name) to update.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>New folder name (null to keep existing).</summary>
+        public string Name { get; set; }
+
+        /// <summary>New folder color, or "none" to clear (null to keep existing).</summary>
+        public string Color { get; set; }
+
+        /// <summary>
+        /// When set to <c>false</c>, disables inheriting parent permissions.
+        /// Setting <c>true</c> is not supported on update (same as single-folder update).
+        /// Null leaves the existing value unchanged.
+        /// </summary>
+        public bool? InheritPermissions { get; set; }
+    }
+
+    /// <summary>
+    /// Result of updating a Keeper NSF folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderUpdateResult
+    {
+        /// <summary>Resolved folder UID from the request.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Folder name after preparing the update (when available).</summary>
+        public string Name { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the folder was updated successfully.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for granting Keeper NSF folder access in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderAccessGrantRequest
+    {
+        /// <summary>Folder UID to share.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>User email, team name, or team UID.</summary>
+        public string Accessor { get; set; }
+
+        /// <summary>Access role: viewer, share-manager, content-manager, content-share-manager, full-manager. Default is viewer.</summary>
+        public string Role { get; set; } = "viewer";
+
+        /// <summary>
+        /// When set, forces recipient classification as team (<c>true</c>) or user (<c>false</c>).
+        /// When null, the accessor is auto-classified.
+        /// </summary>
+        public bool? AsTeam { get; set; }
+
+        /// <summary>Optional share options such as expiration.</summary>
+        public SharedFolderUserOptions Options { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for updating existing Keeper NSF folder access in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderAccessUpdateRequest
+    {
+        /// <summary>Folder UID whose access to update.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>User email, team name, or team UID that already has access.</summary>
+        public string Accessor { get; set; }
+
+        /// <summary>New access role (required unless <see cref="Options"/> supplies an expiration change).</summary>
+        public string Role { get; set; }
+
+        /// <summary>
+        /// When set, forces recipient classification as team (<c>true</c>) or user (<c>false</c>).
+        /// When null, the accessor is auto-classified.
+        /// </summary>
+        public bool? AsTeam { get; set; }
+
+        /// <summary>Optional share options such as expiration.</summary>
+        public SharedFolderUserOptions Options { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for revoking Keeper NSF folder access in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderAccessRevokeRequest
+    {
+        /// <summary>Folder UID to revoke access from.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>User email, team name, or team UID to revoke.</summary>
+        public string Accessor { get; set; }
+
+        /// <summary>
+        /// When set, forces recipient classification as team (<c>true</c>) or user (<c>false</c>).
+        /// When null, the accessor is auto-classified.
+        /// </summary>
+        public bool? AsTeam { get; set; }
+    }
+
+    /// <summary>
+    /// Result of a Keeper NSF folder access grant, update, or revoke in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderAccessResult
+    {
+        /// <summary>Folder UID from the request.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Accessor (email / team name or UID) from the request.</summary>
+        public string Accessor { get; set; }
+
+        /// <summary>Resolved access type: <c>user</c> or <c>team</c> when known.</summary>
+        public string AccessType { get; set; }
+
+        /// <summary>Role from the request (grant/update).</summary>
+        public string Role { get; set; }
+
+        /// <summary>Server or client status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server or client message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the access change succeeded.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for linking a Keeper NSF record into a folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderRecordLinkRequest
+    {
+        /// <summary>Destination folder UID (or resolvable name; empty/"/" for NSF root).</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Record UID (or resolvable title) to link.</summary>
+        public string RecordUid { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for unlinking a Keeper NSF record from a folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderRecordUnlinkRequest
+    {
+        /// <summary>Folder UID to unlink from (or resolvable name; empty/"/" for NSF root).</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Record UID to unlink.</summary>
+        public string RecordUid { get; set; }
+    }
+
+    /// <summary>
+    /// Result of a Keeper NSF folder-record link or unlink in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderRecordResult
+    {
+        /// <summary>Resolved folder UID from the request.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Resolved record UID from the request.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Server or client status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server or client message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the operation succeeded.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for creating a Keeper NSF record in a batch request.
+    /// </summary>
+    public class KeeperNSFRecordCreateRequest
+    {
+        /// <summary>Record title.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type of the record. Default is "login".</summary>
+        public string RecordType { get; set; } = "login";
+
+        /// <summary>Optional folder UID. When null, the record is created at the vault root.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Optional notes.</summary>
+        public string Notes { get; set; }
+
+        /// <summary>Optional fields as key-value pairs.</summary>
+        public IDictionary<string, object> Fields { get; set; }
+    }
+
+    /// <summary>
+    /// Per-record outcome from a batch create (<see cref="IVault.CreateKeeperNSFRecords"/>).
+    /// </summary>
+    public class KeeperNSFRecordCreateResult
+    {
+        /// <summary>Assigned record UID on success.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Record title from the request.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the record was created successfully.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for updating a Keeper NSF record in a batch request.
+    /// Null title/type/notes/fields leave the existing values unchanged.
+    /// Empty strings clear title/notes (and field values when supplied via <see cref="Fields"/>).
+    /// </summary>
+    public class KeeperNSFRecordUpdateRequest
+    {
+        /// <summary>Record UID to update.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>New title (null to keep existing; empty string to clear).</summary>
+        public string Title { get; set; }
+
+        /// <summary>New record type (null to keep existing).</summary>
+        public string RecordType { get; set; }
+
+        /// <summary>New notes (null to keep existing; empty string to clear).</summary>
+        public string Notes { get; set; }
+
+        /// <summary>Fields to add or update (null to leave fields unchanged; empty string values clear).</summary>
+        public IDictionary<string, object> Fields { get; set; }
+    }
+
+    /// <summary>
+    /// Per-record outcome from a batch update (<see cref="IVault.UpdateKeeperNSFRecords"/>).
+    /// </summary>
+    public class KeeperNSFRecordUpdateResult
+    {
+        /// <summary>Record UID from the request.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Record title after preparing the update (when available).</summary>
+        public string Title { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>
+        /// True when the record was updated successfully.
+        /// </summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for granting Keeper NSF record access in a batch share request.
+    /// </summary>
+    public class KeeperNSFRecordShareRequest
+    {
+        /// <summary>Record UID to share.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Email of the user to grant access.</summary>
+        public string UserEmail { get; set; }
+
+        /// <summary>Access role: viewer, share-manager, content-manager, content-share-manager, full-manager. Default is viewer.</summary>
+        public string Role { get; set; } = "viewer";
+
+        /// <summary>Optional share options such as expiration.</summary>
+        public SharedFolderRecordOptions Options { get; set; }
+    }
+
+    /// <summary>
+    /// Result of granting Keeper NSF record access in a batch share request.
+    /// </summary>
+    public class KeeperNSFRecordShareResult
+    {
+        /// <summary>Record UID from the request.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>User email from the request.</summary>
+        public string UserEmail { get; set; }
+
+        /// <summary>Role that was requested.</summary>
+        public string Role { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the share succeeded (including pending-accept).</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for revoking Keeper NSF record access in a batch unshare request.
+    /// </summary>
+    public class KeeperNSFRecordUnshareRequest
+    {
+        /// <summary>Record UID to unshare.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Email of the user to revoke access from.</summary>
+        public string UserEmail { get; set; }
+    }
+
+    /// <summary>
+    /// Result of revoking Keeper NSF record access in a batch unshare request.
+    /// </summary>
+    public class KeeperNSFRecordUnshareResult
+    {
+        /// <summary>Record UID from the request.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>User email from the request.</summary>
+        public string UserEmail { get; set; }
+
+        /// <summary>Server status code.</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>True when the unshare/revoke succeeded.</summary>
+        public bool Success { get; set; }
     }
 
     /// <summary>
@@ -1617,8 +2190,24 @@ namespace KeeperSecurity.Vault
                     {
                         foreach (var key in dv.Keys)
                         {
+                            if (key is not string skey)
+                            {
+                                continue;
+                            }
+
                             var fv = dv[key];
-                            if (key is string skey && fv is string sfv)
+                            string sfv;
+                            if (fv is IDictionary nestedDict && fv is not string)
+                            {
+                                sfv = Encoding.UTF8.GetString(Utils.JsonUtils.DumpJson(nestedDict));
+                            }
+                            else
+                            {
+                                // Accept non-string primitives (e.g. JSON numbers from parsers).
+                                sfv = fv?.ToString();
+                            }
+
+                            if (!string.IsNullOrEmpty(sfv))
                             {
                                 fts.SetElementValue(skey, sfv);
                             }
