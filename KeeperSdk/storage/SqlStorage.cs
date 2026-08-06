@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -324,6 +324,68 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
         {
             entityParameter.Value = uid;
             cmd.ExecuteNonQuery();
+        }
+
+        txn.Commit();
+    }
+
+    /// <summary>
+    /// Deletes then upserts entities in a single database transaction (all-or-nothing).
+    /// </summary>
+    /// <param name="uidsToDelete">UIDs to delete. Ignored when <paramref name="deleteAll"/> is true.</param>
+    /// <param name="entitiesToPut">Entities to upsert after deletes.</param>
+    /// <param name="deleteAll">When true, deletes all rows for this storage owner before put.</param>
+    public void MutateEntities(
+        IEnumerable<string> uidsToDelete,
+        IEnumerable<T> entitiesToPut,
+        bool deleteAll = false)
+    {
+        using var conn = GetConnection();
+        using var txn = conn.BeginTransaction();
+
+        if (deleteAll)
+        {
+            var deleteAllCmd = GetDeleteStatement(conn);
+            deleteAllCmd.Transaction = txn;
+            deleteAllCmd.ExecuteNonQuery();
+        }
+        else if (uidsToDelete != null)
+        {
+            var deleteCmd = GetDeleteStatement(conn, new[] { EntityColumnName });
+            deleteCmd.Transaction = txn;
+            var entityParameter = (IDbDataParameter) deleteCmd.Parameters[$"@{EntityColumnName}"];
+            foreach (var uid in uidsToDelete)
+            {
+                if (string.IsNullOrEmpty(uid))
+                {
+                    continue;
+                }
+
+                entityParameter.Value = uid;
+                deleteCmd.ExecuteNonQuery();
+            }
+        }
+
+        if (entitiesToPut != null)
+        {
+            var putCmd = GetPutStatement(conn);
+            putCmd.Transaction = txn;
+            foreach (var entity in entitiesToPut)
+            {
+                if (entity == null)
+                {
+                    continue;
+                }
+
+                if (!(entity is TD data))
+                {
+                    data = new TD();
+                    data.CopyFields(entity);
+                }
+
+                PopulateCommandParameters(putCmd, data);
+                putCmd.ExecuteNonQuery();
+            }
         }
 
         txn.Commit();

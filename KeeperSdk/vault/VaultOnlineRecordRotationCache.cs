@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using KeeperSecurity.Utils;
 using VaultProto = Vault;
 
@@ -25,7 +26,8 @@ namespace KeeperSecurity.Vault
     {
         private readonly Dictionary<string, RecordRotationInfo> _recordRotationCache =
             new(StringComparer.Ordinal);
-        private bool _recordRotationsCleared;
+        // 0 = not cleared since last consume; 1 = cleared. Int for Interlocked (bool is not supported).
+        private int _recordRotationsCleared;
 
         /// <summary>
         /// Full record-rotation map populated by normal vault sync-down.
@@ -54,15 +56,14 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public bool ConsumeRotationsCleared()
         {
-            var cleared = _recordRotationsCleared;
-            _recordRotationsCleared = false;
-            return cleared;
+            // Atomic read-and-clear so a concurrent ClearRecordRotationCache cannot lose the flag.
+            return Interlocked.Exchange(ref _recordRotationsCleared, 0) != 0;
         }
 
         internal void ClearRecordRotationCache()
         {
             _recordRotationCache.Clear();
-            _recordRotationsCleared = true;
+            Interlocked.Exchange(ref _recordRotationsCleared, 1);
         }
 
         internal void RemoveFromRecordRotationCache(IEnumerable<string> recordUids)

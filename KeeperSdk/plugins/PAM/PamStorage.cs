@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using Enterprise;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
@@ -41,6 +43,18 @@ namespace KeeperSecurity.Plugins.PAM
     IEntityStorage<IPamStorageController> Controllers { get; }
     IEntityStorage<IPamStorageRecordRotation> RecordRotations { get; }
     void Reset();
+
+    /// <summary>
+    /// Atomically apply a controller merge to durable storage (delete + put as one unit).
+    /// </summary>
+    void ApplyControllerMerge(IEnumerable<IPamStorageController> rows, bool replaceAll);
+
+    /// <summary>
+    /// Atomically apply a record-rotation merge to durable storage (delete + put as one unit).
+    /// </summary>
+    /// <param name="rows">Incoming rotation rows (final desired set for non-empty merges).</param>
+    /// <param name="replaceAll">When true, clear all existing rotations before writing <paramref name="rows"/>.</param>
+    void ApplyRecordRotationMerge(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll);
   }
 
   [SqlTable(Name = "pam_storage_controller", PrimaryKey = new[] { "controller_uid" })]
@@ -255,6 +269,7 @@ namespace KeeperSecurity.Plugins.PAM
 
   public class MemoryPamStorage : IPamStorage
   {
+    private readonly object _mergeLock = new();
     private readonly InMemoryEntityStorage<IPamStorageController> _controllers = new();
     private readonly InMemoryEntityStorage<IPamStorageRecordRotation> _recordRotations = new();
 
@@ -263,8 +278,58 @@ namespace KeeperSecurity.Plugins.PAM
 
     public void Reset()
     {
-      _controllers.Clear();
-      _recordRotations.Clear();
+      lock (_mergeLock)
+      {
+        _controllers.Clear();
+        _recordRotations.Clear();
+      }
+    }
+
+    public void ApplyControllerMerge(IEnumerable<IPamStorageController> rows, bool replaceAll)
+    {
+      var rowList = PamStorageMerge.NormalizeControllerRows(rows);
+      lock (_mergeLock)
+      {
+        ApplyInMemoryMerge(_controllers, rowList, replaceAll, r => r.ControllerUid);
+      }
+    }
+
+    public void ApplyRecordRotationMerge(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll)
+    {
+      var rowList = PamStorageMerge.NormalizeRotationRows(rows);
+      lock (_mergeLock)
+      {
+        ApplyInMemoryMerge(_recordRotations, rowList, replaceAll, r => r.RecordUid);
+      }
+    }
+
+    private static void ApplyInMemoryMerge<T>(
+      InMemoryEntityStorage<T> store,
+      List<T> rowList,
+      bool replaceAll,
+      Func<T, string> uidSelector) where T : IUid
+    {
+      if (replaceAll)
+      {
+        store.Clear();
+      }
+      else
+      {
+        var incomingUids = new HashSet<string>(rowList.Select(uidSelector), StringComparer.Ordinal);
+        var staleUids = store.GetAll()
+          .Select(r => r.Uid)
+          .Where(uid => !incomingUids.Contains(uid))
+          .ToList();
+        if (staleUids.Count > 0)
+        {
+          store.DeleteUids(staleUids);
+        }
+      }
+
+      if (rowList.Count > 0)
+      {
+        store.PutEntities(rowList);
+      }
     }
   }
 
@@ -307,6 +372,59 @@ namespace KeeperSecurity.Plugins.PAM
     {
       _controllers.DeleteAll();
       _recordRotations.DeleteAll();
+    }
+
+    public void ApplyControllerMerge(IEnumerable<IPamStorageController> rows, bool replaceAll)
+    {
+      var rowList = PamStorageMerge.NormalizeControllerRows(rows);
+      if (replaceAll)
+      {
+        _controllers.MutateEntities(uidsToDelete: null, entitiesToPut: rowList, deleteAll: true);
+        return;
+      }
+
+      var incomingUids = new HashSet<string>(rowList.Select(r => r.ControllerUid), StringComparer.Ordinal);
+      var staleUids = _controllers.GetAll()
+        .Select(r => r.Uid)
+        .Where(uid => !incomingUids.Contains(uid))
+        .ToList();
+      _controllers.MutateEntities(staleUids, rowList, deleteAll: false);
+    }
+
+    public void ApplyRecordRotationMerge(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll)
+    {
+      var rowList = PamStorageMerge.NormalizeRotationRows(rows);
+      if (replaceAll)
+      {
+        _recordRotations.MutateEntities(uidsToDelete: null, entitiesToPut: rowList, deleteAll: true);
+        return;
+      }
+
+      var incomingUids = new HashSet<string>(rowList.Select(r => r.RecordUid), StringComparer.Ordinal);
+      var staleUids = _recordRotations.GetAll()
+        .Select(r => r.Uid)
+        .Where(uid => !incomingUids.Contains(uid))
+        .ToList();
+      _recordRotations.MutateEntities(staleUids, rowList, deleteAll: false);
+    }
+  }
+
+  internal static class PamStorageMerge
+  {
+    internal static List<IPamStorageController> NormalizeControllerRows(
+      IEnumerable<IPamStorageController> rows)
+    {
+      return rows?
+        .Where(r => r != null && !string.IsNullOrEmpty(r.ControllerUid))
+        .ToList() ?? new List<IPamStorageController>();
+    }
+
+    internal static List<IPamStorageRecordRotation> NormalizeRotationRows(
+      IEnumerable<IPamStorageRecordRotation> rows)
+    {
+      return rows?
+        .Where(r => r != null && !string.IsNullOrEmpty(r.RecordUid))
+        .ToList() ?? new List<IPamStorageRecordRotation>();
     }
   }
 }

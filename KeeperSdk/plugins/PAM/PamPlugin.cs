@@ -84,17 +84,7 @@ namespace KeeperSecurity.Plugins.PAM
 
     public async Task SyncDownAsync(bool reload = false)
     {
-      if (reload)
-      {
-        var existing = Storage.Controllers.GetAll().Select(c => c.Uid).ToList();
-        if (existing.Count > 0)
-        {
-          Storage.Controllers.DeleteUids(existing);
-        }
-
-        _controllers.Clear();
-      }
-
+      // Fetch first so a failed network call never wipes durable/in-memory controllers.
       var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
       var storageRows = new List<IPamStorageController>();
       var domainRows = new List<PamController>();
@@ -110,7 +100,10 @@ namespace KeeperSecurity.Plugins.PAM
         domainRows.Add(domainRow);
       }
 
-      ApplyGatewayEntities(storageRows, domainRows);
+      // Atomic durable merge first. If this throws, working cache is left unchanged.
+      Storage.ApplyControllerMerge(storageRows, replaceAll: reload);
+      // Rebuild working cache from the intended end state (mirrors durable storage).
+      SyncControllersFromDomain(domainRows);
       SyncRecordRotationsFromStorage();
     }
 
@@ -131,45 +124,14 @@ namespace KeeperSecurity.Plugins.PAM
 
     /// <summary>
     /// Upsert rotation rows into PAM storage + memory (from normal vault sync).
+    /// Durable storage is updated atomically; the working cache is then rebuilt from storage.
     /// </summary>
     public void MergeRecordRotations(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll = false)
     {
-      var rowList = rows?
-        .Where(r => r != null && !string.IsNullOrEmpty(r.RecordUid))
-        .ToList() ?? new List<IPamStorageRecordRotation>();
-      var incomingUids = new HashSet<string>(rowList.Select(r => r.RecordUid), StringComparer.Ordinal);
-
-      if (replaceAll)
-      {
-        var existing = Storage.RecordRotations.GetAll().Select(r => r.Uid).ToList();
-        if (existing.Count > 0)
-        {
-          Storage.RecordRotations.DeleteUids(existing);
-        }
-
-        _recordRotations.Clear();
-      }
-      else
-      {
-        var staleUids = Storage.RecordRotations.GetAll()
-          .Select(r => r.Uid)
-          .Where(uid => !incomingUids.Contains(uid))
-          .ToList();
-
-        if (staleUids.Count > 0)
-        {
-          Storage.RecordRotations.DeleteUids(staleUids);
-          _recordRotations.DeleteUids(staleUids);
-        }
-      }
-
-      if (rowList.Count == 0)
-      {
-        return;
-      }
-
-      Storage.RecordRotations.PutEntities(rowList);
-      _recordRotations.PutEntities(rowList.Select(PamStorageMapper.ToDomainRotation));
+      // Single atomic durable merge (SQL transaction or locked in-memory store).
+      Storage.ApplyRecordRotationMerge(rows, replaceAll);
+      // Rebuild working set from durable storage so SQL + memory cannot diverge mid-merge.
+      SyncRecordRotationsFromStorage();
     }
 
     /// <summary>
@@ -195,39 +157,14 @@ namespace KeeperSecurity.Plugins.PAM
       var controllers = Storage.Controllers.GetAll()
         .Select(PamStorageMapper.ToDomainController)
         .ToList();
-      if (controllers.Count > 0)
-      {
-        _controllers.PutEntities(controllers);
-      }
-
+      SyncControllersFromDomain(controllers);
       SyncRecordRotationsFromStorage();
     }
 
-    private void ApplyGatewayEntities(
-      IReadOnlyList<IPamStorageController> storageRows,
-      IReadOnlyList<PamController> domainRows)
+    private void SyncControllersFromDomain(IReadOnlyList<PamController> domainRows)
     {
-      var serverUids = new HashSet<string>(
-        domainRows.Select(c => c.Uid),
-        StringComparer.Ordinal);
-
-      var staleUids = _controllers.GetAll()
-        .Select(c => c.Uid)
-        .Where(uid => !serverUids.Contains(uid))
-        .ToList();
-
-      if (staleUids.Count > 0)
-      {
-        _controllers.DeleteUids(staleUids);
-        Storage.Controllers.DeleteUids(staleUids);
-      }
-
-      if (storageRows.Count > 0)
-      {
-        Storage.Controllers.PutEntities(storageRows);
-      }
-
-      if (domainRows.Count > 0)
+      _controllers.Clear();
+      if (domainRows != null && domainRows.Count > 0)
       {
         _controllers.PutEntities(domainRows);
       }

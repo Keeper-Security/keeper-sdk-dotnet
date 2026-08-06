@@ -546,6 +546,16 @@ namespace Commander
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                this.ReleaseEnterprisePlugins();
+                if (_vaultContext != null)
+                {
+                    _vaultContext.EnterpriseContext = null;
+                    _vaultContext.EnterpriseData = null;
+                }
+            }
+
             base.Dispose(disposing);
             _vaultContext.Vault.Dispose();
             _auth.Dispose();

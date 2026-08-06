@@ -139,6 +139,20 @@ namespace Commander
                 Debug.WriteLine($"RefreshRecordRotations failed: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Drop static plugin caches for this enterprise context so logout/dispose can GC.
+        /// </summary>
+        internal static void ReleaseEnterprisePlugins(this IEnterpriseContext context)
+        {
+            if (context == null)
+            {
+                return;
+            }
+
+            _pamPlugins.Remove(context);
+            _epmPlugins.Remove(context);
+        }
     }
 
     internal static class EnterpriseExtensions
@@ -3850,6 +3864,16 @@ namespace Commander
         public override string GetPrompt()
         {
             return "Managed Company";
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.ReleaseEnterprisePlugins();
+            }
+
+            base.Dispose(disposing);
         }
     }
 
