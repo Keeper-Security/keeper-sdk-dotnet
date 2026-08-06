@@ -35,65 +35,35 @@ namespace Commander
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(options.Folder))
+            {
+                Console.WriteLine("Folder UID or name is required.");
+                return;
+            }
+
             bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : null;
 
             try
+            {
+                if (!context.Vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
                 {
-                    var folders = options.Folder?.ToList() ?? new List<string>();
-                    if (folders.Count == 0)
-                    {
-                        Console.WriteLine("At least one folder UID or name is required.");
-                        return;
-                    }
-
-                    var updatesList = new List<(string FolderUidOrName, string NewName, string Color, bool? InheritPermissions)>();
-                    foreach (var name in folders)
-                    {
-                        if (!context.Vault.TryResolveKeeperNSFFolder(name, out var folderNode))
-                        {
-                            Console.WriteLine($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
-                            continue;
-                        }
-
-                        updatesList.Add((folderNode.FolderUid, options.Name, options.Color, inheritPermissions));
-                    }
-
-                    if (updatesList.Count == 0)
-                    {
-                        Console.WriteLine("No valid folders to update.");
-                        return;
-                    }
-
-                    var results = await context.Vault.UpdateKeeperNSFFolders(updatesList).ConfigureAwait(false);
-                    for (int i = 0; i < results.Count; i++)
-                    {
-                        var res = results[i];
-                        var target = updatesList[i].FolderUidOrName;
-                        if (res == null)
-                        {
-                            Console.WriteLine($"No result returned for '{target}'.");
-                            continue;
-                        }
-
-                        try
-                        {
-                            VaultOnline.ValidateFolderModifyResult(res);
-                            Console.WriteLine($"Folder '{target}' updated.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Failed to update '{target}': {ex.Message}");
-                        }
-                    }
-
-                    await context.Vault.SyncDown(false).ConfigureAwait(false);
+                    Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error updating folder(s): {ex.Message}");
-                }
+
+                var result = await context.Vault.UpdateKeeperNSFFolder(
+                    folderNode.FolderUid, options.Name, options.Color, inheritPermissions).ConfigureAwait(false);
+                VaultOnline.ValidateFolderModifyResult(result);
+                Console.WriteLine($"Folder '{folderNode.FolderUid}' updated.");
+                await context.Vault.SyncDown(false).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating folder: {ex.Message}");
+            }
         }
 
+        // nsf-rmdir: preview batch remove, prompt, then confirm via stored chunk tokens.
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
         {
             var vault = context.Vault;
@@ -152,6 +122,19 @@ namespace Commander
 
             NsfHelpers.WriteRemoveImpact(previewResult.PreviewResponse, "Folder");
 
+            if (previewResult.FailedChunkCount > 0)
+            {
+                Console.WriteLine($"Error: Folder remove preview failed for {previewResult.FailedChunkCount} chunk(s).");
+                if (previewResult.ChunkErrors != null)
+                {
+                    foreach (var err in previewResult.ChunkErrors)
+                    {
+                        Console.WriteLine($"  {err}");
+                    }
+                }
+                return;
+            }
+
             try
             {
                 VaultOnline.ValidateRemoveResponse(previewResult.PreviewResponse, false);
@@ -181,9 +164,9 @@ namespace Commander
                 }
             }
 
-            if (previewResult.PreviewResponse.ConfirmationToken.IsEmpty)
+            if (previewResult.ChunkConfirmationTokens == null || previewResult.ChunkConfirmationTokens.Count == 0)
             {
-                Console.WriteLine("Preview did not return a confirmation token.");
+                Console.WriteLine("Preview did not return confirmation token(s).");
                 return;
             }
 
@@ -192,7 +175,7 @@ namespace Commander
             KeeperNSFRemoveResult confirmResult;
             try
             {
-                confirmResult = await vault.RemoveKeeperNSFFolders(removals, false);
+                confirmResult = await vault.ConfirmKeeperNSFFolders(removals, previewResult);
             }
             catch (Exception ex)
             {
@@ -200,9 +183,33 @@ namespace Commander
                 return;
             }
 
+            if (confirmResult.PartialSuccess)
+            {
+                Console.WriteLine(
+                    $"Partial folder removal: {confirmResult.ConfirmedChunkCount} chunk(s) succeeded, " +
+                    $"{confirmResult.FailedChunkCount} failed.");
+                if (confirmResult.ChunkErrors != null)
+                {
+                    foreach (var err in confirmResult.ChunkErrors)
+                    {
+                        Console.WriteLine($"  {err}");
+                    }
+                }
+
+                await vault.SyncDown(false);
+                return;
+            }
+
             if (!confirmResult.Confirmed)
             {
-                Console.WriteLine("Folder removal was not confirmed by the server.");
+                if (confirmResult.ChunkErrors != null && confirmResult.ChunkErrors.Count > 0)
+                {
+                    Console.WriteLine(string.Join("; ", confirmResult.ChunkErrors));
+                }
+                else
+                {
+                    Console.WriteLine("Folder removal was not confirmed by the server.");
+                }
                 return;
             }
 
@@ -271,8 +278,8 @@ namespace Commander
 
     class NsfRndirOptions
     {
-        [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]
-        public IEnumerable<string> Folder { get; set; }
+        [Value(0, Required = true, HelpText = "Folder UID or name")]
+        public string Folder { get; set; }
 
         [Option('n', "name", Required = false, HelpText = "New folder name")]
         public string Name { get; set; }
@@ -284,6 +291,7 @@ namespace Commander
         public bool NoInheritPermissions { get; set; }
     }
 
+    // CLI options for nsf-rmdir (supports multiple folders; uses batch preview/confirm APIs).
     class NsfRmdirOptions
     {
         [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]

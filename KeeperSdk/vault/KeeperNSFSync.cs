@@ -772,6 +772,7 @@ namespace KeeperSecurity.Vault
                             .Select(f => new KeeperNSFField
                             {
                                 Type = f.Type,
+                                Label = f.Label,
                                 Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
                             })
                             .ToList(),
@@ -817,6 +818,9 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "type", EmitDefaultValue = false)]
         public string Type { get; set; }
 
+        [DataMember(Name = "label", EmitDefaultValue = false)]
+        public string Label { get; set; }
+
         [DataMember(Name = "value", EmitDefaultValue = false)]
         public object[] Value { get; set; }
 
@@ -850,6 +854,7 @@ namespace KeeperSecurity.Vault
     public class KeeperNSFField
     {
         public string Type { get; internal set; }
+        public string Label { get; internal set; }
         public IReadOnlyList<string> Value { get; internal set; }
     }
 
