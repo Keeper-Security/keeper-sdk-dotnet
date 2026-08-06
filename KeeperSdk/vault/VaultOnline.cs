@@ -405,6 +405,19 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderCreateResult>> CreateKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderCreateRequest> folders)
+        {
+            var results = await this.CreateKeeperNSFFoldersInternal(folders).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
         public async Task GrantKeeperNSFFolderAccess(string folderUid, string userEmail, string role = "viewer", SharedFolderUserOptions options = null)
         {
             await this.GrantKeeperNSFFolderAccessInternal(folderUid, userEmail, role, options);
@@ -412,10 +425,49 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> GrantKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessGrantRequest> grants)
+        {
+            var results = await this.GrantKeeperNSFFolderAccessesInternal(grants).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> UpdateKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessUpdateRequest> updates)
+        {
+            var results = await this.UpdateKeeperNSFFolderAccessesInternal(updates).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
         public async Task RevokeKeeperNSFFolderAccess(string folderUid, string userEmail)
         {
             await this.RevokeKeeperNSFFolderAccessInternal(folderUid, userEmail);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderAccessResult>> RevokeKeeperNSFFolderAccesses(
+            IReadOnlyList<KeeperNSFFolderAccessRevokeRequest> revokes)
+        {
+            var results = await this.RevokeKeeperNSFFolderAccessesInternal(revokes).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
         }
 
         /// <summary>
@@ -443,6 +495,28 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordCreateRequest> records)
+        {
+            var results = await this.CreateKeeperNSFRecordsInternal(records).ConfigureAwait(false);
+            if (results.Any(r => r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
+            ImportFile import,
+            string defaultFolderUid = null)
+        {
+            var requests = KeeperImport.ToKeeperNSFCreateRequests(this, import, defaultFolderUid);
+            return await CreateKeeperNSFRecords(requests).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<TryUpdateKeeperNSFRecordResult> TryUpdateKeeperNSFRecord(string recordUid, string title = null, string recordType = null, string notes = null, IDictionary<string, object> fields = null)
         {
             try
@@ -463,27 +537,30 @@ namespace KeeperSecurity.Vault
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> UpdateKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordUpdateRequest> records)
+        {
+            var results = await this.UpdateKeeperNSFRecordsInternal(records).ConfigureAwait(false);
+            if (results.Any(r => r != null && r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordUpdateResult>> UpdateKeeperNSFRecordsFromImport(ImportFile import)
+        {
+            var requests = KeeperImport.ToKeeperNSFUpdateRequests(this, import);
+            return await UpdateKeeperNSFRecords(requests).ConfigureAwait(false);
+        }
+
         private async Task UpdateKeeperNSFRecordAsync(string recordUid, string title, string recordType, string notes, IDictionary<string, object> fields)
         {
-            try
-            {
-                await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
-            }
-            catch (KeeperApiException e) when (IsRecordOutOfSync(e))
-            {
-                if (string.IsNullOrEmpty(recordUid))
-                {
-                    throw;
-                }
-
-                var refreshedRecord = await this.GetRefreshedKeeperNSFRecordAsync(recordUid).ConfigureAwait(false);
-                if (refreshedRecord == null)
-                {
-                    throw;
-                }
-
-                await this.UpdateKeeperNSFRecordInternal(refreshedRecord, title, recordType, notes, fields).ConfigureAwait(false);
-            }
+            // Out-of-sync retry is handled inside UpdateKeeperNSFRecordsInternal.
+            await this.UpdateKeeperNSFRecordInternal(recordUid, title, recordType, notes, fields).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -494,10 +571,36 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordShareResult>> ShareKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordShareRequest> shares)
+        {
+            var results = await this.ShareKeeperNSFRecordsInternal(shares).ConfigureAwait(false);
+            if (results.Any(r => r != null && r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
         public async Task UnshareKeeperNSFRecord(string recordUid, string userEmail)
         {
             await this.UnshareKeeperNSFRecordInternal(recordUid, userEmail);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordUnshareResult>> UnshareKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordUnshareRequest> unshares)
+        {
+            var results = await this.UnshareKeeperNSFRecordsInternal(unshares).ConfigureAwait(false);
+            if (results.Any(r => r != null && r.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            }
+
+            return results;
         }
 
         /// <inheritdoc/>
