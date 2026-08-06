@@ -1,5 +1,7 @@
 #requires -Version 5.1
 
+. "$PSScriptRoot/ImportSampleData.ps1"
+
 $Script:PathDelimiter = [System.IO.Path]::DirectorySeparatorChar
 
 function getVault {
@@ -803,13 +805,143 @@ function Export-KeeperVault {
 }
 New-Alias -Name kexport -Value Export-KeeperVault
 
+function Script:ConvertTo-ImportJsonValue {
+    <#
+    .SYNOPSIS
+    Converts PowerShell/ConvertFrom-Json output into KeeperSecurity.Commands.ImportJsonValue
+    for KeeperImport.LoadJsonDictionary. (Not for NSF record Fields bags — use ConvertTo-NSFJsonValue.)
+    #>
+    Param([Parameter(Mandatory = $true)][AllowNull()] $InputObject)
+
+    if ($null -eq $InputObject) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::Null
+    }
+
+    $base = $InputObject
+    if ($InputObject -is [System.Management.Automation.PSObject] -and $null -ne $InputObject.PSObject) {
+        $bo = $InputObject.PSObject.BaseObject
+        if ($null -ne $bo) { $base = $bo }
+    }
+
+    if ($base -is [string]) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+    }
+
+    if ($base -is [bool]) {
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromBoolean([bool]$base)
+    }
+
+    if ($base -is [byte] -or $base -is [sbyte] -or $base -is [int16] -or $base -is [uint16] -or
+        $base -is [int] -or $base -is [uint32] -or $base -is [int64] -or $base -is [uint64] -or
+        $base -is [single] -or $base -is [double] -or $base -is [decimal]) {
+        # Store as string to avoid double precision loss (e.g. large numeric uids).
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+    }
+
+    if ($base -is [KeeperSecurity.Commands.ImportJsonValue]) {
+        return $base
+    }
+
+    if ($base -is [System.Collections.IDictionary]) {
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
+        foreach ($key in $base.Keys) {
+            $ht[[string]$key] = ConvertTo-ImportJsonValue -InputObject $base[$key]
+        }
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($ht)
+    }
+
+    if ($base -is [System.Collections.IEnumerable]) {
+        $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ImportJsonValue]'
+        foreach ($item in $base) {
+            $list.Add((ConvertTo-ImportJsonValue -InputObject $item)) | Out-Null
+        }
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromArray($list)
+    }
+
+    if ($null -ne $InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
+        $ht = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
+        foreach ($prop in $InputObject.PSObject.Properties) {
+            $ht[$prop.Name] = ConvertTo-ImportJsonValue -InputObject $prop.Value
+        }
+        return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($ht)
+    }
+
+    return [KeeperSecurity.Commands.ImportJsonValue]::FromString([string]$base)
+}
+
+function Script:Repair-ImportJsonSingleElementArrays {
+    <#
+    .SYNOPSIS
+    PowerShell unwraps single-element arrays to the element; restore records/shared_folders as arrays.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Commands.ImportJsonValue] $JsonValue
+    )
+
+    if ($null -eq $JsonValue -or $JsonValue.Kind -ne [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+        return $JsonValue
+    }
+
+    $changed = $false
+    $map = New-Object 'System.Collections.Generic.Dictionary[string,KeeperSecurity.Commands.ImportJsonValue]'
+    foreach ($key in $JsonValue.ObjectValue.Keys) {
+        $existing = $JsonValue.ObjectValue[$key]
+        if (($key -eq 'records' -or $key -eq 'shared_folders') -and
+            $null -ne $existing -and
+            $existing.Kind -eq [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+            $single = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ImportJsonValue]'
+            $single.Add($existing) | Out-Null
+            $map[$key] = [KeeperSecurity.Commands.ImportJsonValue]::FromArray($single)
+            $changed = $true
+        }
+        else {
+            $map[$key] = $existing
+        }
+    }
+
+    if (-not $changed) {
+        return $JsonValue
+    }
+
+    return [KeeperSecurity.Commands.ImportJsonValue]::FromObject($map)
+}
+
+function Script:Read-KeeperImportFile {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    if ([string]::IsNullOrWhiteSpace($JsonText)) {
+        throw "JSON text cannot be empty."
+    }
+
+    # ConvertFrom-Json + ImportJsonValue preserves nested custom_fields.
+    # JsonUtils.ParseJson / DataContractJsonSerializer turns those into empty System.Object.
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $jsonValue = ConvertTo-ImportJsonValue -InputObject $parsed
+    if ($null -eq $jsonValue -or $jsonValue.Kind -ne [KeeperSecurity.Commands.ImportJsonValue+JsonKind]::Object) {
+        throw "Import JSON root must be an object."
+    }
+
+    $jsonValue = Repair-ImportJsonSingleElementArrays -JsonValue $jsonValue
+    return [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($jsonValue)
+}
+
 function Import-KeeperVault {
     <#
 	.Synopsis
 	Import vault data from a JSON file
 
 	.Parameter FileName
-	JSON import filename (from Export-KeeperVault or compatible format)
+	JSON import filename (from Export-KeeperVault or compatible format).
+	When used with -DownloadSampleRecords, this is the output path (default: keeper-import-sample.json).
+
+	.Parameter DownloadSampleRecords
+	Writes a sample import JSON file to disk and exits without importing.
+	The sample uses the same records and shared_folders structure as Export-KeeperVault / kimport.
+	Edit the file with your own data, then import with Import-KeeperVault -FileName.
 
 	.Parameter Force
 	Proceed without confirming when file is large
@@ -817,24 +949,64 @@ function Import-KeeperVault {
 	.Description
 	Imports records and shared folders from a JSON file into the vault.
 	Use a file produced by Export-KeeperVault or the same JSON structure (records, shared_folders).
+	Nested custom_fields objects (e.g. $host, $paymentCard) are preserved; the same record JSON
+	shape is used by NSF batch create/update (Add-KeeperNSFRecords / Edit-KeeperNSFRecords).
 
 	.Example
 	Import-KeeperVault -FileName "vault_backup.json"
 	Imports vault data from vault_backup.json
 
 	.Example
+	Import-KeeperVault -DownloadSampleRecords
+	Writes keeper-import-sample.json in the current directory
+
+	.Example
+	Import-KeeperVault -DownloadSampleRecords -FileName "my-import-template.json"
+	Writes a sample import file to my-import-template.json
+
+	.Example
 	Import-KeeperVault -FileName "restore.json" -Force
 	Imports without size confirmation
 #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Import')]
     Param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Import')]
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = 'DownloadSample')]
         [string] $FileName,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleRecords,
 
         [Parameter(Mandatory = $false)]
         [switch] $Force
     )
+
+    if ($DownloadSampleRecords) {
+        if (-not $FileName) {
+            $FileName = 'keeper-import-sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperImportSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample import file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Edit the file with your records and shared folders, then run:"
+        Write-Host "    Import-KeeperVault -FileName `"$FileName`""
+        return
+    }
+
+    if (-not $FileName) {
+        Write-Error "FileName is required when -DownloadSampleRecords is not specified."
+        return
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if (-not $vault) {
@@ -862,9 +1034,8 @@ function Import-KeeperVault {
     }
 
     try {
-        $jsonBytes = [System.IO.File]::ReadAllBytes($fullPath)
-        $parseJson = [KeeperSecurity.Utils.JsonUtils].GetMethod("ParseJson", [Type[]]@([byte[]]))
-        $importFile = $parseJson.MakeGenericMethod([KeeperSecurity.Commands.ImportFile]).Invoke($null, @(,$jsonBytes))
+        $jsonText = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
+        $importFile = Read-KeeperImportFile -JsonText $jsonText
     }
     catch {
         Write-Error "Error reading or parsing JSON file: $_"
