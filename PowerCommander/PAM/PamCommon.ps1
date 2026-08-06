@@ -115,6 +115,53 @@ function script:getPamRotationVault {
     return $vault
 }
 
+function script:toPamStringListOrNull {
+    Param ([string[]] $Values)
+
+    if ($null -eq $Values -or $Values.Count -eq 0) {
+        return $null
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($value in $Values) {
+        if ($null -eq $value) {
+            continue
+        }
+        foreach ($part in $value.Split(@(','), [System.StringSplitOptions]::None)) {
+            [void]$list.Add($part)
+        }
+    }
+
+    if ($list.Count -eq 0) {
+        return $null
+    }
+    return , $list
+}
+
+function script:writePamEditResult {
+    Param (
+        [Parameter(Mandatory = $true)]
+        $Result,
+        [bool] $Silent,
+        [Parameter(Mandatory = $true)]
+        [string] $UpdatedMessage
+    )
+
+    if ($null -ne $Result.Messages) {
+        foreach ($message in $Result.Messages) {
+            Write-Output $message
+        }
+    }
+
+    if ($Silent) {
+        return
+    }
+
+    if ($Result.RecordUpdated -or $Result.GraphUpdated) {
+        Write-Output $UpdatedMessage
+    }
+}
+
 function script:confirmPamYesNo {
     Param (
         [Parameter(Mandatory = $true)]

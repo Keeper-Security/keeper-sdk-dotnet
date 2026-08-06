@@ -67,15 +67,14 @@ function Set-KeeperPamConnection {
         [string] $Configuration,
 
         [Parameter()]
-        [Alias('a', 'admin-user')]
+        [Alias('a')]
         [string] $AdminUser,
 
         [Parameter()]
-        [Alias('lu', 'launch-user')]
+        [Alias('lu')]
         [string] $LaunchUser,
 
         [Parameter()]
-        [Alias('clear-launch-user')]
         [switch] $ClearLaunchUser,
 
         [Parameter()]
@@ -89,21 +88,21 @@ function Set-KeeperPamConnection {
         [string] $Connections,
 
         [Parameter()]
-        [Alias('cr', 'connections-recording')]
+        [Alias('cr')]
         [ValidateSet('on', 'off', 'default')]
         [string] $ConnectionsRecording,
 
         [Parameter()]
-        [Alias('tr', 'typescript-recording')]
+        [Alias('tr')]
         [ValidateSet('on', 'off', 'default')]
         [string] $TypescriptRecording,
 
         [Parameter()]
-        [Alias('cop', 'connections-override-port')]
+        [Alias('cop')]
         [string] $ConnectionsOverridePort,
 
         [Parameter()]
-        [Alias('k', 'key-events')]
+        [Alias('k')]
         [ValidateSet('on', 'off', 'default')]
         [string] $KeyEvents,
 
@@ -112,7 +111,6 @@ function Set-KeeperPamConnection {
         [string] $Scrollback,
 
         [Parameter()]
-        [Alias('rotate-on-termination')]
         [ValidateSet('on', 'off')]
         [string] $RotateOnTermination,
 
@@ -127,7 +125,6 @@ function Set-KeeperPamConnection {
     }
 
     $vault = getPamRotationVault
-
     $options = New-Object KeeperSecurity.Plugins.PAM.PamConnectionEditOptions
     $options.Record = $Record.Trim()
     $options.Configuration = $Configuration
@@ -157,17 +154,8 @@ function Set-KeeperPamConnection {
         return
     }
 
-    foreach ($message in $result.Messages) {
-        Write-Output $message
-    }
-
-    if ($Silent.IsPresent) {
-        return
-    }
-
-    if ($result.RecordUpdated -or $result.GraphUpdated) {
-        Write-Output ("Connection settings updated for {0}" -f $result.RecordUid)
-    }
+    writePamEditResult -Result $result -Silent $Silent.IsPresent `
+        -UpdatedMessage ("Connection settings updated for {0}" -f $result.RecordUid)
 }
 
 New-Alias -Name pam-connection-edit -Value Set-KeeperPamConnection -ErrorAction SilentlyContinue

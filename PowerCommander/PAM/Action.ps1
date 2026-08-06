@@ -11,12 +11,7 @@ function script:writePamActionResult {
     }
 
     if (-not $Result.IsOk) {
-        if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) {
-            Write-Output 'Action failed.'
-        }
-        else {
-            Write-Output $Result.RawPayloadJson
-        }
+        Write-Output $(if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) { 'Action failed.' } else { $Result.RawPayloadJson })
         return
     }
 
@@ -44,17 +39,14 @@ function script:writePamActionJobInfoDetails {
     )
 
     $job = $Result.JobInfo
-    if ($null -eq $job `
-            -or ([string]::IsNullOrEmpty($job.Status) `
-                -and [string]::IsNullOrEmpty($job.Duration) `
-                -and [string]::IsNullOrEmpty($job.ResponseMessage) `
-                -and [string]::IsNullOrEmpty($job.ExecutionException))) {
-        if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) {
-            Write-Output 'No job details returned.'
-        }
-        else {
-            Write-Output $Result.RawPayloadJson
-        }
+    $hasDetails = $null -ne $job -and (
+        -not [string]::IsNullOrEmpty($job.Status) `
+            -or -not [string]::IsNullOrEmpty($job.Duration) `
+            -or -not [string]::IsNullOrEmpty($job.ResponseMessage) `
+            -or -not [string]::IsNullOrEmpty($job.ExecutionException))
+
+    if (-not $hasDetails) {
+        Write-Output $(if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) { 'No job details returned.' } else { $Result.RawPayloadJson })
         return
     }
 
@@ -94,14 +86,13 @@ function Invoke-KeeperPamActionRotate {
 
         .Example
         Invoke-KeeperPamActionRotate -RecordUid "<uid>"
-        Invoke-KeeperPamActionRotate -r "<uid>"
         Invoke-KeeperPamActionRotate -Folder "<folder-uid>" -DryRun
         pam-action-rotate -r "<uid>"
     #>
     [CmdletBinding(DefaultParameterSetName = 'Record')]
     Param (
         [Parameter(ParameterSetName = 'Record')]
-        [Alias('r', 'record-uid')]
+        [Alias('r')]
         [string] $RecordUid,
 
         [Parameter(ParameterSetName = 'Folder')]
@@ -109,7 +100,7 @@ function Invoke-KeeperPamActionRotate {
         [string] $Folder,
 
         [Parameter(ParameterSetName = 'Folder')]
-        [Alias('n', 'dry-run')]
+        [Alias('n')]
         [switch] $DryRun
     )
 
@@ -119,7 +110,6 @@ function Invoke-KeeperPamActionRotate {
     }
 
     $vault = getPamRotationVault
-
     $options = New-Object KeeperSecurity.Plugins.PAM.PamRotateOptions
     $options.RecordUid = $RecordUid
     $options.Folder = $Folder
@@ -134,17 +124,17 @@ function Invoke-KeeperPamActionRotate {
     }
 
     if ($result.IsFolderMode) {
-        $folder = $result.FolderResult
-        Write-Output ("Selected for rotation - folders: {0}, records: {1}" -f $folder.FolderCount, $folder.RecordCount)
-        if ($folder.DryRun) {
+        $folderResult = $result.FolderResult
+        Write-Output ("Selected for rotation - folders: {0}, records: {1}" -f $folderResult.FolderCount, $folderResult.RecordCount)
+        if ($folderResult.DryRun) {
             return
         }
 
-        foreach ($item in $folder.Results) {
+        foreach ($item in $folderResult.Results) {
             writePamActionResult -Result $item
         }
-        foreach ($error in $folder.Errors) {
-            Write-Output ("Record UID: {0} skipped: {1}" -f $error.RecordUid, $error.Message)
+        foreach ($errorItem in $folderResult.Errors) {
+            Write-Output ("Record UID: {0} skipped: {1}" -f $errorItem.RecordUid, $errorItem.Message)
         }
         return
     }
@@ -169,13 +159,12 @@ function Get-KeeperPamActionJobInfo {
 
         .Example
         Get-KeeperPamActionJobInfo -JobId "<conversation-id>"
-        Get-KeeperPamActionJobInfo -j "<conversation-id>" -Gateway "<gateway-uid>"
-        pam-action-job-info -j "<conversation-id>"
+        pam-action-job-info -j "<conversation-id>" -Gateway "<gateway-uid>"
     #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]
-        [Alias('j', 'job-id')]
+        [Alias('j')]
         [string] $JobId,
 
         [Parameter()]
@@ -184,21 +173,20 @@ function Get-KeeperPamActionJobInfo {
     )
 
     if ([string]::IsNullOrWhiteSpace($JobId)) {
-        Write-Output 'job_id is required. Usage: Get-KeeperPamActionJobInfo -JobId "<job_id>" [-Gateway UID]'
-        Write-Output "Tip: quote job ids that contain '/'."
+        Write-Output 'JobId is required. Quote job ids that contain ''/''.'
         return
     }
 
     $vault = getPamRotationVault
-    $auth = $vault.Auth
-    if ($null -eq $auth) {
+    if ($null -eq $vault.Auth) {
         Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }
 
-    Write-Output ("Job id to check [{0}]" -f $JobId.Trim())
+    $trimmedJobId = $JobId.Trim()
+    Write-Output ("Job id to check [{0}]" -f $trimmedJobId)
     try {
         $result = [KeeperSecurity.Plugins.PAM.ActionUtils]::GetJobInfoAsync(
-            $auth, $JobId.Trim(), $Gateway).GetAwaiter().GetResult()
+            $vault.Auth, $trimmedJobId, $Gateway).GetAwaiter().GetResult()
         writePamActionResult -Result $result -PrintJobDetails $true
     }
     catch [KeeperSecurity.Plugins.PAM.PamException] {
