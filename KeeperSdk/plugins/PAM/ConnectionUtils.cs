@@ -162,7 +162,7 @@ namespace KeeperSecurity.Plugins.PAM
       var connectionsEnabled = string.Equals(options.Connections, "on", StringComparison.OrdinalIgnoreCase);
       var connectionsTri = PamRotationGraph.ConvertAllowedSetting(options.Connections);
 
-      ValidateScrollback(recordType, record, options, connectionsEnabled);
+      ValidateScrollback(recordType, record, options);
 
       var recordDirty = EnsureTrafficEncryptionSeed(record);
       recordDirty |= ApplyPamSettings(record, options, connectionsEnabled);
@@ -693,8 +693,7 @@ namespace KeeperSecurity.Plugins.PAM
     private static void ValidateScrollback(
       string recordType,
       TypedRecord record,
-      PamConnectionEditOptions options,
-      bool connectionsOn)
+      PamConnectionEditOptions options)
     {
       if (options.Scrollback == null)
       {
@@ -725,9 +724,8 @@ namespace KeeperSecurity.Plugins.PAM
         existingProtocol = typed.Values[0].Connection.Protocol ?? "";
       }
 
-      var effectiveProtocol = connectionsOn && options.Protocol != null
-        ? options.Protocol
-        : existingProtocol;
+      // Use the protocol this edit will end with (requested override, else current).
+      var effectiveProtocol = options.Protocol != null ? options.Protocol : existingProtocol;
       if (!allowedProtocols.Contains(effectiveProtocol))
       {
         throw new PamConnectionException(

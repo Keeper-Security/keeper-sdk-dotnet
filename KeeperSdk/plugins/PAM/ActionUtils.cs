@@ -22,7 +22,6 @@ namespace KeeperSecurity.Plugins.PAM
     private const string GetConfigurationControllerEndpoint = "pam/get_configuration_controller";
     private const string SendControllerMessagePath = "send_controller_message";
     private const int DefaultGatewayTimeoutMs = 15000;
-    private const int MaxThrottleRetries = 20;
 
     /// <summary>
     /// Schedules an on-demand rotation for a single record or all pamUser records in matching shared folders.
@@ -244,7 +243,6 @@ namespace KeeperSecurity.Plugins.PAM
       foreach (var ruid in recordUids)
       {
         var delaySec = 0;
-        var attempt = 0;
         while (true)
         {
           try
@@ -255,20 +253,8 @@ namespace KeeperSecurity.Plugins.PAM
           }
           catch (Exception ex) when (IsThrottleError(ex))
           {
-            attempt++;
-            if (attempt > MaxThrottleRetries)
-            {
-              folderResult.Errors.Add(new PamRotateRecordError
-              {
-                RecordUid = ruid,
-                Message = $"Skipped after {MaxThrottleRetries} throttle retries: {ex.Message}",
-              });
-              Debug.WriteLine($"PAM rotate folder: record {ruid} exceeded throttle retries: {ex}");
-              break;
-            }
-
             delaySec = (delaySec + 10) % 100;
-            Debug.WriteLine($"PAM rotate folder: record {ruid} throttled, retry in {1 + delaySec}s (attempt {attempt})");
+            Debug.WriteLine($"PAM rotate folder: record {ruid} throttled, retry in {1 + delaySec}s");
             await Task.Delay(TimeSpan.FromSeconds(1 + delaySec));
           }
           catch (Exception ex)
@@ -294,8 +280,24 @@ namespace KeeperSecurity.Plugins.PAM
         return false;
       }
 
+      if (ex is KeeperApiException api)
+      {
+        if (string.Equals(api.Code, "throttled", StringComparison.OrdinalIgnoreCase))
+        {
+          return true;
+        }
+
+        // ExecuteRouterRest uses code "router_error" and message "...: {statusCode}".
+        if (string.Equals(api.Code, "router_error", StringComparison.OrdinalIgnoreCase)
+            && api.Message != null
+            && api.Message.EndsWith(": 429", StringComparison.Ordinal))
+        {
+          return true;
+        }
+      }
+
       if (ex.Message != null
-          && ex.Message.IndexOf("throttle", StringComparison.OrdinalIgnoreCase) >= 0)
+          && ex.Message.IndexOf("throttl", StringComparison.OrdinalIgnoreCase) >= 0)
       {
         return true;
       }
@@ -317,11 +319,11 @@ namespace KeeperSecurity.Plugins.PAM
       Regex pattern;
       try
       {
-        pattern = new Regex(folder, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        pattern = new Regex(folder, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
       }
       catch (ArgumentException)
       {
-        pattern = new Regex(Regex.Escape(folder), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        pattern = new Regex(Regex.Escape(folder), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
       }
 
       foreach (var node in vault.Folders)
@@ -483,7 +485,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-    // Builds gateway action JSON (avoids DataContractJsonSerializer dictionary quirks).
+    // Builds gateway action JSON via DataContract serializer (correct escaping for all control chars).
     private static byte[] BuildGatewayActionJson(
       string action,
       bool isScheduled,
@@ -491,20 +493,10 @@ namespace KeeperSecurity.Plugins.PAM
       string gatewayDestination,
       Dictionary<string, string> inputs)
     {
-      var sb = new StringBuilder(256);
-      sb.Append('{');
-      AppendJsonProperty(sb, "action", action, first: true);
-      AppendJsonProperty(sb, "is_scheduled", isScheduled);
-      if (!string.IsNullOrEmpty(gatewayDestination))
-      {
-        AppendJsonProperty(sb, "gateway_destination", gatewayDestination);
-      }
-
-      AppendJsonProperty(sb, "conversationId", conversationId);
-      sb.Append(",\"inputs\":{");
-      var firstInput = true;
+      Dictionary<string, string> cleanInputs = null;
       if (inputs != null)
       {
+        cleanInputs = new Dictionary<string, string>();
         foreach (var pair in inputs)
         {
           if (pair.Value == null)
@@ -512,48 +504,20 @@ namespace KeeperSecurity.Plugins.PAM
             continue;
           }
 
-          AppendJsonProperty(sb, pair.Key, pair.Value, firstInput);
-          firstInput = false;
+          cleanInputs[pair.Key] = pair.Value;
         }
       }
 
-      sb.Append("}}");
-      return Encoding.UTF8.GetBytes(sb.ToString());
-    }
-
-    private static void AppendJsonProperty(StringBuilder sb, string name, string value, bool first = false)
-    {
-      if (!first)
+      var payload = new GatewayActionRequestDto
       {
-        sb.Append(',');
-      }
+        Action = action,
+        IsScheduled = isScheduled,
+        GatewayDestination = string.IsNullOrEmpty(gatewayDestination) ? null : gatewayDestination,
+        ConversationId = conversationId,
+        Inputs = cleanInputs ?? new Dictionary<string, string>(),
+      };
 
-      sb.Append('"').Append(EscapeJson(name)).Append("\":\"").Append(EscapeJson(value ?? "")).Append('"');
-    }
-
-    private static void AppendJsonProperty(StringBuilder sb, string name, bool value, bool first = false)
-    {
-      if (!first)
-      {
-        sb.Append(',');
-      }
-
-      sb.Append('"').Append(EscapeJson(name)).Append("\":").Append(value ? "true" : "false");
-    }
-
-    private static string EscapeJson(string value)
-    {
-      if (string.IsNullOrEmpty(value))
-      {
-        return "";
-      }
-
-      return value
-        .Replace("\\", "\\\\")
-        .Replace("\"", "\\\"")
-        .Replace("\r", "\\r")
-        .Replace("\n", "\\n")
-        .Replace("\t", "\\t");
+      return JsonUtils.DumpJson(payload, indent: false);
     }
 
     private static async Task<PamGatewayActionResult> SendActionToGatewayAsync(

@@ -680,29 +680,36 @@ namespace KeeperSecurity.Plugins.PAM
         if (end < 0 || end + 1 >= value.Length || value[end + 1] != ':')
         {
           throw new PamLaunchException(
-            $"Invalid host format \"{value}\". Expected [ipv6]:port (e.g. [::1]:22).");
+            $"Invalid host \"{value}\". For IPv6 use [address]:port, like [::1]:22.");
         }
 
         var host6 = value.Substring(1, end - 1);
         if (!int.TryParse(value.Substring(end + 2), out var port6) || port6 is < 1 or > 65535)
         {
-          throw new PamLaunchException($"Invalid port in \"{value}\". Port must be between 1 and 65535.");
+          throw new PamLaunchException($"Invalid port in \"{value}\". Use a number from 1 to 65535.");
         }
 
         return (host6, port6);
+      }
+
+      // More than one colon usually means IPv6 — ask for brackets.
+      if (value.IndexOf(':') != value.LastIndexOf(':'))
+      {
+        throw new PamLaunchException(
+          $"Invalid host \"{value}\". For IPv6 use [address]:port, like [::1]:22.");
       }
 
       var index = value.LastIndexOf(':');
       if (index <= 0 || index == value.Length - 1)
       {
         throw new PamLaunchException(
-          $"Invalid host format \"{value}\". Expected host:port (for example 192.168.1.1:22 or [::1]:22).");
+          $"Invalid host \"{value}\". Use host:port, like 192.168.1.1:22 or [::1]:22.");
       }
 
       var host = value.Substring(0, index).Trim();
       if (!int.TryParse(value.Substring(index + 1), out var port) || port is < 1 or > 65535)
       {
-        throw new PamLaunchException($"Invalid port in \"{value}\". Port must be between 1 and 65535.");
+        throw new PamLaunchException($"Invalid port in \"{value}\". Use a number from 1 to 65535.");
       }
 
       if (string.IsNullOrWhiteSpace(host))

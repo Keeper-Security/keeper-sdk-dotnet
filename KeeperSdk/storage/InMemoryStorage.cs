@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace KeeperSecurity.Storage
 {
@@ -59,6 +60,7 @@ namespace KeeperSecurity.Storage
             {
                 if (entity == null || string.IsNullOrEmpty(entity.Uid))
                 {
+                    Trace.TraceWarning("InMemoryStorage: skipping null or empty UID entity");
                     continue;
                 }
 

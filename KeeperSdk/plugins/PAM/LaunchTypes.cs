@@ -17,7 +17,10 @@ namespace KeeperSecurity.Plugins.PAM
     /// <summary>Gateway UID or name override.</summary>
     public string Gateway { get; set; }
 
-    /// <summary>host:port override. Don't use with <see cref="HostRecord"/>.</summary>
+    /// <summary>
+    /// Optional host:port override. For IPv6 use [address]:port, like [::1]:22.
+    /// Don't use with <see cref="HostRecord"/>.
+    /// </summary>
     public string Host { get; set; }
 
     /// <summary>Record to pull host from (host / pamHostname field).</summary>

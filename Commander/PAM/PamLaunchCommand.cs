@@ -137,7 +137,8 @@ namespace Commander.PAM
         [Option('g', "gateway", Required = false, HelpText = "Gateway UID or name override")]
         public string Gateway { get; set; }
 
-        [Option('H', "host", Required = false, HelpText = "Custom host override in host:port format")]
+        [Option('H', "host", Required = false,
+            HelpText = "Host override as host:port. For IPv6 use [address]:port, like [::1]:22")]
         public string Host { get; set; }
 
         [Option("host-record", Required = false, HelpText = "Record UID/title to source host from host/pamHostname field")]

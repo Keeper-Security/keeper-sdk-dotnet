@@ -66,8 +66,9 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// Discriminated result of <see cref="ActionUtils.RotateAsync"/>.
-  /// Exactly one of <see cref="RecordResult"/> or <see cref="FolderResult"/> is set.
+  /// Result of <see cref="ActionUtils.RotateAsync"/>.
+  /// That method always sets exactly one of <see cref="RecordResult"/> or <see cref="FolderResult"/>.
+  /// If both are null (or both set), treat the object as invalid / manually constructed.
   /// </summary>
   public class PamRotateResult
   {
@@ -82,7 +83,7 @@ namespace KeeperSecurity.Plugins.PAM
     public PamRotateFolderResult FolderResult { get; set; }
 
     /// <summary>
-    /// True when the rotate ran (or dry-ran) in folder mode.
+    /// True when <see cref="FolderResult"/> is set.
     /// </summary>
     public bool IsFolderMode => FolderResult != null;
   }
@@ -163,6 +164,26 @@ namespace KeeperSecurity.Plugins.PAM
     /// Exception text when the gateway job failed.
     /// </summary>
     public string ExecutionException { get; set; }
+  }
+
+  // Request DTO for gateway action JSON (serialized via JsonUtils / DCJS).
+  [DataContract]
+  internal class GatewayActionRequestDto
+  {
+    [DataMember(Name = "action", Order = 1)]
+    public string Action { get; set; }
+
+    [DataMember(Name = "is_scheduled", Order = 2)]
+    public bool IsScheduled { get; set; }
+
+    [DataMember(Name = "gateway_destination", Order = 3, EmitDefaultValue = false)]
+    public string GatewayDestination { get; set; }
+
+    [DataMember(Name = "conversationId", Order = 4)]
+    public string ConversationId { get; set; }
+
+    [DataMember(Name = "inputs", Order = 5)]
+    public Dictionary<string, string> Inputs { get; set; }
   }
 
   // Wire DTOs for gateway JSON (snake_case / camelCase variants).

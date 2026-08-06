@@ -621,7 +621,6 @@ namespace KeeperSecurity.Plugins.PAM
       return true;
     }
 
-    // Splits CLI multi-values on newlines/commas and trims whitespace/trailing commas.
     private static List<string> NormalizeMultiValues(IEnumerable<string> values)
     {
       var result = new List<string>();
@@ -632,15 +631,15 @@ namespace KeeperSecurity.Plugins.PAM
 
       foreach (var raw in values)
       {
-        if (raw == null)
+        if (string.IsNullOrWhiteSpace(raw))
         {
-          continue;
+            continue;
         }
 
         foreach (var part in raw.Split(new[] { '\n', '\r', ',' }, StringSplitOptions.RemoveEmptyEntries))
         {
           var trimmed = part.Trim().Trim('"', '\'').Trim();
-          if (trimmed.Length > 0)
+          if (!string.IsNullOrEmpty(trimmed))
           {
             result.Add(trimmed);
           }
