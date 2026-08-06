@@ -1824,6 +1824,280 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Share an NSF folder with a KSM application via AT_APPLICATION.
+        /// </summary>
+        public static async Task GrantKeeperNSFFolderToApplicationInternal(
+            this VaultOnline vault, string folderUid, string applicationUid, bool editable)
+        {
+            if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder) || folder.FolderKey == null)
+                throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
+                throw new VaultException($"Cannot share folder: application key is not available for '{applicationUid}'");
+
+            var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
+            var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+            var appUidBytes = ByteString.CopyFrom(applicationUid.Base64UrlDecode());
+
+            FolderProto.FolderAccessData existingAccess = null;
+            try
+            {
+                var accessRq = new FolderProto.V3.GetFolderAccessRequest();
+                accessRq.FolderUid.Add(folderUidBytes);
+                var accessRs = await vault.Auth.ExecuteAuthRest<FolderProto.V3.GetFolderAccessRequest, FolderProto.V3.GetFolderAccessResponse>(
+                    "vault/folders/v3/access", accessRq);
+                foreach (var fr in accessRs.FolderAccessResults)
+                {
+                    if (fr.Error != null) continue;
+                    foreach (var accessor in fr.Accessors)
+                    {
+                        if (accessor.AccessType == FolderProto.AccessType.AtApplication
+                            && accessor.AccessTypeUid.Equals(appUidBytes))
+                        {
+                            existingAccess = accessor;
+                            break;
+                        }
+                    }
+                    if (existingAccess != null) break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not look up existing AT_APPLICATION access for '{folderUid}': {ex.Message}");
+            }
+
+            if (existingAccess != null)
+            {
+                if (existingAccess.AccessRoleType == accessRole)
+                {
+                    return;
+                }
+                await vault.UpdateKeeperNSFFolderApplicationAccessInternal(folderUid, applicationUid, editable);
+                return;
+            }
+
+            var addData = new FolderProto.FolderAccessData
+            {
+                FolderUid = folderUidBytes,
+                AccessTypeUid = appUidBytes,
+                AccessType = FolderProto.AccessType.AtApplication,
+                AccessRoleType = accessRole,
+                Permissions = GetFolderPermissionsForRole(accessRole),
+                FolderKey = new FolderProto.EncryptedDataKey
+                {
+                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(folder.FolderKey, application.RecordKey)),
+                    EncryptedKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
+                },
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessAdds.Add(addData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to grant application access: {result.Message}");
+                }
+            }
+        }
+
+        public static async Task UpdateKeeperNSFFolderApplicationAccessInternal(
+            this VaultOnline vault, string folderUid, string applicationUid, bool editable)
+        {
+            var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
+            var updateData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = ByteString.CopyFrom(applicationUid.Base64UrlDecode()),
+                AccessType = FolderProto.AccessType.AtApplication,
+                AccessRoleType = accessRole,
+                Permissions = GetFolderPermissionsForRole(accessRole),
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessUpdates.Add(updateData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to update application access: {result.Message}");
+                }
+            }
+        }
+
+        public static async Task RevokeKeeperNSFFolderFromApplicationInternal(
+            this VaultOnline vault, string folderUid, string applicationUid)
+        {
+            var accessData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = ByteString.CopyFrom(applicationUid.Base64UrlDecode()),
+                AccessType = FolderProto.AccessType.AtApplication,
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessRemoves.Add(accessData);
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to revoke application access: {result.Message}");
+                }
+            }
+        }
+
+        private static RecordSharingProto.Permissions BuildApplicationRecordSharePermission(
+            string recordUid,
+            byte[] recordKey,
+            string applicationUid,
+            byte[] applicationKey,
+            bool editable,
+            bool includeKey)
+        {
+            // Key checks only when encrypting the record key for the application.
+            if (includeKey && (recordKey == null || recordKey.Length == 0))
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+            if (includeKey && (applicationKey == null || applicationKey.Length == 0))
+                throw new VaultException($"Application key not available for '{applicationUid}'");
+
+            var recordUidBytes = ByteString.CopyFrom(recordUid.Base64UrlDecode());
+            var appUidBytes = ByteString.CopyFrom(applicationUid.Base64UrlDecode());
+            var accessRole = ResolveAccessRole(editable ? "content-manager" : "viewer");
+
+            var perm = new RecordSharingProto.Permissions
+            {
+                RecipientUid = appUidBytes,
+                RecordUid = recordUidBytes,
+            };
+            if (includeKey)
+            {
+                perm.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(recordKey, applicationKey));
+                perm.UseEccKey = false;
+            }
+
+            perm.Rules = new FolderProto.RecordAccessData
+            {
+                AccessTypeUid = appUidBytes,
+                AccessType = FolderProto.AccessType.AtApplication,
+                RecordUid = recordUidBytes,
+                Owner = false,
+                AccessRoleType = accessRole,
+            };
+            return perm;
+        }
+
+        private static void ThrowIfRecordShareStatusesFailed(
+            IEnumerable<RecordSharingProto.Status> statuses, string action)
+        {
+            if (statuses == null)
+            {
+                return;
+            }
+
+            foreach (var status in statuses)
+            {
+                if (status.Status_ != RecordSharingProto.SharingStatus.Success)
+                {
+                    throw new VaultException($"Failed to {action} application record access: {status.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Share an NSF record with a KSM application via v3/share.
+        /// </summary>
+        public static async Task GrantKeeperNSFRecordToApplicationInternal(
+            this VaultOnline vault, string recordUid, string applicationUid, bool editable)
+        {
+            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record?.RecordKey == null)
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
+                throw new VaultException($"Application key not available for '{applicationUid}'");
+
+            var perm = BuildApplicationRecordSharePermission(
+                recordUid, record.RecordKey, applicationUid, application.RecordKey, editable, includeKey: true);
+            var rq = new RecordSharingProto.Request();
+            rq.CreateSharingPermissions.Add(perm);
+            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                "vault/records/v3/share", rq).ConfigureAwait(false);
+            ThrowIfRecordShareStatusesFailed(rs.CreatedSharingStatus, "grant");
+        }
+
+        /// <summary>
+        /// Update an NSF record's KSM application share role via v3/share.
+        /// </summary>
+        public static async Task UpdateKeeperNSFRecordApplicationAccessInternal(
+            this VaultOnline vault, string recordUid, string applicationUid, bool editable)
+        {
+            if (!vault.TryGetKeeperNSFRecord(recordUid, out var record) || record?.RecordKey == null)
+                throw new VaultException($"Record key not available for record '{recordUid}'");
+            if (!vault.TryGetKeeperRecord(applicationUid, out var appRecord) || appRecord is not ApplicationRecord application
+                || application.RecordKey == null)
+                throw new VaultException($"Application key not available for '{applicationUid}'");
+
+            var perm = BuildApplicationRecordSharePermission(
+                recordUid, record.RecordKey, applicationUid, application.RecordKey, editable, includeKey: true);
+            var rq = new RecordSharingProto.Request();
+            rq.UpdateSharingPermissions.Add(perm);
+            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                "vault/records/v3/share", rq).ConfigureAwait(false);
+            ThrowIfRecordShareStatusesFailed(rs.UpdatedSharingStatus, "update");
+        }
+
+        /// <summary>
+        /// Revoke a KSM application's access to an NSF record via v3/share.
+        /// </summary>
+        public static async Task RevokeKeeperNSFRecordFromApplicationInternal(
+            this VaultOnline vault, string recordUid, string applicationUid)
+        {
+            byte[] recordKey = null;
+            if (vault.TryGetKeeperNSFRecord(recordUid, out var record) && record != null)
+            {
+                recordKey = record.RecordKey;
+            }
+
+            var perm = BuildApplicationRecordSharePermission(
+                recordUid, recordKey, applicationUid, applicationKey: null, editable: false, includeKey: false);
+            var rq = new RecordSharingProto.Request();
+            rq.RevokeSharingPermissions.Add(perm);
+            var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                "vault/records/v3/share", rq).ConfigureAwait(false);
+            ThrowIfRecordShareStatusesFailed(rs.RevokedSharingStatus, "revoke");
+        }
+
+        /// <summary>
+        /// Builds folder permissions for KSM app roles.
+        /// </summary>
+        private static FolderProto.FolderPermissions GetFolderPermissionsForRole(FolderProto.AccessRoleType role)
+        {
+            var permissions = new FolderProto.FolderPermissions
+            {
+                CanListAccess = true,
+                CanViewRecords = true,
+                CanListRecords = true,
+                CanListFolders = true,
+            };
+
+            if (role == FolderProto.AccessRoleType.ContentManager)
+            {
+                permissions.CanAdd = true;
+                permissions.CanEditRecords = true;
+            }
+
+            return permissions;
+        }
+
         public static async Task<string> CreateKeeperNSFRecordInternal(this VaultOnline vault, string title, string recordType, string folderUid, string notes, IDictionary<string, object> fields)
         {
             var results = await vault.CreateKeeperNSFRecordsInternal(new[]
