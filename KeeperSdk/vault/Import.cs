@@ -28,6 +28,66 @@ namespace KeeperSecurity
             public bool? CanShare { get; set; }
         }
 
+        /// <summary>Name/value pair inside a structured custom field (e.g. hostName, port).</summary>
+        public class ImportCustomFieldElement
+        {
+            /// <summary>Element name.</summary>
+            public string Name { get; set; }
+
+            /// <summary>Element value.</summary>
+            public string Value { get; set; }
+        }
+
+        /// <summary>
+        /// A single custom_fields entry from import JSON.
+        /// Use <see cref="TextValue"/> for plain text, or <see cref="Elements"/> for objects like host/address.
+        /// </summary>
+        public class ImportCustomField
+        {
+            /// <summary>Field name, e.g. $host, $address:Work, TFC:Keeper.</summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Plain text value. null = leave alone; "" = clear on update.
+            /// Leave null when using <see cref="Elements"/>.
+            /// </summary>
+            public string TextValue { get; set; }
+
+            /// <summary>Object-style value (host, address, etc.).</summary>
+            public ImportCustomFieldElement[] Elements { get; set; }
+
+            /// <summary>
+            /// True if this field has something to write.
+            /// Text that is not null counts (use "" to clear a field on update).
+            /// Object fields count when Elements has at least one named entry; empty lists do not.
+            /// </summary>
+            public bool HasValue
+            {
+                get
+                {
+                    if (TextValue != null)
+                    {
+                        return true;
+                    }
+
+                    if (Elements == null)
+                    {
+                        return false;
+                    }
+
+                    for (var i = 0; i < Elements.Length; i++)
+                    {
+                        if (Elements[i]?.Name != null)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            }
+        }
+
 
         [DataContract]
         public class ImportRecord
@@ -53,8 +113,11 @@ namespace KeeperSecurity
             [DataMember(Name = "notes", EmitDefaultValue = false)]
             public string Notes { get; set; }
 
-            [DataMember(Name = "custom_fields", EmitDefaultValue = false)]
-            public IDictionary<string, object> CustomFields { get; set; }
+            /// <summary>
+            /// Custom fields loaded from JSON. Not part of DataContract serialization.
+            /// </summary>
+            [IgnoreDataMember]
+            public ImportCustomField[] CustomFields { get; set; }
 
             [DataMember(Name = "folders", EmitDefaultValue = false)]
             public ImportRecordFolder[] Folders { get; set; }
@@ -103,12 +166,18 @@ namespace KeeperSecurity
     namespace Vault
     {
         /// <summary>
-        /// Keeper Import methods
+        /// Helpers for Keeper import JSON — load files, import into the vault, or build NSF batch requests.
         /// </summary>
         public static class KeeperImport
         {
             private const string TwoFactorCode = "TFC:Keeper";
 
+            /// <summary>
+            /// Fills a PasswordRecord from an import record (login, password, notes, text custom fields).
+            /// TFC:Keeper becomes Totp — accepts a full otpauth:// URL or a raw secret
+            /// (spaces stripped, then wrapped as otpauth://totp/?secret=...).
+            /// Object-style custom fields are skipped.
+            /// </summary>
             private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
                 password.Uid = import.Uid;
@@ -119,29 +188,58 @@ namespace KeeperSecurity
                 password.Notes = import.Notes;
                 if (import.CustomFields != null)
                 {
-                    foreach (var pair in import.CustomFields)
+                    foreach (var customField in import.CustomFields)
                     {
-                        var name = pair.Key;
-                        var value = pair.Value;
-                        if (value == null) continue;
-
-                        if (value is string strValue && !string.IsNullOrEmpty(strValue))
+                        if (customField == null || string.IsNullOrEmpty(customField.Name) || !customField.HasValue)
                         {
-                            if (name == TwoFactorCode)
-                            {
-                                password.Totp = strValue.StartsWith("otpauth://")
-                                    ? strValue
-                                    : $"otpauth://totp/?secret={strValue}";
-                            }
-                            else
-                            {
-                                password.SetCustomField(name, strValue);
-                            }
+                            continue;
+                        }
+
+                        var strValue = customField.TextValue;
+                        if (string.IsNullOrEmpty(strValue))
+                        {
+                            continue;
+                        }
+
+                        if (customField.Name == TwoFactorCode)
+                        {
+                            password.Totp = NormalizeImportTotpValue(strValue);
+                        }
+                        else
+                        {
+                            password.SetCustomField(customField.Name, strValue);
                         }
                     }
                 }
             }
 
+            /// <summary>
+            /// Normalizes an import TOTP value for PasswordRecord / oneTimeCode.
+            /// Full otpauth:// URLs are kept as-is. Anything else is treated as a secret
+            /// (spaces removed) and wrapped as otpauth://totp/?secret=...
+            /// Secrets are URL-encoded; base32 shape is not strictly validated here.
+            /// </summary>
+            private static string NormalizeImportTotpValue(string value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+
+                value = value.Trim();
+                if (value.StartsWith("otpauth://", StringComparison.OrdinalIgnoreCase))
+                {
+                    return value;
+                }
+
+                var secret = value.Replace(" ", string.Empty);
+                return $"otpauth://totp/?secret={Uri.EscapeDataString(secret)}";
+            }
+
+            /// <summary>
+            /// Pulls field type and label out of a key like $host or $address:Work.
+            /// Plain names become text fields.
+            /// </summary>
             private static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
@@ -195,6 +293,7 @@ namespace KeeperSecurity
                 return Tuple.Create(fieldType, fieldLabel);
             }
 
+            /// <summary>Sets a typed field from a string, array, or dictionary value.</summary>
             static void AssignValueToField(this ITypedField field, object value)
             {
                 if (value is string str && field is ISerializeTypedField sf)
@@ -261,10 +360,10 @@ namespace KeeperSecurity
                                         var val = dict[key];
                                         if (key is string element)
                                         {
-                                            var elementValue = val is IDictionary d 
+                                            var elementValue = val is IDictionary d
                                                 ? System.Text.Encoding.UTF8.GetString(Utils.JsonUtils.DumpJson(d))
                                                 : val?.ToString();
-                                            
+
                                             if (!string.IsNullOrEmpty(elementValue) && !fts.SetElementValue(element, elementValue))
                                             {
                                                 Trace.TraceWarning(
@@ -273,11 +372,11 @@ namespace KeeperSecurity
                                         }
                                     }
                                 }
-                            else
-                            {
-                                Trace.TraceWarning(
-                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
-                            }
+                                else
+                                {
+                                    Trace.TraceWarning(
+                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
+                                }
 
                                 break;
                             }
@@ -290,19 +389,46 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>
+            /// Builds a TypedRecord from an import record.
+            /// Duplicate custom field names log a warning and keep the last value.
+            /// TFC:Keeper is mapped to $oneTimeCode (same otpauth / raw-secret rules as PasswordRecord).
+            /// </summary>
             static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields)
             {
                 typed.Uid = import.Uid;
                 typed.Title = import.Title;
                 typed.Notes = import.Notes;
 
-                Dictionary<string, object> customFields = null;
+                Dictionary<string, ImportCustomField> customFields = null;
                 if (import.CustomFields != null)
                 {
-                    customFields = import.CustomFields.ToDictionary(entry => entry.Key, entry => entry.Value);
+                    var customFieldGroups = import.CustomFields
+                        .Where(f => f != null && !string.IsNullOrEmpty(f.Name))
+                        .GroupBy(f => f.Name, StringComparer.Ordinal)
+                        .ToList();
+
+                    foreach (var duplicate in customFieldGroups.Where(g => g.Count() > 1))
+                    {
+                        var recordLabel = !string.IsNullOrEmpty(import.Title)
+                            ? import.Title
+                            : (!string.IsNullOrEmpty(import.Uid) ? import.Uid : "(untitled)");
+                        Trace.TraceWarning(
+                            $"Import record \"{recordLabel}\": custom field \"{duplicate.Key}\" appears {duplicate.Count()} times; using the last value.");
+                    }
+
+                    customFields = customFieldGroups
+                        .ToDictionary(g => g.Key, g => g.Last(), StringComparer.Ordinal);
                     if (customFields.TryGetValue(TwoFactorCode, out var tfa))
                     {
-                        customFields["$oneTimeCode"] = tfa;
+                        customFields["$oneTimeCode"] = new ImportCustomField
+                        {
+                            Name = "$oneTimeCode",
+                            TextValue = string.IsNullOrEmpty(tfa.TextValue)
+                                ? tfa.TextValue
+                                : NormalizeImportTotpValue(tfa.TextValue),
+                            Elements = tfa.Elements,
+                        };
                         customFields.Remove(TwoFactorCode);
                     }
                 }
@@ -352,10 +478,10 @@ namespace KeeperSecurity
                         }
 
                         if (string.IsNullOrEmpty(key)) continue;
-                        if (!customFields.TryGetValue(key, out var value)) continue;
-                        if (value != null)
+                        if (!customFields.TryGetValue(key, out var customField)) continue;
+                        if (customField != null && customField.HasValue)
                         {
-                            field.AssignValueToField(value);
+                            field.AssignValueToField(ToAssignValue(customField));
                         }
 
                         customFields.Remove(key);
@@ -389,8 +515,8 @@ namespace KeeperSecurity
                     foreach (var pair in customFields)
                     {
                         var fk = pair.Key;
-                        var value = pair.Value;
-                        if (value == null)
+                        var customField = pair.Value;
+                        if (customField == null || !customField.HasValue)
                         {
                             continue;
                         }
@@ -402,7 +528,7 @@ namespace KeeperSecurity
                         try
                         {
                             var field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
-                            field.AssignValueToField(value);
+                            field.AssignValueToField(ToAssignValue(customField));
                             typed.Custom.Add(field);
                         }
                         catch (Exception e)
@@ -413,6 +539,7 @@ namespace KeeperSecurity
                 }
             }
 
+            /// <summary>Creates any missing folders in the path for a batch import.</summary>
             private static FolderNode CreateFolderPath(this BatchVaultOperations bvo, string folderPath,
                 SharedFolderOptions options = null)
             {
@@ -430,203 +557,233 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Parses JSON object to import type
+            /// Treats a JSON array or a single object the same (PowerShell often unwraps one-item arrays).
             /// </summary>
-            /// <param name="importFile">parsed JSON import file</param>
-            /// <returns>parsed import object</returns>
-            public static ImportFile LoadJsonDictionary(IDictionary<string, object> importFile)
+            private static IEnumerable<ImportJsonValue> EnumerateImportItems(ImportJsonValue value)
             {
-                var import = new ImportFile();
-                if (importFile.TryGetValue("records", out var r))
+                if (value == null || value.Kind == ImportJsonValue.JsonKind.Null)
                 {
-                    var recordList = new List<ImportRecord>();
-                    if (r is Array records)
+                    yield break;
+                }
+
+                if (value.Kind == ImportJsonValue.JsonKind.Array)
+                {
+                    if (value.ArrayValue == null)
                     {
-                        foreach (var ro in records)
+                        yield break;
+                    }
+
+                    foreach (var item in value.ArrayValue)
+                    {
+                        yield return item;
+                    }
+
+                    yield break;
+                }
+
+                if (value.Kind == ImportJsonValue.JsonKind.Object)
+                {
+                    yield return value;
+                }
+            }
+
+            /// <summary>Reads one record object from import JSON.</summary>
+            private static ImportRecord ParseImportRecord(ImportJsonValue recordValue)
+            {
+                var rec = new ImportRecord();
+                if (recordValue?.Kind != ImportJsonValue.JsonKind.Object || recordValue.ObjectValue == null)
+                {
+                    return rec;
+                }
+
+                foreach (var pair in recordValue.ObjectValue)
+                {
+                    switch (pair.Key)
+                    {
+                        case "title":
+                            rec.Title = pair.Value?.AsString();
+                            break;
+                        case "uid":
+                            rec.Uid = pair.Value?.AsString();
+                            break;
+                        case "$type":
+                            rec.RecordType = pair.Value?.AsString();
+                            break;
+                        case "login":
+                            rec.Login = pair.Value?.AsString();
+                            break;
+                        case "password":
+                            rec.Password = pair.Value?.AsString();
+                            break;
+                        case "login_url":
+                            rec.LoginUrl = pair.Value?.AsString();
+                            break;
+                        case "notes":
+                            rec.Notes = pair.Value?.AsString();
+                            break;
+                        case "folders":
                         {
-                            if (ro is IDictionary<string, object> record)
+                            var fl = new List<ImportRecordFolder>();
+                            foreach (var fo in EnumerateImportItems(pair.Value))
                             {
-                                var rec = new ImportRecord();
-                                foreach (var pair in record)
+                                if (fo?.Kind != ImportJsonValue.JsonKind.Object || fo.ObjectValue == null)
                                 {
-                                    switch (pair.Key)
+                                    continue;
+                                }
+
+                                var irf = new ImportRecordFolder();
+                                foreach (var fp in fo.ObjectValue)
+                                {
+                                    switch (fp.Key)
                                     {
-                                        case "title":
-                                            rec.Title = pair.Value as string;
+                                        case "folder":
+                                            irf.FolderName = fp.Value?.AsString();
                                             break;
-                                        case "uid":
-                                            rec.Uid = pair.Value as string;
+                                        case "shared_folder":
+                                            irf.SharedFolderName = fp.Value?.AsString();
                                             break;
-                                        case "$type":
-                                            rec.RecordType = pair.Value as string;
+                                        case "can_edit":
+                                            irf.CanEdit = fp.Value?.AsBoolean();
                                             break;
-                                        case "login":
-                                            rec.Login = pair.Value as string;
-                                            break;
-                                        case "password":
-                                            rec.Password = pair.Value as string;
-                                            break;
-                                        case "login_url":
-                                            rec.LoginUrl = pair.Value as string;
-                                            break;
-                                        case "notes":
-                                            rec.Notes = pair.Value as string;
-                                            break;
-                                        case "folders":
-                                        {
-                                            if (pair.Value is Array folderArray)
-                                            {
-                                                var fl = new List<ImportRecordFolder>();
-                                                foreach (var fo in folderArray)
-                                                {
-                                                    if (fo is IDictionary<string, object> folder)
-                                                    {
-                                                        var irf = new ImportRecordFolder();
-                                                        foreach (var fp in folder)
-                                                        {
-                                                            switch (fp.Key)
-                                                            {
-                                                                case "folder":
-                                                                    irf.FolderName = fp.Value as string;
-                                                                    break;
-                                                                case "shared_folder":
-                                                                    irf.SharedFolderName = fp.Value as string;
-                                                                    break;
-                                                                case "can_edit":
-                                                                    irf.CanEdit = fp.Value as bool?;
-                                                                    break;
-                                                                case "can_share":
-                                                                    irf.CanShare = fp.Value as bool?;
-                                                                    break;
-                                                            }
-                                                        }
-
-                                                        fl.Add(irf);
-                                                    }
-                                                }
-
-                                                rec.Folders = fl.ToArray();
-                                            }
-                                        }
-                                            break;
-                                        case "custom_fields":
-                                            rec.CustomFields = pair.Value as IDictionary<string, object>;
+                                        case "can_share":
+                                            irf.CanShare = fp.Value?.AsBoolean();
                                             break;
                                     }
                                 }
 
-                                recordList.Add(rec);
+                                fl.Add(irf);
+                            }
+
+                            if (fl.Count > 0)
+                            {
+                                rec.Folders = fl.ToArray();
                             }
                         }
+                            break;
+                        case "custom_fields":
+                            rec.CustomFields = ParseCustomFieldsFromImportJson(pair.Value);
+                            break;
+                    }
+                }
+
+                return rec;
+            }
+
+            /// <summary>
+            /// Loads an import file from typed JSON (preferred — keeps nested custom_fields intact).
+            /// </summary>
+            public static ImportFile LoadJsonDictionary(ImportJsonValue importFile)
+            {
+                if (importFile == null || importFile.Kind != ImportJsonValue.JsonKind.Object || importFile.ObjectValue == null)
+                {
+                    throw new ArgumentException("Import JSON root must be an object.", nameof(importFile));
+                }
+
+                var import = new ImportFile();
+                if (importFile.ObjectValue.TryGetValue("records", out var recordsValue))
+                {
+                    var recordList = new List<ImportRecord>();
+                    foreach (var ro in EnumerateImportItems(recordsValue))
+                    {
+                        recordList.Add(ParseImportRecord(ro));
                     }
 
                     import.Records = recordList.ToArray();
                 }
 
-                if (importFile.TryGetValue("shared_folders", out var sfs))
+                if (importFile.ObjectValue.TryGetValue("shared_folders", out var sharedFoldersValue))
                 {
                     var sharedFolderList = new List<ImportSharedFolder>();
-                    if (sfs is Array sfArray)
+                    foreach (var sfo in EnumerateImportItems(sharedFoldersValue))
                     {
-                        foreach (var sfo in sfArray)
+                        if (sfo?.Kind != ImportJsonValue.JsonKind.Object || sfo.ObjectValue == null)
                         {
-                            if (sfo is IDictionary<string, object> sharedFolder)
+                            continue;
+                        }
+
+                        var sf = new ImportSharedFolder();
+                        foreach (var pair in sfo.ObjectValue)
+                        {
+                            switch (pair.Key)
                             {
-                                var sf = new ImportSharedFolder();
-                                foreach (var pair in sharedFolder)
+                                case "path":
+                                    sf.Path = pair.Value?.AsString();
+                                    break;
+                                case "can_edit":
+                                    sf.CanEdit = pair.Value?.AsBoolean() == true;
+                                    break;
+                                case "can_share":
+                                    sf.CanShare = pair.Value?.AsBoolean() == true;
+                                    break;
+                                case "manage_records":
+                                    sf.ManageRecords = pair.Value?.AsBoolean() == true;
+                                    break;
+                                case "manage_users":
+                                    sf.ManageUsers = pair.Value?.AsBoolean() == true;
+                                    break;
+                                case "permissions":
                                 {
-
-                                    switch (pair.Key)
+                                    var permissions = new List<ImportSharedFolderPermissions>();
+                                    foreach (var sfp in EnumerateImportItems(pair.Value))
                                     {
-                                        case "path":
+                                        if (sfp?.Kind != ImportJsonValue.JsonKind.Object || sfp.ObjectValue == null)
                                         {
-                                            sf.Path = pair.Value as string;
+                                            continue;
                                         }
-                                            break;
-                                        case "can_edit":
+
+                                        var perm = new ImportSharedFolderPermissions();
+                                        foreach (var ppair in sfp.ObjectValue)
                                         {
-                                            sf.CanEdit = pair.Value is true;
-                                        }
-                                            break;
-                                        case "can_share":
-                                        {
-                                            sf.CanShare = pair.Value is true;
-                                        }
-                                            break;
-                                        case "manage_records":
-                                        {
-                                            sf.ManageRecords = pair.Value is true;
-                                        }
-                                            break;
-                                        case "manage_users":
-                                        {
-                                            sf.ManageUsers = pair.Value is true;
-                                        }
-                                            break;
-                                        case "permissions":
-                                        {
-                                            var permissions = new List<ImportSharedFolderPermissions>();
-                                            if (pair.Value is Array ar)
+                                            switch (ppair.Key)
                                             {
-                                                foreach (var sfp in ar)
-                                                {
-                                                    if (sfp is not IDictionary<string, object> permission) continue;
-
-                                                    var perm = new ImportSharedFolderPermissions();
-                                                    foreach (var ppair in permission)
-                                                    {
-                                                        switch (ppair.Key)
-                                                        {
-                                                            case "uid":
-                                                            {
-                                                                perm.Uid = (ppair.Value ?? "").ToString();
-                                                            }
-                                                                break;
-                                                            case "name":
-                                                            {
-                                                                perm.Name = (ppair.Value ?? "").ToString();
-                                                            }
-                                                                break;
-                                                            case "manage_records":
-                                                            {
-                                                                perm.ManageRecords = ppair.Value is true;
-                                                            }
-                                                                break;
-                                                            case "manage_users":
-                                                            {
-                                                                perm.ManageUsers = ppair.Value is true;
-                                                            }
-                                                                break;
-                                                        }
-                                                    }
-
-                                                    permissions.Add(perm);
-                                                }
-
-                                                sf.Permissions = permissions.ToArray();
+                                                case "uid":
+                                                    perm.Uid = ppair.Value?.AsString() ?? string.Empty;
+                                                    break;
+                                                case "name":
+                                                    perm.Name = ppair.Value?.AsString() ?? string.Empty;
+                                                    break;
+                                                case "manage_records":
+                                                    perm.ManageRecords = ppair.Value?.AsBoolean() == true;
+                                                    break;
+                                                case "manage_users":
+                                                    perm.ManageUsers = ppair.Value?.AsBoolean() == true;
+                                                    break;
                                             }
                                         }
-                                            break;
+
+                                        permissions.Add(perm);
+                                    }
+
+                                    if (permissions.Count > 0)
+                                    {
+                                        sf.Permissions = permissions.ToArray();
                                     }
                                 }
-
-                                sharedFolderList.Add(sf);
+                                    break;
                             }
                         }
 
-                        import.SharedFolders = sharedFolderList.ToArray();
+                        sharedFolderList.Add(sf);
                     }
+
+                    import.SharedFolders = sharedFolderList.ToArray();
                 }
 
                 return import;
             }
 
+            /// <summary>Loads an import file from a plain dictionary (older path).</summary>
+            public static ImportFile LoadJsonDictionary(IDictionary<string, object> importFile)
+            {
+                return LoadJsonDictionary(ImportJsonValue.FromLegacyObject(importFile));
+            }
+
             /// <summary>
-            /// Import Keeper JSON file
+            /// Imports records and shared folders into the vault.
             /// </summary>
-            /// <param name="vault">Vault instance</param>
-            /// <param name="import">Import object</param>
-            /// <returns></returns>
+            /// <param name="vault">Vault to import into.</param>
+            /// <param name="import">Parsed import data.</param>
+            /// <returns>Batch result.</returns>
             public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import)
             {
                 var bo = new BatchVaultOperations(vault);
@@ -748,8 +905,15 @@ namespace KeeperSecurity
                                 vault.TryGetRecordTypeByName(record.RecordType, out recordType);
                             }
 
+                            var customSnapshot = record.CustomFields?
+                                .Select(CloneImportCustomField)
+                                .ToArray();
+
                             var typedRecord = new TypedRecord(record.RecordType);
                             record.PopulateTypedRecord(typedRecord, recordType.Fields);
+
+                            ApplyImportCustomFieldDictionaries(typedRecord, customSnapshot);
+
                             keeperRecord = typedRecord;
                         }
 
@@ -782,6 +946,606 @@ namespace KeeperSecurity
                 }
 
                 return await bo.ApplyChanges();
+            }
+
+            /// <summary>
+            /// Turns import records into NSF create requests (same JSON layout as vault import).
+            /// </summary>
+            public static IReadOnlyList<KeeperNSFRecordCreateRequest> ToKeeperNSFCreateRequests(
+                VaultOnline vault,
+                ImportFile import,
+                string defaultFolderUid = null)
+            {
+                if (vault == null)
+                {
+                    throw new ArgumentNullException(nameof(vault));
+                }
+
+                if (import?.Records == null || import.Records.Length == 0)
+                {
+                    throw new ArgumentException("Import file contains no records.", nameof(import));
+                }
+
+                var requests = new List<KeeperNSFRecordCreateRequest>(import.Records.Length);
+                for (var i = 0; i < import.Records.Length; i++)
+                {
+                    var record = import.Records[i];
+                    if (record == null)
+                    {
+                        throw new VaultException($"Import record at index {i} is null.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(record.Title))
+                    {
+                        throw new VaultException($"Each import record must include a title (index {i}).");
+                    }
+
+                    requests.Add(new KeeperNSFRecordCreateRequest
+                    {
+                        Title = record.Title.Trim(),
+                        RecordType = string.IsNullOrEmpty(record.RecordType) ? "login" : record.RecordType,
+                        Notes = record.Notes,
+                        FolderUid = ResolveKeeperNSFFolderUid(vault, record, defaultFolderUid),
+                        Fields = ToNsfRequestFields(BuildNsfFieldsFromImportRecord(vault, record)),
+                    });
+                }
+
+                return requests;
+            }
+
+            /// <summary>
+            /// Turns import records into NSF update requests. Each record needs a uid.
+            /// null = don't change; empty string = clear. Fields are only sent when the import included them.
+            /// </summary>
+            public static IReadOnlyList<KeeperNSFRecordUpdateRequest> ToKeeperNSFUpdateRequests(
+                VaultOnline vault,
+                ImportFile import)
+            {
+                if (vault == null)
+                {
+                    throw new ArgumentNullException(nameof(vault));
+                }
+
+                if (import?.Records == null || import.Records.Length == 0)
+                {
+                    throw new ArgumentException("Import file contains no records.", nameof(import));
+                }
+
+                var requests = new List<KeeperNSFRecordUpdateRequest>(import.Records.Length);
+                for (var i = 0; i < import.Records.Length; i++)
+                {
+                    var record = import.Records[i];
+                    if (record == null)
+                    {
+                        throw new VaultException($"Import record at index {i} is null.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(record.Uid))
+                    {
+                        throw new VaultException($"Each update record must include a uid (index {i}).");
+                    }
+
+                    requests.Add(new KeeperNSFRecordUpdateRequest
+                    {
+                        RecordUid = record.Uid.Trim(),
+                        Title = record.Title == null ? null : record.Title.Trim(),
+                        RecordType = string.IsNullOrEmpty(record.RecordType) ? null : record.RecordType,
+                        Notes = record.Notes,
+                        Fields = HasImportFieldPayload(record)
+                            ? ToNsfRequestFields(BuildNsfFieldsFromImportRecord(vault, record))
+                            : null,
+                    });
+                }
+
+                return requests;
+            }
+
+            /// <summary>True if the import has login, password, URL, or a custom field to apply.</summary>
+            private static bool HasImportFieldPayload(ImportRecord import)
+            {
+                if (import == null)
+                {
+                    return false;
+                }
+
+                if (import.Login != null || import.Password != null || import.LoginUrl != null)
+                {
+                    return true;
+                }
+
+                if (import.CustomFields == null)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < import.CustomFields.Length; i++)
+                {
+                    var field = import.CustomFields[i];
+                    if (field != null && !string.IsNullOrEmpty(field.Name) && field.HasValue)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            /// <summary>Picks the NSF folder from the record's first folder entry, or the default.</summary>
+            private static string ResolveKeeperNSFFolderUid(
+                VaultOnline vault,
+                ImportRecord record,
+                string defaultFolderUid)
+            {
+                if (record.Folders?.Length > 0)
+                {
+                    var folderRef = record.Folders[0].FolderName;
+                    if (!string.IsNullOrWhiteSpace(folderRef)
+                        && vault.TryResolveKeeperNSFFolder(folderRef.Trim(), out var folder))
+                    {
+                        return folder.FolderUid;
+                    }
+                }
+
+                return string.IsNullOrWhiteSpace(defaultFolderUid) ? null : defaultFolderUid.Trim();
+            }
+
+            /// <summary>Copy of an import record so we can mutate without touching the original.</summary>
+            private static ImportRecord CloneImportRecord(ImportRecord import)
+            {
+                return new ImportRecord
+                {
+                    Uid = import.Uid,
+                    Title = import.Title,
+                    RecordType = import.RecordType,
+                    Login = import.Login,
+                    Password = import.Password,
+                    LoginUrl = import.LoginUrl,
+                    Notes = import.Notes,
+                    CustomFields = import.CustomFields?.Select(CloneImportCustomField).ToArray(),
+                    Folders = import.Folders?.Select(f => new ImportRecordFolder
+                    {
+                        FolderName = f.FolderName,
+                        SharedFolderName = f.SharedFolderName,
+                        CanEdit = f.CanEdit,
+                        CanShare = f.CanShare,
+                    }).ToArray(),
+                };
+            }
+
+            /// <summary>
+            /// Fills in object-style custom fields that didn't get set during typed populate.
+            /// </summary>
+            private static void ApplyImportCustomFieldDictionaries(
+                TypedRecord typed,
+                ImportCustomField[] customSnapshot)
+            {
+                if (typed == null || customSnapshot == null || customSnapshot.Length == 0)
+                {
+                    return;
+                }
+
+                foreach (var customField in customSnapshot)
+                {
+                    if (customField == null
+                        || string.IsNullOrEmpty(customField.Name)
+                        || customField.Elements == null
+                        || customField.Elements.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var split = SplitFieldKey(customField.Name);
+                    var fieldType = split.Item1;
+                    var fieldLabel = split.Item2;
+                    if (string.IsNullOrEmpty(fieldType))
+                    {
+                        continue;
+                    }
+
+                    var field = typed.Fields.Concat(typed.Custom).FirstOrDefault(f =>
+                        string.Equals(f.FieldName, fieldType, StringComparison.OrdinalIgnoreCase)
+                        && (string.IsNullOrEmpty(fieldLabel)
+                            || string.Equals(f.FieldLabel ?? string.Empty, fieldLabel, StringComparison.OrdinalIgnoreCase)));
+
+                    if (field == null)
+                    {
+                        try
+                        {
+                            field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
+                            typed.Custom.Add(field);
+                        }
+                        catch (Exception e)
+                        {
+                            Trace.TraceError($"Create field \"{customField.Name}\" error: {e.Message}");
+                            continue;
+                        }
+                    }
+
+                    if (field.Count == 0)
+                    {
+                        var assignValue = ToAssignValue(customField);
+                        if (assignValue != null)
+                        {
+                            field.ObjectValue = assignValue;
+                        }
+                    }
+                }
+            }
+
+            /// <summary>Builds the field list used for an NSF create/update request.</summary>
+            private static ImportCustomField[] BuildNsfFieldsFromImportRecord(
+                VaultOnline vault,
+                ImportRecord import)
+            {
+                var copy = CloneImportRecord(import);
+                if (string.IsNullOrEmpty(copy.RecordType))
+                {
+                    return BuildNsfFieldsFromLegacyImportRecord(copy);
+                }
+
+                // Start from typed fields so complex objects (host, paymentCard, …)
+                // survive even when typed schema matching is incomplete. NSF CoerceNsfFieldValue
+                // converts element dictionaries into typed field objects.
+                var fieldsByName = BuildNsfFieldsFromLegacyImportRecord(copy)
+                    .Where(f => f?.Name != null)
+                    .GroupBy(f => f.Name, StringComparer.Ordinal)
+                    .ToDictionary(g => g.Key, g => g.Last(), StringComparer.Ordinal);
+
+                var recordTypeName = copy.RecordType;
+                if (!vault.TryGetRecordTypeByName(recordTypeName, out var recordType))
+                {
+                    recordTypeName = "login";
+                    vault.TryGetRecordTypeByName(recordTypeName, out recordType);
+                }
+
+                var typed = new TypedRecord(recordTypeName);
+                copy.PopulateTypedRecord(typed, recordType.Fields);
+                foreach (var field in ExtractNsfFieldsFromTypedRecord(typed))
+                {
+                    if (field?.Name != null)
+                    {
+                        fieldsByName[field.Name] = field;
+                    }
+                }
+
+                return fieldsByName.Values.ToArray();
+            }
+
+            /// <summary>Simple field list from login/password/url and custom_fields (no record type).</summary>
+            private static ImportCustomField[] BuildNsfFieldsFromLegacyImportRecord(ImportRecord import)
+            {
+                var fields = new List<ImportCustomField>();
+                // null = omitted from import JSON; empty string clears the field on update.
+                if (import.Login != null)
+                {
+                    fields.Add(new ImportCustomField { Name = "login", TextValue = import.Login });
+                }
+
+                if (import.Password != null)
+                {
+                    fields.Add(new ImportCustomField { Name = "password", TextValue = import.Password });
+                }
+
+                if (import.LoginUrl != null)
+                {
+                    fields.Add(new ImportCustomField { Name = "url", TextValue = import.LoginUrl });
+                }
+
+                if (import.CustomFields == null)
+                {
+                    return fields.ToArray();
+                }
+
+                foreach (var customField in import.CustomFields)
+                {
+                    if (customField == null || string.IsNullOrEmpty(customField.Name) || !customField.HasValue)
+                    {
+                        continue;
+                    }
+
+                    if (string.Equals(customField.Name, TwoFactorCode, StringComparison.Ordinal))
+                    {
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = "oneTimeCode",
+                            TextValue = string.IsNullOrEmpty(customField.TextValue)
+                                ? customField.TextValue
+                                : NormalizeImportTotpValue(customField.TextValue),
+                            Elements = customField.Elements,
+                        });
+                        continue;
+                    }
+
+                    var split = SplitFieldKey(customField.Name);
+                    var fieldType = split.Item1;
+                    var fieldLabel = split.Item2;
+                    if (string.IsNullOrEmpty(fieldType))
+                    {
+                        continue;
+                    }
+
+                    var key = string.IsNullOrEmpty(fieldLabel)
+                        ? fieldType
+                        : $"{fieldType}:{fieldLabel}";
+                    fields.Add(new ImportCustomField
+                    {
+                        Name = key,
+                        TextValue = customField.TextValue,
+                        Elements = customField.Elements,
+                    });
+                }
+
+                return fields.ToArray();
+            }
+
+            /// <summary>Reads filled fields off a <see cref="TypedRecord"/> for NSF.</summary>
+            private static ImportCustomField[] ExtractNsfFieldsFromTypedRecord(TypedRecord typed)
+            {
+                var fields = new List<ImportCustomField>();
+                foreach (var field in typed.Fields.Concat(typed.Custom))
+                {
+                    if (string.IsNullOrEmpty(field.FieldName) || field.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    // Use GetValueAt (not ObjectValue) so empty schema fields are not auto-materialized.
+                    var value = field.GetValueAt(0);
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    // Preserve labeled fields (e.g. address:Work) so same-type fields do not collapse.
+                    var key = string.IsNullOrEmpty(field.FieldLabel)
+                        ? field.FieldName
+                        : $"{field.FieldName}:{field.FieldLabel}";
+
+                    // Empty string is kept (explicit NSF update clear); other empty payloads are skipped.
+                    if (value is string text)
+                    {
+                        fields.Add(new ImportCustomField { Name = key, TextValue = text });
+                        continue;
+                    }
+
+                    if (!HasNsfFieldValue(value))
+                    {
+                        continue;
+                    }
+
+                    var customField = ToImportCustomField(key, value);
+                    if (customField != null)
+                    {
+                        fields.Add(customField);
+                    }
+                }
+
+                return fields.ToArray();
+            }
+
+            /// <summary>Wraps a field value as an <see cref="ImportCustomField"/>.</summary>
+            private static ImportCustomField ToImportCustomField(string name, object value)
+            {
+                if (string.IsNullOrEmpty(name) || value == null)
+                {
+                    return null;
+                }
+
+                if (value is string text)
+                {
+                    return new ImportCustomField { Name = name, TextValue = text };
+                }
+
+                if (value is IFieldTypeSerialize serializer)
+                {
+                    var elementNames = serializer.Elements?.ToArray() ?? Array.Empty<string>();
+                    var elementValues = serializer.ElementValues?.ToArray() ?? Array.Empty<string>();
+                    var count = Math.Min(elementNames.Length, elementValues.Length);
+                    var elements = new ImportCustomFieldElement[count];
+                    for (var i = 0; i < count; i++)
+                    {
+                        elements[i] = new ImportCustomFieldElement
+                        {
+                            Name = elementNames[i],
+                            Value = elementValues[i],
+                        };
+                    }
+
+                    return new ImportCustomField { Name = name, Elements = elements };
+                }
+
+                if (value is IDictionary dictionary)
+                {
+                    var elements = new List<ImportCustomFieldElement>();
+                    foreach (DictionaryEntry entry in dictionary)
+                    {
+                        if (entry.Key is not string elementName)
+                        {
+                            continue;
+                        }
+
+                        elements.Add(new ImportCustomFieldElement
+                        {
+                            Name = elementName,
+                            Value = entry.Value as string ?? entry.Value?.ToString(),
+                        });
+                    }
+
+                    return new ImportCustomField { Name = name, Elements = elements.ToArray() };
+                }
+
+                return new ImportCustomField { Name = name, TextValue = value.ToString() };
+            }
+
+            /// <summary>Copies a custom field and its elements.</summary>
+            private static ImportCustomField CloneImportCustomField(ImportCustomField field)
+            {
+                if (field == null)
+                {
+                    return null;
+                }
+
+                return new ImportCustomField
+                {
+                    Name = field.Name,
+                    TextValue = field.TextValue,
+                    Elements = field.Elements?
+                        .Select(e => e == null
+                            ? null
+                            : new ImportCustomFieldElement { Name = e.Name, Value = e.Value })
+                        .ToArray(),
+                };
+            }
+
+            /// <summary>
+            /// Reads custom_fields from import JSON.
+            /// Plain values go into TextValue; objects go into Elements.
+            /// Empty objects are skipped.
+            /// </summary>
+            private static ImportCustomField[] ParseCustomFieldsFromImportJson(ImportJsonValue value)
+            {
+                if (value?.Kind != ImportJsonValue.JsonKind.Object || value.ObjectValue == null || value.ObjectValue.Count == 0)
+                {
+                    return null;
+                }
+
+                var fields = new List<ImportCustomField>(value.ObjectValue.Count);
+                foreach (var pair in value.ObjectValue)
+                {
+                    if (string.IsNullOrEmpty(pair.Key) || pair.Value == null || pair.Value.Kind == ImportJsonValue.JsonKind.Null)
+                    {
+                        continue;
+                    }
+
+                    if (pair.Value.Kind == ImportJsonValue.JsonKind.Object)
+                    {
+                        var elements = new List<ImportCustomFieldElement>();
+                        if (pair.Value.ObjectValue != null)
+                        {
+                            foreach (var element in pair.Value.ObjectValue)
+                            {
+                                if (string.IsNullOrEmpty(element.Key))
+                                {
+                                    continue;
+                                }
+
+                                elements.Add(new ImportCustomFieldElement
+                                {
+                                    Name = element.Key,
+                                    Value = element.Value?.AsString(),
+                                });
+                            }
+                        }
+
+                        if (elements.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = pair.Key,
+                            Elements = elements.ToArray(),
+                        });
+                        continue;
+                    }
+
+                    fields.Add(new ImportCustomField
+                    {
+                        Name = pair.Key,
+                        TextValue = pair.Value.AsString() ?? string.Empty,
+                    });
+                }
+
+                return fields.Count > 0 ? fields.ToArray() : null;
+            }
+
+            /// <summary>
+            /// Value to write for a custom field.
+            /// Named Elements become a dictionary; otherwise TextValue is used
+            /// ("" clears the field). Empty element lists are not sent.
+            /// </summary>
+            private static object ToAssignValue(ImportCustomField field)
+            {
+                if (field == null)
+                {
+                    return null;
+                }
+
+                if (field.Elements != null)
+                {
+                    var dict = new Dictionary<string, object>();
+                    foreach (var element in field.Elements)
+                    {
+                        if (element?.Name == null)
+                        {
+                            continue;
+                        }
+
+                        dict[element.Name] = element.Value;
+                    }
+
+                    if (dict.Count > 0)
+                    {
+                        return dict;
+                    }
+                }
+
+                return field.TextValue;
+            }
+
+            /// <summary>Builds the Fields map for an NSF create/update, skipping empty fields.</summary>
+            private static IDictionary<string, object> ToNsfRequestFields(IEnumerable<ImportCustomField> fields)
+            {
+                var result = new Dictionary<string, object>();
+                if (fields == null)
+                {
+                    return result;
+                }
+
+                foreach (var field in fields)
+                {
+                    if (field == null || string.IsNullOrEmpty(field.Name) || !field.HasValue)
+                    {
+                        continue;
+                    }
+
+                    var value = ToAssignValue(field);
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    result[field.Name] = value;
+                }
+
+                return result;
+            }
+
+            /// <summary>True if the value is worth sending (not empty).</summary>
+            private static bool HasNsfFieldValue(object value)
+            {
+                if (value == null)
+                {
+                    return false;
+                }
+
+                if (value is string text)
+                {
+                    return !string.IsNullOrEmpty(text);
+                }
+
+                if (value is IFieldTypeSerialize serializer)
+                {
+                    return serializer.ElementValues.Any(v => !string.IsNullOrEmpty(v));
+                }
+
+                if (value is IDictionary dictionary)
+                {
+                    return dictionary.Count > 0;
+                }
+
+                return true;
             }
         }
     }

@@ -80,6 +80,39 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Export-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-2)                                 | kdwnmbs        | Download shared folder and team membership data to JSON file
 | [Import-KeeperMembership](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/import-export-commands#powercommander-3)                                 | kapplymbs      | Load shared folder membership from JSON file into Keeper
 
+### Keeper NSF Cmdlets
+
+Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs/gitbook/keeper-nsf-commands.md)** | **[Import sample templates](docs/gitbook/import-export-download-sample.md)**
+
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Add-KeeperNSFRecord                                     | nsf-record-add   | Create a single Keeper NSF record
+| Add-KeeperNSFRecords                                    | nsf-records-add  | Batch create NSF records from JSON (`-DownloadSampleRecords` writes a starter template)
+| Edit-KeeperNSFRecord                                    | nsf-record-update | Update an existing Keeper NSF record
+| Edit-KeeperNSFRecords                                   | nsf-records-update | Batch update NSF records from JSON (`-DownloadSampleRecords`)
+| Remove-KeeperNSFRecord                                  | nsf-rm           | Remove Keeper NSF record(s) by UID/title
+| Remove-KeeperNSFRecords                                 | nsf-records-rm   | Batch remove NSF records from JSON (`-DownloadSampleRemovals`; preview then confirm)
+| Set-KeeperNSFRecordAccess                               | nsf-share-record | Grant or revoke user access to an NSF record
+| Share-KeeperNSFRecords                                  | nsf-share-records | Batch grant NSF record access from JSON (`-DownloadSampleShares`)
+| Unshare-KeeperNSFRecords                                | nsf-unshare-records | Batch revoke NSF record access from JSON (`-DownloadSampleUnshares`)
+| Set-KeeperNSFRecordPermission                           | nsf-record-permission | Bulk grant or revoke record permissions in an NSF folder
+| Link-KeeperNSFRecord                                    | nsf-ln           | Link a record into an NSF folder
+| Link-KeeperNSFRecords                                   | nsf-lns          | Batch link records into NSF folders from JSON (`-DownloadSampleLinks`; max 500 per folder)
+| Unlink-KeeperNSFRecords                                 | nsf-unln         | Batch unlink records from NSF folders from JSON (`-DownloadSampleUnlinks`; max 500)
+| Transfer-KeeperNSFRecordOwnership                       | nsf-transfer-record | Transfer NSF record ownership
+| Get-KeeperNSFShortcut                                   | nsf-shortcut-list | List NSF shortcut records
+| Set-KeeperNSFShortcutKeep                               | nsf-shortcut-keep | Keep a record in one NSF folder only
+| New-KeeperNSFFolder                                     | nsf-mkdir        | Create a Keeper NSF folder
+| New-KeeperNSFFolders                                    | nsf-mkdirs       | Batch create NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
+| Set-KeeperNSFFolder                                     | nsf-rndir        | Update a single NSF folder (name/color/inherit)
+| Set-KeeperNSFFolders                                    | nsf-folders-update | Batch update NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
+| Remove-KeeperNSFFolder                                  | nsf-rmdir        | Remove NSF folder(s) by UID/name
+| Remove-KeeperNSFFolders                                 | nsf-rmdirs       | Batch remove NSF folders from JSON (`-DownloadSampleFolders`; max 100 per request)
+| Set-KeeperNSFFolderAccess                               | nsf-share-folder | Grant or revoke user or **team** access to an NSF folder
+| Share-KeeperNSFFolderAccesses                           | nsf-share-folders | Batch grant NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
+| Update-KeeperNSFFolderAccesses                          | nsf-update-folder-access | Batch update NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
+| Unshare-KeeperNSFFolderAccesses                         | nsf-unshare-folders | Batch revoke NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
+
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
@@ -129,9 +162,8 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Get-KeeperEnterpriseTeams](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                               | list-team        | List all enterprise teams (with optional filters)
 | [Get-KeeperAvailableTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander)                                 | kat              | Get available teams (for sharing and membership)
 | [New-KeeperEnterpriseTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-1)                                | keta             | Create Team
-| [Add-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                          |                  | Add users to team (`enterprise-team -au` / `enterprise-user --add-team`; `-User`, `-HideSharedFolders`)
-| [Remove-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                       |                  | Remove users from team (`enterprise-team -ru` / `enterprise-user --remove-team`)
-| Get-KeeperEnterpriseTeamRole                                                                                          | ketr             | List roles for a team (`enterprise-team -v`; reverse of `Get-KeeperEnterpriseRoleTeams`)
+| [Add-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                          |                  | Add a list of enterprise users to a team
+| [Remove-KeeperEnterpriseTeamMember](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-team-commands#powercommander-4)                       |                  | Remove a list of enterprise users from a team
 | [Update-KeeperEnterpriseTeamUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander-8)                         |                  | Update team member role (admin/user) for a user in a team
 | [New-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-node-commands#powercommander-1)                                | kena             | Create Node
 | [Edit-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-node-commands#powercommander-2)                               | kenu             | Update Node (rename, move, or enable node isolation)
@@ -147,7 +179,6 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Move-KeeperEnterpriseUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/transfer-user-commands#powercommander)                               |transfer-user     | Transfer user vault to another user (-FromUser, -TargetUser; -Force to skip confirmation)
 | [Remove-KeeperEnterpriseUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander-3)                             | delete-user      | Delete Enterprise User
 | [Update-KeeperEnterpriseUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander-9)                             |                  | Update enterprise user (node, full name, job title, locale)
-| Get-KeeperEnterpriseUserTeam                                                                                          | keut             | List teams for a user (reverse of `Get-KeeperEnterpriseTeamUser`; use `Add/Remove-KeeperEnterpriseTeamMember` for `--add-team`/`--remove-team`)
 | [Set-KeeperEnterpriseUserMasterPasswordExpire](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander-7)            |                  | Expire master password for enterprise user
 | [Get-KeeperEnterpriseRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander)                                | ker              | Enumerate all enterprise roles
 | [Get-KeeperEnterpriseRoleUsers](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander)                           | keru             | Get a list of enterprise users for role
@@ -159,8 +190,8 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Copy-KeeperEnterpriseRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-6)                               | kercopy          | Copy a role (enforcements, users, teams) to another node
 | [Grant-KeeperEnterpriseRoleToUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-5)                        | kerua            | Add a user to an Enterprise Role
 | [Revoke-KeeperEnterpriseRoleFromUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-5)                     | kerur            | Remove a user from an Enterprise Role
-| [Grant-KeeperEnterpriseRoleToTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-7)                        | kerta            | Add team to role (`enterprise-role -at` / `enterprise-team -ar`; multiple `-Role`)
-| [Revoke-KeeperEnterpriseRoleFromTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-7)                     | kertr            | Remove team from role (`enterprise-role -rt` / `enterprise-team -rr`; multiple `-Role`)
+| [Grant-KeeperEnterpriseRoleToTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-7)                        | kerta            | Add a team to an Enterprise Role
+| [Revoke-KeeperEnterpriseRoleFromTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-7)                     | kertr            | Remove a team from an Enterprise Role
 | [Add-KeeperEnterpriseRoleManagedNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-8)                     |                  | Add a managed node to an Enterprise Role
 | [Update-KeeperEnterpriseRoleManagedNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-9)                  |                  | Update managed node settings for an Enterprise Role
 | [Remove-KeeperEnterpriseRoleManagedNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-role-commands#powercommander-10)                  |                  | Remove a managed node from an Enterprise Role
