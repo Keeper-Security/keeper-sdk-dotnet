@@ -13,14 +13,14 @@ namespace KeeperSecurity.Vault
 {
     internal sealed class KeeperNSFAccessorInfo
     {
-        public string AccessTypeUid { get; set; }  
-        public int AccessType { get; set; }        
+        public string AccessTypeUid { get; set; }
+        public int AccessType { get; set; } 
         public bool Owner { get; set; }
         public bool Inherited { get; set; }
         public bool DeniedAccess { get; set; }
-        public string Username { get; set; }       
-        public Dictionary<string, bool> Permissions { get; set; }  
-        public bool CanUpdateAccess { get; set; }  
+        public string Username { get; set; }
+        public Dictionary<string, bool> Permissions { get; set; }
+        public bool CanUpdateAccess { get; set; }
         public bool CanChangeOwnership { get; set; }
     }
 
