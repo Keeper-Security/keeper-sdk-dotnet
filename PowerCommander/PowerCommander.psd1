@@ -77,7 +77,8 @@
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
         'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
-        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1'
+        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1',
+        'PAM\Action.ps1', 'PAM\Connection.ps1', 'PAM\Rbi.ps1'
         )
 
     # Functions to export from this module
@@ -144,7 +145,9 @@
         'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances',
         'Get-KeeperPamRotationList', 'Get-KeeperPamRotationInfo', 'Set-KeeperPamRotation',
         'Get-KeeperPamRotationScript', 'Add-KeeperPamRotationScript', 'Set-KeeperPamRotationScript', 'Remove-KeeperPamRotationScript',
-        'Get-KeeperPamConfig', 'New-KeeperPamConfig', 'Set-KeeperPamConfig', 'Remove-KeeperPamConfig'
+        'Get-KeeperPamConfig', 'New-KeeperPamConfig', 'Set-KeeperPamConfig', 'Remove-KeeperPamConfig',
+        'Invoke-KeeperPamActionRotate', 'Get-KeeperPamActionJobInfo',
+        'Set-KeeperPamConnection', 'Set-KeeperPamRbi'
         #'Test-Keeper',
     )
 
@@ -185,7 +188,10 @@
         'pam-rotation-script-list', 'pam-rot-script-list', 'pam-rotation-script-add', 'pam-rot-script-add',
         'pam-rotation-script-edit', 'pam-rot-script-edit', 'pam-rotation-script-delete', 'pam-rot-script-delete',
         'pam-config-list', 'pam-cfg-list', 'pam-config-new', 'pam-cfg-new',
-        'pam-config-edit', 'pam-cfg-edit', 'pam-config-remove', 'pam-cfg-remove', 'pam-config-rm')
+        'pam-config-edit', 'pam-cfg-edit', 'pam-config-remove', 'pam-cfg-remove', 'pam-config-rm',
+        'pam-action-rotate', 'pam-action-job-info',
+        'pam-connection-edit',
+        'pam-rbi-edit')
 
     # List of all modules packaged with this module
     # ModuleList = @()
