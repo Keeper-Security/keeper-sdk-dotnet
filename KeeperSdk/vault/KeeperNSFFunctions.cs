@@ -2643,10 +2643,14 @@ namespace KeeperSecurity.Vault
             if (VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var existingTyped)
                 && existingTyped != null)
             {
-                existingRefs.UnionWith(existingTyped.ExtractTypedRecordRefs());
+                // ExtractTypedRecordRefs always returns a set; coalesce for safety.
+                var existing = existingTyped.ExtractTypedRecordRefs()
+                               ?? new HashSet<string>(StringComparer.Ordinal);
+                existingRefs.UnionWith(existing);
             }
 
-            var currentRefs = typed.ExtractTypedRecordRefs() ?? new HashSet<string>(StringComparer.Ordinal);
+            var currentRefs = typed.ExtractTypedRecordRefs()
+                              ?? new HashSet<string>(StringComparer.Ordinal);
             foreach (var newRef in currentRefs.Except(existingRefs))
             {
                 if (string.IsNullOrEmpty(newRef))
@@ -2656,19 +2660,21 @@ namespace KeeperSecurity.Vault
 
                 byte[] refKey = null;
                 typed.LinkedKeys?.TryGetValue(newRef, out refKey);
-                if (refKey == null && vault.TryGetKeeperRecord(newRef, out var linked))
+                if (refKey == null && vault.TryGetKeeperRecord(newRef, out var linked)
+                    && linked?.RecordKey != null)
                 {
                     refKey = linked.RecordKey;
                 }
 
-                if (refKey == null && vault.TryGetKeeperNSFRecord(newRef, out var linkedNsf))
+                if (refKey == null && vault.TryGetKeeperNSFRecord(newRef, out var linkedNsf)
+                    && linkedNsf?.RecordKey != null)
                 {
                     refKey = linkedNsf.RecordKey;
                 }
 
                 if (refKey != null)
                 {
-                    // linked record key encrypted with this record's key.
+                    // Linked record key encrypted with this record's key (same as classic PutRecord).
                     recordUpdate.RecordLinksAdd.Add(new RecordLink
                     {
                         RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
@@ -2677,7 +2683,8 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    Trace.TraceError("Lost record reference while updating NSF typed record.");
+                    // Missing classic/NSF key — skip link add (same as classic PutRecord lost-ref path).
+                    Trace.TraceError("Lost record reference while updating NSF typed record (missing record key).");
                 }
             }
 

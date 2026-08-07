@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -608,8 +608,8 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Converts a synced Keeper NSF record into a <see cref="TypedRecord"/> for PAM and vault commands.
-        /// Returns false when the NSF entry cannot be converted (missing UID/key or invalid data).
+        /// Build a TypedRecord from an NSF record so PAM can read fields the same way as classic.
+        /// Returns false if UID/key is missing or data cannot be parsed.
         /// </summary>
         public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
         {
@@ -646,8 +646,10 @@ namespace KeeperSecurity.Vault
                     nsf.ClientModifiedTime);
                 return typed != null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.TraceWarning(
+                    "PAM: failed to convert NSF record to TypedRecord: {0}", ex.Message);
                 typed = null;
                 return false;
             }

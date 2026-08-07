@@ -534,8 +534,10 @@ function script:invokeKeeperPamRotationEdit {
                     $Auth, $Vault, $record, $resourceUidForDag, $configUidForDag,
                     [bool]$editContext.Noop, [bool]$Options.ScheduleOnly
                 ).GetAwaiter().GetResult() | Out-Null
-                # Graph ACL repair/link can change server rotation revision (Python parity).
-                $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+                # NSF only: sync so rotation revision is fresh after graph link.
+                if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFRecord($Vault, $record.Uid)) {
+                    $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+                }
             }
 
             $request = $null

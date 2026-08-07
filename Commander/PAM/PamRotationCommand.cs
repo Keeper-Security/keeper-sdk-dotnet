@@ -643,6 +643,25 @@ namespace Commander.PAM
                    || string.Equals(field.FieldLabel, "rotationScripts", StringComparison.Ordinal);
         }
 
+        // AdjustTypedRecord often moves rotationScripts to Custom; list/find must check both.
+        private static IEnumerable<TypedField<FieldScript>> EnumerateRotationScriptFields(TypedRecord record)
+        {
+            if (record == null)
+            {
+                yield break;
+            }
+
+            foreach (var field in record.Fields.OfType<TypedField<FieldScript>>().Where(IsRotationScriptField))
+            {
+                yield return field;
+            }
+
+            foreach (var field in record.Custom.OfType<TypedField<FieldScript>>().Where(IsRotationScriptField))
+            {
+                yield return field;
+            }
+        }
+
         private static string ResolveScriptSubcommand(PamRotationOptions options)
         {
             if (!string.IsNullOrWhiteSpace(options.ScriptSubCommand))
@@ -686,13 +705,12 @@ namespace Commander.PAM
 
         private static TypedField<FieldScript> GetOrCreateScriptField(TypedRecord record)
         {
-            var scriptField = record.Fields
-                .OfType<TypedField<FieldScript>>()
-                .FirstOrDefault(IsRotationScriptField);
+            var scriptField = EnumerateRotationScriptFields(record).FirstOrDefault();
             if (scriptField == null)
             {
+                // Custom: pamUser schema usually has no script field; AdjustTypedRecord would move it anyway.
                 scriptField = new TypedField<FieldScript>("script", "rotationScripts");
-                record.Fields.Add(scriptField);
+                record.Custom.Add(scriptField);
             }
 
             return scriptField;
@@ -716,9 +734,7 @@ namespace Commander.PAM
             string scriptName,
             out TypedField<FieldScript> scriptField)
         {
-            scriptField = record.Fields
-                .OfType<TypedField<FieldScript>>()
-                .FirstOrDefault(IsRotationScriptField);
+            scriptField = EnumerateRotationScriptFields(record).FirstOrDefault();
             if (scriptField == null)
             {
                 return null;
@@ -737,7 +753,7 @@ namespace Commander.PAM
                 return null;
             }
 
-            // Normalize for UID/title/filename script matching.
+            // Trim once for matching script UID / title / file name.
             var scriptKey = scriptName.Trim();
             if (scriptKey.Length == 0)
             {
@@ -751,23 +767,20 @@ namespace Commander.PAM
                     continue;
                 }
 
+                // Same UID is either classic file or NSF file, not both.
                 if (vault.TryGetKeeperRecord(scriptValue.FileRef, out var keeperRecord)
                     && keeperRecord is FileRecord fileRecord)
                 {
-                    // Match UID, title, or filename.
                     if (MatchesScriptIdentifier(fileRecord.Uid, scriptKey)
                         || MatchesScriptIdentifier(fileRecord.Title, scriptKey)
                         || MatchesScriptIdentifier(fileRecord.Name, scriptKey))
                     {
                         return scriptValue;
                     }
-
-                    continue;
                 }
-
-                if (vault.TryGetKeeperNSFRecord(scriptValue.FileRef, out var nsf) && nsf != null
-                    && (MatchesScriptIdentifier(nsf.RecordUid, scriptKey)
-                        || MatchesScriptIdentifier(nsf.Title, scriptKey)))
+                else if (vault.TryGetKeeperNSFRecord(scriptValue.FileRef, out var nsf) && nsf != null
+                         && (MatchesScriptIdentifier(nsf.RecordUid, scriptKey)
+                             || MatchesScriptIdentifier(nsf.Title, scriptKey)))
                 {
                     return scriptValue;
                 }
@@ -795,7 +808,7 @@ namespace Commander.PAM
                 var trimmed = credential.Trim();
                 try
                 {
-                    // Prefer pamUser (rotation credential), then any typed record (classic or NSF).
+                    // pamUser first, then any typed record (classic or NSF).
                     var resolved = PamVaultHelpers.ResolveRecord(vault, trimmed, new[] { "pamUser" })
                                    ?? PamVaultHelpers.ResolveRecord(vault, trimmed, null);
                     if (resolved != null && !string.IsNullOrEmpty(resolved.Uid))
@@ -823,8 +836,7 @@ namespace Commander.PAM
             }
 
             var pattern = ResolveScriptPattern(options);
-            var tab = new Tabulate(7);
-            tab.AddHeader("Record UID", "Title", "Record Type", "Script UID", "Script Name", "Records", "Command");
+            var rows = new List<object[]>();
 
             foreach (var record in EnumerateScriptRecords(vault))
             {
@@ -833,7 +845,7 @@ namespace Commander.PAM
                     continue;
                 }
 
-                foreach (var scriptField in record.Fields.OfType<TypedField<FieldScript>>().Where(IsRotationScriptField))
+                foreach (var scriptField in EnumerateRotationScriptFields(record))
                 {
                     foreach (var script in scriptField.Values)
                     {
@@ -844,24 +856,78 @@ namespace Commander.PAM
 
                         var scriptName = ResolveScriptFileName(vault, script.FileRef);
                         var recordRefs = script.RecordRef != null ? string.Join(", ", script.RecordRef) : "";
-                        tab.AddRow(
+                        rows.Add(new object[]
+                        {
                             record.Uid,
                             record.Title,
                             record.TypeName,
                             script.FileRef,
                             scriptName,
                             recordRefs,
-                            script.Command ?? "");
+                            script.Command ?? "",
+                        });
                     }
                 }
+            }
+
+            DumpScriptList(rows, options.Format);
+        }
+
+        private static void DumpScriptList(IReadOnlyList<object[]> rows, string format)
+        {
+            var fmt = string.IsNullOrWhiteSpace(format) ? "table" : format.Trim().ToLowerInvariant();
+            if (fmt == "json")
+            {
+                var jsonRows = rows.Select(r => new Dictionary<string, object>
+                {
+                    ["record_uid"] = r[0],
+                    ["title"] = r[1],
+                    ["record_type"] = r[2],
+                    ["script_uid"] = r[3],
+                    ["script_name"] = r[4],
+                    ["records"] = r[5],
+                    ["command"] = r[6],
+                }).ToList();
+                Console.WriteLine(Encoding.UTF8.GetString(JsonUtils.DumpJson(jsonRows, indent: true)));
+                return;
+            }
+
+            if (fmt == "csv")
+            {
+                Console.WriteLine("Record UID,Title,Record Type,Script UID,Script Name,Records,Command");
+                foreach (var r in rows)
+                {
+                    Console.WriteLine(string.Join(",", r.Select(CsvEscape)));
+                }
+
+                return;
+            }
+
+            // table (default). pdf is Python-only; not supported here.
+            var tab = new Tabulate(7);
+            tab.AddHeader("Record UID", "Title", "Record Type", "Script UID", "Script Name", "Records", "Command");
+            foreach (var r in rows)
+            {
+                tab.AddRow(r);
             }
 
             tab.Dump();
         }
 
+        private static string CsvEscape(object value)
+        {
+            var s = value?.ToString() ?? "";
+            if (s.IndexOfAny(new[] { ',', '"', '\n', '\r' }) >= 0)
+            {
+                return "\"" + s.Replace("\"", "\"\"") + "\"";
+            }
+
+            return s;
+        }
+
         private static IEnumerable<TypedRecord> EnumerateScriptRecords(VaultOnline vault)
         {
-            // UID dedupe.
+            // Skip duplicate UIDs (classic first, then NSF).
             var seen = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var record in vault.KeeperRecords.OfType<TypedRecord>().Where(MatchesScriptRecord))
@@ -918,7 +984,7 @@ namespace Commander.PAM
             }
             catch
             {
-                //show inaccessible rather than failing script list.
+                // Bad NSF entry — keep listing other scripts.
             }
 
             return InaccessibleScriptName;
@@ -1044,7 +1110,7 @@ namespace Commander.PAM
         [Option('v', "verbose", Required = false, HelpText = "Verbose output")]
         public bool Verbose { get; set; }
 
-        [Option("format", Required = false, HelpText = "Output format: table, json (info command)")]
+        [Option("format", Required = false, HelpText = "Output format: table, json (info); table, json, csv (script list)")]
         public string Format { get; set; }
 
         [Option("script-command", Required = false, HelpText = "Script run command or subcommand if list/add/edit/delete")]

@@ -192,8 +192,7 @@ namespace KeeperSecurity.Vault
         {
             try
             {
-                // Route through UpdateRecordAsync so NSF typed records use the NSF v3 update path
-                // and classic records keep PutRecord + out-of-sync retry behavior.
+                // Route NSF typed updates to NSF v3 update; classic still uses PutRecord.
                 var recordUpdated = await UpdateRecordAsync(record, skipExtra).ConfigureAwait(false);
                 return new TryUpdateRecordResult(true, recordUpdated, null);
             }
@@ -215,6 +214,8 @@ namespace KeeperSecurity.Vault
                 && !string.IsNullOrEmpty(typed.Uid)
                 && TryGetKeeperNSFRecord(typed.Uid, out _))
             {
+                // One out_of_sync / RS_OUT_OF_SYNC retry: refresh NSF revision/key, then update again.
+                // Other KeeperApiException types are not caught here.
                 const int maxOutOfSyncRetries = 1;
                 var attempt = 0;
                 while (true)
@@ -233,7 +234,6 @@ namespace KeeperSecurity.Vault
                             throw;
                         }
 
-                        // Refresh updates revision/key; store so the typed NSF updater uses latest revision.
                         KeeperNSFRecords[refreshed.RecordUid] = refreshed;
                     }
                 }

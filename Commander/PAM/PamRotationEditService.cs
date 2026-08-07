@@ -184,7 +184,7 @@ namespace Commander.PAM
                             configUidForDag,
                             editContext.Noop,
                             options.ScheduleOnly);
-                        // After graph link, refresh rotation revision for NSF only.
+                        // NSF only: sync so rotation revision is fresh after graph link.
                         if (PamVaultHelpers.IsKeeperNSFRecord(_vault, record.Uid))
                         {
                             await _vault.SyncDown();
@@ -203,7 +203,7 @@ namespace Commander.PAM
                             valid,
                             out var request))
                     {
-                        // Revision from resolver after build (cache → NSF → sync → 0).
+                        // Set revision here (cache → NSF → sync → 0), not cached?.Revision only.
                         request.Revision = await _vault.ResolveRecordRotationRevisionAsync(record.Uid);
                         requests.Add(request);
                     }
@@ -323,6 +323,7 @@ namespace Commander.PAM
             }
         }
 
+        // Phrases from set_record_rotation when NSF revision is wrong. No dedicated error code yet.
         private static readonly string[] UnsupportedRotationRevisionMarkers =
         {
             "mismatched_revision_blocking_update",
