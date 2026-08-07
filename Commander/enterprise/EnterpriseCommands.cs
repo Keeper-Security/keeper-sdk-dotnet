@@ -114,6 +114,8 @@ namespace Commander
 
         /// <summary>
         /// Copy vault sync_down rotations into PAM offline storage.
+        /// No-op when there is no vault or PAM plugin (non-enterprise / not admin).
+        /// Callers should catch failures — vault sync may already have succeeded.
         /// </summary>
         internal static void RefreshRecordRotations(this IEnterpriseContext context)
         {
@@ -129,15 +131,8 @@ namespace Commander
                 return;
             }
 
-            try
-            {
-                var replaceAll = vault.ConsumeRotationsCleared();
-                plugin.MergeRecordRotationsFromVault(vault, replaceAll);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"RefreshRecordRotations failed: {ex.Message}");
-            }
+            var replaceAll = vault.ConsumeRotationsCleared();
+            plugin.MergeRecordRotationsFromVault(vault, replaceAll);
         }
 
         /// <summary>

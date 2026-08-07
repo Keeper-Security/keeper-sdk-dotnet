@@ -614,7 +614,14 @@ namespace Commander
                         var fullSync = options.Reset || s == null;
                         Console.WriteLine("Syncing...");
                         await context.Vault.SyncDown(fullSync: fullSync);
-                        context.EnterpriseContext?.RefreshRecordRotations();
+                        try
+                        {
+                            context.EnterpriseContext?.RefreshRecordRotations();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Warning: could not refresh PAM record rotations cache: {ex.Message}");
+                        }
                         if (fullSync)
                         {
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");

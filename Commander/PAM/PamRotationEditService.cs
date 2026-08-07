@@ -287,7 +287,14 @@ namespace Commander.PAM
             }
 
             await _vault.SyncDown();
-            _pathContext?.EnterpriseContext?.RefreshRecordRotations();
+            try
+            {
+                _pathContext?.EnterpriseContext?.RefreshRecordRotations();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: could not refresh PAM record rotations cache: {ex.Message}");
+            }
 
             if (failures.Count > 0)
             {
@@ -438,7 +445,7 @@ namespace Commander.PAM
             }
             else if (cached != null)
             {
-                pwdComplexity = cached.PwdComplexity ?? Array.Empty<byte>();
+                pwdComplexity = cached.PasswordComplexity ?? Array.Empty<byte>();
             }
             else
             {

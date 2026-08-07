@@ -38,7 +38,7 @@ namespace KeeperSecurity.Plugins.PAM
     public long Revision { get; set; }
     public string ConfigurationUid { get; set; } = "";
     public string Schedule { get; set; } = "";
-    public byte[] PwdComplexity { get; set; } = Array.Empty<byte>();
+    public byte[] PasswordComplexity { get; set; } = Array.Empty<byte>();
     public bool Disabled { get; set; }
     public string ResourceUid { get; set; } = "";
     public long LastRotation { get; set; }

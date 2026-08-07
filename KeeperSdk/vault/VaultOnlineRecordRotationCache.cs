@@ -15,7 +15,7 @@ namespace KeeperSecurity.Vault
         public long Revision { get; set; }
         public string ConfigurationUid { get; set; } = "";
         public string Schedule { get; set; } = "";
-        public byte[] PwdComplexity { get; set; } = Array.Empty<byte>();
+        public byte[] PasswordComplexity { get; set; } = Array.Empty<byte>();
         public bool Disabled { get; set; }
         public string ResourceUid { get; set; } = "";
         public long LastRotation { get; set; }
@@ -51,15 +51,20 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Returns whether the rotation cache was cleared since the last consume, then clears the flag.
-        /// Used when merging vault rotations into PAM offline storage (replace-all).
+        /// Returns true if the rotation cache was cleared since the last check, then resets that flag.
         /// </summary>
+        /// <remarks>
+        /// Only the first caller gets true. Later callers get false until the cache is cleared again.
+        /// Use true to do a full replace when copying rotations into PAM storage.
+        /// </remarks>
         public bool ConsumeRotationsCleared()
         {
-            // Atomic read-and-clear so a concurrent ClearRecordRotationCache cannot lose the flag.
             return Interlocked.Exchange(ref _recordRotationsCleared, 0) != 0;
         }
 
+        /// <summary>
+        /// Clears the rotation cache and marks it so the next <see cref="ConsumeRotationsCleared"/> returns true.
+        /// </summary>
         internal void ClearRecordRotationCache()
         {
             _recordRotationCache.Clear();
@@ -103,7 +108,7 @@ namespace KeeperSecurity.Vault
                     Revision = rotation.Revision,
                     ConfigurationUid = rotation.ConfigurationUid?.ToByteArray().Base64UrlEncode() ?? "",
                     Schedule = rotation.Schedule ?? "",
-                    PwdComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
+                    PasswordComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
                     Disabled = rotation.Disabled,
                     ResourceUid = rotation.ResourceUid?.ToByteArray().Base64UrlEncode() ?? "",
                     LastRotation = rotation.LastRotation,

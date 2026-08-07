@@ -100,9 +100,9 @@ namespace KeeperSecurity.Plugins.PAM
         domainRows.Add(domainRow);
       }
 
-      // Atomic durable merge first. If this throws, working cache is left unchanged.
+      // merge controllers first. If this throws, working cache is left unchanged.
       Storage.ApplyControllerMerge(storageRows, replaceAll: reload);
-      // Rebuild working cache from the intended end state (mirrors durable storage).
+      // Rebuild cache from the final saved state.
       SyncControllersFromDomain(domainRows);
       SyncRecordRotationsFromStorage();
     }
@@ -144,14 +144,14 @@ namespace KeeperSecurity.Plugins.PAM
         return;
       }
 
-      var rows = vault.RecordRotationCache.Values
+      var rows = (vault.RecordRotationCache?.Values ?? Enumerable.Empty<RecordRotationInfo>())
         .Select(PamStorageMapper.FromVaultInfo)
         .Where(r => r != null)
-        .Cast<IPamStorageRecordRotation>()
-        .ToList();
+        .ToList<IPamStorageRecordRotation>();
       MergeRecordRotations(rows, replaceAll);
     }
 
+    // Only called from the constructor before the plugin is used.
     private void LoadFromStorage()
     {
       var controllers = Storage.Controllers.GetAll()

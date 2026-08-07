@@ -31,7 +31,7 @@ namespace KeeperSecurity.Plugins.PAM
     long Revision { get; set; }
     string ConfigurationUid { get; set; }
     string Schedule { get; set; }
-    byte[] PwdComplexity { get; set; }
+    byte[] PasswordComplexity { get; set; }
     bool Disabled { get; set; }
     string ResourceUid { get; set; }
     long LastRotation { get; set; }
@@ -133,7 +133,7 @@ namespace KeeperSecurity.Plugins.PAM
     public string Schedule { get; set; } = "";
 
     [SqlColumn(Name = "pwd_complexity")]
-    public byte[] PwdComplexity { get; set; } = Array.Empty<byte>();
+    public byte[] PasswordComplexity { get; set; } = Array.Empty<byte>();
 
     [SqlColumn(Name = "disabled")]
     public bool Disabled { get; set; }
@@ -156,7 +156,7 @@ namespace KeeperSecurity.Plugins.PAM
       Revision = source.Revision;
       ConfigurationUid = source.ConfigurationUid;
       Schedule = source.Schedule;
-      PwdComplexity = source.PwdComplexity ?? Array.Empty<byte>();
+      PasswordComplexity = source.PasswordComplexity ?? Array.Empty<byte>();
       Disabled = source.Disabled;
       ResourceUid = source.ResourceUid;
       LastRotation = source.LastRotation;
@@ -221,7 +221,7 @@ namespace KeeperSecurity.Plugins.PAM
         Revision = rotation.Revision,
         ConfigurationUid = rotation.ConfigurationUid?.ToByteArray().Base64UrlEncode() ?? "",
         Schedule = rotation.Schedule ?? "",
-        PwdComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
+        PasswordComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
         Disabled = rotation.Disabled,
         ResourceUid = rotation.ResourceUid?.ToByteArray().Base64UrlEncode() ?? "",
         LastRotation = rotation.LastRotation,
@@ -242,7 +242,7 @@ namespace KeeperSecurity.Plugins.PAM
         Revision = info.Revision,
         ConfigurationUid = info.ConfigurationUid ?? "",
         Schedule = info.Schedule ?? "",
-        PwdComplexity = info.PwdComplexity ?? Array.Empty<byte>(),
+        PasswordComplexity = info.PasswordComplexity ?? Array.Empty<byte>(),
         Disabled = info.Disabled,
         ResourceUid = info.ResourceUid ?? "",
         LastRotation = info.LastRotation,
@@ -258,7 +258,7 @@ namespace KeeperSecurity.Plugins.PAM
         Revision = row.Revision,
         ConfigurationUid = row.ConfigurationUid,
         Schedule = row.Schedule,
-        PwdComplexity = row.PwdComplexity ?? Array.Empty<byte>(),
+        PasswordComplexity = row.PasswordComplexity ?? Array.Empty<byte>(),
         Disabled = row.Disabled,
         ResourceUid = row.ResourceUid,
         LastRotation = row.LastRotation,
@@ -267,11 +267,20 @@ namespace KeeperSecurity.Plugins.PAM
     }
   }
 
+  /// <summary>
+  /// In-memory PAM storage. Reads and merges share one lock so GetAll is safe during a merge.
+  /// </summary>
   public class MemoryPamStorage : IPamStorage
   {
     private readonly object _mergeLock = new();
-    private readonly InMemoryEntityStorage<IPamStorageController> _controllers = new();
-    private readonly InMemoryEntityStorage<IPamStorageRecordRotation> _recordRotations = new();
+    private readonly LockedEntityStorage<IPamStorageController> _controllers;
+    private readonly LockedEntityStorage<IPamStorageRecordRotation> _recordRotations;
+
+    public MemoryPamStorage()
+    {
+      _controllers = new LockedEntityStorage<IPamStorageController>(_mergeLock);
+      _recordRotations = new LockedEntityStorage<IPamStorageRecordRotation>(_mergeLock);
+    }
 
     public IEntityStorage<IPamStorageController> Controllers => _controllers;
     public IEntityStorage<IPamStorageRecordRotation> RecordRotations => _recordRotations;
@@ -304,7 +313,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     private static void ApplyInMemoryMerge<T>(
-      InMemoryEntityStorage<T> store,
+      LockedEntityStorage<T> store,
       List<T> rowList,
       bool replaceAll,
       Func<T, string> uidSelector) where T : IUid
@@ -329,6 +338,58 @@ namespace KeeperSecurity.Plugins.PAM
       if (rowList.Count > 0)
       {
         store.PutEntities(rowList);
+      }
+    }
+
+    // Same lock as merges; GetAll returns a copy so callers can enumerate safely.
+    private sealed class LockedEntityStorage<T> : IEntityStorage<T> where T : IUid
+    {
+      private readonly object _sync;
+      private readonly InMemoryEntityStorage<T> _inner = new();
+
+      public LockedEntityStorage(object sync)
+      {
+        _sync = sync;
+      }
+
+      public T GetEntity(string uid)
+      {
+        lock (_sync)
+        {
+          return _inner.GetEntity(uid);
+        }
+      }
+
+      public void PutEntities(IEnumerable<T> entities)
+      {
+        lock (_sync)
+        {
+          _inner.PutEntities(entities);
+        }
+      }
+
+      public void DeleteUids(IEnumerable<string> uids)
+      {
+        lock (_sync)
+        {
+          _inner.DeleteUids(uids);
+        }
+      }
+
+      public IEnumerable<T> GetAll()
+      {
+        lock (_sync)
+        {
+          return _inner.GetAll().ToList();
+        }
+      }
+
+      public void Clear()
+      {
+        lock (_sync)
+        {
+          _inner.Clear();
+        }
       }
     }
   }
