@@ -7,6 +7,7 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.Plugins.PAM
 {
@@ -14,22 +15,26 @@ namespace KeeperSecurity.Plugins.PAM
   {
     IPamStorage Storage { get; }
     IEntityStorage<PamController> Controllers { get; }
+    IEntityStorage<PamRecordRotationInfo> RecordRotations { get; }
     string EnterpriseUid { get; }
 
     Task SyncDownAsync(bool reload = false);
+    void SyncRecordRotationsFromStorage();
+    void MergeRecordRotations(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll = false);
+    void MergeRecordRotationsFromVault(VaultOnline vault, bool replaceAll = false);
   }
 
   /// <summary>
-  /// Caches PAM gateways for enterprise admins.
-  /// Record rotation metadata comes from normal <see cref="KeeperSecurity.Vault.VaultOnline.SyncDown"/>
-  /// (Commander <c>record_rotation_cache</c>), not a separate vault/sync_down.
-  /// Uses SQLite when Commander offline storage is on; otherwise keeps everything in memory.
+  /// Stores PAM gateways and record rotations for enterprise admins.
+  /// Loads controllers from PAM and rotations from vault sync.
+  /// Uses SQLite when offline storage is enabled; otherwise uses memory storage.
   /// </summary>
   public class PamPlugin : IPamPlugin
   {
     private readonly IAuthentication _auth;
     private readonly int _enterpriseId;
     private readonly InMemoryEntityStorage<PamController> _controllers = new();
+    private readonly InMemoryEntityStorage<PamRecordRotationInfo> _recordRotations = new();
 
     public PamPlugin(IAuthentication auth, Func<IDbConnection> getConnection = null)
     {
@@ -72,16 +77,12 @@ namespace KeeperSecurity.Plugins.PAM
 
     public IEntityStorage<PamController> Controllers => _controllers;
 
+    public IEntityStorage<PamRecordRotationInfo> RecordRotations => _recordRotations;
+
     public string EnterpriseUid { get; }
 
     public async Task SyncDownAsync(bool reload = false)
     {
-      if (reload)
-      {
-        Storage.Reset();
-        _controllers.Clear();
-      }
-
       var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
       var storageRows = new List<IPamStorageController>();
       var domainRows = new List<PamController>();
@@ -97,7 +98,52 @@ namespace KeeperSecurity.Plugins.PAM
         domainRows.Add(domainRow);
       }
 
-      ApplyGatewayEntities(storageRows, domainRows);
+      // Merge controllers first. If it fails, the cache remains unchanged.
+      Storage.ApplyControllerMerge(storageRows, replaceAll: reload);
+      SyncControllersFromDomain(domainRows);
+      SyncRecordRotationsFromStorage();
+    }
+
+    /// <summary>
+    /// Loads rotations from PAM storage into the working cache.
+    /// </summary>
+    public void SyncRecordRotationsFromStorage()
+    {
+      _recordRotations.Clear();
+      var rows = Storage.RecordRotations.GetAll()
+        .Select(PamStorageMapper.ToDomainRotation)
+        .ToList();
+      if (rows.Count > 0)
+      {
+        _recordRotations.PutEntities(rows);
+      }
+    }
+
+    /// <summary>
+    /// Saves rotation data to PAM storage and updates the in-memory cache.
+    /// Storage is updated first, then the cache is refreshed from the saved data.
+    /// </summary>
+    public void MergeRecordRotations(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll = false)
+    {
+      Storage.ApplyRecordRotationMerge(rows, replaceAll);
+      SyncRecordRotationsFromStorage();
+    }
+
+    /// <summary>
+    /// Copies rotation data from the vault cache to PAM offline storage.
+    /// </summary>
+    public void MergeRecordRotationsFromVault(VaultOnline vault, bool replaceAll = false)
+    {
+      if (vault == null)
+      {
+        return;
+      }
+
+      var rows = (vault.RecordRotationCache?.Values ?? Enumerable.Empty<RecordRotationInfo>())
+        .Select(PamStorageMapper.FromVaultInfo)
+        .Where(r => r != null)
+        .ToList<IPamStorageRecordRotation>();
+      MergeRecordRotations(rows, replaceAll);
     }
 
     private void LoadFromStorage()
@@ -105,37 +151,14 @@ namespace KeeperSecurity.Plugins.PAM
       var controllers = Storage.Controllers.GetAll()
         .Select(PamStorageMapper.ToDomainController)
         .ToList();
-      if (controllers.Count > 0)
-      {
-        _controllers.PutEntities(controllers);
-      }
+      SyncControllersFromDomain(controllers);
+      SyncRecordRotationsFromStorage();
     }
 
-    private void ApplyGatewayEntities(
-      IReadOnlyList<IPamStorageController> storageRows,
-      IReadOnlyList<PamController> domainRows)
+    private void SyncControllersFromDomain(IReadOnlyList<PamController> domainRows)
     {
-      var serverUids = new HashSet<string>(
-        domainRows.Select(c => c.Uid),
-        StringComparer.Ordinal);
-
-      var staleUids = _controllers.GetAll()
-        .Select(c => c.Uid)
-        .Where(uid => !serverUids.Contains(uid))
-        .ToList();
-
-      if (staleUids.Count > 0)
-      {
-        _controllers.DeleteUids(staleUids);
-        Storage.Controllers.DeleteUids(staleUids);
-      }
-
-      if (storageRows.Count > 0)
-      {
-        Storage.Controllers.PutEntities(storageRows);
-      }
-
-      if (domainRows.Count > 0)
+      _controllers.Clear();
+      if (domainRows != null && domainRows.Count > 0)
       {
         _controllers.PutEntities(domainRows);
       }

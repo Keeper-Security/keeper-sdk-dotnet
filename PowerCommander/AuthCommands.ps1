@@ -870,6 +870,18 @@ function Sync-Keeper {
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
         $vault.AutoSync = $true
+
+        try {
+            $plugin = getPamPlugin
+            if ($plugin -and $vault.RecordRotationCache) {
+                $replaceAll = $vault.ConsumeRotationsCleared()
+                $plugin.MergeRecordRotationsFromVault($vault, $replaceAll)
+            }
+        }
+        catch {
+            Write-Verbose "PAM record rotation refresh skipped: $($_.Exception.Message)"
+        }
+
         Write-Host "Vault sync completed."
     }
     else {
