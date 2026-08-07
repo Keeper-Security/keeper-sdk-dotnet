@@ -378,6 +378,85 @@ namespace KeeperSecurity.Plugins.PAM
       await RouterUtils.ConfigureNetworkGraphAsync(auth, request);
     }
 
+    /// <summary>
+    /// Reads PAM configuration allowedSettings from the PAM linking graph (when available).
+    /// Keys match Python <c>pam config list -c --format json -v</c> output.
+    /// </summary>
+    public static async Task<Dictionary<string, object>> GetConfigurationAllowedSettingsAsync(
+      IAuthentication auth,
+      string configurationUid)
+    {
+      var empty = MapAllowedSettingsForDisplay(null);
+      if (auth == null || string.IsNullOrEmpty(configurationUid))
+      {
+        return empty;
+      }
+
+      try
+      {
+        var data = await PamGraphSyncClient.MultiSyncAsync(auth, configurationUid).ConfigureAwait(false);
+        foreach (var item in data)
+        {
+          var edge = item?.Data;
+          if (edge == null || edge.Type != GraphSync.GraphSyncDataType.GseData)
+          {
+            continue;
+          }
+
+          var uid = edge.Ref?.Value?.ToByteArray().Base64UrlEncode();
+          if (!string.Equals(uid, configurationUid, StringComparison.Ordinal))
+          {
+            continue;
+          }
+
+          if (edge.Content == null || edge.Content.IsEmpty)
+          {
+            continue;
+          }
+
+          var content = JsonUtils.ParseJson<PamConfigVertexContent>(edge.Content.ToByteArray());
+          return MapAllowedSettingsForDisplay(content?.AllowedSettings);
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"PAM config allowedSettings: {ex.Message}");
+      }
+
+      return empty;
+    }
+
+    private static Dictionary<string, object> MapAllowedSettingsForDisplay(IDictionary<string, object> allowed)
+    {
+      allowed ??= new Dictionary<string, object>();
+      return new Dictionary<string, object>
+      {
+        ["connections"] = ReadAllowedBool(allowed, "connections"),
+        ["tunneling"] = ReadAllowedBool(allowed, "portForwards") ?? ReadAllowedBool(allowed, "tunneling"),
+        ["rotation"] = ReadAllowedBool(allowed, "rotation"),
+        ["remote_browser_isolation"] = ReadAllowedBool(allowed, "remoteBrowserIsolation"),
+        ["connections_recording"] = ReadAllowedBool(allowed, "sessionRecording"),
+        ["typescript_recording"] = ReadAllowedBool(allowed, "typescriptRecording"),
+        ["ai_threat_detection"] = ReadAllowedBool(allowed, "aiEnabled"),
+        ["ai_terminate_session_on_detection"] = ReadAllowedBool(allowed, "aiSessionTerminate"),
+      };
+    }
+
+    private static object ReadAllowedBool(IDictionary<string, object> allowed, string key)
+    {
+      if (allowed == null || !allowed.TryGetValue(key, out var value) || value == null)
+      {
+        return null;
+      }
+
+      return value switch
+      {
+        bool b => b,
+        string s when bool.TryParse(s, out var parsed) => parsed,
+        _ => value,
+      };
+    }
+
     public static PamTriStateSetting? ParseTriState(string value)
     {
       if (string.IsNullOrWhiteSpace(value))
@@ -424,6 +503,13 @@ namespace KeeperSecurity.Plugins.PAM
         PamTriStateSetting.Default => null,
         _ => null,
       };
+    }
+
+    [System.Runtime.Serialization.DataContract]
+    private class PamConfigVertexContent
+    {
+      [System.Runtime.Serialization.DataMember(Name = "allowedSettings", EmitDefaultValue = false)]
+      public Dictionary<string, object> AllowedSettings { get; set; }
     }
   }
 }

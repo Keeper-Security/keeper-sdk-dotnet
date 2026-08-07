@@ -114,7 +114,7 @@ namespace Commander.PAM
     {
       var headers = new List<string>
       {
-        "UID", "Config Name", "Config Type", "Shared Folder", "Gateway UID", "Resource Record UIDs"
+        "UID", "Config Name", "Config Type", "Folder", "Gateway UID", "Resource Record UIDs"
       };
       if (verbose)
       {
@@ -167,7 +167,8 @@ namespace Commander.PAM
 
       if (options.isFormatOutputJSON)
       {
-        Console.WriteLine(Json.WriteFormatted(BuildConfigDetailJson(vault, config, options.Verbose)));
+        var detail = await BuildConfigDetailJsonAsync(vault, config, options.Verbose);
+        Console.WriteLine(Json.WriteFormatted(detail));
         return;
       }
 
@@ -177,7 +178,7 @@ namespace Commander.PAM
       tab.AddRow("UID", config.Uid);
       tab.AddRow("Name", config.Title);
       tab.AddRow("Config Type", config.TypeName);
-      tab.AddRow("Shared Folder", folder != null ? $"{folder.Name} ({folder.Uid})" : "");
+      tab.AddRow("Folder", FormatFolderDisplay(folder));
       tab.AddRow("Gateway UID", facade.ControllerUid);
       tab.AddRow("Resource Record UIDs", string.Join(", ", facade.ResourceRef));
       foreach (var fieldRow in ExtractDisplayFields(config))
@@ -187,7 +188,6 @@ namespace Commander.PAM
 
       tab.Dump();
       PamConfigTunnelingHelper.PrintTunnelingConfig(config.Uid);
-      await Task.CompletedTask;
     }
 
     private async Task NewConfigurationAsync(PamConfigOptions options)
@@ -476,20 +476,24 @@ namespace Commander.PAM
         ["uid"] = config.Uid,
         ["config_name"] = config.Title,
         ["config_type"] = config.TypeName,
-        ["shared_folder"] = new Dictionary<string, object> { ["name"] = folder.Name, ["uid"] = folder.Uid },
-        ["gateway_uid"] = facade.ControllerUid,
+        ["gateway_uid"] = facade.ControllerUid ?? "",
         ["resource_record_uids"] = facade.ResourceRef,
       };
+      ApplyFolderJsonPayload(row, folder);
 
       if (verbose)
       {
-        row["fields"] = ExtractDisplayFields(config).ToDictionary(x => x.Key, x => x.Value);
+        row["fields"] = ExtractDisplayFields(config)
+          .ToDictionary(x => x.Key, x => (object) x.Value);
       }
 
       return row;
     }
 
-    private static Dictionary<string, object> BuildConfigDetailJson(VaultOnline vault, TypedRecord config, bool verbose)
+    private async Task<Dictionary<string, object>> BuildConfigDetailJsonAsync(
+      VaultOnline vault,
+      TypedRecord config,
+      bool verbose)
     {
       PamVaultHelpers.TryGetConfigurationFolderInfo(vault, config, out var folder);
       var facade = new PamConfigurationFacade(config);
@@ -498,13 +502,12 @@ namespace Commander.PAM
         ["uid"] = config.Uid,
         ["name"] = config.Title,
         ["config_type"] = config.TypeName,
-        ["shared_folder"] = folder == null
-          ? null
-          : new Dictionary<string, object> { ["name"] = folder.Name, ["uid"] = folder.Uid },
-        ["gateway_uid"] = facade.ControllerUid,
+        ["gateway_uid"] = facade.ControllerUid ?? "",
+        ["gateway_name"] = config.Title ?? "",
         ["resource_record_uids"] = facade.ResourceRef,
-        ["fields"] = ExtractDisplayFields(config).ToDictionary(x => x.Key, x => x.Value),
+        ["fields"] = ExtractDetailJsonFields(config),
       };
+      ApplyFolderJsonPayload(row, folder);
 
       if (string.Equals(config.TypeName, "pamDomainConfiguration", StringComparison.Ordinal))
       {
@@ -513,7 +516,9 @@ namespace Commander.PAM
 
       if (verbose)
       {
-        row["allowed_settings"] = PamConfigTunnelingHelper.GetAllowedSettingsJson(config.Uid);
+        row["allowed_settings"] = await PamConfigTunnelingHelper
+          .GetAllowedSettingsJsonAsync(Context.Enterprise.Auth, config.Uid)
+          .ConfigureAwait(false);
       }
 
       return row;
@@ -528,7 +533,7 @@ namespace Commander.PAM
       var row = new List<object>
       {
         config.Uid, config.Title, config.TypeName,
-        $"{folder.Name} ({folder.Uid})",
+        FormatFolderDisplay(folder),
         facade.ControllerUid, string.Join(", ", facade.ResourceRef),
       };
 
@@ -540,33 +545,71 @@ namespace Commander.PAM
       return row.ToArray();
     }
 
+    private static string FormatFolderDisplay(PamConfigurationFolderInfo folder)
+    {
+      if (folder == null)
+      {
+        return "";
+      }
+
+      var suffix = folder.IsNsf ? " [NSF]" : "";
+      return $"{folder.Name} ({folder.Uid}){suffix}";
+    }
+
+    private static void ApplyFolderJsonPayload(
+      IDictionary<string, object> row,
+      PamConfigurationFolderInfo folder)
+    {
+      if (folder == null)
+      {
+        return;
+      }
+
+      row["folder"] = new Dictionary<string, object>
+      {
+        ["uid"] = folder.Uid,
+        ["name"] = folder.Name,
+        ["type"] = folder.IsNsf ? "nested_share_folder" : "shared_folder",
+      };
+
+      if (!folder.IsNsf)
+      {
+        row["shared_folder"] = new Dictionary<string, object>
+        {
+          ["name"] = folder.Name,
+          ["uid"] = folder.Uid,
+        };
+      }
+    }
+
+    private static Dictionary<string, object> ExtractDetailJsonFields(TypedRecord config)
+    {
+      return config.Fields.Concat(config.Custom)
+        .Where(field => field.FieldName is not ("pamResources" or "fileRef"))
+        .Select(field => new
+        {
+          Name = PamConfigScheduleHelper.GetPamFieldJsonName(field),
+          Values = GetFieldExternalValues(field).ToList(),
+        })
+        .Where(x => x.Values.Count > 0)
+        .ToDictionary(x => x.Name, x => (object) x.Values);
+    }
+
     private static IEnumerable<KeyValuePair<string, string>> ExtractDisplayFields(TypedRecord config)
     {
-      foreach (var field in config.Fields.Concat(config.Custom))
-      {
-        if (field.FieldName is "pamResources" or "fileRef")
-        {
-          continue;
-        }
-
-        if (string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
-            && !PamConfigScheduleHelper.IsDefaultRotationScheduleField(field))
-        {
-          continue;
-        }
-
-        var values = string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
-          ? PamConfigScheduleHelper.GetDisplayValues(field).ToList()
-          : field.GetTypedFieldInformation().ToList();
-        if (values.Count == 0)
-        {
-          continue;
-        }
-
-        yield return new KeyValuePair<string, string>(
+      return config.Fields.Concat(config.Custom)
+        .Where(field => field.FieldName is not ("pamResources" or "fileRef"))
+        .Select(field => new KeyValuePair<string, string>(
           PamConfigScheduleHelper.GetPamFieldDisplayName(field),
-          string.Join(", ", values));
-      }
+          string.Join(", ", GetFieldExternalValues(field))))
+        .Where(x => !string.IsNullOrEmpty(x.Value));
+    }
+
+    private static IEnumerable<string> GetFieldExternalValues(ITypedField field)
+    {
+      return string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
+        ? PamConfigScheduleHelper.GetDisplayValues(field)
+        : field.GetTypedFieldInformation();
     }
   }
 

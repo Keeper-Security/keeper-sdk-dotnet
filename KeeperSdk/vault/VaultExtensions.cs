@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -622,24 +622,35 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                var json = nsf.DataJson;
-                if (json == null || json.Length == 0)
+                // Convert NSF fields directly. Round-tripping through RecordTypeDataFieldBase drops
+                // `value` into ExtensionData and breaks complex fields (e.g. pamResources.controllerUid).
+                if (nsf.Data != null)
                 {
-                    json = nsf.Data != null ? JsonUtils.DumpJson(nsf.Data, indent: false) : null;
+                    typed = new TypedRecord(nsf.Data.Type ?? nsf.Type ?? "")
+                    {
+                        Uid = nsf.RecordUid,
+                        Version = nsf.Version > 0 ? nsf.Version : 3,
+                        RecordKey = nsf.RecordKey,
+                        Shared = nsf.Shared,
+                        ClientModified = nsf.ClientModifiedTime != 0
+                            ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(nsf.ClientModifiedTime)
+                            : DateTimeOffset.Now,
+                        Title = !string.IsNullOrEmpty(nsf.Data.Title) ? nsf.Data.Title : (nsf.Title ?? nsf.Data.Name),
+                        Notes = nsf.Data.Notes ?? nsf.Notes,
+                    };
+
+                    typed.Fields.AddRange(ConvertNsfFields(nsf.Data.Fields));
+                    typed.Custom.AddRange(ConvertNsfFields(nsf.Data.Custom));
+                    return true;
                 }
 
-                var rtd = json != null
-                    ? JsonUtils.ParseJson<RecordTypeData>(json)
-                    : new RecordTypeData
+                typed = CreateTypedRecordFromData(
+                    new RecordTypeData
                     {
                         Type = nsf.Type ?? "",
                         Title = nsf.Title ?? "",
                         Notes = nsf.Notes ?? "",
-                    };
-
-                // NSF typed records default to v3 when Version is unset.
-                typed = CreateTypedRecordFromData(
-                    rtd,
+                    },
                     nsf.RecordUid,
                     nsf.Version > 0 ? nsf.Version : 3,
                     nsf.RecordKey,
@@ -653,6 +664,53 @@ namespace KeeperSecurity.Vault
                     "PAM: failed to convert NSF record to TypedRecord: {0}", ex.Message);
                 typed = null;
                 return false;
+            }
+        }
+
+        private static IEnumerable<ITypedField> ConvertNsfFields(IEnumerable<NsfRecordFieldData> fields)
+        {
+            return (fields ?? Enumerable.Empty<NsfRecordFieldData>())
+                .Select(ConvertNsfFieldDataToTypedField)
+                .Where(f => f != null);
+        }
+
+        private static ITypedField ConvertNsfFieldDataToTypedField(NsfRecordFieldData field)
+        {
+            if (field == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var type = string.IsNullOrEmpty(field.Type) ? "text" : field.Type;
+                var xb = JsonUtils.DumpJson(new NsfRecordFieldData
+                {
+                    Type = type,
+                    Label = field.Label,
+                    Value = field.Value,
+                }, indent: false);
+
+                if (!RecordTypesConstants.TryGetRecordField(type, out var rf)
+                    || !RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
+                {
+                    Debug.WriteLine($"Unsupported NSF field type: {type}");
+                    return new UnsupportedField(new RecordTypeDataFieldBase { Type = type, Label = field.Label });
+                }
+
+                using var ms = new MemoryStream(xb);
+                var parsed = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
+                return parsed?.CreateTypedField()
+                       ?? new UnsupportedField(new RecordTypeDataFieldBase { Type = type, Label = field.Label });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return new UnsupportedField(new RecordTypeDataFieldBase
+                {
+                    Type = field.Type ?? "text",
+                    Label = field.Label,
+                });
             }
         }
 
