@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using KeeperSecurity.Utils;
 using VaultProto = Vault;
 
@@ -14,7 +15,7 @@ namespace KeeperSecurity.Vault
         public long Revision { get; set; }
         public string ConfigurationUid { get; set; } = "";
         public string Schedule { get; set; } = "";
-        public byte[] PwdComplexity { get; set; } = Array.Empty<byte>();
+        public byte[] PasswordComplexity { get; set; } = Array.Empty<byte>();
         public bool Disabled { get; set; }
         public string ResourceUid { get; set; } = "";
         public long LastRotation { get; set; }
@@ -25,6 +26,7 @@ namespace KeeperSecurity.Vault
     {
         private readonly Dictionary<string, RecordRotationInfo> _recordRotationCache =
             new(StringComparer.Ordinal);
+        private int _recordRotationsCleared;
 
         /// <summary>
         /// Full record-rotation map populated by normal vault sync-down.
@@ -47,9 +49,24 @@ namespace KeeperSecurity.Vault
             return TryGetRecordRotation(recordUid, out var rotation) ? rotation : null;
         }
 
+        /// <summary>
+        /// Checks whether the rotation cache was cleared and resets the flag.
+        /// </summary>
+        /// <remarks>
+        /// Only the first caller sees true after a clear. Use it to trigger a full rotation refresh.
+        /// </remarks>
+        public bool ConsumeRotationsCleared()
+        {
+            return Interlocked.Exchange(ref _recordRotationsCleared, 0) != 0;
+        }
+
+        /// <summary>
+        /// Clears the rotation cache and marks it for the next rotation refresh.
+        /// </summary>
         internal void ClearRecordRotationCache()
         {
             _recordRotationCache.Clear();
+            Interlocked.Exchange(ref _recordRotationsCleared, 1);
         }
 
         internal void RemoveFromRecordRotationCache(IEnumerable<string> recordUids)
@@ -89,7 +106,7 @@ namespace KeeperSecurity.Vault
                     Revision = rotation.Revision,
                     ConfigurationUid = rotation.ConfigurationUid?.ToByteArray().Base64UrlEncode() ?? "",
                     Schedule = rotation.Schedule ?? "",
-                    PwdComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
+                    PasswordComplexity = rotation.PwdComplexity?.ToByteArray() ?? Array.Empty<byte>(),
                     Disabled = rotation.Disabled,
                     ResourceUid = rotation.ResourceUid?.ToByteArray().Base64UrlEncode() ?? "",
                     LastRotation = rotation.LastRotation,

@@ -20,6 +20,7 @@ namespace Commander
         internal readonly VaultOnline Vault;
         internal string CurrentFolder;
         internal EnterpriseData EnterpriseData { get; set; }
+        internal IEnterpriseContext EnterpriseContext { get; set; }
 
         public VaultContext(VaultOnline vault)
         {
@@ -613,6 +614,14 @@ namespace Commander
                         var fullSync = options.Reset || s == null;
                         Console.WriteLine("Syncing...");
                         await context.Vault.SyncDown(fullSync: fullSync);
+                        try
+                        {
+                            context.EnterpriseContext?.RefreshRecordRotations();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Warning: could not refresh PAM record rotations cache: {ex.Message}");
+                        }
                         if (fullSync)
                         {
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");

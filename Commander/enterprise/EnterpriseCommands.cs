@@ -105,10 +105,48 @@ namespace Commander
                 _pamPlugins[context] = pamPlugin;
                 return pamPlugin;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Failed to initialize PAM plugin: {ex.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Sync rotation data from the vault to PAM offline storage.
+        /// Skips the operation when PAM is unavailable or the user is not an enterprise admin.
+        /// Failures should be handled separately because the main vault sync may have already completed.
+        /// </summary>
+        internal static void RefreshRecordRotations(this IEnterpriseContext context)
+        {
+            var vault = context.GetVault();
+            if (vault == null)
+            {
+                return;
+            }
+
+            var plugin = context.GetPamPlugin();
+            if (plugin == null)
+            {
+                return;
+            }
+
+            var replaceAll = vault.ConsumeRotationsCleared();
+            plugin.MergeRecordRotationsFromVault(vault, replaceAll);
+        }
+
+        /// <summary>
+        /// Clears plugin caches so resources can be cleaned up during logout/dispose.
+        /// </summary>
+        internal static void ReleaseEnterprisePlugins(this IEnterpriseContext context)
+        {
+            if (context == null)
+            {
+                return;
+            }
+
+            _pamPlugins.Remove(context);
+            _epmPlugins.Remove(context);
         }
     }
 
@@ -3831,6 +3869,16 @@ namespace Commander
         public override string GetPrompt()
         {
             return "Managed Company";
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.ReleaseEnterprisePlugins();
+            }
+
+            base.Dispose(disposing);
         }
     }
 
