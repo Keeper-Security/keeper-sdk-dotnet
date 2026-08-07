@@ -37,6 +37,7 @@ namespace Commander
 
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();
+            _vaultContext.EnterpriseContext = this;
             _vaultContext.EnterpriseData = EnterpriseData;
             lock (Commands)
             {
@@ -545,6 +546,16 @@ namespace Commander
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                this.ReleaseEnterprisePlugins();
+                if (_vaultContext != null)
+                {
+                    _vaultContext.EnterpriseContext = null;
+                    _vaultContext.EnterpriseData = null;
+                }
+            }
+
             base.Dispose(disposing);
             _vaultContext.Vault.Dispose();
             _auth.Dispose();

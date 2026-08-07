@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -274,6 +275,8 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
     where T : IUid
     where TD : class, T, IEntityCopy<T>, new()
 {
+    private const int MaxUidDeleteBatchSize = 400;
+
     private string EntityColumnName { get; }
 
     public SqlEntityStorage(Func<IDbConnection> getConnection, ISqlDialect dialect, string ownerColumnName = null, object ownerValue = null)
@@ -316,17 +319,137 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
     public void DeleteUids(IEnumerable<string> uids)
     {
         using var conn = GetConnection();
-        var cmd = GetDeleteStatement(conn, new[] { EntityColumnName });
-        var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
         using var txn = conn.BeginTransaction();
-        cmd.Transaction = txn;
-        foreach (var uid in uids)
+        ExecuteBatchedUidDeletes(conn, txn, uids);
+        txn.Commit();
+    }
+
+    /// <summary>
+    /// Deletes and saves entities in one transaction.
+    /// </summary>
+    /// <param name="uidsToDelete">UIDs to remove before saving new entities.</param>
+    /// <param name="entitiesToPut">Entities to save after deletion.</param>
+    /// <param name="deleteAll">Deletes all existing rows before saving when enabled.</param>
+    public void MutateEntities(
+        IEnumerable<string> uidsToDelete,
+        IEnumerable<T> entitiesToPut,
+        bool deleteAll = false)
+    {
+        using var conn = GetConnection();
+        using var txn = conn.BeginTransaction();
+
+        if (deleteAll)
         {
-            entityParameter.Value = uid;
-            cmd.ExecuteNonQuery();
+            var deleteAllCmd = GetDeleteStatement(conn);
+            deleteAllCmd.Transaction = txn;
+            deleteAllCmd.ExecuteNonQuery();
+        }
+        else if (uidsToDelete != null)
+        {
+            ExecuteBatchedUidDeletes(conn, txn, uidsToDelete);
+        }
+
+        if (entitiesToPut != null)
+        {
+            var putCmd = GetPutStatement(conn);
+            putCmd.Transaction = txn;
+            foreach (var entity in entitiesToPut)
+            {
+                if (entity == null)
+                {
+                    continue;
+                }
+
+                if (!(entity is TD data))
+                {
+                    data = new TD();
+                    data.CopyFields(entity);
+                }
+
+                PopulateCommandParameters(putCmd, data);
+                putCmd.ExecuteNonQuery();
+            }
         }
 
         txn.Commit();
+    }
+
+    // Deletes multiple UIDs in batches to stay within SQLite limits.
+    private void ExecuteBatchedUidDeletes(IDbConnection conn, IDbTransaction txn, IEnumerable<string> uids)
+    {
+        if (uids == null)
+        {
+            return;
+        }
+
+        var uidList = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var uid in uids)
+        {
+            if (string.IsNullOrEmpty(uid))
+            {
+                Trace.TraceWarning("SqlStorage: skipping delete request with empty UID.");
+                continue;
+            }
+
+            if (seen.Add(uid))
+            {
+                uidList.Add(uid);
+            }
+        }
+
+        if (uidList.Count == 0)
+        {
+            return;
+        }
+
+        if (!Schema.ColumnMap.TryGetValue(EntityColumnName, out var uidProp))
+        {
+            throw new Exception($"Schema {Schema.TableName} does not contain column {EntityColumnName}");
+        }
+
+        var uidDbType = DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[uidProp.PropertyType]);
+
+        for (var offset = 0; offset < uidList.Count; offset += MaxUidDeleteBatchSize)
+        {
+            var batchCount = Math.Min(MaxUidDeleteBatchSize, uidList.Count - offset);
+            var cmd = conn.CreateCommand();
+            cmd.Transaction = txn;
+
+            var sql = new StringBuilder($"DELETE FROM {Schema.TableName} WHERE ");
+            if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                sql.Append($"{Schema.OwnerColumnName} = @{Schema.OwnerColumnName} AND ");
+                var ownerParameter = cmd.CreateParameter();
+                ownerParameter.ParameterName = $"@{Schema.OwnerColumnName}";
+                ownerParameter.DbType = DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[OwnerId.GetType()]);
+                ownerParameter.Direction = ParameterDirection.Input;
+                ownerParameter.Value = OwnerId;
+                cmd.Parameters.Add(ownerParameter);
+            }
+
+            sql.Append($"{EntityColumnName} IN (");
+            for (var i = 0; i < batchCount; i++)
+            {
+                if (i > 0)
+                {
+                    sql.Append(", ");
+                }
+
+                var paramName = $"@uid{i}";
+                sql.Append(paramName);
+                var parameter = cmd.CreateParameter();
+                parameter.ParameterName = paramName;
+                parameter.DbType = uidDbType;
+                parameter.Direction = ParameterDirection.Input;
+                parameter.Value = uidList[offset + i];
+                cmd.Parameters.Add(parameter);
+            }
+
+            sql.Append(')');
+            cmd.CommandText = sql.ToString();
+            cmd.ExecuteNonQuery();
+        }
     }
 
     public IEnumerable<T> GetAll()
