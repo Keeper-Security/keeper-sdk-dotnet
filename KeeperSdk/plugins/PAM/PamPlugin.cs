@@ -25,10 +25,9 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// Caches PAM gateways and record rotations for enterprise admins.
-  /// Controllers come from <c>pam/get_controllers</c>; rotations are merged from vault
-  /// <c>sync_down</c>.
-  /// Uses SQLite when Commander offline storage is on; otherwise keeps everything in memory.
+  /// Stores PAM gateways and record rotations for enterprise admins.
+  /// Loads controllers from PAM and rotations from vault sync.
+  /// Uses SQLite when offline storage is enabled; otherwise uses memory storage.
   /// </summary>
   public class PamPlugin : IPamPlugin
   {
@@ -84,7 +83,6 @@ namespace KeeperSecurity.Plugins.PAM
 
     public async Task SyncDownAsync(bool reload = false)
     {
-      // Fetch first so a failed network call never wipes durable/in-memory controllers.
       var controllers = await GatewayUtils.GetAllGatewaysAsync(_auth);
       var storageRows = new List<IPamStorageController>();
       var domainRows = new List<PamController>();
@@ -100,15 +98,14 @@ namespace KeeperSecurity.Plugins.PAM
         domainRows.Add(domainRow);
       }
 
-      // merge controllers first. If this throws, working cache is left unchanged.
+      // Merge controllers first. If it fails, the cache remains unchanged.
       Storage.ApplyControllerMerge(storageRows, replaceAll: reload);
-      // Rebuild cache from the final saved state.
       SyncControllersFromDomain(domainRows);
       SyncRecordRotationsFromStorage();
     }
 
     /// <summary>
-    /// Reload rotations from PAM sqlite/memory into the working set (no vault sync).
+    /// Loads rotations from PAM storage into the working cache.
     /// </summary>
     public void SyncRecordRotationsFromStorage()
     {
@@ -123,19 +120,17 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Upsert rotation rows into PAM storage + memory (from normal vault sync).
-    /// Durable storage is updated atomically; the working cache is then rebuilt from storage.
+    /// Saves rotation data to PAM storage and updates the in-memory cache.
+    /// Storage is updated first, then the cache is refreshed from the saved data.
     /// </summary>
     public void MergeRecordRotations(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll = false)
     {
-      // Single atomic durable merge (SQL transaction or locked in-memory store).
       Storage.ApplyRecordRotationMerge(rows, replaceAll);
-      // Rebuild working set from durable storage so SQL + memory cannot diverge mid-merge.
       SyncRecordRotationsFromStorage();
     }
 
     /// <summary>
-    /// Copy rotations from vault in-memory cache into PAM offline storage.
+    /// Copies rotation data from the vault cache to PAM offline storage.
     /// </summary>
     public void MergeRecordRotationsFromVault(VaultOnline vault, bool replaceAll = false)
     {
@@ -151,7 +146,6 @@ namespace KeeperSecurity.Plugins.PAM
       MergeRecordRotations(rows, replaceAll);
     }
 
-    // Only called from the constructor before the plugin is used.
     private void LoadFromStorage()
     {
       var controllers = Storage.Controllers.GetAll()

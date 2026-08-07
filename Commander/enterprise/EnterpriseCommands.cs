@@ -113,9 +113,9 @@ namespace Commander
         }
 
         /// <summary>
-        /// Copy vault sync_down rotations into PAM offline storage.
-        /// No-op when there is no vault or PAM plugin (non-enterprise / not admin).
-        /// Callers should catch failures — vault sync may already have succeeded.
+        /// Sync rotation data from the vault to PAM offline storage.
+        /// Skips the operation when PAM is unavailable or the user is not an enterprise admin.
+        /// Failures should be handled separately because the main vault sync may have already completed.
         /// </summary>
         internal static void RefreshRecordRotations(this IEnterpriseContext context)
         {
@@ -136,7 +136,7 @@ namespace Commander
         }
 
         /// <summary>
-        /// Drop static plugin caches for this enterprise context so logout/dispose can GC.
+        /// Clears plugin caches so resources can be cleaned up during logout/dispose.
         /// </summary>
         internal static void ReleaseEnterprisePlugins(this IEnterpriseContext context)
         {

@@ -26,7 +26,6 @@ namespace KeeperSecurity.Vault
     {
         private readonly Dictionary<string, RecordRotationInfo> _recordRotationCache =
             new(StringComparer.Ordinal);
-        // 0 = not cleared since last consume; 1 = cleared. Int for Interlocked (bool is not supported).
         private int _recordRotationsCleared;
 
         /// <summary>
@@ -51,11 +50,10 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Returns true if the rotation cache was cleared since the last check, then resets that flag.
+        /// Checks whether the rotation cache was cleared and resets the flag.
         /// </summary>
         /// <remarks>
-        /// Only the first caller gets true. Later callers get false until the cache is cleared again.
-        /// Use true to do a full replace when copying rotations into PAM storage.
+        /// Only the first caller sees true after a clear. Use it to trigger a full rotation refresh.
         /// </remarks>
         public bool ConsumeRotationsCleared()
         {
@@ -63,7 +61,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Clears the rotation cache and marks it so the next <see cref="ConsumeRotationsCleared"/> returns true.
+        /// Clears the rotation cache and marks it for the next rotation refresh.
         /// </summary>
         internal void ClearRecordRotationCache()
         {

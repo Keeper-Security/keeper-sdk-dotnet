@@ -275,7 +275,6 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
     where T : IUid
     where TD : class, T, IEntityCopy<T>, new()
 {
-    // Stay under SQLite's default ~999 variable limit (leave room for owner param).
     private const int MaxUidDeleteBatchSize = 400;
 
     private string EntityColumnName { get; }
@@ -326,11 +325,11 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
     }
 
     /// <summary>
-    /// Deletes then upserts entities in a single database transaction (all-or-nothing).
+    /// Deletes and saves entities in one transaction.
     /// </summary>
-    /// <param name="uidsToDelete">UIDs to delete. Ignored when <paramref name="deleteAll"/> is true.</param>
-    /// <param name="entitiesToPut">Entities to upsert after deletes.</param>
-    /// <param name="deleteAll">When true, deletes all rows for this storage owner before put.</param>
+    /// <param name="uidsToDelete">UIDs to remove before saving new entities.</param>
+    /// <param name="entitiesToPut">Entities to save after deletion.</param>
+    /// <param name="deleteAll">Deletes all existing rows before saving when enabled.</param>
     public void MutateEntities(
         IEnumerable<string> uidsToDelete,
         IEnumerable<T> entitiesToPut,
@@ -375,7 +374,7 @@ public sealed class SqlEntityStorage<T, TD> : SqlDataStorage<TD>, IEntityStorage
         txn.Commit();
     }
 
-    // Deletes many UIDs with DELETE ... IN (...), chunked for SQLite parameter limits.
+    // Deletes multiple UIDs in batches to stay within SQLite limits.
     private void ExecuteBatchedUidDeletes(IDbConnection conn, IDbTransaction txn, IEnumerable<string> uids)
     {
         if (uids == null)

@@ -45,15 +45,15 @@ namespace KeeperSecurity.Plugins.PAM
     void Reset();
 
     /// <summary>
-    /// Atomically apply a controller merge to durable storage (delete + put as one unit).
+    /// Applies controller changes to storage as one operation.
     /// </summary>
     void ApplyControllerMerge(IEnumerable<IPamStorageController> rows, bool replaceAll);
 
     /// <summary>
-    /// Atomically apply a record-rotation merge to durable storage (delete + put as one unit).
+    /// Saves record rotation changes to storage as one operation.
     /// </summary>
-    /// <param name="rows">Incoming rotation rows (final desired set for non-empty merges).</param>
-    /// <param name="replaceAll">When true, clear all existing rotations before writing <paramref name="rows"/>.</param>
+    /// <param name="rows">Rotation data to save.</param>
+    /// <param name="replaceAll">Clears existing rotations before saving when enabled.</param>
     void ApplyRecordRotationMerge(IEnumerable<IPamStorageRecordRotation> rows, bool replaceAll);
   }
 
@@ -268,7 +268,7 @@ namespace KeeperSecurity.Plugins.PAM
   }
 
   /// <summary>
-  /// In-memory PAM storage. Reads and merges share one lock so GetAll is safe during a merge.
+  /// In-memory PAM storage with thread-safe reads and updates.
   /// </summary>
   public class MemoryPamStorage : IPamStorage
   {
@@ -341,7 +341,6 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-    // Same lock as merges; GetAll returns a copy so callers can enumerate safely.
     private sealed class LockedEntityStorage<T> : IEntityStorage<T> where T : IUid
     {
       private readonly object _sync;
