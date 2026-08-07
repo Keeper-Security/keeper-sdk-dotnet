@@ -994,6 +994,9 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "fields", EmitDefaultValue = false)]
         public List<NsfRecordFieldData> Fields { get; set; }
 
+        [DataMember(Name = "custom", EmitDefaultValue = false)]
+        public List<NsfRecordFieldData> Custom { get; set; }
+
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
