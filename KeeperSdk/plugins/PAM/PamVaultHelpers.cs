@@ -488,6 +488,7 @@ namespace KeeperSecurity.Plugins.PAM
       // Fallback: scan in case dictionary lookup missed a matching UID.
       record = vault.KeeperRecords
         .OfType<TypedRecord>()
+        .Where(x => !string.IsNullOrEmpty(x.Uid))
         .FirstOrDefault(x => string.Equals(x.Uid, recordUid, StringComparison.Ordinal));
       return record != null;
     }

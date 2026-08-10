@@ -1465,7 +1465,7 @@ namespace KeeperSecurity.Plugins.PAM
         }
         catch (Exception ex)
         {
-          PamDebug($"TryGetMetaContent uid={Uid} PARSE FAIL: {ex.Message}; raw={Encoding.UTF8.GetString(_dataEdge.Content)}");
+          PamDebug($"TryGetMetaContent uid={Uid} PARSE FAIL: {ex.Message}");
           System.Diagnostics.Trace.TraceWarning("PAM: failed to parse graph meta content: {0}", ex.Message);
           return null;
         }

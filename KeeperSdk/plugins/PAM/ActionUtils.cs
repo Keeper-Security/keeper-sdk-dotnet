@@ -22,6 +22,11 @@ namespace KeeperSecurity.Plugins.PAM
     private const string GetConfigurationControllerEndpoint = "pam/get_configuration_controller";
     private const string SendControllerMessagePath = "send_controller_message";
     private const int DefaultGatewayTimeoutMs = 15000;
+    private const int KeeperUidByteLength = 16;
+
+    private static readonly Regex Base64UrlTokenPattern = new(
+      @"^[A-Za-z0-9_\-+/]+$",
+      RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     /// <summary>
     /// Schedules an on-demand rotation for a single record or all pamUser records in matching shared folders.
@@ -168,6 +173,13 @@ namespace KeeperSecurity.Plugins.PAM
         throw new PamActionException("Job id is required.");
       }
 
+      var normalizedJobId = RequireBase64UrlUid(jobId, "Job id");
+      string normalizedGatewayUid = null;
+      if (!string.IsNullOrWhiteSpace(gatewayUid))
+      {
+        normalizedGatewayUid = RequireBase64UrlUid(gatewayUid, "Gateway UID");
+      }
+
       var conversationId = CryptoUtils.GenerateUid();
       var actionJson = BuildGatewayActionJson(
         action: "job-info",
@@ -176,17 +188,17 @@ namespace KeeperSecurity.Plugins.PAM
         gatewayDestination: null,
         inputs: new Dictionary<string, string>
         {
-          ["jobId"] = jobId.Trim(),
+          ["jobId"] = normalizedJobId,
         });
 
       var result = await SendActionToGatewayAsync(
         auth,
         actionJson,
         PamProto.ControllerMessageType.CmtGeneral,
-        gatewayUid?.Trim(),
+        normalizedGatewayUid,
         conversationId);
 
-      result.GatewayUid = gatewayUid?.Trim();
+      result.GatewayUid = normalizedGatewayUid;
       return result;
     }
 
@@ -344,11 +356,12 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static async Task<string> ResolveGatewayUidAsync(IAuthentication auth, VaultOnline vault, string configUid)
     {
+      var normalizedConfigUid = RequireBase64UrlUid(configUid, "Configuration UID");
       try
       {
         var rq = new PamProto.PAMGenericUidRequest
         {
-          Uid = ByteString.CopyFrom(configUid.Base64UrlDecode()),
+          Uid = ByteString.CopyFrom(normalizedConfigUid.Base64UrlDecode()),
         };
         var rs = await auth.ExecuteAuthRest(GetConfigurationControllerEndpoint, rq, typeof(PamProto.PAMController));
         if (rs is PamProto.PAMController controller
@@ -363,7 +376,7 @@ namespace KeeperSecurity.Plugins.PAM
         Debug.WriteLine($"PAM get_configuration_controller failed, trying local pamResources: {ex.Message}");
       }
 
-      if (vault.TryGetKeeperRecord(configUid, out var configRecord)
+      if (vault.TryGetKeeperRecord(normalizedConfigUid, out var configRecord)
           && configRecord is TypedRecord typed
           && TryGetPamResources(typed, out var resources)
           && !string.IsNullOrEmpty(resources.ControllerUid))
@@ -371,7 +384,7 @@ namespace KeeperSecurity.Plugins.PAM
         return resources.ControllerUid;
       }
 
-      throw new PamActionException($"Gateway UID not found for configuration {configUid}.");
+      throw new PamActionException($"Gateway UID not found for configuration {normalizedConfigUid}.");
     }
 
     private static string ResolvePasswordComplexity(RouterProto.RouterRotationInfo rotationInfo, TypedRecord record)
@@ -552,13 +565,13 @@ namespace KeeperSecurity.Plugins.PAM
       string destinationUidStr;
       if (!string.IsNullOrEmpty(destinationGatewayUid))
       {
-        destinationBytes = destinationGatewayUid.Base64UrlDecode();
+        destinationBytes = RequireBase64UrlUidBytes(destinationGatewayUid, "Gateway UID");
         if (!connected.Any(uid => uid.SequenceEqual(destinationBytes)))
         {
           throw new PamActionException("This Gateway currently is not online.");
         }
 
-        destinationUidStr = destinationGatewayUid;
+        destinationUidStr = destinationGatewayUid.Trim();
       }
       else if (connected.Count == 1)
       {
@@ -571,7 +584,7 @@ namespace KeeperSecurity.Plugins.PAM
           "There are more than one Gateways running. Specify a gateway (for example with job-info --gateway).");
       }
 
-      var messageUid = conversationId.Base64UrlDecode();
+      var messageUid = RequireBase64UrlUidBytes(conversationId, "Conversation id");
       var rq = new RouterProto.RouterControllerMessage
       {
         MessageType = messageType,
@@ -714,6 +727,39 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return outer;
+    }
+
+    /// <summary>
+    /// Validates a Keeper UID/job ID as Base64/Base64URL that decodes to 16 bytes.
+    /// </summary>
+    private static string RequireBase64UrlUid(string value, string fieldName)
+    {
+      RequireBase64UrlUidBytes(value, fieldName);
+      return value.Trim();
+    }
+
+    private static byte[] RequireBase64UrlUidBytes(string value, string fieldName)
+    {
+      if (string.IsNullOrWhiteSpace(value))
+      {
+        throw new PamActionException($"{fieldName} is required.");
+      }
+
+      var trimmed = value.Trim();
+      if (!Base64UrlTokenPattern.IsMatch(trimmed))
+      {
+        throw new PamActionException(
+          $"{fieldName} is invalid. Expected a base64url Keeper UID (letters, digits, '-', '_'; optional '+'/'/').");
+      }
+
+      var bytes = trimmed.Base64UrlDecode();
+      if (bytes == null || bytes.Length != KeeperUidByteLength)
+      {
+        throw new PamActionException(
+          $"{fieldName} is not a valid base64url UID (expected {KeeperUidByteLength} decoded bytes).");
+      }
+
+      return bytes;
     }
 
     private static bool TryGetString(Dictionary<string, object> dict, string key, out string value)

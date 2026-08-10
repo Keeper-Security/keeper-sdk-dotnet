@@ -571,7 +571,7 @@ namespace KeeperSecurity.Plugins.PAM
       Action<string> assign,
       Func<string> current)
     {
-      // null / empty = option not provided (do not touch sibling fields).
+      // null / empty list = option not provided (do not touch sibling fields).
       if (values == null || values.Count == 0 || connection == null)
       {
         return false;
@@ -598,20 +598,8 @@ namespace KeeperSecurity.Plugins.PAM
         return false;
       }
 
-      // Merge with existing patterns so each edit appends instead of replacing.
-      var merged = new List<string>();
-      var seen = new HashSet<string>(StringComparer.Ordinal);
-      foreach (var pattern in NormalizeMultiValues(new[] { current() ?? "" }).Concat(incoming))
-      {
-        if (string.IsNullOrEmpty(pattern) || !seen.Add(pattern))
-        {
-          continue;
-        }
 
-        merged.Add(pattern);
-      }
-
-      var newValue = string.Join("\n", merged);
+      var newValue = string.Join("\n", incoming);
       if (string.Equals(current() ?? "", newValue, StringComparison.Ordinal))
       {
         return false;

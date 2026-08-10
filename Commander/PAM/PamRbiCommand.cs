@@ -179,11 +179,11 @@ namespace Commander.PAM
         public string AllowFileDownloads { get; set; }
 
         [Option("allowed-urls", Separator = ',', Required = false,
-            HelpText = "Allowed URL patterns (repeatable / comma-separated; appends to existing). Use empty string to clear.")]
+            HelpText = "Allowed URL patterns (repeatable / comma-separated; replaces existing). Use empty string to clear.")]
         public IEnumerable<string> AllowedUrls { get; set; }
 
         [Option("allowed-resource-urls", Separator = ',', Required = false,
-            HelpText = "Allowed resource URL patterns (repeatable / comma-separated; appends to existing). Use empty string to clear.")]
+            HelpText = "Allowed resource URL patterns (repeatable / comma-separated; replaces existing). Use empty string to clear.")]
         public IEnumerable<string> AllowedResourceUrls { get; set; }
 
         [Option('a', "autofill-credentials", Required = false,
@@ -191,7 +191,7 @@ namespace Commander.PAM
         public string AutofillCredentials { get; set; }
 
         [Option("autofill-targets", Separator = ',', Required = false,
-            HelpText = "Autofill target selectors (repeatable / comma-separated; appends to existing). Use empty string to clear.")]
+            HelpText = "Autofill target selectors (repeatable / comma-separated; replaces existing). Use empty string to clear.")]
         public IEnumerable<string> AutofillTargets { get; set; }
 
         [Option("allow-copy", Required = false, HelpText = "Allow copying to clipboard: on, off, default")]

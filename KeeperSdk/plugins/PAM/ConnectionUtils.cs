@@ -165,6 +165,13 @@ namespace KeeperSecurity.Plugins.PAM
       ValidateScrollback(recordType, record, options);
 
       var recordDirty = EnsureTrafficEncryptionSeed(record);
+      // pamRemoteBrowser uses pamRemoteBrowserSettings for recordingIncludeKeys; updating only pamSettings will not update the value used by the Web Vault/gateway..
+      if (string.Equals(recordType, "pamRemoteBrowser", StringComparison.Ordinal)
+          && options.KeyEvents != null)
+      {
+        recordDirty |= ApplyRemoteBrowserKeyEvents(record, options.KeyEvents);
+      }
+
       recordDirty |= ApplyPamSettings(record, options, connectionsEnabled);
 
       if (recordDirty)
@@ -520,7 +527,9 @@ namespace KeeperSecurity.Plugins.PAM
       var dirty = false;
       var protocolRequested = options.Protocol != null;
       var portRequested = options.ConnectionsOverridePort != null;
-      var keyEventsRequested = options.KeyEvents != null;
+      // Key-events for pamRemoteBrowser are applied via ApplyRemoteBrowserKeyEvents.
+      var keyEventsRequested = options.KeyEvents != null
+                               && !string.Equals(record.TypeName, "pamRemoteBrowser", StringComparison.Ordinal);
       var scrollbackRequested = options.Scrollback != null;
 
       if (!protocolRequested && !portRequested && !keyEventsRequested && !scrollbackRequested && !connectionsOn)
@@ -608,6 +617,91 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return dirty;
+    }
+
+    /// <summary>
+    /// Apply --key-events to pamRemoteBrowserSettings.connection.
+    /// </summary>
+    private static bool ApplyRemoteBrowserKeyEvents(TypedRecord record, string keyEvents)
+    {
+      var dirty = EnsureRemoteBrowserSettings(record, out var settingsField, out var connection);
+      dirty |= ApplyKeyEvents(connection, keyEvents);
+      if (!dirty)
+      {
+        return false;
+      }
+
+      settingsField.Values.Clear();
+      settingsField.Values.Add(new FieldPamRemoteBrowserSettings { Connection = connection });
+      return true;
+    }
+
+    private static bool EnsureRemoteBrowserSettings(
+      TypedRecord record,
+      out TypedField<FieldPamRemoteBrowserSettings> settingsField,
+      out FieldPamRemoteBrowserConnectionSettings connection)
+    {
+      var dirty = false;
+      if (record.FindTypedField("pamRemoteBrowserSettings", null, out var field)
+          && field is TypedField<FieldPamRemoteBrowserSettings> typed)
+      {
+        settingsField = typed;
+        var settings = typed.Values.FirstOrDefault() ?? new FieldPamRemoteBrowserSettings();
+        if (typed.Values.Count == 0)
+        {
+          typed.Values.Add(settings);
+          dirty = true;
+        }
+
+        if (settings.Connection == null)
+        {
+          settings.Connection = new FieldPamRemoteBrowserConnectionSettings { Protocol = "http" };
+          dirty = true;
+        }
+        else if (string.IsNullOrEmpty(settings.Connection.Protocol))
+        {
+          settings.Connection.Protocol = "http";
+          dirty = true;
+        }
+
+        connection = settings.Connection;
+        return dirty;
+      }
+
+      connection = new FieldPamRemoteBrowserConnectionSettings
+      {
+        Protocol = "http",
+        HttpCredentialsUid = "",
+      };
+      settingsField = new TypedField<FieldPamRemoteBrowserSettings>("pamRemoteBrowserSettings")
+      {
+        Values = { new FieldPamRemoteBrowserSettings { Connection = connection } },
+      };
+      record.Fields.Add(settingsField);
+      return true;
+    }
+
+    private static bool ApplyKeyEvents(FieldPamRemoteBrowserConnectionSettings connection, string keyEvents)
+    {
+      var converted = PamRotationGraph.ConvertAllowedSetting(keyEvents);
+      if (string.Equals(keyEvents, "default", StringComparison.OrdinalIgnoreCase) || converted == null)
+      {
+        if (connection.RecordingIncludeKeys == null)
+        {
+          return false;
+        }
+
+        connection.RecordingIncludeKeys = null;
+        return true;
+      }
+
+      if (connection.RecordingIncludeKeys == converted.Value)
+      {
+        return false;
+      }
+
+      connection.RecordingIncludeKeys = converted.Value;
+      return true;
     }
 
     // Ensures a pamSettings typed field exists. Returns true when a new field was added.
