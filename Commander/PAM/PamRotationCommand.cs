@@ -436,7 +436,6 @@ namespace Commander.PAM
                 return;
             }
 
-            var scriptField = GetOrCreateScriptField(record);
             var facade = new TypedRecordFacade<TypedRecordFileRef>(record);
             var preRefs = GetFileRefUids(facade.Fields.FileRef);
 
@@ -464,7 +463,8 @@ namespace Commander.PAM
             }
 
             facade.Fields.FileRef?.Values.Remove(newUids[0]);
-            scriptField = GetOrCreateScriptField(record);
+            // After upload AdjustTypedRecord may have dropped an empty script field.
+            var scriptField = GetOrCreateScriptField(record);
 
             var scriptValue = new FieldScript
             {

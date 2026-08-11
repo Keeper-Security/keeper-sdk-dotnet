@@ -2699,7 +2699,17 @@ namespace KeeperSecurity.Vault
                     result.Message ?? "Failed to update record");
             }
 
-            nsf.Revision = nsf.Revision + 1;
+            // Prefer server-backed NSF row after update.
+            var refreshed = await vault.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
+            if (refreshed != null)
+            {
+                nsf = refreshed;
+            }
+            else
+            {
+                nsf.Revision = nsf.Revision + 1;
+            }
+
             nsf.Title = typed.Title;
             nsf.Type = typed.TypeName;
             nsf.Notes = typed.Notes;

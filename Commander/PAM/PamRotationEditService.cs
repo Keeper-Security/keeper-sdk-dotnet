@@ -289,7 +289,7 @@ namespace Commander.PAM
                 catch (Exception ex)
                 {
                     var detail = ex?.Message ?? "";
-                    if (IsUnsupportedRotationRevisionError(detail)
+                    if (PamVaultHelpers.IsUnsupportedRotationRevisionError(detail)
                         && PamVaultHelpers.IsKeeperNSFRecord(_vault, recordUid))
                     {
                         unsupportedRevision = true;
@@ -314,39 +314,13 @@ namespace Commander.PAM
             if (unsupportedRevision)
             {
                 Console.WriteLine(
-                    "Rotation was not updated because this feature is not supported in production yet. Coming soon.");
+                    "Warning: Rotation was not updated because this feature is not supported in production yet. Coming soon.");
             }
 
             if (failures.Count > 0)
             {
                 throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
             }
-        }
-
-        // Phrases from set_record_rotation when NSF revision is wrong. No dedicated error code yet.
-        private static readonly string[] UnsupportedRotationRevisionMarkers =
-        {
-            "mismatched_revision_blocking_update",
-            "revision does not correspond to the rotation entry",
-            "revision 0 less than",
-        };
-
-        private static bool IsUnsupportedRotationRevisionError(string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                return false;
-            }
-
-            foreach (var marker in UnsupportedRotationRevisionMarkers)
-            {
-                if (message.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private sealed class RecordEditContext

@@ -362,8 +362,17 @@ namespace KeeperSecurity.Plugins.PAM
 
     public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
-      record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
-      return record != null;
+      record = null;
+      try
+      {
+        record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
+        return record != null;
+      }
+      catch (InvalidOperationException)
+      {
+        record = null;
+        return false;
+      }
     }
 
     /// <summary>
@@ -455,7 +464,7 @@ namespace KeeperSecurity.Plugins.PAM
 
     /// <summary>
     /// True if this UID is an NSF record (in NSF cache, not classic KeeperRecords).
-    /// Soft check only — does not throw; callers use this for Coming soon / sync gating.
+    /// Callers use this for Coming soon / sync gating.
     /// </summary>
     public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
     {
@@ -463,6 +472,34 @@ namespace KeeperSecurity.Plugins.PAM
              && !string.IsNullOrEmpty(recordUid)
              && vault.TryGetKeeperNSFRecord(recordUid, out _);
     }
+
+    /// <summary>
+    /// Phrases from set_record_rotation when NSF revision is wrong.
+    /// </summary>
+    public static bool IsUnsupportedRotationRevisionError(string message)
+    {
+      if (string.IsNullOrEmpty(message))
+      {
+        return false;
+      }
+
+      foreach (var marker in UnsupportedRotationRevisionMarkers)
+      {
+        if (message.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    private static readonly string[] UnsupportedRotationRevisionMarkers =
+    {
+      "mismatched_revision_blocking_update",
+      "revision does not correspond to the rotation entry",
+      "revision 0 less than",
+    };
 
     private static IEnumerable<string> GetFolderPathVariants(string path)
     {
