@@ -24,7 +24,7 @@ namespace KeeperSecurity.Plugins.PAM
     private const int DefaultGatewayTimeoutMs = 15000;
     private const int KeeperUidByteLength = 16;
 
-    private static readonly Regex Base64UrlTokenPattern = new(
+    internal static readonly Regex Base64UrlTokenPattern = new(
       @"^[A-Za-z0-9_\-+/]+$",
       RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
@@ -156,7 +156,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Queries status of a previously scheduled PAM gateway job.
+    /// Gets the status of a previously scheduled PAM gateway job.
     /// </summary>
     public static async Task<PamGatewayActionResult> GetJobInfoAsync(
       IAuthentication auth,
@@ -263,7 +263,7 @@ namespace KeeperSecurity.Plugins.PAM
             folderResult.Results.Add(one);
             break;
           }
-          catch (Exception ex) when (IsThrottleError(ex))
+          catch (Exception ex) when (ex.IsThrottleError())
           {
             delaySec = (delaySec + 10) % 100;
             Debug.WriteLine($"PAM rotate folder: record {ruid} throttled, retry in {1 + delaySec}s");
@@ -285,38 +285,6 @@ namespace KeeperSecurity.Plugins.PAM
       return folderResult;
     }
 
-    private static bool IsThrottleError(Exception ex)
-    {
-      if (ex == null)
-      {
-        return false;
-      }
-
-      if (ex is KeeperApiException api)
-      {
-        if (string.Equals(api.Code, "throttled", StringComparison.OrdinalIgnoreCase))
-        {
-          return true;
-        }
-
-        // ExecuteRouterRest uses code "router_error" and message "...: {statusCode}".
-        if (string.Equals(api.Code, "router_error", StringComparison.OrdinalIgnoreCase)
-            && api.Message != null
-            && api.Message.EndsWith(": 429", StringComparison.Ordinal))
-        {
-          return true;
-        }
-      }
-
-      if (ex.Message != null
-          && ex.Message.IndexOf("throttl", StringComparison.OrdinalIgnoreCase) >= 0)
-      {
-        return true;
-      }
-
-      return ex.InnerException != null && IsThrottleError(ex.InnerException);
-    }
-
     private static List<string> ResolveSharedFolders(VaultOnline vault, string folder)
     {
       var folders = new List<string>();
@@ -327,7 +295,6 @@ namespace KeeperSecurity.Plugins.PAM
         return folders;
       }
 
-      // Title argument is treated as a regex. Escape special chars for literal match if compile fails.
       Regex pattern;
       try
       {
@@ -363,10 +330,11 @@ namespace KeeperSecurity.Plugins.PAM
         {
           Uid = ByteString.CopyFrom(normalizedConfigUid.Base64UrlDecode()),
         };
-        var rs = await auth.ExecuteAuthRest(GetConfigurationControllerEndpoint, rq, typeof(PamProto.PAMController));
-        if (rs is PamProto.PAMController controller
-            && controller.ControllerUid != null
-            && !controller.ControllerUid.IsEmpty)
+        var controller = await auth.ExecuteAuthRest<PamProto.PAMGenericUidRequest, PamProto.PAMController>(
+            GetConfigurationControllerEndpoint,
+            rq);
+
+        if (controller?.ControllerUid != null && !controller.ControllerUid.IsEmpty)
         {
           return controller.ControllerUid.ToByteArray().Base64UrlEncode();
         }
@@ -449,27 +417,23 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static bool IsNoopRecord(TypedRecord record)
     {
-      if (record.FindTypedField("text", "NOOP", out var field))
+      if (!record.FindTypedField("text", "NOOP", out var field))
+        return false;
+
+      var value = field.GetValueAt(0)?.ToString();
+
+      if (bool.TryParse(value, out var result))
+        return result;
+
+      return value?.ToLowerInvariant() switch
       {
-        var value = field.GetValueAt(0)?.ToString();
-        if (bool.TryParse(value, out var b))
-        {
-          return b;
-        }
-
-        if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(value, "yes", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase))
-        {
-          return true;
-        }
-      }
-
-      return false;
+        "1" or "yes" or "on" => true,
+        _ => false
+      };
     }
 
-    // Deny only when allow_rotate_credentials is explicitly false.
-    // Missing key => allow (DotNet flattens all enforcement types; matching boolean-list semantics exactly is unreliable).
+    // Block only when allow_rotate_credentials is explicitly false.
+    // If the key is missing, allow it because .NET handles these settings differently.
     private static void EnsureRotationAllowed(IAuthContext authContext)
     {
       if (authContext?.Enforcements == null || authContext.Enforcements.Count == 0)
@@ -540,11 +504,6 @@ namespace KeeperSecurity.Plugins.PAM
       string destinationGatewayUid,
       string conversationId)
     {
-      if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
-      {
-        throw new PamActionException("Endpoint must be KeeperEndpoint to send gateway actions.");
-      }
-
       PamProto.PAMOnlineControllers online;
       try
       {
@@ -595,13 +554,12 @@ namespace KeeperSecurity.Plugins.PAM
         Timeout = DefaultGatewayTimeoutMs,
       };
 
-      byte[] decrypted;
+      PamProto.ControllerResponse controllerResponse;
       try
       {
-        decrypted = await keeperEndpoint.ExecuteRouterRest(
+        controllerResponse = await auth.ExecuteRouter<PamProto.ControllerResponse>(
           SendControllerMessagePath,
-          auth.AuthContext.SessionToken,
-          rq.ToByteArray());
+          rq);
       }
       catch (Exception ex)
       {
@@ -615,12 +573,6 @@ namespace KeeperSecurity.Plugins.PAM
         IsOk = true,
       };
 
-      if (decrypted == null || decrypted.Length == 0)
-      {
-        return result;
-      }
-
-      var controllerResponse = PamProto.ControllerResponse.Parser.ParseFrom(decrypted);
       if (string.IsNullOrEmpty(controllerResponse.Payload))
       {
         return result;
