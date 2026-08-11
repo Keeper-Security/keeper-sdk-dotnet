@@ -621,20 +621,20 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                RecordTypeData rtd;
-                if (nsf.Data != null)
+                var json = nsf.DataJson;
+                if (json == null || json.Length == 0)
                 {
-                    rtd = JsonUtils.ParseJson<RecordTypeData>(JsonUtils.DumpJson(nsf.Data, indent: false));
+                    json = nsf.Data != null ? JsonUtils.DumpJson(nsf.Data, indent: false) : null;
                 }
-                else
-                {
-                    rtd = new RecordTypeData
+
+                var rtd = json != null
+                    ? JsonUtils.ParseJson<RecordTypeData>(json)
+                    : new RecordTypeData
                     {
                         Type = nsf.Type ?? "",
                         Title = nsf.Title ?? "",
                         Notes = nsf.Notes ?? "",
                     };
-                }
 
                 // NSF typed records default to v3 when Version is unset.
                 typed = CreateTypedRecordFromData(

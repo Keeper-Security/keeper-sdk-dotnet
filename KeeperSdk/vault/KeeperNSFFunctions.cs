@@ -2608,6 +2608,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Updates an NSF record from a <see cref="TypedRecord"/>, including script/fileRef links.
         /// Used by <see cref="VaultOnline.UpdateRecord"/> when the UID is an NSF record.
+        /// Posts via <see cref="ExecuteKeeperNSFRecordsUpdateBatchAsync"/>.
         /// </summary>
         public static async Task UpdateKeeperNSFTypedRecordInternal(this VaultOnline vault, TypedRecord typed)
         {
@@ -2628,7 +2629,8 @@ namespace KeeperSecurity.Vault
             vault.AdjustTypedRecord(typed);
 
             var recordData = typed.ExtractRecordV3Data();
-            var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
+            var recordJson = JsonUtils.DumpJson(recordData, indent: false);
+            var jsonData = VaultExtensions.PadRecordData(recordJson);
             var encryptedData = CryptoUtils.EncryptAesV2(jsonData, recordKey);
 
             var recordUpdate = new RecordUpdate
@@ -2639,25 +2641,17 @@ namespace KeeperSecurity.Vault
                 Data = ByteString.CopyFrom(encryptedData),
             };
 
-            var existingRefs = new HashSet<string>(StringComparer.Ordinal);
-            if (VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var existingTyped)
-                && existingTyped != null)
-            {
-                // ExtractTypedRecordRefs always returns a set; coalesce for safety.
-                var existing = existingTyped.ExtractTypedRecordRefs()
-                               ?? new HashSet<string>(StringComparer.Ordinal);
-                existingRefs.UnionWith(existing);
-            }
+            var existingRefs =
+                VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var existingTyped)
+                && existingTyped != null
+                    ? existingTyped.ExtractTypedRecordRefs() ?? new HashSet<string>(StringComparer.Ordinal)
+                    : new HashSet<string>(StringComparer.Ordinal);
 
             var currentRefs = typed.ExtractTypedRecordRefs()
                               ?? new HashSet<string>(StringComparer.Ordinal);
-            foreach (var newRef in currentRefs.Except(existingRefs))
-            {
-                if (string.IsNullOrEmpty(newRef))
-                {
-                    continue;
-                }
 
+            foreach (var newRef in currentRefs.Except(existingRefs).Where(x => !string.IsNullOrEmpty(x)))
+            {
                 byte[] refKey = null;
                 typed.LinkedKeys?.TryGetValue(newRef, out refKey);
                 if (refKey == null && vault.TryGetKeeperRecord(newRef, out var linked)
@@ -2672,53 +2666,45 @@ namespace KeeperSecurity.Vault
                     refKey = linkedNsf.RecordKey;
                 }
 
-                if (refKey != null)
+                if (refKey == null)
                 {
-                    // Linked record key encrypted with this record's key (same as classic PutRecord).
-                    recordUpdate.RecordLinksAdd.Add(new RecordLink
-                    {
-                        RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
-                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, recordKey)),
-                    });
-                }
-                else
-                {
-                    // Missing classic/NSF key — skip link add (same as classic PutRecord lost-ref path).
                     Trace.TraceError("Lost record reference while updating NSF typed record (missing record key).");
+                    continue;
                 }
+
+                recordUpdate.RecordLinksAdd.Add(new RecordLink
+                {
+                    RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
+                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, recordKey)),
+                });
             }
 
             recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
 
-            var rq = new RecordsUpdateRequest();
-            rq.Records.Add(recordUpdate);
-
-            var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>(
-                "vault/records/v3/update", rq).ConfigureAwait(false);
-
-            if (rs?.Records != null && rs.Records.Count > 0)
-            {
-                var result = rs.Records[0];
-                if (result.Status != RecordModifyResult.RsSuccess)
+            var results = await ExecuteKeeperNSFRecordsUpdateBatchAsync(
+                vault,
+                new[]
                 {
-                    var status = Enum.GetName(typeof(RecordModifyResult), result.Status) ?? "";
-                    if (status.StartsWith("Rs", StringComparison.Ordinal))
-                    {
-                        status = status.Substring(2);
-                    }
-
-                    throw new KeeperApiException(status.ToSnakeCase(), result.Message ?? "Failed to update record");
-                }
+                    (new KeeperNSFRecordUpdateRequest { RecordUid = typed.Uid, Title = typed.Title },
+                        typed.Title ?? "",
+                        recordUpdate),
+                }).ConfigureAwait(false);
+            var result = results[0];
+            if (!result.Success)
+            {
+                throw new KeeperApiException(
+                    (result.Status ?? "failed").ToSnakeCase(),
+                    result.Message ?? "Failed to update record");
             }
 
-            // Prefer server revision when present; otherwise bump locally.
-            nsf.Revision = rs != null && rs.Revision > 0 ? rs.Revision : nsf.Revision + 1;
+            nsf.Revision = nsf.Revision + 1;
             nsf.Title = typed.Title;
             nsf.Type = typed.TypeName;
             nsf.Notes = typed.Notes;
-            nsf.Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false));
+            nsf.DataJson = recordJson;
+            nsf.Data = JsonUtils.ParseJson<NsfRecordData>(recordJson);
             nsf.ClientModifiedTime = recordUpdate.ClientModifiedTime;
             vault.KeeperNSFRecords[nsf.RecordUid] = nsf;
         }
@@ -4055,7 +4041,7 @@ namespace KeeperSecurity.Vault
                 var title = "Unknown";
                 var type = "Unknown";
 
-                if (TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var decrypted))
+                if (TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var decrypted, out _))
                 {
                     title = !string.IsNullOrEmpty(decrypted?.Title)
                         ? decrypted.Title
@@ -4167,7 +4153,7 @@ namespace KeeperSecurity.Vault
             if (recordData == null || string.IsNullOrWhiteSpace(recordUid))
                 return false;
 
-            if (!TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var data))
+            if (!TryDecryptKeeperNSFRecordDetailsData(vault, recordData, recordUid, out var data, out var dataJson))
                 return false;
 
             var recordKey = TryDecryptKeeperNSFRecordKeyFromDetails(vault, recordData, recordUid);
@@ -4191,6 +4177,7 @@ namespace KeeperSecurity.Vault
                 FolderUid = cached?.FolderUid,
                 FolderName = cached?.FolderName,
                 RecordKey = recordKey,
+                DataJson = dataJson,
                 Data = data,
             };
             return true;
@@ -4219,9 +4206,10 @@ namespace KeeperSecurity.Vault
         }
 
         private static bool TryDecryptKeeperNSFRecordDetailsData(
-            VaultOnline vault, Records.RecordData recordData, string recordUid, out NsfRecordData data)
+            VaultOnline vault, Records.RecordData recordData, string recordUid, out NsfRecordData data, out byte[] dataJson)
         {
             data = null;
+            dataJson = null;
             var recordKey = TryDecryptKeeperNSFRecordKeyFromDetails(vault, recordData, recordUid);
             if (recordKey == null || recordKey.Length == 0)
             {
@@ -4239,6 +4227,7 @@ namespace KeeperSecurity.Vault
                 return false;
             }
 
+            dataJson = decryptedBytes;
             data = JsonUtils.ParseJson<NsfRecordData>(decryptedBytes);
             return data != null;
         }

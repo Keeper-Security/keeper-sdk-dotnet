@@ -208,14 +208,13 @@ namespace KeeperSecurity.Vault
             return UpdateRecordAsync(record, skipExtra);
         }
 
+        /// <summary>Updates a classic or NSF typed record.</summary>
         private async Task<KeeperRecord> UpdateRecordAsync(KeeperRecord record, bool skipExtra)
         {
             if (record is TypedRecord typed
                 && !string.IsNullOrEmpty(typed.Uid)
                 && TryGetKeeperNSFRecord(typed.Uid, out _))
             {
-                // One out_of_sync / RS_OUT_OF_SYNC retry: refresh NSF revision/key, then update again.
-                // Other KeeperApiException types are not caught here.
                 const int maxOutOfSyncRetries = 1;
                 var attempt = 0;
                 while (true)

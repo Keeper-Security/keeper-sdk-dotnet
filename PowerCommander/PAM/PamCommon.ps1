@@ -536,7 +536,7 @@ function script:invokeKeeperPamRotationEdit {
                 ).GetAwaiter().GetResult() | Out-Null
                 # NSF only: sync so rotation revision is fresh after graph link.
                 if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFRecord($Vault, $record.Uid)) {
-                    $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+                    $Vault.SyncDown().GetAwaiter().GetResult()
                 }
             }
 

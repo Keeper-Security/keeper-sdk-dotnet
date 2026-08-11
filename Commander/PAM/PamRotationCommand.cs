@@ -464,6 +464,7 @@ namespace Commander.PAM
             }
 
             facade.Fields.FileRef?.Values.Remove(newUids[0]);
+            scriptField = GetOrCreateScriptField(record);
 
             var scriptValue = new FieldScript
             {
@@ -975,16 +976,9 @@ namespace Commander.PAM
                 }
             }
 
-            try
+            if (vault.TryGetKeeperNSFRecord(fileRef, out var nsf) && !string.IsNullOrEmpty(nsf?.Title))
             {
-                if (vault.TryGetKeeperNSFRecord(fileRef, out var nsf) && !string.IsNullOrEmpty(nsf?.Title))
-                {
-                    return nsf.Title;
-                }
-            }
-            catch
-            {
-                // Bad NSF entry — keep listing other scripts.
+                return nsf.Title;
             }
 
             return InaccessibleScriptName;
