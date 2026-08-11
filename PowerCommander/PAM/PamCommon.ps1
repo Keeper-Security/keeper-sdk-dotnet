@@ -1030,19 +1030,7 @@ function script:resolvePamConfigurationFolderUid {
     }
 
     $trimmed = $Identifier.Trim()
-    $folderResolver = {
-        param([string]$path)
-        try {
-            $ops = New-Object KeeperSecurity.Vault.BatchVaultOperations($Vault)
-            return $ops.GetFolderByPath($path)
-        }
-        catch {
-            return $null
-        }
-    }
-
-    return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamConfigurationFolderUid(
-        $Vault, $trimmed, $folderResolver)
+    return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamConfigurationFolderUid($Vault, $trimmed)
 }
 
 function script:writePamComingSoonMessage {
