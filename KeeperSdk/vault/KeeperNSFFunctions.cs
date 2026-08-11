@@ -2422,6 +2422,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
+            var dataJson = JsonUtils.DumpJson(recordData, indent: false);
             vault.KeeperNSFRecords[typed.Uid] = new KeeperNSFRecord
             {
                 RecordUid = typed.Uid,
@@ -2432,12 +2433,10 @@ namespace KeeperSecurity.Vault
                 Version = typed.Version,
                 Revision = 0,
                 ClientModifiedTime = clientModified,
-                Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false)),
+                DataJson = dataJson,
+                Data = JsonUtils.ParseJson<NsfRecordData>(dataJson),
             };
         }
-
-        /// <summary>
-        /// Updates a Keeper NSF typed record via vault/records/v3/update.
 
         /// <summary>
         /// Updates a Keeper NSF typed record via vault/records/v3/update.
@@ -2551,11 +2550,13 @@ namespace KeeperSecurity.Vault
                 }
             }
 
+            var dataJson = JsonUtils.DumpJson(recordData, indent: false);
             nsf.Revision += 1;
             nsf.Title = typed.Title;
             nsf.Type = typed.TypeName;
             nsf.Notes = typed.Notes;
-            nsf.Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false));
+            nsf.DataJson = dataJson;
+            nsf.Data = JsonUtils.ParseJson<NsfRecordData>(dataJson);
             nsf.ClientModifiedTime = recordUpdate.ClientModifiedTime;
             vault.KeeperNSFRecords[nsf.RecordUid] = nsf;
         }

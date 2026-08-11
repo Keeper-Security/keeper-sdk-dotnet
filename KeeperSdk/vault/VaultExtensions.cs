@@ -609,6 +609,8 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Converts a synced Keeper NSF record into a <see cref="TypedRecord"/>.
+        /// Uses raw <see cref="KeeperNSFRecord.DataJson"/> when available so complex fields
+        /// (pamResources, schedule) are not collapsed by object[] deserialization.
         /// </summary>
         public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
         {
@@ -620,35 +622,8 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                // Convert NSF fields directly. Round-tripping through RecordTypeDataFieldBase drops
-                // `value` into ExtensionData and breaks complex fields (e.g. pamResources.controllerUid).
-                if (nsf.Data != null)
-                {
-                    typed = new TypedRecord(nsf.Data.Type ?? nsf.Type ?? "")
-                    {
-                        Uid = nsf.RecordUid,
-                        Version = nsf.Version > 0 ? nsf.Version : 3,
-                        RecordKey = nsf.RecordKey,
-                        Shared = nsf.Shared,
-                        ClientModified = nsf.ClientModifiedTime != 0
-                            ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(nsf.ClientModifiedTime)
-                            : DateTimeOffset.Now,
-                        Title = !string.IsNullOrEmpty(nsf.Data.Title) ? nsf.Data.Title : (nsf.Title ?? nsf.Data.Name),
-                        Notes = nsf.Data.Notes ?? nsf.Notes,
-                    };
-
-                    typed.Fields.AddRange(ConvertNsfFields(nsf.Data.Fields));
-                    typed.Custom.AddRange(ConvertNsfFields(nsf.Data.Custom));
-                    return true;
-                }
-
                 typed = CreateTypedRecordFromData(
-                    new RecordTypeData
-                    {
-                        Type = nsf.Type ?? "",
-                        Title = nsf.Title ?? "",
-                        Notes = nsf.Notes ?? "",
-                    },
+                    ResolveNsfRecordTypeData(nsf),
                     nsf.RecordUid,
                     nsf.Version > 0 ? nsf.Version : 3,
                     nsf.RecordKey,
@@ -663,51 +638,24 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private static IEnumerable<ITypedField> ConvertNsfFields(IEnumerable<NsfRecordFieldData> fields)
+        private static RecordTypeData ResolveNsfRecordTypeData(KeeperNSFRecord nsf)
         {
-            return (fields ?? Enumerable.Empty<NsfRecordFieldData>())
-                .Select(ConvertNsfFieldDataToTypedField)
-                .Where(f => f != null);
-        }
-
-        private static ITypedField ConvertNsfFieldDataToTypedField(NsfRecordFieldData field)
-        {
-            if (field == null)
+            if (nsf.DataJson != null && nsf.DataJson.Length > 0)
             {
-                return null;
+                return JsonUtils.ParseJson<RecordTypeData>(nsf.DataJson);
             }
 
-            try
+            if (nsf.Data != null)
             {
-                var type = string.IsNullOrEmpty(field.Type) ? "text" : field.Type;
-                var xb = JsonUtils.DumpJson(new NsfRecordFieldData
-                {
-                    Type = type,
-                    Label = field.Label,
-                    Value = field.Value,
-                }, indent: false);
-
-                if (!RecordTypesConstants.TryGetRecordField(type, out var rf)
-                    || !RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
-                {
-                    Debug.WriteLine($"Unsupported NSF field type: {type}");
-                    return new UnsupportedField(new RecordTypeDataFieldBase { Type = type, Label = field.Label });
-                }
-
-                using var ms = new MemoryStream(xb);
-                var parsed = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
-                return parsed?.CreateTypedField()
-                       ?? new UnsupportedField(new RecordTypeDataFieldBase { Type = type, Label = field.Label });
+                return JsonUtils.ParseJson<RecordTypeData>(JsonUtils.DumpJson(nsf.Data, indent: false));
             }
-            catch (Exception e)
+
+            return new RecordTypeData
             {
-                Debug.WriteLine(e);
-                return new UnsupportedField(new RecordTypeDataFieldBase
-                {
-                    Type = field.Type ?? "text",
-                    Label = field.Label,
-                });
-            }
+                Type = nsf.Type ?? "",
+                Title = nsf.Title ?? "",
+                Notes = nsf.Notes ?? "",
+            };
         }
 
         private static TypedRecord CreateTypedRecordFromData(
