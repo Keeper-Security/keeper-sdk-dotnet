@@ -254,6 +254,7 @@ namespace KeeperSecurity.Plugins.PAM
         }
       }
 
+      var dataJson = JsonUtils.DumpJson(recordData, indent: false);
       vault.KeeperNSFRecords[record.Uid] = new KeeperNSFRecord
       {
         RecordUid = record.Uid,
@@ -264,7 +265,8 @@ namespace KeeperSecurity.Plugins.PAM
         Version = record.Version,
         Revision = 0,
         ClientModifiedTime = clientModified,
-        Data = JsonUtils.ParseJson<NsfRecordData>(JsonUtils.DumpJson(recordData, indent: false)),
+        DataJson = dataJson,
+        Data = JsonUtils.ParseJson<NsfRecordData>(dataJson),
       };
     }
 

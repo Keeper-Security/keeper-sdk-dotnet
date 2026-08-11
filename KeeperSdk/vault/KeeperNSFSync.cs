@@ -1049,7 +1049,7 @@ namespace KeeperSecurity.Vault
         /// <summary>Parsed record data POCO; unknown JSON (e.g. custom) stays in ExtensionData.</summary>
         internal NsfRecordData Data { get; set; }
 
-        /// <summary>Decrypted data JSON — used for TypedRecord convert.</summary>
+        /// <summary>Raw decrypted record JSON for TypedRecord conversion (preserves complex fields).</summary>
         internal byte[] DataJson { get; set; }
     }
 
