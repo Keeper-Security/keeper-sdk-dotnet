@@ -192,7 +192,8 @@ namespace KeeperSecurity.Vault
         {
             try
             {
-                var recordUpdated = await this.PutRecord(record, skipExtra).ConfigureAwait(false);
+                // Route NSF typed updates to NSF v3 update; classic still uses PutRecord.
+                var recordUpdated = await UpdateRecordAsync(record, skipExtra).ConfigureAwait(false);
                 return new TryUpdateRecordResult(true, recordUpdated, null);
             }
             catch (Exception e)
@@ -207,8 +208,36 @@ namespace KeeperSecurity.Vault
             return UpdateRecordAsync(record, skipExtra);
         }
 
+        /// <summary>Updates a classic or NSF typed record.</summary>
         private async Task<KeeperRecord> UpdateRecordAsync(KeeperRecord record, bool skipExtra)
         {
+            if (record is TypedRecord typed
+                && !string.IsNullOrEmpty(typed.Uid)
+                && TryGetKeeperNSFRecord(typed.Uid, out _))
+            {
+                const int maxOutOfSyncRetries = 1;
+                var attempt = 0;
+                while (true)
+                {
+                    try
+                    {
+                        await this.UpdateKeeperNSFTypedRecordInternal(typed).ConfigureAwait(false);
+                        return typed;
+                    }
+                    catch (KeeperApiException e) when (IsRecordOutOfSync(e) && attempt < maxOutOfSyncRetries)
+                    {
+                        attempt++;
+                        var refreshed = await this.GetRefreshedKeeperNSFRecordAsync(typed.Uid).ConfigureAwait(false);
+                        if (refreshed == null || string.IsNullOrEmpty(refreshed.RecordUid))
+                        {
+                            throw;
+                        }
+
+                        KeeperNSFRecords[refreshed.RecordUid] = refreshed;
+                    }
+                }
+            }
+
             try
             {
                 return await this.PutRecord(record, skipExtra).ConfigureAwait(false);

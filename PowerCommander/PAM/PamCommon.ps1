@@ -536,8 +536,10 @@ function script:invokeKeeperPamRotationEdit {
                     $Auth, $Vault, $record, $resourceUidForDag, $configUidForDag,
                     [bool]$editContext.Noop, [bool]$Options.ScheduleOnly
                 ).GetAwaiter().GetResult() | Out-Null
-                # Graph ACL repair/link can change server rotation revision (Python parity).
-                $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+                # NSF only: sync so rotation revision is fresh after graph link.
+                if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFRecord($Vault, $record.Uid)) {
+                    $Vault.SyncDown().GetAwaiter().GetResult()
+                }
             }
 
             $request = $null
@@ -612,6 +614,7 @@ function script:invokeKeeperPamRotationEdit {
         }
     }
 
+    $unsupportedRevision = $false
     $failures = New-Object System.Collections.Generic.List[string]
     foreach ($request in $requests) {
         $recordUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($request.RecordUid.ToByteArray())
@@ -619,19 +622,25 @@ function script:invokeKeeperPamRotationEdit {
             [KeeperSecurity.Plugins.PAM.RouterUtils]::SetRecordRotationAsync($Auth, $request).GetAwaiter().GetResult() | Out-Null
         }
         catch {
-            $message = ("Record `"{0}`": Set rotation error: {1}" -f $recordUid, $_.Exception.Message)
-            Write-Output $message
-            [void]$failures.Add($message)
+            $raw = [string]$_.Exception.Message
+            if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsUnsupportedRotationRevisionError($raw) `
+                -and [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFRecord($Vault, $recordUid)) {
+                $unsupportedRevision = $true
+            }
+            else {
+                [void]$failures.Add(("Record `"{0}`": Set rotation error: {1}" -f $recordUid, $raw))
+            }
         }
     }
 
     $Vault.SyncDown().GetAwaiter().GetResult() | Out-Null
 
+    if ($unsupportedRevision) {
+        Write-Warning 'Rotation was not updated because this feature is not supported in production yet. Coming soon.'
+    }
+
     if ($failures.Count -gt 0) {
-        Write-Error -Message (
-            ("{0} of {1} record(s) failed to update rotation:`n{2}" -f `
-                $failures.Count, $requests.Count, ([string]::Join([Environment]::NewLine, $failures)))
-        ) -ErrorAction Stop
+        Write-Error -Message ([string]::Join([Environment]::NewLine, $failures)) -ErrorAction Stop
     }
 }
 
@@ -836,8 +845,8 @@ function script:tryBuildPamUserRotationRequest {
             $pwdComplexity = [KeeperSecurity.Plugins.PAM.RotationUtils]::EncryptPasswordComplexity($ComplexityRules, $Record.RecordKey)
         }
     }
-    elseif ($null -ne $cached -and $null -ne $cached.PwdComplexity) {
-        $pwdComplexity = $cached.PwdComplexity
+    elseif ($null -ne $cached -and $null -ne $cached.PasswordComplexity) {
+        $pwdComplexity = $cached.PasswordComplexity
     }
 
     $disabled = if ($null -ne $cached) { [bool]$cached.Disabled } else { $false }
@@ -913,7 +922,7 @@ function script:tryBuildPamUserRotationRequest {
     $rq.PwdComplexity = [Google.Protobuf.ByteString]::CopyFrom($pwdComplexity)
     $rq.Disabled = $disabled
     $rq.Noop = $noop
-    $rq.Revision = if ($null -ne $cached) { [long]$cached.Revision } else { [long]0 }
+    $rq.Revision = [long]$Vault.ResolveRecordRotationRevisionAsync($Record.Uid).GetAwaiter().GetResult()
 
     if (-not $noop -and -not [string]::IsNullOrEmpty($resourceUid)) {
         $rq.ResourceUid = [Google.Protobuf.ByteString]::CopyFrom((toPamUidBytes -Uid $resourceUid))

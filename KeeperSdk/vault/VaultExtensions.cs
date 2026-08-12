@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -604,14 +604,73 @@ namespace KeeperSecurity.Vault
         {
             var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
             var rtd = JsonUtils.ParseJson<RecordTypeData>(data);
-            var typedRecord = new TypedRecord(rtd.Type)
+            return CreateTypedRecordFromData(rtd, r.RecordUid, r.Version, key, r.Shared, r.ClientModifiedTime);
+        }
+
+        /// <summary>
+        /// Build a TypedRecord from an NSF record so PAM can read fields the same way as classic.
+        /// Returns false if UID/key is missing or data cannot be parsed.
+        /// </summary>
+        public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
+        {
+            typed = null;
+            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null)
             {
-                Uid = r.RecordUid,
-                Version = r.Version,
+                return false;
+            }
+
+            try
+            {
+                var json = nsf.DataJson;
+                if (json == null || json.Length == 0)
+                {
+                    json = nsf.Data != null ? JsonUtils.DumpJson(nsf.Data, indent: false) : null;
+                }
+
+                var rtd = json != null
+                    ? JsonUtils.ParseJson<RecordTypeData>(json)
+                    : new RecordTypeData
+                    {
+                        Type = nsf.Type ?? "",
+                        Title = nsf.Title ?? "",
+                        Notes = nsf.Notes ?? "",
+                    };
+
+                // NSF typed records default to v3 when Version is unset.
+                typed = CreateTypedRecordFromData(
+                    rtd,
+                    nsf.RecordUid,
+                    nsf.Version > 0 ? nsf.Version : 3,
+                    nsf.RecordKey,
+                    nsf.Shared,
+                    nsf.ClientModifiedTime);
+                return typed != null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning(
+                    "PAM: failed to convert NSF record to TypedRecord: {0}", ex.Message);
+                typed = null;
+                return false;
+            }
+        }
+
+        private static TypedRecord CreateTypedRecordFromData(
+            RecordTypeData rtd,
+            string recordUid,
+            int version,
+            byte[] key,
+            bool shared,
+            long clientModifiedTime)
+        {
+            var typedRecord = new TypedRecord(rtd.Type ?? "")
+            {
+                Uid = recordUid,
+                Version = version,
                 RecordKey = key,
-                Shared = r.Shared,
-                ClientModified = r.ClientModifiedTime != 0
-                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                Shared = shared,
+                ClientModified = clientModifiedTime != 0
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(clientModifiedTime)
                     : DateTimeOffset.Now,
                 Title = rtd.Title,
                 Notes = rtd.Notes,
