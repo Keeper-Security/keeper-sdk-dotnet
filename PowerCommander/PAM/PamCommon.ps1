@@ -1,5 +1,7 @@
 #requires -Version 5.1
 
+# Shared PAM helpers
+
 $script:PamRotationScriptVerbs = New-Object 'System.Collections.Generic.HashSet[string]'
 [void]$script:PamRotationScriptVerbs.Add('list')
 [void]$script:PamRotationScriptVerbs.Add('l')
@@ -924,4 +926,135 @@ function script:tryBuildPamUserRotationRequest {
 
     $Request.Value = $rq
     return $true
+}
+
+# --- PAM config helpers ---
+
+function script:getPamEnterpriseAuth {
+    $enterprise = getEnterprise
+    if (-not $enterprise -or -not $enterprise.loader -or -not $enterprise.loader.Auth) {
+        Write-Error -Message 'Enterprise authentication is not available.' -ErrorAction Stop
+    }
+
+    return $enterprise.loader.Auth
+}
+
+function script:getPamVault {
+    $vault = getVault
+    if (-not $vault) {
+        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
+    }
+
+    return $vault
+}
+
+function script:resolvePamGatewayController {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Plugins.PAM.IPamPlugin] $Plugin,
+        [Parameter(Mandatory = $true)]
+        [string] $Identifier,
+        [KeeperSecurity.Vault.VaultOnline] $Vault = $null
+    )
+
+    $trimmed = $Identifier.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+        return $null
+    }
+
+    # Help catch sheet mistakes where SharedFolder UID is passed as -Gateway.
+    if ($null -ne $Vault) {
+        [KeeperSecurity.Vault.SharedFolder]$sf = $null
+        if ($Vault.TryGetSharedFolder($trimmed, [ref]$sf) -and $null -ne $sf) {
+            Write-Host ("Gateway `"$trimmed`" matches shared folder `"$($sf.Name)`". " +
+                'Use a gateway/controller UID or name, not the shared-folder UID.')
+            return $null
+        }
+    }
+
+    $controllers = getPamControllerList -Plugin $Plugin
+    if ($controllers -is [object[]] -and $controllers.Length -eq 1 -and
+        $controllers[0] -is [System.Collections.Generic.List[KeeperSecurity.Plugins.PAM.PamController]]) {
+        $controllers = $controllers[0]
+    }
+    if ($null -eq $controllers) {
+        $controllers = New-Object 'System.Collections.Generic.List[KeeperSecurity.Plugins.PAM.PamController]'
+    }
+
+    $controllerCount = 0
+    try { $controllerCount = [int]$controllers.Count } catch { $controllerCount = 0 }
+    if ($controllerCount -eq 0) {
+        # Controllers empty after failed sync — retry once before giving up.
+        [void](syncPamPlugin -Plugin $Plugin -Reload $true -ThrowOnError $false)
+        $controllers = getPamControllerList -Plugin $Plugin
+        if ($controllers -is [object[]] -and $controllers.Length -eq 1 -and
+            $controllers[0] -is [System.Collections.Generic.List[KeeperSecurity.Plugins.PAM.PamController]]) {
+            $controllers = $controllers[0]
+        }
+    }
+
+    $controller = [KeeperSecurity.Plugins.PAM.GatewayUtils]::FindGateway($controllers, $trimmed)
+    if ($controller -is [KeeperSecurity.Plugins.PAM.PamController]) {
+        return $controller
+    }
+
+    $nameMatches = 0
+    $nameMatch = $null
+    foreach ($item in $controllers) {
+        if ($item -is [KeeperSecurity.Plugins.PAM.PamController] -and
+            [string]::Equals($item.ControllerName, $trimmed, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $nameMatches++
+            $nameMatch = $item
+        }
+    }
+    if ($nameMatches -gt 1) {
+        throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayAmbiguousException($trimmed))
+    }
+    if ($nameMatches -eq 1) {
+        return $nameMatch
+    }
+
+    return $null
+}
+
+function script:resolvePamConfigurationFolderUid {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Parameter(Mandatory = $true)]
+        [string] $Identifier
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Identifier)) {
+        return $null
+    }
+
+    $trimmed = $Identifier.Trim()
+    return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolvePamConfigurationFolderUid($Vault, $trimmed)
+}
+
+function script:writePamComingSoonMessage {
+    Param (
+        [string] $Environment
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Environment)) {
+        return $false
+    }
+
+    $displayName = $null
+    try {
+        if ([KeeperSecurity.Plugins.PAM.PamConfigTypes]::IsComingSoonEnvironment($Environment.Trim(), [ref]$displayName)) {
+            if ([string]::IsNullOrWhiteSpace($displayName)) {
+                $displayName = $Environment.Trim()
+            }
+            Write-Host "Environment $displayName is not supported yet. It will be supported in a future release."
+            return $true
+        }
+    }
+    catch {
+        Write-Debug "IsComingSoonEnvironment check failed: $($_.Exception.Message)"
+    }
+
+    return $false
 }
