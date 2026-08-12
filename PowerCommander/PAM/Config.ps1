@@ -1121,8 +1121,7 @@ function New-KeeperPamConfig {
         Create a new PAM configuration.
 
         .DESCRIPTION
-        Creates a PAM configuration. Equivalent to Commander: pam-config new
-
+        Creates a PAM configuration.
         .EXAMPLE
         New-KeeperPamConfig -Environment local -Title 'Network Config' -SharedFolder '<SF_UID>' -Gateway '<GATEWAY>' -NetworkId 'net1' -NetworkCidr '10.0.0.0/24'
     #>
@@ -1306,7 +1305,7 @@ function Set-KeeperPamConfig {
         Edit an existing PAM configuration.
 
         .DESCRIPTION
-        Updates a PAM configuration. Equivalent to Commander: pam-config edit
+        Updates a PAM configuration.
 
         .EXAMPLE
         Set-KeeperPamConfig -Uid '<CONFIG_UID>' -Title 'Updated Title'
@@ -1502,7 +1501,7 @@ function Remove-KeeperPamConfig {
         Remove a PAM configuration.
 
         .DESCRIPTION
-        Removes a PAM configuration. Equivalent to Commander: pam-config remove
+        Removes a PAM configuration.
 
         .EXAMPLE
         Remove-KeeperPamConfig -Uid '<CONFIG_UID>'
