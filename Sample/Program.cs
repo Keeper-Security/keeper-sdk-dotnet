@@ -710,14 +710,98 @@ namespace Sample
                 //     appClientType: Enterprise.AppClientType.General
                 // );
 
-                // // Add PAM Gateway Client Example (DiscoveryAndRotationController)
-                // await SecretManagerExamples.AddClientExample.AddClient(
+                // List PAM Gateways Example
+                await PAMExamples.GatewayExamples.ListGatewaysExample.ListGateways(
+                    vault,
+                    onlineOnly: false,
+                    ignoreRouterDown: true,
+                    verbose: false
+                );
+
+                // // Create PAM Gateway Example
+                // await PAMExamples.GatewayExamples.CreateGatewayExample.CreateGateway(
                 //     vault,
-                //     applicationId: "<ksmAppUid_here>",
-                //     unlockIp: true,
-                //     firstAccessExpireInMinutes: 60,
-                //     name: "<gatewayName_here>",
-                //     appClientType: Enterprise.AppClientType.DiscoveryAndRotationController
+                //     gatewayName: "<gatewayName_here>",
+                //     applicationId: "<ksmAppUid_or_title_here>",
+                //     tokenExpiresInMinutes: 60,
+                //     configInit: null   // or "json" / "b64" for initialized config
+                // );
+
+                // // Edit PAM Gateway Example
+                // await PAMExamples.GatewayExamples.EditGatewayExample.EditGateway(
+                //     vault,
+                //     gatewayId: "<gatewayUid_or_name_here>",
+                //     newName: "<newGatewayName_here>",
+                //     nodeNameOrId: null   // optional: node ID or display name
+                // );
+
+                // // Set PAM Gateway Max Instances Example
+                // await PAMExamples.GatewayExamples.SetGatewayMaxInstancesExample.SetMaxInstances(
+                //     vault,
+                //     gatewayId: "<gatewayUid_or_name_here>",
+                //     maxInstances: 3
+                // );
+
+                // // Remove PAM Gateway Example
+                // await PAMExamples.GatewayExamples.RemoveGatewayExample.RemoveGateway(
+                //     vault,
+                //     gatewayId: "<gatewayUid_or_name_here>"
+                // );
+
+                // // List PAM Rotations Example
+                // await PAMExamples.RotationExamples.ListRotationsExample.ListRotations(
+                //     vault,
+                //     verbose: false
+                // );
+
+                // // PAM Rotation Info Example
+                // await PAMExamples.RotationExamples.RotationInfoExample.ShowRotationInfo(
+                //     vault,
+                //     recordId: "<pamUserUid_or_title_here>"
+                // );
+
+                // // Edit PAM Rotation Example (general pamUser)
+                // await PAMExamples.RotationExamples.EditRotationExample.EditRotation(
+                //     vault,
+                //     recordId: "<pamUserUid_or_title_here>",
+                //     configId: "<pamConfigUid_or_title_here>",
+                //     resourceId: "<pamResourceUid_or_title_here>",
+                //     onDemand: true,
+                //     // scheduleCron: "0 0 4 * * ?",
+                //     // complexity: "32,5,5,5,5",
+                //     enable: true
+                // );
+
+                // // List PAM Rotation Scripts Example
+                // await PAMExamples.RotationExamples.ListRotationScriptsExample.ListScripts(
+                //     vault,
+                //     pattern: null   // optional: record UID or title filter
+                // );
+
+                // // Add PAM Rotation Script Example
+                // await PAMExamples.RotationExamples.AddRotationScriptExample.AddScript(
+                //     vault,
+                //     recordId: "<pamUserUid_or_title_here>",
+                //     scriptFilePath: @"C:\path\to\rotate.ps1",
+                //     runCommand: "powershell -File rotate.ps1",
+                //     addCredentialUids: null   // or new[] { "<credentialUid_here>" }
+                // );
+
+                // // Edit PAM Rotation Script Example
+                // await PAMExamples.RotationExamples.EditRotationScriptExample.EditScript(
+                //     vault,
+                //     recordId: "<pamUserUid_or_title_here>",
+                //     scriptId: "<scriptUid_or_name_here>",
+                //     runCommand: "powershell -File rotate.ps1",
+                //     addCredentialUids: null,
+                //     removeCredentialUids: null
+                // );
+
+                // // Remove PAM Rotation Script Example
+                // await PAMExamples.RotationExamples.RemoveRotationScriptExample.RemoveScript(
+                //     vault,
+                //     recordId: "<pamUserUid_or_title_here>",
+                //     scriptId: "<scriptUid_or_name_here>"
                 // );
 
                 // // Remove Client Example
