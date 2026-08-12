@@ -130,6 +130,28 @@ Basic authentication and vault synchronization example:
 * **SecretManagerShareExample.cs** - Share folders/records to applications
 * **SecretManagerUnshareExample.cs** - Unshare from applications
 
+### PAM Examples
+
+#### PAMExamples/GatewayExamples/
+Requires enterprise admin access. Uses `KeeperSecurity.Plugins.PAM` (`GatewayUtils`, `RouterUtils`, `PamPlugin`):
+
+* **ListGatewaysExample.cs** - List registered gateways with online/offline status
+* **CreateGatewayExample.cs** - Create a gateway on a KSM application (returns one-time token or initialized config)
+* **EditGatewayExample.cs** - Rename a gateway and/or move it to another enterprise node
+* **SetGatewayMaxInstancesExample.cs** - Set maximum concurrent gateway instances
+* **RemoveGatewayExample.cs** - Remove a gateway controller
+
+#### PAMExamples/RotationExamples/
+Requires enterprise admin access for list/info/edit. Script examples need vault access (owner for add/edit/remove). Uses `RotationUtils`, `RouterUtils`, `PamRotationGraphEdit`, and vault `FieldScript` APIs:
+
+* **ListRotationsExample.cs** - List pamUser rotation schedules
+* **RotationInfoExample.cs** - Show rotation readiness and settings for a PAM record
+* **EditRotationExample.cs** - Configure rotation for a pamUser (config, resource, schedule, complexity)
+* **ListRotationScriptsExample.cs** - List post-rotation scripts on pamUser / pamDirectory records
+* **AddRotationScriptExample.cs** - Upload and attach a post-rotation script
+* **EditRotationScriptExample.cs** - Update script command and/or linked credentials
+* **RemoveRotationScriptExample.cs** - Remove a post-rotation script
+
 ### BreachWatch Examples
 
 #### BreachWatchExamples/
