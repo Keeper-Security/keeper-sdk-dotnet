@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using VaultProto = Vault;
 
@@ -58,6 +59,51 @@ namespace KeeperSecurity.Vault
         public bool ConsumeRotationsCleared()
         {
             return Interlocked.Exchange(ref _recordRotationsCleared, 0) != 0;
+        }
+
+        /// <summary>
+        /// Rotation-cache revision, else NSF record revision, else 0.
+        /// Syncs only when the UID is not a classic vault record.
+        /// </summary>
+        public async Task<long> ResolveRecordRotationRevisionAsync(string recordUid)
+        {
+            if (string.IsNullOrEmpty(recordUid))
+            {
+                return 0;
+            }
+
+            // 1. rotation cache
+            if (TryGetRecordRotation(recordUid, out var cached) && cached != null)
+            {
+                return cached.Revision;
+            }
+
+            // 2. NSF record revision
+            if (TryGetKeeperNSFRecord(recordUid, out var nsf) && nsf != null)
+            {
+                return nsf.Revision;
+            }
+
+            // Classic vault record with no rotation entry yet — first set uses revision 0.
+            if (TryGetKeeperRecord(recordUid, out _))
+            {
+                return 0;
+            }
+
+            // 3. sync once, then retry cache/NSF
+            await SyncDown().ConfigureAwait(false);
+
+            if (TryGetRecordRotation(recordUid, out cached) && cached != null)
+            {
+                return cached.Revision;
+            }
+
+            if (TryGetKeeperNSFRecord(recordUid, out nsf) && nsf != null)
+            {
+                return nsf.Revision;
+            }
+
+            return 0;
         }
 
         /// <summary>
