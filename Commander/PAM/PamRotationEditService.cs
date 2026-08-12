@@ -184,6 +184,11 @@ namespace Commander.PAM
                             configUidForDag,
                             editContext.Noop,
                             options.ScheduleOnly);
+                        // NSF only: sync so rotation revision is fresh after graph link.
+                        if (PamVaultHelpers.IsKeeperNSFRecord(_vault, record.Uid))
+                        {
+                            await _vault.SyncDown();
+                        }
                     }
 
                     if (TryBuildUserRotationRequest(
@@ -198,6 +203,8 @@ namespace Commander.PAM
                             valid,
                             out var request))
                     {
+                        // Set revision here (cache → NSF → sync → 0), not cached?.Revision only.
+                        request.Revision = await _vault.ResolveRecordRotationRevisionAsync(record.Uid);
                         requests.Add(request);
                     }
                 }
@@ -268,6 +275,7 @@ namespace Commander.PAM
                 }
             }
 
+            var unsupportedRevision = false;
             var failures = new List<string>();
             foreach (var request in requests)
             {
@@ -280,9 +288,16 @@ namespace Commander.PAM
                 }
                 catch (Exception ex)
                 {
-                    var message = $"Record \"{recordUid}\": Set rotation error: {ex.Message}";
-                    Console.WriteLine(message);
-                    failures.Add(message);
+                    var detail = ex?.Message ?? "";
+                    if (PamVaultHelpers.IsUnsupportedRotationRevisionError(detail)
+                        && PamVaultHelpers.IsKeeperNSFRecord(_vault, recordUid))
+                    {
+                        unsupportedRevision = true;
+                    }
+                    else
+                    {
+                        failures.Add($"Record \"{recordUid}\": Set rotation error: {detail}");
+                    }
                 }
             }
 
@@ -296,12 +311,15 @@ namespace Commander.PAM
                 Console.WriteLine($"Warning: could not refresh PAM record rotations cache: {ex.Message}");
             }
 
+            if (unsupportedRevision)
+            {
+                Console.WriteLine(
+                    "Warning: Rotation was not updated because this feature is not supported in production yet. Coming soon.");
+            }
+
             if (failures.Count > 0)
             {
-                throw new InvalidOperationException(
-                    $"{failures.Count} of {requests.Count} record(s) failed to update rotation:"
-                    + Environment.NewLine
-                    + string.Join(Environment.NewLine, failures));
+                throw new InvalidOperationException(string.Join(Environment.NewLine, failures));
             }
         }
 
@@ -544,7 +562,6 @@ namespace Commander.PAM
                 PwdComplexity = ByteString.CopyFrom(pwdComplexity ?? Array.Empty<byte>()),
                 Disabled = disabled,
                 Noop = noop,
-                Revision = cached?.Revision ?? 0,
             };
 
             if (!noop && !string.IsNullOrEmpty(resourceUid))
@@ -782,7 +799,7 @@ namespace Commander.PAM
                 else if (TryResolveRecordPath(recordName, out var folderNode, out var title))
                 {
                     recordPattern = title;
-                    CollectFolderUids(folderNode, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderNode, folderUids);
                 }
                 else if (!string.IsNullOrWhiteSpace(options.Folder))
                 {
@@ -797,15 +814,15 @@ namespace Commander.PAM
             if (!string.IsNullOrWhiteSpace(options.Folder))
             {
                 var folderName = options.Folder.Trim();
-                if (_vault.TryGetFolder(folderName, out var folderByUid))
+                if (PamVaultHelpers.TryResolveFolder(_vault, folderName, out var folderByUidOrName))
                 {
-                    CollectFolderUids(folderByUid, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderByUidOrName, folderUids);
                 }
                 else if (_pathContext != null
                          && _pathContext.TryResolvePath(folderName, out var folderByPath, out var title)
                          && string.IsNullOrEmpty(title))
                 {
-                    CollectFolderUids(folderByPath, folderUids);
+                    PamVaultHelpers.CollectFolderSubtree(_vault, folderByPath, folderUids);
                 }
                 else
                 {
@@ -824,12 +841,12 @@ namespace Commander.PAM
 
                 foreach (var folderUid in folderUids)
                 {
-                    if (!_vault.TryGetFolder(folderUid, out var folder))
+                    if (!PamVaultHelpers.TryGetFolderNode(_vault, folderUid, out var folder))
                     {
                         continue;
                     }
 
-                    foreach (var uid in EnumerateFolderRecordUids(folder))
+                    foreach (var uid in PamVaultHelpers.EnumerateFolderRecordUids(_vault, folder))
                     {
                         if (recordUids.Contains(uid))
                         {
@@ -863,51 +880,6 @@ namespace Commander.PAM
             }
 
             return records;
-        }
-
-        private IEnumerable<string> EnumerateFolderRecordUids(FolderNode folder)
-        {
-            if (folder == null)
-            {
-                yield break;
-            }
-
-            foreach (var recordUid in folder.Records ?? Array.Empty<string>())
-            {
-                yield return recordUid;
-            }
-
-            foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
-            {
-                if (_vault.TryGetFolder(subfolderUid, out var child))
-                {
-                    foreach (var uid in EnumerateFolderRecordUids(child))
-                    {
-                        yield return uid;
-                    }
-                }
-            }
-        }
-
-        private void CollectFolderUids(FolderNode folder, ISet<string> folderUids)
-        {
-            if (folder == null)
-            {
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(folder.FolderUid))
-            {
-                folderUids.Add(folder.FolderUid);
-            }
-
-            foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
-            {
-                if (_vault.TryGetFolder(subfolderUid, out var child))
-                {
-                    CollectFolderUids(child, folderUids);
-                }
-            }
         }
 
         private sealed class ResourceConfigureSummary

@@ -7,7 +7,7 @@ using KeeperSecurity.Vault;
 namespace KeeperSecurity.Plugins.PAM
 {
   /// <summary>
-  /// Shared vault lookups for PAM rotation and configuration commands.
+  /// Shared lookups for PAM rotation/config. Checks classic vault first, then NSF.
   /// </summary>
   public static class PamVaultHelpers
   {
@@ -15,17 +15,18 @@ namespace KeeperSecurity.Plugins.PAM
     {
       if (vault == null)
       {
-        return new Dictionary<string, TypedRecord>();
+        return new Dictionary<string, TypedRecord>(StringComparer.Ordinal);
       }
 
-      return vault.KeeperRecords
-        .OfType<TypedRecord>()
-        .Where(x => !string.IsNullOrEmpty(x.Uid))
+      return EnumerateTypedRecords(vault)
         .Where(x => PamRecordTypes.Configuration.Contains(x.TypeName ?? ""))
-        .GroupBy(x => x.Uid, StringComparer.Ordinal)
-        .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+        .Where(x => !string.IsNullOrEmpty(x.Uid))
+        .ToDictionary(x => x.Uid, x => x, StringComparer.Ordinal);
     }
 
+    /// <summary>
+    /// Find a record by UID or title (classic or NSF). Throws if the title matches more than one record.
+    /// </summary>
     public static TypedRecord ResolveRecord(VaultOnline vault, string identifier, IEnumerable<string> allowedTypes)
     {
       if (vault == null || string.IsNullOrWhiteSpace(identifier))
@@ -33,9 +34,14 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      if (TryGetTypedRecord(vault, identifier, out var typedByUid))
+      var trimmed = identifier.Trim();
+      var allowed = allowedTypes == null
+        ? null
+        : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
+
+      if (TryGetTypedRecord(vault, trimmed, out var typedByUid))
       {
-        if (allowedTypes == null || allowedTypes.Contains(typedByUid.TypeName ?? string.Empty))
+        if (allowed == null || allowed.Contains(typedByUid.TypeName ?? string.Empty))
         {
           return typedByUid;
         }
@@ -43,13 +49,11 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      var allowed = allowedTypes == null
-        ? null
-        : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
-      var matches = vault.KeeperRecords
-        .OfType<TypedRecord>()
+      // Title search. EnumerateTypedRecords already unique-by-UID, so each match is a different record.
+      // Count > 1 means two different UIDs share the same title — caller must pass a UID.
+      var matches = EnumerateTypedRecords(vault)
         .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
-        .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
+        .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
         .ToList();
 
       if (matches.Count == 1)
@@ -59,7 +63,9 @@ namespace KeeperSecurity.Plugins.PAM
 
       if (matches.Count > 1)
       {
-        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
+        var uids = string.Join(", ", matches.Select(x => x.Uid).Where(x => !string.IsNullOrEmpty(x)));
+        throw new InvalidOperationException(
+          $"Record name '{trimmed}' is not unique ({matches.Count} matches: {uids}). Use record UID.");
       }
 
       return null;
@@ -354,6 +360,147 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
+    {
+      record = null;
+      try
+      {
+        record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
+        return record != null;
+      }
+      catch (InvalidOperationException)
+      {
+        record = null;
+        return false;
+      }
+    }
+
+    /// <summary>
+    /// Folder by UID or name. Classic first, then NSF.
+    /// </summary>
+    public static bool TryResolveFolder(VaultOnline vault, string identifier, out FolderNode folder)
+    {
+      folder = null;
+      if (vault == null || string.IsNullOrWhiteSpace(identifier))
+      {
+        return false;
+      }
+
+      var trimmed = identifier.Trim();
+      if (vault.TryGetFolder(trimmed, out folder) && folder != null)
+      {
+        return true;
+      }
+
+      return vault.TryResolveKeeperNSFFolder(trimmed, out folder) && folder != null;
+    }
+
+    /// <summary>
+    /// Folder node by UID. Classic first, then NSF.
+    /// </summary>
+    public static bool TryGetFolderNode(VaultOnline vault, string folderUid, out FolderNode folder)
+    {
+      folder = null;
+      if (vault == null || string.IsNullOrEmpty(folderUid))
+      {
+        return false;
+      }
+
+      if (vault.TryGetFolder(folderUid, out folder) && folder != null)
+      {
+        return true;
+      }
+
+      return vault.TryGetKeeperNSFFolder(folderUid, out folder) && folder != null;
+    }
+
+    public static void CollectFolderSubtree(VaultOnline vault, FolderNode folder, ISet<string> folderUids)
+    {
+      if (vault == null || folder == null || folderUids == null)
+      {
+        return;
+      }
+
+      if (!string.IsNullOrEmpty(folder.FolderUid))
+      {
+        folderUids.Add(folder.FolderUid);
+      }
+
+      foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
+      {
+        if (TryGetFolderNode(vault, subfolderUid, out var child))
+        {
+          CollectFolderSubtree(vault, child, folderUids);
+        }
+      }
+    }
+
+    public static IEnumerable<string> EnumerateFolderRecordUids(VaultOnline vault, FolderNode folder)
+    {
+      if (vault == null || folder == null)
+      {
+        yield break;
+      }
+
+      foreach (var recordUid in folder.Records ?? Array.Empty<string>())
+      {
+        if (!string.IsNullOrEmpty(recordUid))
+        {
+          yield return recordUid;
+        }
+      }
+
+      foreach (var subfolderUid in folder.Subfolders ?? Array.Empty<string>())
+      {
+        if (TryGetFolderNode(vault, subfolderUid, out var child))
+        {
+          foreach (var uid in EnumerateFolderRecordUids(vault, child))
+          {
+            yield return uid;
+          }
+        }
+      }
+    }
+
+    /// <summary>
+    /// True if this UID is an NSF record (in NSF cache, not classic KeeperRecords).
+    /// Callers use this for Coming soon / sync gating.
+    /// </summary>
+    public static bool IsKeeperNSFRecord(VaultOnline vault, string recordUid)
+    {
+      return vault != null
+             && !string.IsNullOrEmpty(recordUid)
+             && vault.TryGetKeeperNSFRecord(recordUid, out _);
+    }
+
+    /// <summary>
+    /// Phrases from set_record_rotation when NSF revision is wrong.
+    /// </summary>
+    public static bool IsUnsupportedRotationRevisionError(string message)
+    {
+      if (string.IsNullOrEmpty(message))
+      {
+        return false;
+      }
+
+      foreach (var marker in UnsupportedRotationRevisionMarkers)
+      {
+        if (message.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    private static readonly string[] UnsupportedRotationRevisionMarkers =
+    {
+      "mismatched_revision_blocking_update",
+      "revision does not correspond to the rotation entry",
+      "revision 0 less than",
+    };
+
     private static IEnumerable<string> GetFolderPathVariants(string path)
     {
       yield return path;
@@ -458,7 +605,39 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Resolve a typed vault record by UID, loading from storage when it is not yet decrypted in memory.
+    /// Classic typed records first, then NSF. If the same UID exists in both, classic wins.
+    /// </summary>
+    private static IEnumerable<TypedRecord> EnumerateTypedRecords(VaultOnline vault)
+    {
+      var seen = new HashSet<string>(StringComparer.Ordinal);
+
+      foreach (var record in vault.KeeperRecords?.OfType<TypedRecord>() ?? Enumerable.Empty<TypedRecord>())
+      {
+        if (!string.IsNullOrEmpty(record.Uid) && seen.Add(record.Uid))
+        {
+          yield return record;
+        }
+      }
+
+      // KeeperNSFRecordEntries == KeeperNSFRecords.Values (public list API).
+      foreach (var nsf in vault.KeeperNSFRecordEntries ?? Enumerable.Empty<KeeperNSFRecord>())
+      {
+        if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed) || typed == null)
+        {
+          continue;
+        }
+
+        if (string.IsNullOrEmpty(typed.Uid) || !seen.Add(typed.Uid))
+        {
+          continue;
+        }
+
+        yield return typed;
+      }
+    }
+
+    /// <summary>
+    /// Resolve a typed vault record by UID (classic first, then NSF), loading from storage when needed.
     /// </summary>
     public static bool TryGetTypedRecord(VaultOnline vault, string recordUid, out TypedRecord record)
     {
@@ -468,6 +647,7 @@ namespace KeeperSecurity.Plugins.PAM
         return false;
       }
 
+      // Classic cache, then load. NSF only if classic does not have this UID.
       if (vault.TryGetKeeperRecord(recordUid, out var keeper))
       {
         if (keeper is TypedRecord typed)
@@ -481,22 +661,16 @@ namespace KeeperSecurity.Plugins.PAM
           record = loaded;
           return true;
         }
-
-        return false;
       }
 
-      // Fallback: scan in case dictionary lookup missed a matching UID.
-      record = vault.KeeperRecords
-        .OfType<TypedRecord>()
-        .Where(x => !string.IsNullOrEmpty(x.Uid))
-        .FirstOrDefault(x => string.Equals(x.Uid, recordUid, StringComparison.Ordinal));
-      return record != null;
-    }
+      if (vault.TryGetKeeperNSFRecord(recordUid, out var nsf)
+          && VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out record)
+          && record != null)
+      {
+        return true;
+      }
 
-    public static bool TryGetUserRecord(VaultOnline vault, string recordUid, out TypedRecord record)
-    {
-      record = ResolveRecord(vault, recordUid, new[] { "pamUser" });
-      return record != null;
+      return false;
     }
 
     /// <summary>

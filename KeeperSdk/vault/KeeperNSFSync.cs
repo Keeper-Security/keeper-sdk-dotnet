@@ -886,16 +886,18 @@ namespace KeeperSecurity.Vault
                     }
 
                     NsfRecordData data = null;
+                    byte[] dataBytes = null;
                     if (!string.IsNullOrEmpty(kdRecord.Data))
                     {
                         try
                         {
-                            var dataBytes = CryptoUtils.DecryptAesV2(kdRecord.Data.Base64UrlDecode(), recordKey);
+                            dataBytes = CryptoUtils.DecryptAesV2(kdRecord.Data.Base64UrlDecode(), recordKey);
                             data = JsonUtils.ParseJson<NsfRecordData>(dataBytes);
                         }
                         catch (Exception ex)
                         {
                             Trace.TraceError($"Failed to decrypt record data: {kdRecord.RecordUid}.{ex.Message}");
+                            dataBytes = null;
                         }
                     }
                     else
@@ -934,6 +936,7 @@ namespace KeeperSecurity.Vault
                         FileSize = kdRecord.FileSize,
                         ThumbnailSize = kdRecord.ThumbnailSize,
                         RecordKey = recordKey,
+                        DataJson = dataBytes,
                         Data = data,
                     };
 
@@ -1040,8 +1043,11 @@ namespace KeeperSecurity.Vault
         public long ThumbnailSize { get; internal set; }
         public byte[] RecordKey { get; internal set; }
 
-        /// <summary>Parsed record data POCO; preserves unknown JSON fields across round-trips.</summary>
+        /// <summary>Parsed record data POCO; unknown JSON (e.g. custom) stays in ExtensionData.</summary>
         internal NsfRecordData Data { get; set; }
+
+        /// <summary>Decrypted data JSON — used for TypedRecord convert.</summary>
+        internal byte[] DataJson { get; set; }
     }
 
     public class KeeperNSFAccessEntry
