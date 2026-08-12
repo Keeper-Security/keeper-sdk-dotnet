@@ -4148,7 +4148,7 @@ namespace KeeperSecurity.Vault
                     if (x.RecordUid == null || x.RecordUid.IsEmpty)
                         return false;
                     var uid = CryptoUtils.Base64UrlEncode(x.RecordUid.ToByteArray());
-                    return string.Equals(uid, trimmedUid, StringComparison.OrdinalIgnoreCase);
+                    return string.Equals(uid, trimmedUid, StringComparison.Ordinal);
                 });
 
             return recordData != null && TryBuildKeeperNSFRecordFromDetailsData(vault, recordData, trimmedUid, out var record)

@@ -772,16 +772,16 @@ namespace Commander.PAM
                 if (vault.TryGetKeeperRecord(scriptValue.FileRef, out var keeperRecord)
                     && keeperRecord is FileRecord fileRecord)
                 {
-                    if (MatchesScriptIdentifier(fileRecord.Uid, scriptKey)
-                        || MatchesScriptIdentifier(fileRecord.Title, scriptKey)
-                        || MatchesScriptIdentifier(fileRecord.Name, scriptKey))
+                    if (MatchesScriptUid(fileRecord.Uid, scriptKey)
+                        || MatchesScriptName(fileRecord.Title, scriptKey)
+                        || MatchesScriptName(fileRecord.Name, scriptKey))
                     {
                         return scriptValue;
                     }
                 }
                 else if (vault.TryGetKeeperNSFRecord(scriptValue.FileRef, out var nsf) && nsf != null
-                         && (MatchesScriptIdentifier(nsf.RecordUid, scriptKey)
-                             || MatchesScriptIdentifier(nsf.Title, scriptKey)))
+                         && (MatchesScriptUid(nsf.RecordUid, scriptKey)
+                             || MatchesScriptName(nsf.Title, scriptKey)))
                 {
                     return scriptValue;
                 }
@@ -790,7 +790,13 @@ namespace Commander.PAM
             return null;
         }
 
-        private static bool MatchesScriptIdentifier(string value, string scriptKey)
+        private static bool MatchesScriptUid(string value, string scriptKey)
+        {
+            return !string.IsNullOrEmpty(value)
+                   && string.Equals(value.Trim(), scriptKey, StringComparison.Ordinal);
+        }
+
+        private static bool MatchesScriptName(string value, string scriptKey)
         {
             return !string.IsNullOrEmpty(value)
                    && string.Equals(value.Trim(), scriptKey, StringComparison.OrdinalIgnoreCase);
@@ -996,7 +1002,7 @@ namespace Commander.PAM
                 return true;
             }
 
-            if (string.Equals(record.Uid, pattern, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(record.Uid, pattern, StringComparison.Ordinal))
             {
                 return true;
             }
