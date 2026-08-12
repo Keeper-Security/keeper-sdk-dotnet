@@ -57,36 +57,6 @@ function script:resolvePamKsmApplication {
     throw (New-Object KeeperSecurity.Plugins.PAM.PamApplicationNotFoundException($trimmed))
 }
 
-function script:resolvePamGatewayController {
-    Param (
-        [Parameter(Mandatory = $true)][object] $Plugin,
-        [Parameter(Mandatory = $true)][string] $Identifier
-    )
-
-    $trimmed = $Identifier.Trim()
-    if ([string]::IsNullOrWhiteSpace($trimmed)) {
-        return $null
-    }
-
-    $controllers = getPamControllerList -Plugin $Plugin
-    $controller = [KeeperSecurity.Plugins.PAM.GatewayUtils]::FindGateway($controllers, $trimmed)
-    if ($controller) {
-        return $controller
-    }
-
-    $nameMatches = 0
-    foreach ($item in $controllers) {
-        if ($null -ne $item -and [string]::Equals($item.ControllerName, $trimmed, [System.StringComparison]::OrdinalIgnoreCase)) {
-            $nameMatches++
-        }
-    }
-    if ($nameMatches -gt 1) {
-        throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayAmbiguousException($trimmed))
-    }
-
-    return $null
-}
-
 function script:resolvePamSingleGatewayController {
     Param (
         [Parameter(Mandatory = $true)][object] $Plugin,
@@ -98,21 +68,6 @@ function script:resolvePamSingleGatewayController {
         throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayNotFoundException($Identifier.Trim()))
     }
     return $controller
-}
-
-function script:getPamEnterpriseAuth {
-    $enterprise = getEnterprise
-    if (-not $enterprise -or -not $enterprise.loader -or -not $enterprise.loader.Auth) {
-        Write-Error -Message "Enterprise authentication is not available." -ErrorAction Stop
-    }
-    return $enterprise.loader.Auth
-}
-
-function script:syncPamPlugin {
-    Param ([object] $Plugin)
-    if ($Plugin) {
-        $Plugin.SyncDownAsync($false).GetAwaiter().GetResult() | Out-Null
-    }
 }
 
 function script:invokePamGatewayMutation {
@@ -132,7 +87,7 @@ function script:invokePamGatewayMutation {
         throw (New-Object KeeperSecurity.Plugins.PAM.PamGatewayException("$FailureMessage $($_.Exception.Message)", $_.Exception))
     }
 
-    syncPamPlugin -Plugin $Plugin
+    [void](syncPamPlugin -Plugin $Plugin -Reload $false -ThrowOnError $false)
 }
 
 function script:handlePamRouterUnavailable {
@@ -571,7 +526,7 @@ function New-KeeperPamGateway {
         Write-Error -Message "Failed to create gateway: $($_.Exception.Message)" -ErrorAction Stop
     }
 
-    syncPamPlugin -Plugin $plugin
+    [void](syncPamPlugin -Plugin $plugin -Reload $false -ThrowOnError $false)
 
     if ($ReturnValue) {
         Write-Output $token
