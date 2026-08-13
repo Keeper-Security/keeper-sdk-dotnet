@@ -34,7 +34,9 @@ namespace KeeperSecurity.Authentication
                 var tkRs = await this.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(tkRq);
                 foreach (var key in tkRs.keys)
                 {
-                    if (key.key == null && string.IsNullOrEmpty(key.teamPublicKey))
+                    // Empty-string key counts as missing (same as pre-teamPublicKey behavior),
+                    // but team_public_key-only entries are still loadable.
+                    if (string.IsNullOrEmpty(key.key) && string.IsNullOrEmpty(key.teamPublicKey))
                     {
                         if (skipped == null)
                         {
@@ -66,10 +68,10 @@ namespace KeeperSecurity.Authentication
                                 case 4:
                                     aes = CryptoUtils.DecryptEc(encryptedKey, AuthContext.PrivateEcKey);
                                     break;
-                                case -1:
+                                case TeamKeyParser.TeamPublicKeyTypeEc:
                                     ec = encryptedKey;
                                     break;
-                                case -3:
+                                case TeamKeyParser.TeamPublicKeyTypeRsa:
                                     rsa = encryptedKey;
                                     break;
                                 default:
@@ -85,6 +87,18 @@ namespace KeeperSecurity.Authentication
                         if (pubEc != null && pubEc.Length > 0)
                         {
                             ec = pubEc;
+                        }
+
+                        // Do not poison the cache with an all-null entry; leave the UID uncached
+                        // so a later LoadTeamKeys / GetTeamKeysForSharing can retry.
+                        if (!HasAnyTeamKey(aes, rsa, ec))
+                        {
+                            if (skipped == null)
+                            {
+                                skipped = new List<string>();
+                            }
+                            skipped.Add(key.teamUid);
+                            continue;
                         }
 
                         _keyCache[key.teamUid] = new UserKeys(aes: aes, rsa: rsa, ec: ec);
@@ -149,6 +163,13 @@ namespace KeeperSecurity.Authentication
             return keys != null
                    && ((keys.RsaPublicKey != null && keys.RsaPublicKey.Length > 0)
                        || (keys.EcPublicKey != null && keys.EcPublicKey.Length > 0));
+        }
+
+        private static bool HasAnyTeamKey(byte[] aes, byte[] rsa, byte[] ec)
+        {
+            return (aes != null && aes.Length > 0)
+                   || (rsa != null && rsa.Length > 0)
+                   || (ec != null && ec.Length > 0);
         }
 
         /// <inheritdoc/>

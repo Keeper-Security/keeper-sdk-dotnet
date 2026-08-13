@@ -57,6 +57,47 @@ namespace KeeperSecurity.Authentication
         public string Code { get; }
     }
 
+    /// <summary>
+    /// Shared helpers for classifying Keeper API / router exceptions.
+    /// </summary>
+    public static class KeeperExceptionExtensions
+    {
+        /// <summary>
+        /// Returns true when the exception (or an inner exception) indicates API or HTTP 429 throttling.
+        /// </summary>
+        public static bool IsThrottleError(this Exception ex)
+        {
+            if (ex == null)
+            {
+                return false;
+            }
+
+            if (ex is KeeperApiException api)
+            {
+                if (string.Equals(api.Code, "throttled", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                // ExecuteRouterRest uses code "router_error" and message "...: {statusCode}".
+                if (string.Equals(api.Code, "router_error", StringComparison.OrdinalIgnoreCase)
+                    && api.Message != null
+                    && api.Message.EndsWith(": 429", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            if (ex.Message != null
+                && ex.Message.IndexOf("throttl", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            return ex.InnerException != null && IsThrottleError(ex.InnerException);
+        }
+    }
+
     /// <exclude />
     public class KeeperRegionRedirect : Exception
     {
