@@ -39,7 +39,7 @@ namespace KeeperSecurity.Vault
         public string Name
         {
             get => _name;
-            set => _name = string.IsNullOrWhiteSpace(value) ? value : PathUtils.SanitizeFileName(value);
+            set => _name = string.IsNullOrWhiteSpace(value) ? null : PathUtils.SanitizeFileName(value);
         }
 
         /// <inheritdoc/>
@@ -47,7 +47,7 @@ namespace KeeperSecurity.Vault
         {
             get => _title;
             // Same as Name — keep Title as a bare file name.
-            set => _title = string.IsNullOrWhiteSpace(value) ? value : PathUtils.SanitizeFileName(value);
+            set => _title = string.IsNullOrWhiteSpace(value) ? null : PathUtils.SanitizeFileName(value);
         }
 
         /// <inheritdoc/>
@@ -202,15 +202,22 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        // Cleans Name/Title right before they go into encrypted attachment metadata.
-        // Called from UploadPasswordAttachment and UploadTypedAttachment so a bad value can't slip past the setter.
+        // Re-sanitize here because IAttachmentUploadTask implementations other than
+        // AttachmentUploadTask are not guaranteed to have sanitized their Name/Title.
         private static void GetSanitizedUploadNames(IAttachmentUploadTask uploadTask, out string name, out string title)
         {
-            name = PathUtils.SanitizeFileName(
-                string.IsNullOrWhiteSpace(uploadTask.Name) ? "attachment" : uploadTask.Name);
-            title = string.IsNullOrWhiteSpace(uploadTask.Title)
-                ? name
-                : PathUtils.SanitizeFileName(uploadTask.Title);
+            try
+            {
+                name = PathUtils.SanitizeFileName(
+                    string.IsNullOrWhiteSpace(uploadTask.Name) ? "attachment" : uploadTask.Name);
+                title = string.IsNullOrWhiteSpace(uploadTask.Title)
+                    ? name
+                    : PathUtils.SanitizeFileName(uploadTask.Title);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new KeeperInvalidParameter("Vault::UploadAttachment", "uploadTask", "Name/Title", ex.Message);
+            }
         }
 
         /// <inheritdoc/>

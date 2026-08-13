@@ -83,7 +83,8 @@ function Copy-KeeperFileAttachment {
                     continue
                 }
                 if (Test-Path -LiteralPath $filePath -PathType Leaf) {
-                    $altName = "$($atta.Id) - $safeName"
+                    $safeId = $atta.Id -replace '[/\\]', '_'
+                    $altName = "$safeId - $safeName"
                     try {
                         # Same folder check when we fall back to an id-prefixed name.
                         $filePath = [KeeperSecurity.Utils.PathUtils]::GetSafeDownloadPath($Path, $altName)
@@ -97,7 +98,12 @@ function Copy-KeeperFileAttachment {
                     }
                 }
                 Write-Information -MessageData "Downloading `"$safeName`" into `"$filePath`""
-                $newFile = New-Item -Path $filePath -ItemType File -Force
+                try {
+                    $newFile = New-Item -Path $filePath -ItemType File -ErrorAction Stop
+                } catch {
+                    Write-Warning "Skipping attachment `"$safeName`": $($_.Exception.Message)"
+                    continue
+                }
                 $fileStream = $newFile.OpenWrite()
                 try {
                     $vault.DownloadAttachment($keeperRecord, $atta.Id, $fileStream).GetAwaiter().GetResult() | Out-Null
