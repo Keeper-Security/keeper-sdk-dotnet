@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace KeeperSecurity.Storage
 {
@@ -57,10 +58,13 @@ namespace KeeperSecurity.Storage
         {
             foreach (var entity in data)
             {
-                if (entity != null)
+                if (entity == null || string.IsNullOrEmpty(entity.Uid))
                 {
-                    _items[entity.Uid] = entity;
+                    Trace.TraceWarning("InMemoryStorage: skipping null or empty UID entity");
+                    continue;
                 }
+
+                _items[entity.Uid] = entity;
             }
         }
 
