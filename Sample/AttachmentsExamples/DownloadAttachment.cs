@@ -54,15 +54,21 @@ namespace Sample.AttachmentsExamples
                 _ => "downloaded_file"
             };
 
+            Directory.CreateDirectory(destinationPath);
+
             string finalPath;
             try
             {
-                Directory.CreateDirectory(destinationPath);
                 finalPath = PathUtils.GetSafeDownloadPath(destinationPath, originalFileName);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 Console.WriteLine($"Invalid attachment file name: {ex.Message}");
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Unsafe attachment path detected: {ex.Message}");
                 return;
             }
 
