@@ -269,6 +269,175 @@ namespace KeeperSecurity.Vault
         public string AdminCredentialRef { get; set; }
     }
 
+    /// <summary>
+    /// Connection settings under pamSettings — protocol, port, recording, scrollback, and related flags.
+    /// Extra unknown keys are kept so Web Vault / tunnel fields don't get dropped on save.
+    /// </summary>
+    [DataContract]
+    public class FieldPamConnectionSettings : IExtensibleDataObject
+    {
+        /// <summary>Connection protocol (for example ssh, rdp, mysql).</summary>
+        [DataMember(Name = "protocol", EmitDefaultValue = false)]
+        public string Protocol { get; set; }
+
+        /// <summary>Override the default port for the chosen protocol.</summary>
+        [DataMember(Name = "port", EmitDefaultValue = false)]
+        public int? Port { get; set; }
+
+        /// <summary>Database engine when the protocol is a database connection.</summary>
+        [DataMember(Name = "databaseType", EmitDefaultValue = false)]
+        public string DatabaseType { get; set; }
+
+        /// <summary>Whether the user may supply credentials at connect time.</summary>
+        [DataMember(Name = "allowSupplyUser", EmitDefaultValue = false)]
+        public bool? AllowSupplyUser { get; set; }
+
+        /// <summary>PAM user record UIDs eligible for this connection.</summary>
+        [DataMember(Name = "userRecords", EmitDefaultValue = false)]
+        public List<string> UserRecords { get; set; }
+
+        /// <summary>Include keystrokes in session recordings when recording is enabled.</summary>
+        [DataMember(Name = "recordingIncludeKeys", EmitDefaultValue = false)]
+        public bool? RecordingIncludeKeys { get; set; }
+
+        /// <summary>Terminal scrollback buffer size for recorded sessions.</summary>
+        [DataMember(Name = "scrollback", EmitDefaultValue = false)]
+        public int? Scrollback { get; set; }
+
+        /// <summary>Route the connection through the Keeper database proxy.</summary>
+        [DataMember(Name = "allowKeeperDBProxy", EmitDefaultValue = false)]
+        public bool? AllowKeeperDbProxy { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// Tunnel / port-forward settings under pamSettings.
+    /// </summary>
+    [DataContract]
+    public class FieldPamPortForwardSettings : IExtensibleDataObject
+    {
+        /// <summary>Local port used for the port-forward tunnel (overrides the default).</summary>
+        [DataMember(Name = "port", EmitDefaultValue = false)]
+        public string Port { get; set; }
+
+        /// <summary>Reuse last connected local port when available.</summary>
+        [DataMember(Name = "reusePort", EmitDefaultValue = false)]
+        public bool? ReusePort { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// pamSettings field on a PAM resource — connection options plus optional port-forward.
+    /// </summary>
+    [DataContract]
+    public class FieldPamSettings : FieldTypeBase
+    {
+        /// <summary>Whether the user may supply a host name or address at connect time.</summary>
+        [DataMember(Name = "allowSupplyHost", EmitDefaultValue = false)]
+        public bool? AllowSupplyHost { get; set; }
+
+        /// <summary>Interactive connection options (protocol, port, recording, and related flags).</summary>
+        [DataMember(Name = "connection", EmitDefaultValue = false)]
+        public FieldPamConnectionSettings Connection { get; set; }
+
+        /// <summary>Port-forward / tunnel settings for this resource.</summary>
+        [DataMember(Name = "portForward", EmitDefaultValue = false)]
+        public FieldPamPortForwardSettings PortForward { get; set; }
+    }
+
+    /// <summary>
+    /// Connection / session settings under pamRemoteBrowserSettings for Remote Browser Isolation.
+    /// </summary>
+    [DataContract]
+    public class FieldPamRemoteBrowserConnectionSettings : IExtensibleDataObject
+    {
+        /// <summary>Browser protocol (typically https).</summary>
+        [DataMember(Name = "protocol", EmitDefaultValue = false)]
+        public string Protocol { get; set; }
+
+        /// <summary>Login record UID used for HTTP basic or form authentication.</summary>
+        [DataMember(Name = "httpCredentialsUid", EmitDefaultValue = false)]
+        public string HttpCredentialsUid { get; set; }
+
+        /// <summary>Include keystrokes in RBI session recordings when recording is enabled.</summary>
+        [DataMember(Name = "recordingIncludeKeys", EmitDefaultValue = false)]
+        public bool? RecordingIncludeKeys { get; set; }
+
+        /// <summary>Allow the user to edit the target URL after launch.</summary>
+        [DataMember(Name = "allowUrlManipulation", EmitDefaultValue = false)]
+        public bool? AllowUrlManipulation { get; set; }
+
+        /// <summary>Skip validation of the initial TLS certificate for the target site.</summary>
+        [DataMember(Name = "ignoreInitialSslCert", EmitDefaultValue = false)]
+        public bool? IgnoreInitialSslCert { get; set; }
+
+        /// <summary>Allow file uploads from the isolated browser session.</summary>
+        [DataMember(Name = "allowFileUploads", EmitDefaultValue = false)]
+        public bool? AllowFileUploads { get; set; }
+
+        /// <summary>Allow file downloads from the isolated browser session.</summary>
+        [DataMember(Name = "allowFileDownloads", EmitDefaultValue = false)]
+        public bool? AllowFileDownloads { get; set; }
+
+        /// <summary>URL patterns the user may navigate to within the session.</summary>
+        [DataMember(Name = "allowedUrlPatterns", EmitDefaultValue = false)]
+        public string AllowedUrlPatterns { get; set; }
+
+        /// <summary>URL patterns permitted for sub-resources (scripts, images, and similar assets).</summary>
+        [DataMember(Name = "allowedResourceUrlPatterns", EmitDefaultValue = false)]
+        public string AllowedResourceUrlPatterns { get; set; }
+
+        /// <summary>Autofill rules JSON for credential injection in the isolated browser.</summary>
+        [DataMember(Name = "autofillConfiguration", EmitDefaultValue = false)]
+        public string AutofillConfiguration { get; set; }
+
+        /// <summary>Block copy actions from the isolated browser.</summary>
+        [DataMember(Name = "disableCopy", EmitDefaultValue = false)]
+        public bool? DisableCopy { get; set; }
+
+        /// <summary>Block paste actions into the isolated browser.</summary>
+        [DataMember(Name = "disablePaste", EmitDefaultValue = false)]
+        public bool? DisablePaste { get; set; }
+
+        /// <summary>Mute audio playback in the isolated browser session.</summary>
+        [DataMember(Name = "disableAudio", EmitDefaultValue = false)]
+        public bool? DisableAudio { get; set; }
+
+        /// <summary>Number of audio channels when audio is enabled.</summary>
+        [DataMember(Name = "audioChannels", EmitDefaultValue = false)]
+        public int? AudioChannels { get; set; }
+
+        /// <summary>Audio bit rate when audio is enabled.</summary>
+        [DataMember(Name = "audioBps", EmitDefaultValue = false)]
+        public int? AudioBps { get; set; }
+
+        /// <summary>Audio sample rate when audio is enabled.</summary>
+        [DataMember(Name = "audioSampleRate", EmitDefaultValue = false)]
+        public int? AudioSampleRate { get; set; }
+
+        /// <summary>How RBI sessions are persisted between launches (for example none or cookie).</summary>
+        [DataMember(Name = "sessionPersistence", EmitDefaultValue = false)]
+        public string SessionPersistence { get; set; }
+
+        /// <exclude />
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// pamRemoteBrowserSettings field on a pamRemoteBrowser record.
+    /// </summary>
+    [DataContract]
+    public class FieldPamRemoteBrowserSettings : FieldTypeBase
+    {
+        /// <summary>Remote Browser Isolation connection and session policy settings.</summary>
+        [DataMember(Name = "connection", EmitDefaultValue = false)]
+        public FieldPamRemoteBrowserConnectionSettings Connection { get; set; }
+    }
+
     /// <exclude />
     [DataContract]
     public class FieldSchedule : FieldTypeBase
@@ -1449,6 +1618,9 @@ namespace KeeperSecurity.Vault
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
                 new FieldType("script", typeof(FieldScript), "{'fileRef': '', 'command': '', 'recordRef': []}", "Post rotation script"),
                 new FieldType("pamResources", typeof(FieldPamResources), "{'controllerUid': '', 'folderUid': '', 'resourceRef': []}", "PAM resources"),
+                new FieldType("pamSettings", typeof(FieldPamSettings), "{'connection': {}, 'portForward': {}}", "PAM connection settings"),
+                new FieldType("pamRemoteBrowserSettings", typeof(FieldPamRemoteBrowserSettings),
+                    "{'connection': {'protocol': 'http'}}", "PAM Remote Browser Isolation settings"),
                 new FieldType("schedule", typeof(FieldSchedule), "{'type': '', 'time': '', 'cron', 'month': '', 'weekday': '', 'monthDay': ''}", "schedule information"),
             };
 
@@ -1475,7 +1647,10 @@ namespace KeeperSecurity.Vault
                 new RecordField("fileRef", _fieldTypes["fileRef"], RecordFieldMultiple.Always),
 
                 new RecordField("pamResources", _fieldTypes["pamResources"], RecordFieldMultiple.Never),
+                new RecordField("pamSettings", _fieldTypes["pamSettings"], RecordFieldMultiple.Never),
+                new RecordField("pamRemoteBrowserSettings", _fieldTypes["pamRemoteBrowserSettings"], RecordFieldMultiple.Never),
                 new RecordField("pamHostname", _fieldTypes["host"], RecordFieldMultiple.Never),
+                new RecordField("trafficEncryptionSeed", _fieldTypes["secret"], RecordFieldMultiple.Never),
                 new RecordField("databaseType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
                 new RecordField("directoryType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
             };
