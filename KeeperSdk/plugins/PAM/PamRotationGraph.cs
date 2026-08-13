@@ -763,6 +763,14 @@ namespace KeeperSecurity.Plugins.PAM
       var meta = GetMetaDictionary(resource);
       var settings = CoerceStringObjectDictionary(
         meta != null && meta.TryGetValue("allowedSettings", out var raw) ? raw : null);
+        
+      if ((settings == null || !settings.ContainsKey(setting))
+          && meta != null
+          && meta.TryGetValue("pamRemoteBrowserSettings", out var rbiRaw))
+      {
+        settings = CoerceStringObjectDictionary(rbiRaw);
+      }
+
       if (settings == null || !settings.ContainsKey(setting))
       {
         return null;

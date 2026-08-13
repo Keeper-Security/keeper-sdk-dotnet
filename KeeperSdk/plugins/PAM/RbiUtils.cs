@@ -199,7 +199,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       AppendConfigPermissionWarnings(graph, configUid, options.Silent, result);
 
-      // RBI enablement on the resource uses allowedSettings.connections
+      // pamRemoteBrowser graph ACL flags live under pamRemoteBrowserSettings (same as pam-connection),
       string connectionsVal = null;
       string recordingVal = null;
       if (options.RemoteBrowserIsolation != null)
@@ -227,7 +227,7 @@ namespace KeeperSecurity.Plugins.PAM
           resourceType,
           connections: connectionsVal,
           sessionRecording: recordingVal,
-          allowedSettingsName: "allowedSettings");
+          allowedSettingsName: "pamRemoteBrowserSettings");
         result.GraphUpdated = true;
       }
     }

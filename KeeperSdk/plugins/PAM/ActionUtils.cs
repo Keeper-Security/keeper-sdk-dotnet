@@ -25,7 +25,7 @@ namespace KeeperSecurity.Plugins.PAM
     private const int KeeperUidByteLength = 16;
 
     internal static readonly Regex Base64UrlTokenPattern = new(
-      @"^[A-Za-z0-9_\-+/]+$",
+      @"^[A-Za-z0-9_\-+/=]+$",
       RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     /// <summary>
@@ -701,7 +701,7 @@ namespace KeeperSecurity.Plugins.PAM
       if (!Base64UrlTokenPattern.IsMatch(trimmed))
       {
         throw new PamActionException(
-          $"{fieldName} is invalid. Expected a base64url Keeper UID (letters, digits, '-', '_'; optional '+'/'/').");
+           $"{fieldName} is invalid. Expected a base64/base64url Keeper UID " + "(letters, digits, '-', '_', optional '+', '/', '=').");
       }
 
       var bytes = trimmed.Base64UrlDecode();
