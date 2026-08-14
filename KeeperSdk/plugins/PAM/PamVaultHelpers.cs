@@ -831,12 +831,12 @@ namespace KeeperSecurity.Plugins.PAM
           continue;
         }
 
-        if (!string.Equals(field.Type, "text", StringComparison.InvariantCultureIgnoreCase))
+        if (!string.Equals(field.Type, "text", StringComparison.OrdinalIgnoreCase))
         {
           continue;
         }
 
-        if (!string.Equals(field.Label, "NOOP", StringComparison.InvariantCultureIgnoreCase))
+        if (!string.Equals(field.Label, "NOOP", StringComparison.OrdinalIgnoreCase))
         {
           continue;
         }
@@ -877,6 +877,11 @@ namespace KeeperSecurity.Plugins.PAM
     {
       if (TryGetNsfRecord(vault, identifier, out var byUid))
       {
+        if (allowedTypes != null && !allowedTypes.Contains(byUid.TypeName ?? string.Empty))
+        {
+          return null;
+        }
+
         return ToTypedRecord(byUid);
       }
 

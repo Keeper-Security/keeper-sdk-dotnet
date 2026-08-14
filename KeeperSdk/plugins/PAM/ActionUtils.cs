@@ -311,6 +311,12 @@ namespace KeeperSecurity.Plugins.PAM
         return folders;
       }
 
+      if (vault.TryGetKeeperNSFFolder(folder, out var nsfByUid))
+      {
+        folders.Add(nsfByUid.FolderUid);
+        return folders;
+      }
+
       Regex pattern;
       try
       {
@@ -332,11 +338,6 @@ namespace KeeperSecurity.Plugins.PAM
         {
           folders.Add(node.FolderUid);
         }
-      }
-
-      if (vault.TryGetKeeperNSFFolder(folder, out var nsfByUid))
-      {
-        folders.Add(nsfByUid.FolderUid);
       }
 
       foreach (var node in vault.KeeperNSFFolderNodes)
