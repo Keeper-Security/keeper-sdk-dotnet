@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.5'
+    ModuleVersion        = '1.1.6'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -200,15 +200,31 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Keeper NSF batch cmdlets:
-                    - New-KeeperNSFFolders (nsf-mkdirs) / Set-KeeperNSFFolders (nsf-folders-update) / Remove-KeeperNSFFolders (nsf-rmdirs): batch create/update/remove NSF folders (up to 100 per request)
+            ReleaseNotes = 'PAM Gateway commands:
+                    - Sync-KeeperPam (pam-sync): sync PAM data
+                    - Get-KeeperPamGatewayList (pam-gateway-list / pam-gw-list): list PAM gateways
+                    - New-KeeperPamGateway (pam-gateway-new / pam-gw-new): create a PAM gateway
+                    - Set-KeeperPamGateway (pam-gateway-edit / pam-gw-edit): edit a PAM gateway
+                    - Remove-KeeperPamGateway (pam-gateway-remove / pam-gw-remove): remove a PAM gateway
+                    - Set-KeeperPamGatewayMaxInstances (pam-gateway-set-max-instances): set gateway max instances
+                    PAM Rotation commands:
+                    - Get-KeeperPamRotationList (pam-rotation-list): list PAM rotations
+                    - Get-KeeperPamRotationInfo (pam-rotation-info): get rotation details
+                    - Set-KeeperPamRotation (pam-rotation-edit): edit rotation settings; NSF record rotation support added
+                    - Get-KeeperPamRotationScript / Add-KeeperPamRotationScript / Set-KeeperPamRotationScript / Remove-KeeperPamRotationScript: manage rotation scripts
+                    PAM Config commands:
+                    - Get-KeeperPamConfig (pam-config-list): list PAM configurations
+                    - New-KeeperPamConfig (pam-config-new): create a PAM configuration
+                    - Set-KeeperPamConfig (pam-config-edit): edit a PAM configuration
+                    - Remove-KeeperPamConfig (pam-config-remove): remove a PAM configuration
+                    NSF batch cmdlets:
+                    - New-KeeperNSFFolders / Set-KeeperNSFFolders / Remove-KeeperNSFFolders: batch create/update/remove NSF folders (up to 100 per request)
                     - Share-KeeperNSFFolderAccesses / Update-KeeperNSFFolderAccesses / Unshare-KeeperNSFFolderAccesses: batch folder access (up to 500)
-                    - Add-KeeperNSFRecords / Edit-KeeperNSFRecords / Share-KeeperNSFRecords / Unshare-KeeperNSFRecords / Remove-KeeperNSFRecords
-                    - Sample JSON via -DownloadSampleFolders / -DownloadSampleAccesses / -DownloadSampleRecords / -DownloadSampleShares / -DownloadSampleUnshares / -DownloadSampleRemovals
-                    - Supports -WhatIf / -Confirm on batch mutators
-                    Passphrase generation support:
-                    - Add-KeeperRecord / Add-KeeperNSFRecord / Edit-KeeperNSFRecord: -GeneratePassphrase and -PassphraseRuleValues
-                    PassphraseRuleValues accepts up to 4 values: WordCount (5-9), Separator (- . _ ! ? space), UseCaps, UseDigits
+                    - Add-KeeperNSFRecords / Edit-KeeperNSFRecords / Share-KeeperNSFRecords / Unshare-KeeperNSFRecords / Remove-KeeperNSFRecords: batch record operations
+                    - Supports -WhatIf / -Confirm on batch mutators; sample JSON via -DownloadSample* parameters
+                    Enterprise user alias management:
+                    - Add-KeeperEnterpriseUserAlias (kuser-alias-add): add an alias to an enterprise user
+                    - Remove-KeeperEnterpriseUserAlias (kuser-alias-remove): remove an alias from an enterprise user
                 '
         }
     }
