@@ -37,16 +37,16 @@ function Set-KeeperPamRbi {
         Allow file downloads in RBI sessions: on, off, or default.
 
         .Parameter AllowedUrls
-        Allowed URL patterns (comma-separated or array; appends). Use empty string to clear. Alias: -au.
+        Allowed URL patterns (comma-separated or array; replaces existing). Use empty string to clear. Alias: -au.
 
         .Parameter AllowedResourceUrls
-        Allowed resource URL patterns (comma-separated or array; appends). Use empty string to clear. Alias: -aru.
+        Allowed resource URL patterns (comma-separated or array; replaces existing). Use empty string to clear. Alias: -aru.
 
         .Parameter AutofillCredentials
         login or pamUser record UID/title for RBI autofill. Alias: -a.
 
         .Parameter AutofillTargets
-        Autofill target selectors (comma-separated or array; appends). Use empty string to clear. Alias: -at.
+        Autofill target selectors (comma-separated or array; replaces existing). Use empty string to clear. Alias: -at.
 
         .Parameter AllowCopy
         Allow copying to clipboard: on, off, or default. Alias: -cpy.
@@ -79,7 +79,7 @@ function Set-KeeperPamRbi {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Position = 0)]
         [Alias('r')]
         [string] $Record,
 
@@ -183,33 +183,29 @@ function Set-KeeperPamRbi {
     $vault = getPamRotationVault
     $options = New-Object KeeperSecurity.Plugins.PAM.PamRbiEditOptions
     $options.Record = $Record.Trim()
-    $options.Configuration = $Configuration
-    $options.RemoteBrowserIsolation = $RemoteBrowserIsolation
-    $options.ConnectionsRecording = $ConnectionsRecording
-    $options.KeyEvents = $KeyEvents
-    $options.AutofillCredentials = $AutofillCredentials
-    $options.AllowUrlNavigation = $AllowUrlNavigation
-    $options.IgnoreServerCert = $IgnoreServerCert
-    $options.AllowFileUploads = $AllowFileUploads
-    $options.AllowFileDownloads = $AllowFileDownloads
-    $options.AllowedUrls = toPamStringListOrNull -Values $AllowedUrls
-    $options.AllowedResourceUrls = toPamStringListOrNull -Values $AllowedResourceUrls
-    $options.AutofillTargets = toPamStringListOrNull -Values $AutofillTargets
-    $options.AllowCopy = $AllowCopy
-    $options.AllowPaste = $AllowPaste
-    $options.DisableAudio = $DisableAudio
-    $options.SessionPersistence = $SessionPersistence
     $options.Silent = $Silent.IsPresent
 
-    if ($PSBoundParameters.ContainsKey('AudioChannels')) {
-        $options.AudioChannels = $AudioChannels
-    }
-    if ($PSBoundParameters.ContainsKey('AudioBitDepth')) {
-        $options.AudioBitDepth = $AudioBitDepth
-    }
-    if ($PSBoundParameters.ContainsKey('AudioSampleRate')) {
-        $options.AudioSampleRate = $AudioSampleRate
-    }
+    # SDK treats null as "not provided"; PowerShell unbound strings are "".
+    # Only assign flags the caller actually passed so single-flag edits work.
+    if ($PSBoundParameters.ContainsKey('Configuration')) { $options.Configuration = $Configuration }
+    if ($PSBoundParameters.ContainsKey('RemoteBrowserIsolation')) { $options.RemoteBrowserIsolation = $RemoteBrowserIsolation }
+    if ($PSBoundParameters.ContainsKey('ConnectionsRecording')) { $options.ConnectionsRecording = $ConnectionsRecording }
+    if ($PSBoundParameters.ContainsKey('KeyEvents')) { $options.KeyEvents = $KeyEvents }
+    if ($PSBoundParameters.ContainsKey('AutofillCredentials')) { $options.AutofillCredentials = $AutofillCredentials }
+    if ($PSBoundParameters.ContainsKey('AllowUrlNavigation')) { $options.AllowUrlNavigation = $AllowUrlNavigation }
+    if ($PSBoundParameters.ContainsKey('IgnoreServerCert')) { $options.IgnoreServerCert = $IgnoreServerCert }
+    if ($PSBoundParameters.ContainsKey('AllowFileUploads')) { $options.AllowFileUploads = $AllowFileUploads }
+    if ($PSBoundParameters.ContainsKey('AllowFileDownloads')) { $options.AllowFileDownloads = $AllowFileDownloads }
+    if ($PSBoundParameters.ContainsKey('AllowedUrls')) { $options.AllowedUrls = toPamStringListOrNull -Values $AllowedUrls }
+    if ($PSBoundParameters.ContainsKey('AllowedResourceUrls')) { $options.AllowedResourceUrls = toPamStringListOrNull -Values $AllowedResourceUrls }
+    if ($PSBoundParameters.ContainsKey('AutofillTargets')) { $options.AutofillTargets = toPamStringListOrNull -Values $AutofillTargets }
+    if ($PSBoundParameters.ContainsKey('AllowCopy')) { $options.AllowCopy = $AllowCopy }
+    if ($PSBoundParameters.ContainsKey('AllowPaste')) { $options.AllowPaste = $AllowPaste }
+    if ($PSBoundParameters.ContainsKey('DisableAudio')) { $options.DisableAudio = $DisableAudio }
+    if ($PSBoundParameters.ContainsKey('SessionPersistence')) { $options.SessionPersistence = $SessionPersistence }
+    if ($PSBoundParameters.ContainsKey('AudioChannels')) { $options.AudioChannels = $AudioChannels }
+    if ($PSBoundParameters.ContainsKey('AudioBitDepth')) { $options.AudioBitDepth = $AudioBitDepth }
+    if ($PSBoundParameters.ContainsKey('AudioSampleRate')) { $options.AudioSampleRate = $AudioSampleRate }
 
     try {
         $result = [KeeperSecurity.Plugins.PAM.RbiUtils]::EditRbiAsync(

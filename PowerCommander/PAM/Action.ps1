@@ -163,7 +163,7 @@ function Get-KeeperPamActionJobInfo {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Position = 0)]
         [Alias('j')]
         [string] $JobId,
 
@@ -173,7 +173,8 @@ function Get-KeeperPamActionJobInfo {
     )
 
     if ([string]::IsNullOrWhiteSpace($JobId)) {
-        Write-Output 'JobId is required. Quote job ids that contain ''/''.'
+        Write-Output 'JobId is required. Usage: Get-KeeperPamActionJobInfo -JobId "<job_id>" [-Gateway UID]'
+        Write-Output "Tip: quote job ids that contain '/'."
         return
     }
 
