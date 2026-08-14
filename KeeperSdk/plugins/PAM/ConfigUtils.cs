@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
@@ -188,55 +187,9 @@ namespace KeeperSecurity.Plugins.PAM
         .ConfigureAwait(false);
 
       record.Version = 6;
-      vault.AdjustTypedRecord(record);
-      var recordData = record.ExtractRecordV3Data();
-      var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
-      var encryptedData = CryptoUtils.EncryptAesV2(jsonData, record.RecordKey);
-      var encryptedRecordKey = CryptoUtils.EncryptAesV2(record.RecordKey, folder.FolderKey);
       var clientModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-      var ra = new RecordProto.RecordAdd
-      {
-        RecordUid = ByteString.CopyFrom(record.Uid.Base64UrlDecode()),
-        RecordKey = ByteString.CopyFrom(encryptedRecordKey),
-        RecordKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
-        RecordKeyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey,
-        ClientModifiedTime = clientModified,
-        Data = ByteString.CopyFrom(encryptedData),
-        FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
-      };
-
-      foreach (var recordRef in record.ExtractTypedRecordRefs() ?? Enumerable.Empty<string>())
-      {
-        if (string.IsNullOrEmpty(recordRef))
-        {
-          continue;
-        }
-
-        byte[] refKey = null;
-        record.LinkedKeys?.TryGetValue(recordRef, out refKey);
-        if (refKey == null && vault.TryGetKeeperRecord(recordRef, out var linked))
-        {
-          refKey = linked.RecordKey;
-        }
-
-        if (refKey == null && vault.TryGetKeeperNSFRecord(recordRef, out var linkedNsf))
-        {
-          refKey = linkedNsf.RecordKey;
-        }
-
-        if (refKey == null)
-        {
-          Trace.TraceError($"Lost record reference while creating NSF PAM configuration: \"{recordRef}\"");
-          continue;
-        }
-
-        ra.RecordLinks.Add(new RecordLink
-        {
-          RecordUid = ByteString.CopyFrom(recordRef.Base64UrlDecode()),
-          RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, record.RecordKey)),
-        });
-      }
+      var ra = VaultOnlineFunctions.BuildNsfTypedRecordAdd(
+        vault, record, folder, clientModified, out var dataJson);
 
       var rq = new RecordProto.RecordsAddRequest();
       rq.Records.Add(ra);
@@ -254,7 +207,6 @@ namespace KeeperSecurity.Plugins.PAM
         }
       }
 
-      var dataJson = JsonUtils.DumpJson(recordData, indent: false);
       vault.KeeperNSFRecords[record.Uid] = new KeeperNSFRecord
       {
         RecordUid = record.Uid,

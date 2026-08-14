@@ -211,6 +211,7 @@ namespace KeeperSecurity.Vault
         {
             if (record is TypedRecord typed
                 && !string.IsNullOrEmpty(typed.Uid)
+                && !TryGetKeeperRecord(typed.Uid, out _)
                 && TryGetKeeperNSFRecord(typed.Uid, out _))
             {
                 try
