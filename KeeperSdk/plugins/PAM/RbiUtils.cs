@@ -139,7 +139,15 @@ namespace KeeperSecurity.Plugins.PAM
 
       if (dirty)
       {
-        await vault.UpdateRecord(record);
+        if (vault.TryGetKeeperRecord(record.Uid, out _))
+        {
+          await vault.UpdateRecord(record);
+        }
+        else
+        {
+          await PamVaultHelpers.UpdateNsfRecordFromTypedAsync(vault, record);
+        }
+
         result.RecordUpdated = true;
 
         if (!record.FindTypedField("trafficEncryptionSeed", null, out _))
@@ -314,7 +322,16 @@ namespace KeeperSecurity.Plugins.PAM
     {
       try
       {
-        return PamVaultHelpers.ResolveRecord(vault, identifier, new[] { "pamRemoteBrowser" });
+        var record = PamVaultHelpers.ResolveRecord(vault, identifier, new[] { "pamRemoteBrowser" });
+        if (record != null)
+        {
+          return record;
+        }
+
+        return PamVaultHelpers.TryResolveNsfTypedRecord(
+          vault,
+          identifier,
+          new HashSet<string>(StringComparer.Ordinal) { "pamRemoteBrowser" });
       }
       catch (InvalidOperationException ex)
       {
