@@ -51,19 +51,20 @@ function script:writePamActionJobInfoDetails {
     }
 
     Write-Output 'Execution Details'
-    Write-Output '-------------------------'
+    $details = [ordered]@{}
     if (-not [string]::IsNullOrEmpty($job.Status)) {
-        Write-Output ("`tStatus              : {0}" -f $job.Status)
+        $details['Status'] = $job.Status
     }
     if (-not [string]::IsNullOrEmpty($job.Duration)) {
-        Write-Output ("`tDuration            : {0}" -f $job.Duration)
+        $details['Duration'] = $job.Duration
     }
     if (-not [string]::IsNullOrEmpty($job.ResponseMessage)) {
-        Write-Output ("`tResponse Message    : {0}" -f $job.ResponseMessage)
+        $details['Response Message'] = $job.ResponseMessage
     }
     if (-not [string]::IsNullOrEmpty($job.ExecutionException)) {
-        Write-Output ("`tExecution Exception : {0}" -f $job.ExecutionException)
+        $details['Execution Exception'] = $job.ExecutionException
     }
+    Write-Output (([PSCustomObject]$details | Format-List | Out-String).TrimEnd())
 }
 
 function Invoke-KeeperPamActionRotate {
@@ -109,7 +110,7 @@ function Invoke-KeeperPamActionRotate {
         return
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
 
     if (-not [string]::IsNullOrWhiteSpace($RecordUid)) {
         $resolved = $null
@@ -198,7 +199,7 @@ function Get-KeeperPamActionJobInfo {
         return
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
     if ($null -eq $vault.Auth) {
         Write-Error -Message 'Vault is not available.' -ErrorAction Stop
     }

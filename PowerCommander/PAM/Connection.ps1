@@ -127,23 +127,22 @@ function Set-KeeperPamConnection {
         return
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
     $options = New-Object KeeperSecurity.Plugins.PAM.PamConnectionEditOptions
     $options.Record = $Record.Trim()
     $options.ClearLaunchUser = $ClearLaunchUser.IsPresent
     $options.Silent = $Silent.IsPresent
 
-    if ($PSBoundParameters.ContainsKey('Configuration')) { $options.Configuration = $Configuration }
-    if ($PSBoundParameters.ContainsKey('AdminUser')) { $options.AdminUser = $AdminUser }
-    if ($PSBoundParameters.ContainsKey('LaunchUser')) { $options.LaunchUser = $LaunchUser }
-    if ($PSBoundParameters.ContainsKey('Protocol')) { $options.Protocol = $Protocol }
-    if ($PSBoundParameters.ContainsKey('Connections')) { $options.Connections = $Connections }
-    if ($PSBoundParameters.ContainsKey('ConnectionsRecording')) { $options.ConnectionsRecording = $ConnectionsRecording }
-    if ($PSBoundParameters.ContainsKey('TypescriptRecording')) { $options.TypescriptRecording = $TypescriptRecording }
-    if ($PSBoundParameters.ContainsKey('ConnectionsOverridePort')) { $options.ConnectionsOverridePort = $ConnectionsOverridePort }
-    if ($PSBoundParameters.ContainsKey('KeyEvents')) { $options.KeyEvents = $KeyEvents }
-    if ($PSBoundParameters.ContainsKey('Scrollback')) { $options.Scrollback = $Scrollback }
-    if ($PSBoundParameters.ContainsKey('RotateOnTermination')) { $options.RotateOnTermination = $RotateOnTermination }
+    $propertiesToMap = @(
+        'Configuration', 'AdminUser', 'LaunchUser', 'Protocol',
+        'Connections', 'ConnectionsRecording', 'TypescriptRecording',
+        'ConnectionsOverridePort', 'KeyEvents', 'Scrollback', 'RotateOnTermination'
+    )
+    foreach ($prop in $propertiesToMap) {
+        if ($PSBoundParameters.ContainsKey($prop)) {
+            $options.$prop = $PSBoundParameters[$prop]
+        }
+    }
 
     try {
         $result = [KeeperSecurity.Plugins.PAM.ConnectionUtils]::EditConnectionAsync(

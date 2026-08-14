@@ -106,15 +106,6 @@ function script:updatePamRotationScriptRecord {
     }
 }
 
-function script:getPamRotationVault {
-    $vault = getVault
-    if (-not $vault) {
-        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
-    }
-
-    return $vault
-}
-
 function script:toPamStringListOrNull {
     Param ([string[]] $Values)
 
@@ -164,6 +155,9 @@ function script:writePamEditResult {
     $hadMessages = $false
     if ($null -ne $Result.Messages) {
         foreach ($message in $Result.Messages) {
+            if ([string]::IsNullOrWhiteSpace([string]$message)) {
+                continue
+            }
             $hadMessages = $true
             Write-Output $message
         }

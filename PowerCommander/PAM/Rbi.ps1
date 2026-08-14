@@ -182,32 +182,30 @@ function Set-KeeperPamRbi {
         return
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
     $options = New-Object KeeperSecurity.Plugins.PAM.PamRbiEditOptions
     $options.Record = $Record.Trim()
     $options.Silent = $Silent.IsPresent
 
     # SDK treats null as "not provided"; PowerShell unbound strings are "".
     # Only assign flags the caller actually passed so single-flag edits work.
-    if ($PSBoundParameters.ContainsKey('Configuration')) { $options.Configuration = $Configuration }
-    if ($PSBoundParameters.ContainsKey('RemoteBrowserIsolation')) { $options.RemoteBrowserIsolation = $RemoteBrowserIsolation }
-    if ($PSBoundParameters.ContainsKey('ConnectionsRecording')) { $options.ConnectionsRecording = $ConnectionsRecording }
-    if ($PSBoundParameters.ContainsKey('KeyEvents')) { $options.KeyEvents = $KeyEvents }
-    if ($PSBoundParameters.ContainsKey('AutofillCredentials')) { $options.AutofillCredentials = $AutofillCredentials }
-    if ($PSBoundParameters.ContainsKey('AllowUrlNavigation')) { $options.AllowUrlNavigation = $AllowUrlNavigation }
-    if ($PSBoundParameters.ContainsKey('IgnoreServerCert')) { $options.IgnoreServerCert = $IgnoreServerCert }
-    if ($PSBoundParameters.ContainsKey('AllowFileUploads')) { $options.AllowFileUploads = $AllowFileUploads }
-    if ($PSBoundParameters.ContainsKey('AllowFileDownloads')) { $options.AllowFileDownloads = $AllowFileDownloads }
-    if ($PSBoundParameters.ContainsKey('AllowedUrls')) { $options.AllowedUrls = toPamStringListOrNull -Values $AllowedUrls }
-    if ($PSBoundParameters.ContainsKey('AllowedResourceUrls')) { $options.AllowedResourceUrls = toPamStringListOrNull -Values $AllowedResourceUrls }
-    if ($PSBoundParameters.ContainsKey('AutofillTargets')) { $options.AutofillTargets = toPamStringListOrNull -Values $AutofillTargets }
-    if ($PSBoundParameters.ContainsKey('AllowCopy')) { $options.AllowCopy = $AllowCopy }
-    if ($PSBoundParameters.ContainsKey('AllowPaste')) { $options.AllowPaste = $AllowPaste }
-    if ($PSBoundParameters.ContainsKey('DisableAudio')) { $options.DisableAudio = $DisableAudio }
-    if ($PSBoundParameters.ContainsKey('SessionPersistence')) { $options.SessionPersistence = $SessionPersistence }
-    if ($PSBoundParameters.ContainsKey('AudioChannels')) { $options.AudioChannels = $AudioChannels }
-    if ($PSBoundParameters.ContainsKey('AudioBitDepth')) { $options.AudioBitDepth = $AudioBitDepth }
-    if ($PSBoundParameters.ContainsKey('AudioSampleRate')) { $options.AudioSampleRate = $AudioSampleRate }
+    $propertiesToMap = @(
+        'Configuration', 'RemoteBrowserIsolation', 'ConnectionsRecording', 'KeyEvents',
+        'AutofillCredentials', 'AllowUrlNavigation', 'IgnoreServerCert',
+        'AllowFileUploads', 'AllowFileDownloads', 'AllowCopy', 'AllowPaste',
+        'DisableAudio', 'SessionPersistence', 'AudioChannels', 'AudioBitDepth', 'AudioSampleRate'
+    )
+    $listProperties = @('AllowedUrls', 'AllowedResourceUrls', 'AutofillTargets')
+    foreach ($prop in $propertiesToMap) {
+        if ($PSBoundParameters.ContainsKey($prop)) {
+            $options.$prop = $PSBoundParameters[$prop]
+        }
+    }
+    foreach ($prop in $listProperties) {
+        if ($PSBoundParameters.ContainsKey($prop)) {
+            $options.$prop = toPamStringListOrNull -Values $PSBoundParameters[$prop]
+        }
+    }
 
     try {
         $result = [KeeperSecurity.Plugins.PAM.RbiUtils]::EditRbiAsync(
