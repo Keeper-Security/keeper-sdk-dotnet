@@ -1,11 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.Plugins.PAM
 {
+  /// <summary>
+  /// NSF record projection used by PAM rotate / connection / RBI fallbacks.
+  /// </summary>
+  internal class PamNsfRecordRef
+  {
+    public string RecordUid { get; set; }
+    public string Title { get; set; }
+    public string TypeName { get; set; }
+    public byte[] RecordKey { get; set; }
+    public IReadOnlyList<KeeperNSFField> Fields { get; set; }
+  }
+
   /// <summary>
   /// Shared lookups for PAM rotation/config. Checks classic vault first, then NSF.
   /// </summary>
@@ -716,6 +730,360 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       return false;
+    }
+
+    internal static bool TryGetNsfRecord(VaultOnline vault, string uid, out PamNsfRecordRef r)
+    {
+      r = null;
+      if (vault == null || string.IsNullOrEmpty(uid))
+      {
+        return false;
+      }
+
+      if (!vault.TryGetKeeperNSFRecord(uid, out var nsf) || nsf == null)
+      {
+        return false;
+      }
+
+      r = ToNsfRecordRef(nsf);
+      return r != null;
+    }
+
+    internal static PamNsfRecordRef ResolveNsfRecordByTitle(VaultOnline vault, string title, ISet<string> allowedTypes)
+    {
+      if (vault == null || string.IsNullOrWhiteSpace(title))
+      {
+        return null;
+      }
+
+      var records = new List<PamNsfRecordRef>();
+      foreach (var entry in vault.KeeperNSFRecordEntries)
+      {
+        var mapped = ToNsfRecordRef(entry);
+        if (mapped != null)
+        {
+          records.Add(mapped);
+        }
+      }
+
+      return ResolveNsfRecordByTitle(records, title, allowedTypes);
+    }
+
+    internal static PamNsfRecordRef ResolveNsfRecordByTitle(
+      IEnumerable<PamNsfRecordRef> records,
+      string title,
+      ISet<string> allowedTypes)
+    {
+      if (records == null || string.IsNullOrWhiteSpace(title))
+      {
+        return null;
+      }
+
+      var allowed = allowedTypes == null
+        ? null
+        : new HashSet<string>(allowedTypes, StringComparer.Ordinal);
+
+      PamNsfRecordRef match = null;
+      var matchCount = 0;
+      foreach (var record in records)
+      {
+        if (record == null)
+        {
+          continue;
+        }
+
+        if (allowed != null && !allowed.Contains(record.TypeName ?? string.Empty))
+        {
+          continue;
+        }
+
+        if (!string.Equals(record.Title, title, StringComparison.OrdinalIgnoreCase))
+        {
+          continue;
+        }
+
+        matchCount++;
+        if (matchCount == 1)
+        {
+          match = record;
+        }
+      }
+
+      if (matchCount > 1)
+      {
+        throw new InvalidOperationException($"Record name '{title}' is not unique. Use record UID.");
+      }
+
+      return matchCount == 1 ? match : null;
+    }
+
+    internal static bool IsNsfNoopRecord(PamNsfRecordRef r)
+    {
+      if (r?.Fields == null)
+      {
+        return false;
+      }
+
+      foreach (var field in r.Fields)
+      {
+        if (field == null)
+        {
+          continue;
+        }
+
+        if (!string.Equals(field.Type, "text", StringComparison.InvariantCultureIgnoreCase))
+        {
+          continue;
+        }
+
+        if (!string.Equals(field.Label, "NOOP", StringComparison.InvariantCultureIgnoreCase))
+        {
+          continue;
+        }
+
+        var value = field.Value != null && field.Value.Count > 0 ? field.Value[0] : null;
+        return IsNoopFieldValue(value);
+      }
+
+      return false;
+    }
+
+    internal static bool IsNsfFolderRotateRecord(KeeperNSFRecord record)
+    {
+      if (record == null)
+      {
+        return false;
+      }
+
+      return record.Version == 3
+             && string.Equals(record.Type, "pamUser", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool IsNoopFieldValue(string value)
+    {
+      if (bool.TryParse(value, out var result))
+      {
+        return result;
+      }
+
+      return value?.ToLowerInvariant() switch
+      {
+        "1" or "yes" or "on" => true,
+        _ => false
+      };
+    }
+
+    internal static TypedRecord TryResolveNsfTypedRecord(VaultOnline vault, string identifier, ISet<string> allowedTypes)
+    {
+      if (TryGetNsfRecord(vault, identifier, out var byUid))
+      {
+        return ToTypedRecord(byUid);
+      }
+
+      var byTitle = ResolveNsfRecordByTitle(vault, identifier, allowedTypes);
+      if (byTitle == null)
+      {
+        return null;
+      }
+
+      return ToTypedRecord(byTitle);
+    }
+
+    internal static TypedRecord ToTypedRecord(PamNsfRecordRef nsf)
+    {
+      if (nsf == null)
+      {
+        return null;
+      }
+
+      var record = new TypedRecord(nsf.TypeName ?? "")
+      {
+        Uid = nsf.RecordUid,
+        Title = nsf.Title,
+        RecordKey = nsf.RecordKey,
+      };
+
+      if (nsf.Fields == null)
+      {
+        return record;
+      }
+
+      foreach (var field in nsf.Fields)
+      {
+        var typed = CreateTypedFieldFromNsf(field);
+        if (typed != null)
+        {
+          record.Fields.Add(typed);
+        }
+      }
+
+      return record;
+    }
+
+    internal static async Task UpdateNsfRecordFromTypedAsync(VaultOnline vault, TypedRecord record)
+    {
+      if (vault == null || record == null || string.IsNullOrEmpty(record.Uid))
+      {
+        return;
+      }
+
+      await vault.UpdateKeeperNSFRecordInternal(
+        record.Uid,
+        title: null,
+        recordType: null,
+        notes: null,
+        fields: ToNsfPamFieldUpdates(record));
+    }
+
+    internal static PamNsfRecordRef ToNsfRecordRef(KeeperNSFRecord nsf)
+    {
+      if (nsf == null)
+      {
+        return null;
+      }
+
+      return new PamNsfRecordRef
+      {
+        RecordUid = nsf.RecordUid,
+        Title = nsf.Title,
+        TypeName = nsf.Type,
+        RecordKey = nsf.RecordKey,
+        Fields = nsf.Fields,
+      };
+    }
+
+    private static ITypedField CreateTypedFieldFromNsf(KeeperNSFField field)
+    {
+      if (field == null || string.IsNullOrEmpty(field.Type))
+      {
+        return null;
+      }
+
+      ITypedField typed;
+      try
+      {
+        typed = VaultDataExtensions.CreateTypedField(field.Type, field.Label);
+      }
+      catch (Exception)
+      {
+        return null;
+      }
+
+      if (field.Value == null)
+      {
+        return typed;
+      }
+
+      foreach (var raw in field.Value)
+      {
+        if (raw == null)
+        {
+          continue;
+        }
+
+        AssignNsfFieldValue(typed, raw);
+      }
+
+      return typed;
+    }
+
+    private static void AssignNsfFieldValue(ITypedField typed, string raw)
+    {
+      if (typed is TypedField<string> stringField)
+      {
+        stringField.Values.Add(raw);
+        return;
+      }
+
+      if (typed is TypedField<FieldPamSettings> pamSettingsField)
+      {
+        var parsed = TryParseJson(raw, out FieldPamSettings settings) ? settings : null;
+        if (parsed != null)
+        {
+          pamSettingsField.Values.Add(parsed);
+        }
+
+        return;
+      }
+
+      if (typed is TypedField<FieldPamRemoteBrowserSettings> rbiSettingsField)
+      {
+        var parsed = TryParseJson(raw, out FieldPamRemoteBrowserSettings settings) ? settings : null;
+        if (parsed != null)
+        {
+          rbiSettingsField.Values.Add(parsed);
+        }
+      }
+    }
+
+    private static IDictionary<string, object> ToNsfPamFieldUpdates(TypedRecord record)
+    {
+      var fields = new Dictionary<string, object>();
+      AddNsfFieldUpdate(fields, record, "trafficEncryptionSeed");
+      AddNsfFieldUpdate(fields, record, "pamSettings");
+      AddNsfFieldUpdate(fields, record, "pamRemoteBrowserSettings");
+      return fields;
+    }
+
+    private static void AddNsfFieldUpdate(IDictionary<string, object> fields, TypedRecord record, string fieldName)
+    {
+      if (record == null || !record.FindTypedField(fieldName, null, out var field) || field.Count == 0)
+      {
+        return;
+      }
+
+      var value = field.GetValueAt(0);
+      if (value == null)
+      {
+        return;
+      }
+
+      var key = string.IsNullOrEmpty(field.FieldLabel)
+        ? field.FieldName
+        : $"{field.FieldName}:{field.FieldLabel}";
+      fields[key] = ToNsfUpdateValue(value);
+    }
+
+    private static object ToNsfUpdateValue(object value)
+    {
+      if (value is string text)
+      {
+        return text;
+      }
+
+      try
+      {
+        var json = JsonUtils.DumpJson(value, indent: false);
+        var parsed = JsonUtils.ParseJson<Dictionary<string, object>>(json);
+        if (parsed != null)
+        {
+          return parsed;
+        }
+      }
+      catch (Exception)
+      {
+      }
+
+      return value;
+    }
+
+    private static bool TryParseJson<T>(string raw, out T parsed) where T : class
+    {
+      parsed = null;
+      if (string.IsNullOrEmpty(raw))
+      {
+        return false;
+      }
+
+      try
+      {
+        parsed = JsonUtils.ParseJson<T>(Encoding.UTF8.GetBytes(raw));
+        return parsed != null;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
     }
   }
 }
