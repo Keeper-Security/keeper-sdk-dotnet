@@ -31,10 +31,10 @@ function Set-KeeperPamRbi {
         Ignore server certificate errors: on, off, or default. Alias: -isc.
 
         .Parameter AllowFileUploads
-        Allow file uploads in RBI sessions: on, off, or default.
+        Allow file uploads in RBI sessions: on, off, or default. Alias: -fu.
 
         .Parameter AllowFileDownloads
-        Allow file downloads in RBI sessions: on, off, or default.
+        Allow file downloads in RBI sessions: on, off, or default. Alias: -fd.
 
         .Parameter AllowedUrls
         Allowed URL patterns (comma-separated or array; replaces existing). Use empty string to clear. Alias: -au.
@@ -113,10 +113,12 @@ function Set-KeeperPamRbi {
         [string] $IgnoreServerCert,
 
         [Parameter()]
+        [Alias('fu')]
         [ValidateSet('on', 'off', 'default')]
         [string] $AllowFileUploads,
 
         [Parameter()]
+        [Alias('fd')]
         [ValidateSet('on', 'off', 'default')]
         [string] $AllowFileDownloads,
 

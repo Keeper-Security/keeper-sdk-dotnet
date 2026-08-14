@@ -76,7 +76,7 @@ function Invoke-KeeperPamActionRotate {
         in a shared folder. Use Get-KeeperPamActionJobInfo to check scheduled job status.
 
         .Parameter RecordUid
-        Record UID to rotate. Alias: -r.
+        Record UID or title to rotate. Alias: -r.
 
         .Parameter Folder
         Shared folder UID or title regex pattern to rotate pamUser records. Alias: -f.
@@ -110,6 +110,22 @@ function Invoke-KeeperPamActionRotate {
     }
 
     $vault = getPamRotationVault
+
+    if (-not [string]::IsNullOrWhiteSpace($RecordUid)) {
+        $resolved = $null
+        try {
+            $resolved = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+                $vault, $RecordUid.Trim(), $null)
+        }
+        catch [System.InvalidOperationException] {
+            Write-Output $_.Exception.Message
+            return
+        }
+        if ($null -ne $resolved) {
+            $RecordUid = $resolved.Uid
+        }
+    }
+
     $options = New-Object KeeperSecurity.Plugins.PAM.PamRotateOptions
     $options.RecordUid = $RecordUid
     $options.Folder = $Folder
@@ -119,6 +135,10 @@ function Invoke-KeeperPamActionRotate {
         $result = [KeeperSecurity.Plugins.PAM.ActionUtils]::RotateAsync($vault, $options).GetAwaiter().GetResult()
     }
     catch [KeeperSecurity.Plugins.PAM.PamException] {
+        Write-Output $_.Exception.Message
+        return
+    }
+    catch [System.InvalidOperationException] {
         Write-Output $_.Exception.Message
         return
     }
@@ -191,6 +211,9 @@ function Get-KeeperPamActionJobInfo {
         writePamActionResult -Result $result -PrintJobDetails $true
     }
     catch [KeeperSecurity.Plugins.PAM.PamException] {
+        Write-Output $_.Exception.Message
+    }
+    catch [System.InvalidOperationException] {
         Write-Output $_.Exception.Message
     }
 }

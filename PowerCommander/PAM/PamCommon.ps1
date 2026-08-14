@@ -123,18 +123,32 @@ function script:toPamStringListOrNull {
     }
 
     $list = New-Object 'System.Collections.Generic.List[string]'
+    $anyPart = $false
+    $anyNonEmpty = $false
     foreach ($value in $Values) {
         if ($null -eq $value) {
             continue
         }
         foreach ($part in $value.Split(@(','), [System.StringSplitOptions]::None)) {
-            [void]$list.Add($part)
+            $anyPart = $true
+            $trimmed = $part.Trim()
+            if (-not [string]::IsNullOrEmpty($trimmed)) {
+                $anyNonEmpty = $true
+                [void]$list.Add($trimmed)
+            }
         }
     }
 
-    if ($list.Count -eq 0) {
+    if (-not $anyPart) {
         return $null
     }
+
+    if (-not $anyNonEmpty) {
+        $list.Clear()
+        [void]$list.Add('')
+        return , $list
+    }
+
     return , $list
 }
 
@@ -147,8 +161,10 @@ function script:writePamEditResult {
         [string] $UpdatedMessage
     )
 
+    $hadMessages = $false
     if ($null -ne $Result.Messages) {
         foreach ($message in $Result.Messages) {
+            $hadMessages = $true
             Write-Output $message
         }
     }
@@ -159,6 +175,9 @@ function script:writePamEditResult {
 
     if ($Result.RecordUpdated -or $Result.GraphUpdated) {
         Write-Output $UpdatedMessage
+    }
+    elseif (-not $hadMessages) {
+        Write-Output 'Nothing to update.'
     }
 }
 

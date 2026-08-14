@@ -25,7 +25,7 @@ function Set-KeeperPamConnection {
         Remove launch credential from the resource.
 
         .Parameter Protocol
-        Connection protocol (ssh, rdp, mysql, postgresql, sql-server, ...). Empty clears. Alias: -p.
+        Connection protocol (http, kubernetes, mongodb, mysql, postgresql, rdp, sql-server, ssh, telnet, vnc). Empty clears. Alias: -p.
 
         .Parameter Connections
         Connections permission: on, off, or default.
@@ -79,7 +79,10 @@ function Set-KeeperPamConnection {
 
         [Parameter()]
         [Alias('p')]
-        [ValidateSet('', 'http', 'kubernetes', 'mysql', 'postgresql', 'rdp', 'sql-server', 'ssh', 'telnet', 'vnc')]
+        [ValidateSet('', 'clickhouse', 'dynamodb', 'elasticsearch', 'http',
+            'kubernetes', 'mariadb', 'mongodb', 'mysql', 'oracle',
+            'postgresql', 'rdp', 'redis', 'sql-server', 'ssh', 'telnet',
+            'vnc')]
         [string] $Protocol,
 
         [Parameter()]
@@ -141,17 +144,6 @@ function Set-KeeperPamConnection {
     if ($PSBoundParameters.ContainsKey('KeyEvents')) { $options.KeyEvents = $KeyEvents }
     if ($PSBoundParameters.ContainsKey('Scrollback')) { $options.Scrollback = $Scrollback }
     if ($PSBoundParameters.ContainsKey('RotateOnTermination')) { $options.RotateOnTermination = $RotateOnTermination }
-
-    # SDK requires connections=on before protocol/port/key-events/scrollback can be applied.
-    if (-not $PSBoundParameters.ContainsKey('Connections')) {
-        $needsConnectionsOn = $PSBoundParameters.ContainsKey('Protocol') `
-            -or $PSBoundParameters.ContainsKey('ConnectionsOverridePort') `
-            -or $PSBoundParameters.ContainsKey('KeyEvents') `
-            -or $PSBoundParameters.ContainsKey('Scrollback')
-        if ($needsConnectionsOn) {
-            $options.Connections = 'on'
-        }
-    }
 
     try {
         $result = [KeeperSecurity.Plugins.PAM.ConnectionUtils]::EditConnectionAsync(
