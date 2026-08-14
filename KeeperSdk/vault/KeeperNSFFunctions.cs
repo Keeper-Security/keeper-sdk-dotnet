@@ -2310,6 +2310,83 @@ namespace KeeperSecurity.Vault
 
 
         /// <summary>
+        /// Builds a V3 NSF <see cref="RecordProto.RecordAdd"/> for a typed record (owner-key escrow, audit, links).
+        /// </summary>
+        internal static RecordProto.RecordAdd BuildNsfTypedRecordAdd(
+            VaultOnline vault,
+            TypedRecord typed,
+            FolderNode folder,
+            long clientModifiedTime,
+            out byte[] recordDataJson)
+        {
+            vault.AdjustTypedRecord(typed);
+            var recordData = typed.ExtractRecordV3Data();
+            recordDataJson = JsonUtils.DumpJson(recordData, indent: false);
+            var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
+            var encryptedData = CryptoUtils.EncryptAesV2(jsonData, typed.RecordKey);
+            var encryptedRecordKey = CryptoUtils.EncryptAesV2(typed.RecordKey, folder.FolderKey);
+
+            var ra = new RecordProto.RecordAdd
+            {
+                RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
+                RecordKey = ByteString.CopyFrom(encryptedRecordKey),
+                RecordKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
+                RecordKeyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey,
+                ClientModifiedTime = clientModifiedTime,
+                Data = ByteString.CopyFrom(encryptedData),
+                FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
+                RecordKeyEncryptedByOwnerKey = ByteString.CopyFrom(
+                    CryptoUtils.EncryptAesV2(typed.RecordKey, vault.Auth.AuthContext.DataKey)),
+            };
+
+            if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+            {
+                var auditData = typed.ExtractRecordAuditData();
+                var data = JsonUtils.DumpJson(auditData);
+                ra.Audit = new RecordAudit
+                {
+                    Version = 0,
+                    Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data,
+                        vault.Auth.AuthContext.EnterprisePublicEcKey)),
+                };
+            }
+
+            foreach (var recordRef in typed.ExtractTypedRecordRefs() ?? Enumerable.Empty<string>())
+            {
+                if (string.IsNullOrEmpty(recordRef))
+                {
+                    continue;
+                }
+
+                byte[] refKey = null;
+                typed.LinkedKeys?.TryGetValue(recordRef, out refKey);
+                if (refKey == null && vault.TryGetKeeperRecord(recordRef, out var linked))
+                {
+                    refKey = linked.RecordKey;
+                }
+
+                if (refKey == null && vault.TryGetKeeperNSFRecord(recordRef, out var linkedNsf))
+                {
+                    refKey = linkedNsf.RecordKey;
+                }
+
+                if (refKey == null)
+                {
+                    Trace.TraceError($"Lost record reference while creating NSF typed record: \"{recordRef}\"");
+                    continue;
+                }
+
+                ra.RecordLinks.Add(new RecordLink
+                {
+                    RecordUid = ByteString.CopyFrom(recordRef.Base64UrlDecode()),
+                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, typed.RecordKey)),
+                });
+            }
+
+            return ra;
+        }
+
+        /// <summary>
         /// Creates a typed record in an NSF folder via vault/records/v3/add.
         /// </summary>
         public static async Task CreateKeeperNSFTypedRecordInternal(this VaultOnline vault, TypedRecord typed, string folderUid)
@@ -2357,58 +2434,12 @@ namespace KeeperSecurity.Vault
                 typed.Version = 3;
             }
 
-            vault.AdjustTypedRecord(typed);
-            var recordData = typed.ExtractRecordV3Data();
-            var jsonData = VaultExtensions.PadRecordData(JsonUtils.DumpJson(recordData));
-            var encryptedData = CryptoUtils.EncryptAesV2(jsonData, typed.RecordKey);
-            var encryptedRecordKey = CryptoUtils.EncryptAesV2(typed.RecordKey, folder.FolderKey);
             var clientModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-            var ra = new RecordProto.RecordAdd
-            {
-                RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
-                RecordKey = ByteString.CopyFrom(encryptedRecordKey),
-                RecordKeyType = FolderProto.EncryptedKeyType.EncryptedByDataKeyGcm,
-                RecordKeyEncryptedBy = FolderProto.FolderKeyEncryptionType.EncryptedByParentKey,
-                ClientModifiedTime = clientModified,
-                Data = ByteString.CopyFrom(encryptedData),
-                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
-            };
-
-            foreach (var recordRef in typed.ExtractTypedRecordRefs() ?? Enumerable.Empty<string>())
-            {
-                if (string.IsNullOrEmpty(recordRef))
-                {
-                    continue;
-                }
-
-                byte[] refKey = null;
-                typed.LinkedKeys?.TryGetValue(recordRef, out refKey);
-                if (refKey == null && vault.TryGetKeeperRecord(recordRef, out var linked))
-                {
-                    refKey = linked.RecordKey;
-                }
-
-                if (refKey == null && vault.TryGetKeeperNSFRecord(recordRef, out var linkedNsf))
-                {
-                    refKey = linkedNsf.RecordKey;
-                }
-
-                if (refKey == null)
-                {
-                    Trace.TraceError($"Lost record reference while creating NSF typed record: \"{recordRef}\"");
-                    continue;
-                }
-
-                ra.RecordLinks.Add(new RecordLink
-                {
-                    RecordUid = ByteString.CopyFrom(recordRef.Base64UrlDecode()),
-                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, typed.RecordKey)),
-                });
-            }
+            var ra = BuildNsfTypedRecordAdd(vault, typed, folder, clientModified, out var dataJson);
 
             var rq = new RecordProto.RecordsAddRequest();
             rq.Records.Add(ra);
+            rq.ClientTime = clientModified;
 
             var rs = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
                 "vault/records/v3/add", rq).ConfigureAwait(false);
@@ -2422,7 +2453,6 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var dataJson = JsonUtils.DumpJson(recordData, indent: false);
             vault.KeeperNSFRecords[typed.Uid] = new KeeperNSFRecord
             {
                 RecordUid = typed.Uid,

@@ -130,7 +130,9 @@ namespace KeeperSecurity.Plugins.PAM
         return folderUid;
       }
 
-      if (vault != null && IsKeeperNSFRecord(vault, recordUid))
+      if (vault != null
+          && !vault.TryGetKeeperRecord(recordUid, out _)
+          && IsKeeperNSFRecord(vault, recordUid))
       {
         return null;
       }
