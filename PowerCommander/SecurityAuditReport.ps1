@@ -188,18 +188,16 @@ function Script:Get-KeeperSecurityScoreDeltas {
     }
     $deltas.total_record_passwords = $Delta
 
-    # bw_result from the API: 2 = at-risk (breached), 1 = passed (clean), 0/other = ignored
+    # BWStatus: Good=0, Changed=1, Weak=2, Breached=3, Ignore=4
     $breachWatchResult = ConvertTo-KeeperInt (Get-KeeperJsonPropertyValue $RecordSecurityData 'bw_result')
-    if ($breachWatchResult -eq 2) {
-        $deltas.at_risk_records = $Delta
+    switch ($breachWatchResult) {
+        0       { $deltas.passed_records  = $Delta }  # Good
+        1       { $deltas.passed_records  = $Delta }  # Changed
+        2       { $deltas.at_risk_records = $Delta }  # Weak
+        3       { $deltas.at_risk_records = $Delta }  # Breached
+        4       { $deltas.ignored_records = $Delta }  # Ignore
+        default { $deltas.ignored_records = $Delta }  # unknown
     }
-    elseif ($breachWatchResult -eq 1) {
-        $deltas.passed_records = $Delta
-    }
-    else {
-        $deltas.ignored_records = $Delta
-    }
-
     return $deltas
 }
 
