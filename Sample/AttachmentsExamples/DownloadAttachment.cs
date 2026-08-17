@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace Sample.AttachmentsExamples
@@ -53,8 +54,23 @@ namespace Sample.AttachmentsExamples
                 _ => "downloaded_file"
             };
 
-            string finalPath = Path.Combine(destinationPath, originalFileName);
             Directory.CreateDirectory(destinationPath);
+
+            string finalPath;
+            try
+            {
+                finalPath = PathUtils.GetSafeDownloadPath(destinationPath, originalFileName);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Invalid attachment file name: {ex.Message}");
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Unsafe attachment path detected: {ex.Message}");
+                return;
+            }
 
             using (var fs = new FileStream(finalPath, FileMode.Create, FileAccess.Write))
             {
@@ -74,7 +90,7 @@ namespace Sample.AttachmentsExamples
                 }
             }
 
-            Console.WriteLine($"Attachment '{originalFileName}' downloaded successfully to '{finalPath}'.");
+            Console.WriteLine($"Attachment '{Path.GetFileName(finalPath)}' downloaded successfully to '{finalPath}'.");
         }
     }
 }
