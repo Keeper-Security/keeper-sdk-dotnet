@@ -10,11 +10,13 @@ namespace Commander.PAM
   /// </summary>
   internal static class PamConfigTunnelingHelper
   {
-    public static Task<Dictionary<string, object>> GetAllowedSettingsJsonAsync(
+    public static async Task<Dictionary<string, object>> GetAllowedSettingsJsonAsync(
       IAuthentication auth,
       string configUid)
     {
-      return ConfigUtils.GetConfigurationAllowedSettingsAsync(auth, configUid);
+      var settings = await ConfigUtils.GetConfigurationAllowedSettingsAsync(auth, configUid)
+        .ConfigureAwait(false);
+      return settings.ToDictionary();
     }
 
     public static void PrintTunnelingConfig(string configUid)

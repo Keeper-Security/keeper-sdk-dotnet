@@ -95,13 +95,13 @@ namespace Commander.PAM
       var rows = new List<Dictionary<string, object>>();
       foreach (var config in configs)
       {
-        var folder = TryGetListedConfigurationFolder(vault, config);
-        if (folder == null)
+        var folderInfo = TryGetListedConfigurationFolder(vault, config);
+        if (folderInfo == null)
         {
           continue;
         }
 
-        rows.Add(BuildConfigListJson(config, folder, verbose));
+        rows.Add(BuildConfigListJson(config, folderInfo, verbose));
       }
 
       Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object> { ["configurations"] = rows }));
@@ -125,13 +125,13 @@ namespace Commander.PAM
       tab.AddHeader(headers.ToArray());
       foreach (var config in configs)
       {
-        var folder = TryGetListedConfigurationFolder(vault, config);
-        if (folder == null)
+        var folderInfo = TryGetListedConfigurationFolder(vault, config);
+        if (folderInfo == null)
         {
           continue;
         }
 
-        tab.AddRow(BuildConfigTableRow(config, folder, verbose));
+        tab.AddRow(BuildConfigTableRow(config, folderInfo, verbose));
       }
 
       tab.Dump();

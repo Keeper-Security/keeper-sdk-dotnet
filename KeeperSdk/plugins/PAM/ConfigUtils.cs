@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
@@ -86,6 +88,11 @@ namespace KeeperSecurity.Plugins.PAM
     private const string AddPamConfigurationNsfEndpoint = "vault/records/v3/add_pam_configuration";
     private const string SetConfigurationControllerEndpoint = "pam/set_configuration_controller";
 
+    /// <summary>Record version used for PAM configuration typed records.</summary>
+    private const int PamConfigurationRecordVersion = 6;
+
+    private const int MaxPamConfigurationNsfAddBatchSize = 1000;
+
     public static TypedRecord CreateConfigurationRecord(VaultOnline vault, string recordType, string title)
     {
       if (vault == null)
@@ -103,19 +110,27 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentException("Title is required", nameof(title));
       }
 
-      var record = new TypedRecord(recordType) { Title = title.Trim(), Version = 6 };
+      var record = new TypedRecord(recordType)
+      {
+        Title = title.Trim(),
+        Version = PamConfigurationRecordVersion,
+      };
       vault.AdjustTypedRecord(record);
       return record;
     }
 
+    /// <summary>
+    /// Adds a PAM configuration record to the classic vault root via <c>pam/add_configuration_record</c>.
+    /// </summary>
     public static async Task AddConfigurationRecordAsync(VaultOnline vault, TypedRecord record)
     {
       await AddConfigurationRecordAsync(vault, record, destinationFolderUid: null).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Creates a PAM configuration in classic vault, or in an NSF folder via
-    /// vault/records/v3/add_pam_configuration (registers PAM config context).
+    /// Adds a PAM configuration record. When <paramref name="destinationFolderUid"/> is an NSF folder,
+    /// creates the record with <c>vault/records/v3/add_pam_configuration</c>; otherwise uses the classic
+    /// <c>pam/add_configuration_record</c> endpoint.
     /// </summary>
     public static async Task AddConfigurationRecordAsync(
       VaultOnline vault,
@@ -132,6 +147,79 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(record));
       }
 
+      await AddConfigurationRecordsAsync(
+          vault,
+          new[] { (record, destinationFolderUid) }).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Adds one or more PAM configuration records. NSF destinations are batched on
+    /// <c>vault/records/v3/add_pam_configuration</c>; classic destinations are added one at a time.
+    /// </summary>
+    public static async Task AddConfigurationRecordsAsync(
+      VaultOnline vault,
+      IReadOnlyList<(TypedRecord Record, string DestinationFolderUid)> records)
+    {
+      if (vault == null)
+      {
+        throw new ArgumentNullException(nameof(vault));
+      }
+
+      if (records == null || records.Count == 0)
+      {
+        throw new ArgumentException("At least one configuration record is required.", nameof(records));
+      }
+
+      var nsfBatch = new List<(TypedRecord Record, string FolderUid, FolderNode Folder)>();
+      foreach (var item in records)
+      {
+        if (item.Record == null)
+        {
+          throw new ArgumentException("Configuration record cannot be null.", nameof(records));
+        }
+
+        EnsureConfigurationRecordIdentity(item.Record);
+
+        if (PamVaultHelpers.IsKeeperNSFFolder(vault, item.DestinationFolderUid))
+        {
+          if (!vault.TryGetKeeperNSFFolder(item.DestinationFolderUid, out var folder) || folder == null)
+          {
+            throw new VaultException($"Keeper NSF folder '{item.DestinationFolderUid}' not found");
+          }
+
+          if (folder.FolderKey == null || folder.FolderKey.Length == 0)
+          {
+            throw new VaultException($"Folder key not available for folder '{item.DestinationFolderUid}'");
+          }
+
+          nsfBatch.Add((item.Record, item.DestinationFolderUid, folder));
+          continue;
+        }
+
+        await AddClassicConfigurationRecordAsync(vault, item.Record).ConfigureAwait(false);
+      }
+
+      if (nsfBatch.Count == 0)
+      {
+        return;
+      }
+
+      var folderUids = nsfBatch.Select(x => x.FolderUid).Distinct(StringComparer.Ordinal).ToList();
+      foreach (var folderUid in folderUids)
+      {
+        await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
+          .ConfigureAwait(false);
+      }
+
+      for (var offset = 0; offset < nsfBatch.Count; offset += MaxPamConfigurationNsfAddBatchSize)
+      {
+        var chunk = nsfBatch.Skip(offset).Take(MaxPamConfigurationNsfAddBatchSize).ToList();
+        await AddPamConfigurationsToNsfBatchAsync(vault, chunk).ConfigureAwait(false);
+      }
+    }
+
+    private static void EnsureConfigurationRecordIdentity(TypedRecord record)
+    {
       if (string.IsNullOrEmpty(record.Uid))
       {
         record.Uid = CryptoUtils.GenerateUid();
@@ -141,14 +229,11 @@ namespace KeeperSecurity.Plugins.PAM
       {
         record.RecordKey = CryptoUtils.GenerateEncryptionKey();
       }
+    }
 
-      if (PamVaultHelpers.IsKeeperNSFFolder(vault, destinationFolderUid))
-      {
-        await AddPamConfigurationToNsfAsync(vault, record, destinationFolderUid).ConfigureAwait(false);
-        return;
-      }
-
-      record.Version = 6;
+    private static async Task AddClassicConfigurationRecordAsync(VaultOnline vault, TypedRecord record)
+    {
+      record.Version = PamConfigurationRecordVersion;
       vault.AdjustTypedRecord(record);
       var recordData = record.ExtractRecordV3Data();
       var jsonData = JsonUtils.DumpJson(recordData);
@@ -166,60 +251,64 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Creates a PAM configuration record inside an NSF folder and registers PAM config context.
+    /// Creates PAM configuration records inside NSF folders and registers PAM config context.
     /// </summary>
-    private static async Task AddPamConfigurationToNsfAsync(
+    private static async Task AddPamConfigurationsToNsfBatchAsync(
       VaultOnline vault,
-      TypedRecord record,
-      string folderUid)
+      IReadOnlyList<(TypedRecord Record, string FolderUid, FolderNode Folder)> batch)
     {
-      if (!vault.TryGetKeeperNSFFolder(folderUid, out var folder) || folder == null)
-      {
-        throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
-      }
-
-      if (folder.FolderKey == null || folder.FolderKey.Length == 0)
-      {
-        throw new VaultException($"Folder key not available for folder '{folderUid}'");
-      }
-
-      await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, folderUid)
-        .ConfigureAwait(false);
-
-      record.Version = 6;
       var clientModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-      var ra = VaultOnlineFunctions.BuildNsfTypedRecordAdd(
-        vault, record, folder, clientModified, out var dataJson);
+      var rq = new RecordProto.RecordsAddRequest { ClientTime = clientModified };
+      var cacheEntries = new List<(TypedRecord Record, byte[] DataJson, long ClientModified)>(batch.Count);
 
-      var rq = new RecordProto.RecordsAddRequest();
-      rq.Records.Add(ra);
-      rq.ClientTime = clientModified;
+      foreach (var item in batch)
+      {
+        item.Record.Version = PamConfigurationRecordVersion;
+        var ra = VaultOnlineFunctions.BuildNsfTypedRecordAdd(
+          vault, item.Record, item.Folder, clientModified, out var dataJson);
+        rq.Records.Add(ra);
+        cacheEntries.Add((item.Record, dataJson, clientModified));
+      }
 
       var rs = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
         AddPamConfigurationNsfEndpoint, rq).ConfigureAwait(false);
 
-      if (rs.Records.Count > 0)
+      var statusByUid = new Dictionary<string, RecordModifyStatus>(StringComparer.Ordinal);
+      if (rs?.Records != null)
       {
-        var result = rs.Records[0];
-        if (result.Status != RecordModifyResult.RsSuccess)
+        foreach (var status in rs.Records)
         {
-          throw new VaultException($"Failed to create NSF PAM configuration: {result.Message}");
+          if (status.RecordUid == null || status.RecordUid.IsEmpty)
+          {
+            continue;
+          }
+
+          statusByUid[CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray())] = status;
         }
       }
 
-      vault.KeeperNSFRecords[record.Uid] = new KeeperNSFRecord
+      foreach (var entry in cacheEntries)
       {
-        RecordUid = record.Uid,
-        RecordKey = record.RecordKey,
-        Title = record.Title,
-        Type = record.TypeName,
-        Notes = record.Notes,
-        Version = record.Version,
-        Revision = 0,
-        ClientModifiedTime = clientModified,
-        DataJson = dataJson,
-        Data = JsonUtils.ParseJson<NsfRecordData>(dataJson),
-      };
+        if (statusByUid.TryGetValue(entry.Record.Uid, out var status)
+            && status.Status != RecordModifyResult.RsSuccess)
+        {
+          throw new VaultException($"Failed to create NSF PAM configuration: {status.Message}");
+        }
+
+        vault.KeeperNSFRecords[entry.Record.Uid] = new KeeperNSFRecord
+        {
+          RecordUid = entry.Record.Uid,
+          RecordKey = entry.Record.RecordKey,
+          Title = entry.Record.Title,
+          Type = entry.Record.TypeName,
+          Notes = entry.Record.Notes,
+          Version = entry.Record.Version,
+          Revision = 0,
+          ClientModifiedTime = entry.ClientModified,
+          DataJson = entry.DataJson,
+          Data = JsonUtils.ParseJson<NsfRecordData>(entry.DataJson),
+        };
+      }
     }
 
     public static async Task SetConfigurationGatewayAsync(
@@ -333,10 +422,10 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>
-    /// Reads PAM configuration allowedSettings from the PAM linking graph (when available).
-    /// Keys match Python <c>pam config list -c --format json -v</c> output.
+    /// Reads PAM configuration allowed settings from the PAM linking graph (when available).
+    /// Property names match Python <c>pam config list -c --format json -v</c> output.
     /// </summary>
-    public static async Task<Dictionary<string, object>> GetConfigurationAllowedSettingsAsync(
+    public static async Task<PamConfigurationAllowedSettingsDisplay> GetConfigurationAllowedSettingsAsync(
       IAuthentication auth,
       string configurationUid)
     {
@@ -380,34 +469,20 @@ namespace KeeperSecurity.Plugins.PAM
       return empty;
     }
 
-    private static Dictionary<string, object> MapAllowedSettingsForDisplay(IDictionary<string, object> allowed)
+    private static PamConfigurationAllowedSettingsDisplay MapAllowedSettingsForDisplay(
+      PamConfigAllowedSettings allowed)
     {
-      allowed ??= new Dictionary<string, object>();
-      return new Dictionary<string, object>
+      allowed ??= new PamConfigAllowedSettings();
+      return new PamConfigurationAllowedSettingsDisplay
       {
-        ["connections"] = ReadAllowedBool(allowed, "connections"),
-        ["tunneling"] = ReadAllowedBool(allowed, "portForwards") ?? ReadAllowedBool(allowed, "tunneling"),
-        ["rotation"] = ReadAllowedBool(allowed, "rotation"),
-        ["remote_browser_isolation"] = ReadAllowedBool(allowed, "remoteBrowserIsolation"),
-        ["connections_recording"] = ReadAllowedBool(allowed, "sessionRecording"),
-        ["typescript_recording"] = ReadAllowedBool(allowed, "typescriptRecording"),
-        ["ai_threat_detection"] = ReadAllowedBool(allowed, "aiEnabled"),
-        ["ai_terminate_session_on_detection"] = ReadAllowedBool(allowed, "aiSessionTerminate"),
-      };
-    }
-
-    private static object ReadAllowedBool(IDictionary<string, object> allowed, string key)
-    {
-      if (allowed == null || !allowed.TryGetValue(key, out var value) || value == null)
-      {
-        return null;
-      }
-
-      return value switch
-      {
-        bool b => b,
-        string s when bool.TryParse(s, out var parsed) => parsed,
-        _ => value,
+        Connections = allowed.Connections,
+        Tunneling = allowed.PortForwards ?? allowed.Tunneling,
+        Rotation = allowed.Rotation,
+        RemoteBrowserIsolation = allowed.RemoteBrowserIsolation,
+        ConnectionsRecording = allowed.SessionRecording,
+        TypescriptRecording = allowed.TypescriptRecording,
+        AiThreatDetection = allowed.AiEnabled,
+        AiTerminateSessionOnDetection = allowed.AiSessionTerminate,
       };
     }
 
@@ -459,11 +534,89 @@ namespace KeeperSecurity.Plugins.PAM
       };
     }
 
-    [System.Runtime.Serialization.DataContract]
-    private class PamConfigVertexContent
+    [DataContract]
+    private sealed class PamConfigAllowedSettings
     {
-      [System.Runtime.Serialization.DataMember(Name = "allowedSettings", EmitDefaultValue = false)]
-      public Dictionary<string, object> AllowedSettings { get; set; }
+      [DataMember(Name = "rotation", EmitDefaultValue = false)]
+      public bool? Rotation { get; set; }
+
+      [DataMember(Name = "connections", EmitDefaultValue = false)]
+      public bool? Connections { get; set; }
+
+      [DataMember(Name = "sessionRecording", EmitDefaultValue = false)]
+      public bool? SessionRecording { get; set; }
+
+      [DataMember(Name = "typescriptRecording", EmitDefaultValue = false)]
+      public bool? TypescriptRecording { get; set; }
+
+      [DataMember(Name = "portForwards", EmitDefaultValue = false)]
+      public bool? PortForwards { get; set; }
+
+      [DataMember(Name = "tunneling", EmitDefaultValue = false)]
+      public bool? Tunneling { get; set; }
+
+      [DataMember(Name = "aiEnabled", EmitDefaultValue = false)]
+      public bool? AiEnabled { get; set; }
+
+      [DataMember(Name = "aiSessionTerminate", EmitDefaultValue = false)]
+      public bool? AiSessionTerminate { get; set; }
+
+      [DataMember(Name = "remoteBrowserIsolation", EmitDefaultValue = false)]
+      public bool? RemoteBrowserIsolation { get; set; }
+    }
+
+    [DataContract]
+    private sealed class PamConfigVertexContent
+    {
+      [DataMember(Name = "allowedSettings", EmitDefaultValue = false)]
+      public PamConfigAllowedSettings AllowedSettings { get; set; }
+    }
+  }
+
+  /// <summary>
+  /// Display model for PAM configuration allowed settings (JSON list/detail -v).
+  /// </summary>
+  [DataContract]
+  public sealed class PamConfigurationAllowedSettingsDisplay
+  {
+    [DataMember(Name = "connections", EmitDefaultValue = true)]
+    public bool? Connections { get; set; }
+
+    [DataMember(Name = "tunneling", EmitDefaultValue = true)]
+    public bool? Tunneling { get; set; }
+
+    [DataMember(Name = "rotation", EmitDefaultValue = true)]
+    public bool? Rotation { get; set; }
+
+    [DataMember(Name = "remote_browser_isolation", EmitDefaultValue = true)]
+    public bool? RemoteBrowserIsolation { get; set; }
+
+    [DataMember(Name = "connections_recording", EmitDefaultValue = true)]
+    public bool? ConnectionsRecording { get; set; }
+
+    [DataMember(Name = "typescript_recording", EmitDefaultValue = true)]
+    public bool? TypescriptRecording { get; set; }
+
+    [DataMember(Name = "ai_threat_detection", EmitDefaultValue = true)]
+    public bool? AiThreatDetection { get; set; }
+
+    [DataMember(Name = "ai_terminate_session_on_detection", EmitDefaultValue = true)]
+    public bool? AiTerminateSessionOnDetection { get; set; }
+
+    /// <summary>Converts to a dictionary for Commander JSON row payloads.</summary>
+    public Dictionary<string, object> ToDictionary()
+    {
+      return new Dictionary<string, object>
+      {
+        ["connections"] = Connections,
+        ["tunneling"] = Tunneling,
+        ["rotation"] = Rotation,
+        ["remote_browser_isolation"] = RemoteBrowserIsolation,
+        ["connections_recording"] = ConnectionsRecording,
+        ["typescript_recording"] = TypescriptRecording,
+        ["ai_threat_detection"] = AiThreatDetection,
+        ["ai_terminate_session_on_detection"] = AiTerminateSessionOnDetection,
+      };
     }
   }
 }
