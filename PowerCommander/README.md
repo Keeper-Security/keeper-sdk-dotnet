@@ -283,6 +283,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Get-KeeperPamActionJobInfo]()                          | pam-action-job-info      | Get status of a scheduled PAM gateway action job
 | [Set-KeeperPamConnection]()                             | pam-connection-edit      | Configure PAM connection settings on a resource or config
 | [Set-KeeperPamRbi]()                                    | pam-rbi-edit             | Configure PAM Remote Browser Isolation (RBI) settings
+| [Invoke-KeeperPamLaunch]()                              | pam-launch               | Run PAM launch preflight for a resource record
 
 ### EPM (Endpoint Privilege Management) Cmdlets
 | Cmdlet name                                             | Alias                    | Description
@@ -1054,4 +1055,13 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     or using the alias
     ```
     PS > pam-rbi-edit -r "<pamRemoteBrowser-uid>" -c "<pam-config-uid>" -AllowCopy off -fu on -fd on
+    ```
+
+66. Run PAM launch preflight
+    ```
+    PS > Invoke-KeeperPamLaunch -Record "<pamMachine-uid-or-title>"
+    ```
+    or using the alias
+    ```
+    PS > pam-launch -r "<pamMachine-uid-or-title>" -Credential "<pamUser>" -Gateway "<gateway-uid>"
     ```

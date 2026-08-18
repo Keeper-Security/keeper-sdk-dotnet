@@ -78,7 +78,7 @@
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
         'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
         'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1',
-        'PAM\Action.ps1', 'PAM\Connection.ps1', 'PAM\Rbi.ps1'
+        'PAM\Action.ps1', 'PAM\Connection.ps1', 'PAM\Rbi.ps1', 'PAM\Launch.ps1'
         )
 
     # Functions to export from this module
@@ -147,7 +147,7 @@
         'Get-KeeperPamRotationScript', 'Add-KeeperPamRotationScript', 'Set-KeeperPamRotationScript', 'Remove-KeeperPamRotationScript',
         'Get-KeeperPamConfig', 'New-KeeperPamConfig', 'Set-KeeperPamConfig', 'Remove-KeeperPamConfig',
         'Invoke-KeeperPamActionRotate', 'Get-KeeperPamActionJobInfo',
-        'Set-KeeperPamConnection', 'Set-KeeperPamRbi'
+        'Set-KeeperPamConnection', 'Set-KeeperPamRbi', 'Invoke-KeeperPamLaunch'
         #'Test-Keeper',
     )
 
@@ -191,7 +191,8 @@
         'pam-config-edit', 'pam-cfg-edit', 'pam-config-remove', 'pam-cfg-remove', 'pam-config-rm',
         'pam-action-rotate', 'pam-action-job-info',
         'pam-connection-edit',
-        'pam-rbi-edit')
+        'pam-rbi-edit',
+        'pam-launch')
 
     # List of all modules packaged with this module
     # ModuleList = @()

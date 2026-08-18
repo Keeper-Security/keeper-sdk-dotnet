@@ -19,7 +19,7 @@ function script:writePamActionResult {
         $conversationId = if ($null -eq $Result.ConversationId) { '' } else { $Result.ConversationId }
         $gwinfo = if ([string]::IsNullOrEmpty($Result.GatewayUid)) { '' } else { " -Gateway $($Result.GatewayUid)" }
         Write-Output "Scheduled action id: $conversationId"
-        Write-Output "The action has been scheduled, use command 'Get-KeeperPamActionJobInfo -JobId `"$conversationId`"$gwinfo' to get status of the scheduled action"
+        Write-Output "The action has been scheduled, use command 'pam-action-job-info -JobId `"$conversationId`"$gwinfo' to get status of the scheduled action"
         return
     }
 
