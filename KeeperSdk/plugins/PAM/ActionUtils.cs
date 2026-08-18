@@ -83,13 +83,9 @@ namespace KeeperSecurity.Plugins.PAM
       
       EnsureRotationAllowed(vault.Auth?.AuthContext);
 
-      if (!vault.TryGetKeeperRecord(recordUid.Trim(), out var keeperRecord) || keeperRecord is not TypedRecord record)
+      if (!PamVaultHelpers.TryGetTypedRecord(vault, recordUid.Trim(), out var record))
       {
-        record = ResolveNsfRotateRecord(vault, recordUid.Trim());
-        if (record == null)
-        {
-          throw new PamActionException($"Record [{recordUid}] is not available.");
-        }
+        throw new PamActionException($"Record [{recordUid}] is not available.");
       }
 
       RouterProto.RouterRotationInfo rotationInfo;
@@ -407,22 +403,6 @@ namespace KeeperSecurity.Plugins.PAM
         Special = 1,
       };
       return RotationUtils.EncryptPasswordComplexity(rules, recordKey).Base64UrlEncode();
-    }
-
-    private static TypedRecord ResolveNsfRotateRecord(VaultOnline vault, string identifier)
-    {
-      if (PamVaultHelpers.TryGetNsfRecord(vault, identifier, out var byUid))
-      {
-        return PamVaultHelpers.ToTypedRecord(byUid);
-      }
-
-      var byTitle = PamVaultHelpers.ResolveNsfRecordByTitle(vault, identifier, allowedTypes: null);
-      if (byTitle == null)
-      {
-        return null;
-      }
-
-      return PamVaultHelpers.ToTypedRecord(byTitle);
     }
 
     private static string FindConfigUidFromLocalVault(VaultOnline vault, string recordUid)
