@@ -8,11 +8,8 @@ using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
-using Records;
 using PamProto = PAM;
 using RouterProto = Router;
-using RecordProto = Record.V3;
-using FolderProto = Folder;
 
 namespace KeeperSecurity.Plugins.PAM
 {
@@ -257,57 +254,24 @@ namespace KeeperSecurity.Plugins.PAM
       VaultOnline vault,
       IReadOnlyList<(TypedRecord Record, string FolderUid, FolderNode Folder)> batch)
     {
-      var clientModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-      var rq = new RecordProto.RecordsAddRequest { ClientTime = clientModified };
-      var cacheEntries = new List<(TypedRecord Record, byte[] DataJson, long ClientModified)>(batch.Count);
-
+      var items = new List<(TypedRecord Record, FolderNode Folder)>(batch.Count);
       foreach (var item in batch)
       {
         item.Record.Version = PamConfigurationRecordVersion;
-        var ra = VaultOnlineFunctions.BuildNsfTypedRecordAdd(
-          vault, item.Record, item.Folder, clientModified, out var dataJson);
-        rq.Records.Add(ra);
-        cacheEntries.Add((item.Record, dataJson, clientModified));
+        items.Add((item.Record, item.Folder));
       }
 
-      var rs = await vault.Auth.ExecuteAuthRest<RecordProto.RecordsAddRequest, RecordsModifyResponse>(
-        AddPamConfigurationNsfEndpoint, rq).ConfigureAwait(false);
+      var results = await VaultOnlineFunctions.ExecuteNsfTypedRecordsAddAsync(
+        vault, AddPamConfigurationNsfEndpoint, items).ConfigureAwait(false);
 
-      var statusByUid = new Dictionary<string, RecordModifyStatus>(StringComparer.Ordinal);
-      if (rs?.Records != null)
+      foreach (var result in results)
       {
-        foreach (var status in rs.Records)
+        if (!result.Success)
         {
-          if (status.RecordUid == null || status.RecordUid.IsEmpty)
-          {
-            continue;
-          }
-
-          statusByUid[CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray())] = status;
+          throw new VaultException(string.IsNullOrEmpty(result.Message)
+            ? $"Failed to create NSF PAM configuration: {result.Status ?? "unknown error"}"
+            : $"Failed to create NSF PAM configuration: {result.Message}");
         }
-      }
-
-      foreach (var entry in cacheEntries)
-      {
-        if (statusByUid.TryGetValue(entry.Record.Uid, out var status)
-            && status.Status != RecordModifyResult.RsSuccess)
-        {
-          throw new VaultException($"Failed to create NSF PAM configuration: {status.Message}");
-        }
-
-        vault.KeeperNSFRecords[entry.Record.Uid] = new KeeperNSFRecord
-        {
-          RecordUid = entry.Record.Uid,
-          RecordKey = entry.Record.RecordKey,
-          Title = entry.Record.Title,
-          Type = entry.Record.TypeName,
-          Notes = entry.Record.Notes,
-          Version = entry.Record.Version,
-          Revision = 0,
-          ClientModifiedTime = entry.ClientModified,
-          DataJson = entry.DataJson,
-          Data = JsonUtils.ParseJson<NsfRecordData>(entry.DataJson),
-        };
       }
     }
 

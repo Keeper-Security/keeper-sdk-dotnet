@@ -647,7 +647,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
-/// <summary>
+    /// <summary>
     /// Phrases from set_record_rotation when NSF revision is wrong.
     /// </summary>
     public static bool IsUnsupportedRotationRevisionError(string message)
@@ -668,7 +668,7 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
-private static readonly string[] UnsupportedRotationRevisionMarkers =
+    private static readonly string[] UnsupportedRotationRevisionMarkers =
     {
       "mismatched_revision_blocking_update",
       "revision does not correspond to the rotation entry",
@@ -849,12 +849,7 @@ private static readonly string[] UnsupportedRotationRevisionMarkers =
         return true;
       }
 
-      // Fallback: scan in case dictionary lookup missed a matching UID.
-      record = vault.KeeperRecords?
-        .OfType<TypedRecord>()
-        .Where(x => !string.IsNullOrEmpty(x.Uid))
-        .FirstOrDefault(x => string.Equals(x.Uid, recordUid, StringComparison.Ordinal));
-      return record != null;
+      return false;
     }
 
     /// <summary>

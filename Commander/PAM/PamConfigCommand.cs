@@ -503,7 +503,7 @@ namespace Commander.PAM
         ["name"] = config.Title,
         ["config_type"] = config.TypeName,
         ["gateway_uid"] = facade.ControllerUid ?? "",
-        ["gateway_name"] = config.Title ?? "",
+        ["gateway_name"] = ResolveGatewayName(facade.ControllerUid),
         ["resource_record_uids"] = facade.ResourceRef,
         ["fields"] = ExtractDetailJsonFields(config),
       };
@@ -522,6 +522,17 @@ namespace Commander.PAM
       }
 
       return row;
+    }
+
+    private string ResolveGatewayName(string controllerUid)
+    {
+      if (Plugin == null || string.IsNullOrWhiteSpace(controllerUid))
+      {
+        return "";
+      }
+
+      var gateway = GatewayUtils.FindGateway(Plugin.Controllers.GetAll(), controllerUid);
+      return gateway?.ControllerName ?? "";
     }
 
     private static object[] BuildConfigTableRow(
