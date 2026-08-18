@@ -106,8 +106,7 @@ function Invoke-KeeperPamActionRotate {
     )
 
     if ([string]::IsNullOrWhiteSpace($RecordUid) -and [string]::IsNullOrWhiteSpace($Folder)) {
-        Write-Output '-RecordUid or -Folder is required. Usage: Invoke-KeeperPamActionRotate -RecordUid <uid> | -Folder <folder>'
-        return
+        Write-Error -Message '-RecordUid or -Folder is required. Usage: Invoke-KeeperPamActionRotate -RecordUid <uid> | -Folder <folder>' -ErrorAction Stop
     }
 
     $vault = getVault
@@ -132,15 +131,10 @@ function Invoke-KeeperPamActionRotate {
     $options.Folder = $Folder
     $options.DryRun = $DryRun.IsPresent
 
-    try {
-        $result = [KeeperSecurity.Plugins.PAM.ActionUtils]::RotateAsync($vault, $options).GetAwaiter().GetResult()
+    $result = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.ActionUtils]::RotateAsync($vault, $options).GetAwaiter().GetResult()
     }
-    catch [KeeperSecurity.Plugins.PAM.PamException] {
-        Write-Output $_.Exception.Message
-        return
-    }
-    catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
+    if ($null -eq $result) {
         return
     }
 
@@ -194,9 +188,7 @@ function Get-KeeperPamActionJobInfo {
     )
 
     if ([string]::IsNullOrWhiteSpace($JobId)) {
-        Write-Output 'JobId is required. Usage: Get-KeeperPamActionJobInfo -JobId "<job_id>" [-Gateway UID]'
-        Write-Output "Tip: quote job ids that contain '/'."
-        return
+        Write-Error -Message "JobId is required. Usage: Get-KeeperPamActionJobInfo -JobId `"<job_id>`" [-Gateway UID]`nTip: quote job ids that contain '/'." -ErrorAction Stop
     }
 
     $vault = getVault
@@ -206,17 +198,14 @@ function Get-KeeperPamActionJobInfo {
 
     $trimmedJobId = $JobId.Trim()
     Write-Output ("Job id to check [{0}]" -f $trimmedJobId)
-    try {
-        $result = [KeeperSecurity.Plugins.PAM.ActionUtils]::GetJobInfoAsync(
+    $result = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.ActionUtils]::GetJobInfoAsync(
             $vault.Auth, $trimmedJobId, $Gateway).GetAwaiter().GetResult()
-        writePamActionResult -Result $result -PrintJobDetails $true
     }
-    catch [KeeperSecurity.Plugins.PAM.PamException] {
-        Write-Output $_.Exception.Message
+    if ($null -eq $result) {
+        return
     }
-    catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
-    }
+    writePamActionResult -Result $result -PrintJobDetails $true
 }
 
 New-Alias -Name pam-action-rotate -Value Invoke-KeeperPamActionRotate -ErrorAction SilentlyContinue

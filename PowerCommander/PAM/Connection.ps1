@@ -123,8 +123,7 @@ function Set-KeeperPamConnection {
     )
 
     if ([string]::IsNullOrWhiteSpace($Record)) {
-        Write-Output 'Record is required. Usage: Set-KeeperPamConnection -Record <record> [-Configuration UID] [options]'
-        return
+        Write-Error -Message 'Record is required. Usage: Set-KeeperPamConnection -Record <record> [-Configuration UID] [options]' -ErrorAction Stop
     }
 
     $vault = getVault
@@ -144,16 +143,11 @@ function Set-KeeperPamConnection {
         }
     }
 
-    try {
-        $result = [KeeperSecurity.Plugins.PAM.ConnectionUtils]::EditConnectionAsync(
+    $result = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.ConnectionUtils]::EditConnectionAsync(
             $vault, $options).GetAwaiter().GetResult()
     }
-    catch [KeeperSecurity.Plugins.PAM.PamException] {
-        Write-Output $_.Exception.Message
-        return
-    }
-    catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
+    if ($null -eq $result) {
         return
     }
 

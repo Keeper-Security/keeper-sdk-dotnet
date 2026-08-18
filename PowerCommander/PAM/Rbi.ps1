@@ -178,8 +178,7 @@ function Set-KeeperPamRbi {
     )
 
     if ([string]::IsNullOrWhiteSpace($Record)) {
-        Write-Output 'Record is required. Usage: Set-KeeperPamRbi -Record <UID> [-Configuration UID] [options]'
-        return
+        Write-Error -Message 'Record is required. Usage: Set-KeeperPamRbi -Record <UID> [-Configuration UID] [options]' -ErrorAction Stop
     }
 
     $vault = getVault
@@ -207,16 +206,11 @@ function Set-KeeperPamRbi {
         }
     }
 
-    try {
-        $result = [KeeperSecurity.Plugins.PAM.RbiUtils]::EditRbiAsync(
+    $result = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.RbiUtils]::EditRbiAsync(
             $vault, $options).GetAwaiter().GetResult()
     }
-    catch [KeeperSecurity.Plugins.PAM.PamException] {
-        Write-Output $_.Exception.Message
-        return
-    }
-    catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
+    if ($null -eq $result) {
         return
     }
 

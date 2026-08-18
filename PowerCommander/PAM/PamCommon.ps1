@@ -175,6 +175,33 @@ function script:writePamEditResult {
     }
 }
 
+function script:invokePamSdkCall {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [scriptblock] $Action
+    )
+
+    try {
+        return & $Action
+    }
+    catch [KeeperSecurity.Plugins.PAM.PamException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [System.InvalidOperationException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [KeeperSecurity.Vault.VaultException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [KeeperSecurity.Authentication.KeeperApiException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+}
+
 function script:confirmPamYesNo {
     Param (
         [Parameter(Mandatory = $true)]
