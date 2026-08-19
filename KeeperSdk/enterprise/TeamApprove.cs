@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 
@@ -152,8 +153,7 @@ namespace KeeperSecurity.Enterprise
                     .Where(u => u.UserStatus == UserStatus.Active)
                     .ToDictionary(u => u.Id, u => u);
 
-                var eligibleTeamUids = knownTeamUids
-                    .Concat(addedTeamKeys.Keys)
+                var eligibleTeamUids = queuedTeamData.GetTeamUidsWithQueuedUsers()
                     .Distinct(StringComparer.Ordinal)
                     .Where(uid => (queuedTeamData.GetQueuedUsersForTeam(uid) ?? Enumerable.Empty<long>()).Any())
                     .ToArray();
@@ -249,7 +249,7 @@ namespace KeeperSecurity.Enterprise
                 }))
                 {
                     var success = item.Response?.IsSuccess == true;
-                    var isTeam = string.Equals(item.Command.command, "team_add", StringComparison.Ordinal);
+                    var isTeam = item.Command is TeamAddCommand;
                     if (isTeam)
                     {
                         if (success) result.TeamsApproved++;

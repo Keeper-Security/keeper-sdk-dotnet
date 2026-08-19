@@ -3656,6 +3656,8 @@ namespace Commander
             }
         }
 
+        // Shared formatter used by enterprise sub-commands (table/csv/json).
+        // Kept `internal` to avoid duplicating output formatting logic across command modules.
         internal static void WriteFormattedOutput(System.IO.TextWriter writer, string format, string[] headerRow, List<object[]> rows, List<Dictionary<string, object>> jsonData)
         {
             switch (format)

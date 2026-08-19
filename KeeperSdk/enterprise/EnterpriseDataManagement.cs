@@ -394,12 +394,20 @@ namespace KeeperSecurity.Enterprise
         {
             if (Enterprise.Auth.AuthContext.ForbidKeyType2)
             {
+                if (userKeys.EcPublicKey == null)
+                {
+                    throw new KeeperApiException("public_key_error", "Missing EC public key for user");
+                }
                 var ecKey = CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey);
                 cmd.TeamKey = CryptoUtils.EncryptEc(teamKey, ecKey).Base64UrlEncode();
                 cmd.TeamKeyType = "encrypted_by_public_key_ecc";
             }
             else
             {
+                if (userKeys.RsaPublicKey == null)
+                {
+                    throw new KeeperApiException("public_key_error", "Missing RSA public key for user");
+                }
                 var rsaKey = CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey);
                 cmd.TeamKey = CryptoUtils.EncryptRsa(teamKey, rsaKey).Base64UrlEncode();
                 cmd.TeamKeyType = "encrypted_by_public_key";

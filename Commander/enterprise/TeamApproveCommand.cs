@@ -53,6 +53,14 @@ namespace Commander
                 return;
             }
 
+            var format = (arguments.Format ?? "table").ToLowerInvariant();
+            if (format != "table" && format != "csv" && format != "json")
+            {
+                Console.WriteLine($"Invalid value for --format: \"{arguments.Format}\". Use table, csv, or json.");
+                return;
+            }
+            arguments.Format = format;
+
             var approveTeams = !arguments.Team && !arguments.Email || arguments.Team;
             var approveUsers = !arguments.Team && !arguments.Email || arguments.Email;
 
