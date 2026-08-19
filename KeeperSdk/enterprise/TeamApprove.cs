@@ -122,6 +122,9 @@ namespace KeeperSecurity.Enterprise
             var addedTeamKeys = new Dictionary<string, byte[]>();
             var teamNames = Teams.ToDictionary(t => t.Uid, t => t.Name, StringComparer.Ordinal);
             var knownTeamUids = new HashSet<string>(Teams.Select(t => t.Uid), StringComparer.Ordinal);
+            var pendingQueuedTeamUids = new HashSet<string>(
+                queuedTeamData.QueuedTeams.Select(t => t.Uid),
+                StringComparer.Ordinal);
 
             foreach (var queuedTeam in queuedTeamData.QueuedTeams)
             {
@@ -177,7 +180,15 @@ namespace KeeperSecurity.Enterprise
                         : TryGetTeam(teamUid, out var team) ? team.TeamKey : null;
                     if (teamKey == null)
                     {
-                        options.Warnings?.Invoke($"Team \"{LookupTeamName(teamNames, teamUid)}\" does not have an encryption key.");
+                        var teamName = LookupTeamName(teamNames, teamUid);
+                        if (!options.ApproveTeams && pendingQueuedTeamUids.Contains(teamUid) && !knownTeamUids.Contains(teamUid))
+                        {
+                            options.Warnings?.Invoke($"Team \"{teamName}\" is still queued. Approve teams first.");
+                        }
+                        else
+                        {
+                            options.Warnings?.Invoke($"Team \"{teamName}\" does not have an encryption key.");
+                        }
                         continue;
                     }
 

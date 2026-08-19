@@ -33,7 +33,7 @@ namespace Commander
         [Option("format", Required = false, Default = "table", HelpText = "Output format for --dry-run: table, csv, json")]
         public string Format { get; set; }
 
-        [Option("output", Required = false, HelpText = "Output file for --dry-run (csv or json).")]
+        [Option("output", Required = false, HelpText = "Output file for --dry-run when --format is csv or json.")]
         public string Output { get; set; }
     }
 
@@ -53,16 +53,8 @@ namespace Commander
                 return;
             }
 
-            var format = (arguments.Format ?? "table").ToLowerInvariant();
-            if (format != "table" && format != "csv" && format != "json")
-            {
-                Console.WriteLine($"Invalid value for --format: \"{arguments.Format}\". Use table, csv, or json.");
-                return;
-            }
-            arguments.Format = format;
-
-            var approveTeams = !arguments.Team && !arguments.Email || arguments.Team;
-            var approveUsers = !arguments.Team && !arguments.Email || arguments.Email;
+            var approveTeams = (!arguments.Team && !arguments.Email) || arguments.Team;
+            var approveUsers = (!arguments.Team && !arguments.Email) || arguments.Email;
 
             var result = await context.EnterpriseData.ApproveQueuedTeams(context.QueuedTeamManagement, new TeamApproveOptions
             {
@@ -83,7 +75,12 @@ namespace Commander
 
             if (arguments.DryRun)
             {
-                WriteDryRunOutput(arguments, result.Actions);
+                if (!TryResolveDryRunFormat(arguments, out var format))
+                {
+                    return;
+                }
+
+                WriteDryRunOutput(arguments, format, result.Actions);
                 return;
             }
 
@@ -115,9 +112,25 @@ namespace Commander
             return false;
         }
 
-        private static void WriteDryRunOutput(TeamApproveCommandOptions arguments, IReadOnlyList<TeamApproveAction> actions)
+        private static bool TryResolveDryRunFormat(TeamApproveCommandOptions arguments, out string format)
         {
-            var format = arguments.Format?.ToLowerInvariant() ?? "table";
+            format = (arguments.Format ?? "table").ToLowerInvariant();
+            if (format != "table" && format != "csv" && format != "json")
+            {
+                Console.WriteLine($"Invalid value for --format: \"{arguments.Format}\". Use table, csv, or json.");
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(arguments.Output) && format == "table")
+            {
+                Console.WriteLine("Output file is ignored for table format. Use csv or json.");
+            }
+
+            return true;
+        }
+
+        private static void WriteDryRunOutput(TeamApproveCommandOptions arguments, string format, IReadOnlyList<TeamApproveAction> actions)
+        {
             var headers = new[] { "Action", "Team", "User" };
             var rows = actions
                 .Select(a => new object[] { a.Action, a.TeamName ?? a.TeamUid, a.UserEmail ?? "" })
@@ -129,11 +142,18 @@ namespace Commander
                 ["user"] = a.UserEmail ?? "",
             }).ToList();
 
-            if (!string.IsNullOrEmpty(arguments.Output))
+            if (!string.IsNullOrEmpty(arguments.Output) && format != "table")
             {
-                using var writer = new StreamWriter(arguments.Output);
-                EnterpriseExtensions.WriteFormattedOutput(writer, format, headers, rows, jsonData);
-                Console.WriteLine($"Output written to {arguments.Output}");
+                try
+                {
+                    using var writer = new StreamWriter(arguments.Output);
+                    EnterpriseExtensions.WriteFormattedOutput(writer, format, headers, rows, jsonData);
+                    Console.WriteLine($"Output written to {arguments.Output}");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to write output to \"{arguments.Output}\": {e.Message}");
+                }
                 return;
             }
 
