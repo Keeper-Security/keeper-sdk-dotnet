@@ -727,17 +727,9 @@ namespace KeeperSecurity.Plugins.PAM
 
       foreach (var field in record.Fields)
       {
-        if (field == null)
-        {
-          continue;
-        }
-
-        if (!string.Equals(field.Type, "text", StringComparison.OrdinalIgnoreCase))
-        {
-          continue;
-        }
-
-        if (!string.Equals(field.Label, "NOOP", StringComparison.OrdinalIgnoreCase))
+        if (field == null
+            || !string.Equals(field.Type, "text", StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(field.Label, "NOOP", StringComparison.OrdinalIgnoreCase))
         {
           continue;
         }
