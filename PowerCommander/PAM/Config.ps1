@@ -1065,7 +1065,7 @@ function Get-KeeperPamConfig {
             }
         }
         if (-not $inSharedFolder) {
-            [void]$nsfLines.Add(("Warning: Following configuration is not in the shared folder: UID: {0}, Title: {1}" -f $uid, [string]$item.Title))
+            [void]$nsfLines.Add(("Warning: Following configuration has no folder: UID: {0}, Title: {1}" -f $uid, [string]$item.Title))
             continue
         }
 

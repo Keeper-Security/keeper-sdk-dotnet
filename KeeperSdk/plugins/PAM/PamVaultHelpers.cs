@@ -355,7 +355,7 @@ namespace KeeperSecurity.Plugins.PAM
       return TryGetConfigurationFolderInfo(vault, config, out _);
     }
 
-    public static void WarnConfigurationNotInSharedFolder(TypedRecord config)
+    public static void WarnConfigurationHasNoFolder(TypedRecord config)
     {
       if (config == null)
       {
@@ -363,7 +363,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       Console.WriteLine(
-        $"Warning: Following configuration is not in the shared folder: UID: {config.Uid}, Title: {config.Title}");
+        $"Warning: Following configuration has no folder: UID: {config.Uid}, Title: {config.Title}");
     }
 
     /// <summary>

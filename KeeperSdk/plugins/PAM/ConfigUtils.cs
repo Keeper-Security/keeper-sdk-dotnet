@@ -427,7 +427,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"PAM config allowedSettings: {ex.Message}");
+        Trace.TraceWarning("PAM config allowedSettings: {0}", ex.Message);
       }
 
       return empty;

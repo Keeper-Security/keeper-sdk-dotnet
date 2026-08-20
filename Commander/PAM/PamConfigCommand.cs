@@ -144,7 +144,7 @@ namespace Commander.PAM
         return folder;
       }
 
-      PamVaultHelpers.WarnConfigurationNotInSharedFolder(config);
+      PamVaultHelpers.WarnConfigurationHasNoFolder(config);
       return null;
     }
 
