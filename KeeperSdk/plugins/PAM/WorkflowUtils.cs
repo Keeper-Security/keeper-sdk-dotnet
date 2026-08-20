@@ -163,8 +163,7 @@ namespace KeeperSecurity.Plugins.PAM
       if (string.IsNullOrWhiteSpace(durationStr))
       {
         throw new ArgumentException(
-          "Invalid duration format. Use a positive value like \"2h\", \"30m\", or \"1d\"",
-          nameof(durationStr));
+          "Invalid duration format. Use a positive value like \"2h\", \"30m\", \"1d\", or bare minutes (e.g. \"90\")");
       }
 
       var normalized = durationStr.Trim().ToLowerInvariant();
@@ -179,7 +178,7 @@ namespace KeeperSecurity.Plugins.PAM
         if (!int.TryParse(numberPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) || value <= 0)
         {
           throw new ArgumentException(
-            $"Invalid duration format: {durationStr}. Use a positive value like \"2h\", \"30m\", or \"1d\"");
+            $"Invalid duration format: {durationStr}. Use a positive value like \"2h\", \"30m\", \"1d\", or bare minutes (e.g. \"90\")");
         }
 
         return value * pair.Value;
@@ -188,7 +187,7 @@ namespace KeeperSecurity.Plugins.PAM
       if (!int.TryParse(normalized, NumberStyles.Integer, CultureInfo.InvariantCulture, out var minutes) || minutes <= 0)
       {
         throw new ArgumentException(
-          $"Invalid duration format: {durationStr}. Use a positive value like \"2h\", \"30m\", or \"1d\"");
+          $"Invalid duration format: {durationStr}. Use a positive value like \"2h\", \"30m\", \"1d\", or bare minutes (e.g. \"90\")");
       }
 
       return minutes * 60_000L;
@@ -252,21 +251,17 @@ namespace KeeperSecurity.Plugins.PAM
           return hasBlocking ? "Waiting" : "Ready to Start";
         }
 
-        if (status.ApprovedBy.Count > 0 && status.StartedOn == 0)
-        {
-          return "Ready to Start";
-        }
-
         if (status.StartedOn == 0 && status.ApprovedBy.Count == 0)
         {
           return "Needs Action";
         }
+
+        // Approved-but-not-started, or StartedOn != 0 while stage is still WS_READY_TO_START.
+        return "Ready to Start";
       }
 
       switch (status.Stage)
       {
-        case WorkflowStage.WsReadyToStart:
-          return "Ready to Start";
         case WorkflowStage.WsStarted:
           return "Started";
         case WorkflowStage.WsNeedsAction:
@@ -394,11 +389,21 @@ namespace KeeperSecurity.Plugins.PAM
 
         var startStr = timeRangeStr.Substring(0, dash).Trim();
         var endStr = timeRangeStr.Substring(dash + 1).Trim();
+        var startHhmm = ParseTimeToHhmm(startStr);
+        var endHhmm = ParseTimeToHhmm(endStr);
+        if (startHhmm >= endHhmm)
+        {
+          throw new ArgumentException(
+            $"End time must be after start time (got \"{startStr}-{endStr}\"). "
+            + "Same-day ranges only; overnight windows must be split "
+            + "(e.g. 22:00-23:59 and 00:00-06:00).");
+        }
+
         temporal.TimeRanges.Clear();
         temporal.TimeRanges.Add(new TimeOfDayRange
         {
-          StartTime = ParseTimeToHhmm(startStr),
-          EndTime = ParseTimeToHhmm(endStr),
+          StartTime = startHhmm,
+          EndTime = endHhmm,
         });
       }
 
@@ -430,16 +435,10 @@ namespace KeeperSecurity.Plugins.PAM
       string recordName = null)
     {
       var refMsg = RecordRef(recordUid, recordName);
-      var rsBytes = await ExecuteRouterAsync(
-        auth, ReadWorkflowConfigPath, refMsg, nameof(ReadWorkflowConfigAsync));
+      var config = await auth.ExecuteRouter<WorkflowConfig>(ReadWorkflowConfigPath, refMsg);
 
-      if (rsBytes == null || rsBytes.Length == 0)
-      {
-        return null;
-      }
-
-      var config = WorkflowConfig.Parser.ParseFrom(rsBytes);
-      if (config.Parameters == null && config.Approvers.Count == 0 && config.CreatedOn == 0)
+      if (config == null
+          || (config.Parameters == null && config.Approvers.Count == 0 && config.CreatedOn == 0))
       {
         return null;
       }
@@ -454,8 +453,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(parameters));
       }
 
-      await ExecuteRouterAsync(
-        auth, CreateWorkflowConfigPath, parameters, nameof(CreateWorkflowConfigAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(CreateWorkflowConfigPath, parameters, null);
     }
 
     public static async Task UpdateWorkflowConfigAsync(IAuthentication auth, WorkflowParameters parameters)
@@ -465,8 +463,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(parameters));
       }
 
-      await ExecuteRouterAsync(
-        auth, UpdateWorkflowConfigPath, parameters, nameof(UpdateWorkflowConfigAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(UpdateWorkflowConfigPath, parameters, null);
     }
 
     public static async Task DeleteWorkflowConfigAsync(
@@ -475,8 +472,7 @@ namespace KeeperSecurity.Plugins.PAM
       string recordName = null)
     {
       var refMsg = RecordRef(recordUid, recordName);
-      await ExecuteRouterAsync(
-        auth, DeleteWorkflowConfigPath, refMsg, nameof(DeleteWorkflowConfigAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowConfigPath, refMsg, null);
     }
 
     public static async Task AddWorkflowApproversAsync(
@@ -494,8 +490,7 @@ namespace KeeperSecurity.Plugins.PAM
         return;
       }
 
-      await ExecuteRouterAsync(
-        auth, AddWorkflowApproversPath, config, nameof(AddWorkflowApproversAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(AddWorkflowApproversPath, config, null);
     }
 
     public static async Task DeleteWorkflowApproversAsync(
@@ -511,21 +506,12 @@ namespace KeeperSecurity.Plugins.PAM
         return;
       }
 
-      await ExecuteRouterAsync(
-        auth, DeleteWorkflowApproversPath, config, nameof(DeleteWorkflowApproversAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowApproversPath, config, null);
     }
 
     public static async Task<ApprovalRequests> GetApprovalRequestsAsync(IAuthentication auth)
     {
-      var rsBytes = await ExecuteRouterAsync(
-        auth, GetApprovalRequestsPath, null, nameof(GetApprovalRequestsAsync));
-
-      if (rsBytes == null || rsBytes.Length == 0)
-      {
-        return null;
-      }
-
-      return ApprovalRequests.Parser.ParseFrom(rsBytes);
+      return await auth.ExecuteRouter<ApprovalRequests>(GetApprovalRequestsPath);
     }
 
     public static async Task<WorkflowState> GetWorkflowStateByFlowAsync(
@@ -538,15 +524,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
 
       var request = new WorkflowState { FlowUid = flowUid };
-      var rsBytes = await ExecuteRouterAsync(
-        auth, GetWorkflowStatePath, request, nameof(GetWorkflowStateByFlowAsync));
-
-      if (rsBytes == null || rsBytes.Length == 0)
-      {
-        return null;
-      }
-
-      return WorkflowState.Parser.ParseFrom(rsBytes);
+      return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
 
     public static async Task ApproveWorkflowAccessAsync(IAuthentication auth, byte[] flowUidBytes)
@@ -583,8 +561,7 @@ namespace KeeperSecurity.Plugins.PAM
         approval.DenialReason = denialReasonEncrypted;
       }
 
-      await ExecuteRouterAsync(
-        auth, ApproveOrDenyWorkflowAccessPath, approval, nameof(ApproveOrDenyWorkflowAccessAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(ApproveOrDenyWorkflowAccessPath, approval, null);
     }
 
     public static async Task<WorkflowState> GetWorkflowStateByRecordAsync(
@@ -596,28 +573,12 @@ namespace KeeperSecurity.Plugins.PAM
       {
         Resource = RecordRef(recordUid, recordName),
       };
-      var rsBytes = await ExecuteRouterAsync(
-        auth, GetWorkflowStatePath, request, nameof(GetWorkflowStateByRecordAsync));
-
-      if (rsBytes == null || rsBytes.Length == 0)
-      {
-        return null;
-      }
-
-      return WorkflowState.Parser.ParseFrom(rsBytes);
+      return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
 
     public static async Task<UserAccessState> GetUserAccessStateAsync(IAuthentication auth)
     {
-      var rsBytes = await ExecuteRouterAsync(
-        auth, GetUserAccessStatePath, null, nameof(GetUserAccessStateAsync));
-
-      if (rsBytes == null || rsBytes.Length == 0)
-      {
-        return null;
-      }
-
-      return UserAccessState.Parser.ParseFrom(rsBytes);
+      return await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
     }
 
     public static async Task RequestWorkflowAccessAsync(
@@ -652,8 +613,7 @@ namespace KeeperSecurity.Plugins.PAM
           CryptoUtils.EncryptAesV2(System.Text.Encoding.UTF8.GetBytes(ticket), recordKey));
       }
 
-      await ExecuteRouterAsync(
-        auth, RequestWorkflowAccessPath, accessRequest, nameof(RequestWorkflowAccessAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(RequestWorkflowAccessPath, accessRequest, null);
     }
 
     public static async Task RequestEscalationAsync(
@@ -665,8 +625,7 @@ namespace KeeperSecurity.Plugins.PAM
       {
         Resource = RecordRef(recordUid, recordName),
       };
-      await ExecuteRouterAsync(
-        auth, RequestEscalationPath, state, nameof(RequestEscalationAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(RequestEscalationPath, state, null);
     }
 
     public static async Task StartWorkflowAsync(IAuthentication auth, WorkflowState state)
@@ -676,8 +635,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(state));
       }
 
-      await ExecuteRouterAsync(
-        auth, StartWorkflowPath, state, nameof(StartWorkflowAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(StartWorkflowPath, state, null);
     }
 
     public static async Task EndWorkflowAsync(IAuthentication auth, GraphSyncRef flowOrResourceRef)
@@ -687,8 +645,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(flowOrResourceRef));
       }
 
-      await ExecuteRouterAsync(
-        auth, EndWorkflowPath, flowOrResourceRef, nameof(EndWorkflowAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(EndWorkflowPath, flowOrResourceRef, null);
     }
 
     public static async Task ForceCheckinAsync(IAuthentication auth, GraphSyncRef flowOrResourceRef)
@@ -698,8 +655,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(flowOrResourceRef));
       }
 
-      await ExecuteRouterAsync(
-        auth, ForceCheckinPath, flowOrResourceRef, nameof(ForceCheckinAsync));
+      await auth.ExecuteRouter<IMessage, IMessage>(ForceCheckinPath, flowOrResourceRef, null);
     }
 
     public static async Task<ByteString> TryEncryptDenialReasonAsync(
@@ -758,7 +714,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"TryEncryptDenialReasonAsync failed: {ex}");
+        Trace.TraceWarning($"TryEncryptDenialReasonAsync failed: {ex}");
         return null;
       }
 
@@ -810,7 +766,11 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"IsWorkflowExemptAsync failed for record {record.Uid}: {ex}");
+        Trace.TraceWarning(
+          $"IsWorkflowExemptAsync failed for record {record.Uid}: {ex.Message}. " +
+          "Treating user as not exempt.");
+        Console.Error.WriteLine(
+          "Warning: could not verify workflow exemption; continuing with the normal request flow.");
         return false;
       }
 
@@ -846,19 +806,13 @@ namespace KeeperSecurity.Plugins.PAM
         unique.Add(wf);
       }
 
-      if (unique.Count == 0)
-      {
-        return unique;
-      }
-
-      var alreadyApproved = await Task.WhenAll(
-        unique.Select(wf => IsAlreadyApprovedByUserAsync(auth, wf, currentUsername)));
+      // Match Python Commander: check approval state one flow at a time (sequential).
       var pending = new List<WorkflowProcess>();
-      for (var i = 0; i < unique.Count; i++)
+      foreach (var wf in unique)
       {
-        if (!alreadyApproved[i])
+        if (!await IsAlreadyApprovedByUserAsync(auth, wf, currentUsername).ConfigureAwait(false))
         {
-          pending.Add(unique[i]);
+          pending.Add(wf);
         }
       }
 
@@ -877,7 +831,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       try
       {
-        var state = await GetWorkflowStateByFlowAsync(auth, process.FlowUid);
+        var state = await GetWorkflowStateByFlowAsync(auth, process.FlowUid).ConfigureAwait(false);
         if (state?.Status?.ApprovedBy == null || state.Status.ApprovedBy.Count == 0)
         {
           return false;
@@ -888,7 +842,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"IsAlreadyApprovedByUserAsync failed: {ex}");
+        Trace.TraceWarning($"IsAlreadyApprovedByUserAsync failed: {ex}");
         return false;
       }
     }
@@ -930,7 +884,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"DecryptWorkflowParameter failed: {ex}");
+        Trace.TraceWarning($"DecryptWorkflowParameter failed: {ex}");
         return "Unable to decrypt";
       }
     }
@@ -994,33 +948,6 @@ namespace KeeperSecurity.Plugins.PAM
       return config;
     }
 
-    private static async Task<byte[]> ExecuteRouterAsync(
-      IAuthentication auth,
-      string path,
-      IMessage request,
-      string methodName)
-    {
-      if (auth == null)
-      {
-        throw new ArgumentNullException(nameof(auth));
-      }
-
-      if (auth.AuthContext?.SessionToken == null || auth.AuthContext.SessionToken.Length == 0)
-      {
-        throw new InvalidOperationException("A valid session is required.");
-      }
-
-      if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
-      {
-        throw new InvalidOperationException($"Endpoint must be KeeperEndpoint to use {methodName}");
-      }
-
-      return await keeperEndpoint.ExecuteRouterRest(
-        path,
-        auth.AuthContext.SessionToken,
-        request?.ToByteArray());
-    }
-
     private static bool FlowUidEquals(ByteString flowUid, byte[] flowUidBytes)
     {
       if (flowUid == null || flowUid.IsEmpty || flowUidBytes == null || flowUidBytes.Length == 0)
@@ -1055,29 +982,34 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static string GetLocalIanaTimezone()
     {
-      var tz = Environment.GetEnvironmentVariable("TZ");
-      if (IsIanaTimezone(tz))
+      var tz = TryNormalizeIanaTimezone(Environment.GetEnvironmentVariable("TZ"));
+      if (tz != null)
       {
         return tz;
       }
 
 #if NET8_0_OR_GREATER
       if (TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var iana)
-          && IsIanaTimezone(iana))
+          && TryNormalizeIanaTimezone(iana) != null)
       {
         return iana;
       }
 #endif
 
       var localId = TimeZoneInfo.Local.Id;
-      if (IsIanaTimezone(localId))
+      var localIana = TryNormalizeIanaTimezone(localId);
+      if (localIana != null)
       {
-        return localId;
+        return localIana;
       }
 
-      if (WindowsToIana.TryGetValue(localId, out var mapped) && IsIanaTimezone(mapped))
+      if (WindowsToIana.TryGetValue(localId, out var mapped))
       {
-        return mapped;
+        var mappedIana = TryNormalizeIanaTimezone(mapped);
+        if (mappedIana != null)
+        {
+          return mappedIana;
+        }
       }
 
       throw new InvalidOperationException(
@@ -1085,20 +1017,89 @@ namespace KeeperSecurity.Plugins.PAM
         "(e.g., TZ=America/New_York or TZ=Asia/Kolkata).");
     }
 
-    private static bool IsIanaTimezone(string tz)
+    /// <summary>
+    /// Returns a canonical IANA timezone id, or null if the value is empty, a TZ path, or not IANA-shaped.
+    /// </summary>
+    private static string TryNormalizeIanaTimezone(string tz)
     {
+      if (string.IsNullOrWhiteSpace(tz))
+      {
+        return null;
+      }
+
+      tz = tz.Trim();
+      if (tz[0] == ':')
+      {
+        tz = tz.Substring(1).Trim();
+      }
+
       if (string.IsNullOrEmpty(tz))
       {
-        return false;
+        return null;
       }
 
-      if (tz.IndexOf('/') >= 0)
+      if (string.Equals(tz, "UTC", StringComparison.OrdinalIgnoreCase)
+          || string.Equals(tz, "GMT", StringComparison.OrdinalIgnoreCase))
       {
-        return true;
+        return tz.ToUpperInvariant();
       }
 
-      return string.Equals(tz, "UTC", StringComparison.OrdinalIgnoreCase)
-             || string.Equals(tz, "GMT", StringComparison.OrdinalIgnoreCase);
+      if (tz[0] == '/' || tz[0] == '\\'
+          || tz.IndexOf('\\') >= 0
+          || tz.IndexOf("..", StringComparison.Ordinal) >= 0
+          || tz.IndexOf("zoneinfo", StringComparison.OrdinalIgnoreCase) >= 0)
+      {
+        return null;
+      }
+
+      var slash = tz.IndexOf('/');
+      if (slash <= 0 || slash == tz.Length - 1)
+      {
+        return null;
+      }
+
+      for (var i = 0; i < tz.Length; i++)
+      {
+        var c = tz[i];
+        if (c == '/' || c == '_' || c == '-' || c == '+' || char.IsLetterOrDigit(c))
+        {
+          continue;
+        }
+
+        return null;
+      }
+
+      var parts = tz.Split('/');
+      if (parts.Length < 2)
+      {
+        return null;
+      }
+
+      foreach (var part in parts)
+      {
+        if (string.IsNullOrEmpty(part))
+        {
+          return null;
+        }
+      }
+
+#if NET8_0_OR_GREATER
+      try
+      {
+        TimeZoneInfo.FindSystemTimeZoneById(tz);
+      }
+      catch (TimeZoneNotFoundException)
+      {
+        // Well-formed IANA ids are still accepted for TZ overrides on hosts
+        // that do not ship that zone; path-shaped values were already rejected.
+      }
+      catch (InvalidTimeZoneException)
+      {
+        return null;
+      }
+#endif
+
+      return tz;
     }
 
     private static readonly Dictionary<string, string> WindowsToIana =

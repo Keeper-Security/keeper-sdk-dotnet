@@ -42,90 +42,97 @@ namespace Commander.PAM
           $"Invalid pam-workflow command arguments. Available commands: {AvailableCommands}");
       }
 
-      var command = string.IsNullOrEmpty(options.Command) ? string.Empty : options.Command.Trim().ToLowerInvariant();
-      if (string.IsNullOrEmpty(command))
+      try
       {
-        throw new InvalidOperationException($"Missing subcommand. Available: {AvailableCommands}");
-      }
+        var command = string.IsNullOrEmpty(options.Command) ? string.Empty : options.Command.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(command))
+        {
+          throw new InvalidOperationException($"Missing subcommand. Available: {AvailableCommands}");
+        }
 
-      if (!string.IsNullOrEmpty(options.Format)
-          && !string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase)
-          && !string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
-      {
-        throw new InvalidOperationException("Output format must be table or json");
-      }
+        if (!string.IsNullOrEmpty(options.Format)
+            && !string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+        {
+          throw new InvalidOperationException("Output format must be table or json");
+        }
 
-      if (AdminVerbs.Contains(command) && !WorkflowUtils.CanManageWorkflowSettings(Context.Enterprise.Auth))
-      {
-        Console.WriteLine();
-        Console.WriteLine("You do not have permission to manage workflow settings.");
-        Console.WriteLine(
-          $"The '{command}' command requires the 'Can manage workflow settings' enforcement policy.");
-        Console.WriteLine("Contact your Keeper administrator to enable this for your role.");
-        Console.WriteLine();
-        return;
-      }
+        if (AdminVerbs.Contains(command) && !WorkflowUtils.CanManageWorkflowSettings(Context.Enterprise.Auth))
+        {
+          PrintError(
+            options.IsFormatOutputJson,
+            "permission_denied",
+            "You do not have permission to manage workflow settings. " +
+            $"The '{command}' command requires the 'Can manage workflow settings' enforcement policy. " +
+            "Contact your Keeper administrator to enable this for your role.");
+          return;
+        }
 
-      switch (command)
+        switch (command)
+        {
+          case "create":
+          case "c":
+            await CreateWorkflowAsync(options);
+            break;
+          case "read":
+          case "r":
+            await ReadWorkflowAsync(options);
+            break;
+          case "update":
+          case "u":
+            await UpdateWorkflowAsync(options);
+            break;
+          case "delete":
+          case "d":
+            await DeleteWorkflowAsync(options);
+            break;
+          case "add-approver":
+          case "aa":
+            await AddApproverAsync(options);
+            break;
+          case "remove-approver":
+          case "ra":
+            await RemoveApproverAsync(options);
+            break;
+          case "pending":
+          case "p":
+            await PendingApprovalsAsync(options);
+            break;
+          case "approve":
+          case "a":
+            await ApproveAsync(options);
+            break;
+          case "deny":
+          case "dn":
+            await DenyAsync(options);
+            break;
+          case "request":
+          case "rq":
+            await RequestAsync(options);
+            break;
+          case "start":
+          case "s":
+            await StartAsync(options);
+            break;
+          case "end":
+          case "e":
+            await EndAsync(options);
+            break;
+          case "state":
+          case "st":
+            await StateAsync(options);
+            break;
+          case "my-access":
+          case "ma":
+            await MyAccessAsync(options);
+            break;
+          default:
+            throw new InvalidOperationException($"Unsupported command. Available: {AvailableCommands}");
+        }
+      }
+      catch (Exception ex) when (options.IsFormatOutputJson)
       {
-        case "create":
-        case "c":
-          await CreateWorkflowAsync(options);
-          break;
-        case "read":
-        case "r":
-          await ReadWorkflowAsync(options);
-          break;
-        case "update":
-        case "u":
-          await UpdateWorkflowAsync(options);
-          break;
-        case "delete":
-        case "d":
-          await DeleteWorkflowAsync(options);
-          break;
-        case "add-approver":
-        case "aa":
-          await AddApproverAsync(options);
-          break;
-        case "remove-approver":
-        case "ra":
-          await RemoveApproverAsync(options);
-          break;
-        case "pending":
-        case "p":
-          await PendingApprovalsAsync(options);
-          break;
-        case "approve":
-        case "a":
-          await ApproveAsync(options);
-          break;
-        case "deny":
-        case "dn":
-          await DenyAsync(options);
-          break;
-        case "request":
-        case "rq":
-          await RequestAsync(options);
-          break;
-        case "start":
-        case "s":
-          await StartAsync(options);
-          break;
-        case "end":
-        case "e":
-          await EndAsync(options);
-          break;
-        case "state":
-        case "st":
-          await StateAsync(options);
-          break;
-        case "my-access":
-        case "ma":
-          await MyAccessAsync(options);
-          break;
-        default:
-          throw new InvalidOperationException($"Unsupported command. Available: {AvailableCommands}");
+        PrintError(true, "error", ex.Message);
       }
     }
 
@@ -138,10 +145,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record);
-      if (record == null)
-      {
-        return;
-      }
 
       var auth = Context.Enterprise.Auth;
       WorkflowConfig existing = null;
@@ -151,7 +154,10 @@ namespace Commander.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Pre-check read_workflow_config failed: {ex}");
+        Trace.TraceWarning($"Pre-check read_workflow_config failed: {ex}");
+        Console.Error.WriteLine(
+          "Warning: could not verify existing workflow config before create; " +
+          "continuing, and the server will reject duplicates if one already exists.");
         existing = null;
       }
 
@@ -181,7 +187,7 @@ namespace Commander.PAM
           "for a workflow that does not need approval.");
       }
 
-      if (approvers.Count > 0 && approvals == 0)
+      if (approvers.Count > 0 && approvals == 0 && !options.IsFormatOutputJson)
       {
         Console.WriteLine(
           "Warning: --approver(s) supplied but --approvals-needed is 0 - approvers will " +
@@ -228,16 +234,28 @@ namespace Commander.PAM
       try
       {
         await WorkflowUtils.CreateWorkflowConfigAsync(auth, parameters);
+      }
+      catch (InvalidOperationException)
+      {
+        throw;
+      }
+      catch (Exception ex)
+      {
+        throw new InvalidOperationException(
+          $"Failed to create workflow: {WorkflowUtils.SanitizeRouterError(ex)}");
+      }
 
-        var approversAdded = new List<string>();
-        if (approvers.Count > 0)
+      var approversAdded = new List<string>();
+      if (approvers.Count > 0)
+      {
+        try
         {
-          try
-          {
-            await WorkflowUtils.AddWorkflowApproversAsync(auth, record.Uid, record.Title, approvers);
-            approversAdded.AddRange(approvers);
-          }
-          catch (Exception ex)
+          await WorkflowUtils.AddWorkflowApproversAsync(auth, record.Uid, record.Title, approvers);
+          approversAdded.AddRange(approvers);
+        }
+        catch (Exception ex)
+        {
+          if (!options.IsFormatOutputJson)
           {
             Console.WriteLine();
             Console.WriteLine(
@@ -247,76 +265,71 @@ namespace Commander.PAM
               string.Join(" ", approvers.Select(u => $"--user {u}")));
           }
         }
-
-        if (options.isFormatOutputJSON)
-        {
-          var result = new Dictionary<string, object>
-          {
-            ["status"] = approvers.Count > 0 && approversAdded.Count != approvers.Count
-              ? "partial"
-              : "success",
-            ["record_uid"] = record.Uid,
-            ["record_name"] = record.Title,
-            ["workflow_config"] = new Dictionary<string, object>
-            {
-              ["approvals_needed"] = parameters.ApprovalsNeeded,
-              ["checkout_needed"] = parameters.CheckoutNeeded,
-              ["require_reason"] = parameters.RequireReason,
-              ["require_ticket"] = parameters.RequireTicket,
-              ["require_mfa"] = parameters.RequireMFA,
-              ["access_duration"] = WorkflowUtils.FormatDuration(parameters.AccessLength),
-            },
-            ["approvers"] = approversAdded,
-          };
-          if (approvers.Count > 0 && approversAdded.Count != approvers.Count)
-          {
-            result["warning"] = "Workflow created, but failed to add approvers";
-          }
-
-          Console.WriteLine(Json.WriteFormatted(result));
-        }
-        else
-        {
-          Console.WriteLine();
-          Console.WriteLine("Workflow created successfully");
-          Console.WriteLine();
-          Console.WriteLine($"Record: {record.Title} ({record.Uid})");
-          Console.WriteLine($"Approvals needed: {parameters.ApprovalsNeeded}");
-          Console.WriteLine($"Check-in/out: {(parameters.CheckoutNeeded ? "Yes" : "No")}");
-          Console.WriteLine($"Duration: {WorkflowUtils.FormatDuration(parameters.AccessLength)}");
-          if (parameters.RequireReason)
-          {
-            Console.WriteLine("Requires reason: Yes");
-          }
-
-          if (parameters.RequireTicket)
-          {
-            Console.WriteLine("Requires ticket: Yes");
-          }
-
-          if (parameters.RequireMFA)
-          {
-            Console.WriteLine("Requires MFA: Yes");
-          }
-
-          if (approversAdded.Count > 0)
-          {
-            Console.WriteLine($"Approvers: {string.Join(", ", approversAdded)}");
-          }
-          else if (parameters.ApprovalsNeeded > 0)
-          {
-            Console.WriteLine();
-            Console.WriteLine(
-              $"Note: Add approvers with: pam-workflow add-approver {record.Uid} --user <email>");
-          }
-
-          Console.WriteLine();
-        }
       }
-      catch (Exception ex)
+
+      if (options.IsFormatOutputJson)
       {
-        throw new InvalidOperationException(
-          $"Failed to create workflow: {WorkflowUtils.SanitizeRouterError(ex)}");
+        var result = new Dictionary<string, object>
+        {
+          ["status"] = approvers.Count > 0 && approversAdded.Count != approvers.Count
+            ? "partial"
+            : "success",
+          ["record_uid"] = record.Uid,
+          ["record_name"] = record.Title,
+          ["workflow_config"] = new Dictionary<string, object>
+          {
+            ["approvals_needed"] = parameters.ApprovalsNeeded,
+            ["checkout_needed"] = parameters.CheckoutNeeded,
+            ["require_reason"] = parameters.RequireReason,
+            ["require_ticket"] = parameters.RequireTicket,
+            ["require_mfa"] = parameters.RequireMFA,
+            ["access_duration"] = WorkflowUtils.FormatDuration(parameters.AccessLength),
+          },
+          ["approvers"] = approversAdded,
+        };
+        if (approvers.Count > 0 && approversAdded.Count != approvers.Count)
+        {
+          result["warning"] = "Workflow created, but failed to add approvers";
+        }
+
+        Console.WriteLine(Json.WriteFormatted(result));
+      }
+      else
+      {
+        Console.WriteLine();
+        Console.WriteLine("Workflow created successfully");
+        Console.WriteLine();
+        Console.WriteLine($"Record: {record.Title} ({record.Uid})");
+        Console.WriteLine($"Approvals needed: {parameters.ApprovalsNeeded}");
+        Console.WriteLine($"Check-in/out: {(parameters.CheckoutNeeded ? "Yes" : "No")}");
+        Console.WriteLine($"Duration: {WorkflowUtils.FormatDuration(parameters.AccessLength)}");
+        if (parameters.RequireReason)
+        {
+          Console.WriteLine("Requires reason: Yes");
+        }
+
+        if (parameters.RequireTicket)
+        {
+          Console.WriteLine("Requires ticket: Yes");
+        }
+
+        if (parameters.RequireMFA)
+        {
+          Console.WriteLine("Requires MFA: Yes");
+        }
+
+        if (approversAdded.Count > 0)
+        {
+          Console.WriteLine($"Approvers: {string.Join(", ", approversAdded)}");
+        }
+        else if (parameters.ApprovalsNeeded > 0)
+        {
+          Console.WriteLine();
+          Console.WriteLine(
+            $"Note: Add approvers with: pam-workflow add-approver {record.Uid} --user <email>");
+        }
+
+        Console.WriteLine();
       }
     }
 
@@ -329,10 +342,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       try
       {
@@ -341,7 +350,7 @@ namespace Commander.PAM
 
         if (response == null)
         {
-          if (options.isFormatOutputJSON)
+          if (options.IsFormatOutputJson)
           {
             Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
             {
@@ -364,7 +373,7 @@ namespace Commander.PAM
           return;
         }
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           PrintReadJson(response, record.Uid);
         }
@@ -393,10 +402,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       try
       {
@@ -492,7 +497,7 @@ namespace Commander.PAM
 
         await WorkflowUtils.UpdateWorkflowConfigAsync(Context.Enterprise.Auth, parameters);
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -530,10 +535,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       WorkflowConfig existing;
       try
@@ -558,7 +559,7 @@ namespace Commander.PAM
         await WorkflowUtils.DeleteWorkflowConfigAsync(
           Context.Enterprise.Auth, record.Uid, record.Title);
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -601,7 +602,7 @@ namespace Commander.PAM
         throw new InvalidOperationException("Must specify at least one --user/--approver or --team");
       }
 
-      if (!string.IsNullOrWhiteSpace(options.EscalationAfter) && !options.Escalation && !options.Escalate)
+      if (!string.IsNullOrWhiteSpace(options.EscalationAfter) && !options.Escalation)
       {
         throw new InvalidOperationException("--escalation-after requires --escalation flag");
       }
@@ -621,21 +622,8 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
-      List<string> teamUids;
-      try
-      {
-        teamUids = teams.Select(ResolveTeamUid).ToList();
-      }
-      catch (InvalidOperationException)
-      {
-        throw;
-      }
-
+      var teamUids = teams.Select(ResolveTeamUid).ToList();
       var isEscalation = options.Escalation || options.Escalate;
       try
       {
@@ -649,7 +637,7 @@ namespace Commander.PAM
           escalationAfterMs);
 
         var total = users.Count + teamUids.Count;
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var result = new Dictionary<string, object>
           {
@@ -711,10 +699,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       var teamUids = teams.Select(ResolveTeamUid).ToList();
       try
@@ -727,7 +711,7 @@ namespace Commander.PAM
           teamUids);
 
         var total = users.Count + teamUids.Count;
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -765,7 +749,7 @@ namespace Commander.PAM
         var response = await WorkflowUtils.GetApprovalRequestsAsync(Context.Enterprise.Auth);
         if (response == null || response.Workflows.Count == 0)
         {
-          PrintNoPending(options.isFormatOutputJSON, "No approval requests");
+          PrintNoPending(options.IsFormatOutputJson, "No approval requests");
           return;
         }
 
@@ -776,11 +760,11 @@ namespace Commander.PAM
 
         if (pending.Count == 0)
         {
-          PrintNoPending(options.isFormatOutputJSON, "No pending approval requests");
+          PrintNoPending(options.IsFormatOutputJson, "No pending approval requests");
           return;
         }
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           PrintPendingJson(pending);
         }
@@ -808,25 +792,13 @@ namespace Commander.PAM
       }
 
       var flowUid = options.Record.Trim();
-      byte[] flowUidBytes;
-      try
-      {
-        flowUidBytes = flowUid.Base64UrlDecode();
-        if (flowUidBytes == null || flowUidBytes.Length == 0)
-        {
-          throw new ArgumentException();
-        }
-      }
-      catch
-      {
-        throw new InvalidOperationException($"Invalid flow UID: \"{flowUid}\"");
-      }
+      var flowUidBytes = DecodeRequiredFlowUidBytes(flowUid);
 
       try
       {
         await WorkflowUtils.ApproveWorkflowAccessAsync(Context.Enterprise.Auth, flowUidBytes);
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -863,19 +835,7 @@ namespace Commander.PAM
       }
 
       var flowUid = options.Record.Trim();
-      byte[] flowUidBytes;
-      try
-      {
-        flowUidBytes = flowUid.Base64UrlDecode();
-        if (flowUidBytes == null || flowUidBytes.Length == 0)
-        {
-          throw new ArgumentException();
-        }
-      }
-      catch
-      {
-        throw new InvalidOperationException($"Invalid flow UID: \"{flowUid}\"");
-      }
+      var flowUidBytes = DecodeRequiredFlowUidBytes(flowUid);
 
       var reason = options.Reason?.Trim() ?? string.Empty;
       ByteString denialReasonEncrypted = null;
@@ -885,9 +845,13 @@ namespace Commander.PAM
           Context.Enterprise.Auth, flowUidBytes, reason);
         if (denialReasonEncrypted == null)
         {
-          Console.WriteLine(
-            "Warning: Could not encrypt denial reason for the requester — reason will not be attached. " +
-            "The denial itself will still be sent.");
+          if (!options.IsFormatOutputJson)
+          {
+            Console.WriteLine(
+              "Warning: Could not encrypt denial reason for the requester — reason will not be attached. " +
+              "The denial itself will still be sent.");
+          }
+
           reason = string.Empty;
         }
       }
@@ -897,7 +861,7 @@ namespace Commander.PAM
         await WorkflowUtils.DenyWorkflowAccessAsync(
           Context.Enterprise.Auth, flowUidBytes, denialReasonEncrypted);
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var result = new Dictionary<string, object>
           {
@@ -975,14 +939,10 @@ namespace Commander.PAM
     {
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record);
-      if (record == null)
-      {
-        return;
-      }
 
       if (await IsExemptAsync(record))
       {
-        PrintExempt(options.isFormatOutputJSON);
+        PrintExempt(options.IsFormatOutputJson);
         return;
       }
 
@@ -998,7 +958,7 @@ namespace Commander.PAM
           reason,
           ticket);
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var result = new Dictionary<string, object>
           {
@@ -1055,21 +1015,17 @@ namespace Commander.PAM
     {
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       if (await IsExemptAsync(record))
       {
-        PrintExempt(options.isFormatOutputJSON);
+        PrintExempt(options.IsFormatOutputJson);
         return;
       }
 
       try
       {
         await WorkflowUtils.RequestEscalationAsync(Context.Enterprise.Auth, record.Uid, record.Title);
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -1105,10 +1061,6 @@ namespace Commander.PAM
     {
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       try
       {
@@ -1124,7 +1076,7 @@ namespace Commander.PAM
           WorkflowUtils.WorkflowRef(workflowState.FlowUid.ToByteArray()));
 
         var flowUidStr = workflowState.FlowUid.ToByteArray().Base64UrlEncode();
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -1174,20 +1126,7 @@ namespace Commander.PAM
       }
       else
       {
-        byte[] uidBytes;
-        try
-        {
-          uidBytes = uid.Base64UrlDecode();
-          if (uidBytes == null || uidBytes.Length == 0)
-          {
-            throw new ArgumentException();
-          }
-        }
-        catch
-        {
-          throw new InvalidOperationException($"\"{uid}\" is not a valid record UID/name or flow UID");
-        }
-
+        var uidBytes = DecodeRecordOrFlowUidBytes(uid);
         state.FlowUid = ByteString.CopyFrom(uidBytes);
         state.Resource = WorkflowUtils.WorkflowRef(uidBytes);
       }
@@ -1195,7 +1134,7 @@ namespace Commander.PAM
       try
       {
         await WorkflowUtils.StartWorkflowAsync(Context.Enterprise.Auth, state);
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var result = new Dictionary<string, object>
           {
@@ -1249,7 +1188,7 @@ namespace Commander.PAM
         throw new InvalidOperationException("Record UID/name or Flow UID is required for end");
       }
 
-      if (options.Force == true)
+      if (options.Force)
       {
         await ForceCheckinAsync(options);
         return;
@@ -1282,20 +1221,7 @@ namespace Commander.PAM
       }
       else
       {
-        byte[] uidBytes;
-        try
-        {
-          uidBytes = uid.Base64UrlDecode();
-          if (uidBytes == null || uidBytes.Length == 0)
-          {
-            throw new ArgumentException();
-          }
-        }
-        catch
-        {
-          throw new InvalidOperationException($"\"{uid}\" is not a valid record UID/name or flow UID");
-        }
-
+        var uidBytes = DecodeRecordOrFlowUidBytes(uid);
         refMsg = WorkflowUtils.WorkflowRef(uidBytes);
         label = $"Flow UID: {uid}";
       }
@@ -1303,7 +1229,7 @@ namespace Commander.PAM
       try
       {
         await WorkflowUtils.ForceCheckinAsync(Context.Enterprise.Auth, refMsg);
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var result = new Dictionary<string, object>
           {
@@ -1360,7 +1286,7 @@ namespace Commander.PAM
           WorkflowUtils.WorkflowRef(workflowState.FlowUid.ToByteArray()));
 
         var flowUidStr = workflowState.FlowUid.ToByteArray().Base64UrlEncode();
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -1396,24 +1322,12 @@ namespace Commander.PAM
 
     private async Task EndByFlowUidAsync(string uid, PamWorkflowOptions options)
     {
-      byte[] uidBytes;
-      try
-      {
-        uidBytes = uid.Base64UrlDecode();
-        if (uidBytes == null || uidBytes.Length == 0)
-        {
-          throw new ArgumentException();
-        }
-      }
-      catch
-      {
-        throw new InvalidOperationException($"\"{uid}\" is not a valid record UID/name or flow UID");
-      }
+      var uidBytes = DecodeRecordOrFlowUidBytes(uid);
 
       try
       {
         await WorkflowUtils.EndWorkflowAsync(Context.Enterprise.Auth, WorkflowUtils.WorkflowRef(uidBytes));
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
           {
@@ -1453,10 +1367,6 @@ namespace Commander.PAM
 
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
-      if (record == null)
-      {
-        return;
-      }
 
       try
       {
@@ -1464,7 +1374,7 @@ namespace Commander.PAM
           Context.Enterprise.Auth, record.Uid, record.Title);
         if (response == null)
         {
-          if (options.isFormatOutputJSON)
+          if (options.IsFormatOutputJson)
           {
             Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
             {
@@ -1482,7 +1392,7 @@ namespace Commander.PAM
           return;
         }
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           PrintStateJson(response);
         }
@@ -1509,7 +1419,7 @@ namespace Commander.PAM
         var response = await WorkflowUtils.GetUserAccessStateAsync(Context.Enterprise.Auth);
         if (response == null || response.Workflows.Count == 0)
         {
-          if (options.isFormatOutputJSON)
+          if (options.IsFormatOutputJson)
           {
             Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
             {
@@ -1526,7 +1436,7 @@ namespace Commander.PAM
           return;
         }
 
-        if (options.isFormatOutputJSON)
+        if (options.IsFormatOutputJson)
         {
           var workflows = response.Workflows.Select(BuildStateJson).ToList();
           Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
@@ -1695,6 +1605,23 @@ namespace Commander.PAM
       return await WorkflowUtils.IsWorkflowExemptAsync(Context.Enterprise.Auth, record, teamUids);
     }
 
+    private static void PrintError(bool json, string status, string message)
+    {
+      if (json)
+      {
+        Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object>
+        {
+          ["status"] = status,
+          ["message"] = message,
+        }));
+        return;
+      }
+
+      Console.WriteLine();
+      Console.WriteLine(message);
+      Console.WriteLine();
+    }
+
     private static void PrintExempt(bool json)
     {
       if (json)
@@ -1731,6 +1658,31 @@ namespace Commander.PAM
       }
 
       return matches.Count == 1 ? matches[0] : null;
+    }
+
+    private const int KeeperUidByteLength = 16;
+
+    private static byte[] DecodeKeeperUidBytes(string uid, string errorMessage)
+    {
+      var uidBytes = uid?.Trim().Base64UrlDecode();
+      if (uidBytes == null || uidBytes.Length != KeeperUidByteLength)
+      {
+        throw new InvalidOperationException(errorMessage);
+      }
+
+      return uidBytes;
+    }
+
+    private static byte[] DecodeRecordOrFlowUidBytes(string uid)
+    {
+      return DecodeKeeperUidBytes(
+        uid,
+        $"\"{uid}\" is not a known record or a valid flow UID");
+    }
+
+    private static byte[] DecodeRequiredFlowUidBytes(string uid)
+    {
+      return DecodeKeeperUidBytes(uid, $"Invalid flow UID: \"{uid}\"");
     }
 
     private static void PrintNoPending(bool json, string message)
@@ -2133,39 +2085,30 @@ namespace Commander.PAM
       bool validateWorkflowType = true)
     {
       TypedRecord record = null;
-      try
+      if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
       {
-        if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
-        {
-          record = typedByUid;
-        }
-        else
-        {
-          var matches = vault.KeeperRecords
-            .OfType<TypedRecord>()
-            .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-          if (matches.Count > 1)
-          {
-            throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-          }
-
-          if (matches.Count == 1)
-          {
-            record = matches[0];
-          }
-        }
+        record = typedByUid;
       }
-      catch (InvalidOperationException ex)
+      else
       {
-        Console.WriteLine(ex.Message);
-        return null;
+        var matches = vault.KeeperRecords
+          .OfType<TypedRecord>()
+          .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
+          .ToList();
+        if (matches.Count > 1)
+        {
+          throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
+        }
+
+        if (matches.Count == 1)
+        {
+          record = matches[0];
+        }
       }
 
       if (record == null)
       {
-        Console.WriteLine($"Record \"{identifier}\" not found");
-        return null;
+        throw new InvalidOperationException($"Record \"{identifier}\" not found");
       }
 
       if (validateWorkflowType)
@@ -2218,7 +2161,7 @@ namespace Commander.PAM
     public bool? RequireMfa { get; set; }
 
     [Option('d', "duration", Required = false,
-      HelpText = "Access duration (e.g., \"2h\", \"30m\", \"1d\"). Create default: 1d")]
+      HelpText = "Access duration (e.g., \"2h\", \"30m\", \"1d\"; bare number = minutes). Create default: 1d")]
     public string Duration { get; set; }
 
     [Option("allowed-days", Required = false,
@@ -2226,7 +2169,7 @@ namespace Commander.PAM
     public string AllowedDays { get; set; }
 
     [Option("time-range", Required = false,
-      HelpText = "Allowed time range in HH:MM-HH:MM format (e.g., \"09:00-17:00\")")]
+      HelpText = "Same-day allowed time window in HH:MM-HH:MM format (e.g., \"09:00-17:00\"); end must be after start")]
     public string TimeRange { get; set; }
 
     [Option('u', "user", Required = false,
@@ -2246,7 +2189,7 @@ namespace Commander.PAM
     public bool Escalation { get; set; }
 
     [Option("escalation-after", Required = false,
-      HelpText = "Time before escalating (e.g., \"30m\", \"1h\"). Requires --escalation")]
+      HelpText = "Time before escalating (e.g., \"30m\", \"1h\"; bare number = minutes). Requires --escalation")]
     public string EscalationAfter { get; set; }
 
     [Option('r', "reason", Required = false,
@@ -2272,7 +2215,7 @@ namespace Commander.PAM
     [Option("format", Required = false, Default = "table", HelpText = "Output format: table, json")]
     public string Format { get; set; }
 
-    internal bool isFormatOutputJSON => string.Equals(Format, "json", StringComparison.OrdinalIgnoreCase);
+    internal bool IsFormatOutputJson => string.Equals(Format, "json", StringComparison.OrdinalIgnoreCase);
 
     internal static IList<string> NormalizeTriBoolTokens(IList<string> tokens)
     {
@@ -2396,6 +2339,17 @@ namespace Commander.PAM
           continue;
         }
 
+        if (token.StartsWith("--", StringComparison.Ordinal))
+        {
+          options.Add(token);
+          if (token.IndexOf('=') < 0)
+          {
+            skipNext = true;
+          }
+
+          continue;
+        }
+
         if (token.StartsWith("-", StringComparison.Ordinal) && token != "-")
         {
           dashPositionals.Add(token);
@@ -2448,7 +2402,23 @@ namespace Commander.PAM
       var parsed = CommandExtensions.DefaultParser.ParseArguments<PamWorkflowOptions>(tokens);
       PamWorkflowOptions options = null;
       parsed.WithParsed(o => { options = o; });
-      return options != null ? Action?.Invoke(options) ?? Task.CompletedTask : Task.CompletedTask;
+      if (options == null)
+      {
+        parsed.WithNotParsed(errors =>
+        {
+          foreach (var error in errors)
+          {
+            if (error.Tag != ErrorType.HelpRequestedError
+                && error.Tag != ErrorType.VersionRequestedError)
+            {
+              Console.Error.WriteLine(error);
+            }
+          }
+        });
+        return Task.CompletedTask;
+      }
+
+      return Action?.Invoke(options) ?? Task.CompletedTask;
     }
   }
 }
