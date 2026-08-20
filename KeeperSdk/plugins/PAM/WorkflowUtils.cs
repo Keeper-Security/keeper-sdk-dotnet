@@ -79,6 +79,7 @@ namespace KeeperSecurity.Plugins.PAM
       return map;
     }
 
+    /// <summary>Returns true when the current user can change workflow settings.</summary>
     public static bool CanManageWorkflowSettings(IAuthentication auth)
     {
       if (auth?.AuthContext?.Enforcements == null)
@@ -104,6 +105,7 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
+    /// <summary>Creates a record reference from its UID bytes.</summary>
     public static GraphSyncRef RecordRef(byte[] recordUidBytes, string recordName = null)
     {
       if (recordUidBytes == null || recordUidBytes.Length == 0)
@@ -124,6 +126,7 @@ namespace KeeperSecurity.Plugins.PAM
       return refMsg;
     }
 
+    /// <summary>Creates a record reference from its UID string.</summary>
     public static GraphSyncRef RecordRef(string recordUid, string recordName = null)
     {
       if (string.IsNullOrWhiteSpace(recordUid))
@@ -134,6 +137,7 @@ namespace KeeperSecurity.Plugins.PAM
       return RecordRef(recordUid.Base64UrlDecode(), recordName);
     }
 
+    /// <summary>Creates a workflow reference from its UID bytes.</summary>
     public static GraphSyncRef WorkflowRef(byte[] flowUidBytes)
     {
       if (flowUidBytes == null || flowUidBytes.Length == 0)
@@ -148,6 +152,7 @@ namespace KeeperSecurity.Plugins.PAM
       };
     }
 
+    /// <summary>Creates a workflow reference from its UID string.</summary>
     public static GraphSyncRef WorkflowRef(string flowUid)
     {
       if (string.IsNullOrWhiteSpace(flowUid))
@@ -158,6 +163,7 @@ namespace KeeperSecurity.Plugins.PAM
       return WorkflowRef(flowUid.Base64UrlDecode());
     }
 
+   /// <summary>Converts a duration like <c>2h</c> or <c>30m</c> into milliseconds.</summary>
     public static long ParseDuration(string durationStr)
     {
       if (string.IsNullOrWhiteSpace(durationStr))
@@ -193,6 +199,7 @@ namespace KeeperSecurity.Plugins.PAM
       return minutes * 60_000L;
     }
 
+    /// <summary>Converts milliseconds to a readable duration.</summary>
     public static string FormatDuration(long milliseconds)
     {
       if (milliseconds <= 0)
@@ -230,11 +237,13 @@ namespace KeeperSecurity.Plugins.PAM
       parts.Add(value == 1 ? $"1 {unit}" : $"{value} {unit}s");
     }
 
+    /// <summary>Returns the full name of a workflow day.</summary>
     public static string FormatDayName(DayOfWeek day)
     {
       return DayNameMap.TryGetValue(day, out var name) ? name : day.ToString();
     }
 
+    /// <summary>Returns a readable name for the current workflow stage.</summary>
     public static string FormatStage(WorkflowStatus status)
     {
       if (status == null)
@@ -273,6 +282,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    /// <summary>Returns a readable name for an access condition.</summary>
     public static string FormatCondition(AccessCondition condition)
     {
       switch (condition)
@@ -294,6 +304,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    /// <summary>Returns readable names for a list of access conditions.</summary>
     public static string FormatConditions(IEnumerable<AccessCondition> conditions)
     {
       if (conditions == null)
@@ -304,6 +315,7 @@ namespace KeeperSecurity.Plugins.PAM
       return string.Join(", ", conditions.Select(FormatCondition));
     }
 
+    /// <summary>Converts a time filter to values that are easy to display or serialize.</summary>
     public static Dictionary<string, object> FormatTemporalFilter(TemporalAccessFilter filter)
     {
       if (filter == null)
@@ -338,11 +350,13 @@ namespace KeeperSecurity.Plugins.PAM
       return result.Count > 0 ? result : null;
     }
 
+    /// <summary>Builds a time filter from allowed days and a time range.</summary>
     public static TemporalAccessFilter BuildTemporalFilter(string allowedDaysStr, string timeRangeStr)
     {
       return BuildTemporalFilter(allowedDaysStr, timeRangeStr, existing: null);
     }
 
+    /// <summary>Builds a time filter and keeps values from an existing filter when not replaced.</summary>
     public static TemporalAccessFilter BuildTemporalFilter(
       string allowedDaysStr,
       string timeRangeStr,
@@ -415,6 +429,7 @@ namespace KeeperSecurity.Plugins.PAM
       return temporal;
     }
 
+    /// <summary>Removes technical details from a router error and returns a user-friendly message.</summary>
     public static string SanitizeRouterError(Exception error)
     {
       if (error == null)
@@ -429,6 +444,7 @@ namespace KeeperSecurity.Plugins.PAM
       return string.IsNullOrEmpty(msg) ? "Unknown error" : msg;
     }
 
+    /// <summary>Reads the workflow settings for a record, or returns null when none exist.</summary>
     public static async Task<WorkflowConfig> ReadWorkflowConfigAsync(
       IAuthentication auth,
       string recordUid,
@@ -446,6 +462,7 @@ namespace KeeperSecurity.Plugins.PAM
       return config;
     }
 
+    /// <summary>Creates workflow settings for a record.</summary>
     public static async Task CreateWorkflowConfigAsync(IAuthentication auth, WorkflowParameters parameters)
     {
       if (parameters == null)
@@ -456,6 +473,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(CreateWorkflowConfigPath, parameters, null);
     }
 
+    /// <summary>Updates workflow settings for a record.</summary>
     public static async Task UpdateWorkflowConfigAsync(IAuthentication auth, WorkflowParameters parameters)
     {
       if (parameters == null)
@@ -466,6 +484,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(UpdateWorkflowConfigPath, parameters, null);
     }
 
+    /// <summary>Deletes the workflow settings for a record.</summary>
     public static async Task DeleteWorkflowConfigAsync(
       IAuthentication auth,
       string recordUid,
@@ -475,6 +494,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowConfigPath, refMsg, null);
     }
 
+    /// <summary>Adds users or teams that can approve access to a record.</summary>
     public static async Task AddWorkflowApproversAsync(
       IAuthentication auth,
       string recordUid,
@@ -493,6 +513,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(AddWorkflowApproversPath, config, null);
     }
 
+    /// <summary>Removes users or teams from the record's approver list.</summary>
     public static async Task DeleteWorkflowApproversAsync(
       IAuthentication auth,
       string recordUid,
@@ -509,11 +530,13 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowApproversPath, config, null);
     }
 
+    /// <summary>Gets workflow access requests that need attention.</summary>
     public static async Task<ApprovalRequests> GetApprovalRequestsAsync(IAuthentication auth)
     {
       return await auth.ExecuteRouter<ApprovalRequests>(GetApprovalRequestsPath);
     }
 
+    /// <summary>Gets the current state of a workflow by its flow UID.</summary>
     public static async Task<WorkflowState> GetWorkflowStateByFlowAsync(
       IAuthentication auth,
       ByteString flowUid)
@@ -527,11 +550,13 @@ namespace KeeperSecurity.Plugins.PAM
       return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
 
+    /// <summary>Approves a workflow access request.</summary>
     public static async Task ApproveWorkflowAccessAsync(IAuthentication auth, byte[] flowUidBytes)
     {
       await ApproveOrDenyWorkflowAccessAsync(auth, flowUidBytes, deny: false, denialReasonEncrypted: null);
     }
 
+    /// <summary>Denies a workflow access request.</summary>
     public static async Task DenyWorkflowAccessAsync(
       IAuthentication auth,
       byte[] flowUidBytes,
@@ -540,6 +565,7 @@ namespace KeeperSecurity.Plugins.PAM
       await ApproveOrDenyWorkflowAccessAsync(auth, flowUidBytes, deny: true, denialReasonEncrypted);
     }
 
+    /// <summary>Approves or denies a workflow access request.</summary>
     public static async Task ApproveOrDenyWorkflowAccessAsync(
       IAuthentication auth,
       byte[] flowUidBytes,
@@ -564,6 +590,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(ApproveOrDenyWorkflowAccessPath, approval, null);
     }
 
+    /// <summary>Gets the current workflow state for a record.</summary>
     public static async Task<WorkflowState> GetWorkflowStateByRecordAsync(
       IAuthentication auth,
       string recordUid,
@@ -576,11 +603,13 @@ namespace KeeperSecurity.Plugins.PAM
       return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
 
+    /// <summary>Gets the current user's workflow access state.</summary>
     public static async Task<UserAccessState> GetUserAccessStateAsync(IAuthentication auth)
     {
       return await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
     }
 
+    /// <summary>Requests access to a record through its workflow.</summary>
     public static async Task RequestWorkflowAccessAsync(
       IAuthentication auth,
       string recordUid,
@@ -616,6 +645,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(RequestWorkflowAccessPath, accessRequest, null);
     }
 
+    /// <summary>Asks the workflow to escalate a record access request.</summary>
     public static async Task RequestEscalationAsync(
       IAuthentication auth,
       string recordUid,
@@ -628,6 +658,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(RequestEscalationPath, state, null);
     }
 
+    /// <summary>Starts a workflow using the supplied workflow state.</summary>
     public static async Task StartWorkflowAsync(IAuthentication auth, WorkflowState state)
     {
       if (state == null)
@@ -638,6 +669,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(StartWorkflowPath, state, null);
     }
 
+    /// <summary>Ends a workflow using a workflow or record reference.</summary>
     public static async Task EndWorkflowAsync(IAuthentication auth, GraphSyncRef flowOrResourceRef)
     {
       if (flowOrResourceRef == null)
@@ -648,6 +680,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(EndWorkflowPath, flowOrResourceRef, null);
     }
 
+    /// <summary>Forces a workflow resource to check in.</summary>
     public static async Task ForceCheckinAsync(IAuthentication auth, GraphSyncRef flowOrResourceRef)
     {
       if (flowOrResourceRef == null)
@@ -658,6 +691,7 @@ namespace KeeperSecurity.Plugins.PAM
       await auth.ExecuteRouter<IMessage, IMessage>(ForceCheckinPath, flowOrResourceRef, null);
     }
 
+    /// <summary>Tries to encrypt a denial reason for the person who requested access.</summary>
     public static async Task<ByteString> TryEncryptDenialReasonAsync(
       IAuthentication auth,
       byte[] flowUidBytes,
@@ -721,6 +755,7 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    /// <summary>Returns true when a user can access a record without a workflow request.</summary>
     public static async Task<bool> IsWorkflowExemptAsync(
       IAuthentication auth,
       KeeperSecurity.Vault.KeeperRecord record,
@@ -777,6 +812,7 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
+    /// <summary>Removes duplicate, self-created, and already approved requests.</summary>
     public static async Task<IList<WorkflowProcess>> FilterPendingApprovalsAsync(
       IAuthentication auth,
       IEnumerable<WorkflowProcess> workflows,
@@ -819,6 +855,7 @@ namespace KeeperSecurity.Plugins.PAM
       return pending;
     }
 
+    /// <summary>Returns true when the current user already approved a workflow.</summary>
     public static async Task<bool> IsAlreadyApprovedByUserAsync(
       IAuthentication auth,
       WorkflowProcess process,
@@ -847,6 +884,7 @@ namespace KeeperSecurity.Plugins.PAM
       }
     }
 
+    /// <summary>Gets an encrypted workflow parameter by name.</summary>
     public static ByteString ExtractWorkflowParameter(WorkflowProcess process, string key)
     {
       if (process?.WorkflowParameters == null || string.IsNullOrEmpty(key))
@@ -865,6 +903,7 @@ namespace KeeperSecurity.Plugins.PAM
       return null;
     }
 
+    /// <summary>Decrypts a workflow parameter using the record key.</summary>
     public static string DecryptWorkflowParameter(byte[] recordKey, ByteString encryptedBytes)
     {
       if (encryptedBytes == null || encryptedBytes.IsEmpty)
