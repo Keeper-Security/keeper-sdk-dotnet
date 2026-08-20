@@ -11,7 +11,8 @@ function script:writePamActionResult {
     }
 
     if (-not $Result.IsOk) {
-        Write-Output $(if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) { 'Action failed.' } else { $Result.RawPayloadJson })
+        $failureMessage = if ([string]::IsNullOrEmpty($Result.RawPayloadJson)) { 'Action failed.' } else { $Result.RawPayloadJson }
+        Write-Error -Message $failureMessage
         return
     }
 
@@ -192,9 +193,6 @@ function Get-KeeperPamActionJobInfo {
     }
 
     $vault = getVault
-    if ($null -eq $vault.Auth) {
-        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
-    }
 
     $trimmedJobId = $JobId.Trim()
     Write-Output ("Job id to check [{0}]" -f $trimmedJobId)

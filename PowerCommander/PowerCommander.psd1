@@ -146,8 +146,7 @@
         'Get-KeeperPamRotationList', 'Get-KeeperPamRotationInfo', 'Set-KeeperPamRotation',
         'Get-KeeperPamRotationScript', 'Add-KeeperPamRotationScript', 'Set-KeeperPamRotationScript', 'Remove-KeeperPamRotationScript',
         'Get-KeeperPamConfig', 'New-KeeperPamConfig', 'Set-KeeperPamConfig', 'Remove-KeeperPamConfig',
-        'Invoke-KeeperPamActionRotate', 'Get-KeeperPamActionJobInfo',
-        'Set-KeeperPamConnection', 'Set-KeeperPamRbi', 'Invoke-KeeperPamLaunch'
+        'Invoke-KeeperPamActionRotate', 'Get-KeeperPamActionJobInfo', 'Set-KeeperPamConnection', 'Set-KeeperPamRbi', 'Invoke-KeeperPamLaunch'
         #'Test-Keeper',
     )
 
@@ -189,10 +188,7 @@
         'pam-rotation-script-edit', 'pam-rot-script-edit', 'pam-rotation-script-delete', 'pam-rot-script-delete',
         'pam-config-list', 'pam-cfg-list', 'pam-config-new', 'pam-cfg-new',
         'pam-config-edit', 'pam-cfg-edit', 'pam-config-remove', 'pam-cfg-remove', 'pam-config-rm',
-        'pam-action-rotate', 'pam-action-job-info',
-        'pam-connection-edit',
-        'pam-rbi-edit',
-        'pam-launch')
+        'pam-action-rotate', 'pam-action-job-info', 'pam-connection-edit', 'pam-rbi-edit', 'pam-launch')
 
     # List of all modules packaged with this module
     # ModuleList = @()
