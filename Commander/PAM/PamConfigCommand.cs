@@ -95,13 +95,13 @@ namespace Commander.PAM
       var rows = new List<Dictionary<string, object>>();
       foreach (var config in configs)
       {
-        var sharedFolder = TryGetListedConfigurationFolder(vault, config);
-        if (sharedFolder == null)
+        var folderInfo = TryGetListedConfigurationFolder(vault, config);
+        if (folderInfo == null)
         {
           continue;
         }
 
-        rows.Add(BuildConfigListJson(config, sharedFolder, verbose));
+        rows.Add(BuildConfigListJson(config, folderInfo, verbose));
       }
 
       Console.WriteLine(Json.WriteFormatted(new Dictionary<string, object> { ["configurations"] = rows }));
@@ -114,7 +114,7 @@ namespace Commander.PAM
     {
       var headers = new List<string>
       {
-        "UID", "Config Name", "Config Type", "Shared Folder", "Gateway UID", "Resource Record UIDs"
+        "UID", "Config Name", "Config Type", "Folder", "Gateway UID", "Resource Record UIDs"
       };
       if (verbose)
       {
@@ -125,27 +125,27 @@ namespace Commander.PAM
       tab.AddHeader(headers.ToArray());
       foreach (var config in configs)
       {
-        var sharedFolder = TryGetListedConfigurationFolder(vault, config);
-        if (sharedFolder == null)
+        var folderInfo = TryGetListedConfigurationFolder(vault, config);
+        if (folderInfo == null)
         {
           continue;
         }
 
-        tab.AddRow(BuildConfigTableRow(config, sharedFolder, verbose));
+        tab.AddRow(BuildConfigTableRow(config, folderInfo, verbose));
       }
 
       tab.Dump();
     }
 
-    private static SharedFolder TryGetListedConfigurationFolder(VaultOnline vault, TypedRecord config)
+    private static PamConfigurationFolderInfo TryGetListedConfigurationFolder(VaultOnline vault, TypedRecord config)
     {
-      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
-      if (sharedFolder == null)
+      if (PamVaultHelpers.TryGetConfigurationFolderInfo(vault, config, out var folder) && folder != null)
       {
-        PamVaultHelpers.WarnConfigurationNotInSharedFolder(config);
+        return folder;
       }
 
-      return sharedFolder;
+      PamVaultHelpers.WarnConfigurationHasNoFolder(config);
+      return null;
     }
 
     private async Task ListSingleConfigurationAsync(VaultOnline vault, PamConfigOptions options, string configId)
@@ -167,17 +167,18 @@ namespace Commander.PAM
 
       if (options.isFormatOutputJSON)
       {
-        Console.WriteLine(Json.WriteFormatted(BuildConfigDetailJson(vault, config, options.Verbose)));
+        var detail = await BuildConfigDetailJsonAsync(vault, config, options.Verbose);
+        Console.WriteLine(Json.WriteFormatted(detail));
         return;
       }
 
       var facade = new PamConfigurationFacade(config);
-      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
+      PamVaultHelpers.TryGetConfigurationFolderInfo(vault, config, out var folder);
       var tab = new Tabulate(2);
       tab.AddRow("UID", config.Uid);
       tab.AddRow("Name", config.Title);
       tab.AddRow("Config Type", config.TypeName);
-      tab.AddRow("Shared Folder", sharedFolder != null ? $"{sharedFolder.Name} ({sharedFolder.Uid})" : "");
+      tab.AddRow("Folder", FormatFolderDisplay(folder));
       tab.AddRow("Gateway UID", facade.ControllerUid);
       tab.AddRow("Resource Record UIDs", string.Join(", ", facade.ResourceRef));
       foreach (var fieldRow in ExtractDisplayFields(config))
@@ -187,7 +188,6 @@ namespace Commander.PAM
 
       tab.Dump();
       PamConfigTunnelingHelper.PrintTunnelingConfig(config.Uid);
-      await Task.CompletedTask;
     }
 
     private async Task NewConfigurationAsync(PamConfigOptions options)
@@ -243,8 +243,7 @@ namespace Commander.PAM
 
         throw new InvalidOperationException(
           $"Could not resolve shared folder \"{options.SharedFolder}\". " +
-          "Provide a shared folder UID, name, or path (e.g. PAM/TestFolder or /PAM/TestFolder). " +
-          "Run \"shared-folder list\" to see available folders.");
+          "Provide a shared folder or NSF folder UID, name, or path (e.g. PAM/TestFolder or /PAM/TestFolder).");
       }
 
       if (string.IsNullOrEmpty(facade.ControllerUid) && !string.IsNullOrWhiteSpace(options.Gateway))
@@ -255,12 +254,16 @@ namespace Commander.PAM
       PamConfigFieldPlacement.EnsureSchemaFields(vault, record);
       PamConfigFieldPlacement.RelocateCustomToFields(vault, record);
 
-      await ConfigUtils.AddConfigurationRecordAsync(vault, record);
+      var isNsfFolder = PamVaultHelpers.IsKeeperNSFFolder(vault, moveDestinationUid);
+      await ConfigUtils.AddConfigurationRecordAsync(vault, record, isNsfFolder ? moveDestinationUid : null);
       await ConfigUtils.EnsureConfigurationNetworkGraphAsync(Context.Enterprise.Auth, record.Uid);
       await ConfigureTunnelingIfNeededAsync(record.Uid, options);
 
       await vault.SyncDown();
-      await MoveRecordToSharedFolderAsync(vault, record, moveDestinationUid);
+      if (!isNsfFolder)
+      {
+        await MoveRecordToSharedFolderAsync(vault, record, moveDestinationUid);
+      }
 
       if (!string.IsNullOrEmpty(facade.ControllerUid))
       {
@@ -395,21 +398,7 @@ namespace Commander.PAM
 
     private static async Task MoveRecordToSharedFolderAsync(VaultOnline vault, TypedRecord record, string destinationFolderUid)
     {
-      vault.CacheKeeperRecord(record);
-      var sourceFolderUid = PamVaultHelpers.ResolveRecordSourceFolderUid(vault, record.Uid);
-      if (sourceFolderUid == null)
-      {
-        throw new VaultException("Cannot move PAM configuration: record is not initialized.");
-      }
-
-      if (string.Equals(sourceFolderUid, destinationFolderUid, StringComparison.Ordinal))
-      {
-        return;
-      }
-
-      await vault.MoveRecordToFolder(
-        new RecordPath { RecordUid = record.Uid, FolderUid = sourceFolderUid },
-        destinationFolderUid);
+      await PamVaultHelpers.PlacePamConfigurationInFolderAsync(vault, record, destinationFolderUid);
     }
 
     private void PreResolveSharedFolderPath(PamConfigOptions options)
@@ -428,6 +417,13 @@ namespace Commander.PAM
 
     private FolderNode TryResolveFolderNode(string path)
     {
+      var vault = Context.GetVault();
+      if (vault != null && PamVaultHelpers.TryResolveFolder(vault, path, out var folder)
+          && PamVaultHelpers.IsPamConfigurationFolderDestination(vault, folder))
+      {
+        return folder;
+      }
+
       var vaultContext = TryGetVaultContext();
       if (vaultContext == null)
       {
@@ -436,7 +432,7 @@ namespace Commander.PAM
 
       return vaultContext.TryResolvePath(path, out var folderNode, out var remainder)
              && string.IsNullOrEmpty(remainder)
-             && PamVaultHelpers.IsPamSharedFolderDestination(folderNode)
+             && PamVaultHelpers.IsPamConfigurationFolderDestination(vault, folderNode)
         ? folderNode
         : null;
     }
@@ -471,7 +467,7 @@ namespace Commander.PAM
 
     private static Dictionary<string, object> BuildConfigListJson(
       TypedRecord config,
-      SharedFolder sharedFolder,
+      PamConfigurationFolderInfo folder,
       bool verbose)
     {
       var facade = new PamConfigurationFacade(config);
@@ -480,35 +476,38 @@ namespace Commander.PAM
         ["uid"] = config.Uid,
         ["config_name"] = config.Title,
         ["config_type"] = config.TypeName,
-        ["shared_folder"] = new Dictionary<string, object> { ["name"] = sharedFolder.Name, ["uid"] = sharedFolder.Uid },
-        ["gateway_uid"] = facade.ControllerUid,
+        ["gateway_uid"] = facade.ControllerUid ?? "",
         ["resource_record_uids"] = facade.ResourceRef,
       };
+      ApplyFolderJsonPayload(row, folder);
 
       if (verbose)
       {
-        row["fields"] = ExtractDisplayFields(config).ToDictionary(x => x.Key, x => x.Value);
+        row["fields"] = ExtractDisplayFields(config)
+          .ToDictionary(x => x.Key, x => (object) x.Value);
       }
 
       return row;
     }
 
-    private static Dictionary<string, object> BuildConfigDetailJson(VaultOnline vault, TypedRecord config, bool verbose)
+    private async Task<Dictionary<string, object>> BuildConfigDetailJsonAsync(
+      VaultOnline vault,
+      TypedRecord config,
+      bool verbose)
     {
-      var sharedFolder = PamVaultHelpers.GetConfigurationSharedFolder(vault, config);
+      PamVaultHelpers.TryGetConfigurationFolderInfo(vault, config, out var folder);
       var facade = new PamConfigurationFacade(config);
       var row = new Dictionary<string, object>
       {
         ["uid"] = config.Uid,
         ["name"] = config.Title,
         ["config_type"] = config.TypeName,
-        ["shared_folder"] = sharedFolder == null
-          ? null
-          : new Dictionary<string, object> { ["name"] = sharedFolder.Name, ["uid"] = sharedFolder.Uid },
-        ["gateway_uid"] = facade.ControllerUid,
+        ["gateway_uid"] = facade.ControllerUid ?? "",
+        ["gateway_name"] = ResolveGatewayName(facade.ControllerUid),
         ["resource_record_uids"] = facade.ResourceRef,
-        ["fields"] = ExtractDisplayFields(config).ToDictionary(x => x.Key, x => x.Value),
+        ["fields"] = ExtractDetailJsonFields(config),
       };
+      ApplyFolderJsonPayload(row, folder);
 
       if (string.Equals(config.TypeName, "pamDomainConfiguration", StringComparison.Ordinal))
       {
@@ -517,22 +516,35 @@ namespace Commander.PAM
 
       if (verbose)
       {
-        row["allowed_settings"] = PamConfigTunnelingHelper.GetAllowedSettingsJson(config.Uid);
+        row["allowed_settings"] = await PamConfigTunnelingHelper
+          .GetAllowedSettingsJsonAsync(Context.Enterprise.Auth, config.Uid)
+          .ConfigureAwait(false);
       }
 
       return row;
     }
 
+    private string ResolveGatewayName(string controllerUid)
+    {
+      if (Plugin == null || string.IsNullOrWhiteSpace(controllerUid))
+      {
+        return "";
+      }
+
+      var gateway = GatewayUtils.FindGateway(Plugin.Controllers.GetAll(), controllerUid);
+      return gateway?.ControllerName ?? "";
+    }
+
     private static object[] BuildConfigTableRow(
       TypedRecord config,
-      SharedFolder sharedFolder,
+      PamConfigurationFolderInfo folder,
       bool verbose)
     {
       var facade = new PamConfigurationFacade(config);
       var row = new List<object>
       {
         config.Uid, config.Title, config.TypeName,
-        $"{sharedFolder.Name} ({sharedFolder.Uid})",
+        FormatFolderDisplay(folder),
         facade.ControllerUid, string.Join(", ", facade.ResourceRef),
       };
 
@@ -544,33 +556,71 @@ namespace Commander.PAM
       return row.ToArray();
     }
 
+    private static string FormatFolderDisplay(PamConfigurationFolderInfo folder)
+    {
+      if (folder == null)
+      {
+        return "";
+      }
+
+      var suffix = folder.IsNsf ? " [NSF]" : "";
+      return $"{folder.Name} ({folder.Uid}){suffix}";
+    }
+
+    private static void ApplyFolderJsonPayload(
+      IDictionary<string, object> row,
+      PamConfigurationFolderInfo folder)
+    {
+      if (folder == null)
+      {
+        return;
+      }
+
+      row["folder"] = new Dictionary<string, object>
+      {
+        ["uid"] = folder.Uid,
+        ["name"] = folder.Name,
+        ["type"] = folder.IsNsf ? "nested_share_folder" : "shared_folder",
+      };
+
+      if (!folder.IsNsf)
+      {
+        row["shared_folder"] = new Dictionary<string, object>
+        {
+          ["name"] = folder.Name,
+          ["uid"] = folder.Uid,
+        };
+      }
+    }
+
+    private static Dictionary<string, object> ExtractDetailJsonFields(TypedRecord config)
+    {
+      return config.Fields.Concat(config.Custom)
+        .Where(field => field.FieldName is not ("pamResources" or "fileRef"))
+        .Select(field => new
+        {
+          Name = PamConfigScheduleHelper.GetPamFieldJsonName(field),
+          Values = GetFieldExternalValues(field).ToList(),
+        })
+        .Where(x => x.Values.Count > 0)
+        .ToDictionary(x => x.Name, x => (object) x.Values);
+    }
+
     private static IEnumerable<KeyValuePair<string, string>> ExtractDisplayFields(TypedRecord config)
     {
-      foreach (var field in config.Fields.Concat(config.Custom))
-      {
-        if (field.FieldName is "pamResources" or "fileRef")
-        {
-          continue;
-        }
-
-        if (string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
-            && !PamConfigScheduleHelper.IsDefaultRotationScheduleField(field))
-        {
-          continue;
-        }
-
-        var values = string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
-          ? PamConfigScheduleHelper.GetDisplayValues(field).ToList()
-          : field.GetTypedFieldInformation().ToList();
-        if (values.Count == 0)
-        {
-          continue;
-        }
-
-        yield return new KeyValuePair<string, string>(
+      return config.Fields.Concat(config.Custom)
+        .Where(field => field.FieldName is not ("pamResources" or "fileRef"))
+        .Select(field => new KeyValuePair<string, string>(
           PamConfigScheduleHelper.GetPamFieldDisplayName(field),
-          string.Join(", ", values));
-      }
+          string.Join(", ", GetFieldExternalValues(field))))
+        .Where(x => !string.IsNullOrEmpty(x.Value));
+    }
+
+    private static IEnumerable<string> GetFieldExternalValues(ITypedField field)
+    {
+      return string.Equals(field.FieldName, "schedule", StringComparison.Ordinal)
+        ? PamConfigScheduleHelper.GetDisplayValues(field)
+        : field.GetTypedFieldInformation();
     }
   }
 

@@ -2100,5 +2100,8 @@ namespace KeeperSecurity.Vault
     {
         public const string FolderPlaceholderName = "(Keeper NSF Folder)";
         public const string KeeperDriveRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
+
+        /// <summary>Default record version for standard typed NSF records (login, etc.).</summary>
+        public const int DefaultTypedRecordVersion = 3;
     }
 }
