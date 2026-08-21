@@ -896,5 +896,53 @@ namespace KeeperSecurity.Plugins.PAM
 
       return false;
     }
+
+    internal static bool IsNsfNoopRecord(KeeperNSFRecord record)
+    {
+      if (record?.Fields == null)
+      {
+        return false;
+      }
+
+      foreach (var field in record.Fields)
+      {
+        if (field == null
+            || !string.Equals(field.Type, "text", StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(field.Label, "NOOP", StringComparison.OrdinalIgnoreCase))
+        {
+          continue;
+        }
+
+        var value = field.Value != null && field.Value.Count > 0 ? field.Value[0] : null;
+        return IsNoopFieldValue(value);
+      }
+
+      return false;
+    }
+
+    internal static bool IsNsfFolderRotateRecord(KeeperNSFRecord record)
+    {
+      if (record == null)
+      {
+        return false;
+      }
+
+      return record.Version == 3
+             && string.Equals(record.Type, "pamUser", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool IsNoopFieldValue(string value)
+    {
+      if (bool.TryParse(value, out var result))
+      {
+        return result;
+      }
+
+      return value?.ToLowerInvariant() switch
+      {
+        "1" or "yes" or "on" => true,
+        _ => false
+      };
+    }
   }
 }

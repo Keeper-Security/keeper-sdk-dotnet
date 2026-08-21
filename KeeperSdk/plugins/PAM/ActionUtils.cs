@@ -83,7 +83,7 @@ namespace KeeperSecurity.Plugins.PAM
       
       EnsureRotationAllowed(vault.Auth?.AuthContext);
 
-      if (!vault.TryGetKeeperRecord(recordUid.Trim(), out var keeperRecord) || keeperRecord is not TypedRecord record)
+      if (!PamVaultHelpers.TryGetTypedRecord(vault, recordUid.Trim(), out var record))
       {
         throw new PamActionException($"Record [{recordUid}] is not available.");
       }
@@ -219,21 +219,33 @@ namespace KeeperSecurity.Plugins.PAM
 
       foreach (var folderUid in folderUids)
       {
-        if (!vault.TryGetFolder(folderUid, out var node))
+        if (vault.TryGetFolder(folderUid, out var node))
         {
-          continue;
-        }
-
-        foreach (var ruid in node.Records)
-        {
-          if (!vault.TryGetKeeperRecord(ruid, out var rec) || rec is not TypedRecord typed)
+          foreach (var ruid in node.Records)
           {
-            continue;
+            if (!vault.TryGetKeeperRecord(ruid, out var rec) || rec is not TypedRecord typed)
+            {
+              continue;
+            }
+
+            if (string.Equals(typed.TypeName, "pamUser", StringComparison.OrdinalIgnoreCase)
+                && !recordUids.Contains(ruid, StringComparer.Ordinal))
+            {
+              recordUids.Add(ruid);
+            }
           }
-
-          if (string.Equals(typed.TypeName, "pamUser", StringComparison.OrdinalIgnoreCase)
-              && !recordUids.Contains(ruid, StringComparer.Ordinal))
+        }
+        else if (vault.TryGetKeeperNSFFolder(folderUid, out var nsfNode))
+        {
+          foreach (var ruid in nsfNode.Records)
           {
+            if (!vault.TryGetKeeperNSFRecord(ruid, out var nsfRec)
+                || !PamVaultHelpers.IsNsfFolderRotateRecord(nsfRec)
+                || recordUids.Contains(ruid, StringComparer.Ordinal))
+            {
+              continue;
+            }
+
             recordUids.Add(ruid);
           }
         }
@@ -295,6 +307,12 @@ namespace KeeperSecurity.Plugins.PAM
         return folders;
       }
 
+      if (vault.TryGetKeeperNSFFolder(folder, out var nsfByUid))
+      {
+        folders.Add(nsfByUid.FolderUid);
+        return folders;
+      }
+
       Regex pattern;
       try
       {
@@ -312,6 +330,14 @@ namespace KeeperSecurity.Plugins.PAM
           continue;
         }
 
+        if (!string.IsNullOrEmpty(node.Name) && pattern.IsMatch(node.Name))
+        {
+          folders.Add(node.FolderUid);
+        }
+      }
+
+      foreach (var node in vault.KeeperNSFFolderNodes)
+      {
         if (!string.IsNullOrEmpty(node.Name) && pattern.IsMatch(node.Name))
         {
           folders.Add(node.FolderUid);
@@ -357,6 +383,11 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static string ResolvePasswordComplexity(RouterProto.RouterRotationInfo rotationInfo, TypedRecord record)
     {
+      return ResolvePasswordComplexity(rotationInfo, record.RecordKey);
+    }
+
+    private static string ResolvePasswordComplexity(RouterProto.RouterRotationInfo rotationInfo, byte[] recordKey)
+    {
       if (!string.IsNullOrEmpty(rotationInfo?.PwdComplexity))
       {
         return rotationInfo.PwdComplexity;
@@ -371,7 +402,7 @@ namespace KeeperSecurity.Plugins.PAM
         Digit = 1,
         Special = 1,
       };
-      return RotationUtils.EncryptPasswordComplexity(rules, record.RecordKey).Base64UrlEncode();
+      return RotationUtils.EncryptPasswordComplexity(rules, recordKey).Base64UrlEncode();
     }
 
     private static string FindConfigUidFromLocalVault(VaultOnline vault, string recordUid)
@@ -420,16 +451,7 @@ namespace KeeperSecurity.Plugins.PAM
       if (!record.FindTypedField("text", "NOOP", out var field))
         return false;
 
-      var value = field.GetValueAt(0)?.ToString();
-
-      if (bool.TryParse(value, out var result))
-        return result;
-
-      return value?.ToLowerInvariant() switch
-      {
-        "1" or "yes" or "on" => true,
-        _ => false
-      };
+      return PamVaultHelpers.IsNoopFieldValue(field.GetValueAt(0)?.ToString());
     }
 
     // Block only when allow_rotate_credentials is explicitly false.
