@@ -919,14 +919,17 @@ namespace KeeperSecurity.Vault
                         Title = resolvedTitle,
                         Type = data?.Type,
                         Notes = data?.Notes,
-                        Fields = data?.Fields?
-                            .Select(f => new KeeperNSFField
-                            {
-                                Type = f.Type,
-                                Label = f.Label,
-                                Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
-                            })
-                            .ToList(),
+                        Fields = data == null
+                            ? null
+                            : (data.Fields ?? Enumerable.Empty<NsfRecordFieldData>())
+                                .Concat(data.Custom ?? Enumerable.Empty<NsfRecordFieldData>())
+                                .Select(f => new KeeperNSFField
+                                {
+                                    Type = f.Type,
+                                    Label = f.Label,
+                                    Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
+                                })
+                                .ToList(),
                         FolderUid = folderUid,
                         FolderName = folderName,
                         Revision = kdRecord.Revision,
