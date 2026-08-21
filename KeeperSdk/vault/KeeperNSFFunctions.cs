@@ -36,6 +36,10 @@ namespace KeeperSecurity.Vault
                     .Select(CloneNsfFieldForJson)
                     .Where(f => f != null)
                     .ToList(),
+                Custom = data.Custom?
+                    .Select(CloneNsfFieldForJson)
+                    .Where(f => f != null)
+                    .ToList(),
             };
 
             return JsonUtils.DumpJson(payload, indent: false);
@@ -84,6 +88,18 @@ namespace KeeperSecurity.Vault
                     .Where(f => f != null)
                     .ToList()
                     ?? new List<NsfRecordFieldData>(),
+                Custom = source.Custom?
+                    .Select(f => f == null
+                        ? null
+                        : new NsfRecordFieldData
+                        {
+                            Type = f.Type,
+                            Label = f.Label,
+                            Value = f.Value?.ToArray(),
+                            ExtensionData = f.ExtensionData,
+                        })
+                    .Where(f => f != null)
+                    .ToList(),
             };
         }
 
@@ -154,6 +170,11 @@ namespace KeeperSecurity.Vault
                 }
 
                 var existing = FindNsfField(dataObj.Fields, fieldType, fieldLabel);
+                if (existing == null)
+                {
+                    existing = FindNsfField(dataObj.Custom, fieldType, fieldLabel);
+                }
+
                 if (existing != null)
                 {
                     existing.Value = ToNsfFieldValues(fieldType, kvp.Value);
