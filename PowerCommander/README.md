@@ -259,6 +259,32 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Get-KeeperBreachWatchReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands-1/breachwatch-report-command#powercommander)                         | bw-report        | Generate the enterprise BreachWatch report and push updated summary data to Keeper
 | [Get-KeeperRiskManagementReport](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/reporting-commands/risk-management-report-command)                      | risk-report      | Risk management dashboard: enterprise-stat, enterprise-stat-details, security-alerts-summary, security-alerts-detail, security-benchmarks-get, security-benchmarks-set. Supports -Format, -Output
 
+### PAM (Privileged Access Management) Cmdlets
+| Cmdlet name                                             | Alias                    | Description
+|---------------------------------------------------------|--------------------------|----------------------------
+| [Sync-KeeperPam]()                                      | pam-sync                 | Sync PAM controller / gateway data
+| [Get-KeeperPamGatewayList]()                            | pam-gateway-list, pam-gw-list | List PAM gateways
+| [New-KeeperPamGateway]()                                | pam-gateway-new, pam-gw-new | Create a PAM gateway
+| [Set-KeeperPamGateway]()                                | pam-gateway-edit, pam-gw-edit | Edit a PAM gateway
+| [Remove-KeeperPamGateway]()                             | pam-gateway-remove, pam-gw-remove, pam-gateway-rm | Remove a PAM gateway
+| [Set-KeeperPamGatewayMaxInstances]()                    | pam-gateway-set-max-instances, pam-gw-set-max-instances | Set max gateway instances
+| [Get-KeeperPamRotationList]()                           | pam-rotation-list, pam-rot-list | List PAM rotation configurations
+| [Get-KeeperPamRotationInfo]()                           | pam-rotation-info, pam-rot-info | Show rotation info for a record
+| [Set-KeeperPamRotation]()                               | pam-rotation-edit, pam-rot-edit, pam-rotation-new, pam-rot-new | Create or edit PAM rotation settings
+| [Get-KeeperPamRotationScript]()                         | pam-rotation-script-list, pam-rot-script-list | List post-rotation scripts
+| [Add-KeeperPamRotationScript]()                         | pam-rotation-script-add, pam-rot-script-add | Add a post-rotation script
+| [Set-KeeperPamRotationScript]()                         | pam-rotation-script-edit, pam-rot-script-edit | Edit a post-rotation script
+| [Remove-KeeperPamRotationScript]()                      | pam-rotation-script-delete, pam-rot-script-delete | Remove a post-rotation script
+| [Get-KeeperPamConfig]()                                 | pam-config-list, pam-cfg-list | List PAM configurations
+| [New-KeeperPamConfig]()                                 | pam-config-new, pam-cfg-new | Create a PAM configuration
+| [Set-KeeperPamConfig]()                                 | pam-config-edit, pam-cfg-edit | Edit a PAM configuration
+| [Remove-KeeperPamConfig]()                              | pam-config-remove, pam-cfg-remove, pam-config-rm | Remove a PAM configuration
+| [Invoke-KeeperPamActionRotate]()                        | pam-action-rotate        | Schedule on-demand PAM credential rotation (record or folder)
+| [Get-KeeperPamActionJobInfo]()                          | pam-action-job-info      | Get status of a scheduled PAM gateway action job
+| [Set-KeeperPamConnection]()                             | pam-connection-edit      | Configure PAM connection settings on a resource or config
+| [Set-KeeperPamRbi]()                                    | pam-rbi-edit             | Configure PAM Remote Browser Isolation (RBI) settings
+| [Invoke-KeeperPamLaunch]()                              | pam-launch               | Run PAM launch preflight for a resource record
+
 ### EPM (Endpoint Privilege Management) Cmdlets
 | Cmdlet name                                             | Alias                    | Description
 |---------------------------------------------------------|--------------------------|----------------------------
@@ -989,4 +1015,53 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     Skip confirmation
     ```
     PS > kepm-approval-remove "approval-uid-here" -Force
+    ```
+
+62. Rotate a PAM user credential (on-demand)
+    ```
+    PS > Invoke-KeeperPamActionRotate -RecordUid "<pamUser-uid-or-title>"
+    ```
+    or using the alias
+    ```
+    PS > pam-action-rotate -r "<pamUser-uid-or-title>"
+    ```
+    Folder dry-run
+    ```
+    PS > pam-action-rotate -Folder "<shared-folder-uid>" -DryRun
+    ```
+
+63. Check a scheduled PAM action job
+    ```
+    PS > Get-KeeperPamActionJobInfo -JobId "<job-id>" -Gateway "<gateway-uid>"
+    ```
+    or using the alias
+    ```
+    PS > pam-action-job-info -j "<job-id>" -g "<gateway-uid>"
+    ```
+
+64. Edit PAM connection settings
+    ```
+    PS > Set-KeeperPamConnection -Record "<resource-uid>" -Configuration "<pam-config-uid>" -Protocol ssh -Connections on
+    ```
+    or using the alias
+    ```
+    PS > pam-connection-edit -r "<resource-uid>" -c "<pam-config-uid>" -Protocol rdp -ConnectionsRecording on
+    ```
+
+65. Edit PAM Remote Browser Isolation (RBI) settings
+    ```
+    PS > Set-KeeperPamRbi -Record "<pamRemoteBrowser-uid>" -Configuration "<pam-config-uid>" -RemoteBrowserIsolation on
+    ```
+    or using the alias
+    ```
+    PS > pam-rbi-edit -r "<pamRemoteBrowser-uid>" -c "<pam-config-uid>" -AllowCopy off -fu on -fd on
+    ```
+
+66. Run PAM launch preflight
+    ```
+    PS > Invoke-KeeperPamLaunch -Record "<pamMachine-uid-or-title>"
+    ```
+    or using the alias
+    ```
+    PS > pam-launch -r "<pamMachine-uid-or-title>" -Credential "<pamUser>" -Gateway "<gateway-uid>"
     ```
