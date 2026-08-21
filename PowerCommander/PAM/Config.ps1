@@ -498,19 +498,8 @@ function script:movePamConfigToFolder {
         [string] $DestinationFolderUid
     )
 
-    $Vault.CacheKeeperRecord($Record)
-    $sourceFolderUid = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecordSourceFolderUid($Vault, $Record.Uid)
-    if ($null -eq $sourceFolderUid) {
-        throw 'Cannot move PAM configuration: record is not initialized.'
-    }
-    if ([string]::Equals($sourceFolderUid, $DestinationFolderUid, [StringComparison]::Ordinal)) {
-        return
-    }
-
-    $path = New-Object KeeperSecurity.Vault.RecordPath
-    $path.RecordUid = $Record.Uid
-    $path.FolderUid = $sourceFolderUid
-    $Vault.MoveRecordToFolder($path, $DestinationFolderUid).GetAwaiter().GetResult() | Out-Null
+    [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::PlacePamConfigurationInFolderAsync(
+        $Vault, $Record, $DestinationFolderUid).GetAwaiter().GetResult() | Out-Null
 }
 
 function script:getPamConfigurationTypeSet {
@@ -562,7 +551,7 @@ function script:isPamConfigurationTypeName {
     }
 }
 
-function script:resolvePamConfigSharedFolder {
+function script:resolvePamConfigFolderInfo {
     Param (
         [Parameter(Mandatory = $true)]
         [KeeperSecurity.Vault.VaultOnline] $Vault,
@@ -570,29 +559,18 @@ function script:resolvePamConfigSharedFolder {
         [string] $ConfigUid
     )
 
-    [KeeperSecurity.Vault.KeeperRecord]$keeperRec = $null
-    if ($Vault.TryGetKeeperRecord($ConfigUid, [ref]$keeperRec) -and
-        ($keeperRec -is [KeeperSecurity.Vault.TypedRecord])) {
-        try {
-            $bySdk = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::GetConfigurationSharedFolder(
-                $Vault, [KeeperSecurity.Vault.TypedRecord]$keeperRec)
-            if ($null -ne $bySdk) {
-                return $bySdk
-            }
-        }
-        catch {
-            Write-Debug "GetConfigurationSharedFolder failed: $($_.Exception.Message)"
-        }
-    }
-
-    # Fallback when folder-tree lookup is empty.
-    try {
-        return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::FindSharedFolderForRecord($Vault, $ConfigUid, $null)
-    }
-    catch {
-        Write-Debug "FindSharedFolderForRecord failed: $($_.Exception.Message)"
+    [KeeperSecurity.Vault.TypedRecord]$typed = $null
+    if (-not [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetTypedRecord($Vault, $ConfigUid, [ref]$typed) -or
+        $null -eq $typed) {
         return $null
     }
+
+    [KeeperSecurity.Plugins.PAM.PamConfigurationFolderInfo]$folderInfo = $null
+    if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetConfigurationFolderInfo($Vault, $typed, [ref]$folderInfo)) {
+        return $folderInfo
+    }
+
+    return $null
 }
 
 function script:ensurePamRecordTypesSynced {
@@ -827,8 +805,8 @@ function script:buildPamConfigListRow {
         return $null
     }
 
-    [KeeperSecurity.Vault.KeeperRecord]$loaded = $null
-    [void]$Vault.TryGetKeeperRecord($ConfigUid, [ref]$loaded)
+    [KeeperSecurity.Vault.TypedRecord]$typed = $null
+    [void][KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetTypedRecord($Vault, $ConfigUid, [ref]$typed)
 
     $title = $FallbackTitle
     $typeName = $FallbackTypeName
@@ -837,50 +815,56 @@ function script:buildPamConfigListRow {
     $fields = $null
     $adminCred = ''
 
-    if ($null -ne $loaded) {
-        if (-not $title) { $title = [string]$loaded.Title }
+    if ($null -ne $typed) {
+        if (-not $title) { $title = [string]$typed.Title }
         try {
-            if (-not $typeName) { $typeName = [string]$loaded.TypeName }
+            if (-not $typeName) { $typeName = [string]$typed.TypeName }
         }
         catch {
             Write-Debug "Config TypeName read failed: $($_.Exception.Message)"
         }
         if (-not $typeName) {
-            $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($loaded)
+            $typeName = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($typed)
         }
 
-        $typed = $loaded -as [KeeperSecurity.Vault.TypedRecord]
-        if ($null -ne $typed) {
-            try {
-                $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($typed)
-                $gatewayUid = [string]$facade.ControllerUid
-                foreach ($ref in @($facade.ResourceRef)) {
-                    $refUid = [string]$ref
-                    if (-not [string]::IsNullOrWhiteSpace($refUid)) {
-                        [void]$resourceUidList.Add($refUid)
-                    }
-                }
-                $adminCred = [string]$facade.AdminCredentialRef
-                if ($VerboseOutput -or $IsDetail) {
-                    $fields = extractPamConfigDisplayFields -Config $typed
+        try {
+            $facade = New-Object KeeperSecurity.Plugins.PAM.PamConfigurationFacade($typed)
+            $gatewayUid = [string]$facade.ControllerUid
+            foreach ($ref in @($facade.ResourceRef)) {
+                $refUid = [string]$ref
+                if (-not [string]::IsNullOrWhiteSpace($refUid)) {
+                    [void]$resourceUidList.Add($refUid)
                 }
             }
-            catch {
-                Write-Debug "PAM configuration facade/fields read failed: $($_.Exception.Message)"
+            $adminCred = [string]$facade.AdminCredentialRef
+            if ($VerboseOutput -or $IsDetail) {
+                $fields = extractPamConfigDisplayFields -Config $typed
             }
+        }
+        catch {
+            Write-Debug "PAM configuration facade/fields read failed: $($_.Exception.Message)"
         }
     }
 
-    $sharedFolder = resolvePamConfigSharedFolder -Vault $Vault -ConfigUid $ConfigUid
-    $sharedFolderText = if ($sharedFolder) { "$($sharedFolder.Name) ($($sharedFolder.Uid))" } else { '' }
+    $folderInfo = resolvePamConfigFolderInfo -Vault $Vault -ConfigUid $ConfigUid
+    $folderSuffix = if ($folderInfo -and $folderInfo.IsNsf) { ' [NSF]' } else { '' }
+    $sharedFolderText = if ($folderInfo) { "$($folderInfo.Name) ($($folderInfo.Uid))$folderSuffix" } else { '' }
     $resourceJoined = ($resourceUidList -join ', ')
 
     if ($AsCommanderJson) {
+        $folderObj = $null
         $sfObj = $null
-        if ($sharedFolder) {
-            $sfObj = [ordered]@{
-                name = [string]$sharedFolder.Name
-                uid  = [string]$sharedFolder.Uid
+        if ($folderInfo) {
+            $folderObj = [ordered]@{
+                uid  = [string]$folderInfo.Uid
+                name = [string]$folderInfo.Name
+                type = if ($folderInfo.IsNsf) { 'nested_share_folder' } else { 'shared_folder' }
+            }
+            if (-not $folderInfo.IsNsf) {
+                $sfObj = [ordered]@{
+                    name = [string]$folderInfo.Name
+                    uid  = [string]$folderInfo.Uid
+                }
             }
         }
 
@@ -889,6 +873,7 @@ function script:buildPamConfigListRow {
                 uid                   = $ConfigUid
                 name                  = $title
                 config_type           = $typeName
+                folder                = $folderObj
                 shared_folder         = $sfObj
                 gateway_uid           = $gatewayUid
                 resource_record_uids  = @($resourceUidList.ToArray())
@@ -904,6 +889,7 @@ function script:buildPamConfigListRow {
             uid                  = $ConfigUid
             config_name          = $title
             config_type          = $typeName
+            folder               = $folderObj
             shared_folder        = $sfObj
             gateway_uid          = $gatewayUid
             resource_record_uids = @($resourceUidList.ToArray())
@@ -1061,11 +1047,8 @@ function Get-KeeperPamConfig {
         $uid = [string]$item.Uid
         if ([string]::IsNullOrEmpty($uid)) { continue }
 
-        [KeeperSecurity.Vault.KeeperRecord]$keeperRec = $null
-        $typed = $null
-        if ($vault.TryGetKeeperRecord($uid, [ref]$keeperRec) -and ($keeperRec -is [KeeperSecurity.Vault.TypedRecord])) {
-            $typed = [KeeperSecurity.Vault.TypedRecord]$keeperRec
-        }
+        [KeeperSecurity.Vault.TypedRecord]$typed = $null
+        [void][KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetTypedRecord($vault, $uid, [ref]$typed)
 
         $inSharedFolder = $false
         if ($null -ne $typed) {
@@ -1082,7 +1065,7 @@ function Get-KeeperPamConfig {
             }
         }
         if (-not $inSharedFolder) {
-            [void]$nsfLines.Add(("Warning: Following configuration is not in the shared folder: UID: {0}, Title: {1}" -f $uid, [string]$item.Title))
+            [void]$nsfLines.Add(("Warning: Following configuration has no folder: UID: {0}, Title: {1}" -f $uid, [string]$item.Title))
             continue
         }
 
@@ -1273,11 +1256,14 @@ function New-KeeperPamConfig {
     }
 
     if (-not $sharedFolderUid -or -not $moveDestinationUid) {
-        throw "Could not resolve shared folder `"$SharedFolder`". Provide a shared folder UID, name, or path."
+        throw "Could not resolve shared folder `"$SharedFolder`". Provide a shared folder or NSF folder UID, name, or path."
     }
 
+    $isNsfFolder = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::IsKeeperNSFFolder($vault, $moveDestinationUid)
+    $nsfFolderUid = if ($isNsfFolder) { $moveDestinationUid } else { $null }
+
     [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
-    [KeeperSecurity.Plugins.PAM.ConfigUtils]::AddConfigurationRecordAsync($vault, $record).GetAwaiter().GetResult() | Out-Null
+    [KeeperSecurity.Plugins.PAM.ConfigUtils]::AddConfigurationRecordAsync($vault, $record, $nsfFolderUid).GetAwaiter().GetResult() | Out-Null
 
     try {
         [KeeperSecurity.Plugins.PAM.ConfigUtils]::EnsureConfigurationNetworkGraphAsync($auth, $record.Uid).GetAwaiter().GetResult() | Out-Null
@@ -1287,7 +1273,9 @@ function New-KeeperPamConfig {
     }
 
     configurePamTunnelingIfNeeded -Auth $auth -ConfigUid $record.Uid -Values $values
-    movePamConfigToFolder -Vault $vault -Record $record -DestinationFolderUid $moveDestinationUid
+    if (-not $isNsfFolder) {
+        movePamConfigToFolder -Vault $vault -Record $record -DestinationFolderUid $moveDestinationUid
+    }
 
     if (-not [string]::IsNullOrEmpty($facade.ControllerUid)) {
         [KeeperSecurity.Plugins.PAM.ConfigUtils]::SetConfigurationGatewayAsync(

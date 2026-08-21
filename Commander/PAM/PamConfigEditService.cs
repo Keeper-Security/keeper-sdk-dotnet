@@ -338,6 +338,12 @@ namespace Commander.PAM
 
     private FolderNode TryResolveFolderNode(string path)
     {
+      if (PamVaultHelpers.TryResolveFolder(_vault, path, out var folder)
+          && PamVaultHelpers.IsPamConfigurationFolderDestination(_vault, folder))
+      {
+        return folder;
+      }
+
       if (_vaultContext == null)
       {
         return null;
@@ -345,7 +351,7 @@ namespace Commander.PAM
 
       return _vaultContext.TryResolvePath(path, out var folderNode, out var remainder)
              && string.IsNullOrEmpty(remainder)
-             && PamVaultHelpers.IsPamSharedFolderDestination(folderNode)
+             && PamVaultHelpers.IsPamConfigurationFolderDestination(_vault, folderNode)
         ? folderNode
         : null;
     }

@@ -608,37 +608,22 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Build a TypedRecord from an NSF record so PAM can read fields the same way as classic.
-        /// Returns false if UID/key is missing or data cannot be parsed.
+        /// Converts a synced Keeper NSF record into a <see cref="TypedRecord"/>.
+        /// Uses raw <see cref="KeeperNSFRecord.DataJson"/> when available so complex fields
+        /// (pamResources, schedule) are not collapsed by object[] deserialization.
         /// </summary>
         public static bool TryConvertKeeperNSFRecordToTypedRecord(KeeperNSFRecord nsf, out TypedRecord typed)
         {
             typed = null;
-            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null)
+            if (nsf == null || string.IsNullOrEmpty(nsf.RecordUid) || nsf.RecordKey == null || nsf.RecordKey.Length == 0)
             {
                 return false;
             }
 
             try
             {
-                var json = nsf.DataJson;
-                if (json == null || json.Length == 0)
-                {
-                    json = nsf.Data != null ? JsonUtils.DumpJson(nsf.Data, indent: false) : null;
-                }
-
-                var rtd = json != null
-                    ? JsonUtils.ParseJson<RecordTypeData>(json)
-                    : new RecordTypeData
-                    {
-                        Type = nsf.Type ?? "",
-                        Title = nsf.Title ?? "",
-                        Notes = nsf.Notes ?? "",
-                    };
-
-                // NSF typed records default to v3 when Version is unset.
                 typed = CreateTypedRecordFromData(
-                    rtd,
+                    ResolveNsfRecordTypeData(nsf),
                     nsf.RecordUid,
                     nsf.Version > 0 ? nsf.Version : 3,
                     nsf.RecordKey,
@@ -655,6 +640,26 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        private static RecordTypeData ResolveNsfRecordTypeData(KeeperNSFRecord nsf)
+        {
+            if (nsf.DataJson != null && nsf.DataJson.Length > 0)
+            {
+                return JsonUtils.ParseJson<RecordTypeData>(nsf.DataJson);
+            }
+
+            if (nsf.Data != null)
+            {
+                return JsonUtils.ParseJson<RecordTypeData>(JsonUtils.DumpJson(nsf.Data, indent: false));
+            }
+
+            return new RecordTypeData
+            {
+                Type = nsf.Type ?? "",
+                Title = nsf.Title ?? "",
+                Notes = nsf.Notes ?? "",
+            };
+        }
+
         private static TypedRecord CreateTypedRecordFromData(
             RecordTypeData rtd,
             string recordUid,
@@ -663,6 +668,11 @@ namespace KeeperSecurity.Vault
             bool shared,
             long clientModifiedTime)
         {
+            if (rtd == null)
+            {
+                return null;
+            }
+
             var typedRecord = new TypedRecord(rtd.Type ?? "")
             {
                 Uid = recordUid,

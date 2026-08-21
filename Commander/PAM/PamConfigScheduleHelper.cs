@@ -141,19 +141,40 @@ namespace Commander.PAM
     {
       var type = field.FieldName ?? "";
       var label = field.FieldLabel ?? "";
+      if (string.Equals(type, ScheduleFieldType, StringComparison.Ordinal))
+      {
+        return "Default Schedule";
+      }
+
       if (!string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(label))
       {
-        return string.Equals(field.FieldName, ScheduleFieldType, StringComparison.Ordinal)
-          ? "Default Schedule"
-          : $"({type}).{label}";
+        return $"({type}).{label}";
       }
 
       if (!string.IsNullOrEmpty(type))
       {
-        return string.Equals(type, ScheduleFieldType, StringComparison.Ordinal) ? "Default Schedule" : $"({type})";
+        return $"({type})";
       }
 
       return label;
+    }
+
+    /// <summary>
+    /// Field name used in single-config JSON output (Python uses label, else type).
+    /// </summary>
+    public static string GetPamFieldJsonName(IRecordTypeField field)
+    {
+      if (string.Equals(field.FieldName, ScheduleFieldType, StringComparison.Ordinal))
+      {
+        return "Default Schedule";
+      }
+
+      if (!string.IsNullOrEmpty(field.FieldLabel))
+      {
+        return field.FieldLabel;
+      }
+
+      return field.FieldName ?? "";
     }
 
     public static bool IsDefaultRotationScheduleField(ITypedField field)
