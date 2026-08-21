@@ -197,7 +197,7 @@ namespace Commander.PAM
       long accessLength;
       try
       {
-        accessLength = WorkflowUtils.ParseDuration(
+        accessLength = WorkflowUtils.ConvertToMilliseconds(
           string.IsNullOrWhiteSpace(options.Duration) ? "1d" : options.Duration);
       }
       catch (ArgumentException ex)
@@ -217,7 +217,7 @@ namespace Commander.PAM
 
       var parameters = new WorkflowParameters
       {
-        Resource = WorkflowUtils.RecordRef(record.Uid, record.Title),
+        Resource = WorkflowUtils.CreateRecordRef(record.Uid, record.Title),
         ApprovalsNeeded = approvals,
         CheckoutNeeded = options.Checkout ?? false,
         StartAccessOnApproval = options.StartOnApproval ?? false,
@@ -461,7 +461,7 @@ namespace Commander.PAM
         {
           try
           {
-            parameters.AccessLength = WorkflowUtils.ParseDuration(options.Duration);
+            parameters.AccessLength = WorkflowUtils.ConvertToMilliseconds(options.Duration);
           }
           catch (ArgumentException ex)
           {
@@ -612,7 +612,7 @@ namespace Commander.PAM
       {
         try
         {
-          escalationAfterMs = WorkflowUtils.ParseDuration(options.EscalationAfter);
+          escalationAfterMs = WorkflowUtils.ConvertToMilliseconds(options.EscalationAfter);
         }
         catch (ArgumentException ex)
         {
@@ -1122,7 +1122,7 @@ namespace Commander.PAM
       var state = new WorkflowState();
       if (record != null)
       {
-        state.Resource = WorkflowUtils.RecordRef(record.Uid, record.Title);
+        state.Resource = WorkflowUtils.CreateRecordRef(record.Uid, record.Title);
       }
       else
       {
@@ -1216,7 +1216,7 @@ namespace Commander.PAM
       string label;
       if (record != null)
       {
-        refMsg = WorkflowUtils.RecordRef(record.Uid, record.Title);
+        refMsg = WorkflowUtils.CreateRecordRef(record.Uid, record.Title);
         label = $"Record: {record.Title} ({record.Uid})";
       }
       else

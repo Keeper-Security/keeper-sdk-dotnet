@@ -36,9 +36,12 @@ namespace KeeperSecurity.Plugins.PAM
     private const string ForceCheckinPath = "force_checkin";
     private const string AllowConfigureWorkflowSettings = "allow_configure_workflow_settings";
 
+    // Removes protobuf details from router errors so users see a simple message.
     private static readonly Regex ProtoDumpRe = new Regex(
       @"\s*(?:type|value|name|stage|conditions|flowUid|resource)\s*:\s*(?:""[^""]*""|\S+)\s*",
       RegexOptions.Compiled);
+
+   // Removes "Response code: ..." details from errors shown to users.
     private static readonly Regex ResponseCodeRe = new Regex(
       @"\s*[Rr]esponse\s+code:\s*\S+\s*$",
       RegexOptions.Compiled);
@@ -106,7 +109,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>Creates a record reference from its UID bytes.</summary>
-    public static GraphSyncRef RecordRef(byte[] recordUidBytes, string recordName = null)
+    public static GraphSyncRef CreateRecordRef(byte[] recordUidBytes, string recordName = null)
     {
       if (recordUidBytes == null || recordUidBytes.Length == 0)
       {
@@ -127,14 +130,14 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
     /// <summary>Creates a record reference from its UID string.</summary>
-    public static GraphSyncRef RecordRef(string recordUid, string recordName = null)
+    public static GraphSyncRef CreateRecordRef(string recordUid, string recordName = null)
     {
       if (string.IsNullOrWhiteSpace(recordUid))
       {
         throw new ArgumentException("Record UID is required", nameof(recordUid));
       }
 
-      return RecordRef(recordUid.Base64UrlDecode(), recordName);
+      return CreateRecordRef(recordUid.Base64UrlDecode(), recordName);
     }
 
     /// <summary>Creates a workflow reference from its UID bytes.</summary>
@@ -164,7 +167,7 @@ namespace KeeperSecurity.Plugins.PAM
     }
 
    /// <summary>Converts a duration like <c>2h</c> or <c>30m</c> into milliseconds.</summary>
-    public static long ParseDuration(string durationStr)
+    public static long ConvertToMilliseconds(string durationStr)
     {
       if (string.IsNullOrWhiteSpace(durationStr))
       {
@@ -450,7 +453,7 @@ namespace KeeperSecurity.Plugins.PAM
       string recordUid,
       string recordName = null)
     {
-      var refMsg = RecordRef(recordUid, recordName);
+      var refMsg = CreateRecordRef(recordUid, recordName);
       var config = await auth.ExecuteRouter<WorkflowConfig>(ReadWorkflowConfigPath, refMsg);
 
       if (config == null
@@ -470,7 +473,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(parameters));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(CreateWorkflowConfigPath, parameters, null);
+      await PostToRouterAsync(auth, CreateWorkflowConfigPath, parameters);
     }
 
     /// <summary>Updates workflow settings for a record.</summary>
@@ -481,7 +484,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(parameters));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(UpdateWorkflowConfigPath, parameters, null);
+      await PostToRouterAsync(auth, UpdateWorkflowConfigPath, parameters);
     }
 
     /// <summary>Deletes the workflow settings for a record.</summary>
@@ -490,8 +493,8 @@ namespace KeeperSecurity.Plugins.PAM
       string recordUid,
       string recordName = null)
     {
-      var refMsg = RecordRef(recordUid, recordName);
-      await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowConfigPath, refMsg, null);
+      var refMsg = CreateRecordRef(recordUid, recordName);
+      await PostToRouterAsync(auth, DeleteWorkflowConfigPath, refMsg);
     }
 
     /// <summary>Adds users or teams that can approve access to a record.</summary>
@@ -510,7 +513,7 @@ namespace KeeperSecurity.Plugins.PAM
         return;
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(AddWorkflowApproversPath, config, null);
+      await PostToRouterAsync(auth, AddWorkflowApproversPath, config);
     }
 
     /// <summary>Removes users or teams from the record's approver list.</summary>
@@ -524,10 +527,10 @@ namespace KeeperSecurity.Plugins.PAM
       var config = BuildApproverConfig(recordUid, recordName, users, teamUids);
       if (config.Approvers.Count == 0)
       {
-        return;
+        return; 
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(DeleteWorkflowApproversPath, config, null);
+      await PostToRouterAsync(auth, DeleteWorkflowApproversPath, config);
     }
 
     /// <summary>Gets workflow access requests that need attention.</summary>
@@ -587,7 +590,7 @@ namespace KeeperSecurity.Plugins.PAM
         approval.DenialReason = denialReasonEncrypted;
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(ApproveOrDenyWorkflowAccessPath, approval, null);
+      await PostToRouterAsync(auth, ApproveOrDenyWorkflowAccessPath, approval);
     }
 
     /// <summary>Gets the current workflow state for a record.</summary>
@@ -598,7 +601,7 @@ namespace KeeperSecurity.Plugins.PAM
     {
       var request = new WorkflowState
       {
-        Resource = RecordRef(recordUid, recordName),
+        Resource = CreateRecordRef(recordUid, recordName),
       };
       return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
@@ -628,7 +631,7 @@ namespace KeeperSecurity.Plugins.PAM
 
       var accessRequest = new WorkflowAccessRequest
       {
-        Resource = RecordRef(recordUid, recordName),
+        Resource = CreateRecordRef(recordUid, recordName),
       };
       if (!string.IsNullOrEmpty(reason))
       {
@@ -642,7 +645,7 @@ namespace KeeperSecurity.Plugins.PAM
           CryptoUtils.EncryptAesV2(System.Text.Encoding.UTF8.GetBytes(ticket), recordKey));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(RequestWorkflowAccessPath, accessRequest, null);
+      await PostToRouterAsync(auth, RequestWorkflowAccessPath, accessRequest);
     }
 
     /// <summary>Asks the workflow to escalate a record access request.</summary>
@@ -653,9 +656,9 @@ namespace KeeperSecurity.Plugins.PAM
     {
       var state = new WorkflowState
       {
-        Resource = RecordRef(recordUid, recordName),
+        Resource = CreateRecordRef(recordUid, recordName),
       };
-      await auth.ExecuteRouter<IMessage, IMessage>(RequestEscalationPath, state, null);
+      await PostToRouterAsync(auth, RequestEscalationPath, state);
     }
 
     /// <summary>Starts a workflow using the supplied workflow state.</summary>
@@ -666,7 +669,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(state));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(StartWorkflowPath, state, null);
+      await PostToRouterAsync(auth, StartWorkflowPath, state);
     }
 
     /// <summary>Ends a workflow using a workflow or record reference.</summary>
@@ -677,7 +680,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(flowOrResourceRef));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(EndWorkflowPath, flowOrResourceRef, null);
+      await PostToRouterAsync(auth, EndWorkflowPath, flowOrResourceRef);
     }
 
     /// <summary>Forces a workflow resource to check in.</summary>
@@ -688,7 +691,7 @@ namespace KeeperSecurity.Plugins.PAM
         throw new ArgumentNullException(nameof(flowOrResourceRef));
       }
 
-      await auth.ExecuteRouter<IMessage, IMessage>(ForceCheckinPath, flowOrResourceRef, null);
+      await PostToRouterAsync(auth, ForceCheckinPath, flowOrResourceRef);
     }
 
     /// <summary>Tries to encrypt a denial reason for the person who requested access.</summary>
@@ -940,7 +943,7 @@ namespace KeeperSecurity.Plugins.PAM
       {
         Parameters = new WorkflowParameters
         {
-          Resource = RecordRef(recordUid, recordName),
+          Resource = CreateRecordRef(recordUid, recordName),
         },
       };
 
@@ -996,6 +999,20 @@ namespace KeeperSecurity.Plugins.PAM
 
       var span = flowUid.Span;
       return span.Length == flowUidBytes.Length && span.SequenceEqual(flowUidBytes);
+    }
+
+    /// <summary>Posts a protobuf request to the router and ignores the response body (OK/error only).</summary>
+    private static async Task PostToRouterAsync(IAuthentication auth, string path, IMessage request)
+    {
+      if (auth.Endpoint is not KeeperEndpoint keeperEndpoint)
+      {
+        throw new InvalidOperationException("Endpoint must be KeeperEndpoint to use workflow router APIs");
+      }
+
+      await keeperEndpoint.ExecuteRouterRest(
+        path,
+        auth.AuthContext.SessionToken,
+        request?.ToByteArray());
     }
 
     private static int ParseTimeToHhmm(string timeStr)
