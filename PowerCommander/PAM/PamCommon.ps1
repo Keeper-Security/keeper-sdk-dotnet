@@ -106,13 +106,100 @@ function script:updatePamRotationScriptRecord {
     }
 }
 
-function script:getPamRotationVault {
-    $vault = getVault
-    if (-not $vault) {
-        Write-Error -Message 'Vault is not available.' -ErrorAction Stop
+function script:toPamStringListOrNull {
+    Param ([string[]] $Values)
+
+    if ($null -eq $Values -or $Values.Count -eq 0) {
+        return $null
     }
 
-    return $vault
+    $list = New-Object 'System.Collections.Generic.List[string]'
+    $anyPart = $false
+    $anyNonEmpty = $false
+    foreach ($value in $Values) {
+        if ($null -eq $value) {
+            continue
+        }
+        foreach ($part in $value.Split(@(','), [System.StringSplitOptions]::None)) {
+            $anyPart = $true
+            $trimmed = $part.Trim()
+            if (-not [string]::IsNullOrEmpty($trimmed)) {
+                $anyNonEmpty = $true
+                [void]$list.Add($trimmed)
+            }
+        }
+    }
+
+    if (-not $anyPart) {
+        return $null
+    }
+
+    if (-not $anyNonEmpty) {
+        $list.Clear()
+        [void]$list.Add('')
+        return , $list
+    }
+
+    return , $list
+}
+
+function script:writePamEditResult {
+    Param (
+        [Parameter(Mandatory = $true)]
+        $Result,
+        [bool] $Silent,
+        [Parameter(Mandatory = $true)]
+        [string] $UpdatedMessage
+    )
+
+    $hadMessages = $false
+    if ($null -ne $Result.Messages) {
+        foreach ($message in $Result.Messages) {
+            if ([string]::IsNullOrWhiteSpace([string]$message)) {
+                continue
+            }
+            $hadMessages = $true
+            Write-Output $message
+        }
+    }
+
+    if ($Silent) {
+        return
+    }
+
+    if ($Result.RecordUpdated -or $Result.GraphUpdated) {
+        Write-Output $UpdatedMessage
+    }
+    elseif (-not $hadMessages) {
+        Write-Output 'Nothing to update.'
+    }
+}
+
+function script:invokePamSdkCall {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [scriptblock] $Action
+    )
+
+    try {
+        return & $Action
+    }
+    catch [KeeperSecurity.Plugins.PAM.PamException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [System.InvalidOperationException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [KeeperSecurity.Vault.VaultException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
+    catch [KeeperSecurity.Authentication.KeeperApiException] {
+        Write-Output $_.Exception.Message
+        return $null
+    }
 }
 
 function script:confirmPamYesNo {

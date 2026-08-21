@@ -791,7 +791,7 @@ function Get-KeeperPamRotationList {
         Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
     $auth = getPamEnterpriseAuth
     $rows = @(getPamRotationScheduleRows -Plugin $plugin -Vault $vault -Auth $auth -VerboseOutput $VerboseOutput.IsPresent)
 
@@ -1044,7 +1044,7 @@ function Set-KeeperPamRotation {
         Write-Error -Message 'PAM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
-    $vault = getPamRotationVault
+    $vault = getVault
     $auth = getPamEnterpriseAuth
 
     invokeKeeperPamRotationEdit -Auth $auth -Vault $vault -Options @{
