@@ -78,7 +78,6 @@ namespace KeeperSecurity.Authentication
 
                 var results = execRs.Results.ToList();
                 var lastStatus = results.Last();
-                // Server often returns a trailing "throttled" status when the batch was cut short.
                 var throttled = !lastStatus.IsSuccess
                     && string.Equals(lastStatus.resultCode, "throttled", StringComparison.OrdinalIgnoreCase);
 
@@ -93,7 +92,6 @@ namespace KeeperSecurity.Authentication
                             lastStatus.message ?? "Request was throttled");
                     }
 
-                    // Drop the throttle marker and retry the unfinished commands after a pause.
                     results.RemoveAt(results.Count - 1);
                     var waitSeconds = ThrottleHandling.ParseThrottleWaitSeconds(lastStatus.message);
                     delayInSec = ThrottleHandling.ThrottleBackoffSeconds(throttleRetries, waitSeconds);
