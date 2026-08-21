@@ -213,6 +213,7 @@ namespace KeeperSecurity.Vault
         {
             if (record is TypedRecord typed
                 && !string.IsNullOrEmpty(typed.Uid)
+                && !TryGetKeeperRecord(typed.Uid, out _)
                 && TryGetKeeperNSFRecord(typed.Uid, out _))
             {
                 const int maxOutOfSyncRetries = 1;
@@ -521,6 +522,15 @@ namespace KeeperSecurity.Vault
             var recordUid = await this.CreateKeeperNSFRecordInternal(title, recordType, folderUid, notes, fields);
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return recordUid;
+        }
+
+        /// <summary>
+        /// Creates a typed record in a Keeper NSF folder.
+        /// </summary>
+        public async Task CreateKeeperNSFTypedRecord(TypedRecord typed, string folderUid)
+        {
+            await this.CreateKeeperNSFTypedRecordInternal(typed, folderUid).ConfigureAwait(false);
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

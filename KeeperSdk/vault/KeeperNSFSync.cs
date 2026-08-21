@@ -997,6 +997,9 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "fields", EmitDefaultValue = false)]
         public List<NsfRecordFieldData> Fields { get; set; }
 
+        [DataMember(Name = "custom", EmitDefaultValue = false)]
+        public List<NsfRecordFieldData> Custom { get; set; }
+
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
@@ -1046,7 +1049,7 @@ namespace KeeperSecurity.Vault
         /// <summary>Parsed record data POCO; unknown JSON (e.g. custom) stays in ExtensionData.</summary>
         internal NsfRecordData Data { get; set; }
 
-        /// <summary>Decrypted data JSON — used for TypedRecord convert.</summary>
+        /// <summary>Raw decrypted record JSON for TypedRecord conversion (preserves complex fields).</summary>
         internal byte[] DataJson { get; set; }
     }
 
