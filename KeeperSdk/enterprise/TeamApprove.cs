@@ -156,7 +156,8 @@ namespace KeeperSecurity.Enterprise
                     .Where(u => u.UserStatus == UserStatus.Active)
                     .ToDictionary(u => u.Id, u => u);
 
-                var eligibleTeamUids = queuedTeamData.GetTeamUidsWithQueuedUsers()
+                var eligibleTeamUids = (queuedTeamData as QueuedTeamData)?.GetTeamUidsWithQueuedUsers()
+                    ?? queuedTeamData.QueuedTeams.Select(t => t.Uid)
                     .Distinct(StringComparer.Ordinal)
                     .Where(uid => (queuedTeamData.GetQueuedUsersForTeam(uid) ?? Enumerable.Empty<long>()).Any())
                     .ToArray();

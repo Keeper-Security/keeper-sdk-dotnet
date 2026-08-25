@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +6,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
+using KeeperSecurity.Vault;
 using ZeroDep;
 
 namespace Commander
@@ -21,11 +21,11 @@ namespace Commander
         [Option("file", Required = false, HelpText = "JSON template file")]
         public string FileOption { get; set; }
 
-        [Option("email", Required = false, HelpText = "Target user email or enterprise user ID")]
-        public string Email { get; set; }
+        [Option("email", Required = false, HelpText = "Target user email, display name, or enterprise user ID; repeatable")]
+        public IEnumerable<string> Email { get; set; }
 
-        [Option("team", Required = false, HelpText = "Target team name or UID")]
-        public string Team { get; set; }
+        [Option("team", Required = false, HelpText = "Target team name or UID; repeatable")]
+        public IEnumerable<string> Team { get; set; }
 
         [Option("users", Required = false, HelpText = "Comma-separated target user emails or IDs")]
         public string Users { get; set; }
@@ -41,12 +41,21 @@ namespace Commander
 
         [Option("output", Required = false, HelpText = "Dry-run output file for csv or json")]
         public string Output { get; set; }
+
+        [Option("syntax-help", Required = false, Default = false, HelpText = "Show enterprise-push template syntax help")]
+        public bool SyntaxHelp { get; set; }
     }
 
     internal static class EnterprisePushCommandExtensions
     {
         public static async Task EnterprisePushCommand(this IEnterpriseContext context, EnterprisePushCommandOptions arguments)
         {
+            if (arguments.SyntaxHelp)
+            {
+                Console.WriteLine(TemplateSyntaxHelp);
+                return;
+            }
+
             var fileName = string.IsNullOrWhiteSpace(arguments.FileOption) ? arguments.File : arguments.FileOption;
             if (string.IsNullOrWhiteSpace(fileName))
             {
@@ -85,7 +94,8 @@ namespace Commander
                 return;
             }
 
-            if (!TryResolveDryRunFormat(arguments.Format, out var format)) return;
+            var format = arguments.Format;
+            if (arguments.DryRun && !TryResolveDryRunFormat(arguments.Format, out format)) return;
 
             var vault = context.GetVault();
             if (vault == null)
@@ -117,10 +127,16 @@ namespace Commander
             Console.WriteLine($"Records created: {result.RecordsCreated}; transfers completed: {result.TransfersCompleted}; failures: {result.RecordsFailed + result.TransfersFailed}");
         }
 
-        private static string[] SplitTargets(string single, string multiple)
+        private const string TemplateSyntaxHelp = "enterprise-push template syntax:\n"
+            + "  Use Keeper JSON import format with a root object containing a records array.\n"
+            + "  Supported substitutions: ${user_email}, ${user_name}, ${generate_password}.\n"
+            + "  uid and folders are ignored because records are generated and delivered per target.\n"
+            + "  Example: { \"records\": [{ \"title\": \"Welcome ${user_name}\", \"login\": \"${user_email}\" }] }";
+
+        private static string[] SplitTargets(IEnumerable<string> singles, string multiple)
         {
             var values = new List<string>();
-            if (!string.IsNullOrWhiteSpace(single)) values.Add(single.Trim());
+            if (singles != null) values.AddRange(singles.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()));
             if (!string.IsNullOrWhiteSpace(multiple)) values.AddRange(multiple.Split(','));
             return values.Select(x => x.Trim()).Where(x => x.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         }
@@ -128,64 +144,31 @@ namespace Commander
         private static ImportRecord[] ParseTemplateRecords(string json)
         {
             var root = Json.Deserialize(json);
-            object records = root;
+            IDictionary<string, object> document;
             if (root is IDictionary<string, object> rootObject)
             {
-                rootObject.TryGetValue("records", out records);
+                document = new Dictionary<string, object>(rootObject, StringComparer.OrdinalIgnoreCase);
+            }
+            else if (root is IEnumerable<object> recordList)
+            {
+                document = new Dictionary<string, object>
+                {
+                    ["records"] = recordList.ToArray(),
+                };
+            }
+            else
+            {
+                return Array.Empty<ImportRecord>();
             }
 
-            if (!(records is IList recordList)) return Array.Empty<ImportRecord>();
-            return recordList.Cast<object>()
-                .Select(ParseTemplateRecord)
-                .Where(x => x != null)
-                .ToArray();
-        }
-
-        private static ImportRecord ParseTemplateRecord(object value)
-        {
-            if (!(value is IDictionary<string, object> element)) return null;
-            return new ImportRecord
+            var import = KeeperImport.LoadJsonDictionary(document);
+            foreach (var record in import.Records ?? Array.Empty<ImportRecord>())
             {
-                Title = GetString(element, "title"),
-                RecordType = GetString(element, "$type"),
-                Login = GetString(element, "login"),
-                Password = GetString(element, "password"),
-                LoginUrl = GetString(element, "login_url"),
-                Notes = GetString(element, "notes"),
-                CustomFields = ParseCustomFields(element)
-            };
-        }
-
-        private static ImportCustomField[] ParseCustomFields(IDictionary<string, object> record)
-        {
-            if (!record.TryGetValue("custom_fields", out var value) || !(value is IDictionary<string, object> fields))
-                return null;
-
-            var result = new List<ImportCustomField>();
-            foreach (var field in fields)
-            {
-                if (field.Value is string)
-                {
-                    result.Add(new ImportCustomField { Name = field.Key, TextValue = (string)field.Value });
-                }
-                else if (field.Value is IDictionary<string, object> objectValue)
-                {
-                    result.Add(new ImportCustomField
-                    {
-                        Name = field.Key,
-                        Elements = objectValue
-                            .Where(x => x.Value is string || x.Value is ValueType)
-                            .Select(x => new ImportCustomFieldElement { Name = x.Key, Value = Convert.ToString(x.Value) })
-                            .ToArray()
-                    });
-                }
+                record.Uid = null;
+                record.Folders = null;
             }
-            return result.ToArray();
-        }
 
-        private static string GetString(IDictionary<string, object> element, string name)
-        {
-            return element.TryGetValue(name, out var value) ? Convert.ToString(value) : null;
+            return import.Records ?? Array.Empty<ImportRecord>();
         }
 
         private static bool TryResolveDryRunFormat(string requested, out string format)

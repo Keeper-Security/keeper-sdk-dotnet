@@ -949,24 +949,41 @@ namespace KeeperSecurity.Vault
                 throw new ArgumentException("Record UID, username, and record key are required.");
             }
 
-            var pkRq = new AuthProto.GetPublicKeysRequest();
-            pkRq.Usernames.Add(username);
+            await Auth.LoadUsersKeys(new[] { username });
+            if (!Auth.TryGetUserKeys(username, out var userKeys) || userKeys == null)
+            {
+                throw new KeeperApiException("public_key_error", $"Public key for user \"{username}\" was not found.");
+            }
 
-            var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
-            var pkRs = pkRss.KeyResponses[0];
+            await TransferRecordToUser(recordUid, username, recordKey, userKeys);
+        }
+
+        internal async Task TransferRecordToUser(string recordUid, string username, byte[] recordKey, UserKeys userKeys)
+        {
+            if (string.IsNullOrEmpty(recordUid) || string.IsNullOrEmpty(username) || recordKey == null || userKeys == null)
+            {
+                throw new ArgumentException("Record UID, username, record key, and user keys are required.");
+            }
+
             EcPublicKey ecPk = null;
             RsaPublicKey rsaPk = null;
-            if (!pkRs.PublicEccKey.IsEmpty)
+            if (Auth.AuthContext.ForbidKeyType2)
             {
-                ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
-            }
-            else if (!pkRs.PublicKey.IsEmpty)
-            {
-                rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+                if (userKeys.EcPublicKey == null || userKeys.EcPublicKey.Length == 0)
+                {
+                    throw new KeeperApiException("public_key_error", $"ECC public key for user \"{username}\" was not found.");
+                }
+
+                ecPk = CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey);
             }
             else
             {
-                throw new KeeperApiException("public_key_error", pkRs.Message);
+                if (userKeys.RsaPublicKey == null || userKeys.RsaPublicKey.Length == 0)
+                {
+                    throw new KeeperApiException("public_key_error", $"RSA public key for user \"{username}\" was not found.");
+                }
+
+                rsaPk = CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey);
             }
 
             var tr = new TransferRecord
@@ -996,6 +1013,38 @@ namespace KeeperSecurity.Vault
             {
                 throw new KeeperApiException(status.Status, status.Message);
             }
+        }
+
+        internal async Task RemoveTransferredRecord(string recordUid)
+        {
+            if (string.IsNullOrEmpty(recordUid))
+            {
+                throw new ArgumentException("Record UID is required.", nameof(recordUid));
+            }
+
+            var preDeleteResponse = await Auth.ExecuteAuthCommand<PreDeleteCommand, PreDeleteResponse>(new PreDeleteCommand
+            {
+                objects = new[]
+                {
+                    new PreDeleteObject
+                    {
+                        objectUid = recordUid,
+                        objectType = "record",
+                        fromType = "user_folder",
+                        deleteResolution = "unlink",
+                    }
+                }
+            });
+            var token = preDeleteResponse?.preDeleteResponse?.preDeleteToken;
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new KeeperApiException("delete_error", $"No delete token returned for record \"{recordUid}\".");
+            }
+
+            await Auth.ExecuteAuthCommand(new DeleteCommand
+            {
+                preDeleteToken = token,
+            });
         }
 
         /// <inheritdoc/>

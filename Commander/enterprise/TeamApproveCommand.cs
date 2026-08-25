@@ -1,5 +1,6 @@
 using Cli;
 using CommandLine;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Enterprise;
 using System;
 using System.Collections.Generic;
@@ -70,16 +71,25 @@ namespace Commander
             var approveTeams = (!arguments.Team && !arguments.Email) || arguments.Team;
             var approveUsers = (!arguments.Team && !arguments.Email) || arguments.Email;
 
-            var result = await context.EnterpriseData.ApproveQueuedTeams(context.QueuedTeamManagement, new TeamApproveOptions
+            TeamApproveResult result;
+            try
             {
-                ApproveTeams = approveTeams,
-                ApproveUsers = approveUsers,
-                RestrictEdit = restrictEdit,
-                RestrictShare = restrictShare,
-                RestrictView = restrictView,
-                DryRun = arguments.DryRun,
-                Warnings = Console.WriteLine,
-            });
+                result = await context.EnterpriseData.ApproveQueuedTeams(context.QueuedTeamManagement, new TeamApproveOptions
+                {
+                    ApproveTeams = approveTeams,
+                    ApproveUsers = approveUsers,
+                    RestrictEdit = restrictEdit,
+                    RestrictShare = restrictShare,
+                    RestrictView = restrictView,
+                    DryRun = arguments.DryRun,
+                    Warnings = Console.WriteLine,
+                });
+            }
+            catch (KeeperApiException ex)
+            {
+                Console.WriteLine($"Team approval failed: {ex.Message}");
+                return;
+            }
 
             if (result.Actions == null || result.Actions.Count == 0)
             {

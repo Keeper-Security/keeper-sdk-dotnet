@@ -156,13 +156,6 @@ namespace KeeperSecurity.Enterprise
         /// <param name="warnings">A callback that receives warnings</param>
         /// <returns>Awaitable task.</returns>
         Task RemoveUsersFromTeams(string[] emails, string[] teamUids, Action<string> warnings = null);
-        /// <summary>
-        ///     Approves queued teams and queued team users provisioned by SCIM or Active Directory Bridge.
-        /// </summary>
-        /// <param name="queuedTeamData">Queued team enterprise data</param>
-        /// <param name="options">Approval options</param>
-        /// <returns>Approval result</returns>
-        Task<TeamApproveResult> ApproveQueuedTeams(IQueuedTeamData queuedTeamData, TeamApproveOptions options = null);
     }
 
     /// <exclude />

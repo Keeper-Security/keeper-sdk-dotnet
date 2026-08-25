@@ -73,6 +73,45 @@ namespace KeeperSecurity.Enterprise
                 return result;
             }
 
+            if (!options.DryRun)
+            {
+                var targetEmails = targets.Select(x => x.Email).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                try
+                {
+                    var skippedUsers = new HashSet<string>(
+                        await vault.Auth.LoadUsersKeys(targetEmails),
+                        StringComparer.InvariantCultureIgnoreCase);
+                    targets = targets.Where(target =>
+                    {
+                        if (skippedUsers.Contains(target.Email)
+                            || !vault.Auth.TryGetUserKeys(target.Email, out var keys)
+                            || keys == null
+                            || (vault.Auth.AuthContext.ForbidKeyType2
+                                ? keys.EcPublicKey == null || keys.EcPublicKey.Length == 0
+                                : keys.RsaPublicKey == null || keys.RsaPublicKey.Length == 0))
+                        {
+                            var requiredKey = vault.Auth.AuthContext.ForbidKeyType2 ? "ECC" : "RSA";
+                            options.Warnings?.Invoke($"Skipping user \"{target.Email}\": {requiredKey} public key is unavailable.");
+                            return false;
+                        }
+
+                        return true;
+                    }).ToList();
+                }
+                catch (Exception ex)
+                {
+                    options.Warnings?.Invoke($"Unable to load target user public keys: {ex.Message}");
+                    targets.Clear();
+                }
+
+                if (targets.Count == 0)
+                {
+                    options.Warnings?.Invoke("No target users with usable public keys found.");
+                    result.Actions = actions;
+                    return result;
+                }
+            }
+
             foreach (var target in targets)
             {
                 var records = templateRecords
@@ -97,7 +136,7 @@ namespace KeeperSecurity.Enterprise
 
                 try
                 {
-                    var importResult = await vault.ImportJson(new ImportFile { Records = records });
+                    var importResult = await vault.ImportJson(new ImportFile { Records = records }, RecordMatch.None);
                     result.RecordsCreated += importResult.LegacyRecordCount + importResult.TypedRecordCount;
                     result.RecordsFailed += importResult.RecordFailure.Count;
 
@@ -120,7 +159,16 @@ namespace KeeperSecurity.Enterprise
                                 continue;
                             }
 
-                            await vault.TransferRecordToUser(record.Uid, target.Email, recordKey);
+                            vault.Auth.TryGetUserKeys(target.Email, out var userKeys);
+                            await vault.TransferRecordToUser(record.Uid, target.Email, recordKey, userKeys);
+                            try
+                            {
+                                await vault.RemoveTransferredRecord(record.Uid);
+                            }
+                            catch (Exception cleanupException)
+                            {
+                                options.Warnings?.Invoke($"Transferred \"{record.Title}\" to \"{target.Email}\", but could not remove the administrator copy: {cleanupException.Message}");
+                            }
                             result.TransfersCompleted++;
                             actions.Add(new EnterprisePushAction
                             {
@@ -162,8 +210,12 @@ namespace KeeperSecurity.Enterprise
                 if (!TryGetUserByEmail(value, out user) &&
                     (!long.TryParse(value, out var id) || !TryGetUserById(id, out user)))
                 {
-                    warning?.Invoke($"User \"{value}\" not found.");
-                    continue;
+                    user = Users.FirstOrDefault(x => string.Equals(x.DisplayName, value, StringComparison.OrdinalIgnoreCase));
+                    if (user == null)
+                    {
+                        warning?.Invoke($"User \"{value}\" not found.");
+                        continue;
+                    }
                 }
 
                 AddTargetUser(users, user);
@@ -210,7 +262,7 @@ namespace KeeperSecurity.Enterprise
             {
                 ["user_email"] = target.Email ?? string.Empty,
                 ["user_name"] = target.DisplayName ?? string.Empty,
-                ["generate_password"] = CryptoUtils.GeneratePassword()
+                ["generate_password"] = CryptoUtils.GeneratePassword(new PasswordGenerationOptions { Length = 32 })
             };
 
             return new ImportRecord
