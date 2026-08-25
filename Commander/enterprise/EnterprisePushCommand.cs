@@ -213,14 +213,20 @@ namespace Commander
 
             if (!string.IsNullOrWhiteSpace(output) && format != "table")
             {
-                using var writer = new StreamWriter(output);
-                EnterpriseExtensions.WriteFormattedOutput(writer, format, headers, rows, json);
-                Console.WriteLine($"Output written to {output}");
+                try
+                {
+                    using var writer = new StreamWriter(output);
+                    EnterpriseExtensions.WriteFormattedOutput(writer, format, headers, rows, json);
+                    Console.WriteLine($"Output written to {output}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to write output to \"{output}\": {ex.Message}");
+                }
+                return;
             }
-            else
-            {
-                EnterpriseExtensions.WriteFormattedOutput(Console.Out, format, headers, rows, json);
-            }
+
+            EnterpriseExtensions.WriteFormattedOutput(Console.Out, format, headers, rows, json);
         }
     }
 }

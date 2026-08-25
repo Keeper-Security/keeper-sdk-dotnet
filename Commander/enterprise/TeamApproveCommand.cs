@@ -41,9 +41,23 @@ namespace Commander
     {
         public static async Task TeamApproveCommand(this IEnterpriseContext context, TeamApproveCommandOptions arguments)
         {
+            if (context.EnterpriseData == null)
+            {
+                Console.WriteLine("Error: Enterprise data is not available. Connect as an enterprise administrator and try again.");
+                return;
+            }
+
+            if (context.QueuedTeamManagement?.Enterprise == null)
+            {
+                Console.WriteLine("Error: Queued team data is not available. Connect as an enterprise administrator and try again.");
+                return;
+            }
+
             if (arguments.Force)
             {
-                await context.Enterprise.Load();
+                // EnterpriseLoader owns the queued-team plugin, so loading through
+                // that plugin explicitly refreshes the data used below.
+                await context.QueuedTeamManagement.Enterprise.Load();
             }
 
             if (!TryParseRestrictFlag(arguments.RestrictEdit, "restrict-edit", out var restrictEdit)

@@ -988,7 +988,11 @@ namespace KeeperSecurity.Vault
 
             var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>("vault/records_ownership_transfer", request);
             var status = response.TransferRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-            if (status != null && status.Status != "transfer_record_success")
+            if (status == null)
+            {
+                throw new KeeperApiException("transfer_record_error", $"No transfer status returned for record \"{recordUid}\" and user \"{username}\".");
+            }
+            if (status.Status != "transfer_record_success")
             {
                 throw new KeeperApiException(status.Status, status.Message);
             }
