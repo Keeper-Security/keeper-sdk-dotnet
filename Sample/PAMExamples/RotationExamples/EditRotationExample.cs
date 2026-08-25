@@ -204,7 +204,7 @@ namespace Sample.PAMExamples.RotationExamples
                 }
                 else if (cachedRotation != null)
                 {
-                    pwdComplexity = cachedRotation.PwdComplexity ?? Array.Empty<byte>();
+                    pwdComplexity = cachedRotation.PasswordComplexity ?? Array.Empty<byte>();
                 }
                 else
                 {

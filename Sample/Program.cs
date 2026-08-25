@@ -804,6 +804,80 @@ namespace Sample
                 //     scriptId: "<scriptUid_or_name_here>"
                 // );
 
+                // // List PAM Configurations Example
+                // await PAMExamples.ConfigExamples.ListConfigsExample.ListConfigs(
+                //     vault,
+                //     configId: null,   // optional: UID or title for a single configuration
+                //     verbose: false
+                // );
+
+                // // Create PAM Configuration Example
+                // await PAMExamples.ConfigExamples.CreateConfigExample.CreateConfig(
+                //     vault,
+                //     environment: "local",   // local, network, aws, azure, gcp, domain, oci, github
+                //     title: "<configTitle_here>",
+                //     sharedFolder: "<sharedFolderUid_or_path_here>",
+                //     gatewayId: null   // optional: gateway UID or name
+                // );
+
+                // // Edit PAM Configuration Example
+                // await PAMExamples.ConfigExamples.EditConfigExample.EditConfig(
+                //     vault,
+                //     configId: "<pamConfigUid_or_title_here>",
+                //     newTitle: null,
+                //     gatewayId: null,
+                //     connections: "on",
+                //     rotation: "on"
+                // );
+
+                // // Remove PAM Configuration Example
+                // await PAMExamples.ConfigExamples.RemoveConfigExample.RemoveConfig(
+                //     vault,
+                //     configId: "<pamConfigUid_or_title_here>"
+                // );
+
+                // // PAM Action Rotate Example
+                // await PAMExamples.ActionExamples.RotateExample.Rotate(
+                //     vault,
+                //     recordUid: "<pamUserUid_here>",
+                //     folder: null,   // or a shared folder UID/title pattern to rotate in bulk
+                //     dryRun: false
+                // );
+
+                // // PAM Action Job Info Example
+                // await PAMExamples.ActionExamples.JobInfoExample.GetJobInfo(
+                //     vault,
+                //     jobId: "<jobId_here>",
+                //     gatewayUid: null   // required only when multiple gateways are online
+                // );
+
+                // // Edit PAM Connection Example
+                // await PAMExamples.ConnectionExamples.EditConnectionExample.EditConnection(
+                //     vault,
+                //     record: "<pamResourceOrConfigUid_or_title_here>",
+                //     configuration: "<pamConfigUid_or_title_here>",
+                //     connections: "on",
+                //     protocol: "ssh"
+                // );
+
+                // // Edit PAM RBI Example
+                // await PAMExamples.RbiExamples.EditRbiExample.EditRbi(
+                //     vault,
+                //     record: "<pamRemoteBrowserUid_or_title_here>",
+                //     configuration: "<pamConfigUid_or_title_here>",
+                //     remoteBrowserIsolation: "on",
+                //     connectionsRecording: "on"
+                // );
+
+                // // PAM Launch Preflight Example
+                // await PAMExamples.LaunchExamples.LaunchPreflightExample.Preflight(
+                //     vault,
+                //     record: "<pamMachineUid_or_title_here>",
+                //     credential: null,
+                //     gateway: null,
+                //     debug: true
+                // );
+
                 // // Remove Client Example
                 // await SecretManagerExamples.RemoveClientExample.RemoveClient(
                 //     vault,
