@@ -938,6 +938,62 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Transfers a record when the caller already has the record key, for example
+        /// immediately after creating a record through a batch operation.
+        /// </summary>
+        internal async Task TransferRecordToUser(string recordUid, string username, byte[] recordKey)
+        {
+            if (string.IsNullOrEmpty(recordUid) || string.IsNullOrEmpty(username) || recordKey == null)
+            {
+                throw new ArgumentException("Record UID, username, and record key are required.");
+            }
+
+            var pkRq = new AuthProto.GetPublicKeysRequest();
+            pkRq.Usernames.Add(username);
+
+            var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
+            var pkRs = pkRss.KeyResponses[0];
+            EcPublicKey ecPk = null;
+            RsaPublicKey rsaPk = null;
+            if (!pkRs.PublicEccKey.IsEmpty)
+            {
+                ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
+            }
+            else if (!pkRs.PublicKey.IsEmpty)
+            {
+                rsaPk = CryptoUtils.LoadRsaPublicKey(pkRs.PublicKey.ToByteArray());
+            }
+            else
+            {
+                throw new KeeperApiException("public_key_error", pkRs.Message);
+            }
+
+            var tr = new TransferRecord
+            {
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Username = username,
+            };
+            if (ecPk != null)
+            {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(recordKey, ecPk));
+                tr.UseEccKey = true;
+            }
+            else
+            {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(recordKey, rsaPk));
+            }
+            var request = new RecordsOnwershipTransferRequest();
+            request.TransferRecords.Add(tr);
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>("vault/records_ownership_transfer", request);
+            var status = response.TransferRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (status != null && status.Status != "transfer_record_success")
+            {
+                throw new KeeperApiException(status.Status, status.Message);
+            }
+        }
+
         /// <inheritdoc/>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {

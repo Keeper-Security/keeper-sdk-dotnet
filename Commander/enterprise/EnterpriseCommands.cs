@@ -208,6 +208,13 @@ namespace Commander
                     Description = "Approve queued teams and users provisioned by SCIM or Active Directory Bridge",
                     Action = async options => { await context.TeamApproveCommand(options); },
                 });
+            cli.Commands.Add("enterprise-push",
+                new ParseableCommand<EnterprisePushCommandOptions>
+                {
+                    Order = 69,
+                    Description = "Populate user and team vaults with predetermined records",
+                    Action = async options => { await context.EnterprisePushCommand(options); },
+                });
             cli.Commands.Add("transfer-user",
                 new ParseableCommand<EnterpriseTransferUserOptions>
                 {

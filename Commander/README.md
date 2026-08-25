@@ -247,6 +247,7 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `enterprise-user` | `eu` | Manage enterprise users |
 | `enterprise-team` | `et` | Manage enterprise teams |
 | `team-approve` | `ta` | Approve queued teams and users provisioned by SCIM/Bridge |
+| `enterprise-push` | | Populate user and team vaults with predetermined records |
 | `list-team` | | List enterprise teams with optional filters |
 | `enterprise-role` | `er` | Manage enterprise roles (list, view, add, delete, update, copy, membership, etc.) |
 | `enterprise-device` | `ed` | Manage user devices |

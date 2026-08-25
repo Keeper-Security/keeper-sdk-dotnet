@@ -93,6 +93,8 @@ public class BatchResult
     public IDictionary<string, string> FolderFailure { get; } = new Dictionary<string, string>();
     public IDictionary<string, string> RecordFailure { get; } = new Dictionary<string, string>();
     public IDictionary<(string, string), string> MembershipFailure { get; } = new Dictionary<(string, string), string>();
+    /// <summary>Record encryption keys for records created by this batch.</summary>
+    internal IDictionary<string, byte[]> RecordKeys { get; } = new Dictionary<string, byte[]>();
 }
 
 /// <summary>
@@ -982,6 +984,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                 }
             }
 
+            Tuple<PasswordRecord, FolderNode>[] legacyChunk = Array.Empty<Tuple<PasswordRecord, FolderNode>>();
             if (_legacyRecordsToAdd.Count > 0 && left > 10 && rq.FolderRequest.Count == 0)
             {
                 Tuple<PasswordRecord, FolderNode>[] chunk;
@@ -995,6 +998,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                     chunk = _legacyRecordsToAdd.ToArray();
                     _legacyRecordsToAdd.Clear();
                 }
+                legacyChunk = chunk;
 
                 foreach (var r in chunk)
                 {
@@ -1092,6 +1096,8 @@ public class BatchVaultOperations : IBatchVaultOperations
                 if (rrs.Status.ToLower() == "success")
                 {
                     result.LegacyRecordCount++;
+                    var record = legacyChunk.FirstOrDefault(x => x.Item1.Uid == rrs.RecordUid.ToByteArray().Base64UrlEncode()).Item1;
+                    if (record != null) result.RecordKeys[record.Uid] = record.RecordKey;
                 }
                 else
                 {
@@ -1209,6 +1215,9 @@ public class BatchVaultOperations : IBatchVaultOperations
                 if (ar.Status == RecordModifyResult.RsSuccess)
                 {
                     result.TypedRecordCount++;
+                    var recordUid = ar.RecordUid.ToByteArray().Base64UrlEncode();
+                    var record = chunk.FirstOrDefault(x => x.Item1.Uid == recordUid).Item1;
+                    if (record != null) result.RecordKeys[record.Uid] = record.RecordKey;
                 }
                 else
                 {
