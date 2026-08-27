@@ -546,20 +546,27 @@ namespace KeeperSecurity.Enterprise
 
             if (commands.Count > 0)
             {
-                var batch = commands.Take(99).ToList();
-                var execRq = new ExecuteCommand
+                const int ExecuteBatchSize = 99;
+                var totalSuccess = 0;
+                foreach (var batch in commands
+                    .Select((cmd, index) => new { cmd, index })
+                    .GroupBy(x => x.index / ExecuteBatchSize)
+                    .Select(g => g.Select(x => x.cmd).ToList()))
                 {
-                    Requests = batch
-                };
-                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
-                if (execRs.Results?.Count > 0)
-                {
-                    var last = execRs.Results.Last();
-                    var success = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
-                    warnings?.Invoke($"Successfully added {success} team membership(s)");
-                    if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    var execRq = new ExecuteCommand
+                    {
+                        Requests = batch
+                    };
+                    var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                    if (execRs.Results?.Count > 0)
+                    {
+                        var last = execRs.Results.Last();
+                        var batchSuccess = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
+                        totalSuccess += batchSuccess;
+                        if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    }
                 }
-
+                warnings?.Invoke($"Successfully added {totalSuccess} team membership(s)");
                 await Enterprise.Load();
             }
         }
@@ -594,20 +601,27 @@ namespace KeeperSecurity.Enterprise
 
             if (commands.Count > 0)
             {
-                var batch = commands.Take(99).ToList();
-                var execRq = new ExecuteCommand
+                const int ExecuteBatchSize = 99;
+                var totalSuccess = 0;
+                foreach (var batch in commands
+                    .Select((cmd, index) => new { cmd, index })
+                    .GroupBy(x => x.index / ExecuteBatchSize)
+                    .Select(g => g.Select(x => x.cmd).ToList()))
                 {
-                    Requests = batch
-                };
-                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
-                if (execRs.Results?.Count > 0)
-                {
-                    var last = execRs.Results.Last();
-                    var success = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
-                    warnings?.Invoke($"Successfully removed {success} team membership(s)");
-                    if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    var execRq = new ExecuteCommand
+                    {
+                        Requests = batch
+                    };
+                    var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                    if (execRs.Results?.Count > 0)
+                    {
+                        var last = execRs.Results.Last();
+                        var batchSuccess = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
+                        totalSuccess += batchSuccess;
+                        if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    }
                 }
-
+                warnings?.Invoke($"Successfully removed {totalSuccess} team membership(s)");
                 await Enterprise.Load();
             }
         }
