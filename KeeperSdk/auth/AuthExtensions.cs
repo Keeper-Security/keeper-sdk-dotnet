@@ -49,48 +49,68 @@ namespace KeeperSecurity.Authentication
         public static async Task<IList<KeeperApiResponse>> ExecuteBatch(this IAuthentication auth, IList<KeeperApiCommand> commands)
         {
             var responses = new List<KeeperApiResponse>();
+            if (commands == null || commands.Count == 0)
+            {
+                return responses;
+            }
+
             int pos = 0;
             int delayInSec = 0;
+            int throttleRetries = 0;
             while (pos < commands.Count)
             {
                 if (delayInSec > 0)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(delayInSec));
+                    delayInSec = 0;
                 }
 
+                var chunk = commands.Skip(pos).Take(ThrottleHandling.BatchChunkSize).ToList();
                 var rq = new ExecuteCommand()
                 {
-                    Requests = commands.Skip(pos).Take(100).ToList(),
+                    Requests = chunk,
                 };
                 var execRs = await auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(rq);
-                pos += execRs.Results.Count;
-
-                if (execRs.Results.Count == rq.Requests.Count)
+                if (execRs.Results == null || execRs.Results.Count == 0)
                 {
-                    responses.AddRange(execRs.Results);
-                    delayInSec = 5;
+                    throw new KeeperApiException("server_error", "Batch execution returned no results");
                 }
-                else if (execRs.Results.Count > 0)
+
+                var results = execRs.Results.ToList();
+                var lastStatus = results.Last();
+                var throttled = !lastStatus.IsSuccess
+                    && ThrottleHandling.IsThrottleResultCode(lastStatus.resultCode);
+
+                if (throttled)
                 {
-                    delayInSec = 0;
-                    if (execRs.Results.Count > 50)
+                    throttleRetries++;
+                    var failOnThrottle = auth.Endpoint is KeeperEndpoint keeperEndpoint && keeperEndpoint.FailOnThrottle;
+                    if (failOnThrottle || throttleRetries > ThrottleHandling.MaxThrottleRetries)
                     {
-                        delayInSec = 5;
+                        throw new KeeperApiException(
+                            lastStatus.resultCode ?? "throttled",
+                            lastStatus.message ?? "Request was throttled");
                     }
-                    responses.AddRange(execRs.Results);
-                    var lastStatus = execRs.Results.Last();
-                    if (lastStatus.resultCode == "throttled")
+
+                    results.RemoveAt(results.Count - 1);
+                    var waitSeconds = ThrottleHandling.ParseThrottleWaitSeconds(lastStatus.message);
+                    if (waitSeconds <= 0)
                     {
-                        responses.RemoveAt(responses.Count - 1);
-                        pos -= 1;
-                        delayInSec = 10;
+                        waitSeconds = ThrottleHandling.DefaultThrottleWaitSeconds;
                     }
+                    delayInSec = ThrottleHandling.ThrottleBackoffSeconds(throttleRetries, waitSeconds);
+#if DEBUG
+                    Debug.WriteLine(
+                        $"Batch throttled (attempt {throttleRetries}/{ThrottleHandling.MaxThrottleRetries}), retrying in {delayInSec} seconds");
+#endif
                 }
                 else
                 {
-                    break;
+                    throttleRetries = 0;
                 }
 
+                responses.AddRange(results);
+                pos += results.Count;
             }
 
             return responses;
