@@ -109,6 +109,7 @@ namespace KeeperSecurity.Enterprise
 
     public partial class EnterpriseData
     {
+        // ExecuteCommand accepts at most 99 requests in a single batch.
         private const int TeamApproveBatchSize = 99;
 
         /// <inheritdoc />
@@ -153,7 +154,7 @@ namespace KeeperSecurity.Enterprise
             if (options.ApproveUsers)
             {
                 var activeUsers = Users
-                    .Where(u => u.UserStatus == UserStatus.Active)
+                    .Where(u => u.UserStatus == UserStatus.Active && u.Lock == 0)
                     .ToDictionary(u => u.Id, u => u);
 
                 var eligibleTeamUids = (queuedTeamData as QueuedTeamData)?.GetTeamUidsWithQueuedUsers()
@@ -176,20 +177,18 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var teamUid in eligibleTeamUids)
                 {
+                    if (!options.ApproveTeams && pendingQueuedTeamUids.Contains(teamUid) && !knownTeamUids.Contains(teamUid))
+                    {
+                        options.Warnings?.Invoke($"Team \"{LookupTeamName(teamNames, teamUid)}\" is still queued. Approve teams first.");
+                        continue;
+                    }
+
                     var teamKey = addedTeamKeys.TryGetValue(teamUid, out var generatedKey)
                         ? generatedKey
                         : TryGetTeam(teamUid, out var team) ? team.TeamKey : null;
                     if (teamKey == null)
                     {
-                        var teamName = LookupTeamName(teamNames, teamUid);
-                        if (!options.ApproveTeams && pendingQueuedTeamUids.Contains(teamUid) && !knownTeamUids.Contains(teamUid))
-                        {
-                            options.Warnings?.Invoke($"Team \"{teamName}\" is still queued. Approve teams first.");
-                        }
-                        else
-                        {
-                            options.Warnings?.Invoke($"Team \"{teamName}\" does not have an encryption key.");
-                        }
+                        options.Warnings?.Invoke($"Team \"{LookupTeamName(teamNames, teamUid)}\" does not have an encryption key.");
                         continue;
                     }
 
