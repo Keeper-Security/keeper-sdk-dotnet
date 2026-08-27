@@ -193,7 +193,7 @@ namespace KeeperSecurity.Authentication
         {
             _httpMessageHandler = new HttpClientHandler();
             _httpClient = new HttpClient(_httpMessageHandler, disposeHandler: true);
-            _httpClient.Timeout = TimeSpan.FromMinutes(5);
+            _httpClient.Timeout = TimeSpan.FromSeconds(ThrottleHandling.DefaultTimeoutSeconds);
             ClientVersion = DefaultClientVersion;
             DeviceName = DefaultDeviceName;
             Locale = DefaultLocale();
@@ -263,12 +263,10 @@ namespace KeeperSecurity.Authentication
             var keyId = ServerKeyId;
             var transmissionKey = CryptoUtils.GenerateEncryptionKey();
 
-            var attempt = 0;
-            Exception lastKeeperError = null;
-            while (attempt < 3)
+            int throttleRetries = 0;
+            int keyRetries = 0;
+            while (true)
             {
-                attempt++;
-
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
                 var encKey = keyId <= 6
                     ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
@@ -284,13 +282,8 @@ namespace KeeperSecurity.Authentication
 
                 var content = new ByteArrayContent(apiRequest.ToByteArray());
                 content.Headers.Add("Content-Type", "application/octet-stream");
-                // TODO timeout + read header 
                 using var response = await _httpClient.PostAsync(uri, content);
-                var contentTypes = Array.Empty<string>();
-                if (response.Content.Headers.TryGetValues("Content-Type", out var values))
-                {
-                    contentTypes = values.ToArray();
-                }
+                var contentTypes = GetContentTypes(response);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -319,57 +312,78 @@ namespace KeeperSecurity.Authentication
                     throw new ProxyAuthenticationRequired(proxyAuthenticate);
                 }
 
-                if (contentTypes.Any(x =>
-                        x.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase)))
+                var (errorRs, errorCode, errorMessage) = await TryParseErrorResponseAsync(response, contentTypes);
+                if (errorRs != null)
                 {
-                    var jsonData = await response.Content.ReadAsByteArrayAsync();
 #if DEBUG
-                    Debug.WriteLine("Error Response: " + Encoding.UTF8.GetString(jsonData));
+                    Debug.WriteLine("Error Response: " + errorCode + " " + errorMessage);
 #endif
-                    var keeperRs = JsonUtils.ParseJson<KeeperApiErrorResponse>(jsonData);
-                    lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
-                    switch (keeperRs.Error)
+                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase) && errorRs.KeyId > 0)
                     {
-                        case "key":
-                            keyId = keeperRs.KeyId;
-                            continue;
+                        keyRetries++;
+                        if (keyRetries > ThrottleHandling.MaxKeyRetries)
+                        {
+                            throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
+                        }
 
-                        case "throttled":
-                            if (!string.Equals("keep_alive", endpoint, StringComparison.InvariantCultureIgnoreCase)) {
-#if DEBUG
-                                Debug.WriteLine("\"throttled\" sleeping for 30 seconds");
-#endif
-                                await Task.Delay(TimeSpan.FromSeconds(30));
-                                continue;
-                            }
-                            break;
-
-                        case "region_redirect":
-                            throw new KeeperRegionRedirect(keeperRs.RegionHost);
-
-                        case "device_not_registered":
-                            throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
-
-                        case "session_token":
-                        case "auth_failed":
-                            throw new KeeperAuthFailed(keeperRs.Message);
-
-                        case "login_token_expired":
-                            throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
+                        keyId = errorRs.KeyId;
+                        continue;
                     }
 
-                    throw lastKeeperError;
+                    if (string.Equals(errorCode, "region_redirect", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new KeeperRegionRedirect(errorRs.RegionHost);
+                    }
+
+                    if (string.Equals(errorCode, "device_not_registered", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new KeeperInvalidDeviceToken(errorRs.AdditionalInfo);
+                    }
+
+                    if (string.Equals(errorCode, "session_token", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(errorCode, "auth_failed", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new KeeperAuthFailed(errorMessage);
+                    }
+
+                    if (string.Equals(errorCode, "login_token_expired", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new KeeperCanceled(errorCode, errorMessage);
+                    }
+
+                    var throttle = await TryThrottleRetryAsync(
+                        response, errorCode, errorMessage, throttleRetries, endpoint);
+                    if (throttle.shouldRetry)
+                    {
+                        throttleRetries = throttle.throttleRetries;
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(errorCode))
+                    {
+                        throw new KeeperApiException(errorCode, errorMessage);
+                    }
                 }
-                else if (contentTypes.Any(x => x.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)))
+                else
                 {
-                    var message = await response.Content.ReadAsStringAsync();
-                    throw new KeeperApiException(response.StatusCode.ToString(), message);
+                    var throttle = await TryThrottleRetryAsync(
+                        response, errorCode, errorMessage, throttleRetries, endpoint);
+                    if (throttle.shouldRetry)
+                    {
+                        throttleRetries = throttle.throttleRetries;
+                        continue;
+                    }
+
+                    if (contentTypes.Any(x => x.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        var message = await response.Content.ReadAsStringAsync();
+                        throw new KeeperApiException(response.StatusCode.ToString(), message);
+                    }
                 }
 
-                throw new Exception("Keeper Api Http error: " + response.StatusCode);
+                throw new KeeperApiException("http_error",
+                    $"{response.ReasonPhrase ?? "Unknown error"}: {(int) response.StatusCode}");
             }
-
-            throw lastKeeperError ?? new Exception("Keeper Api error");
         }
 
 
@@ -416,59 +430,74 @@ namespace KeeperSecurity.Authentication
                 encryptedPayload = CryptoUtils.EncryptAesV2(payload, transmissionKey);
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            foreach (var header in headers)
+            int throttleRetries = 0;
+            while (true)
             {
-                request.Headers.Add(header.Key, header.Value);
-            }
-
-            if (encryptedPayload != null)
-            {
-                request.Content = new ByteArrayContent(encryptedPayload);
-            }
-
-            using var response = await _httpClient.SendAsync(request);
-            var statusCode = (int) response.StatusCode;
-            if (statusCode == 200)
-            {
-                var rsBody = await response.Content.ReadAsByteArrayAsync();
-                if (rsBody != null && rsBody.Length > 0)
+                var request = new HttpRequestMessage(HttpMethod.Post, uri);
+                foreach (var header in headers)
                 {
-                    var routerResponse = RouterResponse.Parser.ParseFrom(rsBody);
-                    if (routerResponse.ResponseCode == RouterResponseCode.RrcOk)
-                    {
-                        if (routerResponse.EncryptedPayload != null && routerResponse.EncryptedPayload.Length > 0)
-                        {
-                            return CryptoUtils.DecryptAesV2(routerResponse.EncryptedPayload.ToByteArray(), transmissionKey);
-                        }
-                    }
-                    else
-                    {
-                        string code;
-                        switch (routerResponse.ResponseCode)
-                        {
-                            case RouterResponseCode.RrcBadRequest:
-                                code = "bad_request";
-                                break;
-                            case RouterResponseCode.RrcNotAllowed:
-                                code = "not_allowed";
-                                break;
-                            default:
-                                code = "router_error";
-                                break;
-                        }
-
-                        var errorMessage = routerResponse.ErrorMessage ?? "Unknown router error";
-                        throw new KeeperApiException(code, errorMessage);
-                    }
+                    request.Headers.Add(header.Key, header.Value);
                 }
 
-                return null;
-            }
-            else
-            {
-                var message = response.ReasonPhrase ?? "Unknown error";
-                throw new KeeperApiException("router_error", $"{message}: {statusCode}");
+                if (encryptedPayload != null)
+                {
+                    request.Content = new ByteArrayContent(encryptedPayload);
+                }
+
+                using var response = await _httpClient.SendAsync(request);
+                var statusCode = (int) response.StatusCode;
+                if (statusCode == 200)
+                {
+                    var rsBody = await response.Content.ReadAsByteArrayAsync();
+                    if (rsBody != null && rsBody.Length > 0)
+                    {
+                        var routerResponse = RouterResponse.Parser.ParseFrom(rsBody);
+                        if (routerResponse.ResponseCode == RouterResponseCode.RrcOk)
+                        {
+                            if (routerResponse.EncryptedPayload != null && routerResponse.EncryptedPayload.Length > 0)
+                            {
+                                return CryptoUtils.DecryptAesV2(routerResponse.EncryptedPayload.ToByteArray(), transmissionKey);
+                            }
+                        }
+                        else
+                        {
+                            string code;
+                            switch (routerResponse.ResponseCode)
+                            {
+                                case RouterResponseCode.RrcBadRequest:
+                                    code = "bad_request";
+                                    break;
+                                case RouterResponseCode.RrcNotAllowed:
+                                    code = "not_allowed";
+                                    break;
+                                default:
+                                    code = "router_error";
+                                    break;
+                            }
+
+                            var errorMessage = routerResponse.ErrorMessage ?? "Unknown router error";
+                            throw new KeeperApiException(code, errorMessage);
+                        }
+                    }
+
+                    return null;
+                }
+
+                var contentTypes = GetContentTypes(response);
+                var (_, errorCode, parsedMessage) = await TryParseErrorResponseAsync(response, contentTypes);
+                var throttle = await TryThrottleRetryAsync(
+                    response, errorCode, parsedMessage, throttleRetries, endpoint);
+                if (throttle.shouldRetry)
+                {
+                    throttleRetries = throttle.throttleRetries;
+                    continue;
+                }
+
+                throw new KeeperApiException(
+                    string.IsNullOrEmpty(errorCode) ? "router_error" : errorCode,
+                    string.IsNullOrEmpty(parsedMessage)
+                        ? $"{response.ReasonPhrase ?? "Unknown error"}: {statusCode}"
+                        : parsedMessage);
             }
         }
 
@@ -515,45 +544,170 @@ namespace KeeperSecurity.Authentication
                 rq.Payload = ByteString.CopyFrom(payload);
             }
 
-            var requestContent = new ByteArrayContent(rq.ToByteArray());
-            using var response = await _httpClient.PostAsync(uri, requestContent);
-            var statusCode = (int)response.StatusCode;
-
-            if (statusCode == 200)
+            var requestBytes = rq.ToByteArray();
+            int throttleRetries = 0;
+            while (true)
             {
-                var rsBody = await response.Content.ReadAsByteArrayAsync();
-                if (rsBody != null && rsBody.Length > 0)
-                {
-                    var payload = CryptoUtils.DecryptAesV2(rsBody, encryptionKey);
-                    
-                    // Get the Parser for the response type using reflection
-                    var responseType = typeof(TRS);
-                    var parserProperty = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
-                    if (parserProperty == null)
-                    {
-                        throw new KeeperInvalidParameter("ExecuteRouterBi", "responseType", responseType.Name,
-                            "Google Protobuf class expected with static Parser property");
-                    }
+                var requestContent = new ByteArrayContent(requestBytes);
+                using var response = await _httpClient.PostAsync(uri, requestContent);
+                var statusCode = (int) response.StatusCode;
 
-                    var parser = parserProperty.GetValue(null);
-                    if (parser is MessageParser<TRS> typedParser)
+                if (statusCode == 200)
+                {
+                    var rsBody = await response.Content.ReadAsByteArrayAsync();
+                    if (rsBody != null && rsBody.Length > 0)
                     {
-                        var routerResponse = typedParser.ParseFrom(payload);
-                    return routerResponse;
-                    }
-                    else
-                    {
+                        var payload = CryptoUtils.DecryptAesV2(rsBody, encryptionKey);
+
+                        var responseType = typeof(TRS);
+                        var parserProperty = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
+                        if (parserProperty == null)
+                        {
+                            throw new KeeperInvalidParameter("ExecuteRouterBi", "responseType", responseType.Name,
+                                "Google Protobuf class expected with static Parser property");
+                        }
+
+                        var parser = parserProperty.GetValue(null);
+                        if (parser is MessageParser<TRS> typedParser)
+                        {
+                            return typedParser.ParseFrom(payload);
+                        }
+
                         throw new KeeperInvalidParameter("ExecuteRouterBi", "responseType", responseType.Name,
                             "Parser must be MessageParser<T>");
                     }
+
+                    return default;
                 }
 
-                return default;
+                var contentTypes = GetContentTypes(response);
+                var (_, errorCode, parsedMessage) = await TryParseErrorResponseAsync(response, contentTypes);
+                var throttle = await TryThrottleRetryAsync(
+                    response, errorCode, parsedMessage, throttleRetries, endpoint);
+                if (throttle.shouldRetry)
+                {
+                    throttleRetries = throttle.throttleRetries;
+                    continue;
+                }
+
+                throw new KeeperApiException(
+                    string.IsNullOrEmpty(errorCode) ? "router_error" : errorCode,
+                    string.IsNullOrEmpty(parsedMessage)
+                        ? $"{response.ReasonPhrase ?? "Unknown error"}: {statusCode}"
+                        : parsedMessage);
             }
-            else
+        }
+
+        /// <summary>
+        /// If the response is a rate limit, waits and returns shouldRetry=true with the updated count.
+        /// Throws if FailOnThrottle is set or the retry limit is reached.
+        /// </summary>
+        private async Task<(bool shouldRetry, int throttleRetries)> TryThrottleRetryAsync(
+            HttpResponseMessage response,
+            string errorCode,
+            string errorMessage,
+            int throttleRetries,
+            string endpoint = null)
+        {
+            if (!ThrottleHandling.IsThrottleResponse(response.StatusCode, errorCode))
             {
-                var message = response.ReasonPhrase ?? "Unknown error";
-                throw new KeeperApiException("router_error", $"{message}: {statusCode}");
+                return (false, throttleRetries);
+            }
+
+            errorCode = string.IsNullOrEmpty(errorCode) ? "throttled" : errorCode;
+            errorMessage = string.IsNullOrEmpty(errorMessage)
+                ? (response.ReasonPhrase ?? "Request was throttled")
+                : errorMessage;
+
+            if (FailOnThrottle)
+            {
+                throw new KeeperApiException(errorCode, errorMessage);
+            }
+
+            throttleRetries++;
+            if (throttleRetries > ThrottleHandling.MaxThrottleRetries)
+            {
+                throw new KeeperApiException(errorCode, errorMessage);
+            }
+
+            var waitSeconds = ThrottleHandling.ParseThrottleWaitSeconds(errorMessage, response.Headers);
+            if (waitSeconds <= 0)
+            {
+                waitSeconds = ThrottleHandling.DefaultThrottleWaitSeconds;
+            }
+
+            if (string.Equals("keep_alive", endpoint, StringComparison.OrdinalIgnoreCase))
+            {
+#if DEBUG
+                Debug.WriteLine(
+                    $"Throttled on keep_alive endpoint (attempt {throttleRetries}/{ThrottleHandling.MaxThrottleRetries}), skipping retry");
+#endif
+                return (false, throttleRetries);
+            }
+
+            var backoff = ThrottleHandling.ThrottleBackoffSeconds(throttleRetries, waitSeconds);
+#if DEBUG
+            Debug.WriteLine(
+                $"Throttled (HTTP {(int) response.StatusCode}, attempt {throttleRetries}/{ThrottleHandling.MaxThrottleRetries}), retrying in {backoff} seconds: {errorMessage}");
+#endif
+            await Task.Delay(TimeSpan.FromSeconds(backoff));
+            return (true, throttleRetries);
+        }
+
+        private static string[] GetContentTypes(HttpResponseMessage response)
+        {
+            if (response?.Content?.Headers == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            if (response.Content.Headers.TryGetValues("Content-Type", out var values))
+            {
+                return values.ToArray();
+            }
+
+            return Array.Empty<string>();
+        }
+
+        private static async Task<(KeeperApiErrorResponse body, string errorCode, string errorMessage)>
+            TryParseErrorResponseAsync(HttpResponseMessage response, string[] contentTypes)
+        {
+            if (contentTypes == null
+                || !contentTypes.Any(x =>
+                    x.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return (null, "", "");
+            }
+
+            try
+            {
+                var jsonData = await response.Content.ReadAsByteArrayAsync();
+                if (jsonData == null || jsonData.Length == 0)
+                {
+                    return (null, "", "");
+                }
+
+                var body = JsonUtils.ParseJson<KeeperApiErrorResponse>(jsonData);
+                if (body == null)
+                {
+                    return (null, "", "");
+                }
+
+                var errorCode = body.Error ?? "";
+                var message = body.Message ?? "";
+                if (!string.IsNullOrEmpty(body.AdditionalInfo))
+                {
+                    message += $"({body.AdditionalInfo})";
+                }
+
+                return (body, errorCode, message);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Debug.WriteLine($"Failed to parse Keeper API error JSON: {ex.Message}");
+#endif
+                return (null, "", "");
             }
         }
 
@@ -593,6 +747,12 @@ namespace KeeperSecurity.Authentication
         }
 
         public int ServerKeyId { get; private set; }
+
+        /// <summary>
+        /// When true, rate-limit errors fail immediately instead of waiting and retrying.
+        /// </summary>
+        public bool FailOnThrottle { get; set; }
+
         private const string UserAgentHeader = "User-Agent";
 
         public string ClientVersion
