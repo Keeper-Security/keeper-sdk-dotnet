@@ -38,7 +38,17 @@ namespace KeeperSecurity.Authentication
         public static bool IsThrottleResponse(HttpStatusCode statusCode, string errorCode)
         {
             return statusCode == (HttpStatusCode) 429
-                   || string.Equals(errorCode, "throttled", StringComparison.OrdinalIgnoreCase);
+                   || IsThrottleResultCode(errorCode);
+        }
+
+        /// <summary>
+        /// Returns true when the result code indicates throttling.
+        /// Handles both old implementation (error code "throttled") and new implementation (error code "429").
+        /// </summary>
+        public static bool IsThrottleResultCode(string errorCode)
+        {
+            return string.Equals(errorCode, "throttled", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(errorCode, "429", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

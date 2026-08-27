@@ -352,7 +352,7 @@ namespace KeeperSecurity.Authentication
                     }
 
                     var throttle = await TryThrottleRetryAsync(
-                        response, errorCode, errorMessage, throttleRetries);
+                        response, errorCode, errorMessage, throttleRetries, endpoint);
                     if (throttle.shouldRetry)
                     {
                         throttleRetries = throttle.throttleRetries;
@@ -367,7 +367,7 @@ namespace KeeperSecurity.Authentication
                 else
                 {
                     var throttle = await TryThrottleRetryAsync(
-                        response, errorCode, errorMessage, throttleRetries);
+                        response, errorCode, errorMessage, throttleRetries, endpoint);
                     if (throttle.shouldRetry)
                     {
                         throttleRetries = throttle.throttleRetries;
@@ -486,7 +486,7 @@ namespace KeeperSecurity.Authentication
                 var contentTypes = GetContentTypes(response);
                 var (_, errorCode, parsedMessage) = await TryParseErrorResponseAsync(response, contentTypes);
                 var throttle = await TryThrottleRetryAsync(
-                    response, errorCode, parsedMessage, throttleRetries);
+                    response, errorCode, parsedMessage, throttleRetries, endpoint);
                 if (throttle.shouldRetry)
                 {
                     throttleRetries = throttle.throttleRetries;
@@ -583,7 +583,7 @@ namespace KeeperSecurity.Authentication
                 var contentTypes = GetContentTypes(response);
                 var (_, errorCode, parsedMessage) = await TryParseErrorResponseAsync(response, contentTypes);
                 var throttle = await TryThrottleRetryAsync(
-                    response, errorCode, parsedMessage, throttleRetries);
+                    response, errorCode, parsedMessage, throttleRetries, endpoint);
                 if (throttle.shouldRetry)
                 {
                     throttleRetries = throttle.throttleRetries;
@@ -606,7 +606,8 @@ namespace KeeperSecurity.Authentication
             HttpResponseMessage response,
             string errorCode,
             string errorMessage,
-            int throttleRetries)
+            int throttleRetries,
+            string endpoint = null)
         {
             if (!ThrottleHandling.IsThrottleResponse(response.StatusCode, errorCode))
             {
@@ -630,6 +631,20 @@ namespace KeeperSecurity.Authentication
             }
 
             var waitSeconds = ThrottleHandling.ParseThrottleWaitSeconds(errorMessage, response.Headers);
+            if (waitSeconds <= 0)
+            {
+                waitSeconds = ThrottleHandling.DefaultThrottleWaitSeconds;
+            }
+
+            if (string.Equals("keep_alive", endpoint, StringComparison.OrdinalIgnoreCase))
+            {
+#if DEBUG
+                Debug.WriteLine(
+                    $"Throttled on keep_alive endpoint (attempt {throttleRetries}/{ThrottleHandling.MaxThrottleRetries}), skipping retry");
+#endif
+                return (false, throttleRetries);
+            }
+
             var backoff = ThrottleHandling.ThrottleBackoffSeconds(throttleRetries, waitSeconds);
 #if DEBUG
             Debug.WriteLine(

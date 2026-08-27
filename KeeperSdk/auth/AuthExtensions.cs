@@ -79,7 +79,7 @@ namespace KeeperSecurity.Authentication
                 var results = execRs.Results.ToList();
                 var lastStatus = results.Last();
                 var throttled = !lastStatus.IsSuccess
-                    && string.Equals(lastStatus.resultCode, "throttled", StringComparison.OrdinalIgnoreCase);
+                    && ThrottleHandling.IsThrottleResultCode(lastStatus.resultCode);
 
                 if (throttled)
                 {
@@ -94,6 +94,10 @@ namespace KeeperSecurity.Authentication
 
                     results.RemoveAt(results.Count - 1);
                     var waitSeconds = ThrottleHandling.ParseThrottleWaitSeconds(lastStatus.message);
+                    if (waitSeconds <= 0)
+                    {
+                        waitSeconds = ThrottleHandling.DefaultThrottleWaitSeconds;
+                    }
                     delayInSec = ThrottleHandling.ThrottleBackoffSeconds(throttleRetries, waitSeconds);
 #if DEBUG
                     Debug.WriteLine(
