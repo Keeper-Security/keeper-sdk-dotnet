@@ -45,14 +45,19 @@ function script:resolvePamWorkflowRecord {
         $allowedTypes = $workflowTypes
     }
 
-    $previousErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Stop'
     try {
-        return [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord($Vault, $Identifier.Trim(), $allowedTypes)
+        $record = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
+            $Vault, $Identifier.Trim(), $allowedTypes)
     }
-    finally {
-        $ErrorActionPreference = $previousErrorActionPreference
+    catch [System.InvalidOperationException] {
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
+
+    if ($null -eq $record) {
+        Write-Error -Message "PAM record `"$Identifier`" not found$(if ($ValidateWorkflowType) { ' or is not a supported PAM resource type (pamMachine, pamDatabase, pamDirectory, pamRemoteBrowser, pamCloudResource)' })." -ErrorAction Stop
+    }
+
+    return $record
 }
 
 function script:convertPamWorkflowConfigToObject {
@@ -201,6 +206,61 @@ function New-KeeperPamWorkflow {
         .DESCRIPTION
         Creates workflow settings through the SDK PAM WorkflowUtils API.
         Workflow settings are stored by Keeper Router and are not record fields.
+        The workflow-management enforcement must be enabled on the user's role.
+
+        .PARAMETER Record
+        PAM resource record UID or title. Supported resource types are pamMachine,
+        pamDatabase, pamDirectory, pamRemoteBrowser, and pamCloudResource.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER ApprovalsNeeded
+        Number of approvals required. Specify 0 when no approvers are required.
+
+        .PARAMETER Checkout
+        Enables single-user check-in/check-out mode.
+
+        .PARAMETER StartOnApproval
+        Starts the access timer when approval completes instead of at check-out.
+
+        .PARAMETER RequireReason
+        Requires the requester to provide a reason for access.
+
+        .PARAMETER RequireTicket
+        Requires the requester to provide a ticket number.
+
+        .PARAMETER RequireMfa
+        Requires MFA verification for access.
+
+        .PARAMETER Duration
+        Access duration. Accepts values such as 30m, 2h, or 1d. The default is 1d.
+
+        .PARAMETER AllowedDays
+        Comma-separated allowed days using mon,tue,wed,thu,fri,sat,sun.
+
+        .PARAMETER TimeRange
+        Allowed same-day time range in HH:MM-HH:MM format. Split overnight windows
+        into separate same-day windows.
+
+        .PARAMETER User
+        User email to add as an approver. Repeat or pass an array for multiple users.
+
+        .PARAMETER Approver
+        Compatibility option for user approver emails. Values are combined with User.
+
+        .PARAMETER Team
+        Team UID or unique team name to add as an approver.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-new 'RECORD_UID' -User 'approver@example.com' -ApprovalsNeeded 1 `
+            -Checkout -Duration 1d -AllowedDays 'mon,tue,wed,thu,fri' `
+            -TimeRange '09:00-17:00' -Format json
+
+        Creates a one-approval workflow with check-in/check-out and weekday access.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-new', 'pam-wf-new')]
@@ -366,10 +426,7 @@ function New-KeeperPamWorkflow {
     if ($null -ne $approverError) {
         $partialFailureMessage = "Workflow was created, but approvers could not be added: $approverError"
         $result['warning'] = $partialFailureMessage
-        Write-Error -Message $partialFailureMessage `
-            -ErrorId 'PamWorkflowApproverAdditionFailed' `
-            -Category OperationStopped `
-            -TargetObject $resource.Uid
+        Write-Warning -Message $partialFailureMessage
     }
     if ($Format -eq 'json') { $result | ConvertTo-Json -Depth 8 } else { [PSCustomObject]$result }
 }
@@ -378,6 +435,24 @@ function Get-KeeperPamWorkflow {
     <#
         .SYNOPSIS
         Read workflow settings for a PAM resource record.
+
+        .DESCRIPTION
+        Reads the configured workflow parameters and approvers for a PAM resource
+        record. This command does not require workflow-management permission.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-read 'RECORD_UID' -Format json
+
+        Returns the workflow configuration as JSON.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-read', 'pam-wf-read')]
@@ -438,6 +513,9 @@ function script:resolvePamWorkflowTeamUid {
     if (@($match).Count -eq 1) {
         return [string]$match[0].Uid
     }
+    if (@($match).Count -gt 1) {
+        throw "Team name `"$Identifier`" is not unique. Use the team UID."
+    }
 
     $vaultMatch = @($vault.Teams | Where-Object {
         [string]::Equals([string]$_.TeamUid, $Identifier.Trim(), [StringComparison]::Ordinal) -or
@@ -445,6 +523,9 @@ function script:resolvePamWorkflowTeamUid {
     })
     if ($vaultMatch.Count -eq 1) {
         return [string]$vaultMatch[0].TeamUid
+    }
+    if ($vaultMatch.Count -gt 1) {
+        throw "Team name `"$Identifier`" is not unique. Use the team UID."
     }
 
     throw "Team `"$Identifier`" not found. Use a valid team UID or team name."
@@ -454,6 +535,53 @@ function Update-KeeperPamWorkflow {
     <#
         .SYNOPSIS
         Update selected workflow settings for a PAM resource record.
+
+        .DESCRIPTION
+        Updates only the supplied workflow settings and preserves all other current
+        values. The workflow-management enforcement must be enabled on the user's role.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER ApprovalsNeeded
+        Number of approvals required. Specify 0 when no approvers are required.
+
+        .PARAMETER Checkout
+        Enables or disables single-user check-in/check-out mode.
+
+        .PARAMETER StartOnApproval
+        Controls whether the access timer starts on approval or at check-out.
+
+        .PARAMETER RequireReason
+        Enables or disables the access-reason requirement.
+
+        .PARAMETER RequireTicket
+        Enables or disables the ticket-number requirement.
+
+        .PARAMETER RequireMfa
+        Enables or disables MFA verification for access.
+
+        .PARAMETER Duration
+        Access duration. Accepts values such as 30m, 2h, or 1d.
+
+        .PARAMETER AllowedDays
+        Comma-separated allowed days using mon,tue,wed,thu,fri,sat,sun.
+
+        .PARAMETER TimeRange
+        Allowed same-day time range in HH:MM-HH:MM format. Split overnight windows
+        into separate same-day windows.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-edit 'RECORD_UID' -ApprovalsNeeded 2 -Checkout $true `
+            -RequireReason $true -Duration 2h -Format json
+
+        Updates selected workflow requirements and returns JSON status.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-edit', 'pam-wf-edit')]
@@ -570,6 +698,24 @@ function Remove-KeeperPamWorkflow {
     <#
         .SYNOPSIS
         Delete workflow settings from a PAM resource record.
+
+        .DESCRIPTION
+        Deletes the workflow configuration associated with a PAM resource record.
+        The workflow-management enforcement must be enabled on the user's role.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-delete 'RECORD_UID' -Confirm:$false -Format json
+
+        Deletes the workflow configuration without an interactive confirmation prompt.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High', DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-delete', 'pam-wf-delete')]
@@ -622,6 +768,41 @@ function Add-KeeperPamWorkflowApprover {
     <#
         .SYNOPSIS
         Add users or teams as PAM workflow approvers.
+
+        .DESCRIPTION
+        Adds user or team approvers to an existing PAM workflow. The workflow-management
+        enforcement must be enabled on the user's role.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER User
+        User email to add as an approver. Repeat or pass an array for multiple users.
+
+        .PARAMETER Approver
+        Compatibility option for user approver emails. Values are combined with User.
+
+        .PARAMETER Team
+        Team UID or unique team name to add as an approver.
+
+        .PARAMETER Escalation
+        Marks the supplied approvers as escalation approvers.
+
+        .PARAMETER EscalationAfter
+        Delay before escalation. Accepts values such as 30m, 2h, or 1d and requires
+        Escalation.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-add-approver 'RECORD_UID' -User 'approver@example.com' `
+            -Team 'PAM Approvers' -Escalation -EscalationAfter 30m -Format json
+
+        Adds a user and team as escalation approvers after a 30-minute delay.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-add-approver', 'pam-wf-add-approver')]
@@ -715,6 +896,34 @@ function Remove-KeeperPamWorkflowApprover {
     <#
         .SYNOPSIS
         Remove users or teams from PAM workflow approvers.
+
+        .DESCRIPTION
+        Removes user or team approvers from an existing PAM workflow. The
+        workflow-management enforcement must be enabled on the user's role.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER User
+        User email to remove. Repeat or pass an array for multiple users.
+
+        .PARAMETER Approver
+        Compatibility option for user approver emails. Values are combined with User.
+
+        .PARAMETER Team
+        Team UID or unique team name to remove as an approver.
+
+        .PARAMETER Format
+        Output format: table or json.
+
+        .EXAMPLE
+        pam-wf-remove-approver 'RECORD_UID' -User 'approver@example.com' `
+            -Team 'PAM Approvers' -Format json
+
+        Removes a user and team from the workflow approvers.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-remove-approver', 'pam-wf-remove-approver')]
@@ -785,6 +994,24 @@ function Get-KeeperPamWorkflowState {
     <#
         .SYNOPSIS
         Get the workflow state for a PAM resource record.
+
+        .DESCRIPTION
+        Returns the current workflow state, conditions, approvals, and access timing
+        for a PAM resource record. It also reports when workflow access is exempt.
+
+        .PARAMETER Record
+        PAM resource record UID or title.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER Format
+        Output format: table or json. JSON timestamps are Unix milliseconds.
+
+        .EXAMPLE
+        pam-wf-state 'RECORD_UID' -Format json
+
+        Returns workflow state and approval information as JSON.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-state', 'pam-wf-state')]
@@ -814,7 +1041,12 @@ function Get-KeeperPamWorkflowState {
             if ($Format -eq 'json') { $result | ConvertTo-Json -Depth 8 } else { [PSCustomObject]$result }
             return
         }
+    }
+    catch {
+        Write-Error -Message "Failed to check workflow exemption: $([KeeperSecurity.Plugins.PAM.WorkflowUtils]::SanitizeRouterError($_.Exception))" -ErrorAction Stop
+    }
 
+    try {
         $state = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
             $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
     }
@@ -838,11 +1070,26 @@ function Get-KeeperPamWorkflowMyAccess {
     <#
         .SYNOPSIS
         Get current user's active workflow access requests.
+
+        .DESCRIPTION
+        Lists workflow access states associated with the current user. An empty result
+        is returned when the user has no active workflow access.
+
+        .PARAMETER Help
+        Displays full help for this cmdlet.
+
+        .PARAMETER Format
+        Output format: table or json. JSON timestamps are Unix milliseconds.
+
+        .EXAMPLE
+        pam-wf-my-access -Format json
+
+        Returns the current user's workflow access states as JSON.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-my-access', 'pam-wf-my-access')]
     Param (
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
