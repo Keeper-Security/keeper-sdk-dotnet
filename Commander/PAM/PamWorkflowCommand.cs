@@ -182,7 +182,7 @@ namespace Commander.PAM
       if (approvals > 0 && approvers.Count == 0)
       {
         throw new InvalidOperationException(
-          "At least one --approver/--user is required when --approvals-needed > 0. " +
+          "Could not resolve user/approver. At least one valid --approver/--user email is required when --approvals-needed > 0. " +
           "Pass --approver <email> for each approver, or use --approvals-needed 0 " +
           "for a workflow that does not need approval.");
       }
@@ -599,7 +599,7 @@ namespace Commander.PAM
       var teams = ResolveTeamInputs(options);
       if (users.Count == 0 && teams.Count == 0)
       {
-        throw new InvalidOperationException("Must specify at least one --user/--approver or --team");
+        throw new InvalidOperationException("Must specify at least one --user/--approver or --team. Users or teams not resolved.");
       }
 
       if (!string.IsNullOrWhiteSpace(options.EscalationAfter) && !options.Escalation)
@@ -694,7 +694,7 @@ namespace Commander.PAM
       var teams = ResolveTeamInputs(options);
       if (users.Count == 0 && teams.Count == 0)
       {
-        throw new InvalidOperationException("Must specify at least one --user/--approver or --team");
+        throw new InvalidOperationException("Must specify at least one --user/--approver or --team. Users or teams not resolved.");
       }
 
       var vault = RequireVault();
