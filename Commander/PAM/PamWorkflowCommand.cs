@@ -2053,7 +2053,7 @@ namespace Commander.PAM
         return user.Email;
       }
 
-      return $"User ID {userId}";
+      return string.Empty;
     }
 
     private string ResolveTeamName(string teamUid)
