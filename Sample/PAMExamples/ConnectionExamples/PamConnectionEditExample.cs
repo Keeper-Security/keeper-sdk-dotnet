@@ -9,7 +9,7 @@ namespace Sample.PAMExamples.ConnectionExamples
     /// Configures connection settings on a PAM resource or PAM configuration record via
     /// <see cref="ConnectionUtils.EditConnectionAsync"/>.
     /// </summary>
-    public static class EditConnectionExample
+    public static class PamConnectionEditExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="record">PAM resource (pamMachine/pamDatabase/pamDirectory/pamRemoteBrowser) or PAM configuration UID/title.</param>

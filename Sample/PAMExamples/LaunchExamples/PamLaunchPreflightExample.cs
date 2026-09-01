@@ -10,7 +10,7 @@ namespace Sample.PAMExamples.LaunchExamples
     /// Resolves record, protocol, config, credential, host, and gateway for a PAM launch via
     /// <see cref="LaunchUtils.PrepareAsync"/>. Does not start an interactive session.
     /// </summary>
-    public static class LaunchPreflightExample
+    public static class PamLaunchPreflightExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="record">pamMachine/pamDatabase/pamDirectory record UID, title, or search text.</param>

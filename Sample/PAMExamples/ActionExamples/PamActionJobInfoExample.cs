@@ -8,7 +8,7 @@ namespace Sample.PAMExamples.ActionExamples
     /// <summary>
     /// Checks the status of a previously scheduled PAM gateway job via <see cref="ActionUtils.GetJobInfoAsync"/>.
     /// </summary>
-    public static class JobInfoExample
+    public static class PamActionJobInfoExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="jobId">Job or conversation ID returned when the rotate action was scheduled.</param>

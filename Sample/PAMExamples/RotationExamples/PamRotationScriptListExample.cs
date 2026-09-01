@@ -9,7 +9,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// <summary>
     /// Lists post-rotation scripts on pamUser / pamDirectory records.
     /// </summary>
-    public static class ListRotationScriptsExample
+    public static class PamRotationScriptListExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="pattern">Optional record UID or title filter.</param>

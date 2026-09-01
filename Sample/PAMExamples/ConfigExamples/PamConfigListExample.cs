@@ -11,7 +11,7 @@ namespace Sample.PAMExamples.ConfigExamples
     /// Uses <c>KeeperSecurity.Plugins.PAM</c> (<see cref="PamVaultHelpers"/>, <see cref="PamConfigurationFacade"/>,
     /// <see cref="ConfigUtils"/>).
     /// </summary>
-    public static class ListConfigsExample
+    public static class PamConfigListExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="configId">Optional: show detail for a single configuration UID or title.</param>

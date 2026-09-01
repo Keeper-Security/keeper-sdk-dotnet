@@ -8,7 +8,7 @@ namespace Sample.PAMExamples.ActionExamples
     /// <summary>
     /// Schedules an on-demand PAM credential rotation via <see cref="ActionUtils.RotateAsync"/>.
     /// </summary>
-    public static class RotateExample
+    public static class PamActionRotateExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="recordUid">UID of the PAM user record to rotate. Ignored if folder <paramref name="folder"/> is provided.</param>
