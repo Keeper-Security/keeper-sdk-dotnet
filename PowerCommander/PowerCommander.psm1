@@ -206,7 +206,7 @@ Export-ModuleMember -Function Sync-KeeperPam, Get-KeeperPamGatewayList, New-Keep
 Set-KeeperPamGateway, Remove-KeeperPamGateway, Set-KeeperPamGatewayMaxInstances,
 Get-KeeperPamRotationList, Get-KeeperPamRotationInfo, Set-KeeperPamRotation,
 Get-KeeperPamRotationScript, Add-KeeperPamRotationScript, Set-KeeperPamRotationScript, Remove-KeeperPamRotationScript,
-Get-KeeperPamConfig, New-KeeperPamConfig, Set-KeeperPamConfig, Remove-KeeperPamConfig,
+Get-KeeperPamConfig, New-KeeperPamConfig, Set-KeeperPamConfig, Remove-KeeperPamConfig, New-KeeperPamWorkflow, Get-KeeperPamWorkflow, Update-KeeperPamWorkflow, Remove-KeeperPamWorkflow, Add-KeeperPamWorkflowApprover, Remove-KeeperPamWorkflowApprover, Get-KeeperPamWorkflowState, Get-KeeperPamWorkflowMyAccess,
 Invoke-KeeperPamActionRotate, Get-KeeperPamActionJobInfo, Set-KeeperPamConnection, Set-KeeperPamRbi, Invoke-KeeperPamLaunch
 Export-ModuleMember -Alias pam-sync, pam-gateway-list, pam-gw-list, pam-gateway-new, pam-gw-new,
 pam-gateway-edit, pam-gw-edit, pam-gateway-remove, pam-gw-remove, pam-gateway-rm,
@@ -217,7 +217,7 @@ pam-rotation-script-add, pam-rot-script-add,
 pam-rotation-script-edit, pam-rot-script-edit,
 pam-rotation-script-delete, pam-rot-script-delete,
 pam-config-list, pam-cfg-list, pam-config-new, pam-cfg-new,
-pam-config-edit, pam-cfg-edit, pam-config-remove, pam-cfg-remove, pam-config-rm,
+pam-config-edit, pam-cfg-edit, pam-config-remove, pam-cfg-remove, pam-config-rm, pam-workflow-new, pam-wf-new, pam-workflow-read, pam-wf-read, pam-workflow-edit, pam-wf-edit, pam-workflow-delete, pam-wf-delete, pam-workflow-add-approver, pam-wf-add-approver, pam-workflow-remove-approver, pam-wf-remove-approver, pam-workflow-state, pam-wf-state, pam-workflow-my-access, pam-wf-my-access,
 pam-action-rotate, pam-action-job-info, pam-connection-edit, pam-rbi-edit, pam-launch
 # function Test-Keeper {
 #     [CmdletBinding()]

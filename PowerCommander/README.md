@@ -279,6 +279,14 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [New-KeeperPamConfig]()                                 | pam-config-new, pam-cfg-new | Create a PAM configuration
 | [Set-KeeperPamConfig]()                                 | pam-config-edit, pam-cfg-edit | Edit a PAM configuration
 | [Remove-KeeperPamConfig]()                              | pam-config-remove, pam-cfg-remove, pam-config-rm | Remove a PAM configuration
+| [New-KeeperPamWorkflow]()                               | pam-workflow-new, pam-wf-new | Create PAM workflow settings for a resource record
+| [Get-KeeperPamWorkflow]()                               | pam-workflow-read, pam-wf-read | Read PAM workflow configuration
+| [Update-KeeperPamWorkflow]()                            | pam-workflow-edit, pam-wf-edit | Update PAM workflow settings
+| [Remove-KeeperPamWorkflow]()                            | pam-workflow-delete, pam-wf-delete | Delete PAM workflow settings
+| [Add-KeeperPamWorkflowApprover]()                       | pam-workflow-add-approver, pam-wf-add-approver | Add users or teams as workflow approvers
+| [Remove-KeeperPamWorkflowApprover]()                    | pam-workflow-remove-approver, pam-wf-remove-approver | Remove users or teams from workflow approvers
+| [Get-KeeperPamWorkflowState]()                          | pam-workflow-state, pam-wf-state | Show workflow state for a resource record
+| [Get-KeeperPamWorkflowMyAccess]()                       | pam-workflow-my-access, pam-wf-my-access | Show the current user's workflow access
 | [Invoke-KeeperPamActionRotate]()                        | pam-action-rotate        | Schedule on-demand PAM credential rotation (record or folder)
 | [Get-KeeperPamActionJobInfo]()                          | pam-action-job-info      | Get status of a scheduled PAM gateway action job
 | [Set-KeeperPamConnection]()                             | pam-connection-edit      | Configure PAM connection settings on a resource or config
