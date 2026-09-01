@@ -1368,6 +1368,12 @@ namespace Commander.PAM
       var vault = RequireVault();
       var record = ResolveWorkflowRecord(vault, options.Record, validateWorkflowType: false);
 
+      if (await IsExemptAsync(record))
+      {
+        PrintExempt(options.IsFormatOutputJson);
+        return;
+      }
+
       try
       {
         var response = await WorkflowUtils.GetWorkflowStateByRecordAsync(
@@ -2036,6 +2042,14 @@ namespace Commander.PAM
         if (vault != null && vault.TryGetKeeperRecord(uid, out var record))
         {
           return record.Title ?? uid;
+        }
+
+        // Approver may not have direct vault access to the record (not shared with them yet).
+        // Nested Share Folder sync still exposes title/type metadata without requiring full record decrypt.
+        if (vault != null && vault.TryGetKeeperNSFRecord(uid, out var nsfRecord)
+            && !string.IsNullOrEmpty(nsfRecord.Title))
+        {
+          return nsfRecord.Title;
         }
 
         return uid;
