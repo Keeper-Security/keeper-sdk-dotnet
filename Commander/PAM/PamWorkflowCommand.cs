@@ -2052,7 +2052,7 @@ namespace Commander.PAM
           return nsfRecord.Title;
         }
 
-        return uid;
+        return string.Empty;
       }
 
       return string.Empty;
