@@ -36,7 +36,7 @@ namespace Commander.PAM
 
     public async Task ExecuteAsync(PamWorkflowOptions options)
     {
-      if (options == null)
+      if (options == null || string.IsNullOrWhiteSpace(options.Command))
       {
         throw new ArgumentNullException(nameof(options),
           $"Invalid pam-workflow command arguments. Available commands: {AvailableCommands}");
@@ -44,11 +44,7 @@ namespace Commander.PAM
 
       try
       {
-        var command = string.IsNullOrEmpty(options.Command) ? string.Empty : options.Command.Trim().ToLowerInvariant();
-        if (string.IsNullOrEmpty(command))
-        {
-          throw new InvalidOperationException($"Missing subcommand. Available: {AvailableCommands}");
-        }
+        var command = options.Command.Trim().ToLowerInvariant();
 
         if (!string.IsNullOrEmpty(options.Format)
             && !string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase)
@@ -322,7 +318,8 @@ namespace Commander.PAM
         {
           Console.WriteLine($"Approvers: {string.Join(", ", approversAdded)}");
         }
-        else if (parameters.ApprovalsNeeded > 0)
+
+        if (approversAdded.Count == 0 && parameters.ApprovalsNeeded > 0)
         {
           Console.WriteLine();
           Console.WriteLine(
