@@ -36,6 +36,17 @@ namespace KeeperSecurity.Plugins.PAM
     private const string ForceCheckinPath = "force_checkin";
     private const string AllowConfigureWorkflowSettings = "allow_configure_workflow_settings";
 
+    // Duration constants (for time conversions)
+    private const long SecondsPerMinute = 60L;
+    private const long SecondsPerHour = 3_600L;
+    private const long SecondsPerDay = 86_400L;
+
+    // Duration constants (milliseconds)
+    private const long MillisecondsPerSecond = 1_000L;
+    private const long MillisecondsPerMinute = SecondsPerMinute * MillisecondsPerSecond;
+    private const long MillisecondsPerHour = SecondsPerHour * MillisecondsPerSecond;
+    private const long MillisecondsPerDay = SecondsPerDay * MillisecondsPerSecond;
+
     // Removes protobuf details from router errors so users see a simple message.
     private static readonly Regex ProtoDumpRe = new Regex(
       @"\s*(?:type|value|name|stage|conditions|flowUid|resource)\s*:\s*(?:""[^""]*""|\S+)\s*",
@@ -48,9 +59,9 @@ namespace KeeperSecurity.Plugins.PAM
 
     private static readonly Dictionary<string, long> DurationMultipliers = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
     {
-      ["d"] = 86_400_000L,
-      ["h"] = 3_600_000L,
-      ["m"] = 60_000L,
+      ["d"] = MillisecondsPerDay,
+      ["h"] = MillisecondsPerHour,
+      ["m"] = MillisecondsPerMinute,
     };
 
     private static readonly Dictionary<DayOfWeek, string> DayNameMap =
@@ -199,7 +210,7 @@ namespace KeeperSecurity.Plugins.PAM
           $"Invalid duration format: {durationStr}. Use a positive value like \"2h\", \"30m\", \"1d\", or bare minutes (e.g. \"90\")");
       }
 
-      return minutes * 60_000L;
+      return minutes * MillisecondsPerMinute;
     }
 
     /// <summary>Converts milliseconds to a readable duration.</summary>
@@ -210,13 +221,13 @@ namespace KeeperSecurity.Plugins.PAM
         return "0 seconds";
       }
 
-      var seconds = milliseconds / 1000;
-      var days = seconds / 86_400;
-      seconds %= 86_400;
-      var hours = seconds / 3_600;
-      seconds %= 3_600;
-      var minutes = seconds / 60;
-      seconds %= 60;
+      var seconds = milliseconds / MillisecondsPerSecond;
+      var days = seconds / SecondsPerDay;
+      seconds %= SecondsPerDay;
+      var hours = seconds / SecondsPerHour;
+      seconds %= SecondsPerHour;
+      var minutes = seconds / SecondsPerMinute;
+      seconds %= SecondsPerMinute;
 
       var parts = new List<string>();
       AppendDurationPart(parts, days, "day");
@@ -845,7 +856,6 @@ namespace KeeperSecurity.Plugins.PAM
         unique.Add(wf);
       }
 
-      // Match Python Commander: check approval state one flow at a time (sequential).
       var pending = new List<WorkflowProcess>();
       foreach (var wf in unique)
       {
