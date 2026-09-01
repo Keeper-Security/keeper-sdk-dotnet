@@ -202,14 +202,14 @@ function New-KeeperPamWorkflow {
         Creates workflow settings through the SDK PAM WorkflowUtils API.
         Workflow settings are stored by Keeper Router and are not record fields.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-new', 'pam-wf-new')]
     Param (
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
@@ -278,8 +278,8 @@ function New-KeeperPamWorkflow {
             $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
     }
     catch {
-        Write-Warning ('Could not verify an existing workflow configuration; continuing. ' +
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::SanitizeRouterError($_.Exception))
+        Write-Error -Message ('Failed to verify whether a PAM workflow is already configured. ' +
+            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::SanitizeRouterError($_.Exception)) -ErrorAction Stop
     }
 
     if ($null -ne $existing) {
@@ -346,7 +346,6 @@ function New-KeeperPamWorkflow {
         }
         catch {
             $approverError = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::SanitizeRouterError($_.Exception)
-            Write-Warning "Workflow was created, but approvers could not be added: $approverError"
         }
     }
 
@@ -364,7 +363,14 @@ function New-KeeperPamWorkflow {
         }
         approvers = @($approversAdded)
     }
-    if ($null -ne $approverError) { $result['warning'] = "Workflow created, but approvers could not be added: $approverError" }
+    if ($null -ne $approverError) {
+        $partialFailureMessage = "Workflow was created, but approvers could not be added: $approverError"
+        $result['warning'] = $partialFailureMessage
+        Write-Error -Message $partialFailureMessage `
+            -ErrorId 'PamWorkflowApproverAdditionFailed' `
+            -Category OperationStopped `
+            -TargetObject $resource.Uid
+    }
     if ($Format -eq 'json') { $result | ConvertTo-Json -Depth 8 } else { [PSCustomObject]$result }
 }
 
@@ -373,14 +379,14 @@ function Get-KeeperPamWorkflow {
         .SYNOPSIS
         Read workflow settings for a PAM resource record.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-read', 'pam-wf-read')]
     Param (
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
@@ -449,14 +455,14 @@ function Update-KeeperPamWorkflow {
         .SYNOPSIS
         Update selected workflow settings for a PAM resource record.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-edit', 'pam-wf-edit')]
     Param (
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
@@ -565,14 +571,14 @@ function Remove-KeeperPamWorkflow {
         .SYNOPSIS
         Delete workflow settings from a PAM resource record.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High', DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-delete', 'pam-wf-delete')]
     Param (
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
@@ -617,14 +623,14 @@ function Add-KeeperPamWorkflowApprover {
         .SYNOPSIS
         Add users or teams as PAM workflow approvers.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-add-approver', 'pam-wf-add-approver')]
     Param (
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
@@ -674,8 +680,12 @@ function Add-KeeperPamWorkflowApprover {
 
     $escalationAfterMs = 0
     if (-not [string]::IsNullOrWhiteSpace($EscalationAfter)) {
-        try { $escalationAfterMs = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ConvertToMilliseconds($EscalationAfter) }
-        catch { Write-Error -Message $_.Exception.Message -ErrorAction Stop }
+        try {
+            $escalationAfterMs = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ConvertToMilliseconds($EscalationAfter)
+        }
+        catch {
+            Write-Error -Message "Invalid escalation duration `"$EscalationAfter`": $($_.Exception.Message)" -ErrorAction Stop
+        }
     }
 
     $vault = getPamVault
@@ -706,14 +716,14 @@ function Remove-KeeperPamWorkflowApprover {
         .SYNOPSIS
         Remove users or teams from PAM workflow approvers.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-remove-approver', 'pam-wf-remove-approver')]
     Param (
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
@@ -776,14 +786,14 @@ function Get-KeeperPamWorkflowState {
         .SYNOPSIS
         Get the workflow state for a PAM resource record.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Execute')]
     [Alias('pam-workflow-state', 'pam-wf-state')]
     Param (
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Execute')]
         [Alias('r')]
         [string] $Record,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Help')]
         [Alias('h')]
         [switch] $Help,
 
