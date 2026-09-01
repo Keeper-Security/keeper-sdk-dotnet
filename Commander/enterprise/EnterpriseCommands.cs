@@ -374,6 +374,16 @@ namespace Commander
                 });
             cli.Aliases["pam-remote-browser"] = "pam-rbi";
 
+            var pamWorkflow = new PamWorkflowCommand(context);
+            cli.Commands.Add("pam-workflow",
+                new PamWorkflowParseableCommand
+                {
+                    Order = 94,
+                    Description = "Manage PAM workflow configurations",
+                    Action = async options => { await pamWorkflow.ExecuteAsync(options); },
+                });
+            cli.Aliases["pam-wf"] = "pam-workflow";
+
             cli.Commands.Add("security-audit-report",
                 new ParseableCommand<Enterprise.SecurityAuditReportOptions>
                 {

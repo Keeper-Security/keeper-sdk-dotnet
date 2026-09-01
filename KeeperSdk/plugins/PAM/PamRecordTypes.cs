@@ -21,6 +21,16 @@ namespace KeeperSecurity.Plugins.PAM
       "pamDirectory",
       "pamRemoteBrowser");
 
+    /// <summary>
+    /// PAM resource types that support workflow configuration.
+    /// </summary>
+    public static readonly HashSet<string> Workflow = Create(
+      "pamCloudResource",
+      "pamMachine",
+      "pamDirectory",
+      "pamDatabase",
+      "pamRemoteBrowser");
+
     public static readonly HashSet<string> Script = Create(
       "pamUser",
       "pamDirectory");
