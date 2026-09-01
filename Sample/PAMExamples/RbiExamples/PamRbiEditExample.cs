@@ -10,7 +10,7 @@ namespace Sample.PAMExamples.RbiExamples
     /// Configures Remote Browser Isolation settings on a pamRemoteBrowser record via
     /// <see cref="RbiUtils.EditRbiAsync"/>.
     /// </summary>
-    public static class EditRbiExample
+    public static class PamRbiEditExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="record">pamRemoteBrowser record UID or title.</param>

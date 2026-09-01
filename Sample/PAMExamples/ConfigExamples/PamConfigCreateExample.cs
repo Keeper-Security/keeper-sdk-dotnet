@@ -11,7 +11,7 @@ namespace Sample.PAMExamples.ConfigExamples
     /// Environment-specific details, such as AWS keys, Azure IDs, and domain hostnames, 
     /// are left for the caller to add later using the regular vault record update APIs.
     /// </summary>
-    public static class CreateConfigExample
+    public static class PamConfigCreateExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="environment">PAM environment type, such as local, network, AWS, Azure, GCP, domain, OCI, or GitHub.</param>

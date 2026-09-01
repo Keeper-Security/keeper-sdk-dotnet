@@ -10,7 +10,7 @@ namespace Sample.PAMExamples.ConfigExamples
     /// Edits a PAM configuration's title, gateway, and/or tunneling permissions using
     /// <see cref="ConfigUtils"/> and <see cref="PamConfigurationFacade"/>.
     /// </summary>
-    public static class EditConfigExample
+    public static class PamConfigEditExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="configId">PAM configuration UID or title.</param>

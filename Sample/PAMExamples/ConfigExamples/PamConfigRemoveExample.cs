@@ -8,7 +8,7 @@ namespace Sample.PAMExamples.ConfigExamples
     /// <summary>
     /// Removes a PAM configuration record via <see cref="ConfigUtils.RemovePamConfigurationAsync"/>.
     /// </summary>
-    public static class RemoveConfigExample
+    public static class PamConfigRemoveExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="configId">PAM configuration UID or title.</param>
