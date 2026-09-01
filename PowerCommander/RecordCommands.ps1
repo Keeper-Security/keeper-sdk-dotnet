@@ -81,6 +81,42 @@ function Test-KeeperRecordFormattedListOutput {
     return $true
 }
 
+function script:Get-KeeperRecordByUid {
+    <#
+        .Synopsis
+        Fetch a record by UID for piping to other commands
+
+        .Description
+        Internal helper that retrieves a record object for scripting/piping use.
+        Use for programmatic access. For interactive display, use Get-KeeperRecord instead.
+
+        .Parameter Uid
+        Record UID to fetch
+
+        .Parameter Vault
+        Vault instance to search
+
+        .Example
+        $record = Get-KeeperRecordByUid -Uid "abc123" -Vault $vault
+        $record | Copy-KeeperToClipboard
+    #>
+    [CmdletBinding()]
+    [OutputType([KeeperSecurity.Vault.KeeperRecord])]
+    Param (
+        [Parameter(Mandatory = $true)]
+        [string] $Uid,
+
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    [KeeperSecurity.Vault.KeeperRecord]$record = $null
+    if ($Vault.TryGetKeeperRecord($Uid, [ref]$record)) {
+        return $record
+    }
+    return $null
+}
+
 function Get-KeeperRecord {
     <#
 	.Synopsis
@@ -112,9 +148,14 @@ function Get-KeeperRecord {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
-        [KeeperSecurity.Vault.KeeperRecord] $record = $null
-        if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
-            $record
+        $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
+        if ($null -ne $record) {
+            if ($Script:PasswordVisible) {
+                $record | Format-List
+            }
+            else {
+                $record
+            }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
             Get-KeeperNSFRecord -Uid $Uid
