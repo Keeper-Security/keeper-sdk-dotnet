@@ -185,20 +185,16 @@ function script:invokePamSdkCall {
         return & $Action
     }
     catch [KeeperSecurity.Plugins.PAM.PamException] {
-        Write-Output $_.Exception.Message
-        return $null
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
     catch [System.InvalidOperationException] {
-        Write-Output $_.Exception.Message
-        return $null
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
     catch [KeeperSecurity.Vault.VaultException] {
-        Write-Output $_.Exception.Message
-        return $null
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
     catch [KeeperSecurity.Authentication.KeeperApiException] {
-        Write-Output $_.Exception.Message
-        return $null
+        Write-Error -Message $_.Exception.Message -ErrorAction Stop
     }
 }
 

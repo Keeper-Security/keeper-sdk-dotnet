@@ -1223,7 +1223,7 @@ function Add-KeeperPamRotationScript {
         }
     )
     if ($newUids.Count -ne 1) {
-        Write-Output 'Failed to determine uploaded script file UID. Only the record owner can attach post-rotation scripts.'
+        Write-Warning 'Failed to determine uploaded script file UID. Only the record owner can attach post-rotation scripts.'
         return
     }
 
