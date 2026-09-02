@@ -72,7 +72,15 @@ function script:testPamWorkflowExempt {
         }
     }
 
-    return [KeeperSecurity.Plugins.PAM.WorkflowUtils]::IsWorkflowExemptAsync($Auth, $Record, $teamUids).GetAwaiter().GetResult()
+    $exempt = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.WorkflowUtils]::IsWorkflowExemptAsync($Auth, $Record, $teamUids).GetAwaiter().GetResult()
+    }
+
+    if ($null -eq $exempt) {
+        return $false
+    }
+
+    return $exempt
 }
 
 function script:writePamWorkflowExemptMessage {
@@ -279,7 +287,7 @@ function Deny-KeeperPamWorkflowAccess {
                 $auth, $flowUidBytes, $trimmedReason).GetAwaiter().GetResult()
         }
         if ($null -eq $denialReasonEncrypted) {
-            Write-Output 'Warning: Could not encrypt denial reason for the requester -- reason will not be attached. The denial itself will still be sent.'
+            Write-Warning 'Could not encrypt denial reason for the requester -- reason will not be attached. The denial itself will still be sent.'
             $trimmedReason = ''
         }
     }

@@ -34,6 +34,15 @@ function Copy-KeeperFileAttachment {
         $records = $null
         if ($Record) {
             $r = Get-KeeperRecordByUid -Uid $record -Vault $vault
+            if (-not $r) {
+                $r = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+            }
+            if (-not $r) {
+                $r = @(Get-KeeperRecord -Filter $Record -AsObject | Select-Object -First 1)
+                if ($r.Count -eq 0) {
+                    $r = $null
+                }
+            }
             if ($r) {
                 $records = @()
                 $records += $r.Uid
@@ -162,6 +171,9 @@ function Copy-KeeperFileAttachmentToStream {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
     if ($null -eq $keeperRecord) {
+        $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
+    if ($null -eq $keeperRecord) {
         $keeperRecord = Get-KeeperRecord -Filter $Record
     }
     if ($null -eq $keeperRecord -or (@($keeperRecord).Count -ne 1)) {
@@ -226,6 +238,9 @@ function Copy-FileToKeeperRecord {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
     if ($null -eq $keeperRecord) {
+        $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
+    if ($null -eq $keeperRecord) {
         $keeperRecord = Get-KeeperRecord -Filter $Record
     }
     if ($null -eq $keeperRecord -or (@($keeperRecord).Count -ne 1)) {
@@ -276,6 +291,12 @@ function Remove-KeeperFileAttachment {
 
     Process {
         $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
+        if (-not $keeperRecord) {
+            $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+        }
+        if (-not $keeperRecord) {
+            $keeperRecord = Get-KeeperRecord -Filter $Record
+        }
         if (-not $keeperRecord) {
             Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
         }
