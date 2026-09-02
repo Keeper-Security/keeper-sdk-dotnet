@@ -102,7 +102,7 @@ function script:resolvePamWorkflowResourceName {
         if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and -not [string]::IsNullOrEmpty($rec.Title)) {
             return $rec.Title
         }
-        return $uid
+        return $null
     }
 
     return ''
@@ -172,14 +172,10 @@ function Get-KeeperPamWorkflowPending {
         $ticketEncrypted = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ExtractWorkflowParameter($wf, 'ticket')
         $reason = if ($null -ne $recordKey) {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $reasonEncrypted)
-        } else {
-            '[Unable to decrypt]'
-        }
+        } else { '' }
         $ticket = if ($null -ne $recordKey) {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $ticketEncrypted)
-        } else {
-            '[Unable to decrypt]'
-        }
+        } else { '' }
 
         $started = if ($wf.StartedOn -gt 0) {
             [DateTimeOffset]::FromUnixTimeMilliseconds($wf.StartedOn).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
@@ -460,7 +456,7 @@ function Start-KeeperPamWorkflow {
     $trimmedUid = $Uid.Trim()
     $record = resolvePamWorkflowRecord -Vault $vault -Identifier $trimmedUid -AllowMissing $true
 
-    $state = New-Object KeeperSecurity.Plugins.PAM.WorkflowState
+    $state = New-Object Workflow.WorkflowState
     if ($null -ne $record) {
         $state.Resource = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::CreateRecordRef($record.Uid, $record.Title)
     }
