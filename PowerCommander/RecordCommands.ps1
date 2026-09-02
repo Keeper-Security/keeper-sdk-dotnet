@@ -81,6 +81,42 @@ function Test-KeeperRecordFormattedListOutput {
     return $true
 }
 
+function script:Get-KeeperRecordByUid {
+    <#
+        .Synopsis
+        Fetch a record by UID for piping to other commands
+
+        .Description
+        Internal helper that retrieves a record object for scripting/piping use.
+        Use for programmatic access. For interactive display, use Get-KeeperRecord instead.
+
+        .Parameter Uid
+        Record UID to fetch
+
+        .Parameter Vault
+        Vault instance to search
+
+        .Example
+        $record = Get-KeeperRecordByUid -Uid "abc123" -Vault $vault
+        $record | Copy-KeeperToClipboard
+    #>
+    [CmdletBinding()]
+    [OutputType([KeeperSecurity.Vault.KeeperRecord])]
+    Param (
+        [Parameter(Mandatory = $true)]
+        [string] $Uid,
+
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    [KeeperSecurity.Vault.KeeperRecord]$record = $null
+    if ($Vault.TryGetKeeperRecord($Uid, [ref]$record)) {
+        return $record
+    }
+    return $null
+}
+
 function Get-KeeperRecord {
     <#
 	.Synopsis
@@ -88,6 +124,8 @@ function Get-KeeperRecord {
 
 	.Description
 	Lists classic and nested records with Category and Description.
+	Always returns a KeeperRecord object; password visibility only changes how it is displayed.
+    It does not change the object, so properties and pipelines continue to work normally.
 
 	.Parameter Uid
 	Record UID
@@ -112,9 +150,14 @@ function Get-KeeperRecord {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
-        [KeeperSecurity.Vault.KeeperRecord] $record = $null
-        if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
-            $record
+        $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
+        if ($null -ne $record) {
+            if ($Script:PasswordVisible) {
+                $record | Out-Default
+            }
+            else {
+                $record
+            }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
             Get-KeeperNSFRecord -Uid $Uid
@@ -434,11 +477,16 @@ function Set-KeeperPasswordVisible {
     Sets whether password and secret fields are visible in Get-KeeperRecord output.
 
     .PARAMETER Visible
-    When specified, passwords are shown. When omitted, passwords are masked.
+    When specified, passwords and secret fields are displayed in the console.
+    When omitted, passwords are masked with asterisks in interactive display.
 
     .EXAMPLE
     Set-KeeperPasswordVisible -Visible
-    Enables password visibility for subsequent Get-KeeperRecord commands.
+    Shows passwords in interactive Get-KeeperRecord console output.
+
+    .EXAMPLE
+    Set-KeeperPasswordVisible
+    Hides passwords in interactive Get-KeeperRecord console output (default).
     #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]

@@ -33,7 +33,16 @@ function Copy-KeeperFileAttachment {
         }
         $records = $null
         if ($Record) {
-            $r = Get-KeeperRecord $record
+            $r = Get-KeeperRecordByUid -Uid $record -Vault $vault
+            if (-not $r) {
+                $r = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+            }
+            if (-not $r) {
+                $r = @(Get-KeeperRecord -Filter $Record -AsObject | Select-Object -First 1)
+                if ($r.Count -eq 0) {
+                    $r = $null
+                }
+            }
             if ($r) {
                 $records = @()
                 $records += $r.Uid
@@ -58,7 +67,7 @@ function Copy-KeeperFileAttachment {
         [KeeperSecurity.Vault.KeeperRecord]$keeperRecord
         [KeeperSecurity.Vault.IAttachment]$atta
         foreach($recordUid in $records) {
-            $keeperRecord = Get-KeeperRecord $recordUid
+            $keeperRecord = Get-KeeperRecordByUid -Uid $recordUid -Vault $vault
             if (-not $keeperRecord) {
                 continue
             }
@@ -159,13 +168,18 @@ function Copy-KeeperFileAttachmentToStream {
         [Parameter(ParameterSetName = 'Stream', Mandatory = $true)][System.IO.Stream] $Stream
     )
 
-    $keeperRecord = Get-KeeperRecord $Record
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
+    if ($null -eq $keeperRecord) {
+        $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
+    if ($null -eq $keeperRecord) {
+        $keeperRecord = Get-KeeperRecord -Filter $Record
+    }
     if ($null -eq $keeperRecord -or (@($keeperRecord).Count -ne 1)) {
         Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
     }
     $keeperRecord = @($keeperRecord)[0]
-
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $attachments = @($vault.RecordAttachments($keeperRecord))
     if ($attachments.Count -eq 0) {
         Write-Error "Record has no attachments" -ErrorAction Stop
@@ -221,7 +235,11 @@ function Copy-FileToKeeperRecord {
         [Parameter(Position = 0, Mandatory = $true)][string] $Filename
     )
 
-    $keeperRecord = Get-KeeperRecord $Record
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
+    if ($null -eq $keeperRecord) {
+        $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
     if ($null -eq $keeperRecord) {
         $keeperRecord = Get-KeeperRecord -Filter $Record
     }
@@ -229,7 +247,6 @@ function Copy-FileToKeeperRecord {
         Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
     }
     $keeperRecord = @($keeperRecord)[0]
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     $path = Resolve-Path $Filename -ErrorAction Stop
     $uploadTask  = New-Object -TypeName KeeperSecurity.Vault.FileAttachmentUploadTask -ArgumentList $path.Path, $null
@@ -273,7 +290,13 @@ function Remove-KeeperFileAttachment {
     }
 
     Process {
-        $keeperRecord = Get-KeeperRecord $Record
+        $keeperRecord = Get-KeeperRecordByUid -Uid $Record -Vault $vault
+        if (-not $keeperRecord) {
+            $keeperRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+        }
+        if (-not $keeperRecord) {
+            $keeperRecord = Get-KeeperRecord -Filter $Record
+        }
         if (-not $keeperRecord) {
             Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
         }
