@@ -760,6 +760,39 @@ namespace KeeperSecurity.Vault
         Task<IReadOnlyList<KeeperNSFRecordTransferResult>> TransferKeeperNSFRecordOwnership(
             IReadOnlyList<string> recordUidOrTitles, string newOwnerEmail);
 
+        /// <summary>
+        /// Moves Keeper NSF records between folders in a single batch request.
+        /// Source and target folders can be specified by UID/name, or as "", "/", or "root" for the NSF root.
+        /// </summary>
+        /// <param name="moves">Record move payloads.</param>
+        /// <returns>Per-record move results in the same order as <paramref name="moves"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordMoveResult>> MoveKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordMoveRequest> moves);
+
+        /// <summary>
+        /// Moves a single Keeper NSF record between folders. <paramref name="sourceFolderUidOrName"/> and
+        /// <paramref name="targetFolderUidOrName"/> accept <c>""</c>, <c>"/"</c>, or <c>"root"</c> for the
+        /// Keeper NSF root. Thin wrapper over <see cref="MoveKeeperNSFRecords"/>.
+        /// </summary>
+        Task<KeeperNSFRecordMoveResult> MoveKeeperNSFRecord(
+            string recordUidOrTitle, string sourceFolderUidOrName, string targetFolderUidOrName);
+
+        /// <summary>
+        /// Moves Keeper NSF folders to new parent folders in a single batch request.
+        /// The target can be a folder UID/name, or "", "/", or "root" for the NSF top level.
+        /// </summary>
+        /// <param name="moves">Folder move payloads.</param>
+        /// <returns>Per-folder move results in the same order as <paramref name="moves"/>.</returns>
+        Task<IReadOnlyList<KeeperNSFFolderMoveResult>> MoveKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderMoveRequest> moves);
+
+        /// <summary>
+        /// Moves a single Keeper NSF folder to a new parent folder.
+        /// Thin wrapper over <see cref="MoveKeeperNSFFolders"/>.
+        /// </summary>
+        Task<KeeperNSFFolderMoveResult> MoveKeeperNSFFolder(
+            string folderUidOrName, string targetParentUidOrName);
+
         /// <summary>Resolves a Keeper NSF record by UID or title.</summary>
         bool TryResolveKeeperNSFRecord(string uidOrTitle, out KeeperNSFRecord record);
 
@@ -1605,6 +1638,84 @@ namespace KeeperSecurity.Vault
         public string Message { get; set; }
 
         /// <summary>True when transfer succeeded.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for moving a Keeper NSF record between folders in a batch request.
+    /// </summary>
+    public class KeeperNSFRecordMoveRequest
+    {
+        /// <summary>Source folder UID.</summary>
+        public string SourceFolderUid { get; set; }
+
+        /// <summary>Target folder UID.</summary>
+        public string TargetFolderUid { get; set; }
+
+        /// <summary>Record UID to move.</summary>
+        public string RecordUid { get; set; }
+    }
+
+    /// <summary>
+    /// Result of moving a Keeper NSF record between folders.
+    /// </summary>
+    public class KeeperNSFRecordMoveResult
+    {
+        /// <summary>Source folder UID from the request.</summary>
+        public string SourceFolderUid { get; set; }
+
+        /// <summary>Target folder UID from the request.</summary>
+        public string TargetFolderUid { get; set; }
+
+        /// <summary>Record UID from the request.</summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>Server status code (FolderModifyStatus).</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>Move-specific status (Moved, TargetAlreadyPresent, SourceNotFound, InvalidMove, CycleDetected).</summary>
+        public string MoveResultStatus { get; set; }
+
+        /// <summary>True when the record was moved successfully.</summary>
+        public bool Success { get; set; }
+    }
+
+    /// <summary>
+    /// Payload for moving a Keeper NSF folder to a new parent folder in a batch request.
+    /// </summary>
+    public class KeeperNSFFolderMoveRequest
+    {
+        /// <summary>Folder UID to move.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Target parent folder UID.</summary>
+        public string TargetParentUid { get; set; }
+    }
+
+    /// <summary>
+    /// Result of moving a Keeper NSF folder to a new parent folder.
+    /// </summary>
+    public class KeeperNSFFolderMoveResult
+    {
+        /// <summary>Folder UID from the request.</summary>
+        public string FolderUid { get; set; }
+
+        /// <summary>Target parent folder UID from the request.</summary>
+        public string TargetParentUid { get; set; }
+
+        /// <summary>Server status code (FolderModifyStatus).</summary>
+        public string Status { get; set; }
+
+        /// <summary>Server message.</summary>
+        public string Message { get; set; }
+
+        /// <summary>Move-specific status (Moved, TargetAlreadyPresent, SourceNotFound, InvalidMove, CycleDetected).</summary>
+        public string MoveResultStatus { get; set; }
+
+        /// <summary>True when the folder was moved successfully.</summary>
         public bool Success { get; set; }
     }
 

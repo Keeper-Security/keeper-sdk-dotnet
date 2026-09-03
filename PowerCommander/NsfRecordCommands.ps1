@@ -2438,6 +2438,293 @@ function Link-KeeperNSFRecords {
 New-Alias -Name nsf-lns -Value Link-KeeperNSFRecords
 
 
+function Move-KeeperNSFRecord {
+    <#
+	.Synopsis
+	Moves a Keeper NSF record from one folder to another (Keeper NSF v3 API).
+
+	.Description
+	For bulk moves from JSON, use Move-KeeperNSFRecords (nsf-move-records).
+
+	.Parameter Record
+	Record UID or title.
+
+	.Parameter SourceFolder
+	Source folder UID or name.
+
+	.Parameter TargetFolder
+	Target folder UID or name.
+#>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string] $Record,
+
+        [Parameter(Mandatory = $true)]
+        [string] $SourceFolder,
+
+        [Parameter(Mandatory = $true)]
+        [string] $TargetFolder
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+    if (-not $vault.TryResolveKeeperNSFRecord($Record, [ref]$kdRecord)) {
+        Write-Error -Message "Keeper NSF record `"$Record`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
+    if (-not $vault.TryResolveKeeperNSFFolder($SourceFolder, [ref]$sourceFolderNode)) {
+        Write-Error -Message "Source folder `"$SourceFolder`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
+    if (-not $vault.TryResolveKeeperNSFFolder($TargetFolder, [ref]$targetFolderNode)) {
+        Write-Error -Message "Target folder `"$TargetFolder`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    $target = "$($kdRecord.RecordUid): $($sourceFolderNode.FolderUid) -> $($targetFolderNode.FolderUid)"
+    if (-not $PSCmdlet.ShouldProcess($target, "Move Keeper NSF record between folders")) {
+        return
+    }
+
+    try {
+        $result = $vault.MoveKeeperNSFRecord($kdRecord.RecordUid, $sourceFolderNode.FolderUid, $targetFolderNode.FolderUid).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+        return
+    }
+
+    if ($result.Success) {
+        Write-Host "Record '$($result.RecordUid)' moved from '$($result.SourceFolderUid)' to '$($result.TargetFolderUid)' successfully." -ForegroundColor Green
+    }
+    else {
+        $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+        Write-Error -Message "Failed to move record: status=$($result.Status) $msg"
+    }
+}
+New-Alias -Name nsf-move-record -Value Move-KeeperNSFRecord
+
+function Move-KeeperNSFRecords {
+    <#
+	.Synopsis
+	Batch-moves Keeper NSF records between folders from JSON (single API request, no chunking).
+
+	.Description
+	Independent of Move-KeeperNSFRecord / nsf-move-record.
+	JSON schema: a "moves" array. Each item: source_folder_uid, target_folder_uid, record_uid.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON move batch file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleMoves
+	Writes a sample move batch JSON file and exits without moving records.
+
+	.EXAMPLE
+	PS> Move-KeeperNSFRecords -DownloadSampleMoves
+
+	.EXAMPLE
+	PS> Move-KeeperNSFRecords -FilePath .\nsf-records-move-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleMoves
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleMoves) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-records-move-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFRecordMoveBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF record move batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Replace placeholders, then run:"
+        Write-Host "    Move-KeeperNSFRecords -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleMoves is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $requests = ConvertTo-KeeperNSFRecordMoveRequests -JsonText $jsonText
+        if (-not $requests -or $requests.Count -eq 0) {
+            throw "Move file contains no entries."
+        }
+
+        if ($requests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordMoveRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordMoveRequest]'
+            foreach ($item in @($requests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFRecordMoveRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $requests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing record move payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($requests.Count) Keeper NSF record move(s)", "Move Keeper NSF records between folders")) {
+        return
+    }
+
+    try {
+        Write-Host "Moving $($requests.Count) Keeper NSF record(s) in batch..."
+        $list = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordMoveRequest]]$requests
+        $results = $vault.MoveKeeperNSFRecords($list).GetAwaiter().GetResult()
+        Write-KeeperNSFRecordMoveBatchResults -Results $results
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error moving records in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-move-records -Value Move-KeeperNSFRecords
+
+function Script:Write-KeeperNSFRecordMoveBatchResults {
+    Param(
+        [Parameter(Mandatory = $true)]
+        $Results
+    )
+
+    $ok = @($Results | Where-Object { $_.Success })
+    $fail = @($Results | Where-Object { -not $_.Success })
+    Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+    Write-Host ""
+
+    foreach ($result in $Results) {
+        if ($result.Success) {
+            Write-Host "  [OK]   $($result.RecordUid)  $($result.SourceFolderUid) -> $($result.TargetFolderUid)" -ForegroundColor Green
+        }
+        else {
+            $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+            Write-Host "  [FAIL] $($result.RecordUid)  $($result.SourceFolderUid) -> $($result.TargetFolderUid)  status=$($result.Status)  $msg" -ForegroundColor Red
+        }
+    }
+}
+
+# Build move requests from record-move batch JSON.
+function Script:ConvertTo-KeeperNSFRecordMoveRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $items = @()
+    if ($null -ne $parsed.moves) {
+        $items = @($parsed.moves)
+    }
+    elseif ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    }
+    else {
+        throw "JSON must contain a 'moves' array (or be a root array of move objects)."
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordMoveRequest]'
+    $index = 0
+    foreach ($item in $items) {
+        # Use property-existence checks (not truthy checks) so an explicit "" (Keeper NSF root) is preserved.
+        $hasSourceFolder = $false
+        $sourceFolderUid = $null
+        if ($null -ne $item.PSObject.Properties['source_folder_uid']) {
+            $hasSourceFolder = $true
+            if ($null -ne $item.source_folder_uid) { $sourceFolderUid = [string]$item.source_folder_uid }
+        }
+        elseif ($null -ne $item.PSObject.Properties['SourceFolderUid']) {
+            $hasSourceFolder = $true
+            if ($null -ne $item.SourceFolderUid) { $sourceFolderUid = [string]$item.SourceFolderUid }
+        }
+
+        $hasTargetFolder = $false
+        $targetFolderUid = $null
+        if ($null -ne $item.PSObject.Properties['target_folder_uid']) {
+            $hasTargetFolder = $true
+            if ($null -ne $item.target_folder_uid) { $targetFolderUid = [string]$item.target_folder_uid }
+        }
+        elseif ($null -ne $item.PSObject.Properties['TargetFolderUid']) {
+            $hasTargetFolder = $true
+            if ($null -ne $item.TargetFolderUid) { $targetFolderUid = [string]$item.TargetFolderUid }
+        }
+
+        $recordUid = $null
+        if ($item.record_uid) { $recordUid = [string]$item.record_uid }
+        elseif ($item.uid) { $recordUid = [string]$item.uid }
+        elseif ($item.RecordUid) { $recordUid = [string]$item.RecordUid }
+
+        if (-not $hasSourceFolder -or $null -eq $sourceFolderUid) {
+            throw "Move item at index $index is missing required 'source_folder_uid' (use `"`" for the Keeper NSF root)."
+        }
+        if (-not $hasTargetFolder -or $null -eq $targetFolderUid) {
+            throw "Move item at index $index is missing required 'target_folder_uid' (use `"`" for the Keeper NSF root)."
+        }
+        if ([string]::IsNullOrWhiteSpace($recordUid)) {
+            throw "Move item at index $index is missing required 'record_uid' (or uid)."
+        }
+
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFRecordMoveRequest
+        $req.SourceFolderUid = $sourceFolderUid.Trim()
+        $req.TargetFolderUid = $targetFolderUid.Trim()
+        $req.RecordUid = $recordUid.Trim()
+        $list.Add($req) | Out-Null
+        $index++
+    }
+
+    return ,$list
+}
+
 function Unlink-KeeperNSFRecords {
     <#
 	.Synopsis

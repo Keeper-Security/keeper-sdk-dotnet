@@ -64,6 +64,53 @@ namespace Commander
         }
 
         // nsf-rmdir: preview batch remove, prompt, then confirm via stored chunk tokens.
+        public static async Task NsfMoveFolderCommand(this VaultContext context, NsfMoveFolderOptions options)
+        {
+            if (string.IsNullOrWhiteSpace(options.Folder))
+            {
+                Console.WriteLine("Folder UID or name is required.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(options.TargetParent))
+            {
+                Console.WriteLine("Target parent folder UID or name is required.");
+                return;
+            }
+
+            try
+            {
+                if (!context.Vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+                {
+                    Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
+                    return;
+                }
+
+                if (!context.Vault.TryResolveKeeperNSFFolder(options.TargetParent, out var targetNode))
+                {
+                    Console.WriteLine($"Target folder \"{options.TargetParent}\" was not found. Run sync-down or nsf-list first.");
+                    return;
+                }
+
+                var result = await context.Vault.MoveKeeperNSFFolder(folderNode.FolderUid, targetNode.FolderUid)
+                    .ConfigureAwait(false);
+
+                if (result.Success)
+                {
+                    Console.WriteLine($"Folder '{folderNode.FolderUid}' moved to '{targetNode.FolderUid}' successfully.");
+                    await context.Vault.SyncDown(false).ConfigureAwait(false);
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to move folder: {result.Status} - {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving folder: {ex.Message}");
+            }
+        }
+
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
         {
             var vault = context.Vault;
@@ -320,5 +367,14 @@ namespace Commander
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
         public string Role { get; set; }
+    }
+
+    class NsfMoveFolderOptions
+    {
+        [Value(0, Required = true, HelpText = "Folder UID or name")]
+        public string Folder { get; set; }
+
+        [Option('t', "target", Required = true, HelpText = "Target parent folder UID or name")]
+        public string TargetParent { get; set; }
     }
 }
