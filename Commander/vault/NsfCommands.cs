@@ -70,6 +70,14 @@ namespace Commander
                     Action = context.NsfRmdirCommand
                 });
 
+            cli.Commands.Add("nsf-move-folder",
+                new ParseableCommand<NsfMoveFolderOptions>
+                {
+                    Order = 46,
+                    Description = "Move a Keeper NSF folder to a new parent folder",
+                    Action = context.NsfMoveFolderCommand
+                });
+
             cli.Commands.Add("nsf-share-folder",
                 new ParseableCommand<NsfShareFolderOptions>
                 {
@@ -132,6 +140,14 @@ namespace Commander
                     Order = 47,
                     Description = "Remove Keeper NSF record(s)",
                     Action = context.NsfRmCommand
+                });
+
+            cli.Commands.Add("nsf-move-record",
+                new ParseableCommand<NsfMoveRecordOptions>
+                {
+                    Order = 47,
+                    Description = "Move a Keeper NSF record between folders",
+                    Action = context.NsfMoveRecordCommand
                 });
 
             cli.Commands.Add("nsf-ln",

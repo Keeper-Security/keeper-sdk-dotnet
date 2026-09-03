@@ -14,6 +14,7 @@ using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
 using Records;
 using AuthProto = Authentication;
+using Drive.Move;
 
 namespace KeeperSecurity.Vault
 {
@@ -998,6 +999,62 @@ namespace KeeperSecurity.Vault
             return folder != null;
         }
 
+        /// <summary>Finds the actual drive-root UID for the current account to use in folder move requests.</summary>
+        private string ResolveKeeperNSFDriveRootUid(string startFolderUid)
+        {
+            string FindRootFrom(string start)
+            {
+                var current = start;
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                while (!string.IsNullOrEmpty(current) && visited.Add(current))
+                {
+                    if (!TryGetKeeperNSFFolder(current, out var node))
+                    {
+                        return current;
+                    }
+
+                    current = node.ParentUid;
+                }
+
+                return null;
+            }
+
+            var result = FindRootFrom(startFolderUid);
+            if (result != null)
+            {
+                return result;
+            }
+
+            foreach (var node in KeeperNSFFolderNodes)
+            {
+                result = FindRootFrom(node?.ParentUid);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Resolves a Keeper NSF folder by UID or name, including the root represented by an empty string.</summary>
+        private bool TryResolveKeeperNSFFolderOrRoot(string folderUidOrName, out FolderNode folder)
+        {
+            folder = null;
+            if (folderUidOrName == null)
+            {
+                return false;
+            }
+
+            if (folderUidOrName.Length == 0 || IsKeeperDriveRootFolderIdentifier(folderUidOrName))
+            {
+                folder = TryCreateKeeperDriveRootFolderNode();
+                return folder != null;
+            }
+
+            return TryResolveKeeperNSFFolder(folderUidOrName, out folder);
+        }
+
         /// <inheritdoc/>
         public IEnumerable<string> GetKeeperNSFFoldersForRecord(string recordUid)
         {
@@ -1146,6 +1203,75 @@ namespace KeeperSecurity.Vault
             return string.Equals(identifier, "/", StringComparison.Ordinal)
                 || string.Equals(identifier, "root", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(identifier, KeeperNSFConstants.KeeperDriveRootFolderUid, StringComparison.Ordinal);
+        }
+
+        /// <summary>Returns the nesting depth of <paramref name="folderUid"/> (root's direct children = 1).</summary>
+        private int GetKeeperNSFFolderDepth(string folderUid)
+        {
+            var depth = 0;
+            var current = folderUid;
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+
+            while (!string.IsNullOrEmpty(current)
+                   && !IsKeeperDriveRootFolderIdentifier(current)
+                   && visited.Add(current))
+            {
+                if (!TryGetKeeperNSFFolder(current, out var node))
+                {
+                    break;
+                }
+
+                depth++;
+                current = node.ParentUid;
+            }
+
+            return depth;
+        }
+
+        /// <summary>Returns the number of additional folder levels below <paramref name="folderUid"/> (0 when it has no sub-folders).</summary>
+        private int GetKeeperNSFFolderSubtreeHeight(string folderUid, HashSet<string> visited = null)
+        {
+            visited ??= new HashSet<string>(StringComparer.Ordinal);
+            if (!visited.Add(folderUid))
+            {
+                return 0;
+            }
+
+            if (!TryGetKeeperNSFFolder(folderUid, out var folder) || folder.Subfolders.Count == 0)
+            {
+                return 0;
+            }
+
+            var maxChildHeight = 0;
+            foreach (var childUid in folder.Subfolders)
+            {
+                var childHeight = GetKeeperNSFFolderSubtreeHeight(childUid, visited);
+                if (childHeight > maxChildHeight)
+                {
+                    maxChildHeight = childHeight;
+                }
+            }
+
+            return 1 + maxChildHeight;
+        }
+
+        /// <summary>Checks that moving the folder will not exceed the maximum allowed nesting depth.</summary>
+        private bool TryValidateKeeperNSFFolderMoveDepth(string folderUid, string destFolderUid, out string message)
+        {
+            var destDepth = GetKeeperNSFFolderDepth(destFolderUid);
+            var subtreeHeight = GetKeeperNSFFolderSubtreeHeight(folderUid);
+            var newDepth = destDepth + 1 + subtreeHeight;
+
+            if (newDepth > KeeperNSFConstants.MaxNestedShareFolderDepth)
+            {
+                message =
+                    $"Cannot move folder: resulting nesting depth ({newDepth}) would exceed the maximum of " +
+                    $"{KeeperNSFConstants.MaxNestedShareFolderDepth} levels.";
+                return false;
+            }
+
+            message = null;
+            return true;
         }
 
         private FolderNode TryCreateKeeperDriveRootFolderNode()
@@ -2078,6 +2204,427 @@ namespace KeeperSecurity.Vault
             return true;
         }
 
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFRecordMoveResult>> MoveKeeperNSFRecords(
+            IReadOnlyList<KeeperNSFRecordMoveRequest> moves)
+        {
+            if (moves == null || moves.Count == 0)
+            {
+                throw new ArgumentException("At least one record move is required.", nameof(moves));
+            }
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                if (moves[i] == null)
+                {
+                    throw new ArgumentException($"Record move at index {i} is null.", nameof(moves));
+                }
+
+                if (moves[i].SourceFolderUid == null)
+                {
+                    throw new ArgumentException(
+                        $"Source folder UID is required (index {i}); use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                        nameof(moves));
+                }
+
+                if (moves[i].TargetFolderUid == null)
+                {
+                    throw new ArgumentException(
+                        $"Target folder UID is required (index {i}); use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                        nameof(moves));
+                }
+
+                if (string.IsNullOrWhiteSpace(moves[i].RecordUid))
+                {
+                    throw new ArgumentException($"Record UID cannot be empty (index {i}).", nameof(moves));
+                }
+            }
+
+            var results = new KeeperNSFRecordMoveResult[moves.Count];
+            var prepared = new List<(int Index, KeeperNSFRecordMoveRequest Request, Drive.Move.FolderRecordMove Move)>();
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var request = moves[i];
+                results[i] = new KeeperNSFRecordMoveResult
+                {
+                    SourceFolderUid = request.SourceFolderUid,
+                    TargetFolderUid = request.TargetFolderUid,
+                    RecordUid = request.RecordUid,
+                    Success = false,
+                };
+
+                try
+                {
+                    if (!TryResolveKeeperNSFRecord(request.RecordUid, out var record))
+                    {
+                        results[i].Status = "not_found";
+                        results[i].Message = $"Record '{request.RecordUid}' was not found.";
+                        continue;
+                    }
+
+                    if (!TryResolveKeeperNSFFolderOrRoot(request.SourceFolderUid, out var sourceFolder))
+                    {
+                        results[i].Status = "not_found";
+                        results[i].Message = $"Source folder '{request.SourceFolderUid}' was not found.";
+                        continue;
+                    }
+
+                    if (!TryResolveKeeperNSFFolderOrRoot(request.TargetFolderUid, out var targetFolder))
+                    {
+                        results[i].Status = "not_found";
+                        results[i].Message = $"Target folder '{request.TargetFolderUid}' was not found.";
+                        continue;
+                    }
+
+                    if (targetFolder.FolderKey == null || targetFolder.FolderKey.Length == 0)
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Target folder key is not available for '{targetFolder.FolderUid}'.";
+                        continue;
+                    }
+
+                    if (!IsValidAesV2Key(targetFolder.FolderKey))
+                    {
+                        results[i].Status = "invalid_key";
+                        results[i].Message =
+                            $"Target folder key has invalid length {targetFolder.FolderKey.Length}; expected 32 bytes.";
+                        continue;
+                    }
+
+                    if (!TryGetKeeperNSFRecordKey(record.RecordUid, out var recordKey))
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Record key is not available for '{record.RecordUid}'.";
+                        continue;
+                    }
+
+                    if (!TryGetKeeperNSFRecordKeyType(record.RecordUid, out var recordKeyType))
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Record key type is not available for '{record.RecordUid}'.";
+                        continue;
+                    }
+
+                    var (encryptedRecordKey, _) = EncryptKeeperNSFRecordKeyForFolder(recordKey, targetFolder.FolderKey, recordKeyType);
+
+                    var move = new Drive.Move.FolderRecordMove
+                    {
+                        SourceFolderUid = ByteString.CopyFrom(sourceFolder.FolderUid.Base64UrlDecode()),
+                        TargetFolderUid = ByteString.CopyFrom(targetFolder.FolderUid.Base64UrlDecode()),
+                        RecordUid = ByteString.CopyFrom(record.RecordUid.Base64UrlDecode()),
+                        EncryptedRecordKey = ByteString.CopyFrom(encryptedRecordKey),
+                    };
+
+                    prepared.Add((i, request, move));
+                }
+                catch (Exception ex)
+                {
+                    results[i].Status = "prepare_failed";
+                    results[i].Message = ex.Message;
+                }
+            }
+
+            if (prepared.Count > 0)
+            {
+                var request = new Drive.Move.FolderRecordMoveRequest();
+                foreach (var item in prepared)
+                {
+                    request.Moves.Add(item.Move);
+                }
+
+                var response = await Auth.ExecuteAuthRest<Drive.Move.FolderRecordMoveRequest, Drive.Move.FolderRecordMoveResponse>(
+                    "vault/folders/v3/record_move", request).ConfigureAwait(false);
+
+                var statusByIndex = new Dictionary<int, Drive.Move.FolderRecordMoveResult>(prepared.Count);
+                if (response?.Results != null)
+                {
+                    for (var j = 0; j < response.Results.Count && j < prepared.Count; j++)
+                    {
+                        statusByIndex[j] = response.Results[j];
+                    }
+                }
+
+                for (var j = 0; j < prepared.Count; j++)
+                {
+                    var item = prepared[j];
+                    if (statusByIndex.TryGetValue(j, out var status))
+                    {
+                        results[item.Index].Status = status.Status.ToString();
+                        results[item.Index].Message = status.Message;
+                        results[item.Index].MoveResultStatus = status.MoveResultStatus.ToString();
+                        results[item.Index].Success = status.Status == FolderProto.FolderModifyStatus.Success;
+                    }
+                }
+            }
+
+            if (prepared.Any(p => results[p.Index].Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<KeeperNSFRecordMoveResult> MoveKeeperNSFRecord(
+            string recordUidOrTitle, string sourceFolderUidOrName, string targetFolderUidOrName)
+        {
+            if (string.IsNullOrWhiteSpace(recordUidOrTitle))
+            {
+                throw new ArgumentException("Record UID or title is required.", nameof(recordUidOrTitle));
+            }
+
+            if (sourceFolderUidOrName == null)
+            {
+                throw new ArgumentException(
+                    "Source folder UID or name is required; use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                    nameof(sourceFolderUidOrName));
+            }
+
+            if (targetFolderUidOrName == null)
+            {
+                throw new ArgumentException(
+                    "Target folder UID or name is required; use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                    nameof(targetFolderUidOrName));
+            }
+
+            var record = recordUidOrTitle.Trim();
+            var sourceFolder = sourceFolderUidOrName.Trim();
+            var targetFolder = targetFolderUidOrName.Trim();
+
+            var move = new KeeperNSFRecordMoveRequest
+            {
+                SourceFolderUid = sourceFolder,
+                TargetFolderUid = targetFolder,
+                RecordUid = record,
+            };
+
+            var results = await MoveKeeperNSFRecords(new[] { move }).ConfigureAwait(false);
+            return results.FirstOrDefault() ?? new KeeperNSFRecordMoveResult
+            {
+                SourceFolderUid = sourceFolder,
+                TargetFolderUid = targetFolder,
+                RecordUid = record,
+                Status = "unknown",
+                Message = "No response received",
+                Success = false,
+            };
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<KeeperNSFFolderMoveResult>> MoveKeeperNSFFolders(
+            IReadOnlyList<KeeperNSFFolderMoveRequest> moves)
+        {
+            if (moves == null || moves.Count == 0)
+            {
+                throw new ArgumentException("At least one folder move is required.", nameof(moves));
+            }
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                if (moves[i] == null)
+                {
+                    throw new ArgumentException($"Folder move at index {i} is null.", nameof(moves));
+                }
+
+                if (string.IsNullOrWhiteSpace(moves[i].FolderUid))
+                {
+                    throw new ArgumentException($"Folder UID cannot be empty (index {i}).", nameof(moves));
+                }
+
+                if (moves[i].TargetParentUid == null)
+                {
+                    throw new ArgumentException(
+                        $"Target parent UID is required (index {i}); use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                        nameof(moves));
+                }
+            }
+
+            var results = new KeeperNSFFolderMoveResult[moves.Count];
+            var prepared = new List<(int Index, KeeperNSFFolderMoveRequest Request, Drive.Move.FolderMove Move, string FolderUid, string OldParentUid, string NewParentUid)>();
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var request = moves[i];
+                results[i] = new KeeperNSFFolderMoveResult
+                {
+                    FolderUid = request.FolderUid,
+                    TargetParentUid = request.TargetParentUid,
+                    Success = false,
+                };
+
+                try
+                {
+                    if (!TryResolveKeeperNSFFolder(request.FolderUid, out var folder))
+                    {
+                        results[i].Status = "not_found";
+                        results[i].Message = $"Folder '{request.FolderUid}' was not found.";
+                        continue;
+                    }
+
+                    if (folder.FolderKey == null || folder.FolderKey.Length == 0)
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Folder key is not available for '{folder.FolderUid}'.";
+                        continue;
+                    }
+
+                    if (!IsValidAesV2Key(folder.FolderKey))
+                    {
+                        results[i].Status = "invalid_key";
+                        results[i].Message =
+                            $"Folder key has invalid length {folder.FolderKey.Length}; expected 32 bytes.";
+                        continue;
+                    }
+
+                    if (!TryResolveKeeperNSFFolderOrRoot(request.TargetParentUid, out var targetParent))
+                    {
+                        results[i].Status = "not_found";
+                        results[i].Message = $"Target parent folder '{request.TargetParentUid}' was not found.";
+                        continue;
+                    }
+
+                    if (targetParent.FolderKey == null || targetParent.FolderKey.Length == 0)
+                    {
+                        results[i].Status = "missing_key";
+                        results[i].Message = $"Target parent folder key is not available for '{targetParent.FolderUid}'.";
+                        continue;
+                    }
+
+                    if (!IsValidAesV2Key(targetParent.FolderKey))
+                    {
+                        results[i].Status = "invalid_key";
+                        results[i].Message =
+                            $"Target parent folder key has invalid length {targetParent.FolderKey.Length}; expected 32 bytes.";
+                        continue;
+                    }
+
+                    if (!TryValidateKeeperNSFFolderMoveDepth(folder.FolderUid, targetParent.FolderUid, out var depthMessage))
+                    {
+                        results[i].Status = "depth_exceeded";
+                        results[i].Message = depthMessage;
+                        continue;
+                    }
+
+                    var encryptedFolderKey = CryptoUtils.EncryptAesV2(folder.FolderKey, targetParent.FolderKey);
+
+                    var targetParentApiUid = targetParent.FolderUid;
+                    if (string.IsNullOrEmpty(targetParentApiUid))
+                    {
+                        var discoveredRootUid = ResolveKeeperNSFDriveRootUid(folder.FolderUid);
+                        if (string.IsNullOrEmpty(discoveredRootUid))
+                        {
+                            results[i].Status = "root_uid_unknown";
+                            results[i].Message =
+                                "Cannot resolve the Keeper NSF drive-root UID from local data; run sync-down first.";
+                            continue;
+                        }
+
+                        targetParentApiUid = discoveredRootUid;
+                    }
+
+                    var move = new Drive.Move.FolderMove
+                    {
+                        FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
+                        TargetParentUid = ByteString.CopyFrom(targetParentApiUid.Base64UrlDecode()),
+                        EncryptedFolderKey = ByteString.CopyFrom(encryptedFolderKey),
+                    };
+
+                    prepared.Add((i, request, move, folder.FolderUid, folder.ParentUid ?? string.Empty, targetParent.FolderUid ?? string.Empty));
+                }
+                catch (Exception ex)
+                {
+                    results[i].Status = "prepare_failed";
+                    results[i].Message = ex.Message;
+                }
+            }
+
+            if (prepared.Count > 0)
+            {
+                var request = new Drive.Move.FolderMoveRequest();
+                foreach (var item in prepared)
+                {
+                    request.Moves.Add(item.Move);
+                }
+
+                var response = await Auth.ExecuteAuthRest<Drive.Move.FolderMoveRequest, Drive.Move.FolderMoveResponse>(
+                    "vault/folders/v3/folder_move", request).ConfigureAwait(false);
+
+                var statusByIndex = new Dictionary<int, Drive.Move.FolderMoveResult>(prepared.Count);
+                if (response?.Results != null)
+                {
+                    for (var j = 0; j < response.Results.Count && j < prepared.Count; j++)
+                    {
+                        statusByIndex[j] = response.Results[j];
+                    }
+                }
+
+                for (var j = 0; j < prepared.Count; j++)
+                {
+                    var item = prepared[j];
+                    if (statusByIndex.TryGetValue(j, out var status))
+                    {
+                        results[item.Index].Status = status.Status.ToString();
+                        results[item.Index].Message = status.Message;
+                        results[item.Index].MoveResultStatus = status.MoveResultStatus.ToString();
+                        results[item.Index].Success = status.Status == FolderProto.FolderModifyStatus.Success;
+                    }
+
+                    if (results[item.Index].Success)
+                    {
+                        if (!string.Equals(item.OldParentUid, item.NewParentUid, StringComparison.Ordinal))
+                        {
+                            Storage.KdFolderKeys.DeleteLinks(new[] { UidLink.Create(item.FolderUid, item.OldParentUid) });
+                        }
+                    }
+                }
+            }
+
+            if (prepared.Any(p => results[p.Index].Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<KeeperNSFFolderMoveResult> MoveKeeperNSFFolder(
+            string folderUidOrName, string targetParentUidOrName)
+        {
+            if (string.IsNullOrWhiteSpace(folderUidOrName))
+            {
+                throw new ArgumentException("Folder UID or name is required.", nameof(folderUidOrName));
+            }
+
+            if (targetParentUidOrName == null)
+            {
+                throw new ArgumentException(
+                    "Target parent UID or name is required; use \"\", \"/\", or \"root\" for the Keeper NSF root.",
+                    nameof(targetParentUidOrName));
+            }
+
+            var folder = folderUidOrName.Trim();
+            var targetParent = targetParentUidOrName.Trim();
+
+            var move = new KeeperNSFFolderMoveRequest
+            {
+                FolderUid = folder,
+                TargetParentUid = targetParent,
+            };
+
+            var results = await MoveKeeperNSFFolders(new[] { move }).ConfigureAwait(false);
+            return results.FirstOrDefault() ?? new KeeperNSFFolderMoveResult
+            {
+                FolderUid = folder,
+                TargetParentUid = targetParent,
+                Status = "unknown",
+                Message = "No response received",
+                Success = false,
+            };
+        }
+
         private sealed class RecipientPublicKeyInfo
         {
             public bool UseEccKey { get; set; }
@@ -2103,5 +2650,8 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Default record version for standard typed NSF records (login, etc.).</summary>
         public const int DefaultTypedRecordVersion = 3;
+
+        /// <summary>Maximum number of folder levels below the Nested Share Folder root.</summary>
+        public const int MaxNestedShareFolderDepth = 5;
     }
 }

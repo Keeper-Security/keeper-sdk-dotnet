@@ -1286,6 +1286,282 @@ function Script:ConvertTo-KeeperNSFFolderUpdateRequests {
     return ,$list
 }
 
+function Move-KeeperNSFFolder {
+    <#
+	.Synopsis
+	Moves a Keeper NSF folder to a new parent folder.
+
+	.Description
+	For bulk moves from JSON, use Move-KeeperNSFFolders (nsf-move-folders).
+	Rejects moves that would push the folder or any of its descendants past 5 nesting
+	levels below the Nested Share Folder root.
+
+	.Parameter Folder
+	Folder UID or name.
+
+	.Parameter TargetParent
+	Target parent folder UID or name.
+
+	.EXAMPLE
+	PS> Move-KeeperNSFFolder <folderUid> -TargetParent <targetParentUid>
+
+	.EXAMPLE
+	PS> nsf-move-folder <folderUid> -TargetParent <targetParentUid>
+#>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string] $Folder,
+
+        [Parameter(Mandatory = $true)]
+        [string] $TargetParent
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error -Message "Error getting vault: $($_.Exception.Message)"
+        return
+    }
+
+    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+        Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    [KeeperSecurity.Vault.FolderNode]$targetNode = $null
+    if (-not $vault.TryResolveKeeperNSFFolder($TargetParent, [ref]$targetNode)) {
+        Write-Error -Message "Target folder `"$TargetParent`" was not found. Run Sync-Keeper or nsf-list first."
+        return
+    }
+
+    $target = "$($folderNode.FolderUid) -> $($targetNode.FolderUid)"
+    if (-not $PSCmdlet.ShouldProcess($target, "Move Keeper NSF folder")) {
+        return
+    }
+
+    try {
+        $result = $vault.MoveKeeperNSFFolder($folderNode.FolderUid, $targetNode.FolderUid).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+        return
+    }
+
+    if ($result.Success) {
+        Write-Host "Folder '$($result.FolderUid)' moved to '$($result.TargetParentUid)' successfully." -ForegroundColor Green
+    }
+    else {
+        $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+        Write-Error -Message "Failed to move folder: status=$($result.Status) $msg"
+    }
+}
+New-Alias -Name nsf-move-folder -Value Move-KeeperNSFFolder
+
+function Move-KeeperNSFFolders {
+    <#
+	.Synopsis
+	Batch-moves Keeper NSF folders to new parent folders from JSON (single API request, no chunking).
+
+	.Description
+	Independent of Move-KeeperNSFFolder / nsf-move-folder.
+	Rejects (per-item) any move that would push the moved folder or any of its descendants
+	past 5 nesting levels below the Nested Share Folder root.
+
+	JSON schema: a "moves" array. Each item: folder_uid, target_parent_uid.
+
+	.Parameter FilePath
+	Path to a UTF-8 JSON move batch file.
+
+	.Parameter Json
+	Inline JSON string (same schema as -FilePath).
+
+	.Parameter DownloadSampleMoves
+	Writes a sample move batch JSON file and exits without moving folders.
+
+	.EXAMPLE
+	PS> Move-KeeperNSFFolders -DownloadSampleMoves
+
+	.EXAMPLE
+	PS> Move-KeeperNSFFolders -FilePath .\nsf-folders-move-batch.sample.json
+#>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'File')]
+    Param(
+        [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Json')]
+        [ValidateNotNullOrEmpty()]
+        [string] $Json,
+
+        [Parameter(Mandatory = $false, ParameterSetName = 'DownloadSample')]
+        [switch] $DownloadSampleMoves
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+    catch {
+        Write-Error "Not connected to Keeper. Please login first."
+        return
+    }
+
+    if ($DownloadSampleMoves) {
+        if (-not $FilePath) {
+            $FilePath = 'nsf-folders-move-batch.sample.json'
+        }
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
+        $parentDir = Split-Path -Parent $fullPath
+        if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        $sampleJson = Get-KeeperNSFFolderMoveBatchSampleJson
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($fullPath, $sampleJson, $utf8NoBom)
+
+        Write-Host "Sample NSF folder move batch file written to: $fullPath" -ForegroundColor Green
+        Write-Host "Replace placeholders, then run:"
+        Write-Host "    Move-KeeperNSFFolders -FilePath `"$FilePath`""
+        return
+    }
+
+    if (-not $FilePath -and -not $Json) {
+        Write-Error "FilePath or Json is required when -DownloadSampleMoves is not specified."
+        return
+    }
+
+    try {
+        $jsonText = if ($PSCmdlet.ParameterSetName -eq 'File') {
+            if (-not (Test-Path -LiteralPath $FilePath)) {
+                throw "File not found: $FilePath"
+            }
+            Get-Content -LiteralPath $FilePath -Raw -Encoding UTF8
+        }
+        else {
+            $Json
+        }
+
+        $requests = ConvertTo-KeeperNSFFolderMoveRequests -JsonText $jsonText
+        if (-not $requests -or $requests.Count -eq 0) {
+            throw "Move file contains no entries."
+        }
+
+        if ($requests -isnot [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderMoveRequest]]) {
+            $typed = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderMoveRequest]'
+            foreach ($item in @($requests)) {
+                if ($item -is [KeeperSecurity.Vault.KeeperNSFFolderMoveRequest]) {
+                    $typed.Add($item) | Out-Null
+                }
+            }
+            $requests = $typed
+        }
+    }
+    catch {
+        Write-Host "Error parsing folder move payload: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess("$($requests.Count) Keeper NSF folder move(s)", "Move Keeper NSF folders")) {
+        return
+    }
+
+    try {
+        Write-Host "Moving $($requests.Count) Keeper NSF folder(s) in batch..."
+        $list = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderMoveRequest]]$requests
+        $results = $vault.MoveKeeperNSFFolders($list).GetAwaiter().GetResult()
+        Write-KeeperNSFFolderMoveBatchResults -Results $results
+        return ,@($results)
+    }
+    catch {
+        Write-Host "Error moving folders in batch: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+New-Alias -Name nsf-move-folders -Value Move-KeeperNSFFolders
+
+function Script:Write-KeeperNSFFolderMoveBatchResults {
+    Param(
+        [Parameter(Mandatory = $true)]
+        $Results
+    )
+
+    $ok = @($Results | Where-Object { $_.Success })
+    $fail = @($Results | Where-Object { -not $_.Success })
+    Write-Host "Batch complete: $($ok.Count) succeeded, $($fail.Count) failed."
+    Write-Host ""
+
+    foreach ($result in $Results) {
+        if ($result.Success) {
+            Write-Host "  [OK]   $($result.FolderUid) -> $($result.TargetParentUid)" -ForegroundColor Green
+        }
+        else {
+            $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+            Write-Host "  [FAIL] $($result.FolderUid) -> $($result.TargetParentUid)  status=$($result.Status)  $msg" -ForegroundColor Red
+        }
+    }
+}
+
+# Build move requests from folder-move batch JSON.
+function Script:ConvertTo-KeeperNSFFolderMoveRequests {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $JsonText
+    )
+
+    $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
+    $items = @()
+    if ($null -ne $parsed.moves) {
+        $items = @($parsed.moves)
+    }
+    elseif ($parsed -is [System.Array]) {
+        $items = @($parsed)
+    }
+    else {
+        throw "JSON must contain a 'moves' array (or be a root array of move objects)."
+    }
+
+    $list = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderMoveRequest]'
+    $index = 0
+    foreach ($item in $items) {
+        $folderUid = $null
+        if ($item.folder_uid) { $folderUid = [string]$item.folder_uid }
+        elseif ($item.uid) { $folderUid = [string]$item.uid }
+        elseif ($item.FolderUid) { $folderUid = [string]$item.FolderUid }
+
+        $hasTargetParent = $false
+        $targetParentUid = $null
+        if ($null -ne $item.PSObject.Properties['target_parent_uid']) {
+            $hasTargetParent = $true
+            if ($null -ne $item.target_parent_uid) { $targetParentUid = [string]$item.target_parent_uid }
+        }
+        elseif ($null -ne $item.PSObject.Properties['TargetParentUid']) {
+            $hasTargetParent = $true
+            if ($null -ne $item.TargetParentUid) { $targetParentUid = [string]$item.TargetParentUid }
+        }
+
+        if ([string]::IsNullOrWhiteSpace($folderUid)) {
+            throw "Move item at index $index is missing required 'folder_uid' (or uid)."
+        }
+        if (-not $hasTargetParent -or $null -eq $targetParentUid) {
+            throw "Move item at index $index is missing required 'target_parent_uid' (use `"`" for the Keeper NSF root)."
+        }
+
+        $req = New-Object KeeperSecurity.Vault.KeeperNSFFolderMoveRequest
+        $req.FolderUid = $folderUid.Trim()
+        $req.TargetParentUid = $targetParentUid.Trim()
+        $list.Add($req) | Out-Null
+        $index++
+    }
+
+    return ,$list
+}
+
 function Remove-KeeperNSFFolder {
     <#
 	.Synopsis

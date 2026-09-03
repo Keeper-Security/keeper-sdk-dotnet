@@ -592,6 +592,65 @@ namespace Commander
             Console.WriteLine("Keeper NSF record removal completed.");
         }
 
+        public static async Task NsfMoveRecordCommand(this VaultContext context, NsfMoveRecordOptions options)
+        {
+            var vault = context.Vault;
+            if (string.IsNullOrWhiteSpace(options.Record))
+            {
+                Console.WriteLine("Record UID or title is required.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(options.SourceFolder))
+            {
+                Console.WriteLine("Source folder UID or name is required.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(options.TargetFolder))
+            {
+                Console.WriteLine("Target folder UID or name is required.");
+                return;
+            }
+
+            try
+            {
+                if (!vault.TryResolveKeeperNSFRecord(options.Record, out var kdRecord))
+                {
+                    Console.WriteLine($"Keeper NSF record \"{options.Record}\" was not found. Run sync-down or nsf-list first.");
+                    return;
+                }
+
+                if (!vault.TryResolveKeeperNSFFolder(options.SourceFolder, out var sourceFolder))
+                {
+                    Console.WriteLine($"Source folder \"{options.SourceFolder}\" was not found. Run sync-down or nsf-list first.");
+                    return;
+                }
+
+                if (!vault.TryResolveKeeperNSFFolder(options.TargetFolder, out var targetFolder))
+                {
+                    Console.WriteLine($"Target folder \"{options.TargetFolder}\" was not found. Run sync-down or nsf-list first.");
+                    return;
+                }
+
+                var result = await vault.MoveKeeperNSFRecord(kdRecord.RecordUid, sourceFolder.FolderUid, targetFolder.FolderUid);
+
+                if (result.Success)
+                {
+                    Console.WriteLine($"Record '{kdRecord.RecordUid}' moved from '{sourceFolder.FolderUid}' to '{targetFolder.FolderUid}' successfully.");
+                    await vault.SyncDown(false).ConfigureAwait(false);
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to move record: {result.Status} - {result.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving record: {ex.Message}");
+            }
+        }
+
         public static async Task NsfLnCommand(this VaultContext context, NsfLnOptions options)
         {
             var vault = context.Vault;
@@ -843,5 +902,17 @@ namespace Commander
 
         [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
         public bool Force { get; set; }
+    }
+
+    class NsfMoveRecordOptions
+    {
+        [Value(0, Required = true, HelpText = "Record UID or title")]
+        public string Record { get; set; }
+
+        [Option('s', "source", Required = true, HelpText = "Source folder UID or name")]
+        public string SourceFolder { get; set; }
+
+        [Option('t', "target", Required = true, HelpText = "Target folder UID or name")]
+        public string TargetFolder { get; set; }
     }
 }
