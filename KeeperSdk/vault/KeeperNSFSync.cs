@@ -46,9 +46,18 @@ namespace KeeperSecurity.Vault
                 .Select(x => x.FolderUid.ToByteArray().Base64UrlEncode())
                 .ToArray();
 
+            var reKeyedUids = new HashSet<string>(
+                kdData.FolderKeys.Select(fk => fk.FolderUid.ToByteArray().Base64UrlEncode()),
+                StringComparer.Ordinal);
+
+            var uidsToDelete = removedUids.Where(uid => !reKeyedUids.Contains(uid)).ToArray();
+
             storage.KdFolderKeys.DeleteLinksForSubjects(removedUids);
             storage.KdFolderRecords.DeleteLinksForSubjects(removedUids);
-            storage.KdFolders.DeleteUids(removedUids);
+            if (uidsToDelete.Length > 0)
+            {
+                storage.KdFolders.DeleteUids(uidsToDelete);
+            }
         }
 
         private static void ProcessRemovedFolderRecords(VaultProto.KeeperDriveData kdData, IKeeperStorage storage)
@@ -791,7 +800,9 @@ namespace KeeperSecurity.Vault
             IKeeperStorage storage,
             Dictionary<string, byte[]> decryptedFolderKeys)
         {
-            foreach (var kdFolder in storage.KdFolders.GetAll())
+            var kdFolderRows = storage.KdFolders.GetAll().ToList();
+
+            foreach (var kdFolder in kdFolderRows)
             {
                 try
                 {
