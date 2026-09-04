@@ -77,7 +77,7 @@
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
         'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
-        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1',
+        'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1', 'PAM\Workflow.ps1',
         'PAM\Action.ps1', 'PAM\Connection.ps1', 'PAM\Rbi.ps1', 'PAM\Launch.ps1'
         )
 
@@ -146,6 +146,9 @@
         'Get-KeeperPamRotationList', 'Get-KeeperPamRotationInfo', 'Set-KeeperPamRotation',
         'Get-KeeperPamRotationScript', 'Add-KeeperPamRotationScript', 'Set-KeeperPamRotationScript', 'Remove-KeeperPamRotationScript',
         'Get-KeeperPamConfig', 'New-KeeperPamConfig', 'Set-KeeperPamConfig', 'Remove-KeeperPamConfig',
+        'New-KeeperPamWorkflow', 'Get-KeeperPamWorkflow', 'Update-KeeperPamWorkflow', 'Remove-KeeperPamWorkflow',
+        'Add-KeeperPamWorkflowApprover', 'Remove-KeeperPamWorkflowApprover',
+        'Get-KeeperPamWorkflowState', 'Get-KeeperPamWorkflowMyAccess',
         'Invoke-KeeperPamActionRotate', 'Get-KeeperPamActionJobInfo', 'Set-KeeperPamConnection', 'Set-KeeperPamRbi', 'Invoke-KeeperPamLaunch'
         #'Test-Keeper',
     )
@@ -188,6 +191,11 @@
         'pam-rotation-script-edit', 'pam-rot-script-edit', 'pam-rotation-script-delete', 'pam-rot-script-delete',
         'pam-config-list', 'pam-cfg-list', 'pam-config-new', 'pam-cfg-new',
         'pam-config-edit', 'pam-cfg-edit', 'pam-config-remove', 'pam-cfg-remove', 'pam-config-rm',
+        'pam-workflow-new', 'pam-wf-new', 'pam-workflow-read', 'pam-wf-read',
+        'pam-workflow-edit', 'pam-wf-edit', 'pam-workflow-delete', 'pam-wf-delete',
+        'pam-workflow-add-approver', 'pam-wf-add-approver',
+        'pam-workflow-remove-approver', 'pam-wf-remove-approver',
+        'pam-workflow-state', 'pam-wf-state', 'pam-workflow-my-access', 'pam-wf-my-access',
         'pam-action-rotate', 'pam-action-job-info', 'pam-connection-edit', 'pam-rbi-edit', 'pam-launch')
 
     # List of all modules packaged with this module
