@@ -11,7 +11,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// Updates a post-rotation script command and/or linked credentials.
     /// Only the record owner can edit scripts.
     /// </summary>
-    public static class EditRotationScriptExample
+    public static class PamRotationScriptEditExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="recordId">pamUser / pamDirectory UID or title.</param>
