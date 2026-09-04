@@ -355,18 +355,26 @@ namespace KeeperSecurity.Enterprise
         public async Task<EnterpriseTeam> CreateTeam(EnterpriseTeam team)
         {
             var teamKey = CryptoUtils.GenerateEncryptionKey();
+            var teamUid = CryptoUtils.GenerateUid();
+            var rq = CreateTeamAddCommand(teamUid, team.Name, team.ParentNodeId, team.RestrictEdit, team.RestrictSharing, team.RestrictView, teamKey);
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+            TryGetTeam(teamUid, out team);
+            return team;
+        }
 
+        private TeamAddCommand CreateTeamAddCommand(string teamUid, string teamName, long parentNodeId, bool restrictEdit, bool restrictShare, bool restrictView, byte[] teamKey)
+        {
             CryptoUtils.GenerateEcKey(out var ecPrivateKey, out var ecPublicKey);
             var encryptedEcPrivateKey = CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivateKey), teamKey);
-            var teamUid = CryptoUtils.GenerateUid();
             var rq = new TeamAddCommand
             {
                 TeamUid = teamUid,
-                TeamName = team.Name,
-                RestrictEdit = team.RestrictEdit,
-                RestrictShare = team.RestrictSharing,
-                RestrictView = team.RestrictView,
-                NodeId = team.ParentNodeId == 0 ? RootNode.Id : team.ParentNodeId,
+                TeamName = teamName,
+                RestrictEdit = restrictEdit,
+                RestrictShare = restrictShare,
+                RestrictView = restrictView,
+                NodeId = parentNodeId == 0 ? RootNode.Id : parentNodeId,
                 ManageOnly = true,
                 EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, Enterprise.TreeKey).Base64UrlEncode(),
                 EccPublicKey = CryptoUtils.UnloadEcPublicKey(ecPublicKey).Base64UrlEncode(),
@@ -379,10 +387,31 @@ namespace KeeperSecurity.Enterprise
                 rq.RsaPrivateKey = encryptedRsaPrivateKey.Base64UrlEncode();
                 rq.RsaPublicKey = CryptoUtils.UnloadRsaPublicKey(rsaPublicKey).Base64UrlEncode();
             }
-            await Enterprise.Auth.ExecuteAuthCommand(rq);
-            await Enterprise.Load();
-            TryGetTeam(teamUid, out team);
-            return team;
+            return rq;
+        }
+
+        private void ApplyUserTeamKey(TeamEnterpriseUserAddCommand cmd, byte[] teamKey, UserKeys userKeys)
+        {
+            if (Enterprise.Auth.AuthContext.ForbidKeyType2)
+            {
+                if (userKeys.EcPublicKey == null)
+                {
+                    throw new KeeperApiException("public_key_error", "Missing EC public key for user");
+                }
+                var ecKey = CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey);
+                cmd.TeamKey = CryptoUtils.EncryptEc(teamKey, ecKey).Base64UrlEncode();
+                cmd.TeamKeyType = "encrypted_by_public_key_ecc";
+            }
+            else
+            {
+                if (userKeys.RsaPublicKey == null)
+                {
+                    throw new KeeperApiException("public_key_error", "Missing RSA public key for user");
+                }
+                var rsaKey = CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey);
+                cmd.TeamKey = CryptoUtils.EncryptRsa(teamKey, rsaKey).Base64UrlEncode();
+                cmd.TeamKeyType = "encrypted_by_public_key";
+            }
         }
 
         /// <inheritdoc/>
@@ -482,9 +511,6 @@ namespace KeeperSecurity.Enterprise
                     if (!TryGetUserByEmail(email, out var user)) continue;
                     try
                     {
-                        var rsaKey = userKeys.RsaPublicKey != null ? CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey) : null;
-                        var ecKey = userKeys.EcPublicKey != null ? CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey) : null;
-
                         foreach (var teamUid in teams)
                         {
                             if (!TryGetTeam(teamUid, out var team))
@@ -506,16 +532,7 @@ namespace KeeperSecurity.Enterprise
                                 EnterpriseUserId = user.Id,
                                 UserType = 0
                             };
-                            if (Enterprise.Auth.AuthContext.ForbidKeyType2)
-                            {
-                                cmd.TeamKey = CryptoUtils.EncryptEc(team.TeamKey, ecKey).Base64UrlEncode();
-                                cmd.TeamKeyType = "encrypted_by_public_key_ecc";
-                            }
-                            else
-                            {
-                                cmd.TeamKey = CryptoUtils.EncryptRsa(team.TeamKey, rsaKey).Base64UrlEncode();
-                                cmd.TeamKeyType = "encrypted_by_public_key";
-                            }
+                            ApplyUserTeamKey(cmd, team.TeamKey, userKeys);
                             commands.Add(cmd);
                         }
                     }
@@ -529,20 +546,27 @@ namespace KeeperSecurity.Enterprise
 
             if (commands.Count > 0)
             {
-                var batch = commands.Take(99).ToList();
-                var execRq = new ExecuteCommand
+                const int ExecuteBatchSize = 99;
+                var totalSuccess = 0;
+                foreach (var batch in commands
+                    .Select((cmd, index) => new { cmd, index })
+                    .GroupBy(x => x.index / ExecuteBatchSize)
+                    .Select(g => g.Select(x => x.cmd).ToList()))
                 {
-                    Requests = batch
-                };
-                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
-                if (execRs.Results?.Count > 0)
-                {
-                    var last = execRs.Results.Last();
-                    var success = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
-                    warnings?.Invoke($"Successfully added {success} team membership(s)");
-                    if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    var execRq = new ExecuteCommand
+                    {
+                        Requests = batch
+                    };
+                    var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                    if (execRs.Results?.Count > 0)
+                    {
+                        var last = execRs.Results.Last();
+                        var batchSuccess = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
+                        totalSuccess += batchSuccess;
+                        if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    }
                 }
-
+                warnings?.Invoke($"Successfully added {totalSuccess} team membership(s)");
                 await Enterprise.Load();
             }
         }
@@ -577,20 +601,27 @@ namespace KeeperSecurity.Enterprise
 
             if (commands.Count > 0)
             {
-                var batch = commands.Take(99).ToList();
-                var execRq = new ExecuteCommand
+                const int ExecuteBatchSize = 99;
+                var totalSuccess = 0;
+                foreach (var batch in commands
+                    .Select((cmd, index) => new { cmd, index })
+                    .GroupBy(x => x.index / ExecuteBatchSize)
+                    .Select(g => g.Select(x => x.cmd).ToList()))
                 {
-                    Requests = batch
-                };
-                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
-                if (execRs.Results?.Count > 0)
-                {
-                    var last = execRs.Results.Last();
-                    var success = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
-                    warnings?.Invoke($"Successfully removed {success} team membership(s)");
-                    if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    var execRq = new ExecuteCommand
+                    {
+                        Requests = batch
+                    };
+                    var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                    if (execRs.Results?.Count > 0)
+                    {
+                        var last = execRs.Results.Last();
+                        var batchSuccess = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
+                        totalSuccess += batchSuccess;
+                        if (!last.IsSuccess) warnings?.Invoke(last.message);
+                    }
                 }
-
+                warnings?.Invoke($"Successfully removed {totalSuccess} team membership(s)");
                 await Enterprise.Load();
             }
         }
