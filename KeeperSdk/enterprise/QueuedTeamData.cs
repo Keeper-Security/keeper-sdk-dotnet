@@ -74,6 +74,11 @@ namespace KeeperSecurity.Enterprise
             }
             return Enumerable.Empty<long>();
         }
+
+        internal IEnumerable<string> GetTeamUidsWithQueuedUsers()
+        {
+            return _queuedUsers.TeamUids;
+        }
     }
 
     /// <exclude />
@@ -156,5 +161,7 @@ namespace KeeperSecurity.Enterprise
         {
             _entities.Clear();
         }
+
+        public IEnumerable<string> TeamUids => _entities.Keys;
     }
 }

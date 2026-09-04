@@ -201,6 +201,20 @@ namespace Commander
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
+            cli.Commands.Add("team-approve",
+                new ParseableCommand<TeamApproveCommandOptions>
+                {
+                    Order = 68,
+                    Description = "Approve queued teams and users provisioned by SCIM or Active Directory Bridge",
+                    Action = async options => { await context.TeamApproveCommand(options); },
+                });
+            cli.Commands.Add("enterprise-push",
+                new ParseableCommand<EnterprisePushCommandOptions>
+                {
+                    Order = 69,
+                    Description = "Populate user and team vaults with predetermined records",
+                    Action = async options => { await context.EnterprisePushCommand(options); },
+                });
             cli.Commands.Add("transfer-user",
                 new ParseableCommand<EnterpriseTransferUserOptions>
                 {
@@ -408,6 +422,7 @@ namespace Commander
             cli.Aliases["ed"] = "enterprise-device";
             cli.Aliases["ei"] = "enterprise-info";
             cli.Aliases["bw-report"] = "breachwatch-report";
+            cli.Aliases["ta"] = "team-approve";
 
 
             if (context.Enterprise.EcPrivateKey == null)
@@ -3648,7 +3663,9 @@ namespace Commander
             }
         }
 
-        private static void WriteFormattedOutput(System.IO.TextWriter writer, string format, string[] headerRow, List<object[]> rows, List<Dictionary<string, object>> jsonData)
+        // Shared formatter used by enterprise sub-commands (table/csv/json).
+        // Kept `internal` to avoid duplicating output formatting logic across command modules.
+        internal static void WriteFormattedOutput(System.IO.TextWriter writer, string format, string[] headerRow, List<object[]> rows, List<Dictionary<string, object>> jsonData)
         {
             switch (format)
             {

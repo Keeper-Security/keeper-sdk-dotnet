@@ -247,6 +247,7 @@ namespace KeeperSecurity.Enterprise
             sdk.ParentNodeId = keeper.NodeId;
             sdk.EncryptedData = keeper.EncryptedData;
             sdk.Email = keeper.Username;
+            sdk.Lock = keeper.Lock;
             if (keeper.Status == "active")
             {
                 switch (keeper.Lock)
