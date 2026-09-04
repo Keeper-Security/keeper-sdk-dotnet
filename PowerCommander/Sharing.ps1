@@ -472,7 +472,7 @@ function Set-KeeperSharedFolderRecordPermission {
         Changes permissions for a record in a shared folder.
 
         .PARAMETER SharedFolder
-        Shared folder UID, name, or an object containing a Uid property.
+        Shared folder UID or name, or an object containing a Uid or Name property.
 
         .PARAMETER Record
         Record UID or an object containing a Uid property.
@@ -514,10 +514,27 @@ function Set-KeeperSharedFolderRecordPermission {
         $SharedFolder = $SharedFolder[0]
     }
 
-    $sharedFolderUid = if ($SharedFolder -is [string]) { $SharedFolder } else { $SharedFolder.Uid }
+    $sharedFolderIdentifier = if ($SharedFolder -is [string]) {
+        $SharedFolder.Trim()
+    }
+    elseif ($SharedFolder.Uid) {
+        [string]$SharedFolder.Uid
+    }
+    elseif ($SharedFolder.Name) {
+        [string]$SharedFolder.Name
+    }
+    else {
+        $null
+    }
+
     [KeeperSecurity.Vault.SharedFolder]$sharedFolderObject = $null
-    if (-not $sharedFolderUid -or -not $vault.TryGetSharedFolder($sharedFolderUid, [ref]$sharedFolderObject)) {
-        $sharedFolderObject = $vault.SharedFolders | Where-Object { $_.Name -eq $sharedFolderUid } | Select-Object -First 1
+    if (-not [string]::IsNullOrWhiteSpace($sharedFolderIdentifier)) {
+        $vault.TryGetSharedFolder($sharedFolderIdentifier, [ref]$sharedFolderObject) | Out-Null
+        if (-not $sharedFolderObject) {
+            $sharedFolderObject = $vault.SharedFolders |
+                Where-Object { $_.Name -eq $sharedFolderIdentifier } |
+                Select-Object -First 1
+        }
     }
     if (-not $sharedFolderObject) {
         Write-Error -Message "Cannot find Shared Folder: $SharedFolder" -ErrorAction Stop
@@ -543,23 +560,24 @@ function Set-KeeperSharedFolderRecordPermission {
         Write-Error -Message "Record '$($recordObject.Title)' is not a part of Shared Folder $($sharedFolderObject.Name)" -ErrorAction Stop
     }
 
-    try {
-        $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
-        $options.CanEdit = if ($PSBoundParameters.ContainsKey('CanEdit')) { $CanEdit } else { $recordPermission.CanEdit }
-        $options.CanShare = if ($PSBoundParameters.ContainsKey('CanShare')) { $CanShare } else { $recordPermission.CanShare }
-        if ($ExpireIn -or $ExpireAt) {
-            $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
-        }
-        if ($RotateOnExpiration.IsPresent) {
-            $options.RotateOnExpiration = $true
-        }
+    $hasExpireIn = $PSBoundParameters.ContainsKey('ExpireIn')
+    $hasExpireAt = $PSBoundParameters.ContainsKey('ExpireAt')
+    if ($RotateOnExpiration.IsPresent -and -not ($hasExpireIn -or $hasExpireAt)) {
+        throw 'RotateOnExpiration requires ExpireIn or ExpireAt.'
+    }
 
-        $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult()
-        Write-Output "Record `"$($recordObject.Title)`" permissions were updated in shared folder `"$($sharedFolderObject.Name)`""
+    $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
+    $options.CanEdit = if ($PSBoundParameters.ContainsKey('CanEdit')) { $CanEdit } else { $recordPermission.CanEdit }
+    $options.CanShare = if ($PSBoundParameters.ContainsKey('CanShare')) { $CanShare } else { $recordPermission.CanShare }
+    if ($hasExpireIn -or $hasExpireAt) {
+        $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
     }
-    catch {
-        Write-Error "Failed to update record permissions: $($_.Exception.Message)" -ErrorAction Stop
+    if ($RotateOnExpiration.IsPresent) {
+        $options.RotateOnExpiration = $true
     }
+
+    $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult()
+    Write-Output "Record `"$($recordObject.Title)`" permissions were updated in shared folder `"$($sharedFolderObject.Name)`""
 }
 New-Alias -Name ksfr -Value Set-KeeperSharedFolderRecordPermission
 
