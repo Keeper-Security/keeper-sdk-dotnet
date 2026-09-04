@@ -295,6 +295,11 @@ namespace KeeperSecurity.Enterprise
         public UserStatus UserStatus { get; internal set; }
 
         /// <summary>
+        /// Keeper lock state. A value of zero means the user is unlocked.
+        /// </summary>
+        public int Lock { get; internal set; }
+
+        /// <summary>
         ///     User Name.
         /// </summary>
         public string DisplayName { get; set; }

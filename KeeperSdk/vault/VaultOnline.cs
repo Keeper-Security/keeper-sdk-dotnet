@@ -938,6 +938,115 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Transfers a record when the caller already has the record key, for example
+        /// immediately after creating a record through a batch operation.
+        /// </summary>
+        internal async Task TransferRecordToUser(string recordUid, string username, byte[] recordKey)
+        {
+            if (string.IsNullOrEmpty(recordUid) || string.IsNullOrEmpty(username) || recordKey == null)
+            {
+                throw new ArgumentException("Record UID, username, and record key are required.");
+            }
+
+            await Auth.LoadUsersKeys(new[] { username });
+            if (!Auth.TryGetUserKeys(username, out var userKeys) || userKeys == null)
+            {
+                throw new KeeperApiException("public_key_error", $"Public key for user \"{username}\" was not found.");
+            }
+
+            await TransferRecordToUser(recordUid, username, recordKey, userKeys);
+        }
+
+        internal async Task TransferRecordToUser(string recordUid, string username, byte[] recordKey, UserKeys userKeys)
+        {
+            if (string.IsNullOrEmpty(recordUid) || string.IsNullOrEmpty(username) || recordKey == null || userKeys == null)
+            {
+                throw new ArgumentException("Record UID, username, record key, and user keys are required.");
+            }
+
+            EcPublicKey ecPk = null;
+            RsaPublicKey rsaPk = null;
+            if (Auth.AuthContext.ForbidKeyType2)
+            {
+                if (userKeys.EcPublicKey == null || userKeys.EcPublicKey.Length == 0)
+                {
+                    throw new KeeperApiException("public_key_error", $"ECC public key for user \"{username}\" was not found.");
+                }
+
+                ecPk = CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey);
+            }
+            else
+            {
+                if (userKeys.RsaPublicKey == null || userKeys.RsaPublicKey.Length == 0)
+                {
+                    throw new KeeperApiException("public_key_error", $"RSA public key for user \"{username}\" was not found.");
+                }
+
+                rsaPk = CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey);
+            }
+
+            var tr = new TransferRecord
+            {
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Username = username,
+            };
+            if (ecPk != null)
+            {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(recordKey, ecPk));
+                tr.UseEccKey = true;
+            }
+            else
+            {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(recordKey, rsaPk));
+            }
+            var request = new RecordsOnwershipTransferRequest();
+            request.TransferRecords.Add(tr);
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>("vault/records_ownership_transfer", request);
+            var status = response.TransferRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (status == null)
+            {
+                throw new KeeperApiException("transfer_record_error", $"No transfer status returned for record \"{recordUid}\" and user \"{username}\".");
+            }
+            if (status.Status != "transfer_record_success")
+            {
+                throw new KeeperApiException(status.Status, status.Message);
+            }
+        }
+
+        internal async Task RemoveTransferredRecord(string recordUid)
+        {
+            if (string.IsNullOrEmpty(recordUid))
+            {
+                throw new ArgumentException("Record UID is required.", nameof(recordUid));
+            }
+
+            var preDeleteResponse = await Auth.ExecuteAuthCommand<PreDeleteCommand, PreDeleteResponse>(new PreDeleteCommand
+            {
+                objects = new[]
+                {
+                    new PreDeleteObject
+                    {
+                        objectUid = recordUid,
+                        objectType = "record",
+                        fromType = "user_folder",
+                        deleteResolution = "unlink",
+                    }
+                }
+            });
+            var token = preDeleteResponse?.preDeleteResponse?.preDeleteToken;
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new KeeperApiException("delete_error", $"No delete token returned for record \"{recordUid}\".");
+            }
+
+            await Auth.ExecuteAuthCommand(new DeleteCommand
+            {
+                preDeleteToken = token,
+            });
+        }
+
         /// <inheritdoc/>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {
