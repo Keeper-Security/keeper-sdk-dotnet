@@ -93,6 +93,8 @@ public class BatchResult
     public IDictionary<string, string> FolderFailure { get; } = new Dictionary<string, string>();
     public IDictionary<string, string> RecordFailure { get; } = new Dictionary<string, string>();
     public IDictionary<(string, string), string> MembershipFailure { get; } = new Dictionary<(string, string), string>();
+    /// <summary>Record encryption keys for records created by this batch.</summary>
+    internal IDictionary<string, byte[]> RecordKeys { get; } = new Dictionary<string, byte[]>();
 }
 
 /// <summary>
@@ -730,25 +732,29 @@ public class BatchVaultOperations : IBatchVaultOperations
     /// <inheritdoc/>
     public bool AddRecord(KeeperRecord record, FolderNode folder)
     {
-        using var recordHasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        foreach (var token in TokenizeKeeperRecord(record, RecordMatch.AllFields))
+        string recordHashStr = null;
+        if (RecordMatch != RecordMatch.None)
         {
-            var buffer = Encoding.UTF8.GetBytes(token);
-            recordHasher.AppendData(buffer, 0, buffer.Length);
+            using var recordHasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            foreach (var token in TokenizeKeeperRecord(record, RecordMatch.AllFields))
+            {
+                var buffer = Encoding.UTF8.GetBytes(token);
+                recordHasher.AppendData(buffer, 0, buffer.Length);
+            }
+
+            var hashValue = recordHasher.GetHashAndReset();
+            recordHashStr = hashValue.Base64UrlEncode();
+
+            if (_recordFullHashes.TryGetValue(recordHashStr, out var existingRecordUid))
+            {
+                record.Uid = existingRecordUid;
+                BatchLogger?.Invoke(Severity.Warning,
+                    $"Add Record \"{record.Title}\": A full record match already exists. Skipped.");
+                return false;
+            }
         }
 
-        var hashValue = recordHasher.GetHashAndReset();
-        var recordHashStr = hashValue.Base64UrlEncode();
-
-        if (_recordFullHashes.TryGetValue(recordHashStr, out var recordUid))
-        {
-            record.Uid = recordUid;
-            BatchLogger?.Invoke(Severity.Warning,
-                $"Add Record \"{record.Title}\": A full record match already exists. Skipped.");
-            return false;
-        }
-
-        if (!string.IsNullOrEmpty(record.Uid))
+        if (RecordMatch != RecordMatch.None && !string.IsNullOrEmpty(record.Uid))
         {
             if (_vault.TryGetKeeperRecord(record.Uid, out var r))
             {
@@ -767,16 +773,18 @@ public class BatchVaultOperations : IBatchVaultOperations
         }
 
         string mainHashStr = null;
-        if (RecordMatch != RecordMatch.MainFields)
+        string recordUid = null;
+        if (RecordMatch != RecordMatch.None && RecordMatch != RecordMatch.MainFields)
         {
+            using var mainHasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
             foreach (var token in TokenizeKeeperRecord(record, RecordMatch))
             {
                 var buffer = Encoding.UTF8.GetBytes(token);
-                recordHasher.AppendData(buffer, 0, buffer.Length);
+                mainHasher.AppendData(buffer, 0, buffer.Length);
             }
 
-            hashValue = recordHasher.GetHashAndReset();
-            mainHashStr = hashValue.Base64UrlEncode();
+            var mainHashValue = mainHasher.GetHashAndReset();
+            mainHashStr = mainHashValue.Base64UrlEncode();
             if (_recordMainHashes.TryGetValue(mainHashStr, out recordUid))
             {
                 if (_vault.TryGetKeeperRecord(recordUid, out var r))
@@ -826,10 +834,13 @@ public class BatchVaultOperations : IBatchVaultOperations
         }
 
         _recordSet.Add(record.Uid);
-        _recordFullHashes[recordHashStr] = record.Uid;
-        if (!string.IsNullOrEmpty(mainHashStr))
+        if (!string.IsNullOrEmpty(recordHashStr))
         {
-            _recordMainHashes[mainHashStr] = record.Uid;
+            _recordFullHashes[recordHashStr] = record.Uid;
+            if (!string.IsNullOrEmpty(mainHashStr))
+            {
+                _recordMainHashes[mainHashStr] = record.Uid;
+            }
         }
 
         if (folder != null)
@@ -864,6 +875,30 @@ public class BatchVaultOperations : IBatchVaultOperations
         return _typedRecordsToAdd
             .Select(x => (KeeperRecord) x.Item1)
             .Concat(_legacyRecordsToAdd.Select(x => (KeeperRecord) x.Item1));
+    }
+
+    internal static void AddLegacyRecordKey(
+        BatchResult result,
+        IEnumerable<Tuple<PasswordRecord, FolderNode>> records,
+        string recordUid)
+    {
+        var recordTuple = records?.FirstOrDefault(x => x?.Item1?.Uid == recordUid);
+        if (recordTuple?.Item1 != null)
+        {
+            result.RecordKeys[recordTuple.Item1.Uid] = recordTuple.Item1.RecordKey;
+        }
+    }
+
+    internal static void AddTypedRecordKey(
+        BatchResult result,
+        IEnumerable<Tuple<TypedRecord, FolderNode>> records,
+        string recordUid)
+    {
+        var recordTuple = records?.FirstOrDefault(x => x?.Item1?.Uid == recordUid);
+        if (recordTuple?.Item1 != null)
+        {
+            result.RecordKeys[recordTuple.Item1.Uid] = recordTuple.Item1.RecordKey;
+        }
     }
 
     /// <inheritdoc/>
@@ -982,6 +1017,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                 }
             }
 
+            Tuple<PasswordRecord, FolderNode>[] legacyChunk = Array.Empty<Tuple<PasswordRecord, FolderNode>>();
             if (_legacyRecordsToAdd.Count > 0 && left > 10 && rq.FolderRequest.Count == 0)
             {
                 Tuple<PasswordRecord, FolderNode>[] chunk;
@@ -995,6 +1031,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                     chunk = _legacyRecordsToAdd.ToArray();
                     _legacyRecordsToAdd.Clear();
                 }
+                legacyChunk = chunk;
 
                 foreach (var r in chunk)
                 {
@@ -1092,6 +1129,7 @@ public class BatchVaultOperations : IBatchVaultOperations
                 if (rrs.Status.ToLower() == "success")
                 {
                     result.LegacyRecordCount++;
+                    AddLegacyRecordKey(result, legacyChunk, rrs.RecordUid.ToByteArray().Base64UrlEncode());
                 }
                 else
                 {
@@ -1209,6 +1247,8 @@ public class BatchVaultOperations : IBatchVaultOperations
                 if (ar.Status == RecordModifyResult.RsSuccess)
                 {
                     result.TypedRecordCount++;
+                    var recordUid = ar.RecordUid.ToByteArray().Base64UrlEncode();
+                    AddTypedRecordKey(result, chunk, recordUid);
                 }
                 else
                 {

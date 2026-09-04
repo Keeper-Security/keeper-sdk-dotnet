@@ -663,6 +663,17 @@ namespace KeeperSecurity
                         case "custom_fields":
                             rec.CustomFields = ParseCustomFieldsFromImportJson(pair.Value);
                             break;
+                        case "fields":
+                        {
+                            var typedFields = ParseTypedFieldsFromImportJson(pair.Value);
+                            if (typedFields != null && typedFields.Length > 0)
+                            {
+                                rec.CustomFields = (rec.CustomFields ?? Array.Empty<ImportCustomField>())
+                                    .Concat(typedFields)
+                                    .ToArray();
+                            }
+                        }
+                            break;
                     }
                 }
 
@@ -784,9 +795,19 @@ namespace KeeperSecurity
             /// <param name="vault">Vault to import into.</param>
             /// <param name="import">Parsed import data.</param>
             /// <returns>Batch result.</returns>
-            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import)
+            public static Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import)
             {
-                var bo = new BatchVaultOperations(vault);
+                return ImportJson(vault, import, RecordMatch.AllFields);
+            }
+
+            /// <summary>
+            /// Imports records and shared folders with an explicit record matching strategy.
+            /// Use <see cref="RecordMatch.None"/> when every generated record must be created
+            /// independently, even when its content matches an existing record.
+            /// </summary>
+            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import, RecordMatch recordMatch)
+            {
+                var bo = new BatchVaultOperations(vault, recordMatch);
 
                 if (import.SharedFolders?.Length > 0)
                 {
@@ -1458,6 +1479,60 @@ namespace KeeperSecurity
                 }
 
                 return fields.Count > 0 ? fields.ToArray() : null;
+            }
+
+            private static ImportCustomField[] ParseTypedFieldsFromImportJson(ImportJsonValue value)
+            {
+                var fields = new List<ImportCustomField>();
+                foreach (var fieldValue in EnumerateImportItems(value))
+                {
+                    if (fieldValue?.Kind != ImportJsonValue.JsonKind.Object || fieldValue.ObjectValue == null)
+                    {
+                        continue;
+                    }
+
+                    fieldValue.ObjectValue.TryGetValue("type", out var typeValue);
+                    fieldValue.ObjectValue.TryGetValue("label", out var labelValue);
+                    fieldValue.ObjectValue.TryGetValue("value", out var valueNode);
+                    var type = typeValue?.AsString();
+                    var label = labelValue?.AsString();
+                    if (string.IsNullOrEmpty(type) || valueNode == null)
+                    {
+                        continue;
+                    }
+
+                    var name = type.StartsWith("$", StringComparison.Ordinal) ? type : "$" + type;
+                    if (!string.IsNullOrEmpty(label))
+                    {
+                        name += ":" + label;
+                    }
+
+                    if (valueNode.Kind == ImportJsonValue.JsonKind.Object && valueNode.ObjectValue != null)
+                    {
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = name,
+                            Elements = valueNode.ObjectValue
+                                .Where(x => !string.IsNullOrEmpty(x.Key))
+                                .Select(x => new ImportCustomFieldElement
+                                {
+                                    Name = x.Key,
+                                    Value = x.Value?.AsString(),
+                                })
+                                .ToArray(),
+                        });
+                    }
+                    else
+                    {
+                        fields.Add(new ImportCustomField
+                        {
+                            Name = name,
+                            TextValue = valueNode.AsString(),
+                        });
+                    }
+                }
+
+                return fields.Count == 0 ? null : fields.ToArray();
             }
 
             /// <summary>
