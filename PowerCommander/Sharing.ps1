@@ -493,7 +493,7 @@ function Set-KeeperSharedFolderRecordPermission {
         Rotate the password when the record permission expires. Requires an
         expiration and a pamUser record with rotation configured in the folder.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
         [Parameter(Mandatory = $true, Position = 1)]$Record,
@@ -563,7 +563,7 @@ function Set-KeeperSharedFolderRecordPermission {
     $hasExpireIn = $PSBoundParameters.ContainsKey('ExpireIn')
     $hasExpireAt = $PSBoundParameters.ContainsKey('ExpireAt')
     if ($RotateOnExpiration.IsPresent -and -not ($hasExpireIn -or $hasExpireAt)) {
-        throw 'RotateOnExpiration requires ExpireIn or ExpireAt.'
+        Write-Error -Message 'RotateOnExpiration requires ExpireIn or ExpireAt.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
     }
 
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
@@ -576,8 +576,11 @@ function Set-KeeperSharedFolderRecordPermission {
         $options.RotateOnExpiration = $true
     }
 
-    $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult()
-    Write-Output "Record `"$($recordObject.Title)`" permissions were updated in shared folder `"$($sharedFolderObject.Name)`""
+    $target = "Record `"$($recordObject.Title)`" in shared folder `"$($sharedFolderObject.Name)`""
+    if ($PSCmdlet.ShouldProcess($target, 'Update shared folder record permissions')) {
+        $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult()
+        Write-Output "Record `"$($recordObject.Title)`" permissions were updated in shared folder `"$($sharedFolderObject.Name)`""
+    }
 }
 New-Alias -Name ksfr -Value Set-KeeperSharedFolderRecordPermission
 
