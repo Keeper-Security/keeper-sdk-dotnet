@@ -817,7 +817,15 @@ namespace Sample
                 //     environment: "local",   // local, network, aws, azure, gcp, domain, oci, github
                 //     title: "<configTitle_here>",
                 //     sharedFolder: "<sharedFolderUid_or_path_here>",
-                //     gatewayId: null   // optional: gateway UID or name
+                //     gatewayId: null,   // optional: gateway UID or name
+                //     connections: null,   // optional: tri-state: on, off, or default
+                //     tunneling: null,   // optional: tri-state: on, off, or default
+                //     rotation: null,   // optional: tri-state: on, off, or default
+                //     connectionsRecording: null,   // optional: tri-state: on, off, or default
+                //     typescriptRecording: null,   // optional: tri-state: on, off, or default
+                //     remoteBrowserIsolation: null,   // optional: tri-state: on, off, or default
+                //     aiThreatDetection: null,   // optional: tri-state: on, off, or default
+                //     aiTerminateSessionOnDetection: null   // optional: tri-state: on, off, or default
                 // );
 
                 // // Edit PAM Configuration Example
@@ -826,8 +834,14 @@ namespace Sample
                 //     configId: "<pamConfigUid_or_title_here>",
                 //     newTitle: null,
                 //     gatewayId: null,
-                //     connections: "on",
-                //     rotation: "on"
+                //     connections: "on",   // optional: tri-state: on, off, or default
+                //     tunneling: null,   // optional: tri-state: on, off, or default
+                //     rotation: "on",   // optional: tri-state: on, off, or default
+                //     connectionsRecording: null,   // optional: tri-state: on, off, or default
+                //     typescriptRecording: null,   // optional: tri-state: on, off, or default
+                //     remoteBrowserIsolation: null,   // optional: tri-state: on, off, or default
+                //     aiThreatDetection: null,   // optional: tri-state: on, off, or default
+                //     aiTerminateSessionOnDetection: null   // optional: tri-state: on, off, or default
                 // );
 
                 // // Remove PAM Configuration Example

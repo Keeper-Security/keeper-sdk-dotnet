@@ -18,12 +18,28 @@ namespace Sample.PAMExamples.ConfigExamples
         /// <param name="title">Title of the new PAM configuration.</param>
         /// <param name="sharedFolder">Shared folder or NSF folder UID, name, or path where the configuration will be added (for example, PAM/TestFolder).</param>
         /// <param name="gatewayId">Optional gateway ID or name to link to the configuration.</param>
+        /// <param name="connections">Tri-state: on, off, or default.</param>
+        /// <param name="tunneling">Tri-state: on, off, or default.</param>
+        /// <param name="rotation">Tri-state: on, off, or default.</param>
+        /// <param name="connectionsRecording">Tri-state: on, off, or default.</param>
+        /// <param name="typescriptRecording">Tri-state: on, off, or default.</param>
+        /// <param name="remoteBrowserIsolation">Tri-state: on, off, or default.</param>
+        /// <param name="aiThreatDetection">Tri-state: on, off, or default.</param>
+        /// <param name="aiTerminateSessionOnDetection">Tri-state: on, off, or default.</param>
         public static async Task CreateConfig(
             VaultOnline vault,
             string environment,
             string title,
             string sharedFolder,
-            string gatewayId = null)
+            string gatewayId = null,
+            string connections = null,
+            string tunneling = null,
+            string rotation = null,
+            string connectionsRecording = null,
+            string typescriptRecording = null,
+            string remoteBrowserIsolation = null,
+            string aiThreatDetection = null,
+            string aiTerminateSessionOnDetection = null)
         {
             try
             {
@@ -108,6 +124,25 @@ namespace Sample.PAMExamples.ConfigExamples
                 if (!string.IsNullOrEmpty(gatewayUid))
                 {
                     await ConfigUtils.SetConfigurationGatewayAsync(vault.Auth, record.Uid, gatewayUid);
+                }
+
+                var hasTunnelingOptions = connections != null || tunneling != null || rotation != null
+                    || connectionsRecording != null || typescriptRecording != null
+                    || remoteBrowserIsolation != null || aiThreatDetection != null
+                    || aiTerminateSessionOnDetection != null;
+                if (hasTunnelingOptions)
+                {
+                    await ConfigUtils.ConfigureTunnelingAsync(
+                        vault.Auth,
+                        record.Uid,
+                        ConfigUtils.ParseTriState(connections),
+                        ConfigUtils.ParseTriState(tunneling),
+                        ConfigUtils.ParseTriState(rotation),
+                        ConfigUtils.ParseTriState(connectionsRecording),
+                        ConfigUtils.ParseTriState(typescriptRecording),
+                        ConfigUtils.ParseTriState(remoteBrowserIsolation),
+                        ConfigUtils.ParseTriState(aiThreatDetection),
+                        ConfigUtils.ParseTriState(aiTerminateSessionOnDetection));
                 }
 
                 await vault.SyncDown();
