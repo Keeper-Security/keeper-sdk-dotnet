@@ -9,6 +9,13 @@ function script:resolvePamWorkflowRecord {
         [bool] $AllowMissing = $false
     )
 
+    if ($null -eq $Vault -or $null -eq $Vault.KeeperRecords) {
+        if ($AllowMissing) {
+            return $null
+        }
+        Write-Error -Message 'Vault is empty or corrupted' -ErrorAction Stop
+    }
+
     [KeeperSecurity.Vault.KeeperRecord]$byUid = $null
     if ($Vault.TryGetKeeperRecord($Identifier, [ref]$byUid) -and $byUid -is [KeeperSecurity.Vault.TypedRecord]) {
         return $byUid
@@ -53,7 +60,30 @@ function script:decodePamWorkflowUidBytes {
         Write-Error -Message $ErrorMessage -ErrorAction Stop
     }
 
+    try {
+        $uuid = New-Object 'System.Guid' -ArgumentList @(,$bytes)
+        if ($uuid -eq [System.Guid]::Empty) {
+            Write-Error -Message $ErrorMessage -ErrorAction Stop
+        }
+    }
+    catch {
+        Write-Error -Message $ErrorMessage -ErrorAction Stop
+    }
+
     return $bytes
+}
+
+function script:testPamResourceValidation {
+    Param (
+        $Resource
+    )
+
+    if ($null -eq $Resource) {
+        return $false
+    }
+
+    return -not [string]::IsNullOrEmpty($Resource.Name) -or `
+           ($null -ne $Resource.Value -and -not $Resource.Value.IsEmpty)
 }
 
 function script:testPamWorkflowExempt {
@@ -107,7 +137,7 @@ function script:resolvePamWorkflowResourceName {
     if ($null -ne $Resource.Value -and -not $Resource.Value.IsEmpty) {
         $uid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Resource.Value.ToByteArray())
         [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-        if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and -not [string]::IsNullOrEmpty($rec.Title)) {
+        if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and $null -ne $rec -and -not [string]::IsNullOrEmpty($rec.Title)) {
             return $rec.Title
         }
         return $null
@@ -161,7 +191,7 @@ function Get-KeeperPamWorkflowPending {
         return
     }
 
-    $rows = New-Object System.Collections.Generic.List[object]
+    $rows = @()
     foreach ($wf in $pending) {
         $recordUid = ''
         if ($null -ne $wf.Resource -and $null -ne $wf.Resource.Value -and -not $wf.Resource.Value.IsEmpty) {
@@ -178,12 +208,23 @@ function Get-KeeperPamWorkflowPending {
 
         $reasonEncrypted = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ExtractWorkflowParameter($wf, 'reason')
         $ticketEncrypted = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ExtractWorkflowParameter($wf, 'ticket')
-        $reason = if ($null -ne $recordKey) {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $reasonEncrypted)
-        } else { '' }
-        $ticket = if ($null -ne $recordKey) {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $ticketEncrypted)
-        } else { '' }
+
+        $reason = ''
+        $ticket = ''
+        if ($null -ne $recordKey) {
+            try {
+                $reason = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $reasonEncrypted)
+            }
+            catch {
+                $reason = '[decryption failed]'
+            }
+            try {
+                $ticket = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DecryptWorkflowParameter($recordKey, $ticketEncrypted)
+            }
+            catch {
+                $ticket = '[decryption failed]'
+            }
+        }
 
         $started = if ($wf.StartedOn -gt 0) {
             [DateTimeOffset]::FromUnixTimeMilliseconds($wf.StartedOn).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
@@ -199,7 +240,7 @@ function Get-KeeperPamWorkflowPending {
         else { '' }
         $requestedBy = if (-not [string]::IsNullOrEmpty($wf.User)) { $wf.User } else { "User ID $($wf.UserId)" }
 
-        $rows.Add([PSCustomObject]@{
+        $rows += [PSCustomObject]@{
                 'Record Name'  = resolvePamWorkflowResourceName -Vault $vault -Resource $wf.Resource
                 'Record UID'   = $recordUid
                 'Flow UID'     = getPamWorkflowFlowUidString $wf.FlowUid
@@ -209,10 +250,14 @@ function Get-KeeperPamWorkflowPending {
                 'Started'      = $started
                 'Expires'      = $expires
                 'Duration'     = $duration
-            })
+            }
     }
 
-    $rows | Format-Table -AutoSize
+    if ($rows.Count -gt 0) {
+        $rows | Format-Table -AutoSize
+    } else {
+        Write-Output 'No pending approval requests'
+    }
 }
 
 function Approve-KeeperPamWorkflowAccess {
@@ -238,9 +283,9 @@ function Approve-KeeperPamWorkflowAccess {
     $trimmedFlowUid = $FlowUid.Trim()
     $flowUidBytes = decodePamWorkflowUidBytes -Uid $trimmedFlowUid -ErrorMessage "Invalid flow UID: `"$trimmedFlowUid`""
 
-    $null = invokePamSdkCall {
+    invokePamSdkCall {
         [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ApproveWorkflowAccessAsync($auth, $flowUidBytes).GetAwaiter().GetResult()
-    }
+    } | Out-Null
 
     Write-Output ''
     Write-Output 'Access request approved'
@@ -292,10 +337,10 @@ function Deny-KeeperPamWorkflowAccess {
         }
     }
 
-    $null = invokePamSdkCall {
+    invokePamSdkCall {
         [KeeperSecurity.Plugins.PAM.WorkflowUtils]::DenyWorkflowAccessAsync(
             $auth, $flowUidBytes, $denialReasonEncrypted).GetAwaiter().GetResult()
-    }
+    } | Out-Null
 
     Write-Output ''
     Write-Output 'Access request denied'
@@ -373,6 +418,10 @@ function Request-KeeperPamWorkflowAccess {
     $auth = getPamEnterpriseAuth
     $record = resolvePamWorkflowRecord -Vault $vault -Identifier $Record.Trim()
 
+    if ($null -eq $record) {
+        Write-Error -Message "Record not found: `"$($Record.Trim())`"" -ErrorAction Stop
+    }
+
     if ($Cancel.IsPresent) {
         $workflowState = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
@@ -383,9 +432,9 @@ function Request-KeeperPamWorkflowAccess {
         }
 
         $flowRef = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::WorkflowRef($workflowState.FlowUid.ToByteArray())
-        $null = invokePamSdkCall {
+        invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::EndWorkflowAsync($auth, $flowRef).GetAwaiter().GetResult()
-        }
+        } | Out-Null
 
         Write-Output ''
         Write-Output 'Workflow request cancelled'
@@ -402,6 +451,14 @@ function Request-KeeperPamWorkflowAccess {
     }
 
     if ($Escalate.IsPresent) {
+        $workflowState = invokePamSdkCall {
+            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
+                $auth, $record.Uid, $record.Title).GetAwaiter().GetResult()
+        }
+        if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
+            Write-Error -Message 'No pending workflow request found for this record to escalate.' -ErrorAction Stop
+        }
+
         $null = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::RequestEscalationAsync(
                 $auth, $record.Uid, $record.Title).GetAwaiter().GetResult()
@@ -420,10 +477,10 @@ function Request-KeeperPamWorkflowAccess {
     $trimmedReason = if ($null -ne $Reason) { $Reason.Trim() } else { '' }
     $trimmedTicket = if ($null -ne $Ticket) { $Ticket.Trim() } else { '' }
 
-    $null = invokePamSdkCall {
+    invokePamSdkCall {
         [KeeperSecurity.Plugins.PAM.WorkflowUtils]::RequestWorkflowAccessAsync(
             $auth, $record.Uid, $record.Title, $record.RecordKey, $trimmedReason, $trimmedTicket).GetAwaiter().GetResult()
-    }
+    } | Out-Null
 
     Write-Output ''
     Write-Output 'Access request sent'
@@ -474,9 +531,9 @@ function Start-KeeperPamWorkflow {
         $state.Resource = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::WorkflowRef($uidBytes)
     }
 
-    $null = invokePamSdkCall {
+    invokePamSdkCall {
         [KeeperSecurity.Plugins.PAM.WorkflowUtils]::StartWorkflowAsync($auth, $state).GetAwaiter().GetResult()
-    }
+    } | Out-Null
 
     Write-Output ''
     Write-Output 'Workflow started (checked out)'
@@ -539,9 +596,13 @@ function Stop-KeeperPamWorkflow {
             $label = "Flow UID: $trimmedUid"
         }
 
-        $null = invokePamSdkCall {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ForceCheckinAsync($auth, $refMsg).GetAwaiter().GetResult()
+        if ($null -eq $refMsg) {
+            Write-Error -Message 'Invalid workflow reference. Record could not be resolved.' -ErrorAction Stop
         }
+
+        invokePamSdkCall {
+            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::ForceCheckinAsync($auth, $refMsg).GetAwaiter().GetResult()
+        } | Out-Null
 
         Write-Output ''
         Write-Output 'Record force checked in'
@@ -574,9 +635,13 @@ function Stop-KeeperPamWorkflow {
         $label = "Flow UID: $trimmedUid"
     }
 
-    $null = invokePamSdkCall {
-        [KeeperSecurity.Plugins.PAM.WorkflowUtils]::EndWorkflowAsync($auth, $flowRef).GetAwaiter().GetResult()
+    if ($null -eq $flowRef) {
+        Write-Error -Message 'Invalid workflow reference. Could not resolve flow UID.' -ErrorAction Stop
     }
+
+    invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.WorkflowUtils]::EndWorkflowAsync($auth, $flowRef).GetAwaiter().GetResult()
+    } | Out-Null
 
     Write-Output ''
     Write-Output 'Workflow ended (checked in)'
