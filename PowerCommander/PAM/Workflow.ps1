@@ -1,5 +1,17 @@
 #requires -Version 5.1
 
+class PamWorkflowRow {
+    [string]$RecordName
+    [string]$RecordUid
+    [string]$FlowUid
+    [string]$RequestedBy
+    [string]$Reason
+    [string]$Ticket
+    [string]$Started
+    [string]$Expires
+    [string]$Duration
+}
+
 function script:decodePamWorkflowUidBytes {
     Param (
         [Parameter(Mandatory = $true)]
@@ -151,7 +163,7 @@ function Get-KeeperPamWorkflowPending {
         return
     }
 
-    $rows = @()
+    $rows = [System.Collections.Generic.List[PamWorkflowRow]]::new()
     foreach ($wf in $pending) {
         $recordUid = ''
         if ($null -ne $wf.Resource -and $null -ne $wf.Resource.Value -and -not $wf.Resource.Value.IsEmpty) {
@@ -200,17 +212,18 @@ function Get-KeeperPamWorkflowPending {
         else { '' }
         $requestedBy = if (-not [string]::IsNullOrEmpty($wf.User)) { $wf.User } else { "User ID $($wf.UserId)" }
 
-        $rows += [PSCustomObject]@{
-                'Record Name'  = resolvePamWorkflowResourceName -Vault $vault -Resource $wf.Resource
-                'Record UID'   = $recordUid
-                'Flow UID'     = getPamWorkflowFlowUidString $wf.FlowUid
-                'Requested By' = $requestedBy
-                'Reason'       = $reason
-                'Ticket'       = $ticket
-                'Started'      = $started
-                'Expires'      = $expires
-                'Duration'     = $duration
-            }
+        $row = [PamWorkflowRow]@{
+            RecordName  = resolvePamWorkflowResourceName -Vault $vault -Resource $wf.Resource
+            RecordUid   = $recordUid
+            FlowUid     = getPamWorkflowFlowUidString $wf.FlowUid
+            RequestedBy = $requestedBy
+            Reason      = $reason
+            Ticket      = $ticket
+            Started     = $started
+            Expires     = $expires
+            Duration    = $duration
+        }
+        $rows.Add($row)
     }
 
     if ($rows.Count -gt 0) {
