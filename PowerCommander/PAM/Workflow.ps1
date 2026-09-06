@@ -1,45 +1,5 @@
 #requires -Version 5.1
 
-function script:resolvePamWorkflowRecord {
-    Param (
-        [Parameter(Mandatory = $true)]
-        [KeeperSecurity.Vault.VaultOnline] $Vault,
-        [Parameter(Mandatory = $true)]
-        [string] $Identifier,
-        [bool] $AllowMissing = $false
-    )
-
-    if ($null -eq $Vault -or $null -eq $Vault.KeeperRecords) {
-        if ($AllowMissing) {
-            return $null
-        }
-        Write-Error -Message 'Vault is empty or corrupted' -ErrorAction Stop
-    }
-
-    [KeeperSecurity.Vault.KeeperRecord]$byUid = $null
-    if ($Vault.TryGetKeeperRecord($Identifier, [ref]$byUid) -and $byUid -is [KeeperSecurity.Vault.TypedRecord]) {
-        return $byUid
-    }
-
-    $nameMatches = @($Vault.KeeperRecords | Where-Object {
-            $_ -is [KeeperSecurity.Vault.TypedRecord] -and
-            [string]::Equals($_.Title, $Identifier, [System.StringComparison]::OrdinalIgnoreCase)
-        })
-
-    if ($nameMatches.Count -gt 1) {
-        Write-Error -Message "Record name '$Identifier' is not unique. Use record UID." -ErrorAction Stop
-    }
-    if ($nameMatches.Count -eq 1) {
-        return $nameMatches[0]
-    }
-
-    if ($AllowMissing) {
-        return $null
-    }
-
-    Write-Error -Message "Record `"$Identifier`" not found" -ErrorAction Stop
-}
-
 function script:decodePamWorkflowUidBytes {
     Param (
         [Parameter(Mandatory = $true)]
@@ -415,17 +375,17 @@ function Request-KeeperPamWorkflowAccess {
     }
 
     $vault = getPamVault
-    $auth = getPamEnterpriseAuth
-    $record = resolvePamWorkflowRecord -Vault $vault -Identifier $Record.Trim()
+    $auth = getPamWorkflowAuth
+    $resource = resolvePamWorkflowRecord -Vault $vault -Identifier $Record
 
-    if ($null -eq $record) {
+    if ($null -eq $resource) {
         Write-Error -Message "Record not found: `"$($Record.Trim())`"" -ErrorAction Stop
     }
 
     if ($Cancel.IsPresent) {
         $workflowState = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
-                $auth, $record.Uid, $record.Title).GetAwaiter().GetResult()
+                $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
         }
         if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
             Write-Error -Message 'No active workflow request found for this record.' -ErrorAction Stop
@@ -439,13 +399,13 @@ function Request-KeeperPamWorkflowAccess {
         Write-Output ''
         Write-Output 'Workflow request cancelled'
         Write-Output ''
-        Write-Output "Record: $($record.Title) ($($record.Uid))"
+        Write-Output "Record: $($resource.Title) ($($resource.Uid))"
         Write-Output "Flow UID: $(getPamWorkflowFlowUidString $workflowState.FlowUid)"
         Write-Output ''
         return
     }
 
-    if (testPamWorkflowExempt -Auth $auth -Record $record -Vault $vault) {
+    if (testPamWorkflowExempt -Auth $auth -Record $resource -Vault $vault) {
         writePamWorkflowExemptMessage
         return
     }
@@ -453,7 +413,7 @@ function Request-KeeperPamWorkflowAccess {
     if ($Escalate.IsPresent) {
         $workflowState = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
-                $auth, $record.Uid, $record.Title).GetAwaiter().GetResult()
+                $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
         }
         if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
             Write-Error -Message 'No pending workflow request found for this record to escalate.' -ErrorAction Stop
@@ -461,13 +421,13 @@ function Request-KeeperPamWorkflowAccess {
 
         $null = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::RequestEscalationAsync(
-                $auth, $record.Uid, $record.Title).GetAwaiter().GetResult()
+                $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
         }
 
         Write-Output ''
         Write-Output 'Request escalated'
         Write-Output ''
-        Write-Output "Record: $($record.Title) ($($record.Uid))"
+        Write-Output "Record: $($resource.Title) ($($resource.Uid))"
         Write-Output ''
         Write-Output 'Escalation approvers have been notified.'
         Write-Output ''
@@ -479,13 +439,13 @@ function Request-KeeperPamWorkflowAccess {
 
     invokePamSdkCall {
         [KeeperSecurity.Plugins.PAM.WorkflowUtils]::RequestWorkflowAccessAsync(
-            $auth, $record.Uid, $record.Title, $record.RecordKey, $trimmedReason, $trimmedTicket).GetAwaiter().GetResult()
+            $auth, $resource.Uid, $resource.Title, $resource.RecordKey, $trimmedReason, $trimmedTicket).GetAwaiter().GetResult()
     } | Out-Null
 
     Write-Output ''
     Write-Output 'Access request sent'
     Write-Output ''
-    Write-Output "Record: $($record.Title) ($($record.Uid))"
+    Write-Output "Record: $($resource.Title) ($($resource.Uid))"
     if (-not [string]::IsNullOrEmpty($trimmedReason)) {
         Write-Output "Reason: $trimmedReason"
     }
@@ -517,7 +477,7 @@ function Start-KeeperPamWorkflow {
     )
 
     $vault = getPamVault
-    $auth = getPamEnterpriseAuth
+    $auth = getPamWorkflowAuth
     $trimmedUid = $Uid.Trim()
     $record = resolvePamWorkflowRecord -Vault $vault -Identifier $trimmedUid -AllowMissing $true
 

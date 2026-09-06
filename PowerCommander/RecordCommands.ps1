@@ -153,7 +153,7 @@ function Get-KeeperRecord {
         $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
         if ($null -ne $record) {
             if ($Script:PasswordVisible) {
-                $record | Out-Default
+                $record | Format-List
             }
             else {
                 $record
