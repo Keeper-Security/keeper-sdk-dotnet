@@ -476,10 +476,10 @@ function ConvertTo-KeeperNullableBoolean {
         return $Value
     }
 
-    if ($Value -is [byte] -or $Value -is [sbyte] -or
-        $Value -is [short] -or $Value -is [ushort] -or
-        $Value -is [int] -or $Value -is [uint] -or
-        $Value -is [long] -or $Value -is [ulong]) {
+    if ($Value -is [System.Byte] -or $Value -is [System.SByte] -or
+        $Value -is [System.Int16] -or $Value -is [System.UInt16] -or
+        $Value -is [System.Int32] -or $Value -is [System.UInt32] -or
+        $Value -is [System.Int64] -or $Value -is [System.UInt64]) {
         if ($Value -eq 0) { return $false }
         if ($Value -eq 1) { return $true }
     }
