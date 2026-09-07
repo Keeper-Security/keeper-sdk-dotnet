@@ -2030,8 +2030,6 @@ function Invoke-KeeperEnterprisePush {
         [Parameter(Mandatory = $false)] [switch] $DryRun
     )
 
-    $enterprise = getEnterprise
-    $vault = getVault
     if (-not (Test-Path -LiteralPath $FileName -PathType Leaf)) {
         Write-Error "Template file '$FileName' was not found."
         return
@@ -2067,6 +2065,8 @@ function Invoke-KeeperEnterprisePush {
         return
     }
 
+    $enterprise = getEnterprise
+    $vault = getVault
     $warnings = [Action[string]] { param($message) Write-Warning $message }
     $options = New-Object KeeperSecurity.Enterprise.EnterprisePushOptions
     $options.Users = [string[]]$userTargets
@@ -2074,7 +2074,7 @@ function Invoke-KeeperEnterprisePush {
     $options.DryRun = $DryRun.IsPresent
     $options.Warnings = $warnings
 
-    $result = $enterprise.enterpriseData.PushEnterpriseRecords($vault, $importRecords.ToArray(), $options).GetAwaiter().GetResult()
+    $result = $enterprise.enterpriseData.PushEnterpriseRecords($vault, $importRecords, $options).GetAwaiter().GetResult()
     [PSCustomObject]@{
         RecordsCreated = $result.RecordsCreated
         RecordsFailed = $result.RecordsFailed
@@ -2123,15 +2123,11 @@ function Invoke-KeeperTeamApprove {
     )
 
     $enterprise = getEnterprise
-    if ($null -eq $enterprise.enterpriseData) {
-        Write-Error 'Enterprise data is not available. Connect as an enterprise administrator and try again.'
-        return
-    }
-    if ($null -eq $enterprise.queuedTeamData) {
-        Write-Error 'Queued team data is not available. Connect as an enterprise administrator and try again.'
-        return
-    }
     if ($Force.IsPresent) {
+        if ($null -eq $enterprise.loader) {
+            Write-Error 'Enterprise data loader is not available. Connect as an enterprise administrator and try again.'
+            return
+        }
         try {
             $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
         }
@@ -2140,7 +2136,14 @@ function Invoke-KeeperTeamApprove {
             return
         }
     }
-
+    if ($null -eq $enterprise.enterpriseData) {
+        Write-Error 'Enterprise data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
+    if ($null -eq $enterprise.queuedTeamData) {
+        Write-Error 'Queued team data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
     $approveTeams = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Team.IsPresent
     $approveUsers = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Email.IsPresent
 
@@ -2161,9 +2164,8 @@ function Invoke-KeeperTeamApprove {
         Write-Error "Team approval failed: $($_.Exception.Message)"
         return
     }
-
-    if ($null -eq $result.Actions -or $result.Actions.Count -eq 0) {
-        Write-Output 'No queued teams or users to approve.'
+    catch {
+        Write-Error "Unexpected team approval error: $($_.Exception.Message)"
         return
     }
 
@@ -2172,7 +2174,7 @@ function Invoke-KeeperTeamApprove {
         TeamsFailed = $result.TeamsFailed
         UsersApproved = $result.UsersApproved
         UsersFailed = $result.UsersFailed
-        Actions = $result.Actions
+        Actions = if ($null -eq $result.Actions) { @() } else { @($result.Actions) }
     }
 }
 New-Alias -Name ta -Value Invoke-KeeperTeamApprove
