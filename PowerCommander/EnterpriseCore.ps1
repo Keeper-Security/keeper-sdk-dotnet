@@ -2019,6 +2019,15 @@ function Invoke-KeeperEnterprisePush {
 
     .PARAMETER Team
     One target team name or UID. All team members are targeted.
+
+    .PARAMETER Users
+    Additional target user emails, enterprise user IDs, or display names. Combined with -Email.
+
+    .PARAMETER Teams
+    Additional target team names or UIDs. Combined with -Team.
+
+    .PARAMETER DryRun
+    Resolve targets and show planned actions without creating or transferring records.
     #>
     [CmdletBinding()]
     param(
@@ -2067,7 +2076,7 @@ function Invoke-KeeperEnterprisePush {
 
     $enterprise = getEnterprise
     $vault = getVault
-    $warnings = [Action[string]] { param($message) Write-Warning $message }
+    $warnings = Get-EnterpriseSdkWarningCallback
     $options = New-Object KeeperSecurity.Enterprise.EnterprisePushOptions
     $options.Users = [string[]]$userTargets
     $options.Teams = [string[]]$teamTargets
@@ -2083,17 +2092,21 @@ function Invoke-KeeperEnterprisePush {
         Actions = $result.Actions
     }
 }
-New-Alias -Name ep -Value Invoke-KeeperEnterprisePush
+New-Alias -Name kep -Value Invoke-KeeperEnterprisePush
 
 function Invoke-KeeperTeamApprove {
     <#
     .SYNOPSIS
     Approves queued teams and queued team users provisioned by SCIM or Active Directory Bridge.
 
-    .PARAMETER Team
+    .DESCRIPTION
+    By default, approves both queued teams and queued team users. Use -TeamsOnly or -UsersOnly
+    to limit the operation to one category.
+
+    .PARAMETER TeamsOnly
     Approve queued teams only.
 
-    .PARAMETER Email
+    .PARAMETER UsersOnly
     Approve queued team users only.
 
     .PARAMETER RestrictEdit
@@ -2113,8 +2126,8 @@ function Invoke-KeeperTeamApprove {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false)] [switch] $Team,
-        [Parameter(Mandatory = $false)] [switch] $Email,
+        [Parameter(Mandatory = $false)] [switch] $TeamsOnly,
+        [Parameter(Mandatory = $false)] [switch] $UsersOnly,
         [Parameter(Mandatory = $false)] [switch] $RestrictEdit,
         [Parameter(Mandatory = $false)] [switch] $RestrictShare,
         [Parameter(Mandatory = $false)] [switch] $RestrictView,
@@ -2144,10 +2157,15 @@ function Invoke-KeeperTeamApprove {
         Write-Error 'Queued team data is not available. Connect as an enterprise administrator and try again.'
         return
     }
-    $approveTeams = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Team.IsPresent
-    $approveUsers = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Email.IsPresent
+    if ($TeamsOnly.IsPresent -and $UsersOnly.IsPresent) {
+        Write-Error 'Specify only one of -TeamsOnly or -UsersOnly.'
+        return
+    }
 
-    $warnings = [Action[string]] { param($message) Write-Warning $message }
+    $approveTeams = -not $UsersOnly.IsPresent
+    $approveUsers = -not $TeamsOnly.IsPresent
+
+    $warnings = Get-EnterpriseSdkWarningCallback
     $options = New-Object KeeperSecurity.Enterprise.TeamApproveOptions
     $options.ApproveTeams = $approveTeams
     $options.ApproveUsers = $approveUsers
@@ -2177,4 +2195,4 @@ function Invoke-KeeperTeamApprove {
         Actions = if ($null -eq $result.Actions) { @() } else { @($result.Actions) }
     }
 }
-New-Alias -Name ta -Value Invoke-KeeperTeamApprove
+New-Alias -Name kta -Value Invoke-KeeperTeamApprove
