@@ -42,7 +42,9 @@ function script:decodePamWorkflowUidBytes {
         Write-Error -Message $ErrorMessage -ErrorAction Stop
     }
 
-    return $bytes
+    # Comma prevents PowerShell from unrolling the byte[] into the pipeline (which would
+    # come back as a boxed System.Object[] and break byte[] overload resolution downstream).
+    return ,$bytes
 }
 
 function script:testPamResourceValidation {
