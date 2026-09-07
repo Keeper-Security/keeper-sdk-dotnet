@@ -2006,3 +2006,173 @@ function Export-KeeperAuditLog {
 }
 New-Alias -Name kal -Value Export-KeeperAuditLog
 
+function Invoke-KeeperEnterprisePush {
+    <#
+    .SYNOPSIS
+    Pushes templated records to enterprise user vaults.
+
+    .PARAMETER FileName
+    JSON template file. The root may be a records array or an object containing records.
+
+    .PARAMETER Email
+    One target user email or enterprise user ID.
+
+    .PARAMETER Team
+    One target team name or UID. All team members are targeted.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $FileName,
+        [Parameter(Mandatory = $false)] [string] $Email,
+        [Parameter(Mandatory = $false)] [string] $Team,
+        [Parameter(Mandatory = $false)] [string[]] $Users,
+        [Parameter(Mandatory = $false)] [string[]] $Teams,
+        [Parameter(Mandatory = $false)] [switch] $DryRun
+    )
+
+    $enterprise = getEnterprise
+    $vault = getVault
+    if (-not (Test-Path -LiteralPath $FileName -PathType Leaf)) {
+        Write-Error "Template file '$FileName' was not found."
+        return
+    }
+
+    try {
+        $json = Get-Content -LiteralPath $FileName -Raw | ConvertFrom-Json -ErrorAction Stop
+        $document = if ($json -is [System.Array]) { @{ records = $json } } else { $json }
+        $importJson = [KeeperSecurity.Commands.ImportJsonValue]::FromLegacyObject($document)
+        $importFile = [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($importJson)
+        $importRecords = if ($null -eq $importFile.Records) { @() } else { @($importFile.Records) }
+        foreach ($record in $importRecords) {
+            $record.Uid = $null
+            $record.Folders = $null
+        }
+    }
+    catch {
+        Write-Error "Unable to parse template file: $($_.Exception.Message)"
+        return
+    }
+
+    if ($importRecords.Count -eq 0) {
+        Write-Error 'Template file contains no records.'
+        return
+    }
+
+    $userTargets = @($Users | Where-Object { $_ })
+    if ($Email) { $userTargets += $Email }
+    $teamTargets = @($Teams | Where-Object { $_ })
+    if ($Team) { $teamTargets += $Team }
+    if ($userTargets.Count -eq 0 -and $teamTargets.Count -eq 0) {
+        Write-Error 'Specify -Email/-Users or -Team/-Teams.'
+        return
+    }
+
+    $warnings = [Action[string]] { param($message) Write-Warning $message }
+    $options = New-Object KeeperSecurity.Enterprise.EnterprisePushOptions
+    $options.Users = [string[]]$userTargets
+    $options.Teams = [string[]]$teamTargets
+    $options.DryRun = $DryRun.IsPresent
+    $options.Warnings = $warnings
+
+    $result = $enterprise.enterpriseData.PushEnterpriseRecords($vault, $importRecords.ToArray(), $options).GetAwaiter().GetResult()
+    [PSCustomObject]@{
+        RecordsCreated = $result.RecordsCreated
+        RecordsFailed = $result.RecordsFailed
+        TransfersCompleted = $result.TransfersCompleted
+        TransfersFailed = $result.TransfersFailed
+        Actions = $result.Actions
+    }
+}
+New-Alias -Name ep -Value Invoke-KeeperEnterprisePush
+
+function Invoke-KeeperTeamApprove {
+    <#
+    .SYNOPSIS
+    Approves queued teams and queued team users provisioned by SCIM or Active Directory Bridge.
+
+    .PARAMETER Team
+    Approve queued teams only.
+
+    .PARAMETER Email
+    Approve queued team users only.
+
+    .PARAMETER RestrictEdit
+    Disable record edits for approved teams.
+
+    .PARAMETER RestrictShare
+    Disable record re-shares for approved teams.
+
+    .PARAMETER RestrictView
+    Disable viewing or copying passwords for approved teams.
+
+    .PARAMETER Force
+    Refresh enterprise and queued-team data before approving.
+
+    .PARAMETER DryRun
+    Report planned approvals without executing them.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)] [switch] $Team,
+        [Parameter(Mandatory = $false)] [switch] $Email,
+        [Parameter(Mandatory = $false)] [switch] $RestrictEdit,
+        [Parameter(Mandatory = $false)] [switch] $RestrictShare,
+        [Parameter(Mandatory = $false)] [switch] $RestrictView,
+        [Parameter(Mandatory = $false)] [switch] $Force,
+        [Parameter(Mandatory = $false)] [switch] $DryRun
+    )
+
+    $enterprise = getEnterprise
+    if ($null -eq $enterprise.enterpriseData) {
+        Write-Error 'Enterprise data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
+    if ($null -eq $enterprise.queuedTeamData) {
+        Write-Error 'Queued team data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
+    if ($Force.IsPresent) {
+        try {
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Error "Unable to refresh enterprise data: $($_.Exception.Message)"
+            return
+        }
+    }
+
+    $approveTeams = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Team.IsPresent
+    $approveUsers = (-not $Team.IsPresent -and -not $Email.IsPresent) -or $Email.IsPresent
+
+    $warnings = [Action[string]] { param($message) Write-Warning $message }
+    $options = New-Object KeeperSecurity.Enterprise.TeamApproveOptions
+    $options.ApproveTeams = $approveTeams
+    $options.ApproveUsers = $approveUsers
+    $options.RestrictEdit = $RestrictEdit.IsPresent
+    $options.RestrictShare = $RestrictShare.IsPresent
+    $options.RestrictView = $RestrictView.IsPresent
+    $options.DryRun = $DryRun.IsPresent
+    $options.Warnings = $warnings
+
+    try {
+        $result = $enterprise.enterpriseData.ApproveQueuedTeams($enterprise.queuedTeamData, $options).GetAwaiter().GetResult()
+    }
+    catch [KeeperSecurity.Authentication.KeeperApiException] {
+        Write-Error "Team approval failed: $($_.Exception.Message)"
+        return
+    }
+
+    if ($null -eq $result.Actions -or $result.Actions.Count -eq 0) {
+        Write-Output 'No queued teams or users to approve.'
+        return
+    }
+
+    [PSCustomObject]@{
+        TeamsApproved = $result.TeamsApproved
+        TeamsFailed = $result.TeamsFailed
+        UsersApproved = $result.UsersApproved
+        UsersFailed = $result.UsersFailed
+        Actions = $result.Actions
+    }
+}
+New-Alias -Name ta -Value Invoke-KeeperTeamApprove
