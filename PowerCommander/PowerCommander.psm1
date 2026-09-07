@@ -119,7 +119,7 @@ Set-KeeperEnterpriseNodeCustomInvitation, Get-KeeperEnterpriseNodeCustomInvitati
 Invoke-KeeperEnterpriseNodeWipeOut
 
 
-Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ketr, keut, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, ep, ta,
+Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ketr, keut, ken, ker, keru, kert, kerap, kena, kenu, kend, kenwipe, kers, kep, kta,
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, kuser-alias-add, kuser-alias-remove, list-team, kar, user-report, kal, audit-alert
 
