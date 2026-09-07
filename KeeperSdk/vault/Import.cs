@@ -685,6 +685,15 @@ namespace KeeperSecurity
                     }
                 }
 
+                if (rec.CustomFields != null)
+                {
+                    rec.CustomFields = rec.CustomFields
+                        .Where(x => x != null && !string.IsNullOrEmpty(x.Name))
+                        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                        .Select(x => x.Last())
+                        .ToArray();
+                }
+
                 return rec;
             }
 
