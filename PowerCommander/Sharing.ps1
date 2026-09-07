@@ -466,6 +466,36 @@ function Revoke-KeeperSharesWithUser {
 }
 New-Alias -Name kcancelshare -Value Revoke-KeeperSharesWithUser
 
+function ConvertTo-KeeperNullableBoolean {
+    Param (
+        [Parameter(Mandatory = $true)]$Value,
+        [Parameter(Mandatory = $true)][string]$ParameterName
+    )
+
+    if ($Value -is [bool]) {
+        return $Value
+    }
+
+    if ($Value -is [byte] -or $Value -is [sbyte] -or
+        $Value -is [short] -or $Value -is [ushort] -or
+        $Value -is [int] -or $Value -is [uint] -or
+        $Value -is [long] -or $Value -is [ulong]) {
+        if ($Value -eq 0) { return $false }
+        if ($Value -eq 1) { return $true }
+    }
+
+    if ($Value -is [string]) {
+        switch ($Value.Trim().ToLowerInvariant()) {
+            'true' { return $true }
+            'false' { return $false }
+            '1' { return $true }
+            '0' { return $false }
+        }
+    }
+
+    throw "Parameter '$ParameterName' accepts true, false, 1, or 0."
+}
+
 function Set-KeeperSharedFolderRecordPermission {
     <#
         .SYNOPSIS
@@ -478,10 +508,12 @@ function Set-KeeperSharedFolderRecordPermission {
         Record UID or an object containing a Uid property.
 
         .PARAMETER CanEdit
-        Whether members of the shared folder can edit the record.
+        Whether members of the shared folder can edit the record. Accepts true,
+        false, 1, or 0.
 
         .PARAMETER CanShare
-        Whether members of the shared folder can re-share the record.
+        Whether members of the shared folder can re-share the record. Accepts
+        true, false, 1, or 0.
 
         .PARAMETER ExpireIn
         Optional. Record permission expiration period from now.
@@ -497,8 +529,8 @@ function Set-KeeperSharedFolderRecordPermission {
     Param (
         [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
         [Parameter(Mandatory = $true, Position = 1)]$Record,
-        [Parameter()][Nullable[bool]]$CanEdit,
-        [Parameter()][Nullable[bool]]$CanShare,
+        [Parameter()]$CanEdit,
+        [Parameter()]$CanShare,
         [Parameter()][System.Object]$ExpireIn,
         [Parameter()][string]$ExpireAt,
         [Alias('roe', 'rotate-on-expiration')]
@@ -570,8 +602,23 @@ function Set-KeeperSharedFolderRecordPermission {
     }
 
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
-    $options.CanEdit = if ($PSBoundParameters.ContainsKey('CanEdit')) { $CanEdit } else { $recordPermission.CanEdit }
-    $options.CanShare = if ($PSBoundParameters.ContainsKey('CanShare')) { $CanShare } else { $recordPermission.CanShare }
+    try {
+        if ($PSBoundParameters.ContainsKey('CanEdit')) {
+            $options.CanEdit = ConvertTo-KeeperNullableBoolean -Value $CanEdit -ParameterName 'CanEdit'
+        }
+        else {
+            $options.CanEdit = $recordPermission.CanEdit
+        }
+        if ($PSBoundParameters.ContainsKey('CanShare')) {
+            $options.CanShare = ConvertTo-KeeperNullableBoolean -Value $CanShare -ParameterName 'CanShare'
+        }
+        else {
+            $options.CanShare = $recordPermission.CanShare
+        }
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
+    }
     if ($hasExpireIn -or $hasExpireAt) {
         $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
     }
@@ -581,7 +628,7 @@ function Set-KeeperSharedFolderRecordPermission {
 
     $target = "Record `"$($recordObject.Title)`" in shared folder `"$($sharedFolderObject.Name)`""
     if ($PSCmdlet.ShouldProcess($target, 'Update shared folder record permissions')) {
-        $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult()
+        $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult() | Out-Null
         Write-Output "Record `"$($recordObject.Title)`" permissions were updated in shared folder `"$($sharedFolderObject.Name)`""
     }
 }
