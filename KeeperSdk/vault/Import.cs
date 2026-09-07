@@ -661,7 +661,15 @@ namespace KeeperSecurity
                         }
                             break;
                         case "custom_fields":
-                            rec.CustomFields = ParseCustomFieldsFromImportJson(pair.Value);
+                        {
+                            var customFields = ParseCustomFieldsFromImportJson(pair.Value);
+                            if (customFields != null && customFields.Length > 0)
+                            {
+                                rec.CustomFields = (rec.CustomFields ?? Array.Empty<ImportCustomField>())
+                                    .Concat(customFields)
+                                    .ToArray();
+                            }
+                        }
                             break;
                         case "fields":
                         {
