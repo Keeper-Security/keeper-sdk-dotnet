@@ -562,6 +562,9 @@ function Set-KeeperSharedFolderRecordPermission {
 
     $hasExpireIn = $PSBoundParameters.ContainsKey('ExpireIn')
     $hasExpireAt = $PSBoundParameters.ContainsKey('ExpireAt')
+    if ($hasExpireIn -and $hasExpireAt) {
+        Write-Error -Message 'Specify either ExpireIn or ExpireAt, not both.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
+    }
     if ($RotateOnExpiration.IsPresent -and -not ($hasExpireIn -or $hasExpireAt)) {
         Write-Error -Message 'RotateOnExpiration requires ExpireIn or ExpireAt.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
     }
