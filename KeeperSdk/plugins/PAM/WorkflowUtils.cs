@@ -620,7 +620,23 @@ namespace KeeperSecurity.Plugins.PAM
     /// <summary>Gets the current user's workflow access state.</summary>
     public static async Task<UserAccessState> GetUserAccessStateAsync(IAuthentication auth)
     {
-      return await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
+      var state = await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
+      if (state?.Workflows == null || string.IsNullOrEmpty(auth.Username))
+      {
+        return state;
+      }
+
+      foreach (var workflow in state.Workflows)
+      {
+        if (workflow.Status != null &&
+            workflow.Status.Stage == WorkflowStage.WsStarted &&
+            string.IsNullOrEmpty(workflow.Status.CheckedOutBy))
+        {
+          workflow.Status.CheckedOutBy = auth.Username;
+        }
+      }
+
+      return state;
     }
 
     /// <summary>Requests access to a record through its workflow.</summary>
