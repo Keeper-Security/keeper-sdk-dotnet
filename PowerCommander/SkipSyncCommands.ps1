@@ -835,3 +835,174 @@ function Revoke-KeeperSharedFolderTeamSkipSync {
     }
 }
 
+
+function New-KeeperOneTimeShareSkipSync {
+    <#
+    .SYNOPSIS
+    Create a temporary share link for a record you own - no full sync required
+
+    .DESCRIPTION
+    Quickly generate a secure one-time share link for records you own without syncing your entire vault.
+
+    IMPORTANT: Works ONLY for records you own. If you need to share records from shared folders,
+    use the standard New-KeeperOneTimeShare command instead.
+
+    .PARAMETER RecordUid
+    The record ID (UID) of the record to share. Must be a record you own.
+
+    .PARAMETER ExpireIn
+    Optional. Expiration offset (TimeSpan, string, or integer in minutes)
+
+    .PARAMETER ExpireAt
+    Optional. Absolute expiration timestamp (ISO 8601 or RFC 1123).
+
+    .PARAMETER ShareName
+    Optional. Custom label for the one-time share.
+
+    .EXAMPLE
+    New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 30
+    Creates a share link that works for 30 minutes.
+
+    .EXAMPLE
+    New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 7d -ShareName "Team Access"
+    Creates a share link that lasts 7 days with the name "Team Access".
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)][string] $RecordUid,
+        [Parameter()][System.Object] $ExpireIn,
+        [Parameter()][string] $ExpireAt,
+        [Parameter()][string] $ShareName
+    )
+
+    $auth = getKeeperAuth
+    try {
+        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        if (-not $expiration) {
+            throw "Please specify an expiration time: use -ExpireIn (e.g., '60', '7d') or -ExpireAt (e.g., '2025-12-31T23:59:59Z')"
+        }
+
+        $expirationTimeSpan = $expiration.ToUniversalTime() - [DateTimeOffset]::UtcNow
+        if ($expirationTimeSpan.TotalMilliseconds -le 0) {
+            throw "Expiration time must be in the future. The time you specified is in the past."
+        }
+
+        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareAsync(
+            $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName)
+
+        $shareUrl = __AwaitSkipSyncTask $task
+        Write-Host ""
+        Write-Host "✓ Share created successfully!" -ForegroundColor Green
+        Write-Host "  Share URL:"
+        Write-Host "  $shareUrl" -ForegroundColor Cyan
+        Write-Host ""
+        $shareUrl
+    }
+    catch {
+        Write-Error "Failed to create share link: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+
+function Get-KeeperOneTimeShareSkipSync {
+    <#
+    .SYNOPSIS
+    View all active share links for a record you own
+
+    .DESCRIPTION
+    Display all temporary share links created for one of your records without needing to sync your vault.
+    Shows details like creation date, expiration date, and access history.
+
+    .PARAMETER RecordUid
+    The record ID (UID) of the record to check for shares.
+
+    .EXAMPLE
+    Get-KeeperOneTimeShareSkipSync -RecordUid "abc123def456"
+    Retrieve all active shares for the record.
+    #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)][string] $RecordUid
+    )
+
+    $auth = getKeeperAuth
+    try {
+        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::GetExternalRecordSharesAsync(
+            $auth, $RecordUid.Trim())
+        $shares = __AwaitSkipSyncTask $task
+
+        $shares
+    }
+    catch {
+        Write-Error "Failed to retrieve shares: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+
+function Remove-KeeperOneTimeShareSkipSync {
+    <#
+    .SYNOPSIS
+    Revoke/delete share links for a record - instantly stop sharing
+
+    .DESCRIPTION
+    Immediately revoke temporary share links for a record without syncing your vault.
+    Once deleted, recipients can no longer access the record via that link.
+
+    .PARAMETER RecordUid
+    The record ID (UID) of the record to stop sharing.
+
+    .PARAMETER ShareName
+    One-Time Share Name
+
+    .EXAMPLE
+    Remove-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ShareName "Temp Access"
+    Revoke the share link named "Temp Access".
+
+    .EXAMPLE
+    Remove-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ShareName "Temp Access", "Guest Pass"
+    Revoke multiple share links.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)][string] $RecordUid,
+        [Parameter()][string[]] $ShareName
+    )
+    
+    $auth = getKeeperAuth
+    $recordUidTrimmed = $RecordUid.Trim()
+
+    try {
+        if (-not $ShareName -or $ShareName.Count -eq 0) {
+            throw "Please specify one or more share names to revoke. Use Get-KeeperOneTimeShareSkipSync to see available share names."
+        }
+
+        $sharesToDelete = @()
+        foreach ($name in $ShareName) {
+            if (-not [string]::IsNullOrWhiteSpace($name)) {
+                $sharesToDelete += $name.Trim()
+            }
+        }
+
+        if ($sharesToDelete.Count -eq 0) {
+            throw "No valid share names provided."
+        }
+
+        if ($PSCmdlet.ShouldProcess("Record: $recordUidTrimmed", "Revoke $($sharesToDelete.Count) share link(s): $($sharesToDelete -join ', ')")) {
+            foreach ($shareName in $sharesToDelete) {
+                $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::DeleteExternalRecordShareByNameAsync(
+                    $auth, $recordUidTrimmed, $shareName)
+                [void](__AwaitSkipSyncTask $task)
+            }
+
+            Write-Host ""
+            Write-Host "✓ Share link(s) revoked!" -ForegroundColor Green
+            Write-Host "  Revoked: $($sharesToDelete.Count) link(s)"
+            Write-Host "  Names: $($sharesToDelete -join ', ')"
+            Write-Host "  Record: $recordUidTrimmed"
+            Write-Host "  Recipients can no longer access these links." -ForegroundColor Yellow
+            Write-Host ""
+        }
+    }
+    catch {
+        Write-Error "Failed to revoke share link: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}

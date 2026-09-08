@@ -127,7 +127,8 @@
         'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync','Sync-KeeperEpm',
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync',
+        'New-KeeperOneTimeShareSkipSync', 'Get-KeeperOneTimeShareSkipSync', 'Remove-KeeperOneTimeShareSkipSync', 'Sync-KeeperEpm',
         'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
         'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
         'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval'
