@@ -1018,7 +1018,7 @@ function script:convertPamWorkflowStateToObject {
         stage = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::FormatStage($status)
         conditions = $conditionItems.ToArray()
         escalated = [bool]$status.Escalated
-        checked_out_by = if ([string]::IsNullOrEmpty($status.CheckedOutBy)) { $null } else { $status.CheckedOutBy }
+        checked_out_by = $status.CheckedOutBy
         can_force_checkin = [bool]$status.CanForceCheckIn
         started_on = convertPamWorkflowTimestamp -Timestamp $status.StartedOn -Raw:$RawTimestamps
         expires_on = convertPamWorkflowTimestamp -Timestamp $status.ExpiresOn -Raw:$RawTimestamps
