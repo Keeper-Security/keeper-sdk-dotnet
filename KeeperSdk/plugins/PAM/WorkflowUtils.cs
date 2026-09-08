@@ -636,10 +636,10 @@ namespace KeeperSecurity.Plugins.PAM
         return checkedOutBy;
       }
 
-      // User access responses do not include StartedBy, RequestedBy.
-      // Once access has started, the authenticated user is the reliable fallback
-      // for the current user's workflow and must remain visible in every stage.
-      var accessHasStarted = status.Stage == WorkflowStage.WsStarted || status.StartedOn > 0;
+      // User access responses do not include StartedBy or RequestedBy. Use the
+      // authenticated user only while the workflow is currently started; a
+      // historical StartedOn value must not identify an old checkout as active.
+      var accessHasStarted = status.Stage == WorkflowStage.WsStarted;
       return accessHasStarted ? NormalizeWorkflowIdentity(currentUsername) : null;
     }
 
