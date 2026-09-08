@@ -1067,29 +1067,23 @@ function script:writePamWorkflowMyAccessTable {
         [System.Collections.IEnumerable] $Workflows
     )
 
-    $lines = New-Object System.Text.StringBuilder
-    [void]$lines.AppendLine('Your Active Workflows')
-    [void]$lines.AppendLine('')
-    $index = 1
+    $rows = New-Object 'System.Collections.Generic.List[object]'
     foreach ($workflow in $Workflows) {
-        [void]$lines.AppendLine("$index. $($workflow.record_name)")
-        if ($workflow.record_uid) { [void]$lines.AppendLine("   Record UID: $($workflow.record_uid)") }
-        if ($workflow.flow_uid) { [void]$lines.AppendLine("   Flow UID: $($workflow.flow_uid)") }
-        [void]$lines.AppendLine("   Stage: $($workflow.stage)")
-        if ($workflow.conditions.Count -gt 0) {
-            [void]$lines.AppendLine("   Conditions: $($workflow.conditions -join ', ')")
-        }
-        if ($workflow.checked_out_by) { [void]$lines.AppendLine("   Checked Out By: $($workflow.checked_out_by)") }
-        if ($workflow.approved_by.Count -gt 0) {
-            $approved = ($workflow.approved_by | ForEach-Object { $_.user }) -join ', '
-            [void]$lines.AppendLine("   Approved By: $approved")
-        }
-        if ($workflow.started_on) { [void]$lines.AppendLine("   Started: $($workflow.started_on)") }
-        if ($workflow.expires_on) { [void]$lines.AppendLine("   Expires: $($workflow.expires_on)") }
-        [void]$lines.AppendLine('')
-        $index++
+        $approved = ($workflow.approved_by | ForEach-Object { $_.user }) -join ', '
+        [void]$rows.Add([PSCustomObject][ordered]@{
+            Stage = $workflow.stage
+            'Record Name' = $workflow.record_name
+            'Record UID' = $workflow.record_uid
+            'Flow UID' = $workflow.flow_uid
+            'Checked Out By' = $workflow.checked_out_by
+            'Approved By' = $approved
+            Started = $workflow.started_on
+            Expires = $workflow.expires_on
+        })
     }
-    Write-Output $lines.ToString().TrimEnd()
+    Write-Output 'Your Active Workflows'
+    Write-Output ''
+    $rows.ToArray() | Format-Table -AutoSize | Out-String -Width 4096 | Write-Output
 }
 
 function script:testPamWorkflowExempt {
@@ -2065,8 +2059,8 @@ function Get-KeeperPamWorkflowMyAccess {
 
     $workflowItems = New-Object 'System.Collections.Generic.List[object]'
     foreach ($wf in $accessState.Workflows) {
-        [void]$workflowItems.Add(
-            (convertPamWorkflowStateToObject -State $wf -RawTimestamps:($Format -eq 'json')))
+        $workflow = convertPamWorkflowStateToObject -State $wf -RawTimestamps:($Format -eq 'json')
+        [void]$workflowItems.Add($workflow)
     }
     $workflows = $workflowItems.ToArray()
 
