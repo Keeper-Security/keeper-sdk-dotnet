@@ -655,7 +655,7 @@ namespace KeeperSecurity.Plugins.PAM
       foreach (var workflow in state.Workflows)
       {
         var checkedOutBy = ResolveCheckedOutBy(workflow, auth.Username);
-        if (checkedOutBy != null)
+        if (workflow?.Status != null && checkedOutBy != null)
         {
           workflow.Status.CheckedOutBy = checkedOutBy;
         }
