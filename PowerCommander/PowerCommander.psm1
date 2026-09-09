@@ -210,7 +210,9 @@ Get-KeeperPamConfig, New-KeeperPamConfig, Set-KeeperPamConfig, Remove-KeeperPamC
 New-KeeperPamWorkflow, Get-KeeperPamWorkflow, Update-KeeperPamWorkflow, Remove-KeeperPamWorkflow,
 Add-KeeperPamWorkflowApprover, Remove-KeeperPamWorkflowApprover,
 Get-KeeperPamWorkflowState, Get-KeeperPamWorkflowMyAccess,
-Invoke-KeeperPamActionRotate, Get-KeeperPamActionJobInfo, Set-KeeperPamConnection, Set-KeeperPamRbi, Invoke-KeeperPamLaunch
+Invoke-KeeperPamActionRotate, Get-KeeperPamActionJobInfo, Set-KeeperPamConnection, Set-KeeperPamRbi, Invoke-KeeperPamLaunch,
+Get-KeeperPamWorkflowPending, Approve-KeeperPamWorkflowAccess, Deny-KeeperPamWorkflowAccess,
+Request-KeeperPamWorkflowAccess, Start-KeeperPamWorkflow, Stop-KeeperPamWorkflow
 Export-ModuleMember -Alias pam-sync, pam-gateway-list, pam-gw-list, pam-gateway-new, pam-gw-new,
 pam-gateway-edit, pam-gw-edit, pam-gateway-remove, pam-gw-remove, pam-gateway-rm,
 pam-gateway-set-max-instances, pam-gw-set-max-instances,
@@ -226,7 +228,9 @@ pam-workflow-edit, pam-wf-edit, pam-workflow-delete, pam-wf-delete,
 pam-workflow-add-approver, pam-wf-add-approver,
 pam-workflow-remove-approver, pam-wf-remove-approver,
 pam-workflow-state, pam-wf-state, pam-workflow-my-access, pam-wf-my-access,
-pam-action-rotate, pam-action-job-info, pam-connection-edit, pam-rbi-edit, pam-launch
+pam-action-rotate, pam-action-job-info, pam-connection-edit, pam-rbi-edit, pam-launch,
+pam-workflow-pending, pam-workflow-approve, pam-workflow-deny, pam-workflow-request,
+pam-workflow-start, pam-workflow-end
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
