@@ -47,10 +47,18 @@ namespace KeeperSecurity.Vault
 
             var trimmedUid = recordUid.Trim();
 
-            var recordDetails = await RecordSkipSyncDown.GetOwnedRecordsAsync(
-                auth,
-                new[] { trimmedUid })
-                .ConfigureAwait(false);
+            RecordDetailsSkipSyncResult recordDetails;
+            try
+            {
+                recordDetails = await RecordSkipSyncDown.GetOwnedRecordsAsync(
+                    auth,
+                    new[] { trimmedUid })
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new VaultException($"Failed to retrieve record \"{recordUid}\": {ex.Message}");
+            }
 
             if (recordDetails.Records.Count > 0)
             {
@@ -201,14 +209,16 @@ namespace KeeperSecurity.Vault
 
                 foreach (var clientId in clientIdList)
                 {
+                    byte[] decodedClientId;
                     try
                     {
-                        request.Clients.Add(ByteString.CopyFrom(clientId.Trim().Base64UrlDecode()));
+                        decodedClientId = clientId.Trim().Base64UrlDecode();
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Warning: Invalid client ID format: {clientId}. Error: {ex.Message}");
+                        throw new VaultException($"Invalid client ID format: \"{clientId}\". {ex.Message}");
                     }
+                    request.Clients.Add(ByteString.CopyFrom(decodedClientId));
                 }
 
                 if (request.Clients.Count > 0)
