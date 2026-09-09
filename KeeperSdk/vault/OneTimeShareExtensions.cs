@@ -51,6 +51,26 @@ public class ExternalRecordShare {
 public static class ExternalRecordShareExtensions
 {
     /// <summary>
+    /// Submits an external share add request and builds the resulting one-time share URL.
+    /// </summary>
+    /// <param name="auth">Authenticated session</param>
+    /// <param name="request">Populated <see cref="AddExternalShareRequest"/></param>
+    /// <param name="clientKey">Client encryption key embedded in the share URL fragment</param>
+    /// <returns>The one-time share URL</returns>
+    internal static async Task<string> AddExternalShareAndBuildUriAsync(this IAuthentication auth, AddExternalShareRequest request, byte[] clientKey)
+    {
+        await auth.ExecuteAuthRest("vault/external_share_add", request);
+        var builder = new UriBuilder(auth.Endpoint.Server)
+        {
+            Path = "/vault/share",
+            Scheme = "https",
+            Port = 443,
+            Fragment = clientKey.Base64UrlEncode(),
+        };
+        return builder.ToString();
+    }
+
+    /// <summary>
     /// Retrieve external shares for a record
     /// </summary>
     /// <param name="vault">Vault</param>
@@ -139,14 +159,6 @@ public static class ExternalRecordShareExtensions
         {
             rq.Id = shareName;
         }
-        await vault.Auth.ExecuteAuthRest("vault/external_share_add", rq);
-        var builder = new UriBuilder(vault.Auth.Endpoint.Server)
-        {
-            Path = "/vault/share",
-            Scheme = "https",
-            Port = 443,
-            Fragment = clientKey.Base64UrlEncode(),
-        };
-        return builder.ToString();
+        return await vault.Auth.AddExternalShareAndBuildUriAsync(rq, clientKey);
     }
 }

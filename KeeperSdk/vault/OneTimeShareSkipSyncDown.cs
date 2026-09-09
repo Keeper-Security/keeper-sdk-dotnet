@@ -106,17 +106,8 @@ namespace KeeperSecurity.Vault
                 request.Id = shareName;
             }
 
-            await auth.ExecuteAuthRest("vault/external_share_add", request)
+            return await auth.AddExternalShareAndBuildUriAsync(request, clientKey)
                 .ConfigureAwait(false);
-
-            var shareUri = new UriBuilder(auth.Endpoint.Server)
-            {
-                Path = "/vault/share",
-                Scheme = "https",
-                Port = 443,
-                Fragment = clientKey.Base64UrlEncode(),
-            }.ToString();
-            return shareUri;
         }
 
         /// <summary>
