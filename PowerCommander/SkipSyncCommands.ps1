@@ -859,6 +859,9 @@ function New-KeeperOneTimeShareSkipSync {
     .PARAMETER ShareName
     Optional. Custom label for the one-time share.
 
+    .PARAMETER Editable
+    Optional. Allows the share recipient to edit the record.
+
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 30
     Creates a share link that works for 30 minutes.
@@ -873,7 +876,8 @@ function New-KeeperOneTimeShareSkipSync {
         [Parameter(Mandatory = $true, Position = 0)][string] $RecordUid,
         [Parameter()][System.Object] $ExpireIn,
         [Parameter()][string] $ExpireAt,
-        [Parameter()][string] $ShareName
+        [Parameter()][string] $ShareName,
+        [switch] $Editable
     )
 
     $auth = getKeeperAuth
@@ -889,7 +893,7 @@ function New-KeeperOneTimeShareSkipSync {
         }
 
         $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareAsync(
-            $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName)
+            $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName, $Editable.IsPresent)
 
         $shareUrl = __AwaitSkipSyncTask $task
         Write-Host ""

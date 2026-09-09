@@ -59,12 +59,13 @@ public static class ExternalRecordShareExtensions
     /// <returns>The one-time share URL</returns>
     internal static async Task<string> AddExternalShareAndBuildUriAsync(this IAuthentication auth, AddExternalShareRequest request, byte[] clientKey)
     {
-        await auth.ExecuteAuthRest("vault/external_share_add", request);
+        await auth.ExecuteAuthRest("vault/external_share_add", request).ConfigureAwait(false);
         var builder = new UriBuilder(auth.Endpoint.Server)
         {
             Path = "/vault/share",
             Scheme = "https",
             Port = 443,
+            Query = request.IsEditable ? "editable=true" : "",
             Fragment = clientKey.Base64UrlEncode(),
         };
         return builder.ToString();
@@ -134,9 +135,10 @@ public static class ExternalRecordShareExtensions
     /// <param name="recordUid">Record UID</param>
     /// <param name="expireIn">Share Expiration</param>
     /// <param name="shareName">Share Name</param>
+    /// <param name="isEditable">Share recipient can edit the record</param>
     /// <returns>External Share URL</returns>
     /// <exception cref="VaultException"></exception>
-    public static async Task<string> CreateExternalRecordShare(this VaultOnline vault, string recordUid, TimeSpan expireIn, string shareName = null) {
+    public static async Task<string> CreateExternalRecordShare(this VaultOnline vault, string recordUid, TimeSpan expireIn, string shareName = null, bool isEditable = false) {
         var record = vault.GetRecord(recordUid);
         if (record == null)
         {
@@ -149,13 +151,14 @@ public static class ExternalRecordShareExtensions
         var clientKey = CryptoUtils.GenerateEncryptionKey();
         var hmac = new HMACSHA512(clientKey);
         var clientId = hmac.ComputeHash(Encoding.UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"));
-        var rq = new AddExternalShareRequest { 
+        var rq = new AddExternalShareRequest {
             RecordUid = ByteString.CopyFrom(tr.Uid.Base64UrlDecode()),
             ClientId = ByteString.CopyFrom(clientId),
             EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(tr.RecordKey, clientKey)),
             AccessExpireOn = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)expireIn.TotalMilliseconds,
+            IsEditable = isEditable,
         };
-        if (!string.IsNullOrEmpty(shareName)) 
+        if (!string.IsNullOrEmpty(shareName))
         {
             rq.Id = shareName;
         }

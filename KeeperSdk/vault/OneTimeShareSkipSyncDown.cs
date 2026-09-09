@@ -30,13 +30,15 @@ namespace KeeperSecurity.Vault
         /// <param name="recordUid">The UID of the owned record to share.</param>
         /// <param name="expireIn">How long the share should remain active.</param>
         /// <param name="shareName">Optional label for the one-time share.</param>
+        /// <param name="isEditable">Share recipient can edit the record.</param>
         /// <returns>The one-time share URL (includes embedded client key in fragment).</returns>
         /// <exception cref="VaultException">If record not found, not owned, or decryption fails.</exception>
         public static async Task<string> CreateExternalRecordShareAsync(
             IAuthentication auth,
             string recordUid,
             TimeSpan expireIn,
-            string shareName = null)
+            string shareName = null,
+            bool isEditable = false)
         {
             if (auth == null || auth.AuthContext == null)
                 throw new VaultException("An authenticated session is needed.");
@@ -60,7 +62,8 @@ namespace KeeperSecurity.Vault
                         typedRecord.Uid,
                         typedRecord.RecordKey,
                         expireIn,
-                        shareName)
+                        shareName,
+                        isEditable)
                         .ConfigureAwait(false);
                 }
                 throw new VaultException($"Record \"{recordUid}\" must be a typed record. Legacy records cannot be shared as one-time shares.");
@@ -84,7 +87,8 @@ namespace KeeperSecurity.Vault
             string recordUid,
             byte[] recordKey,
             TimeSpan expireIn,
-            string shareName = null)
+            string shareName = null,
+            bool isEditable = false)
         {
             if (recordKey == null || recordKey.Length == 0)
                 throw new VaultException("Record key is required to create external share.");
@@ -99,6 +103,7 @@ namespace KeeperSecurity.Vault
                 ClientId = ByteString.CopyFrom(clientId),
                 EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(recordKey, clientKey)),
                 AccessExpireOn = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)expireIn.TotalMilliseconds,
+                IsEditable = isEditable,
             };
 
             if (!string.IsNullOrEmpty(shareName))
