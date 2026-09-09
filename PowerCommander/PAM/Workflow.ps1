@@ -127,6 +127,19 @@ function script:getPamWorkflowFlowUidString {
     return [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($FlowUid.ToByteArray())
 }
 
+function script:resolvePamWorkflowActiveState {
+    Param ($Auth, $Resource, $NotFoundMessage)
+
+    $workflowState = invokePamSdkCall {
+        [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
+            $Auth, $Resource.Uid, $Resource.Title).GetAwaiter().GetResult()
+    }
+    if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
+        Write-Error -Message $NotFoundMessage -ErrorAction Stop
+    }
+    return $workflowState
+}
+
 function Get-KeeperPamWorkflowPending {
     <#
         .Synopsis
@@ -396,13 +409,8 @@ function Request-KeeperPamWorkflowAccess {
     }
 
     if ($Cancel.IsPresent) {
-        $workflowState = invokePamSdkCall {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
-                $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
-        }
-        if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
-            Write-Error -Message 'No active workflow request found for this record.' -ErrorAction Stop
-        }
+        $workflowState = resolvePamWorkflowActiveState -Auth $auth -Resource $resource `
+            -NotFoundMessage 'No active workflow request found for this record.'
 
         $flowRef = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::WorkflowRef($workflowState.FlowUid.ToByteArray())
         invokePamSdkCall {
@@ -424,13 +432,8 @@ function Request-KeeperPamWorkflowAccess {
     }
 
     if ($Escalate.IsPresent) {
-        $workflowState = invokePamSdkCall {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::GetWorkflowStateByRecordAsync(
-                $auth, $resource.Uid, $resource.Title).GetAwaiter().GetResult()
-        }
-        if ($null -eq $workflowState -or $null -eq $workflowState.FlowUid -or $workflowState.FlowUid.IsEmpty) {
-            Write-Error -Message 'No pending workflow request found for this record to escalate.' -ErrorAction Stop
-        }
+        $null = resolvePamWorkflowActiveState -Auth $auth -Resource $resource `
+            -NotFoundMessage 'No pending workflow request found for this record to escalate.'
 
         $null = invokePamSdkCall {
             [KeeperSecurity.Plugins.PAM.WorkflowUtils]::RequestEscalationAsync(
@@ -696,27 +699,30 @@ function script:resolvePamWorkflowRecord {
         [bool] $AllowMissing = $false
     )
 
+    function local:failOrNull {
+        Param($Message, $Exception)
+        if ($AllowMissing) {
+            return $null
+        }
+        if ($Exception) {
+            Write-Error -Message $Message -Exception $Exception -ErrorAction Stop
+        }
+        else {
+            Write-Error -Message $Message -ErrorAction Stop
+        }
+    }
+
     $trimmedIdentifier = $Identifier.Trim()
 
     if ([string]::IsNullOrEmpty($trimmedIdentifier)) {
-        $errorMsg = 'A PAM resource record UID or title is required.'
-        if ($AllowMissing) {
-            Write-Verbose "resolvePamWorkflowRecord: $errorMsg (returning null due to AllowMissing)"
-            return $null
-        }
-        Write-Error -Message $errorMsg -ErrorAction Stop
+        return failOrNull -Message 'A PAM resource record UID or title is required.'
     }
 
     if ($null -eq $Vault) {
-        $errorMsg = 'Vault context is required but is null.'
-        if ($AllowMissing) {
-            Write-Verbose "resolvePamWorkflowRecord: $errorMsg (returning null due to AllowMissing)"
-            return $null
-        }
-        Write-Error -Message $errorMsg -ErrorAction Stop
+        return failOrNull -Message 'Vault context is required but is null.'
     }
 
-    [System.Collections.Generic.IEnumerable[string]] $allowedTypes = $null
+    $allowedTypes = $null
     [string] $typeValidationMsg = ''
 
     if ($ValidateWorkflowType) {
@@ -727,55 +733,20 @@ function script:resolvePamWorkflowRecord {
     $record = $null
 
     try {
-        Write-Verbose "resolvePamWorkflowRecord: Attempting to resolve record by identifier: '$trimmedIdentifier'"
         $record = [KeeperSecurity.Plugins.PAM.PamVaultHelpers]::ResolveRecord(
             $Vault, $trimmedIdentifier, $allowedTypes)
-
-        if ($null -ne $record) {
-            Write-Verbose "resolvePamWorkflowRecord: Successfully resolved record: UID='$($record.Uid)', Title='$($record.Title)'"
-        }
     }
     catch [System.InvalidOperationException] {
-        $innerException = $_.Exception
-        $errorMsg = "Failed to resolve PAM record: $($innerException.Message)"
-
-        Write-Verbose "resolvePamWorkflowRecord: InvalidOperationException caught - $errorMsg"
-
-        if ($AllowMissing) {
-            Write-Verbose "resolvePamWorkflowRecord: Returning null due to AllowMissing flag"
-            return $null
-        }
-
-        Write-Error -Message $errorMsg -Exception $innerException -ErrorAction Stop
+        return failOrNull -Message "Failed to resolve PAM record: $($_.Exception.Message)" -Exception $_.Exception
     }
     catch [System.Exception] {
-        $innerException = $_.Exception
-        $errorMsg = "Unexpected error resolving PAM record: $($innerException.GetType().Name) - $($innerException.Message)"
-
-        Write-Verbose "resolvePamWorkflowRecord: Unexpected exception - $errorMsg"
-
-        if ($AllowMissing) {
-            Write-Verbose "resolvePamWorkflowRecord: Returning null due to AllowMissing flag"
-            return $null
-        }
-
-        Write-Error -Message $errorMsg -Exception $innerException -ErrorAction Stop
+        return failOrNull -Message "Unexpected error resolving PAM record: $($_.Exception.GetType().Name) - $($_.Exception.Message)" -Exception $_.Exception
     }
 
     if ($null -eq $record) {
-        $notFoundMsg = "PAM record `"$trimmedIdentifier`" not found$typeValidationMsg"
-
-        Write-Verbose "resolvePamWorkflowRecord: Record not found - $notFoundMsg"
-
-        if ($AllowMissing) {
-            Write-Verbose "resolvePamWorkflowRecord: Returning null due to AllowMissing flag"
-            return $null
-        }
-
-        Write-Error -Message $notFoundMsg -ErrorAction Stop
+        return failOrNull -Message "PAM record `"$trimmedIdentifier`" not found$typeValidationMsg"
     }
 
-    Write-Verbose "resolvePamWorkflowRecord: Returning resolved record: UID='$($record.Uid)', Title='$($record.Title)'"
     return $record
 }
 
