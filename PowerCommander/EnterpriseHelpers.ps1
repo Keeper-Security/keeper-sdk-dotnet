@@ -685,7 +685,7 @@ function Add-EnterpriseUserToTeamMembership {
     $rq = New-Object KeeperSecurity.Commands.TeamQueueUserCommand
     $rq.TeamUid = $teamUid
     $rq.EnterpriseUserId = $User.Id
-    $Enterprise.loader.Auth.ExecuteAuthCommand($rq).GetAwaiter().GetResult() | Out-Null
+    [KeeperSecurity.Authentication.AuthExtensions]::ExecuteAuthCommand($Enterprise.loader.Auth, $rq).GetAwaiter().GetResult() | Out-Null
     $Enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
     Write-Output "User `"$($User.Email)`" queued to team `"$teamName`"."
 }

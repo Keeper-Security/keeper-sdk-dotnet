@@ -201,6 +201,9 @@ function Get-KeeperEnterpriseTeam {
         .PARAMETER Output
         File path to export results when Format is 'json'. Ignored for 'table' format.
 
+        .PARAMETER Queued
+        Include active team members and users queued for the team.
+
         .EXAMPLE
         Get-KeeperEnterpriseTeam
         Lists all enterprise teams in table format.
@@ -222,7 +225,8 @@ function Get-KeeperEnterpriseTeam {
         [Parameter()][string] $Name,
         [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
-        [Parameter()][string] $Output
+        [Parameter()][string] $Output,
+        [Parameter()][switch] $Queued
     )
 
     if ($Name) { $Name = $Name.Trim() }
@@ -250,6 +254,54 @@ function Get-KeeperEnterpriseTeam {
     if ($result.Count -eq 0 -and ($Name -or $Filter)) {
         Write-Host "No matching enterprise teams found." -ForegroundColor Yellow
         return @()
+    }
+
+    if ($Queued.IsPresent) {
+        $enterprise = getEnterprise
+        $enterpriseData = $enterprise.enterpriseData
+        $queuedTeamData = $enterprise.queuedTeamData
+
+        $detailedResult = foreach ($team in $result) {
+            $users = @()
+            if ($enterpriseData) {
+                $userIds = @($enterpriseData.GetUsersForTeam($team.Uid))
+                foreach ($userId in $userIds) {
+                    $user = $null
+                    if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        $users += $user.Email
+                    }
+                }
+            }
+
+            $queuedUsers = @()
+            if ($queuedTeamData) {
+                $queuedUserIds = @($queuedTeamData.GetQueuedUsersForTeam($team.Uid))
+                foreach ($userId in $queuedUserIds) {
+                    $user = $null
+                    if ($enterpriseData -and $enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        $queuedUsers += $user.Email
+                    }
+                }
+            }
+
+            $team | Select-Object *,
+                @{Name = 'Users'; Expression = { @($users | Sort-Object) }},
+                @{Name = 'QueuedUsers'; Expression = { @($queuedUsers | Sort-Object) }}
+        }
+
+        if ($Format -eq 'json') {
+            $json = @($detailedResult) | ConvertTo-Json -Depth 5
+            if ($Output) {
+                Set-Content -Path $Output -Value $json -Encoding utf8
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            } else {
+                return $json
+            }
+        } else {
+            return @($detailedResult | Select-Object -Property * -ExcludeProperty Users,QueuedUsers,
+                @{Name = 'Users'; Expression = { $_.Users -join [Environment]::NewLine }},
+                @{Name = 'QueuedUsers'; Expression = { $_.QueuedUsers -join [Environment]::NewLine }})
+        }
     }
 
     if ($Format -eq 'json') {
@@ -2006,6 +2058,38 @@ function Export-KeeperAuditLog {
 }
 New-Alias -Name kal -Value Export-KeeperAuditLog
 
+function ConvertTo-KeeperImportObject {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value -or $Value -is [string] -or $Value -is [ValueType]) {
+        return $Value
+    }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
+        foreach ($entry in $Value.GetEnumerator()) {
+            if ($entry.Key -is [string]) {
+                $result[$entry.Key] = ConvertTo-KeeperImportObject $entry.Value
+            }
+        }
+        return $result
+    }
+
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $result = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($item in $Value) {
+            $result.Add((ConvertTo-KeeperImportObject $item))
+        }
+        return $result.ToArray()
+    }
+
+    $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
+    foreach ($property in $Value.PSObject.Properties) {
+        $result[$property.Name] = ConvertTo-KeeperImportObject $property.Value
+    }
+    return $result
+}
+
 function Invoke-KeeperEnterprisePush {
     <#
     .SYNOPSIS
@@ -2046,7 +2130,9 @@ function Invoke-KeeperEnterprisePush {
 
     try {
         $json = Get-Content -LiteralPath $FileName -Raw | ConvertFrom-Json -ErrorAction Stop
-        $document = if ($json -is [System.Array]) { @{ records = $json } } else { $json }
+        $hasRecordsProperty = $null -ne $json.PSObject.Properties['records']
+        $document = if ($hasRecordsProperty) { $json } else { @{ records = @($json) } }
+        $document = ConvertTo-KeeperImportObject $document
         $importJson = [KeeperSecurity.Commands.ImportJsonValue]::FromLegacyObject($document)
         $importFile = [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($importJson)
         $importRecords = if ($null -eq $importFile.Records) { @() } else { @($importFile.Records) }
