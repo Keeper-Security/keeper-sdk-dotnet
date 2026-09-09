@@ -893,7 +893,7 @@ function New-KeeperOneTimeShareSkipSync {
 
         $shareUrl = __AwaitSkipSyncTask $task
         Write-Host ""
-        Write-Host "✓ Share created successfully!" -ForegroundColor Green
+        Write-Host "  Share created successfully!" -ForegroundColor Green
         Write-Host "  Share URL:"
         Write-Host "  $shareUrl" -ForegroundColor Cyan
         Write-Host ""
@@ -994,7 +994,7 @@ function Remove-KeeperOneTimeShareSkipSync {
             }
 
             Write-Host ""
-            Write-Host "✓ Share link(s) revoked!" -ForegroundColor Green
+            Write-Host "  Share link(s) revoked!" -ForegroundColor Green
             Write-Host "  Revoked: $($sharesToDelete.Count) link(s)"
             Write-Host "  Names: $($sharesToDelete -join ', ')"
             Write-Host "  Record: $recordUidTrimmed"
