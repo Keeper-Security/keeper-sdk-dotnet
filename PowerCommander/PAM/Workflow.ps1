@@ -971,6 +971,34 @@ function script:convertPamWorkflowTimestamp {
     return [DateTimeOffset]::FromUnixTimeMilliseconds($Timestamp).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
 }
 
+function script:resolvePamWorkflowResourceName {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Workflow.WorkflowState] $State,
+        [string] $FallbackName
+    )
+
+    if ($State.Resource -and -not [string]::IsNullOrWhiteSpace($State.Resource.Name)) {
+        return $State.Resource.Name
+    }
+
+    if ($Vault -and $State.Resource -and $State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
+        $recordUid = encodePamByteString -ByteString $State.Resource.Value
+        $record = $null
+        if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record) {
+            return $record.Title
+        }
+
+        $nsfRecord = $null
+        if ($Vault.TryGetKeeperNSFRecord($recordUid, [ref]$nsfRecord) -and $nsfRecord) {
+            return $nsfRecord.Title
+        }
+    }
+
+    return $FallbackName
+}
+
 function script:convertPamWorkflowStateToObject {
     Param (
         [Parameter(Mandatory = $true)]
@@ -978,6 +1006,7 @@ function script:convertPamWorkflowStateToObject {
 
         [string] $FallbackRecordUid,
         [string] $FallbackRecordName,
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
         [switch] $RawTimestamps
     )
 
@@ -992,9 +1021,7 @@ function script:convertPamWorkflowStateToObject {
         if ($State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
             $recordUid = encodePamByteString -ByteString $State.Resource.Value
         }
-        if (-not [string]::IsNullOrWhiteSpace($State.Resource.Name)) {
-            $recordName = $State.Resource.Name
-        }
+        $recordName = resolvePamWorkflowResourceName -Vault $Vault -State $State -FallbackName $recordName
     }
 
     $approvedItems = New-Object 'System.Collections.Generic.List[object]'
@@ -1990,6 +2017,7 @@ function Get-KeeperPamWorkflowState {
     else {
         $result = convertPamWorkflowStateToObject -State $state `
             -FallbackRecordUid $resource.Uid -FallbackRecordName $resource.Title `
+            -Vault $vault `
             -RawTimestamps:($Format -eq 'json')
     }
 
@@ -2058,8 +2086,9 @@ function Get-KeeperPamWorkflowMyAccess {
     }
 
     $workflowItems = New-Object 'System.Collections.Generic.List[object]'
+    $vault = getPamVault
     foreach ($wf in $accessState.Workflows) {
-        $workflow = convertPamWorkflowStateToObject -State $wf -RawTimestamps:($Format -eq 'json')
+        $workflow = convertPamWorkflowStateToObject -State $wf -Vault $vault -RawTimestamps:($Format -eq 'json')
         [void]$workflowItems.Add($workflow)
     }
     $workflows = $workflowItems.ToArray()
