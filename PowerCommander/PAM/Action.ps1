@@ -150,7 +150,7 @@ function Invoke-KeeperPamActionRotate {
             writePamActionResult -Result $item
         }
         foreach ($errorItem in $folderResult.Errors) {
-            Write-Output ("Record UID: {0} skipped: {1}" -f $errorItem.RecordUid, $errorItem.Message)
+            Write-Warning ("Record UID: {0} skipped: {1}" -f $errorItem.RecordUid, $errorItem.Message)
         }
         return
     }
