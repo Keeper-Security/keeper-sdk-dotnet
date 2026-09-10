@@ -1357,7 +1357,35 @@ function New-KeeperPamWorkflow {
         $result['warning'] = $partialFailureMessage
         Write-Warning -Message $partialFailureMessage
     }
-    if ($Format -eq 'json') { $result | ConvertTo-Json -Depth 8 } else { [PSCustomObject]$result }
+    if ($Format -eq 'json') {
+        $result | ConvertTo-Json -Depth 8
+        return
+    }
+
+    $lines = New-Object System.Text.StringBuilder
+    [void]$lines.AppendLine('Workflow created successfully')
+    [void]$lines.AppendLine('')
+    [void]$lines.AppendLine("Record: $($resource.Title) ($($resource.Uid))")
+    [void]$lines.AppendLine("Approvals needed: $($parameters.ApprovalsNeeded)")
+    [void]$lines.AppendLine("Check-in/out: $(if ($parameters.CheckoutNeeded) { 'Yes' } else { 'No' })")
+    [void]$lines.AppendLine("Duration: $([KeeperSecurity.Plugins.PAM.WorkflowUtils]::FormatDuration($parameters.AccessLength))")
+    if ($parameters.RequireReason) {
+        [void]$lines.AppendLine('Requires reason: Yes')
+    }
+    if ($parameters.RequireTicket) {
+        [void]$lines.AppendLine('Requires ticket: Yes')
+    }
+    if ($parameters.RequireMFA) {
+        [void]$lines.AppendLine('Requires MFA: Yes')
+    }
+    if (@($approversAdded).Count -gt 0) {
+        [void]$lines.AppendLine("Approvers: $($approversAdded -join ', ')")
+    }
+    elseif ($parameters.ApprovalsNeeded -gt 0) {
+        [void]$lines.AppendLine('')
+        [void]$lines.AppendLine("Note: Add approvers with: pam-workflow add-approver $($resource.Uid) --user <email>")
+    }
+    Write-Output $lines.ToString().TrimEnd()
 }
 
 function Get-KeeperPamWorkflow {
@@ -1545,23 +1573,23 @@ function Update-KeeperPamWorkflow {
 
         [Parameter()]
         [Alias('co')]
-        [Nullable[bool]] $Checkout,
+        [object] $Checkout,
 
         [Parameter()]
         [Alias('sa')]
-        [Nullable[bool]] $StartOnApproval,
+        [object] $StartOnApproval,
 
         [Parameter()]
         [Alias('rr')]
-        [Nullable[bool]] $RequireReason,
+        [object] $RequireReason,
 
         [Parameter()]
         [Alias('rt')]
-        [Nullable[bool]] $RequireTicket,
+        [object] $RequireTicket,
 
         [Parameter()]
         [Alias('rm')]
-        [Nullable[bool]] $RequireMfa,
+        [object] $RequireMfa,
 
         [Parameter()]
         [Alias('d')]
@@ -1599,11 +1627,26 @@ function Update-KeeperPamWorkflow {
     $parameters = $current.Parameters.Clone()
     $updatesProvided = $false
     if ($PSBoundParameters.ContainsKey('ApprovalsNeeded')) { $parameters.ApprovalsNeeded = [int]$ApprovalsNeeded; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('Checkout')) { $parameters.CheckoutNeeded = [bool]$Checkout; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('StartOnApproval')) { $parameters.StartAccessOnApproval = [bool]$StartOnApproval; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireReason')) { $parameters.RequireReason = [bool]$RequireReason; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireTicket')) { $parameters.RequireTicket = [bool]$RequireTicket; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireMfa')) { $parameters.RequireMFA = [bool]$RequireMfa; $updatesProvided = $true }
+    if ($PSBoundParameters.ContainsKey('Checkout')) {
+        $parameters.CheckoutNeeded = ConvertTo-KeeperNullableBoolean -Value $Checkout -ParameterName 'Checkout'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('StartOnApproval')) {
+        $parameters.StartAccessOnApproval = ConvertTo-KeeperNullableBoolean -Value $StartOnApproval -ParameterName 'StartOnApproval'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireReason')) {
+        $parameters.RequireReason = ConvertTo-KeeperNullableBoolean -Value $RequireReason -ParameterName 'RequireReason'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireTicket')) {
+        $parameters.RequireTicket = ConvertTo-KeeperNullableBoolean -Value $RequireTicket -ParameterName 'RequireTicket'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireMfa')) {
+        $parameters.RequireMFA = ConvertTo-KeeperNullableBoolean -Value $RequireMfa -ParameterName 'RequireMfa'
+        $updatesProvided = $true
+    }
 
     try {
         if ($PSBoundParameters.ContainsKey('Duration')) {
