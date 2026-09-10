@@ -127,7 +127,8 @@
         'Get-KeeperRiskManagementReport','Get-KeeperSharedFolderDetailsSkipSync', 'Get-KeeperSharedFolderRecordUidsSkipSync', 
         'Get-KeeperSharedFolderRecordsSkipSync', 'Get-KeeperRecordDetailsByUidSkipSync','Get-KeeperAvailableTeamsSkipSync', 
         'Get-KeeperTeamUidSkipSync', 'Grant-KeeperSharedFolderUserSkipSync', 'Revoke-KeeperSharedFolderUserSkipSync',
-        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync','Sync-KeeperEpm',
+        'Grant-KeeperSharedFolderTeamSkipSync', 'Revoke-KeeperSharedFolderTeamSkipSync',
+        'New-KeeperOneTimeShareSkipSync', 'Get-KeeperOneTimeShareSkipSync', 'Remove-KeeperOneTimeShareSkipSync', 'Sync-KeeperEpm',
         'Get-KeeperEpmDeploymentList', 'Get-KeeperEpmDeployment', 'Add-KeeperEpmDeployment',
         'Update-KeeperEpmDeployment', 'Remove-KeeperEpmDeployment', 'Get-KeeperEpmDeploymentDownload',
         'Get-KeeperEpmApprovalList', 'Get-KeeperEpmApproval', 'Approve-KeeperEpmApproval', 'Deny-KeeperEpmApproval', 'Remove-KeeperEpmApproval'
@@ -215,31 +216,37 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'PAM Gateway commands:
-                    - Sync-KeeperPam (pam-sync): sync PAM data
-                    - Get-KeeperPamGatewayList (pam-gateway-list / pam-gw-list): list PAM gateways
-                    - New-KeeperPamGateway (pam-gateway-new / pam-gw-new): create a PAM gateway
-                    - Set-KeeperPamGateway (pam-gateway-edit / pam-gw-edit): edit a PAM gateway
-                    - Remove-KeeperPamGateway (pam-gateway-remove / pam-gw-remove): remove a PAM gateway
-                    - Set-KeeperPamGatewayMaxInstances (pam-gateway-set-max-instances): set gateway max instances
-                    PAM Rotation commands:
-                    - Get-KeeperPamRotationList (pam-rotation-list): list PAM rotations
-                    - Get-KeeperPamRotationInfo (pam-rotation-info): get rotation details
-                    - Set-KeeperPamRotation (pam-rotation-edit): edit rotation settings; NSF record rotation support added
-                    - Get-KeeperPamRotationScript / Add-KeeperPamRotationScript / Set-KeeperPamRotationScript / Remove-KeeperPamRotationScript: manage rotation scripts
-                    PAM Config commands:
-                    - Get-KeeperPamConfig (pam-config-list): list PAM configurations
-                    - New-KeeperPamConfig (pam-config-new): create a PAM configuration
-                    - Set-KeeperPamConfig (pam-config-edit): edit a PAM configuration
-                    - Remove-KeeperPamConfig (pam-config-remove): remove a PAM configuration
-                    NSF batch cmdlets:
-                    - New-KeeperNSFFolders / Set-KeeperNSFFolders / Remove-KeeperNSFFolders: batch create/update/remove NSF folders (up to 100 per request)
-                    - Share-KeeperNSFFolderAccesses / Update-KeeperNSFFolderAccesses / Unshare-KeeperNSFFolderAccesses: batch folder access (up to 500)
-                    - Add-KeeperNSFRecords / Edit-KeeperNSFRecords / Share-KeeperNSFRecords / Unshare-KeeperNSFRecords / Remove-KeeperNSFRecords: batch record operations
-                    - Supports -WhatIf / -Confirm on batch mutators; sample JSON via -DownloadSample* parameters
-                    Enterprise user alias management:
-                    - Add-KeeperEnterpriseUserAlias (kuser-alias-add): add an alias to an enterprise user
-                    - Remove-KeeperEnterpriseUserAlias (kuser-alias-remove): remove an alias from an enterprise user
+            ReleaseNotes = 'One-Time Share enhancements:
+                    - Skip-sync support for one-time share creation without full vault sync
+                    - Editable flag support (-Editable switch) on New-KeeperOneTimeShare and New-KeeperOneTimeShareSkipSync
+                    - Share URL now includes editable=true query parameter when isEditable is set
+                    Shared Folder Record Permission command:
+                    - Set-KeeperSharedFolderRecordPermission: configure record permission in shared folders
+                    PAM Workflow Management commands:
+                    - New-KeeperPamWorkflow: create workflow settings for a resource record
+                    - Get-KeeperPamWorkflow: read workflow configuration
+                    - Update-KeeperPamWorkflow: update workflow settings
+                    - Remove-KeeperPamWorkflow: delete workflow settings
+                    - Add-KeeperPamWorkflowApprover: add users or teams as approvers
+                    - Remove-KeeperPamWorkflowApprover: remove users or teams from approvers
+                    - Get-KeeperPamWorkflowState: show workflow state for a resource record
+                    - Get-KeeperPamWorkflowMyAccess: show current user''s workflow access
+                    - Get-KeeperPamWorkflowPending: list pending approval requests
+                    - Approve-KeeperPamWorkflowAccess: approve workflow access requests
+                    - Deny-KeeperPamWorkflowAccess: deny workflow access requests
+                    - Request-KeeperPamWorkflowAccess: request, escalate, or cancel workflow access
+                    - Start-KeeperPamWorkflow: start workflow (check out record)
+                    - Stop-KeeperPamWorkflow: end workflow (check in record)
+                    Team Collaboration commands:
+                    - Approve-KeeperTeamRecords: approve pending team record requests
+                    - Invoke-KeeperEnterpriseOrgPush: push enterprise org changes to teams
+                    NSF (Network Share Folder) enhancements:
+                    - Added NSF support to PAM commands (action rotate, connection-edit, rbi-edit)
+                    - NSF support for PAM configuration commands
+                    Bug Fixes:
+                    - Fixed attachment sanitization to prevent malicious content in record attachments
+                    - Fixed API throttle response handling with automatic retry mechanism
+                    - Fixed BreachWatch status mapping
                 '
         }
     }

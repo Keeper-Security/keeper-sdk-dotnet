@@ -75,10 +75,11 @@ Remove-KeeperRecordType, Import-KeeperRecordTypes,Export-KeeperRecordTypes, Get-
 Get-KeeperPasswordReport, Find-KeeperDuplicateRecords, Get-KeeperRecordHistory
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti, find-duplicates, krh
 
-Export-ModuleMember -Function Get-KeeperSharedFolder,Get-KeeperSharedFolderDetailsSkipSync, 
+Export-ModuleMember -Function Get-KeeperSharedFolder,Get-KeeperSharedFolderDetailsSkipSync,
 Get-KeeperSharedFolderRecordUidsSkipSync, Get-KeeperSharedFolderRecordsSkipSync, Get-KeeperRecordDetailsByUidSkipSync,
-Get-KeeperAvailableTeamsSkipSync, Get-KeeperTeamUidSkipSync, Grant-KeeperSharedFolderUserSkipSync, 
-Revoke-KeeperSharedFolderUserSkipSync, Grant-KeeperSharedFolderTeamSkipSync, Revoke-KeeperSharedFolderTeamSkipSync
+Get-KeeperAvailableTeamsSkipSync, Get-KeeperTeamUidSkipSync, Grant-KeeperSharedFolderUserSkipSync,
+Revoke-KeeperSharedFolderUserSkipSync, Grant-KeeperSharedFolderTeamSkipSync, Revoke-KeeperSharedFolderTeamSkipSync,
+New-KeeperOneTimeShareSkipSync, Get-KeeperOneTimeShareSkipSync, Remove-KeeperOneTimeShareSkipSync
 
 Export-ModuleMember -Alias ksf
 
