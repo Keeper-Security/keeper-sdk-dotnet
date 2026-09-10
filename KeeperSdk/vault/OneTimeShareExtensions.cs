@@ -62,7 +62,7 @@ public static class ExternalRecordShareExtensions
         await auth.ExecuteAuthRest("vault/external_share_add", request).ConfigureAwait(false);
         var builder = new UriBuilder(auth.Endpoint.Server)
         {
-            Path = "/vault/share",
+            Path = "/vault/share/",
             Scheme = "https",
             Port = 443,
             Query = request.IsEditable ? "editable=true" : "",
