@@ -123,83 +123,83 @@ namespace Automator {
             "ASgJEg8KB2VuYWJsZWQYAyABKAgSCwoDdXJsGAQgASgJEigKCnNraWxsVHlw",
             "ZXMYBSADKA4yFC5BdXRvbWF0b3IuU2tpbGxUeXBlEkAKFmF1dG9tYXRvclNl",
             "dHRpbmdWYWx1ZXMYBiADKAsyIC5BdXRvbWF0b3IuQXV0b21hdG9yU2V0dGlu",
-            "Z1ZhbHVlIvwBChpBZG1pblNldHVwQXV0b21hdG9yUmVxdWVzdBITCgthdXRv",
+            "Z1ZhbHVlIpYCChpBZG1pblNldHVwQXV0b21hdG9yUmVxdWVzdBITCgthdXRv",
             "bWF0b3JJZBgBIAEoAxIxCg5hdXRvbWF0b3JTdGF0ZRgCIAEoDjIZLkF1dG9t",
             "YXRvci5BdXRvbWF0b3JTdGF0ZRIoCiBlbmNyeXB0ZWRFY2NFbnRlcnByaXNl",
             "UHJpdmF0ZUtleRgDIAEoDBIoCiBlbmNyeXB0ZWRSc2FFbnRlcnByaXNlUHJp",
             "dmF0ZUtleRgEIAEoDBIoCgpza2lsbFR5cGVzGAUgAygOMhQuQXV0b21hdG9y",
-            "LlNraWxsVHlwZRIYChBlbmNyeXB0ZWRUcmVlS2V5GAYgASgMIqYBChtBZG1p",
-            "blNldHVwQXV0b21hdG9yUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBIPCgdt",
-            "ZXNzYWdlGAIgASgJEhMKC2F1dG9tYXRvcklkGAMgASgDEjEKDmF1dG9tYXRv",
-            "clN0YXRlGAQgASgOMhkuQXV0b21hdG9yLkF1dG9tYXRvclN0YXRlEh0KFWF1",
-            "dG9tYXRvckVjY1B1YmxpY0tleRgFIAEoDCIyChtBZG1pbkF1dG9tYXRvclNr",
-            "aWxsc1JlcXVlc3QSEwoLYXV0b21hdG9ySWQYASABKAMiXwoOQXV0b21hdG9y",
-            "U2tpbGwSJwoJc2tpbGxUeXBlGAEgASgOMhQuQXV0b21hdG9yLlNraWxsVHlw",
-            "ZRIMCgRuYW1lGAIgASgJEhYKDnRyYW5zbGF0ZWROYW1lGAMgASgJInQKHEFk",
-            "bWluQXV0b21hdG9yU2tpbGxzUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCBIP",
-            "CgdtZXNzYWdlGAIgASgJEjIKD2F1dG9tYXRvclNraWxscxgDIAMoCzIZLkF1",
-            "dG9tYXRvci5BdXRvbWF0b3JTa2lsbCIxChpBZG1pblJlc2V0QXV0b21hdG9y",
-            "UmVxdWVzdBITCgthdXRvbWF0b3JJZBgBIAEoAyI2Ch9BZG1pbkluaXRpYWxp",
-            "emVBdXRvbWF0b3JSZXF1ZXN0EhMKC2F1dG9tYXRvcklkGAEgASgDIi8KGEFk",
-            "bWluQXV0b21hdG9yTG9nUmVxdWVzdBITCgthdXRvbWF0b3JJZBgBIAEoAyI0",
-            "Ch1BZG1pbkF1dG9tYXRvckxvZ0NsZWFyUmVxdWVzdBITCgthdXRvbWF0b3JJ",
-            "ZBgBIAEoAyLjAgoaQXBwcm92ZVRlYW1zRm9yVXNlclJlcXVlc3QSEwoLYXV0",
-            "b21hdG9ySWQYASABKAMSTwodc3NvQXV0aGVudGljYXRpb25Qcm90b2NvbFR5",
-            "cGUYAiABKA4yKC5BdXRvbWF0b3IuU3NvQXV0aGVudGljYXRpb25Qcm90b2Nv",
-            "bFR5cGUSEwoLYXV0aE1lc3NhZ2UYAyABKAkSDQoFZW1haWwYBCABKAkSHAoU",
-            "c2VydmVyRWNjUHVibGljS2V5SWQYBSABKAUSEQoJaXBBZGRyZXNzGAYgASgJ",
-            "EhUKDXVzZXJQdWJsaWNLZXkYByABKAwSMwoPdGVhbURlc2NyaXB0aW9uGAgg",
-            "AygLMhouQXV0b21hdG9yLlRlYW1EZXNjcmlwdGlvbhIRCglpc1Rlc3RpbmcY",
-            "CSABKAgSEQoJaXNFY2NPbmx5GAogASgIEhgKEHVzZXJQdWJsaWNLZXlFY2MY",
-            "CyABKAwiigEKD1RlYW1EZXNjcmlwdGlvbhIPCgd0ZWFtVWlkGAEgASgMEhAK",
-            "CHRlYW1OYW1lGAIgASgJEhgKEGVuY3J5cHRlZFRlYW1LZXkYAyABKAwSOgoU",
-            "ZW5jcnlwdGVkVGVhbUtleVR5cGUYBCABKA4yHC5FbnRlcnByaXNlLkVuY3J5",
-            "cHRlZEtleVR5cGUimQEKG0FwcHJvdmVUZWFtc0ZvclVzZXJSZXNwb25zZRIT",
-            "CgthdXRvbWF0b3JJZBgBIAEoAxINCgVlbWFpbBgCIAEoCRIPCgdtZXNzYWdl",
-            "GAMgASgJEkUKE2FwcHJvdmVUZWFtUmVzcG9uc2UYBCADKAsyKC5BdXRvbWF0",
-            "b3IuQXBwcm92ZU9uZVRlYW1Gb3JVc2VyUmVzcG9uc2UiqwIKHUFwcHJvdmVP",
-            "bmVUZWFtRm9yVXNlclJlc3BvbnNlEhAKCGFwcHJvdmVkGAEgASgIEg8KB21l",
-            "c3NhZ2UYAiABKAkSDwoHdGVhbVVpZBgDIAEoDBIQCgh0ZWFtTmFtZRgEIAEo",
-            "CRIcChR1c2VyRW5jcnlwdGVkVGVhbUtleRgFIAEoDBI+Chh1c2VyRW5jcnlw",
-            "dGVkVGVhbUtleVR5cGUYBiABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtl",
-            "eVR5cGUSIQoZdXNlckVuY3J5cHRlZFRlYW1LZXlCeUVjYxgHIAEoDBJDCh11",
-            "c2VyRW5jcnlwdGVkVGVhbUtleUJ5RWNjVHlwZRgIIAEoDjIcLkVudGVycHJp",
-            "c2UuRW5jcnlwdGVkS2V5VHlwZSKrAgoTQXBwcm92ZVRlYW1zUmVxdWVzdBIT",
-            "CgthdXRvbWF0b3JJZBgBIAEoAxJPCh1zc29BdXRoZW50aWNhdGlvblByb3Rv",
-            "Y29sVHlwZRgCIAEoDjIoLkF1dG9tYXRvci5Tc29BdXRoZW50aWNhdGlvblBy",
-            "b3RvY29sVHlwZRITCgthdXRoTWVzc2FnZRgDIAEoCRINCgVlbWFpbBgEIAEo",
-            "CRIcChRzZXJ2ZXJFY2NQdWJsaWNLZXlJZBgFIAEoBRIRCglpcEFkZHJlc3MY",
-            "BiABKAkSMwoPdGVhbURlc2NyaXB0aW9uGAcgAygLMhouQXV0b21hdG9yLlRl",
-            "YW1EZXNjcmlwdGlvbhIRCglpc0VjY09ubHkYCCABKAgSEQoJaXNUZXN0aW5n",
-            "GAkgASgIInwKFEFwcHJvdmVUZWFtc1Jlc3BvbnNlEhMKC2F1dG9tYXRvcklk",
-            "GAEgASgDEg8KB21lc3NhZ2UYAiABKAkSPgoTYXBwcm92ZVRlYW1SZXNwb25z",
-            "ZRgDIAMoCzIhLkF1dG9tYXRvci5BcHByb3ZlT25lVGVhbVJlc3BvbnNlIp4E",
-            "ChZBcHByb3ZlT25lVGVhbVJlc3BvbnNlEhAKCGFwcHJvdmVkGAEgASgIEg8K",
-            "B21lc3NhZ2UYAiABKAkSDwoHdGVhbVVpZBgDIAEoDBIQCgh0ZWFtTmFtZRgE",
-            "IAEoCRIbChNlbmNyeXB0ZWRUZWFtS2V5Q2JjGAUgASgMEj0KF2VuY3J5cHRl",
-            "ZFRlYW1LZXlDYmNUeXBlGAYgASgOMhwuRW50ZXJwcmlzZS5FbmNyeXB0ZWRL",
-            "ZXlUeXBlEhsKE2VuY3J5cHRlZFRlYW1LZXlHY20YByABKAwSPQoXZW5jcnlw",
-            "dGVkVGVhbUtleUdjbVR5cGUYCCABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRl",
-            "ZEtleVR5cGUSGAoQdGVhbVB1YmxpY0tleVJzYRgJIAEoDBIiChplbmNyeXB0",
-            "ZWRUZWFtUHJpdmF0ZUtleVJzYRgKIAEoDBJECh5lbmNyeXB0ZWRUZWFtUHJp",
-            "dmF0ZUtleVJzYVR5cGUYCyABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtl",
-            "eVR5cGUSGAoQdGVhbVB1YmxpY0tleUVjYxgMIAEoDBIiChplbmNyeXB0ZWRU",
-            "ZWFtUHJpdmF0ZUtleUVjYxgNIAEoDBJECh5lbmNyeXB0ZWRUZWFtUHJpdmF0",
-            "ZUtleUVjY1R5cGUYDiABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtleVR5",
-            "cGUikwEKElNTTENlcnRpZmljYXRlSW5mbxITCgthdXRvbWF0b3JJZBgBIAEo",
-            "BBIPCgdob3N0VXJsGAIgASgJEg8KB3N1YmplY3QYAyABKAkSDgoGaXNzdWVy",
-            "GAQgASgJEhAKCGlzc3VlZE9uGAUgASgEEhEKCWV4cGlyZXNPbhgGIAEoBBIR",
-            "CgljaGVja2VkT24YByABKAQqSQodU3NvQXV0aGVudGljYXRpb25Qcm90b2Nv",
-            "bFR5cGUSFAoQVU5LTk9XTl9QUk9UT0NPTBAAEgkKBVNBTUwyEAESBwoDSldU",
-            "EAIqPAoRQ2VydGlmaWNhdGVGb3JtYXQSEgoOVU5LTk9XTl9GT1JNQVQQABIK",
-            "CgZQS0NTMTIQARIHCgNKS1MQAip2CglTa2lsbFR5cGUSFgoSVU5LTk9XTl9T",
-            "S0lMTF9UWVBFEAASEwoPREVWSUNFX0FQUFJPVkFMEAESEQoNVEVBTV9BUFBS",
-            "T1ZBTBACEhoKFlRFQU1fRk9SX1VTRVJfQVBQUk9WQUwQAxINCglSRVBPUlRJ",
-            "TkcQBCqHAQoOQXV0b21hdG9yU3RhdGUSEQoNVU5LTk9XTl9TVEFURRAAEgsK",
-            "B1JVTk5JTkcQARIJCgVFUlJPUhACEhgKFE5FRURTX0lOSVRJQUxJWkFUSU9O",
-            "EAMSFwoTTkVFRFNfQ1JZUFRPX1NURVBfMRAEEhcKE05FRURTX0NSWVBUT19T",
-            "VEVQXzIQBUIlChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCUF1dG9tYXRv",
-            "cmIGcHJvdG8z"));
+            "LlNraWxsVHlwZRIYChBlbmNyeXB0ZWRUcmVlS2V5GAYgASgMEhgKEGVucm9s",
+            "bG1lbnRTZWNyZXQYCSABKAkipgEKG0FkbWluU2V0dXBBdXRvbWF0b3JSZXNw",
+            "b25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSEwoLYXV0",
+            "b21hdG9ySWQYAyABKAMSMQoOYXV0b21hdG9yU3RhdGUYBCABKA4yGS5BdXRv",
+            "bWF0b3IuQXV0b21hdG9yU3RhdGUSHQoVYXV0b21hdG9yRWNjUHVibGljS2V5",
+            "GAUgASgMIjIKG0FkbWluQXV0b21hdG9yU2tpbGxzUmVxdWVzdBITCgthdXRv",
+            "bWF0b3JJZBgBIAEoAyJfCg5BdXRvbWF0b3JTa2lsbBInCglza2lsbFR5cGUY",
+            "ASABKA4yFC5BdXRvbWF0b3IuU2tpbGxUeXBlEgwKBG5hbWUYAiABKAkSFgoO",
+            "dHJhbnNsYXRlZE5hbWUYAyABKAkidAocQWRtaW5BdXRvbWF0b3JTa2lsbHNS",
+            "ZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSMgoP",
+            "YXV0b21hdG9yU2tpbGxzGAMgAygLMhkuQXV0b21hdG9yLkF1dG9tYXRvclNr",
+            "aWxsIjEKGkFkbWluUmVzZXRBdXRvbWF0b3JSZXF1ZXN0EhMKC2F1dG9tYXRv",
+            "cklkGAEgASgDIjYKH0FkbWluSW5pdGlhbGl6ZUF1dG9tYXRvclJlcXVlc3QS",
+            "EwoLYXV0b21hdG9ySWQYASABKAMiLwoYQWRtaW5BdXRvbWF0b3JMb2dSZXF1",
+            "ZXN0EhMKC2F1dG9tYXRvcklkGAEgASgDIjQKHUFkbWluQXV0b21hdG9yTG9n",
+            "Q2xlYXJSZXF1ZXN0EhMKC2F1dG9tYXRvcklkGAEgASgDIuMCChpBcHByb3Zl",
+            "VGVhbXNGb3JVc2VyUmVxdWVzdBITCgthdXRvbWF0b3JJZBgBIAEoAxJPCh1z",
+            "c29BdXRoZW50aWNhdGlvblByb3RvY29sVHlwZRgCIAEoDjIoLkF1dG9tYXRv",
+            "ci5Tc29BdXRoZW50aWNhdGlvblByb3RvY29sVHlwZRITCgthdXRoTWVzc2Fn",
+            "ZRgDIAEoCRINCgVlbWFpbBgEIAEoCRIcChRzZXJ2ZXJFY2NQdWJsaWNLZXlJ",
+            "ZBgFIAEoBRIRCglpcEFkZHJlc3MYBiABKAkSFQoNdXNlclB1YmxpY0tleRgH",
+            "IAEoDBIzCg90ZWFtRGVzY3JpcHRpb24YCCADKAsyGi5BdXRvbWF0b3IuVGVh",
+            "bURlc2NyaXB0aW9uEhEKCWlzVGVzdGluZxgJIAEoCBIRCglpc0VjY09ubHkY",
+            "CiABKAgSGAoQdXNlclB1YmxpY0tleUVjYxgLIAEoDCKKAQoPVGVhbURlc2Ny",
+            "aXB0aW9uEg8KB3RlYW1VaWQYASABKAwSEAoIdGVhbU5hbWUYAiABKAkSGAoQ",
+            "ZW5jcnlwdGVkVGVhbUtleRgDIAEoDBI6ChRlbmNyeXB0ZWRUZWFtS2V5VHlw",
+            "ZRgEIAEoDjIcLkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZSKZAQobQXBw",
+            "cm92ZVRlYW1zRm9yVXNlclJlc3BvbnNlEhMKC2F1dG9tYXRvcklkGAEgASgD",
+            "Eg0KBWVtYWlsGAIgASgJEg8KB21lc3NhZ2UYAyABKAkSRQoTYXBwcm92ZVRl",
+            "YW1SZXNwb25zZRgEIAMoCzIoLkF1dG9tYXRvci5BcHByb3ZlT25lVGVhbUZv",
+            "clVzZXJSZXNwb25zZSKrAgodQXBwcm92ZU9uZVRlYW1Gb3JVc2VyUmVzcG9u",
+            "c2USEAoIYXBwcm92ZWQYASABKAgSDwoHbWVzc2FnZRgCIAEoCRIPCgd0ZWFt",
+            "VWlkGAMgASgMEhAKCHRlYW1OYW1lGAQgASgJEhwKFHVzZXJFbmNyeXB0ZWRU",
+            "ZWFtS2V5GAUgASgMEj4KGHVzZXJFbmNyeXB0ZWRUZWFtS2V5VHlwZRgGIAEo",
+            "DjIcLkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZRIhChl1c2VyRW5jcnlw",
+            "dGVkVGVhbUtleUJ5RWNjGAcgASgMEkMKHXVzZXJFbmNyeXB0ZWRUZWFtS2V5",
+            "QnlFY2NUeXBlGAggASgOMhwuRW50ZXJwcmlzZS5FbmNyeXB0ZWRLZXlUeXBl",
+            "IqsCChNBcHByb3ZlVGVhbXNSZXF1ZXN0EhMKC2F1dG9tYXRvcklkGAEgASgD",
+            "Ek8KHXNzb0F1dGhlbnRpY2F0aW9uUHJvdG9jb2xUeXBlGAIgASgOMiguQXV0",
+            "b21hdG9yLlNzb0F1dGhlbnRpY2F0aW9uUHJvdG9jb2xUeXBlEhMKC2F1dGhN",
+            "ZXNzYWdlGAMgASgJEg0KBWVtYWlsGAQgASgJEhwKFHNlcnZlckVjY1B1Ymxp",
+            "Y0tleUlkGAUgASgFEhEKCWlwQWRkcmVzcxgGIAEoCRIzCg90ZWFtRGVzY3Jp",
+            "cHRpb24YByADKAsyGi5BdXRvbWF0b3IuVGVhbURlc2NyaXB0aW9uEhEKCWlz",
+            "RWNjT25seRgIIAEoCBIRCglpc1Rlc3RpbmcYCSABKAgifAoUQXBwcm92ZVRl",
+            "YW1zUmVzcG9uc2USEwoLYXV0b21hdG9ySWQYASABKAMSDwoHbWVzc2FnZRgC",
+            "IAEoCRI+ChNhcHByb3ZlVGVhbVJlc3BvbnNlGAMgAygLMiEuQXV0b21hdG9y",
+            "LkFwcHJvdmVPbmVUZWFtUmVzcG9uc2UingQKFkFwcHJvdmVPbmVUZWFtUmVz",
+            "cG9uc2USEAoIYXBwcm92ZWQYASABKAgSDwoHbWVzc2FnZRgCIAEoCRIPCgd0",
+            "ZWFtVWlkGAMgASgMEhAKCHRlYW1OYW1lGAQgASgJEhsKE2VuY3J5cHRlZFRl",
+            "YW1LZXlDYmMYBSABKAwSPQoXZW5jcnlwdGVkVGVhbUtleUNiY1R5cGUYBiAB",
+            "KA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtleVR5cGUSGwoTZW5jcnlwdGVk",
+            "VGVhbUtleUdjbRgHIAEoDBI9ChdlbmNyeXB0ZWRUZWFtS2V5R2NtVHlwZRgI",
+            "IAEoDjIcLkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZRIYChB0ZWFtUHVi",
+            "bGljS2V5UnNhGAkgASgMEiIKGmVuY3J5cHRlZFRlYW1Qcml2YXRlS2V5UnNh",
+            "GAogASgMEkQKHmVuY3J5cHRlZFRlYW1Qcml2YXRlS2V5UnNhVHlwZRgLIAEo",
+            "DjIcLkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZRIYChB0ZWFtUHVibGlj",
+            "S2V5RWNjGAwgASgMEiIKGmVuY3J5cHRlZFRlYW1Qcml2YXRlS2V5RWNjGA0g",
+            "ASgMEkQKHmVuY3J5cHRlZFRlYW1Qcml2YXRlS2V5RWNjVHlwZRgOIAEoDjIc",
+            "LkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZSKTAQoSU1NMQ2VydGlmaWNh",
+            "dGVJbmZvEhMKC2F1dG9tYXRvcklkGAEgASgEEg8KB2hvc3RVcmwYAiABKAkS",
+            "DwoHc3ViamVjdBgDIAEoCRIOCgZpc3N1ZXIYBCABKAkSEAoIaXNzdWVkT24Y",
+            "BSABKAQSEQoJZXhwaXJlc09uGAYgASgEEhEKCWNoZWNrZWRPbhgHIAEoBCpJ",
+            "Ch1Tc29BdXRoZW50aWNhdGlvblByb3RvY29sVHlwZRIUChBVTktOT1dOX1BS",
+            "T1RPQ09MEAASCQoFU0FNTDIQARIHCgNKV1QQAio8ChFDZXJ0aWZpY2F0ZUZv",
+            "cm1hdBISCg5VTktOT1dOX0ZPUk1BVBAAEgoKBlBLQ1MxMhABEgcKA0pLUxAC",
+            "KnYKCVNraWxsVHlwZRIWChJVTktOT1dOX1NLSUxMX1RZUEUQABITCg9ERVZJ",
+            "Q0VfQVBQUk9WQUwQARIRCg1URUFNX0FQUFJPVkFMEAISGgoWVEVBTV9GT1Jf",
+            "VVNFUl9BUFBST1ZBTBADEg0KCVJFUE9SVElORxAEKocBCg5BdXRvbWF0b3JT",
+            "dGF0ZRIRCg1VTktOT1dOX1NUQVRFEAASCwoHUlVOTklORxABEgkKBUVSUk9S",
+            "EAISGAoUTkVFRFNfSU5JVElBTElaQVRJT04QAxIXChNORUVEU19DUllQVE9f",
+            "U1RFUF8xEAQSFwoTTkVFRFNfQ1JZUFRPX1NURVBfMhAFQiUKGGNvbS5rZWVw",
+            "ZXJzZWN1cml0eS5wcm90b0IJQXV0b21hdG9yYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::SsoCloud.SsocloudReflection.Descriptor, global::Enterprise.EnterpriseReflection.Descriptor, global::SemanticVersion.VersionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Automator.SsoAuthenticationProtocolType), typeof(global::Automator.CertificateFormat), typeof(global::Automator.SkillType), typeof(global::Automator.AutomatorState), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -223,7 +223,7 @@ namespace Automator {
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminGetAutomatorRequest), global::Automator.AdminGetAutomatorRequest.Parser, new[]{ "AutomatorId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminEnableAutomatorRequest), global::Automator.AdminEnableAutomatorRequest.Parser, new[]{ "AutomatorId", "Enabled" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminEditAutomatorRequest), global::Automator.AdminEditAutomatorRequest.Parser, new[]{ "AutomatorId", "Name", "Enabled", "Url", "SkillTypes", "AutomatorSettingValues" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminSetupAutomatorRequest), global::Automator.AdminSetupAutomatorRequest.Parser, new[]{ "AutomatorId", "AutomatorState", "EncryptedEccEnterprisePrivateKey", "EncryptedRsaEnterprisePrivateKey", "SkillTypes", "EncryptedTreeKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminSetupAutomatorRequest), global::Automator.AdminSetupAutomatorRequest.Parser, new[]{ "AutomatorId", "AutomatorState", "EncryptedEccEnterprisePrivateKey", "EncryptedRsaEnterprisePrivateKey", "SkillTypes", "EncryptedTreeKey", "EnrollmentSecret" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminSetupAutomatorResponse), global::Automator.AdminSetupAutomatorResponse.Parser, new[]{ "Success", "Message", "AutomatorId", "AutomatorState", "AutomatorEccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AdminAutomatorSkillsRequest), global::Automator.AdminAutomatorSkillsRequest.Parser, new[]{ "AutomatorId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Automator.AutomatorSkill), global::Automator.AutomatorSkill.Parser, new[]{ "SkillType", "Name", "TranslatedName" }, null, null, null, null),
@@ -9087,6 +9087,7 @@ namespace Automator {
       encryptedRsaEnterprisePrivateKey_ = other.encryptedRsaEnterprisePrivateKey_;
       skillTypes_ = other.skillTypes_.Clone();
       encryptedTreeKey_ = other.encryptedTreeKey_;
+      enrollmentSecret_ = other.enrollmentSecret_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -9185,6 +9186,21 @@ namespace Automator {
       }
     }
 
+    /// <summary>Field number for the "enrollmentSecret" field.</summary>
+    public const int EnrollmentSecretFieldNumber = 9;
+    private string enrollmentSecret_ = "";
+    /// <summary>
+    /// 7, 8 are reserved for automatorIdentityData, automatorIdentitySignature (KA-8819, in progress on a separate branch, not yet merged to prerelease)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string EnrollmentSecret {
+      get { return enrollmentSecret_; }
+      set {
+        enrollmentSecret_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -9206,6 +9222,7 @@ namespace Automator {
       if (EncryptedRsaEnterprisePrivateKey != other.EncryptedRsaEnterprisePrivateKey) return false;
       if(!skillTypes_.Equals(other.skillTypes_)) return false;
       if (EncryptedTreeKey != other.EncryptedTreeKey) return false;
+      if (EnrollmentSecret != other.EnrollmentSecret) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -9219,6 +9236,7 @@ namespace Automator {
       if (EncryptedRsaEnterprisePrivateKey.Length != 0) hash ^= EncryptedRsaEnterprisePrivateKey.GetHashCode();
       hash ^= skillTypes_.GetHashCode();
       if (EncryptedTreeKey.Length != 0) hash ^= EncryptedTreeKey.GetHashCode();
+      if (EnrollmentSecret.Length != 0) hash ^= EnrollmentSecret.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -9258,6 +9276,10 @@ namespace Automator {
         output.WriteRawTag(50);
         output.WriteBytes(EncryptedTreeKey);
       }
+      if (EnrollmentSecret.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(EnrollmentSecret);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -9289,6 +9311,10 @@ namespace Automator {
         output.WriteRawTag(50);
         output.WriteBytes(EncryptedTreeKey);
       }
+      if (EnrollmentSecret.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(EnrollmentSecret);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -9314,6 +9340,9 @@ namespace Automator {
       size += skillTypes_.CalculateSize(_repeated_skillTypes_codec);
       if (EncryptedTreeKey.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedTreeKey);
+      }
+      if (EnrollmentSecret.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(EnrollmentSecret);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -9342,6 +9371,9 @@ namespace Automator {
       skillTypes_.Add(other.skillTypes_);
       if (other.EncryptedTreeKey.Length != 0) {
         EncryptedTreeKey = other.EncryptedTreeKey;
+      }
+      if (other.EnrollmentSecret.Length != 0) {
+        EnrollmentSecret = other.EnrollmentSecret;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -9387,6 +9419,10 @@ namespace Automator {
             EncryptedTreeKey = input.ReadBytes();
             break;
           }
+          case 74: {
+            EnrollmentSecret = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -9429,6 +9465,10 @@ namespace Automator {
           }
           case 50: {
             EncryptedTreeKey = input.ReadBytes();
+            break;
+          }
+          case 74: {
+            EnrollmentSecret = input.ReadString();
             break;
           }
         }

@@ -509,108 +509,111 @@ namespace Authentication {
             "DnRyYW5zbGF0aW9uS2V5GAEgASgJEhgKEHRyYW5zbGF0aW9uVmFsdWUYAiAB",
             "KAkiLAoSVHJhbnNsYXRpb25SZXF1ZXN0EhYKDnRyYW5zbGF0aW9uS2V5GAEg",
             "AygJIk8KE1RyYW5zbGF0aW9uUmVzcG9uc2USOAoPdHJhbnNsYXRpb25JbmZv",
-            "GAEgAygLMh8uQXV0aGVudGljYXRpb24uVHJhbnNsYXRpb25JbmZvKtMCChFT",
-            "dXBwb3J0ZWRMYW5ndWFnZRILCgdFTkdMSVNIEAASCgoGQVJBQklDEAESCwoH",
-            "QlJJVElTSBACEgsKB0NISU5FU0UQAxIVChFDSElORVNFX0hPTkdfS09ORxAE",
-            "EhIKDkNISU5FU0VfVEFJV0FOEAUSCQoFRFVUQ0gQBhIKCgZGUkVOQ0gQBxIK",
-            "CgZHRVJNQU4QCBIJCgVHUkVFSxAJEgoKBkhFQlJFVxAKEgsKB0lUQUxJQU4Q",
-            "CxIMCghKQVBBTkVTRRAMEgoKBktPUkVBThANEgoKBlBPTElTSBAOEg4KClBP",
-            "UlRVR1VFU0UQDxIVChFQT1JUVUdVRVNFX0JSQVpJTBAQEgwKCFJPTUFOSUFO",
-            "EBESCwoHUlVTU0lBThASEgoKBlNMT1ZBSxATEgsKB1NQQU5JU0gQFBILCgdG",
-            "SU5OSVNIEBUSCwoHU1dFRElTSBAWKmsKCUxvZ2luVHlwZRIKCgZOT1JNQUwQ",
-            "ABIHCgNTU08QARIHCgNCSU8QAhINCglBTFRFUk5BVEUQAxILCgdPRkZMSU5F",
-            "EAQSEwoPRk9SR09UX1BBU1NXT1JEEAUSDwoLUEFTU0tFWV9CSU8QBipxCgxE",
-            "ZXZpY2VTdGF0dXMSGQoVREVWSUNFX05FRURTX0FQUFJPVkFMEAASDQoJREVW",
-            "SUNFX09LEAESGwoXREVWSUNFX0RJU0FCTEVEX0JZX1VTRVIQAhIaChZERVZJ",
-            "Q0VfTE9DS0VEX0JZX0FETUlOEAMqQQoNTGljZW5zZVN0YXR1cxIJCgVPVEhF",
-            "UhAAEgoKBkFDVElWRRABEgsKB0VYUElSRUQQAhIMCghESVNBQkxFRBADKjcK",
-            "C0FjY291bnRUeXBlEgwKCENPTlNVTUVSEAASCgoGRkFNSUxZEAESDgoKRU5U",
-            "RVJQUklTRRACKp8CChBTZXNzaW9uVG9rZW5UeXBlEhIKDk5PX1JFU1RSSUNU",
-            "SU9OEAASFAoQQUNDT1VOVF9SRUNPVkVSWRABEhEKDVNIQVJFX0FDQ09VTlQQ",
-            "AhIMCghQVVJDSEFTRRADEgwKCFJFU1RSSUNUEAQSEQoNQUNDRVBUX0lOVklU",
-            "RRAFEhIKDlNVUFBPUlRfU0VSVkVSEAYSFwoTRU5URVJQUklTRV9DUkVBVElP",
-            "ThAHEh8KG0VYUElSRURfQlVUX0FMTE9XRURfVE9fU1lOQxAIEhgKFEFDQ0VQ",
-            "VF9GQU1JTFlfSU5WSVRFEAkSIQodRU5URVJQUklTRV9DUkVBVElPTl9QVVJD",
-            "SEFTRUQQChIUChBFTUVSR0VOQ1lfQUNDRVNTEAsqRwoHVmVyc2lvbhITCg9p",
-            "bnZhbGlkX3ZlcnNpb24QABITCg9kZWZhdWx0X3ZlcnNpb24QARISCg5zZWNv",
-            "bmRfdmVyc2lvbhACKjcKH01hc3RlclBhc3N3b3JkUmVlbnRyeUFjdGlvblR5",
-            "cGUSCgoGVU5NQVNLEAASCAoEQ09QWRABKmwKC0xvZ2luTWV0aG9kEhcKE0lO",
-            "VkFMSURfTE9HSU5NRVRIT0QQABIUChBFWElTVElOR19BQ0NPVU5UEAESDgoK",
-            "U1NPX0RPTUFJThACEg0KCUFGVEVSX1NTTxADEg8KC05FV19BQ0NPVU5UEAQq",
-            "vgQKCkxvZ2luU3RhdGUSFgoSSU5WQUxJRF9MT0dJTlNUQVRFEAASDgoKTE9H",
-            "R0VEX09VVBABEhwKGERFVklDRV9BUFBST1ZBTF9SRVFVSVJFRBACEhEKDURF",
-            "VklDRV9MT0NLRUQQAxISCg5BQ0NPVU5UX0xPQ0tFRBAEEhkKFURFVklDRV9B",
-            "Q0NPVU5UX0xPQ0tFRBAFEgsKB1VQR1JBREUQBhITCg9MSUNFTlNFX0VYUElS",
-            "RUQQBxITCg9SRUdJT05fUkVESVJFQ1QQCBIWChJSRURJUkVDVF9DTE9VRF9T",
-            "U08QCRIXChNSRURJUkVDVF9PTlNJVEVfU1NPEAoSEAoMUkVRVUlSRVNfMkZB",
-            "EAwSFgoSUkVRVUlSRVNfQVVUSF9IQVNIEA0SFQoRUkVRVUlSRVNfVVNFUk5B",
-            "TUUQDhIZChVBRlRFUl9DTE9VRF9TU09fTE9HSU4QDxIdChlSRVFVSVJFU19B",
-            "Q0NPVU5UX0NSRUFUSU9OEBASJgoiUkVRVUlSRVNfREVWSUNFX0VOQ1JZUFRF",
-            "RF9EQVRBX0tFWRAREhcKE0xPR0lOX1RPS0VOX0VYUElSRUQQEhIeChpQQVNT",
-            "S0VZX0lOSVRJQVRFX0NIQUxMRU5HRRATEhkKFVBBU1NLRVlfQVVUSF9SRVFV",
-            "SVJFRBAUEiEKHVBBU1NLRVlfVkVSSUZZX0FVVEhFTlRJQ0FUSU9OEBUSFwoT",
-            "QUZURVJfUEFTU0tFWV9MT0dJThAWEg0KCUxPR0dFRF9JThBjKmsKFEVuY3J5",
-            "cHRlZERhdGFLZXlUeXBlEgoKBk5PX0tFWRAAEhgKFEJZX0RFVklDRV9QVUJM",
-            "SUNfS0VZEAESDwoLQllfUEFTU1dPUkQQAhIQCgxCWV9BTFRFUk5BVEUQAxIK",
-            "CgZCWV9CSU8QBCotCg5QYXNzd29yZE1ldGhvZBILCgdFTlRFUkVEEAASDgoK",
-            "QklPTUVUUklDUxABKrkBChFUd29GYWN0b3JQdXNoVHlwZRIUChBUV09fRkFf",
-            "UFVTSF9OT05FEAASEwoPVFdPX0ZBX1BVU0hfU01TEAESFgoSVFdPX0ZBX1BV",
-            "U0hfS0VFUEVSEAISGAoUVFdPX0ZBX1BVU0hfRFVPX1BVU0gQAxIYChRUV09f",
-            "RkFfUFVTSF9EVU9fVEVYVBAEEhgKFFRXT19GQV9QVVNIX0RVT19DQUxMEAUS",
-            "EwoPVFdPX0ZBX1BVU0hfRE5BEAYqwwEKElR3b0ZhY3RvclZhbHVlVHlwZRIU",
-            "ChBUV09fRkFfQ09ERV9OT05FEAASFAoQVFdPX0ZBX0NPREVfVE9UUBABEhMK",
-            "D1RXT19GQV9DT0RFX1NNUxACEhMKD1RXT19GQV9DT0RFX0RVTxADEhMKD1RX",
-            "T19GQV9DT0RFX1JTQRAEEhMKD1RXT19GQV9SRVNQX1UyRhAFEhgKFFRXT19G",
-            "QV9SRVNQX1dFQkFVVEhOEAYSEwoPVFdPX0ZBX0NPREVfRE5BEAcq4QEKFFR3",
-            "b0ZhY3RvckNoYW5uZWxUeXBlEhIKDlRXT19GQV9DVF9OT05FEAASEgoOVFdP",
-            "X0ZBX0NUX1RPVFAQARIRCg1UV09fRkFfQ1RfU01TEAISEQoNVFdPX0ZBX0NU",
-            "X0RVTxADEhEKDVRXT19GQV9DVF9SU0EQBBIUChBUV09fRkFfQ1RfQkFDS1VQ",
-            "EAUSEQoNVFdPX0ZBX0NUX1UyRhAGEhYKElRXT19GQV9DVF9XRUJBVVRIThAH",
-            "EhQKEFRXT19GQV9DVF9LRUVQRVIQCBIRCg1UV09fRkFfQ1RfRE5BEAkqqwEK",
-            "E1R3b0ZhY3RvckV4cGlyYXRpb24SGgoWVFdPX0ZBX0VYUF9JTU1FRElBVEVM",
-            "WRAAEhgKFFRXT19GQV9FWFBfNV9NSU5VVEVTEAESFwoTVFdPX0ZBX0VYUF8x",
-            "Ml9IT1VSUxACEhcKE1RXT19GQV9FWFBfMjRfSE9VUlMQAxIWChJUV09fRkFf",
-            "RVhQXzMwX0RBWVMQBBIUChBUV09fRkFfRVhQX05FVkVSEAUqQAoLTGljZW5z",
-            "ZVR5cGUSCQoFVkFVTFQQABIICgRDSEFUEAESCwoHU1RPUkFHRRACEg8KC0JS",
-            "RUFDSFdBVENIEAMqaQoLT2JqZWN0VHlwZXMSCgoGUkVDT1JEEAASFgoSU0hB",
-            "UkVEX0ZPTERFUl9VU0VSEAESFgoSU0hBUkVEX0ZPTERFUl9URUFNEAISDwoL",
-            "VVNFUl9GT0xERVIQAxINCglURUFNX1VTRVIQBCqhAgoTRW5jcnlwdGVkT2Jq",
-            "ZWN0VHlwZRITCg9FT1RfVU5TUEVDSUZJRUQQABISCg5FT1RfUkVDT1JEX0tF",
-            "WRABEh4KGkVPVF9TSEFSRURfRk9MREVSX1VTRVJfS0VZEAISHgoaRU9UX1NI",
-            "QVJFRF9GT0xERVJfVEVBTV9LRVkQAxIVChFFT1RfVEVBTV9VU0VSX0tFWRAE",
-            "EhcKE0VPVF9VU0VSX0ZPTERFUl9LRVkQBRIVChFFT1RfU0VDVVJJVFlfREFU",
-            "QRAGEiUKIUVPVF9TRUNVUklUWV9EQVRBX01BU1RFUl9QQVNTV09SRBAHEhwK",
-            "GEVPVF9FTUVSR0VOQ1lfQUNDRVNTX0tFWRAIEhUKEUVPVF9WMl9SRUNPUkRf",
-            "S0VZEAkqTQobTWFzdGVyUGFzc3dvcmRSZWVudHJ5U3RhdHVzEg4KCk1QX1VO",
-            "S05PV04QABIOCgpNUF9TVUNDRVNTEAESDgoKTVBfRkFJTFVSRRACKmAKG0Fs",
-            "dGVybmF0ZUF1dGhlbnRpY2F0aW9uVHlwZRIdChlBTFRFUk5BVEVfTUFTVEVS",
-            "X1BBU1NXT1JEEAASDQoJQklPTUVUUklDEAESEwoPQUNDT1VOVF9SRUNPVkVS",
-            "EAIqmgIKDFRocm90dGxlVHlwZRIbChdQQVNTV09SRF9SRVRSWV9USFJPVFRM",
-            "RRAAEiIKHlBBU1NXT1JEX1JFVFJZX0xFR0FDWV9USFJPVFRMRRABEhMKD1RX",
-            "T19GQV9USFJPVFRMRRACEhoKFlRXT19GQV9MRUdBQ1lfVEhST1RUTEUQAxIV",
-            "ChFRQV9SRVRSWV9USFJPVFRMRRAEEhwKGEFDQ09VTlRfUkVDT1ZFUl9USFJP",
-            "VFRMRRAFEi4KKlZBTElEQVRFX0RFVklDRV9WRVJJRklDQVRJT05fQ09ERV9U",
-            "SFJPVFRMRRAGEjMKL1ZBTElEQVRFX0NSRUFURV9VU0VSX1ZFUklGSUNBVElP",
-            "Tl9DT0RFX1RIUk9UVExFEAcqSAoGUmVnaW9uEgsKB1VOS05PV04QABIGCgJl",
-            "dRABEgYKAnVzEAISCQoFdXNnb3YQAxIGCgJhdRAEEgYKAmpwEAUSBgoCY2EQ",
-            "BipEChRBcHBsaWNhdGlvblNoYXJlVHlwZRIVChFTSEFSRV9UWVBFX1JFQ09S",
-            "RBAAEhUKEVNIQVJFX1RZUEVfRk9MREVSEAEqpAEKFVRpbWVMaW1pdGVkQWNj",
-            "ZXNzVHlwZRIkCiBJTlZBTElEX1RJTUVfTElNSVRFRF9BQ0NFU1NfVFlQRRAA",
-            "EhkKFVVTRVJfQUNDRVNTX1RPX1JFQ09SRBABEicKI1VTRVJfT1JfVEVBTV9B",
-            "Q0NFU1NfVE9fU0hBUkVERk9MREVSEAISIQodUkVDT1JEX0FDQ0VTU19UT19T",
-            "SEFSRURGT0xERVIQAyo8Cg1CYWNrdXBLZXlUeXBlEhIKDkJLVF9TRUNfQU5T",
-            "V0VSEAASFwoTQktUX1BBU1NQSFJBU0VfSEFTSBABKnIKDUdlbmVyaWNTdGF0",
-            "dXMSCwoHU1VDQ0VTUxAAEhIKDklOVkFMSURfT0JKRUNUEAESEgoOQUxSRUFE",
-            "WV9FWElTVFMQAhIRCg1BQ0NFU1NfREVOSUVEEAMSGQoVTElDRU5TRV9TRUFU",
-            "X0VYQ0VFREVEEAQqTgoXQXV0aGVudGljYXRvckF0dGFjaG1lbnQSEgoOQ1JP",
-            "U1NfUExBVEZPUk0QABIMCghQTEFURk9STRABEhEKDUFMTF9TVVBQT1JURUQQ",
-            "AiotCg5QYXNza2V5UHVycG9zZRIMCghQS19MT0dJThAAEg0KCVBLX1JFQVVU",
-            "SBABKksKEENsaWVudEZvcm1GYWN0b3ISDAoIRkZfRU1QVFkQABIMCghGRl9Q",
-            "SE9ORRABEg0KCUZGX1RBQkxFVBACEgwKCEZGX1dBVENIEANCKgoYY29tLmtl",
-            "ZXBlcnNlY3VyaXR5LnByb3RvQg5BdXRoZW50aWNhdGlvbmIGcHJvdG8z"));
+            "GAEgAygLMh8uQXV0aGVudGljYXRpb24uVHJhbnNsYXRpb25JbmZvIj8KDUxv",
+            "Z291dFJlcXVlc3QSLgoKbG9nb3V0VHlwZRgBIAEoDjIaLkF1dGhlbnRpY2F0",
+            "aW9uLkxvZ291dFR5cGUq0wIKEVN1cHBvcnRlZExhbmd1YWdlEgsKB0VOR0xJ",
+            "U0gQABIKCgZBUkFCSUMQARILCgdCUklUSVNIEAISCwoHQ0hJTkVTRRADEhUK",
+            "EUNISU5FU0VfSE9OR19LT05HEAQSEgoOQ0hJTkVTRV9UQUlXQU4QBRIJCgVE",
+            "VVRDSBAGEgoKBkZSRU5DSBAHEgoKBkdFUk1BThAIEgkKBUdSRUVLEAkSCgoG",
+            "SEVCUkVXEAoSCwoHSVRBTElBThALEgwKCEpBUEFORVNFEAwSCgoGS09SRUFO",
+            "EA0SCgoGUE9MSVNIEA4SDgoKUE9SVFVHVUVTRRAPEhUKEVBPUlRVR1VFU0Vf",
+            "QlJBWklMEBASDAoIUk9NQU5JQU4QERILCgdSVVNTSUFOEBISCgoGU0xPVkFL",
+            "EBMSCwoHU1BBTklTSBAUEgsKB0ZJTk5JU0gQFRILCgdTV0VESVNIEBYqawoJ",
+            "TG9naW5UeXBlEgoKBk5PUk1BTBAAEgcKA1NTTxABEgcKA0JJTxACEg0KCUFM",
+            "VEVSTkFURRADEgsKB09GRkxJTkUQBBITCg9GT1JHT1RfUEFTU1dPUkQQBRIP",
+            "CgtQQVNTS0VZX0JJTxAGKnEKDERldmljZVN0YXR1cxIZChVERVZJQ0VfTkVF",
+            "RFNfQVBQUk9WQUwQABINCglERVZJQ0VfT0sQARIbChdERVZJQ0VfRElTQUJM",
+            "RURfQllfVVNFUhACEhoKFkRFVklDRV9MT0NLRURfQllfQURNSU4QAypBCg1M",
+            "aWNlbnNlU3RhdHVzEgkKBU9USEVSEAASCgoGQUNUSVZFEAESCwoHRVhQSVJF",
+            "RBACEgwKCERJU0FCTEVEEAMqNwoLQWNjb3VudFR5cGUSDAoIQ09OU1VNRVIQ",
+            "ABIKCgZGQU1JTFkQARIOCgpFTlRFUlBSSVNFEAIqnwIKEFNlc3Npb25Ub2tl",
+            "blR5cGUSEgoOTk9fUkVTVFJJQ1RJT04QABIUChBBQ0NPVU5UX1JFQ09WRVJZ",
+            "EAESEQoNU0hBUkVfQUNDT1VOVBACEgwKCFBVUkNIQVNFEAMSDAoIUkVTVFJJ",
+            "Q1QQBBIRCg1BQ0NFUFRfSU5WSVRFEAUSEgoOU1VQUE9SVF9TRVJWRVIQBhIX",
+            "ChNFTlRFUlBSSVNFX0NSRUFUSU9OEAcSHwobRVhQSVJFRF9CVVRfQUxMT1dF",
+            "RF9UT19TWU5DEAgSGAoUQUNDRVBUX0ZBTUlMWV9JTlZJVEUQCRIhCh1FTlRF",
+            "UlBSSVNFX0NSRUFUSU9OX1BVUkNIQVNFRBAKEhQKEEVNRVJHRU5DWV9BQ0NF",
+            "U1MQCypHCgdWZXJzaW9uEhMKD2ludmFsaWRfdmVyc2lvbhAAEhMKD2RlZmF1",
+            "bHRfdmVyc2lvbhABEhIKDnNlY29uZF92ZXJzaW9uEAIqNwofTWFzdGVyUGFz",
+            "c3dvcmRSZWVudHJ5QWN0aW9uVHlwZRIKCgZVTk1BU0sQABIICgRDT1BZEAEq",
+            "bAoLTG9naW5NZXRob2QSFwoTSU5WQUxJRF9MT0dJTk1FVEhPRBAAEhQKEEVY",
+            "SVNUSU5HX0FDQ09VTlQQARIOCgpTU09fRE9NQUlOEAISDQoJQUZURVJfU1NP",
+            "EAMSDwoLTkVXX0FDQ09VTlQQBCq+BAoKTG9naW5TdGF0ZRIWChJJTlZBTElE",
+            "X0xPR0lOU1RBVEUQABIOCgpMT0dHRURfT1VUEAESHAoYREVWSUNFX0FQUFJP",
+            "VkFMX1JFUVVJUkVEEAISEQoNREVWSUNFX0xPQ0tFRBADEhIKDkFDQ09VTlRf",
+            "TE9DS0VEEAQSGQoVREVWSUNFX0FDQ09VTlRfTE9DS0VEEAUSCwoHVVBHUkFE",
+            "RRAGEhMKD0xJQ0VOU0VfRVhQSVJFRBAHEhMKD1JFR0lPTl9SRURJUkVDVBAI",
+            "EhYKElJFRElSRUNUX0NMT1VEX1NTTxAJEhcKE1JFRElSRUNUX09OU0lURV9T",
+            "U08QChIQCgxSRVFVSVJFU18yRkEQDBIWChJSRVFVSVJFU19BVVRIX0hBU0gQ",
+            "DRIVChFSRVFVSVJFU19VU0VSTkFNRRAOEhkKFUFGVEVSX0NMT1VEX1NTT19M",
+            "T0dJThAPEh0KGVJFUVVJUkVTX0FDQ09VTlRfQ1JFQVRJT04QEBImCiJSRVFV",
+            "SVJFU19ERVZJQ0VfRU5DUllQVEVEX0RBVEFfS0VZEBESFwoTTE9HSU5fVE9L",
+            "RU5fRVhQSVJFRBASEh4KGlBBU1NLRVlfSU5JVElBVEVfQ0hBTExFTkdFEBMS",
+            "GQoVUEFTU0tFWV9BVVRIX1JFUVVJUkVEEBQSIQodUEFTU0tFWV9WRVJJRllf",
+            "QVVUSEVOVElDQVRJT04QFRIXChNBRlRFUl9QQVNTS0VZX0xPR0lOEBYSDQoJ",
+            "TE9HR0VEX0lOEGMqawoURW5jcnlwdGVkRGF0YUtleVR5cGUSCgoGTk9fS0VZ",
+            "EAASGAoUQllfREVWSUNFX1BVQkxJQ19LRVkQARIPCgtCWV9QQVNTV09SRBAC",
+            "EhAKDEJZX0FMVEVSTkFURRADEgoKBkJZX0JJTxAEKi0KDlBhc3N3b3JkTWV0",
+            "aG9kEgsKB0VOVEVSRUQQABIOCgpCSU9NRVRSSUNTEAEquQEKEVR3b0ZhY3Rv",
+            "clB1c2hUeXBlEhQKEFRXT19GQV9QVVNIX05PTkUQABITCg9UV09fRkFfUFVT",
+            "SF9TTVMQARIWChJUV09fRkFfUFVTSF9LRUVQRVIQAhIYChRUV09fRkFfUFVT",
+            "SF9EVU9fUFVTSBADEhgKFFRXT19GQV9QVVNIX0RVT19URVhUEAQSGAoUVFdP",
+            "X0ZBX1BVU0hfRFVPX0NBTEwQBRITCg9UV09fRkFfUFVTSF9ETkEQBirDAQoS",
+            "VHdvRmFjdG9yVmFsdWVUeXBlEhQKEFRXT19GQV9DT0RFX05PTkUQABIUChBU",
+            "V09fRkFfQ09ERV9UT1RQEAESEwoPVFdPX0ZBX0NPREVfU01TEAISEwoPVFdP",
+            "X0ZBX0NPREVfRFVPEAMSEwoPVFdPX0ZBX0NPREVfUlNBEAQSEwoPVFdPX0ZB",
+            "X1JFU1BfVTJGEAUSGAoUVFdPX0ZBX1JFU1BfV0VCQVVUSE4QBhITCg9UV09f",
+            "RkFfQ09ERV9ETkEQByrhAQoUVHdvRmFjdG9yQ2hhbm5lbFR5cGUSEgoOVFdP",
+            "X0ZBX0NUX05PTkUQABISCg5UV09fRkFfQ1RfVE9UUBABEhEKDVRXT19GQV9D",
+            "VF9TTVMQAhIRCg1UV09fRkFfQ1RfRFVPEAMSEQoNVFdPX0ZBX0NUX1JTQRAE",
+            "EhQKEFRXT19GQV9DVF9CQUNLVVAQBRIRCg1UV09fRkFfQ1RfVTJGEAYSFgoS",
+            "VFdPX0ZBX0NUX1dFQkFVVEhOEAcSFAoQVFdPX0ZBX0NUX0tFRVBFUhAIEhEK",
+            "DVRXT19GQV9DVF9ETkEQCSqrAQoTVHdvRmFjdG9yRXhwaXJhdGlvbhIaChZU",
+            "V09fRkFfRVhQX0lNTUVESUFURUxZEAASGAoUVFdPX0ZBX0VYUF81X01JTlVU",
+            "RVMQARIXChNUV09fRkFfRVhQXzEyX0hPVVJTEAISFwoTVFdPX0ZBX0VYUF8y",
+            "NF9IT1VSUxADEhYKElRXT19GQV9FWFBfMzBfREFZUxAEEhQKEFRXT19GQV9F",
+            "WFBfTkVWRVIQBSpACgtMaWNlbnNlVHlwZRIJCgVWQVVMVBAAEggKBENIQVQQ",
+            "ARILCgdTVE9SQUdFEAISDwoLQlJFQUNIV0FUQ0gQAyppCgtPYmplY3RUeXBl",
+            "cxIKCgZSRUNPUkQQABIWChJTSEFSRURfRk9MREVSX1VTRVIQARIWChJTSEFS",
+            "RURfRk9MREVSX1RFQU0QAhIPCgtVU0VSX0ZPTERFUhADEg0KCVRFQU1fVVNF",
+            "UhAEKqECChNFbmNyeXB0ZWRPYmplY3RUeXBlEhMKD0VPVF9VTlNQRUNJRklF",
+            "RBAAEhIKDkVPVF9SRUNPUkRfS0VZEAESHgoaRU9UX1NIQVJFRF9GT0xERVJf",
+            "VVNFUl9LRVkQAhIeChpFT1RfU0hBUkVEX0ZPTERFUl9URUFNX0tFWRADEhUK",
+            "EUVPVF9URUFNX1VTRVJfS0VZEAQSFwoTRU9UX1VTRVJfRk9MREVSX0tFWRAF",
+            "EhUKEUVPVF9TRUNVUklUWV9EQVRBEAYSJQohRU9UX1NFQ1VSSVRZX0RBVEFf",
+            "TUFTVEVSX1BBU1NXT1JEEAcSHAoYRU9UX0VNRVJHRU5DWV9BQ0NFU1NfS0VZ",
+            "EAgSFQoRRU9UX1YyX1JFQ09SRF9LRVkQCSpNChtNYXN0ZXJQYXNzd29yZFJl",
+            "ZW50cnlTdGF0dXMSDgoKTVBfVU5LTk9XThAAEg4KCk1QX1NVQ0NFU1MQARIO",
+            "CgpNUF9GQUlMVVJFEAIqYAobQWx0ZXJuYXRlQXV0aGVudGljYXRpb25UeXBl",
+            "Eh0KGUFMVEVSTkFURV9NQVNURVJfUEFTU1dPUkQQABINCglCSU9NRVRSSUMQ",
+            "ARITCg9BQ0NPVU5UX1JFQ09WRVIQAiqaAgoMVGhyb3R0bGVUeXBlEhsKF1BB",
+            "U1NXT1JEX1JFVFJZX1RIUk9UVExFEAASIgoeUEFTU1dPUkRfUkVUUllfTEVH",
+            "QUNZX1RIUk9UVExFEAESEwoPVFdPX0ZBX1RIUk9UVExFEAISGgoWVFdPX0ZB",
+            "X0xFR0FDWV9USFJPVFRMRRADEhUKEVFBX1JFVFJZX1RIUk9UVExFEAQSHAoY",
+            "QUNDT1VOVF9SRUNPVkVSX1RIUk9UVExFEAUSLgoqVkFMSURBVEVfREVWSUNF",
+            "X1ZFUklGSUNBVElPTl9DT0RFX1RIUk9UVExFEAYSMwovVkFMSURBVEVfQ1JF",
+            "QVRFX1VTRVJfVkVSSUZJQ0FUSU9OX0NPREVfVEhST1RUTEUQBypICgZSZWdp",
+            "b24SCwoHVU5LTk9XThAAEgYKAmV1EAESBgoCdXMQAhIJCgV1c2dvdhADEgYK",
+            "AmF1EAQSBgoCanAQBRIGCgJjYRAGKkQKFEFwcGxpY2F0aW9uU2hhcmVUeXBl",
+            "EhUKEVNIQVJFX1RZUEVfUkVDT1JEEAASFQoRU0hBUkVfVFlQRV9GT0xERVIQ",
+            "ASqkAQoVVGltZUxpbWl0ZWRBY2Nlc3NUeXBlEiQKIElOVkFMSURfVElNRV9M",
+            "SU1JVEVEX0FDQ0VTU19UWVBFEAASGQoVVVNFUl9BQ0NFU1NfVE9fUkVDT1JE",
+            "EAESJwojVVNFUl9PUl9URUFNX0FDQ0VTU19UT19TSEFSRURGT0xERVIQAhIh",
+            "Ch1SRUNPUkRfQUNDRVNTX1RPX1NIQVJFREZPTERFUhADKjwKDUJhY2t1cEtl",
+            "eVR5cGUSEgoOQktUX1NFQ19BTlNXRVIQABIXChNCS1RfUEFTU1BIUkFTRV9I",
+            "QVNIEAEqcgoNR2VuZXJpY1N0YXR1cxILCgdTVUNDRVNTEAASEgoOSU5WQUxJ",
+            "RF9PQkpFQ1QQARISCg5BTFJFQURZX0VYSVNUUxACEhEKDUFDQ0VTU19ERU5J",
+            "RUQQAxIZChVMSUNFTlNFX1NFQVRfRVhDRUVERUQQBCpOChdBdXRoZW50aWNh",
+            "dG9yQXR0YWNobWVudBISCg5DUk9TU19QTEFURk9STRAAEgwKCFBMQVRGT1JN",
+            "EAESEQoNQUxMX1NVUFBPUlRFRBACKi0KDlBhc3NrZXlQdXJwb3NlEgwKCFBL",
+            "X0xPR0lOEAASDQoJUEtfUkVBVVRIEAEqSwoQQ2xpZW50Rm9ybUZhY3RvchIM",
+            "CghGRl9FTVBUWRAAEgwKCEZGX1BIT05FEAESDQoJRkZfVEFCTEVUEAISDAoI",
+            "RkZfV0FUQ0gQAyoxCgpMb2dvdXRUeXBlEg8KC0xPR09VVF9VU0VSEAASEgoO",
+            "TE9HT1VUX1RJTUVPVVQQAUIqChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9C",
+            "DkF1dGhlbnRpY2F0aW9uYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Enterprise.EnterpriseReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.EncryptedObjectType), typeof(global::Authentication.MasterPasswordReentryStatus), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), typeof(global::Authentication.Region), typeof(global::Authentication.ApplicationShareType), typeof(global::Authentication.TimeLimitedAccessType), typeof(global::Authentication.BackupKeyType), typeof(global::Authentication.GenericStatus), typeof(global::Authentication.AuthenticatorAttachment), typeof(global::Authentication.PasskeyPurpose), typeof(global::Authentication.ClientFormFactor), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.EncryptedObjectType), typeof(global::Authentication.MasterPasswordReentryStatus), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), typeof(global::Authentication.Region), typeof(global::Authentication.ApplicationShareType), typeof(global::Authentication.TimeLimitedAccessType), typeof(global::Authentication.BackupKeyType), typeof(global::Authentication.GenericStatus), typeof(global::Authentication.AuthenticatorAttachment), typeof(global::Authentication.PasskeyPurpose), typeof(global::Authentication.ClientFormFactor), typeof(global::Authentication.LogoutType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.QrcMessageKey), global::Authentication.QrcMessageKey.Parser, new[]{ "ClientEcPublicKey", "MlKemEncapsulatedKey", "Data", "MsgVersion", "EcKeyId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequest), global::Authentication.ApiRequest.Parser, new[]{ "EncryptedTransmissionKey", "PublicKeyId", "Locale", "EncryptedPayload", "EncryptionType", "Recaptcha", "SubEnvironment", "QrcMessageKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequestPayload), global::Authentication.ApiRequestPayload.Parser, new[]{ "Payload", "EncryptedSessionToken", "TimeToken", "ApiVersion" }, null, null, null, null),
@@ -781,7 +784,8 @@ namespace Authentication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.PasskeyListResponse), global::Authentication.PasskeyListResponse.Parser, new[]{ "PasskeyInfo" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.TranslationInfo), global::Authentication.TranslationInfo.Parser, new[]{ "TranslationKey", "TranslationValue" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.TranslationRequest), global::Authentication.TranslationRequest.Parser, new[]{ "TranslationKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.TranslationResponse), global::Authentication.TranslationResponse.Parser, new[]{ "TranslationInfo" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.TranslationResponse), global::Authentication.TranslationResponse.Parser, new[]{ "TranslationInfo" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.LogoutRequest), global::Authentication.LogoutRequest.Parser, new[]{ "LogoutType" }, null, null, null, null)
           }));
     }
     #endregion
@@ -1224,6 +1228,11 @@ namespace Authentication {
     [pbr::OriginalName("FF_PHONE")] FfPhone = 1,
     [pbr::OriginalName("FF_TABLET")] FfTablet = 2,
     [pbr::OriginalName("FF_WATCH")] FfWatch = 3,
+  }
+
+  public enum LogoutType {
+    [pbr::OriginalName("LOGOUT_USER")] LogoutUser = 0,
+    [pbr::OriginalName("LOGOUT_TIMEOUT")] LogoutTimeout = 1,
   }
 
   #endregion
@@ -51436,6 +51445,204 @@ namespace Authentication {
             break;
           case 10: {
             translationInfo_.AddEntriesFrom(ref input, _repeated_translationInfo_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class LogoutRequest : pb::IMessage<LogoutRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<LogoutRequest> _parser = new pb::MessageParser<LogoutRequest>(() => new LogoutRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<LogoutRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[171]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public LogoutRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public LogoutRequest(LogoutRequest other) : this() {
+      logoutType_ = other.logoutType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public LogoutRequest Clone() {
+      return new LogoutRequest(this);
+    }
+
+    /// <summary>Field number for the "logoutType" field.</summary>
+    public const int LogoutTypeFieldNumber = 1;
+    private global::Authentication.LogoutType logoutType_ = global::Authentication.LogoutType.LogoutUser;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Authentication.LogoutType LogoutType {
+      get { return logoutType_; }
+      set {
+        logoutType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as LogoutRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(LogoutRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (LogoutType != other.LogoutType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (LogoutType != global::Authentication.LogoutType.LogoutUser) hash ^= LogoutType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (LogoutType != global::Authentication.LogoutType.LogoutUser) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) LogoutType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (LogoutType != global::Authentication.LogoutType.LogoutUser) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) LogoutType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (LogoutType != global::Authentication.LogoutType.LogoutUser) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) LogoutType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(LogoutRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.LogoutType != global::Authentication.LogoutType.LogoutUser) {
+        LogoutType = other.LogoutType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            LogoutType = (global::Authentication.LogoutType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            LogoutType = (global::Authentication.LogoutType) input.ReadEnum();
             break;
           }
         }
