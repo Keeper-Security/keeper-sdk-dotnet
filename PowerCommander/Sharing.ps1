@@ -1031,6 +1031,9 @@ function New-KeeperOneTimeShare {
         .PARAMETER ShareName
             Optional. Custom label for the one-time share.
 
+        .PARAMETER Editable
+            Optional. Allows the share recipient to edit the record.
+
         .EXAMPLE
             New-KeeperOneTimeShare -Uid "XP-TKMqg9kIf4RXLuW4Qwg" -ExpireIn 60
             Creates a one-time share link for the record that expires in 60 minutes from now.
@@ -1055,7 +1058,8 @@ function New-KeeperOneTimeShare {
         [Parameter(Mandatory = $true)][string] $Uid,
         [Parameter()][object] $ExpireIn,
         [Parameter()][string] $ExpireAt,
-        [Parameter()][string] $ShareName
+        [Parameter()][string] $ShareName,
+        [switch] $Editable
     )
 
     try {
@@ -1068,7 +1072,7 @@ function New-KeeperOneTimeShare {
 
         [KeeperSecurity.Vault.VaultOnline]$vault = GetVault
         $oneTimeShare = [KeeperSecurity.Vault.ExternalRecordShareExtensions]::CreateExternalRecordShare(
-            $vault, $Uid, $expirationTimeSpan, $ShareName
+            $vault, $Uid, $expirationTimeSpan, $ShareName, $Editable.IsPresent
         ).GetAwaiter().GetResult()
 
         return $oneTimeShare
