@@ -288,6 +288,12 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Remove-KeeperPamWorkflowApprover]()                    | pam-workflow-remove-approver, pam-wf-remove-approver | Remove users or teams from workflow approvers
 | [Get-KeeperPamWorkflowState]()                          | pam-workflow-state, pam-wf-state | Show workflow state for a resource record
 | [Get-KeeperPamWorkflowMyAccess]()                       | pam-workflow-my-access, pam-wf-my-access | Show the current user's workflow access
+| [Get-KeeperPamWorkflowPending]()                        | pam-workflow-pending | List PAM workflow access requests awaiting approval
+| [Approve-KeeperPamWorkflowAccess]()                     | pam-workflow-approve | Approve a pending PAM workflow access request
+| [Deny-KeeperPamWorkflowAccess]()                        | pam-workflow-deny | Deny a pending PAM workflow access request
+| [Request-KeeperPamWorkflowAccess]()                     | pam-workflow-request | Request, escalate, or cancel PAM workflow access to a record
+| [Start-KeeperPamWorkflow]()                             | pam-workflow-start | Start a PAM workflow (check out a record)
+| [Stop-KeeperPamWorkflow]()                              | pam-workflow-end | End an active PAM workflow (check in a record)
 | [Invoke-KeeperPamActionRotate]()                        | pam-action-rotate        | Schedule on-demand PAM credential rotation (record or folder)
 | [Get-KeeperPamActionJobInfo]()                          | pam-action-job-info      | Get status of a scheduled PAM gateway action job
 | [Set-KeeperPamConnection]()                             | pam-connection-edit      | Configure PAM connection settings on a resource or config
@@ -341,6 +347,9 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
 | [Revoke-KeeperSharedFolderUserSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-3)                     |                  | Remove a user from a shared folder
 | [Grant-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-6)                         |                  | Add or update a team on a shared folder (`PutTeamToSharedFolderAsync`)
 | [Revoke-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-7)                       |                  | Remove a team from a shared folder
+| [New-KeeperOneTimeShareSkipSync]()                      |                  | Create a one-time share link for an owned record without a full vault sync
+| [Get-KeeperOneTimeShareSkipSync]()                      |                  | View all active one-time share links for an owned record without a full vault sync
+| [Remove-KeeperOneTimeShareSkipSync]()                   |                  | Revoke one-time share link(s) for a record without a full vault sync
 
 #### Examples
 
