@@ -621,13 +621,13 @@ namespace Commander
                     return;
                 }
 
-                if (!vault.TryResolveKeeperNSFFolder(options.SourceFolder, out var sourceFolder))
+                if (!vault.TryResolveKeeperNSFFolderOrRoot(options.SourceFolder, out var sourceFolder))
                 {
                     Console.WriteLine($"Source folder \"{options.SourceFolder}\" was not found. Run sync-down or nsf-list first.");
                     return;
                 }
 
-                if (!vault.TryResolveKeeperNSFFolder(options.TargetFolder, out var targetFolder))
+                if (!vault.TryResolveKeeperNSFFolderOrRoot(options.TargetFolder, out var targetFolder))
                 {
                     Console.WriteLine($"Target folder \"{options.TargetFolder}\" was not found. Run sync-down or nsf-list first.");
                     return;

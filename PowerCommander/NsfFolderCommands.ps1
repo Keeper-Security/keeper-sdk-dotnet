@@ -1332,7 +1332,7 @@ function Move-KeeperNSFFolder {
     }
 
     [KeeperSecurity.Vault.FolderNode]$targetNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($TargetParent, [ref]$targetNode)) {
+    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($TargetParent, [ref]$targetNode)) {
         Write-Error -Message "Target folder `"$TargetParent`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }

@@ -1038,7 +1038,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>Resolves a Keeper NSF folder by UID or name, including the root represented by an empty string.</summary>
-        private bool TryResolveKeeperNSFFolderOrRoot(string folderUidOrName, out FolderNode folder)
+        public bool TryResolveKeeperNSFFolderOrRoot(string folderUidOrName, out FolderNode folder)
         {
             folder = null;
             if (folderUidOrName == null)
@@ -2308,10 +2308,40 @@ namespace KeeperSecurity.Vault
 
                     var (encryptedRecordKey, _) = EncryptKeeperNSFRecordKeyForFolder(recordKey, targetFolder.FolderKey, recordKeyType);
 
+                    var sourceFolderApiUid = sourceFolder.FolderUid;
+                    if (string.IsNullOrEmpty(sourceFolderApiUid))
+                    {
+                        var discoveredRootUid = ResolveKeeperNSFDriveRootUid(targetFolder.FolderUid);
+                        if (string.IsNullOrEmpty(discoveredRootUid))
+                        {
+                            results[i].Status = "root_uid_unknown";
+                            results[i].Message =
+                                "Cannot resolve the Keeper NSF drive-root UID from local data; run sync-down first.";
+                            continue;
+                        }
+
+                        sourceFolderApiUid = discoveredRootUid;
+                    }
+
+                    var targetFolderApiUid = targetFolder.FolderUid;
+                    if (string.IsNullOrEmpty(targetFolderApiUid))
+                    {
+                        var discoveredRootUid = ResolveKeeperNSFDriveRootUid(sourceFolder.FolderUid ?? targetFolder.FolderUid);
+                        if (string.IsNullOrEmpty(discoveredRootUid))
+                        {
+                            results[i].Status = "root_uid_unknown";
+                            results[i].Message =
+                                "Cannot resolve the Keeper NSF drive-root UID from local data; run sync-down first.";
+                            continue;
+                        }
+
+                        targetFolderApiUid = discoveredRootUid;
+                    }
+
                     var move = new Drive.Move.FolderRecordMove
                     {
-                        SourceFolderUid = ByteString.CopyFrom(sourceFolder.FolderUid.Base64UrlDecode()),
-                        TargetFolderUid = ByteString.CopyFrom(targetFolder.FolderUid.Base64UrlDecode()),
+                        SourceFolderUid = ByteString.CopyFrom(sourceFolderApiUid.Base64UrlDecode()),
+                        TargetFolderUid = ByteString.CopyFrom(targetFolderApiUid.Base64UrlDecode()),
                         RecordUid = ByteString.CopyFrom(record.RecordUid.Base64UrlDecode()),
                         EncryptedRecordKey = ByteString.CopyFrom(encryptedRecordKey),
                     };
@@ -2336,19 +2366,36 @@ namespace KeeperSecurity.Vault
                 var response = await Auth.ExecuteAuthRest<Drive.Move.FolderRecordMoveRequest, Drive.Move.FolderRecordMoveResponse>(
                     "vault/folders/v3/record_move", request).ConfigureAwait(false);
 
-                var statusByIndex = new Dictionary<int, Drive.Move.FolderRecordMoveResult>(prepared.Count);
+                var statusByRecordUid = new Dictionary<string, Drive.Move.FolderRecordMoveResult>(StringComparer.Ordinal);
                 if (response?.Results != null)
                 {
-                    for (var j = 0; j < response.Results.Count && j < prepared.Count; j++)
+                    for (var j = 0; j < response.Results.Count; j++)
                     {
-                        statusByIndex[j] = response.Results[j];
+                        var status = response.Results[j];
+                        if (status?.RecordUid != null && !status.RecordUid.IsEmpty)
+                        {
+                            var recordUidStr = CryptoUtils.Base64UrlEncode(status.RecordUid.ToByteArray());
+                            statusByRecordUid[recordUidStr] = status;
+                        }
                     }
                 }
 
                 for (var j = 0; j < prepared.Count; j++)
                 {
                     var item = prepared[j];
-                    if (statusByIndex.TryGetValue(j, out var status))
+                    Drive.Move.FolderRecordMoveResult status = null;
+
+                    if (statusByRecordUid.TryGetValue(item.Request.RecordUid, out var foundStatus))
+                    {
+                        status = foundStatus;
+                    }
+                    else if (response?.Results != null && response.Results.Count == prepared.Count
+                        && statusByRecordUid.Count == 0 && j < response.Results.Count)
+                    {
+                        status = response.Results[j];
+                    }
+
+                    if (status != null)
                     {
                         results[item.Index].Status = status.Status.ToString();
                         results[item.Index].Message = status.Message;
@@ -2551,19 +2598,36 @@ namespace KeeperSecurity.Vault
                 var response = await Auth.ExecuteAuthRest<Drive.Move.FolderMoveRequest, Drive.Move.FolderMoveResponse>(
                     "vault/folders/v3/folder_move", request).ConfigureAwait(false);
 
-                var statusByIndex = new Dictionary<int, Drive.Move.FolderMoveResult>(prepared.Count);
+                var statusByFolderUid = new Dictionary<string, Drive.Move.FolderMoveResult>(StringComparer.Ordinal);
                 if (response?.Results != null)
                 {
-                    for (var j = 0; j < response.Results.Count && j < prepared.Count; j++)
+                    for (var j = 0; j < response.Results.Count; j++)
                     {
-                        statusByIndex[j] = response.Results[j];
+                        var status = response.Results[j];
+                        if (status?.FolderUid != null && !status.FolderUid.IsEmpty)
+                        {
+                            var folderUidStr = CryptoUtils.Base64UrlEncode(status.FolderUid.ToByteArray());
+                            statusByFolderUid[folderUidStr] = status;
+                        }
                     }
                 }
 
                 for (var j = 0; j < prepared.Count; j++)
                 {
                     var item = prepared[j];
-                    if (statusByIndex.TryGetValue(j, out var status))
+                    Drive.Move.FolderMoveResult status = null;
+
+                    if (statusByFolderUid.TryGetValue(item.FolderUid, out var foundStatus))
+                    {
+                        status = foundStatus;
+                    }
+                    else if (response?.Results != null && response.Results.Count == prepared.Count
+                        && statusByFolderUid.Count == 0 && j < response.Results.Count)
+                    {
+                        status = response.Results[j];
+                    }
+
+                    if (status != null)
                     {
                         results[item.Index].Status = status.Status.ToString();
                         results[item.Index].Message = status.Message;

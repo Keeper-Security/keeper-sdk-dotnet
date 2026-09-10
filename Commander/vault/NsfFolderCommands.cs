@@ -86,7 +86,7 @@ namespace Commander
                     return;
                 }
 
-                if (!context.Vault.TryResolveKeeperNSFFolder(options.TargetParent, out var targetNode))
+                if (!context.Vault.TryResolveKeeperNSFFolderOrRoot(options.TargetParent, out var targetNode))
                 {
                     Console.WriteLine($"Target folder \"{options.TargetParent}\" was not found. Run sync-down or nsf-list first.");
                     return;
