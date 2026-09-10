@@ -689,7 +689,7 @@ namespace KeeperSecurity
                 {
                     rec.CustomFields = rec.CustomFields
                         .Where(x => x != null && !string.IsNullOrEmpty(x.Name))
-                        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                        .GroupBy(x => x.Name, StringComparer.Ordinal)
                         .Select(x => x.Last())
                         .ToArray();
                 }

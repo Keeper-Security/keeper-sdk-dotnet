@@ -2059,7 +2059,14 @@ function Export-KeeperAuditLog {
 New-Alias -Name kal -Value Export-KeeperAuditLog
 
 function ConvertTo-KeeperImportObject {
-    param([Parameter(Mandatory = $false)]$Value)
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][int]$Depth = 0
+    )
+
+    if ($Depth -gt 100) {
+        throw 'Template JSON nesting exceeds the maximum supported depth of 100.'
+    }
 
     if ($null -eq $Value -or $Value -is [string] -or $Value -is [ValueType]) {
         return $Value
@@ -2069,7 +2076,7 @@ function ConvertTo-KeeperImportObject {
         $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
         foreach ($entry in $Value.GetEnumerator()) {
             if ($entry.Key -is [string]) {
-                $result[$entry.Key] = ConvertTo-KeeperImportObject $entry.Value
+                $result[$entry.Key] = ConvertTo-KeeperImportObject -Value $entry.Value -Depth ($Depth + 1)
             }
         }
         return $result
@@ -2078,14 +2085,14 @@ function ConvertTo-KeeperImportObject {
     if ($Value -is [System.Collections.IEnumerable]) {
         $result = New-Object 'System.Collections.Generic.List[object]'
         foreach ($item in $Value) {
-            $result.Add((ConvertTo-KeeperImportObject $item))
+            $result.Add((ConvertTo-KeeperImportObject -Value $item -Depth ($Depth + 1)))
         }
         return $result.ToArray()
     }
 
     $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
     foreach ($property in $Value.PSObject.Properties) {
-        $result[$property.Name] = ConvertTo-KeeperImportObject $property.Value
+        $result[$property.Name] = ConvertTo-KeeperImportObject -Value $property.Value -Depth ($Depth + 1)
     }
     return $result
 }
@@ -2094,6 +2101,11 @@ function Invoke-KeeperEnterprisePush {
     <#
     .SYNOPSIS
     Pushes templated records to enterprise user vaults.
+
+    .DESCRIPTION
+    Each target receives independent records. Source UIDs and folder assignments are
+    cleared so records are created as new records. The push does not retain a template
+    link; use the returned result and normal Keeper audit records to track it.
 
     .PARAMETER FileName
     JSON template file. The root may be a records array or an object containing records.
@@ -2146,7 +2158,7 @@ function Invoke-KeeperEnterprisePush {
         return
     }
 
-    if ($importRecords.Count -eq 0) {
+    if (@($importRecords).Count -eq 0) {
         Write-Error 'Template file contains no records.'
         return
     }
