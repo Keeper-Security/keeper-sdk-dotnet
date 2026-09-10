@@ -2476,13 +2476,13 @@ function Move-KeeperNSFRecord {
     }
 
     [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($SourceFolder, [ref]$sourceFolderNode)) {
+    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($SourceFolder, [ref]$sourceFolderNode)) {
         Write-Error -Message "Source folder `"$SourceFolder`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
 
     [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($TargetFolder, [ref]$targetFolderNode)) {
+    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($TargetFolder, [ref]$targetFolderNode)) {
         Write-Error -Message "Target folder `"$TargetFolder`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
