@@ -284,9 +284,16 @@ function Get-KeeperEnterpriseTeam {
                 }
             }
 
-            $team | Select-Object *,
-                @{Name = 'Users'; Expression = { @($users | Sort-Object) }},
-                @{Name = 'QueuedUsers'; Expression = { @($queuedUsers | Sort-Object) }}
+            $team | Select-Object -Property @(
+                    'Name'
+                    'Uid'
+                    'RestrictSharing'
+                    'RestrictEdit'
+                    'RestrictView'
+                    @{Name = 'Users'; Expression = { @($users | Sort-Object) }}
+                    @{Name = 'QueuedUsers'; Expression = { @($queuedUsers | Sort-Object) }}
+                    'NodeName'
+                )
         }
 
         if ($Format -eq 'json') {
@@ -298,9 +305,7 @@ function Get-KeeperEnterpriseTeam {
                 return $json
             }
         } else {
-            return @($detailedResult | Select-Object -Property * -ExcludeProperty Users,QueuedUsers,
-                @{Name = 'Users'; Expression = { $_.Users -join [Environment]::NewLine }},
-                @{Name = 'QueuedUsers'; Expression = { $_.QueuedUsers -join [Environment]::NewLine }})
+            return @($detailedResult)
         }
     }
 
