@@ -201,6 +201,9 @@ function Get-KeeperEnterpriseTeam {
         .PARAMETER Output
         File path to export results when Format is 'json'. Ignored for 'table' format.
 
+        .PARAMETER Queued
+        Include active team members and users queued for the team.
+
         .EXAMPLE
         Get-KeeperEnterpriseTeam
         Lists all enterprise teams in table format.
@@ -222,7 +225,8 @@ function Get-KeeperEnterpriseTeam {
         [Parameter()][string] $Name,
         [Parameter()][string] $Filter,
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table',
-        [Parameter()][string] $Output
+        [Parameter()][string] $Output,
+        [Parameter()][switch] $Queued
     )
 
     if ($Name) { $Name = $Name.Trim() }
@@ -250,6 +254,59 @@ function Get-KeeperEnterpriseTeam {
     if ($result.Count -eq 0 -and ($Name -or $Filter)) {
         Write-Host "No matching enterprise teams found." -ForegroundColor Yellow
         return @()
+    }
+
+    if ($Queued.IsPresent) {
+        $enterprise = getEnterprise
+        $enterpriseData = $enterprise.enterpriseData
+        $queuedTeamData = $enterprise.queuedTeamData
+
+        $detailedResult = foreach ($team in $result) {
+            $users = @()
+            if ($enterpriseData) {
+                $userIds = @($enterpriseData.GetUsersForTeam($team.Uid))
+                foreach ($userId in $userIds) {
+                    $user = $null
+                    if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        $users += $user.Email
+                    }
+                }
+            }
+
+            $queuedUsers = @()
+            if ($queuedTeamData) {
+                $queuedUserIds = @($queuedTeamData.GetQueuedUsersForTeam($team.Uid))
+                foreach ($userId in $queuedUserIds) {
+                    $user = $null
+                    if ($enterpriseData -and $enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                        $queuedUsers += $user.Email
+                    }
+                }
+            }
+
+            $team | Select-Object -Property @(
+                    'Name'
+                    'Uid'
+                    'RestrictSharing'
+                    'RestrictEdit'
+                    'RestrictView'
+                    @{Name = 'Users'; Expression = { @($users | Sort-Object) }}
+                    @{Name = 'QueuedUsers'; Expression = { @($queuedUsers | Sort-Object) }}
+                    'NodeName'
+                )
+        }
+
+        if ($Format -eq 'json') {
+            $json = @($detailedResult) | ConvertTo-Json -Depth 5
+            if ($Output) {
+                Set-Content -Path $Output -Value $json -Encoding utf8
+                Write-Host "Results exported to: $Output" -ForegroundColor Green
+            } else {
+                return $json
+            }
+        } else {
+            return @($detailedResult)
+        }
     }
 
     if ($Format -eq 'json') {
@@ -2006,3 +2063,239 @@ function Export-KeeperAuditLog {
 }
 New-Alias -Name kal -Value Export-KeeperAuditLog
 
+function ConvertTo-KeeperImportObject {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][int]$Depth = 0
+    )
+
+    if ($Depth -gt 100) {
+        throw 'Template JSON nesting exceeds the maximum supported depth of 100.'
+    }
+
+    if ($null -eq $Value -or $Value -is [string] -or $Value -is [ValueType]) {
+        return $Value
+    }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
+        foreach ($entry in $Value.GetEnumerator()) {
+            if ($entry.Key -is [string]) {
+                $result[$entry.Key] = ConvertTo-KeeperImportObject -Value $entry.Value -Depth ($Depth + 1)
+            }
+        }
+        return $result
+    }
+
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $result = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($item in $Value) {
+            $result.Add((ConvertTo-KeeperImportObject -Value $item -Depth ($Depth + 1)))
+        }
+        return $result.ToArray()
+    }
+
+    $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
+    foreach ($property in $Value.PSObject.Properties) {
+        $result[$property.Name] = ConvertTo-KeeperImportObject -Value $property.Value -Depth ($Depth + 1)
+    }
+    return $result
+}
+
+function Invoke-KeeperEnterprisePush {
+    <#
+    .SYNOPSIS
+    Pushes templated records to enterprise user vaults.
+
+    .DESCRIPTION
+    Each target receives independent records. Source UIDs and folder assignments are
+    cleared so records are created as new records. The push does not retain a template
+    link; use the returned result and normal Keeper audit records to track it.
+
+    .PARAMETER FileName
+    JSON template file. The root may be a records array or an object containing records.
+
+    .PARAMETER Email
+    One target user email or enterprise user ID.
+
+    .PARAMETER Team
+    One target team name or UID. All team members are targeted.
+
+    .PARAMETER Users
+    Additional target user emails, enterprise user IDs, or display names. Combined with -Email.
+
+    .PARAMETER Teams
+    Additional target team names or UIDs. Combined with -Team.
+
+    .PARAMETER DryRun
+    Resolve targets and show planned actions without creating or transferring records.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)] [string] $FileName,
+        [Parameter(Mandatory = $false)] [string] $Email,
+        [Parameter(Mandatory = $false)] [string] $Team,
+        [Parameter(Mandatory = $false)] [string[]] $Users,
+        [Parameter(Mandatory = $false)] [string[]] $Teams,
+        [Parameter(Mandatory = $false)] [switch] $DryRun
+    )
+
+    if (-not (Test-Path -LiteralPath $FileName -PathType Leaf)) {
+        Write-Error "Template file '$FileName' was not found."
+        return
+    }
+
+    try {
+        $json = Get-Content -LiteralPath $FileName -Raw | ConvertFrom-Json -ErrorAction Stop
+        $hasRecordsProperty = $null -ne $json.PSObject.Properties['records']
+        $document = if ($hasRecordsProperty) { $json } else { @{ records = @($json) } }
+        $document = ConvertTo-KeeperImportObject $document
+        $importJson = [KeeperSecurity.Commands.ImportJsonValue]::FromLegacyObject($document)
+        $importFile = [KeeperSecurity.Vault.KeeperImport]::LoadJsonDictionary($importJson)
+        $importRecords = if ($null -eq $importFile.Records) { @() } else { @($importFile.Records) }
+        foreach ($record in $importRecords) {
+            $record.Uid = $null
+            $record.Folders = $null
+        }
+    }
+    catch {
+        Write-Error "Unable to parse template file: $($_.Exception.Message)"
+        return
+    }
+
+    if (@($importRecords).Count -eq 0) {
+        Write-Error 'Template file contains no records.'
+        return
+    }
+
+    $userTargets = @($Users | Where-Object { $_ })
+    if ($Email) { $userTargets += $Email }
+    $teamTargets = @($Teams | Where-Object { $_ })
+    if ($Team) { $teamTargets += $Team }
+    if ($userTargets.Count -eq 0 -and $teamTargets.Count -eq 0) {
+        Write-Error 'Specify -Email/-Users or -Team/-Teams.'
+        return
+    }
+
+    $enterprise = getEnterprise
+    $vault = getVault
+    $warnings = Get-EnterpriseSdkWarningCallback
+    $options = New-Object KeeperSecurity.Enterprise.EnterprisePushOptions
+    $options.Users = [string[]]$userTargets
+    $options.Teams = [string[]]$teamTargets
+    $options.DryRun = $DryRun.IsPresent
+    $options.Warnings = $warnings
+
+    $result = $enterprise.enterpriseData.PushEnterpriseRecords($vault, $importRecords, $options).GetAwaiter().GetResult()
+    [PSCustomObject]@{
+        RecordsCreated = $result.RecordsCreated
+        RecordsFailed = $result.RecordsFailed
+        TransfersCompleted = $result.TransfersCompleted
+        TransfersFailed = $result.TransfersFailed
+        Actions = $result.Actions
+    }
+}
+New-Alias -Name kep -Value Invoke-KeeperEnterprisePush
+
+function Invoke-KeeperTeamApprove {
+    <#
+    .SYNOPSIS
+    Approves queued teams and queued team users provisioned by SCIM or Active Directory Bridge.
+
+    .DESCRIPTION
+    By default, approves both queued teams and queued team users. Use -TeamsOnly or -UsersOnly
+    to limit the operation to one category.
+
+    .PARAMETER TeamsOnly
+    Approve queued teams only.
+
+    .PARAMETER UsersOnly
+    Approve queued team users only.
+
+    .PARAMETER RestrictEdit
+    Disable record edits for approved teams.
+
+    .PARAMETER RestrictShare
+    Disable record re-shares for approved teams.
+
+    .PARAMETER RestrictView
+    Disable viewing or copying passwords for approved teams.
+
+    .PARAMETER Force
+    Refresh enterprise and queued-team data before approving.
+
+    .PARAMETER DryRun
+    Report planned approvals without executing them.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)] [switch] $TeamsOnly,
+        [Parameter(Mandatory = $false)] [switch] $UsersOnly,
+        [Parameter(Mandatory = $false)] [switch] $RestrictEdit,
+        [Parameter(Mandatory = $false)] [switch] $RestrictShare,
+        [Parameter(Mandatory = $false)] [switch] $RestrictView,
+        [Parameter(Mandatory = $false)] [switch] $Force,
+        [Parameter(Mandatory = $false)] [switch] $DryRun
+    )
+
+    $enterprise = getEnterprise
+    if ($Force.IsPresent) {
+        if ($null -eq $enterprise.loader) {
+            Write-Error 'Enterprise data loader is not available. Connect as an enterprise administrator and try again.'
+            return
+        }
+        try {
+            $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+        }
+        catch {
+            Write-Error "Unable to refresh enterprise data: $($_.Exception.Message)"
+            return
+        }
+    }
+    if ($null -eq $enterprise.enterpriseData) {
+        Write-Error 'Enterprise data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
+    if ($null -eq $enterprise.queuedTeamData) {
+        Write-Error 'Queued team data is not available. Connect as an enterprise administrator and try again.'
+        return
+    }
+    if ($TeamsOnly.IsPresent -and $UsersOnly.IsPresent) {
+        Write-Error 'Specify only one of -TeamsOnly or -UsersOnly.'
+        return
+    }
+
+    $approveTeams = -not $UsersOnly.IsPresent
+    $approveUsers = -not $TeamsOnly.IsPresent
+
+    $warnings = Get-EnterpriseSdkWarningCallback
+    $options = New-Object KeeperSecurity.Enterprise.TeamApproveOptions
+    $options.ApproveTeams = $approveTeams
+    $options.ApproveUsers = $approveUsers
+    $options.RestrictEdit = $RestrictEdit.IsPresent
+    $options.RestrictShare = $RestrictShare.IsPresent
+    $options.RestrictView = $RestrictView.IsPresent
+    $options.DryRun = $DryRun.IsPresent
+    $options.Warnings = $warnings
+
+    try {
+        $result = $enterprise.enterpriseData.ApproveQueuedTeams($enterprise.queuedTeamData, $options).GetAwaiter().GetResult()
+    }
+    catch [KeeperSecurity.Authentication.KeeperApiException] {
+        Write-Error "Team approval failed: $($_.Exception.Message)"
+        return
+    }
+    catch {
+        Write-Error "Unexpected team approval error: $($_.Exception.Message)"
+        return
+    }
+
+    [PSCustomObject]@{
+        TeamsApproved = $result.TeamsApproved
+        TeamsFailed = $result.TeamsFailed
+        UsersApproved = $result.UsersApproved
+        UsersFailed = $result.UsersFailed
+        Actions = if ($null -eq $result.Actions) { @() } else { @($result.Actions) }
+    }
+}
+New-Alias -Name kta -Value Invoke-KeeperTeamApprove
