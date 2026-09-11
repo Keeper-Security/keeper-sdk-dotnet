@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.6'
+    ModuleVersion        = '1.1.7'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -216,37 +216,24 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'One-Time Share enhancements:
-                    - Skip-sync support for one-time share creation without full vault sync
-                    - Editable flag support (-Editable switch) on New-KeeperOneTimeShare and New-KeeperOneTimeShareSkipSync
-                    - Share URL now includes editable=true query parameter when isEditable is set
-                    Shared Folder Record Permission command:
-                    - Set-KeeperSharedFolderRecordPermission: configure record permission in shared folders
-                    PAM Workflow Management commands:
-                    - New-KeeperPamWorkflow: create workflow settings for a resource record
-                    - Get-KeeperPamWorkflow: read workflow configuration
-                    - Update-KeeperPamWorkflow: update workflow settings
-                    - Remove-KeeperPamWorkflow: delete workflow settings
-                    - Add-KeeperPamWorkflowApprover: add users or teams as approvers
-                    - Remove-KeeperPamWorkflowApprover: remove users or teams from approvers
-                    - Get-KeeperPamWorkflowState: show workflow state for a resource record
-                    - Get-KeeperPamWorkflowMyAccess: show current user''s workflow access
-                    - Get-KeeperPamWorkflowPending: list pending approval requests
-                    - Approve-KeeperPamWorkflowAccess: approve workflow access requests
-                    - Deny-KeeperPamWorkflowAccess: deny workflow access requests
-                    - Request-KeeperPamWorkflowAccess: request, escalate, or cancel workflow access
-                    - Start-KeeperPamWorkflow: start workflow (check out record)
-                    - Stop-KeeperPamWorkflow: end workflow (check in record)
-                    Team Collaboration commands:
-                    - Approve-KeeperTeamRecords: approve pending team record requests
-                    - Invoke-KeeperEnterpriseOrgPush: push enterprise org changes to teams
-                    NSF (Network Share Folder) enhancements:
-                    - Added NSF support to PAM commands (action rotate, connection-edit, rbi-edit)
-                    - NSF support for PAM configuration commands
-                    Bug Fixes:
-                    - Fixed attachment sanitization to prevent malicious content in record attachments
-                    - Fixed API throttle response handling with automatic retry mechanism
-                    - Fixed BreachWatch status mapping
+            ReleaseNotes = 'Version 1.1.7
+                    PAM workflow management:
+                    - New-KeeperPamWorkflow, Get-KeeperPamWorkflow, Update-KeeperPamWorkflow, and Remove-KeeperPamWorkflow manage PAM workflows.
+                    - Add-KeeperPamWorkflowApprover and Remove-KeeperPamWorkflowApprover manage workflow approvers.
+                    - Get-KeeperPamWorkflowState and Get-KeeperPamWorkflowMyAccess report workflow status and the current user access.
+                    - Get-KeeperPamWorkflowPending, Approve-KeeperPamWorkflowAccess, and Deny-KeeperPamWorkflowAccess manage pending access requests.
+                    - Request-KeeperPamWorkflowAccess requests, escalates, or cancels access; Start-KeeperPamWorkflow and Stop-KeeperPamWorkflow check records out and in.
+                    PAM operations:
+                    - Invoke-KeeperPamActionRotate schedules on-demand credential rotation; Get-KeeperPamActionJobInfo reports its job status.
+                    - Set-KeeperPamConnection configures PAM connection settings, Set-KeeperPamRbi configures Remote Browser Isolation, and Invoke-KeeperPamLaunch runs launch preflight.
+                    - PAM configuration cmdlets support Keeper NSF folders.
+                    Sharing:
+                    - Set-KeeperSharedFolderRecordPermission (ksfr) updates a shared-folder record edit/share permissions and optional expiration or rotation-on-expiration settings.
+                    - New-KeeperOneTimeShareSkipSync, Get-KeeperOneTimeShareSkipSync, and Remove-KeeperOneTimeShareSkipSync create, list, and revoke one-time shares for owned records without a full vault sync; list output includes a ShareLink column.
+                    - New-KeeperOneTimeShare and New-KeeperOneTimeShareSkipSync support the -Editable switch for editable shares.
+                    Fixes:
+                    - Corrected BreachWatch status mapping in Get-KeeperSecurityScoreDeltas.
+                    - Attachment downloads sanitize file names and constrain output paths to the selected destination folder.
                 '
         }
     }
