@@ -935,7 +935,25 @@ function Get-KeeperOneTimeShareSkipSync {
             $auth, $RecordUid.Trim())
         $shares = __AwaitSkipSyncTask $task
 
-        $shares
+        if ($null -eq $shares -or $shares.Count -eq 0) {
+            Write-Host "No shares found for record: $RecordUid"
+            return
+        }
+
+        $displayShares = @()
+        foreach ($share in $shares) {
+            $clientIdDisplay = if ($share.ClientId.Length -gt 20) { $share.ClientId.Substring(0, 20) + '...' } else { $share.ClientId }
+            $displayShares += [pscustomobject][ordered]@{
+                RecordUid       = $share.RecordUid
+                Name            = $share.Name
+                ShareLink       = $clientIdDisplay
+                CreatedOn       = $share.CreatedOn
+                AccessExpiresOn = $share.AccessExpiresOn
+                FirstAccessed   = $share.FirstAccessed
+                LastAccessed    = $share.LastAccessed
+            }
+        }
+        $displayShares | Format-Table -AutoSize
     }
     catch {
         Write-Error "Failed to retrieve shares: $($_.Exception.Message)" -ErrorAction Stop
