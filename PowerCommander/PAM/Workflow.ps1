@@ -971,6 +971,34 @@ function script:convertPamWorkflowTimestamp {
     return [DateTimeOffset]::FromUnixTimeMilliseconds($Timestamp).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
 }
 
+function script:resolvePamWorkflowResourceName {
+    Param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        [Workflow.WorkflowState] $State,
+        [string] $FallbackName
+    )
+
+    if ($State.Resource -and -not [string]::IsNullOrWhiteSpace($State.Resource.Name)) {
+        return $State.Resource.Name
+    }
+
+    if ($Vault -and $State.Resource -and $State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
+        $recordUid = encodePamByteString -ByteString $State.Resource.Value
+        $record = $null
+        if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record) {
+            return $record.Title
+        }
+
+        $nsfRecord = $null
+        if ($Vault.TryGetKeeperNSFRecord($recordUid, [ref]$nsfRecord) -and $nsfRecord) {
+            return $nsfRecord.Title
+        }
+    }
+
+    return $FallbackName
+}
+
 function script:convertPamWorkflowStateToObject {
     Param (
         [Parameter(Mandatory = $true)]
@@ -978,6 +1006,7 @@ function script:convertPamWorkflowStateToObject {
 
         [string] $FallbackRecordUid,
         [string] $FallbackRecordName,
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
         [switch] $RawTimestamps
     )
 
@@ -992,9 +1021,7 @@ function script:convertPamWorkflowStateToObject {
         if ($State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
             $recordUid = encodePamByteString -ByteString $State.Resource.Value
         }
-        if (-not [string]::IsNullOrWhiteSpace($State.Resource.Name)) {
-            $recordName = $State.Resource.Name
-        }
+        $recordName = resolvePamWorkflowResourceName -Vault $Vault -State $State -FallbackName $recordName
     }
 
     $approvedItems = New-Object 'System.Collections.Generic.List[object]'
@@ -1018,7 +1045,7 @@ function script:convertPamWorkflowStateToObject {
         stage = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::FormatStage($status)
         conditions = $conditionItems.ToArray()
         escalated = [bool]$status.Escalated
-        checked_out_by = if ([string]::IsNullOrEmpty($status.CheckedOutBy)) { $null } else { $status.CheckedOutBy }
+        checked_out_by = $status.CheckedOutBy
         can_force_checkin = [bool]$status.CanForceCheckIn
         started_on = convertPamWorkflowTimestamp -Timestamp $status.StartedOn -Raw:$RawTimestamps
         expires_on = convertPamWorkflowTimestamp -Timestamp $status.ExpiresOn -Raw:$RawTimestamps
@@ -1067,29 +1094,23 @@ function script:writePamWorkflowMyAccessTable {
         [System.Collections.IEnumerable] $Workflows
     )
 
-    $lines = New-Object System.Text.StringBuilder
-    [void]$lines.AppendLine('Your Active Workflows')
-    [void]$lines.AppendLine('')
-    $index = 1
+    $rows = New-Object 'System.Collections.Generic.List[object]'
     foreach ($workflow in $Workflows) {
-        [void]$lines.AppendLine("$index. $($workflow.record_name)")
-        if ($workflow.record_uid) { [void]$lines.AppendLine("   Record UID: $($workflow.record_uid)") }
-        if ($workflow.flow_uid) { [void]$lines.AppendLine("   Flow UID: $($workflow.flow_uid)") }
-        [void]$lines.AppendLine("   Stage: $($workflow.stage)")
-        if ($workflow.conditions.Count -gt 0) {
-            [void]$lines.AppendLine("   Conditions: $($workflow.conditions -join ', ')")
-        }
-        if ($workflow.checked_out_by) { [void]$lines.AppendLine("   Checked Out By: $($workflow.checked_out_by)") }
-        if ($workflow.approved_by.Count -gt 0) {
-            $approved = ($workflow.approved_by | ForEach-Object { $_.user }) -join ', '
-            [void]$lines.AppendLine("   Approved By: $approved")
-        }
-        if ($workflow.started_on) { [void]$lines.AppendLine("   Started: $($workflow.started_on)") }
-        if ($workflow.expires_on) { [void]$lines.AppendLine("   Expires: $($workflow.expires_on)") }
-        [void]$lines.AppendLine('')
-        $index++
+        $approved = ($workflow.approved_by | ForEach-Object { $_.user }) -join ', '
+        [void]$rows.Add([PSCustomObject][ordered]@{
+            Stage = $workflow.stage
+            'Record Name' = $workflow.record_name
+            'Record UID' = $workflow.record_uid
+            'Flow UID' = $workflow.flow_uid
+            'Checked Out By' = $workflow.checked_out_by
+            'Approved By' = $approved
+            Started = $workflow.started_on
+            Expires = $workflow.expires_on
+        })
     }
-    Write-Output $lines.ToString().TrimEnd()
+    Write-Output 'Your Active Workflows'
+    Write-Output ''
+    $rows.ToArray() | Format-Table -AutoSize | Out-String -Width 4096 | Write-Output
 }
 
 function script:testPamWorkflowExempt {
@@ -1336,7 +1357,35 @@ function New-KeeperPamWorkflow {
         $result['warning'] = $partialFailureMessage
         Write-Warning -Message $partialFailureMessage
     }
-    if ($Format -eq 'json') { $result | ConvertTo-Json -Depth 8 } else { [PSCustomObject]$result }
+    if ($Format -eq 'json') {
+        $result | ConvertTo-Json -Depth 8
+        return
+    }
+
+    $lines = New-Object System.Text.StringBuilder
+    [void]$lines.AppendLine('Workflow created successfully')
+    [void]$lines.AppendLine('')
+    [void]$lines.AppendLine("Record: $($resource.Title) ($($resource.Uid))")
+    [void]$lines.AppendLine("Approvals needed: $($parameters.ApprovalsNeeded)")
+    [void]$lines.AppendLine("Check-in/out: $(if ($parameters.CheckoutNeeded) { 'Yes' } else { 'No' })")
+    [void]$lines.AppendLine("Duration: $([KeeperSecurity.Plugins.PAM.WorkflowUtils]::FormatDuration($parameters.AccessLength))")
+    if ($parameters.RequireReason) {
+        [void]$lines.AppendLine('Requires reason: Yes')
+    }
+    if ($parameters.RequireTicket) {
+        [void]$lines.AppendLine('Requires ticket: Yes')
+    }
+    if ($parameters.RequireMFA) {
+        [void]$lines.AppendLine('Requires MFA: Yes')
+    }
+    if (@($approversAdded).Count -gt 0) {
+        [void]$lines.AppendLine("Approvers: $($approversAdded -join ', ')")
+    }
+    elseif ($parameters.ApprovalsNeeded -gt 0) {
+        [void]$lines.AppendLine('')
+        [void]$lines.AppendLine("Note: Add approvers with: pam-workflow add-approver $($resource.Uid) --user <email>")
+    }
+    Write-Output $lines.ToString().TrimEnd()
 }
 
 function Get-KeeperPamWorkflow {
@@ -1524,23 +1573,23 @@ function Update-KeeperPamWorkflow {
 
         [Parameter()]
         [Alias('co')]
-        [Nullable[bool]] $Checkout,
+        [object] $Checkout,
 
         [Parameter()]
         [Alias('sa')]
-        [Nullable[bool]] $StartOnApproval,
+        [object] $StartOnApproval,
 
         [Parameter()]
         [Alias('rr')]
-        [Nullable[bool]] $RequireReason,
+        [object] $RequireReason,
 
         [Parameter()]
         [Alias('rt')]
-        [Nullable[bool]] $RequireTicket,
+        [object] $RequireTicket,
 
         [Parameter()]
         [Alias('rm')]
-        [Nullable[bool]] $RequireMfa,
+        [object] $RequireMfa,
 
         [Parameter()]
         [Alias('d')]
@@ -1578,11 +1627,26 @@ function Update-KeeperPamWorkflow {
     $parameters = $current.Parameters.Clone()
     $updatesProvided = $false
     if ($PSBoundParameters.ContainsKey('ApprovalsNeeded')) { $parameters.ApprovalsNeeded = [int]$ApprovalsNeeded; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('Checkout')) { $parameters.CheckoutNeeded = [bool]$Checkout; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('StartOnApproval')) { $parameters.StartAccessOnApproval = [bool]$StartOnApproval; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireReason')) { $parameters.RequireReason = [bool]$RequireReason; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireTicket')) { $parameters.RequireTicket = [bool]$RequireTicket; $updatesProvided = $true }
-    if ($PSBoundParameters.ContainsKey('RequireMfa')) { $parameters.RequireMFA = [bool]$RequireMfa; $updatesProvided = $true }
+    if ($PSBoundParameters.ContainsKey('Checkout')) {
+        $parameters.CheckoutNeeded = ConvertTo-KeeperNullableBoolean -Value $Checkout -ParameterName 'Checkout'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('StartOnApproval')) {
+        $parameters.StartAccessOnApproval = ConvertTo-KeeperNullableBoolean -Value $StartOnApproval -ParameterName 'StartOnApproval'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireReason')) {
+        $parameters.RequireReason = ConvertTo-KeeperNullableBoolean -Value $RequireReason -ParameterName 'RequireReason'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireTicket')) {
+        $parameters.RequireTicket = ConvertTo-KeeperNullableBoolean -Value $RequireTicket -ParameterName 'RequireTicket'
+        $updatesProvided = $true
+    }
+    if ($PSBoundParameters.ContainsKey('RequireMfa')) {
+        $parameters.RequireMFA = ConvertTo-KeeperNullableBoolean -Value $RequireMfa -ParameterName 'RequireMfa'
+        $updatesProvided = $true
+    }
 
     try {
         if ($PSBoundParameters.ContainsKey('Duration')) {
@@ -1996,6 +2060,7 @@ function Get-KeeperPamWorkflowState {
     else {
         $result = convertPamWorkflowStateToObject -State $state `
             -FallbackRecordUid $resource.Uid -FallbackRecordName $resource.Title `
+            -Vault $vault `
             -RawTimestamps:($Format -eq 'json')
     }
 
@@ -2064,9 +2129,10 @@ function Get-KeeperPamWorkflowMyAccess {
     }
 
     $workflowItems = New-Object 'System.Collections.Generic.List[object]'
+    $vault = getPamVault
     foreach ($wf in $accessState.Workflows) {
-        [void]$workflowItems.Add(
-            (convertPamWorkflowStateToObject -State $wf -RawTimestamps:($Format -eq 'json')))
+        $workflow = convertPamWorkflowStateToObject -State $wf -Vault $vault -RawTimestamps:($Format -eq 'json')
+        [void]$workflowItems.Add($workflow)
     }
     $workflows = $workflowItems.ToArray()
 

@@ -617,10 +617,51 @@ namespace KeeperSecurity.Plugins.PAM
       return await auth.ExecuteRouter<WorkflowState>(GetWorkflowStatePath, request);
     }
 
+    private static string NormalizeWorkflowIdentity(string identity)
+    {
+      return string.IsNullOrWhiteSpace(identity) ? null : identity.Trim();
+    }
+
+    private static string ResolveCheckedOutBy(WorkflowState workflow, string currentUsername)
+    {
+      var status = workflow?.Status;
+      if (status == null)
+      {
+        return null;
+      }
+
+      var checkedOutBy = NormalizeWorkflowIdentity(status.CheckedOutBy);
+      if (checkedOutBy != null)
+      {
+        return checkedOutBy;
+      }
+
+      // User access responses do not include StartedBy or RequestedBy. Use the
+      // authenticated user only while the workflow is currently started; a
+      // historical StartedOn value must not identify an old checkout as active.
+      var accessHasStarted = status.Stage == WorkflowStage.WsStarted;
+      return accessHasStarted ? NormalizeWorkflowIdentity(currentUsername) : null;
+    }
+
     /// <summary>Gets the current user's workflow access state.</summary>
     public static async Task<UserAccessState> GetUserAccessStateAsync(IAuthentication auth)
     {
-      return await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
+      var state = await auth.ExecuteRouter<UserAccessState>(GetUserAccessStatePath);
+      if (state?.Workflows == null)
+      {
+        return state;
+      }
+
+      foreach (var workflow in state.Workflows)
+      {
+        var checkedOutBy = ResolveCheckedOutBy(workflow, auth.Username);
+        if (workflow?.Status != null && checkedOutBy != null)
+        {
+          workflow.Status.CheckedOutBy = checkedOutBy;
+        }
+      }
+
+      return state;
     }
 
     /// <summary>Requests access to a record through its workflow.</summary>
