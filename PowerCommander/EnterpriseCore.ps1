@@ -262,24 +262,24 @@ function Get-KeeperEnterpriseTeam {
         $queuedTeamData = $enterprise.queuedTeamData
 
         $detailedResult = foreach ($team in $result) {
-            $users = @()
+            $users = [System.Collections.Generic.List[string]]::new()
             if ($enterpriseData) {
                 $userIds = @($enterpriseData.GetUsersForTeam($team.Uid))
                 foreach ($userId in $userIds) {
                     $user = $null
                     if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
-                        $users += $user.Email
+                        [void]$users.Add($user.Email)
                     }
                 }
             }
 
-            $queuedUsers = @()
+            $queuedUsers = [System.Collections.Generic.List[string]]::new()
             if ($queuedTeamData) {
                 $queuedUserIds = @($queuedTeamData.GetQueuedUsersForTeam($team.Uid))
                 foreach ($userId in $queuedUserIds) {
                     $user = $null
                     if ($enterpriseData -and $enterpriseData.TryGetUserById($userId, [ref]$user)) {
-                        $queuedUsers += $user.Email
+                        [void]$queuedUsers.Add($user.Email)
                     }
                 }
             }
@@ -2088,11 +2088,11 @@ function ConvertTo-KeeperImportObject {
     }
 
     if ($Value -is [System.Collections.IEnumerable]) {
-        $result = New-Object 'System.Collections.Generic.List[object]'
+        $result = @()
         foreach ($item in $Value) {
-            $result.Add((ConvertTo-KeeperImportObject -Value $item -Depth ($Depth + 1)))
+            $result += ,(ConvertTo-KeeperImportObject -Value $item -Depth ($Depth + 1))
         }
-        return $result.ToArray()
+        return $result
     }
 
     $result = New-Object 'System.Collections.Generic.Dictionary[string, object]'
