@@ -71,7 +71,7 @@ namespace Commander
                 var json = BuildTreeJson(folder, options, classicShares, nsfShares, new HashSet<string>(StringComparer.Ordinal), "/");
                 var payload = new Dictionary<string, object> { ["tree"] = json };
                 if (!string.IsNullOrEmpty(options.Title)) payload["title"] = options.Title;
-                if ((options.Shares || options.NsfShares) && !options.HideSharedKeysEffective)
+                if ((options.Shares || options.NsfShares) && !options.HideSharedKeys)
                     payload["share_permissions_key"] = SharePermissionsKey(options);
                 var text = Json.WriteFormatted(payload);
                 if (!string.IsNullOrEmpty(options.Output)) File.WriteAllText(options.Output, text);
@@ -79,7 +79,7 @@ namespace Commander
                 return true;
             }
 
-            if ((options.Shares || options.NsfShares) && !options.HideSharedKeysEffective)
+            if ((options.Shares || options.NsfShares) && !options.HideSharedKeys)
             {
                 Console.WriteLine("Share Permissions Key:");
                 Console.WriteLine("======================");
@@ -332,7 +332,7 @@ namespace Commander
             {
                 if (entry == null) continue;
                 var name = ResolveNsfAccessor(entry);
-                var role = NsfRoleAbbreviation(entry);
+                var role = entry.Owner ? "OW" : NsfRoleAbbreviation(entry.AccessRoleType);
                 var value = $"[{name}:{role}]";
                 if (entry.AccessType == NsfAccessTypeTeam) teams.Add(value);
                 else if (entry.AccessType == NsfAccessTypeApplication) apps.Add(value);
