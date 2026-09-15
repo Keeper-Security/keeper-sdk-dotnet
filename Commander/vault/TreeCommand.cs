@@ -10,10 +10,21 @@ namespace Commander
 {
     internal partial class VaultContext
     {
+        private const int NsfAccessTypeTeam = 3;
+        private const int NsfAccessTypeApplication = 6;
+        private const int NsfRoleOwner = 1;
+        private const int NsfRoleViewer = 2;
+        private const int NsfRoleShareManager = 3;
+        private const int NsfRoleContentManager = 4;
+        private const int NsfRoleContentShareManager = 5;
+        private const int NsfRoleFullManager = 6;
+        private const int NsfRoleUnknown = 7;
+
         internal async Task<bool> EnhancedTreeCommand(TreeCommandOptions options)
         {
-            if (!string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+            var format = (options.Format ?? "table").Trim();
+            if (!string.Equals(format, "table", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine($"Invalid format: {options.Format}. Expected table or json.");
                 return false;
@@ -40,10 +51,6 @@ namespace Commander
                 foreach (var nsfFolder in Vault.KeeperNSFFolderNodes)
                 {
                     nsfFolderUids.Add(nsfFolder.FolderUid);
-                    if (string.IsNullOrEmpty(nsfFolder.ParentUid) || !Vault.TryGetKeeperNSFFolder(nsfFolder.ParentUid, out _))
-                    {
-                        nsfFolderUids.Add(nsfFolder.FolderUid);
-                    }
                 }
                 if (options.Record)
                 {
@@ -59,7 +66,7 @@ namespace Commander
                 ? Vault.GetKeeperNSFSharePermissions(nsfFolderUids, nsfRecordUids)
                 : null;
 
-            if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             {
                 var json = BuildTreeJson(folder, options, classicShares, nsfShares, new HashSet<string>(StringComparer.Ordinal), "/");
                 var payload = new Dictionary<string, object> { ["tree"] = json };
@@ -199,10 +206,10 @@ namespace Commander
             if (isNsf && options.NsfShares) label += NsfPermissionText(folder.FolderUid, nsfShares);
             Console.WriteLine(indent + (string.IsNullOrEmpty(indent) ? "" : (last ? "└── " : "├── ")) + label);
             var childIndent = indent + (string.IsNullOrEmpty(indent) ? " " : (last ? "    " : "│   "));
-            var childFolders = (folder.Subfolders ?? Array.Empty<string>()).Select(x => TryGetTreeFolder(x, out var f) ? f : null).Where(x => x != null).OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+            var childFolders = (folder.Subfolders ?? Array.Empty<string>()).Select(x => TryGetTreeFolder(x, out var f) ? f : null).Where(x => x != null).ToList();
             if (string.IsNullOrEmpty(folder.FolderUid))
             {
-                var roots = Vault.KeeperNSFFolderNodes.Where(x => string.IsNullOrEmpty(x.ParentUid) || !Vault.TryGetKeeperNSFFolder(x.ParentUid, out _)).OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+                var roots = Vault.KeeperNSFFolderNodes.Where(x => string.IsNullOrEmpty(x.ParentUid) || !Vault.TryGetKeeperNSFFolder(x.ParentUid, out _)).ToList();
                 childFolders.AddRange(roots.Where(x => childFolders.All(y => y.FolderUid != x.FolderUid)));
             }
             childFolders = childFolders.OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
@@ -219,7 +226,14 @@ namespace Commander
             }
         }
 
-        private static string JoinPath(string parent, string name) => parent == "/" ? "/" + name : parent.TrimEnd('/') + "/" + name;
+        private static string JoinPath(string parent, string name)
+        {
+            if (string.IsNullOrEmpty(name)) return string.IsNullOrEmpty(parent) ? "/" : parent;
+            var childName = name.Trim('/');
+            if (childName.Length == 0) return string.IsNullOrEmpty(parent) ? "/" : parent;
+            if (string.IsNullOrEmpty(parent) || parent == "/") return "/" + childName;
+            return parent.TrimEnd('/') + "/" + childName;
+        }
 
         private bool TryGetTreeFolder(string uid, out FolderNode folder)
         {
@@ -272,22 +286,39 @@ namespace Commander
         private Dictionary<string, object> NsfFolderPermissions(string uid, KeeperNSFSharePermissions shares) => NsfPermissions(shares?.FolderPermissions.TryGetValue(uid, out var entries) == true ? entries : Array.Empty<KeeperNSFAccessEntry>());
         private Dictionary<string, object> NsfRecordPermissions(string uid, KeeperNSFSharePermissions shares) => NsfPermissions(shares?.RecordPermissions.TryGetValue(uid, out var entries) == true ? entries : Array.Empty<KeeperNSFAccessEntry>());
 
+        private string ResolveNsfAccessor(KeeperNSFAccessEntry entry)
+        {
+            if (!string.IsNullOrEmpty(entry.AccessorName)) return entry.AccessorName;
+            if (entry.AccessType == NsfAccessTypeTeam && Vault.TryGetTeam(entry.AccessTypeUid, out var team)) return team.Name;
+            if (entry.AccessType == NsfAccessTypeApplication && Vault.TryGetKeeperRecord(entry.AccessTypeUid, out var app)) return app.Title;
+            if (Vault.TryGetUsername(entry.AccessTypeUid, out var username)) return username;
+            return entry.AccessTypeUid;
+        }
+
+        private static string NsfRoleName(KeeperNSFAccessEntry entry)
+        {
+            if (entry.Owner || entry.AccessRoleType == NsfRoleOwner) return "owner";
+            switch (entry.AccessRoleType)
+            {
+                case NsfRoleViewer: return "viewer";
+                case NsfRoleShareManager: return "share-manager";
+                case NsfRoleContentManager: return "content-manager";
+                case NsfRoleContentShareManager: return "content-share-manager";
+                case NsfRoleFullManager: return "full-manager";
+                case NsfRoleUnknown: return "unresolved";
+                default: return "unresolved";
+            }
+        }
+
         private Dictionary<string, object> NsfPermissions(IEnumerable<KeeperNSFAccessEntry> entries)
         {
             var users = new List<object>(); var teams = new List<object>(); var apps = new List<object>();
-            foreach (var entry in entries)
+            foreach (var entry in entries ?? Enumerable.Empty<KeeperNSFAccessEntry>())
             {
-                var accessor = entry.AccessorName;
-                if (string.IsNullOrEmpty(accessor))
-                {
-                    if (entry.AccessType == 3 && Vault.TryGetTeam(entry.AccessTypeUid, out var team)) accessor = team.Name;
-                    else if (entry.AccessType == 6 && Vault.TryGetKeeperRecord(entry.AccessTypeUid, out var app)) accessor = app.Title;
-                    else if (Vault.TryGetUsername(entry.AccessTypeUid, out var username)) accessor = username;
-                    else accessor = entry.AccessTypeUid;
-                }
-                var row = new Dictionary<string, object> { ["accessor"] = accessor, ["access_type"] = NsfHelpers.GetAccessTypeLabel(entry.AccessType), ["role"] = entry.Owner ? "owner" : NsfHelpers.GetAccessRoleLabel(entry.AccessRoleType), ["inherited"] = entry.Inherited };
-                if (entry.AccessType == 3) teams.Add(row);
-                else if (entry.AccessType == 6) apps.Add(row);
+                if (entry == null) continue;
+                var row = new Dictionary<string, object> { ["accessor"] = ResolveNsfAccessor(entry), ["access_type"] = NsfHelpers.GetAccessTypeLabel(entry.AccessType), ["role"] = NsfRoleName(entry), ["inherited"] = entry.Inherited };
+                if (entry.AccessType == NsfAccessTypeTeam) teams.Add(row);
+                else if (entry.AccessType == NsfAccessTypeApplication) apps.Add(row);
                 else users.Add(row);
             }
             return new Dictionary<string, object> { ["user_permissions"] = users, ["team_permissions"] = teams, ["application_permissions"] = apps };
@@ -295,22 +326,16 @@ namespace Commander
 
         private string NsfPermissionText(string uid, KeeperNSFSharePermissions shares)
         {
-            if (shares?.FolderPermissions.TryGetValue(uid, out var entries) != true || entries.Count == 0) return "";
+            if (shares?.FolderPermissions.TryGetValue(uid, out var entries) != true || entries == null || entries.Count == 0) return "";
             var users = new List<string>(); var teams = new List<string>(); var apps = new List<string>();
             foreach (var entry in entries)
             {
-                var name = entry.AccessorName;
-                if (string.IsNullOrEmpty(name))
-                {
-                    if (entry.AccessType == 3 && Vault.TryGetTeam(entry.AccessTypeUid, out var team)) name = team.Name;
-                    else if (entry.AccessType == 6 && Vault.TryGetKeeperRecord(entry.AccessTypeUid, out var app)) name = app.Title;
-                    else if (Vault.TryGetUsername(entry.AccessTypeUid, out var username)) name = username;
-                    else name = entry.AccessTypeUid;
-                }
-                var role = entry.Owner ? "OW" : NsfRoleAbbreviation(entry.AccessRoleType);
+                if (entry == null) continue;
+                var name = ResolveNsfAccessor(entry);
+                var role = NsfRoleAbbreviation(entry);
                 var value = $"[{name}:{role}]";
-                if (entry.AccessType == 3) teams.Add(value);
-                else if (entry.AccessType == 6) apps.Add(value);
+                if (entry.AccessType == NsfAccessTypeTeam) teams.Add(value);
+                else if (entry.AccessType == NsfAccessTypeApplication) apps.Add(value);
                 else users.Add(value);
             }
             var parts = new List<string>();
@@ -324,12 +349,16 @@ namespace Commander
         {
             switch (role)
             {
-                case 2: return "VW";
-                case 3: return "SM";
-                case 4: return "CM";
-                case 5: return "CSM";
-                case 6: return "FM";
-                default: return "UN";
+                case NsfRoleOwner: return "OW";
+                case NsfRoleViewer: return "VW";
+                case NsfRoleShareManager: return "SM";
+                case NsfRoleContentManager: return "CM";
+                case NsfRoleContentShareManager: return "CSM";
+                case NsfRoleFullManager: return "FM";
+                case NsfRoleUnknown:
+                default:
+                    // Keep a stable abbreviation for future or malformed server values.
+                    return "UN";
             }
         }
     }
