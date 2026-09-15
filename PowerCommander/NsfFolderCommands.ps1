@@ -1286,35 +1286,40 @@ function Script:ConvertTo-KeeperNSFFolderUpdateRequests {
     return ,$list
 }
 
-function Move-KeeperNSFFolder {
+function Move-KeeperNSFItem {
     <#
 	.Synopsis
-	Moves a Keeper NSF folder to a new parent folder.
+	Moves a Keeper NSF record or folder into a new folder.
 
 	.Description
-	For bulk moves from JSON, use Move-KeeperNSFFolders (nsf-move-folders).
-	Rejects moves that would push the folder or any of its descendants past 5 nesting
-	levels below the Nested Share Folder root.
+	Resolves Src as a Keeper NSF folder first; if no folder matches, resolves it as a
+	Keeper NSF record instead. For a record, the current containing folder is
+	auto-detected; the move fails if the record is not linked to exactly one
+	Keeper NSF folder.
+	For bulk moves from JSON, use Move-KeeperNSFFolders (nsf-move-folders) or
+	Move-KeeperNSFRecords (nsf-move-records).
+	Folder moves reject changes that would push the folder or any of its descendants past
+	5 nesting levels below the Nested Share Folder root.
 
-	.Parameter Folder
-	Folder UID or name.
+	.Parameter Src
+	Source record or folder UID or name.
 
-	.Parameter TargetParent
-	Target parent folder UID or name.
+	.Parameter Dst
+	Destination folder UID or name, or 'root'.
 
 	.EXAMPLE
-	PS> Move-KeeperNSFFolder <folderUid> -TargetParent <targetParentUid>
+	PS> Move-KeeperNSFItem <folderUid> <targetParentUid>
 
 	.EXAMPLE
-	PS> nsf-move-folder <folderUid> -TargetParent <targetParentUid>
+	PS> nsf-move <recordUid> <targetFolderUid>
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
     Param(
         [Parameter(Position = 0, Mandatory = $true)]
-        [string] $Folder,
+        [string] $Src,
 
-        [Parameter(Mandatory = $true)]
-        [string] $TargetParent
+        [Parameter(Position = 1, Mandatory = $true)]
+        [string] $Dst
     )
 
     try {
@@ -1326,39 +1331,91 @@ function Move-KeeperNSFFolder {
     }
 
     [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
-        Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+    if ($vault.TryResolveKeeperNSFFolder($Src, [ref]$folderNode)) {
+        [KeeperSecurity.Vault.FolderNode]$targetNode = $null
+        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetNode)) {
+            Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
+            return
+        }
+
+        $moveTarget = "$($folderNode.FolderUid) -> $($targetNode.FolderUid)"
+        if (-not $PSCmdlet.ShouldProcess($moveTarget, "Move Keeper NSF folder")) {
+            return
+        }
+
+        try {
+            $result = $vault.MoveKeeperNSFFolder($folderNode.FolderUid, $targetNode.FolderUid).GetAwaiter().GetResult()
+        }
+        catch {
+            Write-Error -Message $_.Exception.Message
+            return
+        }
+
+        if ($result.Success) {
+            Write-Host "Folder '$($result.FolderUid)' moved to '$($result.TargetParentUid)' successfully." -ForegroundColor Green
+        }
+        else {
+            $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+            Write-Error -Message "Failed to move folder: status=$($result.Status) $msg"
+        }
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$targetNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($TargetParent, [ref]$targetNode)) {
-        Write-Error -Message "Target folder `"$TargetParent`" was not found. Run Sync-Keeper or nsf-list first."
+    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
+    if ($vault.TryResolveKeeperNSFRecord($Src, [ref]$kdRecord)) {
+        [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
+
+        $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
+        if ($folderUids.Count -eq 0) {
+            Write-Error -Message "Record `"$Src`" is not linked to any Keeper NSF folder."
+            return
+        }
+        if ($folderUids.Count -gt 1) {
+            Write-Error -Message "Record `"$Src`" is linked to multiple Keeper NSF folders. Unable to determine which one to move from."
+            return
+        }
+        # A folder UID from a record's folder link that isn't a known local NSF folder
+        # represents the Keeper Drive root (the server's per-account root sentinel).
+        [KeeperSecurity.Vault.FolderNode]$existingFolder = $null
+        $sourceFolderUidOrRoot = if ($vault.TryGetKeeperNSFFolder($folderUids[0], [ref]$existingFolder)) { $folderUids[0] } else { 'root' }
+
+        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($sourceFolderUidOrRoot, [ref]$sourceFolderNode)) {
+            Write-Error -Message "Record's current folder `"$($folderUids[0])`" was not found. Run Sync-Keeper or nsf-list first."
+            return
+        }
+
+        [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
+        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetFolderNode)) {
+            Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
+            return
+        }
+
+        $moveTarget = "$($kdRecord.RecordUid): $($sourceFolderNode.FolderUid) -> $($targetFolderNode.FolderUid)"
+        if (-not $PSCmdlet.ShouldProcess($moveTarget, "Move Keeper NSF record between folders")) {
+            return
+        }
+
+        try {
+            $result = $vault.MoveKeeperNSFRecord($kdRecord.RecordUid, $sourceFolderNode.FolderUid, $targetFolderNode.FolderUid).GetAwaiter().GetResult()
+        }
+        catch {
+            Write-Error -Message $_.Exception.Message
+            return
+        }
+
+        if ($result.Success) {
+            Write-Host "Record '$($result.RecordUid)' moved from '$($result.SourceFolderUid)' to '$($result.TargetFolderUid)' successfully." -ForegroundColor Green
+        }
+        else {
+            $msg = if ($result.Message) { $result.Message } else { '(no message)' }
+            Write-Error -Message "Failed to move record: status=$($result.Status) $msg"
+        }
         return
     }
 
-    $target = "$($folderNode.FolderUid) -> $($targetNode.FolderUid)"
-    if (-not $PSCmdlet.ShouldProcess($target, "Move Keeper NSF folder")) {
-        return
-    }
-
-    try {
-        $result = $vault.MoveKeeperNSFFolder($folderNode.FolderUid, $targetNode.FolderUid).GetAwaiter().GetResult()
-    }
-    catch {
-        Write-Error -Message $_.Exception.Message
-        return
-    }
-
-    if ($result.Success) {
-        Write-Host "Folder '$($result.FolderUid)' moved to '$($result.TargetParentUid)' successfully." -ForegroundColor Green
-    }
-    else {
-        $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-        Write-Error -Message "Failed to move folder: status=$($result.Status) $msg"
-    }
+    Write-Error -Message "Keeper NSF record or folder `"$Src`" was not found. Run Sync-Keeper or nsf-list first."
 }
-New-Alias -Name nsf-move-folder -Value Move-KeeperNSFFolder
+New-Alias -Name nsf-move -Value Move-KeeperNSFItem
 
 function Move-KeeperNSFFolders {
     <#
@@ -1366,7 +1423,7 @@ function Move-KeeperNSFFolders {
 	Batch-moves Keeper NSF folders to new parent folders from JSON (single API request, no chunking).
 
 	.Description
-	Independent of Move-KeeperNSFFolder / nsf-move-folder.
+	Independent of Move-KeeperNSFItem / nsf-move.
 	Rejects (per-item) any move that would push the moved folder or any of its descendants
 	past 5 nesting levels below the Nested Share Folder root.
 
