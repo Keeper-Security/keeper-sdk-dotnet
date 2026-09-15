@@ -644,7 +644,8 @@ function Get-KeeperTree {
                     if ($folder.FolderUid -and $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) { $label += ' [SHARED]' }
                 }
             }
-            if ($prefix) { & $writeTreeLine ($prefix + $(if ($last) { '└── ' } else { '├── ' }) + $label) }
+            $branch = if ($last) { ([char]0x2514).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' } else { ([char]0x251C).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' }
+            if ($prefix) { & $writeTreeLine ($prefix + $branch + $label) }
             else { & $writeTreeLine $label }
 
             if ($entry.Kind -eq 'record') { continue }
@@ -681,7 +682,10 @@ function Get-KeeperTree {
                     }
                 }
             }
-            $childPrefix = $prefix + $(if ($prefix -and $last) { '    ' } elseif ($prefix) { '│   ' } else { ' ' })
+            $branchPrefix = ' '
+            if ($prefix -and $last) { $branchPrefix = '    ' }
+            elseif ($prefix) { $branchPrefix = ([char]0x2502).ToString() + '   ' }
+            $childPrefix = $prefix + $branchPrefix
             $orderedChildren = @($children | Sort-Object Name)
             for ($i = $orderedChildren.Count - 1; $i -ge 0; $i--) {
                 $childEntry = $orderedChildren[$i]
