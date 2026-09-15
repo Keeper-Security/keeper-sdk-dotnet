@@ -27,130 +27,6 @@ namespace Commander
             Vault = vault;
         }
 
-        public void PrintTree(FolderNode folder, string indent, bool last, TreeCommandOptions options = null, HashSet<string> sharedFolderUids = null)
-        {
-            var isRoot = string.IsNullOrEmpty(indent);
-            
-            sharedFolderUids ??= new HashSet<string>(
-                Vault.SharedFolders.Select(sf => sf.Uid)
-            );
-            
-            var folderDisplay = folder.Name;
-            
-            if (options?.Verbose == true)
-            {
-                folderDisplay += $" (ID: {folder.FolderUid})";
-            }
-            
-            var isSharedFolder = !string.IsNullOrEmpty(folder.FolderUid) && 
-                                sharedFolderUids.Contains(folder.FolderUid);
-            if (isSharedFolder)
-            {
-                if (options?.Shares == true)
-                {
-                    folderDisplay += " [SHARED]";
-                    var sharedFolder = Vault.SharedFolders.FirstOrDefault(sf => sf.Uid == folder.FolderUid);
-                    if (sharedFolder != null)
-                    {
-                        try
-                        {
-                            var permissionInfo = GetPermissionInfo(sharedFolder);
-                            folderDisplay += $" {permissionInfo}";
-                        }
-                        catch (Exception)
-                        {
-                            folderDisplay += " [Error retrieving permissions]";
-                        }
-                    }
-                }
-                else if (options != null)
-                {
-                    folderDisplay += " [Shared]";
-                }
-            }
-
-            Console.WriteLine(indent + (isRoot ? "" : "+-- ") + folderDisplay);
-            indent += isRoot ? " " : (last ? "    " : "|   ");
-
-            var subfolders = new List<FolderNode>();
-            foreach (var t in folder.Subfolders)
-            {
-                if (Vault.TryGetFolder(t, out var node))
-                {
-                    subfolders.Add(node);
-                }
-            }
-
-            subfolders.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.CurrentCultureIgnoreCase));
-
-            if (options?.Record == true)
-            {
-                var records = new List<KeeperRecord>();
-                var skippedRecords = 0;
-                
-                foreach (var recordUid in folder.Records)
-                {
-                    if (Vault.TryGetKeeperRecord(recordUid, out var record))
-                    {
-                        if (record.Version == 2 || record.Version == 3)
-                        {
-                            records.Add(record);
-                        }
-                        else
-                        {
-                            skippedRecords++;
-                        }
-                    }
-                    else
-                    {
-                        skippedRecords++;
-                    }
-                }
-
-                records.Sort((x, y) => string.Compare(x.Title, y.Title, StringComparison.CurrentCultureIgnoreCase));
-
-                for (var i = 0; i < records.Count; i++)
-                {
-                    var record = records[i];
-                    var recordDisplay = string.IsNullOrEmpty(record.Title) ? record.Uid : record.Title;
-                    
-                    if (options?.Verbose == true)
-                    {
-                        recordDisplay += $" (ID: {record.Uid})";
-                    }
-                    
-                    try
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine(indent + "+-- " + recordDisplay + " [Record]");
-                    }
-                    finally
-                    {
-                        Console.ResetColor();
-                    }
-                }
-                
-                if (options?.Verbose == true && skippedRecords > 0)
-                {
-                    try
-                    {
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine(indent + $"    ({skippedRecords} record(s) could not be displayed)");
-                    }
-                    finally
-                    {
-                        Console.ResetColor();
-                    }
-                }
-            }
-
-            for (var i = 0; i < subfolders.Count; i++)
-            {
-                var node = subfolders[i];
-                var isLastFolder = i == subfolders.Count - 1;
-                PrintTree(node, indent, isLastFolder, options, sharedFolderUids);
-            }
-        }
         public bool TryResolvePath(string path, out FolderNode node)
         {
             var res = TryResolvePath(path, out node, out var text);
@@ -237,73 +113,6 @@ namespace Commander
             return true;
         }
     
-        private string GetPermissionInfo(SharedFolder sharedFolder)
-        {
-            var permissions = new List<string>();
-            
-            var defaultPermissions = GetPermissionsString(
-                sharedFolder.DefaultCanEdit, 
-                sharedFolder.DefaultCanShare, 
-                sharedFolder.DefaultManageRecords, 
-                sharedFolder.DefaultManageUsers);
-            permissions.Add($"default:{defaultPermissions}");
-            
-            var currentUserEmail = Vault.Auth.Username;
-            var currentUserPermission = sharedFolder.UsersPermissions.FirstOrDefault(up => up.Name == currentUserEmail);
-            
-            string userPermissions;
-            if (currentUserPermission != null)
-            {
-                userPermissions = GetPermissionsString(
-                    sharedFolder.DefaultCanEdit,
-                    sharedFolder.DefaultCanShare,
-                    currentUserPermission.ManageRecords,
-                    currentUserPermission.ManageUsers);
-            }
-            else
-            {
-                userPermissions = defaultPermissions;
-            }
-            
-            permissions.Add($"user:{userPermissions}");
-            
-            var otherUsers = sharedFolder.UsersPermissions
-                .Where(up => up.Name != currentUserEmail)
-                .ToList();
-                
-            if (otherUsers.Count > 0)
-            {
-                var usersList = new List<string>();
-                foreach (var userPerm in otherUsers)
-                {
-                    var userSpecificPermissions = GetPermissionsString(
-                        sharedFolder.DefaultCanEdit,
-                        sharedFolder.DefaultCanShare,
-                        userPerm.ManageRecords,
-                        userPerm.ManageUsers);
-                    
-                    usersList.Add($"{userPerm.Name}:{userSpecificPermissions}");
-                }
-                
-                permissions.Add($"users:[{string.Join(", ", usersList)}]");
-            }
-            
-            return $"({string.Join("; ", permissions)})";
-        }
-
-        private string GetPermissionsString(bool canEdit, bool canShare, bool manageRecords, bool manageUsers)
-        {
-            var permissionList = new List<string>();
-            
-            if (canEdit) permissionList.Add("CE");
-            if (canShare) permissionList.Add("CS");
-            if (manageRecords) permissionList.Add("MR");
-            if (manageUsers) permissionList.Add("MU");
-            
-            if (permissionList.Count == 0) permissionList.Add("RO");
-            
-            return string.Join(",", permissionList);
-        }
     }
 
     internal static class VaultCommandExtensions
@@ -1044,36 +853,7 @@ namespace Commander
 
         private static Task TreeCommand(this VaultContext context, TreeCommandOptions options)
         {
-            FolderNode startFolder = context.Vault.RootFolder;
-
-            if (!string.IsNullOrEmpty(options.Folder))
-            {
-                if (context.TryResolvePath(options.Folder, out var targetFolder))
-                {
-                    startFolder = targetFolder;
-                }
-                else
-                {
-                    Console.WriteLine($"Invalid folder: {options.Folder}");
-                    return Task.FromResult(false);
-                }
-            }
-
-            if (options.Shares && !options.HideSharedKeys)
-            {
-                Console.WriteLine("Share Permissions Key:");
-                Console.WriteLine("======================");
-                Console.WriteLine("RO = Read-Only");
-                Console.WriteLine("MU = Can Manage Users");
-                Console.WriteLine("MR = Can Manage Records");
-                Console.WriteLine("CE = Can Edit");
-                Console.WriteLine("CS = Can Share");
-                Console.WriteLine("======================");
-                Console.WriteLine();
-            }
-
-            context.PrintTree(startFolder, "", true, options);
-            return Task.FromResult(true);
+            return context.EnhancedTreeCommand(options);
         }
 
 
@@ -1686,8 +1466,25 @@ namespace Commander
         [Option('s', "shares", Required = false, HelpText = "show shares along with folders")]
         public bool Shares { get; set; }
 
-        [Option('h', "hide-shared-keys", Required = false, HelpText = "hide share permissions key (valid only when used with --shares flag, which shows key by default)")]
+        [Option("ns", Required = false, HelpText = "show NSF folder and record permissions")]
+        public bool NsfShares { get; set; }
+
+        [Option('f', "format", Required = false, Default = "table", HelpText = "output format: table or json")]
+        public string Format { get; set; }
+
+        [Option("output", Required = false, HelpText = "write JSON output to a file")]
+        public string Output { get; set; }
+
+        [Option('h', "hide-shared-keys", Required = false, HelpText = "hide share permissions key (valid with --shares / --nsf-shares)")]
         public bool HideSharedKeys { get; set; }
+
+        [Option("hk", Required = false, HelpText = "hide share permissions key (Python Commander-compatible alias)")]
+        public bool HideSharedKeysShort { get; set; }
+
+        public bool HideSharedKeysEffective => HideSharedKeys || HideSharedKeysShort;
+
+        [Option('t', "title", Required = false, HelpText = "optional title for the folder structure")]
+        public string Title { get; set; }
     }
 
     class SyncDownOptions
