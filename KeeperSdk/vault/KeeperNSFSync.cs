@@ -1061,6 +1061,7 @@ namespace KeeperSecurity.Vault
         public string RecordUid { get; internal set; }
         public string AccessorName { get; internal set; }
         public string AccessTypeUid { get; internal set; }
+        public int AccessType { get; internal set; }
         public bool Owner { get; internal set; }
         public bool Inherited { get; internal set; }
         public int AccessRoleType { get; internal set; }
@@ -1068,6 +1069,61 @@ namespace KeeperSecurity.Vault
         public bool CanView { get; internal set; }
         public bool CanUpdateAccess { get; internal set; }
         public bool CanDelete { get; internal set; }
+    }
+
+    /// <summary>Cached NSF permissions grouped by folder and record UID.</summary>
+    public sealed class KeeperNSFSharePermissions
+    {
+        public IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> FolderPermissions { get; internal set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> RecordPermissions { get; internal set; }
+
+        internal static KeeperNSFSharePermissions Create(VaultOnline vault,
+            IEnumerable<string> folderUids, IEnumerable<string> recordUids)
+        {
+            var folders = BuildFolderPermissions(vault, folderUids);
+            var records = BuildRecordPermissions(vault, recordUids);
+            return new KeeperNSFSharePermissions { FolderPermissions = folders, RecordPermissions = records };
+        }
+
+        private static IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> BuildFolderPermissions(
+            VaultOnline vault, IEnumerable<string> uids)
+        {
+            var result = new Dictionary<string, IReadOnlyList<KeeperNSFAccessEntry>>(StringComparer.Ordinal);
+            foreach (var uid in (uids ?? Enumerable.Empty<string>())
+                .Where(x => !string.IsNullOrEmpty(x)).Distinct(StringComparer.Ordinal))
+            {
+                var folder = vault.Storage.KdFolders.GetEntity(uid);
+                var ownerUid = folder?.OwnerAccountUid;
+                var entries = vault.Storage.KdFolderAccesses.GetLinksForSubject(uid).Select(a => new KeeperNSFAccessEntry
+                {
+                    RecordUid = uid, AccessorName = "", AccessTypeUid = a.AccessTypeUid, AccessType = a.AccessType,
+                    Owner = a.AccessType == (int)FolderProto.AccessType.AtOwner ||
+                        (!string.IsNullOrEmpty(ownerUid) && a.AccessTypeUid == ownerUid),
+                    Inherited = a.Inherited, AccessRoleType = a.AccessRoleType, CanEdit = false,
+                    CanView = !a.DeniedAccess, CanUpdateAccess = false, CanDelete = false
+                }).ToList();
+                result[uid] = entries;
+            }
+            return result;
+        }
+
+        private static IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> BuildRecordPermissions(
+            VaultOnline vault, IEnumerable<string> uids)
+        {
+            var result = new Dictionary<string, IReadOnlyList<KeeperNSFAccessEntry>>(StringComparer.Ordinal);
+            foreach (var uid in (uids ?? Enumerable.Empty<string>())
+                .Where(x => !string.IsNullOrEmpty(x)).Distinct(StringComparer.Ordinal))
+            {
+                var entries = vault.Storage.KdRecordAccesses.GetLinksForSubject(uid).Select(a => new KeeperNSFAccessEntry
+                {
+                    RecordUid = uid, AccessorName = "", AccessTypeUid = a.AccessTypeUid, AccessType = a.AccessType, Owner = a.Owner,
+                    Inherited = a.Inherited, AccessRoleType = a.AccessRoleType, CanEdit = a.CanEdit,
+                    CanView = a.CanView, CanUpdateAccess = a.CanUpdateAccess, CanDelete = a.CanDelete
+                }).ToList();
+                result[uid] = entries;
+            }
+            return result;
+        }
     }
 
     public class KeeperNSFPermissionChange

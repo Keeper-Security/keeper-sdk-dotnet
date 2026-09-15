@@ -672,6 +672,13 @@ namespace KeeperSecurity.Vault
             return this.GetKeeperNSFRecordDetailsInternal(recordUids);
         }
 
+        /// <summary>Gets cached NSF folder and record permissions for the specified UIDs.</summary>
+        public KeeperNSFSharePermissions GetKeeperNSFSharePermissions(
+            IEnumerable<string> folderUids, IEnumerable<string> recordUids)
+        {
+            return KeeperNSFSharePermissions.Create(this, folderUids, recordUids);
+        }
+
         /// <inheritdoc/>
         public async Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid)
         {
