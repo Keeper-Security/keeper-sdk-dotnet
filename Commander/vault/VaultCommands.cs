@@ -1475,13 +1475,8 @@ namespace Commander
         [Option("output", Required = false, HelpText = "write JSON output to a file")]
         public string Output { get; set; }
 
-        [Option('h', "hide-shared-keys", Required = false, HelpText = "hide share permissions key (valid with --shares / --nsf-shares)")]
+        [Option("hk", Required = false, HelpText = "hide share permissions key (valid with --shares / --ns)")]
         public bool HideSharedKeys { get; set; }
-
-        [Option("hk", Required = false, HelpText = "hide share permissions key (Python Commander-compatible alias)")]
-        public bool HideSharedKeysShort { get; set; }
-
-        public bool HideSharedKeysEffective => HideSharedKeys || HideSharedKeysShort;
 
         [Option('t', "title", Required = false, HelpText = "optional title for the folder structure")]
         public string Title { get; set; }
