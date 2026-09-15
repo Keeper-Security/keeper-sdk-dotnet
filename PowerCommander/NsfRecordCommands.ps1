@@ -2438,85 +2438,13 @@ function Link-KeeperNSFRecords {
 New-Alias -Name nsf-lns -Value Link-KeeperNSFRecords
 
 
-function Move-KeeperNSFRecord {
-    <#
-	.Synopsis
-	Moves a Keeper NSF record from one folder to another (Keeper NSF v3 API).
-
-	.Description
-	For bulk moves from JSON, use Move-KeeperNSFRecords (nsf-move-records).
-
-	.Parameter Record
-	Record UID or title.
-
-	.Parameter SourceFolder
-	Source folder UID or name.
-
-	.Parameter TargetFolder
-	Target folder UID or name.
-#>
-    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
-    Param(
-        [Parameter(Position = 0, Mandatory = $true)]
-        [string] $Record,
-
-        [Parameter(Mandatory = $true)]
-        [string] $SourceFolder,
-
-        [Parameter(Mandatory = $true)]
-        [string] $TargetFolder
-    )
-
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-
-    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-    if (-not $vault.TryResolveKeeperNSFRecord($Record, [ref]$kdRecord)) {
-        Write-Error -Message "Keeper NSF record `"$Record`" was not found. Run Sync-Keeper or nsf-list first."
-        return
-    }
-
-    [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($SourceFolder, [ref]$sourceFolderNode)) {
-        Write-Error -Message "Source folder `"$SourceFolder`" was not found. Run Sync-Keeper or nsf-list first."
-        return
-    }
-
-    [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolderOrRoot($TargetFolder, [ref]$targetFolderNode)) {
-        Write-Error -Message "Target folder `"$TargetFolder`" was not found. Run Sync-Keeper or nsf-list first."
-        return
-    }
-
-    $target = "$($kdRecord.RecordUid): $($sourceFolderNode.FolderUid) -> $($targetFolderNode.FolderUid)"
-    if (-not $PSCmdlet.ShouldProcess($target, "Move Keeper NSF record between folders")) {
-        return
-    }
-
-    try {
-        $result = $vault.MoveKeeperNSFRecord($kdRecord.RecordUid, $sourceFolderNode.FolderUid, $targetFolderNode.FolderUid).GetAwaiter().GetResult()
-    }
-    catch {
-        Write-Error -Message $_.Exception.Message
-        return
-    }
-
-    if ($result.Success) {
-        Write-Host "Record '$($result.RecordUid)' moved from '$($result.SourceFolderUid)' to '$($result.TargetFolderUid)' successfully." -ForegroundColor Green
-    }
-    else {
-        $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-        Write-Error -Message "Failed to move record: status=$($result.Status) $msg"
-    }
-}
-New-Alias -Name nsf-move-record -Value Move-KeeperNSFRecord
-
 function Move-KeeperNSFRecords {
     <#
 	.Synopsis
 	Batch-moves Keeper NSF records between folders from JSON (single API request, no chunking).
 
 	.Description
-	Independent of Move-KeeperNSFRecord / nsf-move-record.
+	Independent of Move-KeeperNSFItem / nsf-move.
 	JSON schema: a "moves" array. Each item: source_folder_uid, target_folder_uid, record_uid.
 
 	.Parameter FilePath
