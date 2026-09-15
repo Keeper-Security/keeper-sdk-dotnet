@@ -2168,10 +2168,17 @@ function Invoke-KeeperEnterprisePush {
         return
     }
 
-    $userTargets = @($Users | Where-Object { $_ })
-    if ($Email) { $userTargets += $Email }
-    $teamTargets = @($Teams | Where-Object { $_ })
-    if ($Team) { $teamTargets += $Team }
+    $userTargets = [System.Collections.Generic.List[string]]::new()
+    foreach ($userTarget in @($Users | Where-Object { $_ })) {
+        [void]$userTargets.Add($userTarget)
+    }
+    if ($Email) { [void]$userTargets.Add($Email) }
+
+    $teamTargets = [System.Collections.Generic.List[string]]::new()
+    foreach ($teamTarget in @($Teams | Where-Object { $_ })) {
+        [void]$teamTargets.Add($teamTarget)
+    }
+    if ($Team) { [void]$teamTargets.Add($Team) }
     if ($userTargets.Count -eq 0 -and $teamTargets.Count -eq 0) {
         Write-Error 'Specify -Email/-Users or -Team/-Teams.'
         return
