@@ -583,12 +583,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
 
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
 
@@ -1142,12 +1140,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
                 var roleLabel = isOwner ? "owner" : NsfHelpers.GetAccessRoleLabel(access.AccessRoleType);
 

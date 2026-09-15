@@ -64,6 +64,7 @@ namespace Commander
         };
 
         private static Dictionary<string, string> _shareObjectsCache;
+        private static Dictionary<string, string> _shareObjectsTeamCache;
         private static string _shareObjectsCacheAccountUid;
 
         internal static bool PasswordVisible { get; set; }
@@ -455,6 +456,7 @@ namespace Commander
         internal static void ResetShareObjectsCache()
         {
             _shareObjectsCache = null;
+            _shareObjectsTeamCache = null;
             _shareObjectsCacheAccountUid = null;
         }
 
@@ -507,6 +509,22 @@ namespace Commander
                         }
                     }
 
+                    _shareObjectsTeamCache = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var teamList in new[] { rs.ShareTeams, rs.ShareMCTeams })
+                    {
+                        foreach (var st in teamList)
+                        {
+                            if (st.TeamUid != null && !st.TeamUid.IsEmpty)
+                            {
+                                var teamUid = st.TeamUid.ToByteArray().Base64UrlEncode();
+                                if (!string.IsNullOrEmpty(st.Teamname) && !_shareObjectsTeamCache.ContainsKey(teamUid))
+                                {
+                                    _shareObjectsTeamCache[teamUid] = st.Teamname;
+                                }
+                            }
+                        }
+                    }
+
                     _shareObjectsCacheAccountUid = currentAccountUid;
                 }
                 catch
@@ -516,6 +534,35 @@ namespace Commander
             }
 
             return _shareObjectsCache.TryGetValue(accessTypeUid, out var cached) ? cached : accessTypeUid;
+        }
+
+        internal static async Task<string> ResolveAccessorNameAsync(
+            VaultOnline vault,
+            string accessTypeUid,
+            string accessTypeLabel,
+            string emailHint = null)
+        {
+            if (accessTypeLabel == "AT_TEAM")
+            {
+                if (!string.IsNullOrEmpty(emailHint))
+                {
+                    return emailHint;
+                }
+
+                if (vault.TryGetTeam(accessTypeUid, out var team) && !string.IsNullOrEmpty(team.Name))
+                {
+                    return team.Name;
+                }
+
+                await ResolveUsernameAsync(vault, accessTypeUid);
+
+                return _shareObjectsTeamCache != null && _shareObjectsTeamCache.TryGetValue(accessTypeUid, out var teamName)
+                    ? teamName
+                    : accessTypeUid;
+            }
+
+            var username = await ResolveUsernameAsync(vault, accessTypeUid, emailHint);
+            return !string.IsNullOrEmpty(username) ? username : accessTypeUid;
         }
 
         internal static void DisplayPermissionChanges(KeeperNSFPermissionResult result, bool isDryRun)

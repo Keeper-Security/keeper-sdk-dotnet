@@ -3,6 +3,7 @@ $script:KD_LABEL_WIDTH = 21
 $script:KD_FOLDER_LABEL_WIDTH = 25
 $script:ShareObjectsCache = $null
 $script:ShareObjectsCacheAccountUid = $null
+$script:ShareObjectsTeamCache = $null
 
 $script:KdRootFolderUid = 'AAAAAAAAAAAAAAAAAPmtNA'
 
@@ -79,6 +80,7 @@ class KdUserPermission {
 
 function Reset-KdShareObjectsCache {
     $script:ShareObjectsCache = $null
+    $script:ShareObjectsTeamCache = $null
     $script:ShareObjectsCacheAccountUid = $null
 }
 
@@ -904,6 +906,61 @@ function Resolve-KdUsername {
     return $accessTypeUid
 }
 
+function Resolve-KdTeamName {
+    Param($vault, $accessTypeUid, $currentAccountUid)
+
+    $team = $null
+    if ($vault.TryGetTeam($accessTypeUid, [ref]$team) -and $team -and $team.Name) {
+        return $team.Name
+    }
+
+    if ($script:ShareObjectsCacheAccountUid -and $script:ShareObjectsCacheAccountUid -ne $currentAccountUid) {
+        Reset-KdShareObjectsCache
+    }
+
+    if ($null -eq $script:ShareObjectsTeamCache) {
+        try {
+            $rq = New-Object Records.GetShareObjectsRequest
+            $rs = $vault.Auth.ExecuteAuthRest("vault/get_share_objects", $rq, [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
+            $teamCache = @{}
+            foreach ($teamList in @($rs.ShareTeams, $rs.ShareMCTeams)) {
+                foreach ($st in $teamList) {
+                    if ($st.TeamUid -and -not $st.TeamUid.IsEmpty) {
+                        $stUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($st.TeamUid.ToByteArray())
+                        if ($st.Teamname -and -not $teamCache.ContainsKey($stUid)) {
+                            $teamCache[$stUid] = $st.Teamname
+                        }
+                    }
+                }
+            }
+            $script:ShareObjectsTeamCache = $teamCache
+            $script:ShareObjectsCacheAccountUid = $currentAccountUid
+        } catch {
+            Write-Verbose "Could not load share objects team cache: $($_.Exception.Message)"
+            $script:ShareObjectsTeamCache = @{}
+        }
+    }
+
+    if ($script:ShareObjectsTeamCache.ContainsKey($accessTypeUid)) {
+        return $script:ShareObjectsTeamCache[$accessTypeUid]
+    }
+
+    return $accessTypeUid
+}
+
+function Resolve-KdAccessorName {
+    Param($vault, $accessTypeUid, $atLabel, $currentAccountUid, $emailHint)
+
+    if ($atLabel -eq 'AT_TEAM') {
+        if ($emailHint) { return $emailHint }
+        return Resolve-KdTeamName $vault $accessTypeUid $currentAccountUid
+    }
+
+    $username = if ($emailHint) { $emailHint } else { Resolve-KdUsername $vault $accessTypeUid $currentAccountUid }
+    if ($username) { return $username }
+    return $accessTypeUid
+}
+
 function Test-KdIsFolderOwner {
     Param($access, $username, $ownerAccountUid, $ownerUsername)
 
@@ -998,11 +1055,11 @@ function ConvertTo-KdFolderPermissionsJson {
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
         }
-        $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
 
         $atInt = [int]$access.AccessType
         $atLabel = if ($script:AccessTypeLabels.ContainsKey($atInt)) { $script:AccessTypeLabels[$atInt] } else { 'AT_UNKNOWN' }
-        $accessor = if ($username) { $username } else { $access.AccessTypeUid }
+        $accessor = Resolve-KdAccessorName $vault $access.AccessTypeUid $atLabel $currentAccountUid $hint
+        $username = if ($atLabel -eq 'AT_TEAM') { $null } else { $accessor }
 
         $isOwner = Test-KdIsFolderOwner $access $username $ownerAccountUid $ownerUsername
 
@@ -1147,11 +1204,11 @@ function Show-KdFolderPermissions {
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
         }
-        $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
 
         $atInt = [int]$access.AccessType
         $atLabel = if ($script:AccessTypeLabels.ContainsKey($atInt)) { $script:AccessTypeLabels[$atInt] } else { 'AT_UNKNOWN' }
-        $accessor = if ($username) { $username } else { $access.AccessTypeUid }
+        $accessor = Resolve-KdAccessorName $vault $access.AccessTypeUid $atLabel $currentAccountUid $hint
+        $username = if ($atLabel -eq 'AT_TEAM') { $null } else { $accessor }
 
         $isOwner = Test-KdIsFolderOwner $access $username $ownerAccountUid $ownerUsername
         $roleInt = [int]$access.AccessRoleType
