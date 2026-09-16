@@ -892,6 +892,56 @@ namespace Sample
                 //     debug: true
                 // );
 
+                // // PAM Workflow: create workflow configuration
+                // await PAMExamples.WorkflowExamples.PamWorkflowCreateExample.CreateWorkflow(
+                //     vault,
+                //     recordUid: "<pamResourceUid_or_title_here>",
+                //     approvalsNeeded: 1,
+                //     approverEmails: new[] { "<approverEmail_here>" },
+                //     checkout: true,
+                //     duration: "1h"
+                // );
+
+                // // PAM Workflow: read, update, and delete configuration
+                // await PAMExamples.WorkflowExamples.PamWorkflowReadExample.ReadWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowUpdateExample.UpdateWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>", 2, true, false,
+                //     true, false, false, "2h");
+                // await PAMExamples.WorkflowExamples.PamWorkflowDeleteExample.DeleteWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>");
+
+                // // PAM Workflow: add and remove approvers
+                // await PAMExamples.WorkflowExamples.PamWorkflowAddApproverExample.AddApprovers(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     userEmails: new[] { "<approverEmail_here>" });
+                // await PAMExamples.WorkflowExamples.PamWorkflowRemoveApproverExample.RemoveApprovers(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     userEmails: new[] { "<approverEmail_here>" });
+
+                // // PAM Workflow: pending, approve, and deny
+                // await PAMExamples.WorkflowExamples.PamWorkflowPendingExample.ListPending(vault);
+                // await PAMExamples.WorkflowExamples.PamWorkflowApproveExample.Approve(
+                //     vault, "<flowUid_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowDenyExample.Deny(
+                //     vault, "<flowUid_here>", "Access is not approved");
+
+                // // PAM Workflow: request, escalate, cancel, start, and end
+                // await PAMExamples.WorkflowExamples.PamWorkflowRequestExample.RequestAccess(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     reason: "Maintenance window", ticket: "<ticketNumber_here>",
+                //     escalate: false, cancel: false);
+                // // Use escalate: true or cancel: true for the request variants.
+                // await PAMExamples.WorkflowExamples.PamWorkflowStartExample.Start(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowEndExample.End(
+                //     vault, "<pamResourceUid_or_title_here>", force: false);
+
+                // // PAM Workflow: state and current-user access
+                // await PAMExamples.WorkflowExamples.PamWorkflowStateExample.GetState(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowMyAccessExample.GetMyAccess(vault);
+
                 // // Remove Client Example
                 // await SecretManagerExamples.RemoveClientExample.RemoveClient(
                 //     vault,
