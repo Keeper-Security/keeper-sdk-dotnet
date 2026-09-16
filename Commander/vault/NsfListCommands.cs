@@ -492,7 +492,7 @@ namespace Commander
                 ["version"] = record.Version,
                 ["revision"] = record.Revision,
                 ["shared"] = record.Shared,
-                ["permissions"] = userPerms,
+                ["user_permissions"] = userPerms,
                 ["share_admins"] = shareAdmins
             };
         }
@@ -1066,22 +1066,14 @@ namespace Commander
             var result = new List<object>();
             foreach (var perm in userPerms)
             {
-                var entry = new Dictionary<string, object>
+                result.Add(new Dictionary<string, object>
                 {
-                    ["user"] = perm.Username,
-                    ["shareable"] = perm.CanEdit || perm.Owner ? "Yes" : "No",
-                    ["read_only"] = !perm.CanEdit && !perm.Owner ? "Yes" : "No"
-                };
-                if (perm.Owner)
-                {
-                    entry["owner"] = "Yes";
-                }
-                else
-                {
-                    entry["role"] = perm.Role;
-                }
-
-                result.Add(entry);
+                    ["username"] = perm.Username,
+                    ["owner"] = perm.Owner,
+                    ["shareable"] = perm.CanEdit || perm.Owner,
+                    ["editable"] = perm.CanEdit,
+                    ["role"] = perm.Role
+                });
             }
 
             return result;
