@@ -12,7 +12,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// <summary>
     /// Lists pamUser rotation schedules (requires enterprise admin).
     /// </summary>
-    public static class ListRotationsExample
+    public static class PamRotationListExample
     {
         public static async Task ListRotations(VaultOnline vault = null, bool verbose = false)
         {
