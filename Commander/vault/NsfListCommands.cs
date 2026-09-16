@@ -492,7 +492,7 @@ namespace Commander
                 ["version"] = record.Version,
                 ["revision"] = record.Revision,
                 ["shared"] = record.Shared,
-                ["permissions"] = userPerms,
+                ["user_permissions"] = userPerms,
                 ["share_admins"] = shareAdmins
             };
         }
@@ -583,12 +583,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
 
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
 
@@ -1068,22 +1066,14 @@ namespace Commander
             var result = new List<object>();
             foreach (var perm in userPerms)
             {
-                var entry = new Dictionary<string, object>
+                result.Add(new Dictionary<string, object>
                 {
-                    ["user"] = perm.Username,
-                    ["shareable"] = perm.CanEdit || perm.Owner ? "Yes" : "No",
-                    ["read_only"] = !perm.CanEdit && !perm.Owner ? "Yes" : "No"
-                };
-                if (perm.Owner)
-                {
-                    entry["owner"] = "Yes";
-                }
-                else
-                {
-                    entry["role"] = perm.Role;
-                }
-
-                result.Add(entry);
+                    ["username"] = perm.Username,
+                    ["owner"] = perm.Owner,
+                    ["shareable"] = perm.CanEdit || perm.Owner,
+                    ["editable"] = perm.CanEdit,
+                    ["role"] = perm.Role
+                });
             }
 
             return result;
@@ -1142,12 +1132,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
                 var roleLabel = isOwner ? "owner" : NsfHelpers.GetAccessRoleLabel(access.AccessRoleType);
 
