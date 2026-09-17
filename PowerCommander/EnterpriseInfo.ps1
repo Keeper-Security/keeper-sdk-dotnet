@@ -285,6 +285,7 @@ function Get-KeeperEnterpriseInfoUser {
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
     $rd = $enterprise.roleData
+    $verboseOutput = $PSBoundParameters.ContainsKey('Verbose') -and $VerbosePreference -eq 'Continue'
     $roleUsers = @{}
     foreach ($r in $rd.Roles) {
         foreach ($uid in @($rd.GetUsersForRole($r.Id))) {
@@ -322,11 +323,18 @@ function Get-KeeperEnterpriseInfoUser {
                 'name'             { $row['Name'] = $u.DisplayName }
                 'status'           { $row['Status'] = & $statusText $u.UserStatus }
                 'transfer_status'  { $row['TransferStatus'] = & $transferText $u.TransferAcceptanceStatus }
-                'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot }
+                'node'             { $row['Node'] = if ($verboseOutput) { $u.ParentNodeId.ToString() } else { Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot } }
                 'role_count'       { $arr = $roleUsers[$u.Id]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
-                'roles'            { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
+                'roles'            {
+                    if ($verboseOutput) { $row['Roles'] = @($roleUsers[$u.Id] | ForEach-Object { $_.ToString() } | Sort-Object) }
+                    else { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
+                }
                 'team_count'       { $arr = $teamUsers[$u.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
-                'teams'            { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
+                'teams'            {
+                    if ($verboseOutput) {
+                        $row['Teams'] = @($ed.GetTeamsForUser($u.Id) | Sort-Object)
+                    } else { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
+                }
                 'queued_team_count' { $row['QueuedTeamCount'] = 0 }
                 'queued_teams'      { $row['QueuedTeams'] = '' }
                 'alias'            { $row['Alias'] = '' }

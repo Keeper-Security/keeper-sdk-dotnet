@@ -3521,11 +3521,11 @@ namespace Commander
                 { "name", u => u.DisplayName ?? "" },
                 { "status", u => u.UserStatus.ToString() },
                 { "transfer_status", u => u.TransferAcceptanceStatus.ToString() },
-                { "node", u => GetNodePath(context.EnterpriseData, u.ParentNodeId) },
+                { "node", u => options.Verbose ? u.ParentNodeId.ToString() : GetNodePath(context.EnterpriseData, u.ParentNodeId) },
                 { "role_count", u => context.RoleManagement.GetRolesForUser(u.Id)?.Count() ?? 0 },
-                { "roles", u => GetUserRoleNames(context, u.Id) },
+                { "roles", u => options.Verbose ? GetUserRoleIds(context, u.Id) : GetUserRoleNames(context, u.Id) },
                 { "team_count", u => context.EnterpriseData.GetTeamsForUser(u.Id)?.Length ?? 0 },
-                { "teams", u => GetUserTeamNames(context, u.Id) },
+                { "teams", u => options.Verbose ? GetUserTeamIds(context, u.Id) : GetUserTeamNames(context, u.Id) },
                 { "queued_team_count", u => GetQueuedTeamsForUser(context, u.Id).Count() },
                 { "queued_teams", u => GetUserQueuedTeamNames(context, u.Id) },
                 { "alias", u => u.Email },
@@ -3787,6 +3787,21 @@ namespace Commander
             var roleIds = context.RoleManagement.GetRolesForUser(userId) ?? Enumerable.Empty<long>();
             return JoinNames(roleIds, id => 
                 context.RoleManagement.TryGetRole(id, out var role) ? role.DisplayName : null);
+        }
+
+        private static string[] GetUserTeamIds(IEnterpriseContext context, long userId)
+        {
+            return (context.EnterpriseData.GetTeamsForUser(userId) ?? Array.Empty<string>())
+                .OrderBy(uid => uid)
+                .ToArray();
+        }
+
+        private static string[] GetUserRoleIds(IEnterpriseContext context, long userId)
+        {
+            return (context.RoleManagement.GetRolesForUser(userId) ?? Enumerable.Empty<long>())
+                .Select(id => id.ToString())
+                .OrderBy(id => id)
+                .ToArray();
         }
 
         private static IEnumerable<EnterpriseQueuedTeam> GetQueuedTeamsForUser(IEnterpriseContext context, long userId)
