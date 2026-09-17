@@ -286,6 +286,7 @@ function Get-KeeperEnterpriseInfoUser {
     $ed = $enterprise.enterpriseData
     $rd = $enterprise.roleData
     $verboseOutput = $PSBoundParameters.ContainsKey('Verbose') -and $VerbosePreference -eq 'Continue'
+    $jsonOutput = $Format -eq 'json'
     $roleUsers = @{}
     foreach ($r in $rd.Roles) {
         foreach ($uid in @($rd.GetUsersForRole($r.Id))) {
@@ -323,17 +324,23 @@ function Get-KeeperEnterpriseInfoUser {
                 'name'             { $row['Name'] = $u.DisplayName }
                 'status'           { $row['Status'] = & $statusText $u.UserStatus }
                 'transfer_status'  { $row['TransferStatus'] = & $transferText $u.TransferAcceptanceStatus }
-                'node'             { $row['Node'] = if ($verboseOutput) { $u.ParentNodeId.ToString() } else { Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot } }
+                'node'             { $row['Node'] = if ($verboseOutput) { $nid.ToString() } else { Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot } }
                 'role_count'       { $arr = $roleUsers[$u.Id]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
                 'roles'            {
-                    if ($verboseOutput) { $row['Roles'] = @($roleUsers[$u.Id] | ForEach-Object { $_.ToString() } | Sort-Object) }
-                    else { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
+                    if ($verboseOutput) {
+                        $roleIds = @($roleUsers[$u.Id] | ForEach-Object { $_.ToString() } | Sort-Object)
+                        $row['Roles'] = if ($jsonOutput) { $roleIds } else { $roleIds -join ', ' }
+                    } else {
+                        $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object)
+                        $row['Roles'] = $rnames -join ', '
+                    }
                 }
                 'team_count'       { $arr = $teamUsers[$u.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'            {
                     if ($verboseOutput) {
-                        $row['Teams'] = @($ed.GetTeamsForUser($u.Id) | Sort-Object)
-                    } else { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
+                        $teamIds = @($ed.GetTeamsForUser($u.Id) | Sort-Object)
+                        $row['Teams'] = if ($jsonOutput) { $teamIds } else { $teamIds -join ', ' }
+                    } else { $row['Teams'] = ($teamUsers[$u.Id] | Sort-Object) -join ', ' }
                 }
                 'queued_team_count' { $row['QueuedTeamCount'] = 0 }
                 'queued_teams'      { $row['QueuedTeams'] = '' }

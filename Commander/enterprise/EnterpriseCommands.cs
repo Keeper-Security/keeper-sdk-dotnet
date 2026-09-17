@@ -3521,7 +3521,9 @@ namespace Commander
                 { "name", u => u.DisplayName ?? "" },
                 { "status", u => u.UserStatus.ToString() },
                 { "transfer_status", u => u.TransferAcceptanceStatus.ToString() },
-                { "node", u => options.Verbose ? u.ParentNodeId.ToString() : GetNodePath(context.EnterpriseData, u.ParentNodeId) },
+                { "node", u => options.Verbose
+                    ? (u.ParentNodeId > 0 ? u.ParentNodeId : context.EnterpriseData.RootNode.Id).ToString()
+                    : GetNodePath(context.EnterpriseData, u.ParentNodeId) },
                 { "role_count", u => context.RoleManagement.GetRolesForUser(u.Id)?.Count() ?? 0 },
                 { "roles", u => options.Verbose ? GetUserRoleIds(context, u.Id) : GetUserRoleNames(context, u.Id) },
                 { "team_count", u => context.EnterpriseData.GetTeamsForUser(u.Id)?.Length ?? 0 },
@@ -3799,8 +3801,8 @@ namespace Commander
         private static string[] GetUserRoleIds(IEnterpriseContext context, long userId)
         {
             return (context.RoleManagement.GetRolesForUser(userId) ?? Enumerable.Empty<long>())
-                .Select(id => id.ToString())
                 .OrderBy(id => id)
+                .Select(id => id.ToString())
                 .ToArray();
         }
 
