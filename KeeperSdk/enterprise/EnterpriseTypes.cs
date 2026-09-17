@@ -342,6 +342,24 @@ namespace KeeperSecurity.Enterprise
         /// Two Factor Authentication Enabled. Indicates if 2FA is enabled for the user.
         /// </summary>
         public bool TwoFactorEnabled { get; internal set; }
+
+        /// <summary>
+        /// The last time this user logged in (UTC). This stays empty (<c>null</c>) until you call
+        /// <see cref="Enterprise.AuditLogExtensions.LoadLastLogins"/>, and it will also be <c>null</c>
+        /// if the user hasn't logged in during the requested time window.
+        /// </summary>
+        public DateTimeOffset? LastLogin { get; internal set; }
+
+        /// <summary>
+        /// The UIDs of the teams this user belongs to.
+        /// </summary>
+        /// <seealso cref="EnterpriseData.GetTeamsForUser"/>
+        public string[] TeamUids { get; internal set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// The names of the teams this user belongs to.
+        /// </summary>
+        public string[] TeamNames { get; internal set; } = Array.Empty<string>();
     }
 
     /// <summary>
