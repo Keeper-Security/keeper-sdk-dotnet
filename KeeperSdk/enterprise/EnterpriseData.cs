@@ -134,6 +134,30 @@ namespace KeeperSecurity.Enterprise
         /// <exclude/>
         public License EnterpriseLicense => _license.Entity;
 
+        /// <summary>
+        /// Fills in each user's team membership (<see cref="EnterpriseUser.TeamUids"/> and
+        /// <see cref="EnterpriseUser.TeamNames"/>) using the team data that's already been loaded.
+        /// </summary>
+        /// <remarks>
+        /// Call this once after <see cref="EnterpriseLoader.Load"/> completes, and again after any reload.
+        /// It's not called automatically — skip it and <see cref="EnterpriseUser.TeamUids"/>/
+        /// <see cref="EnterpriseUser.TeamNames"/> stay empty for every user.
+        /// </remarks>
+        public void RefreshUserTeams()
+        {
+            foreach (var user in _users.Entities)
+            {
+                var teamUids = GetTeamsForUser(user.Id);
+                var teamNames = teamUids
+                    .Select(teamUid => TryGetTeam(teamUid, out var team) ? team.Name : null)
+                    .Where(name => !string.IsNullOrEmpty(name))
+                    .ToArray();
+
+                user.TeamUids = teamUids;
+                user.TeamNames = teamNames;
+            }
+        }
+
         /// <exclude/>
         [Obsolete]
         public async Task PopulateEnterprise() 
