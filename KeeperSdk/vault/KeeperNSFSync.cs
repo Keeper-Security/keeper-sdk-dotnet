@@ -4,10 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
 using FolderProto = Folder;
+using RecordDetailsProto = Record.V3.Details;
 using RecordSharingProto = Record.V3.Sharing;
 using VaultProto = Vault;
 
@@ -1085,6 +1087,8 @@ namespace KeeperSecurity.Vault
     /// <summary>Cached NSF permissions grouped by folder and record UID.</summary>
     public sealed class KeeperNSFSharePermissions
     {
+        private const int OwnerAccessRoleType = 1;
+
         public IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> FolderPermissions { get; internal set; }
         public IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> RecordPermissions { get; internal set; }
 
@@ -1094,6 +1098,184 @@ namespace KeeperSecurity.Vault
             var folders = BuildFolderPermissions(vault, folderUids);
             var records = BuildRecordPermissions(vault, recordUids);
             return new KeeperNSFSharePermissions { FolderPermissions = folders, RecordPermissions = records };
+        }
+
+        internal static async Task<KeeperNSFSharePermissions> CreateAsync(VaultOnline vault,
+            IEnumerable<string> folderUids, IEnumerable<string> recordUids)
+        {
+            var folderUidList = NormalizeUids(folderUids);
+            var recordUidList = NormalizeUids(recordUids);
+            var cached = Create(vault, folderUidList, recordUidList);
+            var folders = cached.FolderPermissions.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
+            var records = cached.RecordPermissions.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
+            var usernames = await vault.GetShareObjectUsernamesAsync().ConfigureAwait(false);
+
+            await Task.WhenAll(
+                PopulateFolderPermissionsAsync(vault, folderUidList, folders, usernames),
+                PopulateRecordPermissionsAsync(vault, recordUidList, records, usernames)).ConfigureAwait(false);
+            return new KeeperNSFSharePermissions { FolderPermissions = folders, RecordPermissions = records };
+        }
+
+        private static List<string> NormalizeUids(IEnumerable<string> uids)
+        {
+            return (uids ?? Enumerable.Empty<string>())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+        }
+
+        private static async Task PopulateFolderPermissionsAsync(VaultOnline vault, IReadOnlyCollection<string> folderUids,
+            Dictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> permissions,
+            IReadOnlyDictionary<string, string> usernames)
+        {
+            if (folderUids.Count == 0) return;
+
+            try
+            {
+                var requested = new HashSet<string>(folderUids, StringComparer.Ordinal);
+                var accessors = await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUids).ConfigureAwait(false);
+                var fetched = new Dictionary<string, List<KeeperNSFAccessEntry>>(StringComparer.Ordinal);
+
+                foreach (var accessor in accessors)
+                {
+                    if (accessor?.FolderUid == null || accessor.FolderUid.IsEmpty) continue;
+                    var folderUid = accessor.FolderUid.ToByteArray().Base64UrlEncode();
+                    if (!requested.Contains(folderUid) || accessor.AccessTypeUid == null || accessor.AccessTypeUid.IsEmpty) continue;
+
+                    var folder = vault.Storage.KdFolders.GetEntity(folderUid);
+                    var accessorUid = accessor.AccessTypeUid.ToByteArray().Base64UrlEncode();
+                    var owner = accessor.AccessType == FolderProto.AccessType.AtOwner ||
+                                (!string.IsNullOrEmpty(folder?.OwnerAccountUid) &&
+                                 string.Equals(accessorUid, folder.OwnerAccountUid, StringComparison.Ordinal));
+                    if (!fetched.TryGetValue(folderUid, out var entries))
+                    {
+                        entries = new List<KeeperNSFAccessEntry>();
+                        fetched[folderUid] = entries;
+                    }
+
+                    entries.Add(new KeeperNSFAccessEntry
+                    {
+                        RecordUid = folderUid,
+                        AccessorName = ResolveAccessorName(vault, accessorUid, owner ? folder?.OwnerUsername : null, usernames),
+                        AccessTypeUid = accessorUid,
+                        AccessType = (int)accessor.AccessType,
+                        Owner = owner,
+                        Inherited = accessor.Inherited,
+                        AccessRoleType = (int)accessor.AccessRoleType,
+                        CanEdit = false,
+                        CanView = !accessor.DeniedAccess,
+                        CanUpdateAccess = false,
+                        CanDelete = false,
+                    });
+                }
+
+                // API entries replace sync-cache entries. When the API has no result, retain the cache
+                // and add the known owner from NSF folder metadata when necessary.
+                foreach (var folderUid in folderUids)
+                {
+                    if (!fetched.TryGetValue(folderUid, out var entries))
+                    {
+                        permissions.TryGetValue(folderUid, out var cachedEntries);
+                        entries = (cachedEntries ?? Array.Empty<KeeperNSFAccessEntry>()).ToList();
+                    }
+
+                    EnsureFolderOwnerEntry(vault, folderUid, entries, usernames);
+                    permissions[folderUid] = entries;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not batch-load folder access: {ex.Message}");
+            }
+        }
+
+        private static async Task PopulateRecordPermissionsAsync(VaultOnline vault, IReadOnlyCollection<string> recordUids,
+            Dictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> permissions,
+            IReadOnlyDictionary<string, string> usernames)
+        {
+            if (recordUids.Count == 0) return;
+
+            try
+            {
+                var requested = new HashSet<string>(recordUids, StringComparer.Ordinal);
+                var response = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(vault, recordUids).ConfigureAwait(false);
+                var fetched = new Dictionary<string, List<KeeperNSFAccessEntry>>(StringComparer.Ordinal);
+
+                foreach (var row in response?.RecordAccesses ?? Enumerable.Empty<RecordDetailsProto.RecordAccess>())
+                {
+                    var accessor = row?.Data;
+                    if (accessor?.RecordUid == null || accessor.RecordUid.IsEmpty ||
+                        accessor.AccessTypeUid == null || accessor.AccessTypeUid.IsEmpty) continue;
+                    var recordUid = accessor.RecordUid.ToByteArray().Base64UrlEncode();
+                    if (!requested.Contains(recordUid)) continue;
+
+                    if (!fetched.TryGetValue(recordUid, out var entries))
+                    {
+                        entries = new List<KeeperNSFAccessEntry>();
+                        fetched[recordUid] = entries;
+                    }
+
+                    var accessorUid = accessor.AccessTypeUid.ToByteArray().Base64UrlEncode();
+                    entries.Add(new KeeperNSFAccessEntry
+                    {
+                        RecordUid = recordUid,
+                        AccessorName = ResolveAccessorName(vault, accessorUid, row.AccessorInfo?.Name, usernames),
+                        AccessTypeUid = accessorUid,
+                        AccessType = (int)accessor.AccessType,
+                        Owner = accessor.Owner,
+                        Inherited = accessor.Inherited,
+                        AccessRoleType = (int)accessor.AccessRoleType,
+                        CanEdit = accessor.CanEdit,
+                        CanView = accessor.CanView,
+                        CanUpdateAccess = accessor.CanUpdateAccess,
+                        CanDelete = accessor.CanDelete,
+                    });
+                }
+
+                foreach (var pair in fetched)
+                {
+                    permissions[pair.Key] = pair.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not batch-load record access: {ex.Message}");
+            }
+        }
+
+        private static string ResolveAccessorName(VaultOnline vault, string accessorUid, string preferredName,
+            IReadOnlyDictionary<string, string> usernames)
+        {
+            if (!string.IsNullOrWhiteSpace(preferredName)) return preferredName;
+            if (usernames != null && usernames.TryGetValue(accessorUid, out var shareObjectUsername)) return shareObjectUsername;
+            return vault.TryGetUsername(accessorUid, out var cachedUsername) ? cachedUsername : string.Empty;
+        }
+
+        private static void EnsureFolderOwnerEntry(VaultOnline vault, string folderUid,
+            ICollection<KeeperNSFAccessEntry> entries, IReadOnlyDictionary<string, string> usernames)
+        {
+            var folder = vault.Storage.KdFolders.GetEntity(folderUid);
+            if (folder == null || string.IsNullOrEmpty(folder.OwnerAccountUid) ||
+                entries.Any(x => x != null && (x.Owner || string.Equals(x.AccessTypeUid, folder.OwnerAccountUid, StringComparison.Ordinal))))
+            {
+                return;
+            }
+
+            entries.Add(new KeeperNSFAccessEntry
+            {
+                RecordUid = folderUid,
+                AccessorName = ResolveAccessorName(vault, folder.OwnerAccountUid, folder.OwnerUsername, usernames),
+                AccessTypeUid = folder.OwnerAccountUid,
+                AccessType = (int)FolderProto.AccessType.AtOwner,
+                Owner = true,
+                Inherited = false,
+                AccessRoleType = OwnerAccessRoleType,
+                CanEdit = false,
+                CanView = true,
+                CanUpdateAccess = false,
+                CanDelete = false,
+            });
         }
 
         private static IReadOnlyDictionary<string, IReadOnlyList<KeeperNSFAccessEntry>> BuildFolderPermissions(
@@ -1113,6 +1295,7 @@ namespace KeeperSecurity.Vault
                     Inherited = a.Inherited, AccessRoleType = a.AccessRoleType, CanEdit = false,
                     CanView = !a.DeniedAccess, CanUpdateAccess = false, CanDelete = false
                 }).ToList();
+                EnsureFolderOwnerEntry(vault, uid, entries, null);
                 result[uid] = entries;
             }
             return result;

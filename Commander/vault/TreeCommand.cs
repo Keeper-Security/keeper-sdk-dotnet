@@ -63,7 +63,7 @@ namespace Commander
                 ? (await Vault.GetSharesForRecords(classicRecordUids)).ToDictionary(x => x.RecordUid, StringComparer.Ordinal)
                 : new Dictionary<string, RecordSharePermissions>(StringComparer.Ordinal);
             var nsfShares = (options.NsfShares && (options.Record || nsfFolderUids.Count > 0))
-                ? Vault.GetKeeperNSFSharePermissions(nsfFolderUids, nsfRecordUids)
+                ? await Vault.GetKeeperNSFSharePermissionsAsync(nsfFolderUids, nsfRecordUids)
                 : null;
 
             if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
@@ -202,7 +202,11 @@ namespace Commander
             var label = string.IsNullOrEmpty(folder.Name) ? "My Vault" : folder.Name;
             if (options.Verbose && !string.IsNullOrEmpty(folder.FolderUid)) label += $" (ID: {folder.FolderUid})";
             if (isNsf) label += " [Nested Share Folder]";
-            else if (Vault.SharedFolders.Any(x => x.Uid == folder.FolderUid)) label += " [SHARED]";
+            else if (Vault.SharedFolders.Any(x => x.Uid == folder.FolderUid))
+            {
+                label += " [SHARED]";
+                if (options.Shares) label += ClassicFolderPermissionText(folder);
+            }
             if (isNsf && options.NsfShares) label += NsfPermissionText(folder.FolderUid, nsfShares);
             Console.WriteLine(indent + (string.IsNullOrEmpty(indent) ? "" : (last ? "└── " : "├── ")) + label);
             var childIndent = indent + (string.IsNullOrEmpty(indent) ? " " : (last ? "    " : "│   "));
@@ -219,8 +223,17 @@ namespace Commander
                 foreach (var uid in folder.Records ?? Array.Empty<string>())
                 {
                     string labelRecord = null;
-                    if (Vault.TryGetKeeperNSFRecord(uid, out var nr)) labelRecord = $"{nr.Title ?? uid} [Nested Record]";
-                    else if (Vault.TryGetKeeperRecord(uid, out var r) && (r.Version == 2 || r.Version == 3)) labelRecord = $"{r.Title ?? uid} [Record]";
+                    if (Vault.TryGetKeeperNSFRecord(uid, out var nr))
+                    {
+                        labelRecord = $"{nr.Title ?? uid} [Nested Record]";
+                        if (options.NsfShares) labelRecord += NsfPermissionText(uid, nsfShares, true);
+                    }
+                    else if (Vault.TryGetKeeperRecord(uid, out var r) && (r.Version == 2 || r.Version == 3))
+                    {
+                        labelRecord = $"{r.Title ?? uid} [Record]";
+                        if (options.Shares && classicShares.TryGetValue(uid, out var share))
+                            labelRecord += ClassicRecordPermissionText(share);
+                    }
                     if (labelRecord != null) Console.WriteLine(childIndent + "├── " + labelRecord);
                 }
             }
@@ -272,9 +285,61 @@ namespace Commander
         private Dictionary<string, object> ClassicFolderPermissions(FolderNode folder)
         {
             if (!Vault.TryGetSharedFolder(folder.FolderUid, out var sf)) return new Dictionary<string, object>();
-            var users = sf.UsersPermissions.Where(x => x.UserType == UserType.User).Select(x => new Dictionary<string, object> { ["accessor"] = x.Name, ["access_type"] = "AT_USER", ["manage_records"] = x.ManageRecords, ["manage_users"] = x.ManageUsers }).ToList();
-            var teams = sf.UsersPermissions.Where(x => x.UserType == UserType.Team).Select(x => new Dictionary<string, object> { ["accessor"] = x.Name, ["access_type"] = "AT_TEAM", ["manage_records"] = x.ManageRecords, ["manage_users"] = x.ManageUsers }).ToList();
+            var users = sf.UsersPermissions.Where(x => x.UserType == UserType.User).Select(x => new Dictionary<string, object> { ["accessor"] = ResolveClassicMemberName(x), ["access_type"] = "AT_USER", ["manage_records"] = x.ManageRecords, ["manage_users"] = x.ManageUsers }).ToList();
+            var teams = sf.UsersPermissions.Where(x => x.UserType == UserType.Team).Select(x => new Dictionary<string, object> { ["accessor"] = ResolveClassicMemberName(x), ["access_type"] = "AT_TEAM", ["manage_records"] = x.ManageRecords, ["manage_users"] = x.ManageUsers }).ToList();
             return new Dictionary<string, object> { ["user_permissions"] = users, ["team_permissions"] = teams };
+        }
+
+        private string ResolveClassicMemberName(SharedFolderPermission permission)
+        {
+            if (!string.IsNullOrEmpty(permission.Name)) return permission.Name;
+            if (permission.UserType == UserType.User && Vault.TryGetUsername(permission.Uid, out var username)) return username;
+            if (permission.UserType == UserType.Team && Vault.TryGetTeam(permission.Uid, out var team)) return team.Name;
+            return permission.Uid;
+        }
+
+        private string ClassicFolderPermissionText(FolderNode folder)
+        {
+            if (!Vault.TryGetSharedFolder(folder.FolderUid, out var sharedFolder)) return string.Empty;
+
+            var defaults = new List<string>();
+            if (sharedFolder.DefaultManageUsers) defaults.Add("MU");
+            if (sharedFolder.DefaultManageRecords) defaults.Add("MR");
+            if (sharedFolder.DefaultCanEdit) defaults.Add("CE");
+            if (sharedFolder.DefaultCanShare) defaults.Add("CS");
+            if (defaults.Count == 0) defaults.Add("RO");
+
+            var users = new List<string>();
+            var teams = new List<string>();
+            foreach (var permission in sharedFolder.UsersPermissions)
+            {
+                var rights = new List<string>();
+                if (permission.ManageUsers) rights.Add("MU");
+                if (permission.ManageRecords) rights.Add("MR");
+                if (rights.Count == 0) rights.Add("RO");
+                var entry = $"[{ResolveClassicMemberName(permission)}:{string.Join(",", rights)}]";
+                if (permission.UserType == UserType.Team) teams.Add(entry);
+                else if (permission.UserType == UserType.User) users.Add(entry);
+            }
+
+            var parts = new List<string> { "default:" + string.Join(",", defaults) };
+            if (teams.Count > 0) parts.Add("teams:" + string.Join(",", teams));
+            if (users.Count > 0) parts.Add("users:" + string.Join(",", users));
+            return " (" + string.Join("; ", parts) + ")";
+        }
+
+        private static string ClassicRecordPermissionText(RecordSharePermissions share)
+        {
+            var users = new List<string>();
+            foreach (var permission in share.UserPermissions ?? Enumerable.Empty<UserRecordPermissions>())
+            {
+                var rights = permission.Owner
+                    ? new[] { "OW" }
+                    : new[] { permission.CanEdit ? "CE" : null, permission.CanShare ? "CS" : null }
+                        .Where(x => !string.IsNullOrEmpty(x)).DefaultIfEmpty("RO");
+                users.Add($"[{permission.Username}:{string.Join(",", rights)}]");
+            }
+            return users.Count == 0 ? string.Empty : " (users:" + string.Join(",", users) + ")";
         }
 
         private static Dictionary<string, object> ClassicRecordPermissions(RecordSharePermissions share) => new Dictionary<string, object>
@@ -324,14 +389,18 @@ namespace Commander
             return new Dictionary<string, object> { ["user_permissions"] = users, ["team_permissions"] = teams, ["application_permissions"] = apps };
         }
 
-        private string NsfPermissionText(string uid, KeeperNSFSharePermissions shares)
+        private string NsfPermissionText(string uid, KeeperNSFSharePermissions shares, bool record = false)
         {
-            if (shares?.FolderPermissions.TryGetValue(uid, out var entries) != true || entries == null || entries.Count == 0) return "";
+            var permissions = record ? shares?.RecordPermissions : shares?.FolderPermissions;
+            if (permissions?.TryGetValue(uid, out var entries) != true || entries == null || entries.Count == 0) return "";
             var users = new List<string>(); var teams = new List<string>(); var apps = new List<string>();
             foreach (var entry in entries)
             {
                 if (entry == null) continue;
                 var name = ResolveNsfAccessor(entry);
+                // Do not present an unresolved account UID as a user email in table output.
+                if (entry.AccessType != NsfAccessTypeTeam && entry.AccessType != NsfAccessTypeApplication &&
+                    string.Equals(name, entry.AccessTypeUid, StringComparison.Ordinal)) continue;
                 var role = entry.Owner ? "OW" : NsfRoleAbbreviation(entry.AccessRoleType);
                 var value = $"[{name}:{role}]";
                 if (entry.AccessType == NsfAccessTypeTeam) teams.Add(value);

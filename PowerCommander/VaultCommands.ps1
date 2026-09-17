@@ -525,11 +525,12 @@ function Get-KeeperTree {
     }
     $nsfSharePermissions = $null
     if ($NsfShares) {
-        $nsfSharePermissions = $vault.GetKeeperNSFSharePermissions($nsfFolderUids, $nsfRecordUids)
+        $nsfSharePermissions = $vault.GetKeeperNSFSharePermissionsAsync($nsfFolderUids, $nsfRecordUids).GetAwaiter().GetResult()
     }
 
     $resolveName = {
-        Param([string]$uid, [int]$accessType)
+        Param([string]$uid, [int]$accessType, [string]$accessorName)
+        if ($accessorName) { return $accessorName }
         if ($accessType -eq 3) {
             $team = $null
             if ($vault.TryGetTeam($uid, [ref]$team)) { return $team.Name }
@@ -540,6 +541,7 @@ function Get-KeeperTree {
         }
         $username = $null
         if ($vault.TryGetUsername($uid, [ref]$username)) { return $username }
+        if ($accessType -ne 3 -and $accessType -ne 6) { return $null }
         return $uid
     }
     $nsfPermission = {
@@ -549,14 +551,14 @@ function Get-KeeperTree {
         $teams = New-Object 'System.Collections.Generic.List[object]'
         $applications = New-Object 'System.Collections.Generic.List[object]'
         foreach ($entry in @($entries)) {
-            $accessor = & $resolveName $entry.AccessTypeUid $entry.AccessType
+            $accessor = & $resolveName $entry.AccessTypeUid $entry.AccessType $entry.AccessorName
             $role = if ($entry.Owner) { 'owner' } else { switch ([int]$entry.AccessRoleType) { 2 { 'viewer'; break } 3 { 'share-manager'; break } 4 { 'content-manager'; break } 5 { 'content-share-manager'; break } 6 { 'full-manager'; break } default { 'unresolved' } } }
             $row = [ordered]@{ accessor = $accessor; access_type = $(if ($entry.AccessType -eq 1) { 'AT_OWNER' } elseif ($entry.AccessType -eq 3) { 'AT_TEAM' } elseif ($entry.AccessType -eq 6) { 'AT_APPLICATION' } else { 'AT_USER' }); role = $role; inherited = $entry.Inherited }
-            if ($entry.AccessType -eq 3) { [void]$teams.Add([pscustomobject]$row) }
-            elseif ($entry.AccessType -eq 6) { [void]$applications.Add([pscustomobject]$row) }
-            else { [void]$users.Add([pscustomobject]$row) }
+            if ($entry.AccessType -eq 3) { [void]$teams.Add($row) }
+            elseif ($entry.AccessType -eq 6) { [void]$applications.Add($row) }
+            else { [void]$users.Add($row) }
         }
-        return [pscustomobject][ordered]@{ user_permissions = $users.ToArray(); team_permissions = $teams.ToArray(); application_permissions = $applications.ToArray() }
+        return [ordered]@{ user_permissions = $users.ToArray(); team_permissions = $teams.ToArray(); application_permissions = $applications.ToArray() }
     }
     $nsfRoleCode = {
         Param([string]$role)
@@ -570,24 +572,90 @@ function Get-KeeperTree {
             default { $role }
         }
     }
+    $nsfPermissionText = {
+        Param([string]$uid, [bool]$recordPermission)
+        $permissions = & $nsfPermission $uid $recordPermission
+        $parts = @()
+        $users = @($permissions.user_permissions | Where-Object { $_.accessor })
+        if ($users.Count -gt 0) { $parts += 'users:' + (($users | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
+        if (@($permissions.team_permissions).Count -gt 0) { $parts += 'teams:' + ((@($permissions.team_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
+        if (@($permissions.application_permissions).Count -gt 0) { $parts += 'applications:' + ((@($permissions.application_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
+        if ($parts.Count -eq 0) { return '' }
+        return ' (' + ($parts -join '; ') + ')'
+    }
+    $resolveClassicName = {
+        Param($permission)
+        if ($permission.Name) { return $permission.Name }
+        if ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::User) {
+            $username = $null
+            if ($vault.TryGetUsername($permission.Uid, [ref]$username)) { return $username }
+        }
+        elseif ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
+            $team = $null
+            if ($vault.TryGetTeam($permission.Uid, [ref]$team)) { return $team.Name }
+        }
+        return $permission.Uid
+    }
     $classicFolderPermission = {
         Param($folder)
         $sf = $null
         if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return $null }
-        $users = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::User) | ForEach-Object { [pscustomobject][ordered]@{ accessor = $_.Name; access_type = 'AT_USER'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { 'never' }) } })
-        $teams = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::Team) | ForEach-Object { [pscustomobject][ordered]@{ accessor = $_.Name; access_type = 'AT_TEAM'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers } })
-        return [pscustomobject][ordered]@{ user_permissions = $users; team_permissions = $teams }
+        $users = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::User) | ForEach-Object { [ordered]@{ accessor = (& $resolveClassicName $_); access_type = 'AT_USER'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { 'never' }) } })
+        $teams = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::Team) | ForEach-Object { [ordered]@{ accessor = (& $resolveClassicName $_); access_type = 'AT_TEAM'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers } })
+        return [ordered]@{ user_permissions = $users; team_permissions = $teams }
+    }
+    $classicFolderPermissionText = {
+        Param($folder)
+        $sf = $null
+        if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return '' }
+        $defaults = @()
+        if ($sf.DefaultManageUsers) { $defaults += 'MU' }
+        if ($sf.DefaultManageRecords) { $defaults += 'MR' }
+        if ($sf.DefaultCanEdit) { $defaults += 'CE' }
+        if ($sf.DefaultCanShare) { $defaults += 'CS' }
+        if ($defaults.Count -eq 0) { $defaults = @('RO') }
+        $users = @()
+        $teams = @()
+        foreach ($permission in @($sf.UsersPermissions)) {
+            $rights = @()
+            if ($permission.ManageUsers) { $rights += 'MU' }
+            if ($permission.ManageRecords) { $rights += 'MR' }
+            if ($rights.Count -eq 0) { $rights = @('RO') }
+            $entry = "[$(& $resolveClassicName $permission):$($rights -join ',')]"
+            if ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::Team) { $teams += $entry }
+            elseif ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::User) { $users += $entry }
+        }
+        $parts = @('default:' + ($defaults -join ','))
+        if ($teams.Count -gt 0) { $parts += 'teams:' + ($teams -join ',') }
+        if ($users.Count -gt 0) { $parts += 'users:' + ($users -join ',') }
+        return ' (' + ($parts -join '; ') + ')'
     }
     $classicRecordPermission = {
         Param($share)
-        return [pscustomobject][ordered]@{
-            user_permissions = @($share.UserPermissions | ForEach-Object { [pscustomobject][ordered]@{ username = $_.Username; owner = $_.Owner; shareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
-            shared_folder_permissions = @($share.SharedFolderPermissions | ForEach-Object { [pscustomobject][ordered]@{ shared_folder_uid = $_.SharedFolderUid; reshareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
+        return [ordered]@{
+            user_permissions = @($share.UserPermissions | ForEach-Object { [ordered]@{ username = $_.Username; owner = $_.Owner; shareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
+            shared_folder_permissions = @($share.SharedFolderPermissions | ForEach-Object { [ordered]@{ shared_folder_uid = $_.SharedFolderUid; reshareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
         }
     }
+    $classicRecordPermissionText = {
+        Param($share)
+        $users = @()
+        foreach ($permission in @($share.UserPermissions)) {
+            $rights = @()
+            if ($permission.Owner) { $rights = @('OW') }
+            else {
+                if ($permission.CanEdit) { $rights += 'CE' }
+                if ($permission.CanShare) { $rights += 'CS' }
+                if ($rights.Count -eq 0) { $rights = @('RO') }
+            }
+            $users += "[$($permission.Username):$($rights -join ',')]"
+        }
+        if ($users.Count -eq 0) { return '' }
+        return ' (users:' + ($users -join ',') + ')'
+    }
 
-    # Table output is streamed from the vault graph. Do not create a nested PowerShell object graph:
-    # PowerShell 5.1 can retain circular PSCustomObject references and exhaust memory on large vaults.
+    # Table output is streamed from the vault graph. Avoid building a nested object graph because
+    # large vault trees can consume excessive memory in Windows PowerShell 5.1.
     if ($Format -ne 'json') {
         $treeWriter = $null
         if ($Output) { $treeWriter = [System.IO.StreamWriter]::new($Output, $false, [System.Text.UTF8Encoding]::new($false)) }
@@ -615,7 +683,7 @@ function Get-KeeperTree {
         $baseKey = if ($base.FolderUid) { $base.FolderUid } else { '__root__' }
         [void]$tableVisited.Add($baseKey)
         $tablePending = New-Object 'System.Collections.Generic.Stack[object]'
-        [void]$tablePending.Push([pscustomobject]@{ Kind = 'folder'; Folder = $base; Prefix = ''; Last = $true })
+    [void]$tablePending.Push([ordered]@{ Kind = 'folder'; Folder = $base; Prefix = ''; Last = $true })
         while ($tablePending.Count -gt 0) {
             $entry = $tablePending.Pop()
             $prefix = $entry.Prefix
@@ -630,18 +698,14 @@ function Get-KeeperTree {
                 if ($VerboseOutput -and $folder.FolderUid) { $label += " ($($folder.FolderUid))" }
                 if ($isNsf) {
                     $label += ' [Nested Share Folder]'
-                    if ($NsfShares) {
-                        $permissions = & $nsfPermission $folder.FolderUid $false
-                        $parts = @()
-                        if (@($permissions.user_permissions).Count -gt 0) { $parts += 'users:' + ((@($permissions.user_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-                        if (@($permissions.team_permissions).Count -gt 0) { $parts += 'teams:' + ((@($permissions.team_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-                        if (@($permissions.application_permissions).Count -gt 0) { $parts += 'applications:' + ((@($permissions.application_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-                        if ($parts.Count -gt 0) { $label += ' (' + ($parts -join '; ') + ')' }
-                    }
+                    if ($NsfShares) { $label += & $nsfPermissionText $folder.FolderUid $false }
                 }
                 else {
                     $sharedFolder = $null
-                    if ($folder.FolderUid -and $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) { $label += ' [SHARED]' }
+                    if ($folder.FolderUid -and $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) {
+                        $label += ' [SHARED]'
+                        if ($Shares) { $label += & $classicFolderPermissionText $folder }
+                    }
                 }
             }
             $branch = if ($last) { ([char]0x2514).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' } else { ([char]0x251C).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' }
@@ -654,12 +718,12 @@ function Get-KeeperTree {
                 $child = $null
                 if ($vault.TryGetFolder($uid, [ref]$child) -or $vault.TryGetKeeperNSFFolder($uid, [ref]$child)) {
                     $childKey = if ($child.FolderUid) { $child.FolderUid } else { '__root__' }
-                    if ($tableVisited.Add($childKey)) { [void]$children.Add([pscustomobject]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
+                    if ($tableVisited.Add($childKey)) { [void]$children.Add([ordered]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
                 }
             }
             if ([string]::IsNullOrEmpty($entry.Folder.FolderUid)) {
                 foreach ($child in @($vault.KeeperNSFFolderNodes | Where-Object { !$_.ParentUid -or !$nsfFolders.ContainsKey($_.ParentUid) })) {
-                    if ($tableVisited.Add($child.FolderUid)) { [void]$children.Add([pscustomobject]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
+                    if ($tableVisited.Add($child.FolderUid)) { [void]$children.Add([ordered]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
                 }
             }
             if ($Record) {
@@ -669,7 +733,8 @@ function Get-KeeperTree {
                         $recordName = if ($nsfRecord.Title) { $nsfRecord.Title } else { $nsfRecord.RecordUid }
                         $recordLabel = $recordName + ' [' + $nsfRecord.Type + '] [Nested Record]'
                         if ($VerboseOutput) { $recordLabel += " ($($nsfRecord.RecordUid))" }
-                        [void]$children.Add([pscustomobject]@{ Kind = 'record'; Label = $recordLabel; Name = $nsfRecord.Title })
+                        if ($NsfShares) { $recordLabel += & $nsfPermissionText $nsfRecord.RecordUid $true }
+                        [void]$children.Add([ordered]@{ Kind = 'record'; Label = $recordLabel; Name = $nsfRecord.Title })
                     }
                     else {
                         [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
@@ -677,7 +742,8 @@ function Get-KeeperTree {
                             $recordName = if ($classicRecord.Title) { $classicRecord.Title } else { $classicRecord.Uid }
                             $recordLabel = $recordName + ' [' + [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($classicRecord) + '] [Record]'
                             if ($VerboseOutput) { $recordLabel += " ($($classicRecord.Uid))" }
-                            [void]$children.Add([pscustomobject]@{ Kind = 'record'; Label = $recordLabel; Name = $classicRecord.Title })
+                            if ($Shares -and $classicShares.ContainsKey($uid)) { $recordLabel += & $classicRecordPermissionText $classicShares[$uid] }
+                            [void]$children.Add([ordered]@{ Kind = 'record'; Label = $recordLabel; Name = $classicRecord.Title })
                         }
                     }
                 }
@@ -686,11 +752,11 @@ function Get-KeeperTree {
             if ($prefix -and $last) { $branchPrefix = '    ' }
             elseif ($prefix) { $branchPrefix = ([char]0x2502).ToString() + '   ' }
             $childPrefix = $prefix + $branchPrefix
-            $orderedChildren = @($children | Sort-Object Name)
+            $orderedChildren = @($children | Sort-Object { $_['Name'] })
             for ($i = $orderedChildren.Count - 1; $i -ge 0; $i--) {
                 $childEntry = $orderedChildren[$i]
-                $childEntry | Add-Member -NotePropertyName Prefix -NotePropertyValue $childPrefix
-                $childEntry | Add-Member -NotePropertyName Last -NotePropertyValue ($i -eq ($orderedChildren.Count - 1))
+                $childEntry['Prefix'] = $childPrefix
+                $childEntry['Last'] = $i -eq ($orderedChildren.Count - 1)
                 [void]$tablePending.Push($childEntry)
             }
         }
@@ -707,7 +773,7 @@ function Get-KeeperTree {
     $rootPath = if ($base.FolderUid) { '/' + $base.Name } else { '/' }
     [void]$renderedFolders.Add($(if ($base.FolderUid) { $base.FolderUid } else { '__root__' }))
     $rootItem = [ordered]@{ name = $(if ($base.Name) { $base.Name } else { 'My Vault' }); path = $rootPath; kind = $(if ($nsfFolders.ContainsKey($base.FolderUid)) { 'nested_share_folder' } else { 'folder' }) }
-    [void]$buildPending.Push([pscustomobject]@{ Folder = $base; Node = $rootItem; Path = $rootPath })
+    [void]$buildPending.Push([ordered]@{ Folder = $base; Node = $rootItem; Path = $rootPath })
     while ($buildPending.Count -gt 0) {
         $buildEntry = $buildPending.Pop()
         $folder = $buildEntry.Folder
@@ -729,7 +795,7 @@ function Get-KeeperTree {
                 $childItem = [ordered]@{ name = $(if ($child.Name) { $child.Name } else { 'My Vault' }); path = (($nodePath.TrimEnd('/') + '/' + $child.Name).Replace('//', '/')); kind = $(if ($nsfFolders.ContainsKey($child.FolderUid)) { 'nested_share_folder' } else { 'folder' }) }
                 if ($VerboseOutput -and $child.FolderUid) { $childItem['uid'] = $child.FolderUid }
                 [void]$children.Add($childItem)
-                [void]$buildPending.Push([pscustomobject]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
+                [void]$buildPending.Push([ordered]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
             }
         }
         if ([string]::IsNullOrEmpty($folder.FolderUid)) {
@@ -739,7 +805,7 @@ function Get-KeeperTree {
                 $childItem = [ordered]@{ name = $child.Name; path = (($nodePath.TrimEnd('/') + '/' + $child.Name).Replace('//', '/')); kind = 'nested_share_folder' }
                 if ($VerboseOutput -and $child.FolderUid) { $childItem['uid'] = $child.FolderUid }
                 [void]$children.Add($childItem)
-                [void]$buildPending.Push([pscustomobject]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
+                [void]$buildPending.Push([ordered]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
             }
         }
         if ($Record) {
