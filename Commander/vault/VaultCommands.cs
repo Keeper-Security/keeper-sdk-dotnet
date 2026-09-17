@@ -1478,6 +1478,11 @@ namespace Commander
         [Option("hk", Required = false, HelpText = "hide share permissions key (valid with --shares / --ns)")]
         public bool HideSharedKeys { get; set; }
 
+        [Option('h', "hide-shared-keys", Required = false, HelpText = "hide share permissions key (legacy alias)")]
+        public bool LegacyHideSharedKeys { get; set; }
+
+        public bool ShouldHideSharedKeys => HideSharedKeys || LegacyHideSharedKeys;
+
         [Option('t', "title", Required = false, HelpText = "optional title for the folder structure")]
         public string Title { get; set; }
     }

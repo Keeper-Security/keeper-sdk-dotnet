@@ -528,130 +528,33 @@ function Get-KeeperTree {
         $nsfSharePermissions = $vault.GetKeeperNSFSharePermissionsAsync($nsfFolderUids, $nsfRecordUids).GetAwaiter().GetResult()
     }
 
-    $resolveName = {
-        Param([string]$uid, [int]$accessType, [string]$accessorName)
-        if ($accessorName) { return $accessorName }
-        if ($accessType -eq 3) {
-            $team = $null
-            if ($vault.TryGetTeam($uid, [ref]$team)) { return $team.Name }
-        }
-        if ($accessType -eq 6) {
-            [KeeperSecurity.Vault.KeeperRecord]$application = $null
-            if ($vault.TryGetKeeperRecord($uid, [ref]$application)) { return $application.Title }
-        }
-        $username = $null
-        if ($vault.TryGetUsername($uid, [ref]$username)) { return $username }
-        if ($accessType -ne 3 -and $accessType -ne 6) { return $null }
-        return $uid
-    }
     $nsfPermission = {
         Param([string]$uid, [bool]$recordPermission)
-        $entries = if ($recordPermission) { $nsfSharePermissions.RecordPermissions[$uid] } else { $nsfSharePermissions.FolderPermissions[$uid] }
-        $users = New-Object 'System.Collections.Generic.List[object]'
-        $teams = New-Object 'System.Collections.Generic.List[object]'
-        $applications = New-Object 'System.Collections.Generic.List[object]'
-        foreach ($entry in @($entries)) {
-            $accessor = & $resolveName $entry.AccessTypeUid $entry.AccessType $entry.AccessorName
-            $role = if ($entry.Owner) { 'owner' } else { switch ([int]$entry.AccessRoleType) { 2 { 'viewer'; break } 3 { 'share-manager'; break } 4 { 'content-manager'; break } 5 { 'content-share-manager'; break } 6 { 'full-manager'; break } default { 'unresolved' } } }
-            $row = [ordered]@{ accessor = $accessor; access_type = $(if ($entry.AccessType -eq 1) { 'AT_OWNER' } elseif ($entry.AccessType -eq 3) { 'AT_TEAM' } elseif ($entry.AccessType -eq 6) { 'AT_APPLICATION' } else { 'AT_USER' }); role = $role; inherited = $entry.Inherited }
-            if ($entry.AccessType -eq 3) { [void]$teams.Add($row) }
-            elseif ($entry.AccessType -eq 6) { [void]$applications.Add($row) }
-            else { [void]$users.Add($row) }
-        }
-        return [ordered]@{ user_permissions = $users.ToArray(); team_permissions = $teams.ToArray(); application_permissions = $applications.ToArray() }
-    }
-    $nsfRoleCode = {
-        Param([string]$role)
-        switch ($role) {
-            'owner' { 'OW'; break }
-            'viewer' { 'VW'; break }
-            'share-manager' { 'SM'; break }
-            'content-manager' { 'CM'; break }
-            'content-share-manager' { 'CSM'; break }
-            'full-manager' { 'FM'; break }
-            default { $role }
-        }
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetNsfPermissions($vault, $nsfSharePermissions, $uid, $recordPermission)
     }
     $nsfPermissionText = {
         Param([string]$uid, [bool]$recordPermission)
-        $permissions = & $nsfPermission $uid $recordPermission
-        $parts = @()
-        $users = @($permissions.user_permissions | Where-Object { $_.accessor })
-        if ($users.Count -gt 0) { $parts += 'users:' + (($users | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-        if (@($permissions.team_permissions).Count -gt 0) { $parts += 'teams:' + ((@($permissions.team_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-        if (@($permissions.application_permissions).Count -gt 0) { $parts += 'applications:' + ((@($permissions.application_permissions) | ForEach-Object { "[$($_.accessor):$(& $nsfRoleCode $_.role)]" }) -join ',') }
-        if ($parts.Count -eq 0) { return '' }
-        return ' (' + ($parts -join '; ') + ')'
-    }
-    $resolveClassicName = {
-        Param($permission)
-        if ($permission.Name) { return $permission.Name }
-        if ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::User) {
-            $username = $null
-            if ($vault.TryGetUsername($permission.Uid, [ref]$username)) { return $username }
-        }
-        elseif ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
-            $team = $null
-            if ($vault.TryGetTeam($permission.Uid, [ref]$team)) { return $team.Name }
-        }
-        return $permission.Uid
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatNsfPermissionText($vault, $nsfSharePermissions, $uid, $recordPermission)
     }
     $classicFolderPermission = {
         Param($folder)
         $sf = $null
         if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return $null }
-        $users = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::User) | ForEach-Object { [ordered]@{ accessor = (& $resolveClassicName $_); access_type = 'AT_USER'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { 'never' }) } })
-        $teams = @($sf.UsersPermissions | Where-Object UserType -eq ([KeeperSecurity.Vault.UserType]::Team) | ForEach-Object { [ordered]@{ accessor = (& $resolveClassicName $_); access_type = 'AT_TEAM'; manage_records = $_.ManageRecords; manage_users = $_.ManageUsers } })
-        return [ordered]@{ user_permissions = $users; team_permissions = $teams }
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetClassicFolderPermissions($vault, $sf)
     }
     $classicFolderPermissionText = {
         Param($folder)
         $sf = $null
         if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return '' }
-        $defaults = @()
-        if ($sf.DefaultManageUsers) { $defaults += 'MU' }
-        if ($sf.DefaultManageRecords) { $defaults += 'MR' }
-        if ($sf.DefaultCanEdit) { $defaults += 'CE' }
-        if ($sf.DefaultCanShare) { $defaults += 'CS' }
-        if ($defaults.Count -eq 0) { $defaults = @('RO') }
-        $users = @()
-        $teams = @()
-        foreach ($permission in @($sf.UsersPermissions)) {
-            $rights = @()
-            if ($permission.ManageUsers) { $rights += 'MU' }
-            if ($permission.ManageRecords) { $rights += 'MR' }
-            if ($rights.Count -eq 0) { $rights = @('RO') }
-            $entry = "[$(& $resolveClassicName $permission):$($rights -join ',')]"
-            if ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::Team) { $teams += $entry }
-            elseif ($permission.UserType -eq [KeeperSecurity.Vault.UserType]::User) { $users += $entry }
-        }
-        $parts = @('default:' + ($defaults -join ','))
-        if ($teams.Count -gt 0) { $parts += 'teams:' + ($teams -join ',') }
-        if ($users.Count -gt 0) { $parts += 'users:' + ($users -join ',') }
-        return ' (' + ($parts -join '; ') + ')'
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatClassicFolderPermissionText($vault, $sf)
     }
     $classicRecordPermission = {
         Param($share)
-        return [ordered]@{
-            user_permissions = @($share.UserPermissions | ForEach-Object { [ordered]@{ username = $_.Username; owner = $_.Owner; shareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
-            shared_folder_permissions = @($share.SharedFolderPermissions | ForEach-Object { [ordered]@{ shared_folder_uid = $_.SharedFolderUid; reshareable = $_.CanShare; editable = $_.CanEdit; expiration = $(if ($_.Expiration) { $_.Expiration.ToUnixTimeMilliseconds() } else { $null }) } })
-        }
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetClassicRecordPermissions($share)
     }
     $classicRecordPermissionText = {
         Param($share)
-        $users = @()
-        foreach ($permission in @($share.UserPermissions)) {
-            $rights = @()
-            if ($permission.Owner) { $rights = @('OW') }
-            else {
-                if ($permission.CanEdit) { $rights += 'CE' }
-                if ($permission.CanShare) { $rights += 'CS' }
-                if ($rights.Count -eq 0) { $rights = @('RO') }
-            }
-            $users += "[$($permission.Username):$($rights -join ',')]"
-        }
-        if ($users.Count -eq 0) { return '' }
-        return ' (users:' + ($users -join ',') + ')'
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatClassicRecordPermissionText($share)
     }
 
     # Table output is streamed from the vault graph. Avoid building a nested object graph because
