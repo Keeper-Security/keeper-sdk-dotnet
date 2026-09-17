@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
@@ -468,6 +470,129 @@ namespace KeeperSecurity
                     Username = new[] { forUser },
                 };
                 return auth.GetEvents(filter, recentUnixTime, latestUnixTime);
+            }
+
+            private static readonly string[] LoginEventTypes = { "login", "login_console", "chat_login", "accept_invitation" };
+            private const int LoginReportBatchLimit = 1000;
+
+            /// <summary>
+            /// Looks up when each enterprise user last logged in, and sets <see cref="EnterpriseUser.LastLogin"/>
+            /// on every user in <paramref name="enterpriseData"/> accordingly.
+            /// </summary>
+            /// <param name="auth">Keeper Connection</param>
+            /// <param name="enterpriseData">Enterprise data whose users' <see cref="EnterpriseUser.LastLogin"/> will be populated</param>
+            /// <param name="days">How many days back to search for a login. Default: 365.</param>
+            /// <returns>
+            /// Awaitable task returning the emails whose audit-log lookup failed. For those users,
+            /// a <c>null</c> <see cref="EnterpriseUser.LastLogin"/> means "unknown", not "never logged in".
+            /// </returns>
+            /// <remarks>
+            /// Not called automatically by <see cref="EnterpriseLoader.Load"/> — call it yourself, or
+            /// <see cref="EnterpriseUser.LastLogin"/> stays <c>null</c> for everyone. A failed lookup leaves
+            /// that user's existing value untouched instead of clearing it.
+            /// </remarks>
+            public static async Task<ISet<string>> LoadLastLogins(this IAuthentication auth, EnterpriseData enterpriseData, int days = 365)
+            {
+                if (enterpriseData == null)
+                {
+                    throw new ArgumentNullException(nameof(enterpriseData));
+                }
+
+                var users = enterpriseData.Users.ToList();
+
+                var failedEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var emails = users.Select(u => u.Email.ToLowerInvariant()).ToList();
+                if (emails.Count == 0) return failedEmails;
+
+                var fromTs = DateTimeOffset.UtcNow.AddDays(-days).ToUnixTimeSeconds();
+                var lastLoginMap = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+
+                for (var offset = 0; offset < emails.Count; offset += LoginReportBatchLimit)
+                {
+                    var batch = emails.Skip(offset).Take(LoginReportBatchLimit).ToArray();
+                    await QueryLastLoginBatch(auth, batch, fromTs, lastLoginMap, failedEmails);
+                }
+
+                foreach (var user in users)
+                {
+                    var email = user.Email.ToLowerInvariant();
+                    if (failedEmails.Contains(email)) continue;
+
+                    user.LastLogin = lastLoginMap.TryGetValue(email, out var ts) && ts > 0
+                        ? DateTimeOffset.FromUnixTimeSeconds(ts)
+                        : null;
+                }
+
+                return failedEmails;
+            }
+
+            // Queries last-login timestamps for a batch of usernames. We ask for one row more than the
+            // batch size, so getting back more than the batch limit means the response was truncated
+            // (not just "everyone logged in"). On truncation, split the batch in half and retry each half.
+            private static async Task QueryLastLoginBatch(
+                IAuthentication auth, string[] batch, long fromTs, Dictionary<string, long> lastLoginMap, ISet<string> failedEmails)
+            {
+                if (batch.Length == 0) return;
+
+                var rq = new GetAuditEventReportsCommand
+                {
+                    ReportType = "span",
+                    Limit = LoginReportBatchLimit + 1,
+                    Aggregate = new[] { "last_created" },
+                    Columns = new[] { "username" },
+                    Filter = new ReportFilter
+                    {
+                        EventTypes = LoginEventTypes,
+                        Username = batch,
+                        Created = new CreatedFilter { Min = fromTs },
+                    },
+                };
+
+                GetAuditEventReportsResponse rs;
+                try
+                {
+                    rs = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"Failed to query audit events: {ex.Message}");
+                    foreach (var email in batch)
+                    {
+                        failedEmails.Add(email);
+                    }
+                    return;
+                }
+
+                var events = rs.Events;
+                if (events == null) return;
+
+                if (events.Count > LoginReportBatchLimit && batch.Length > 1)
+                {
+                    var mid = batch.Length / 2;
+                    await QueryLastLoginBatch(auth, batch.Take(mid).ToArray(), fromTs, lastLoginMap, failedEmails);
+                    await QueryLastLoginBatch(auth, batch.Skip(mid).ToArray(), fromTs, lastLoginMap, failedEmails);
+                    return;
+                }
+
+                foreach (var evt in events)
+                {
+                    if (!evt.TryGetValue("username", out var unameObj) || unameObj == null) continue;
+                    if (!evt.TryGetValue("last_created", out var lastCreatedObj) || lastCreatedObj == null) continue;
+                    if (!(lastCreatedObj is IConvertible conv)) continue;
+
+                    var username = unameObj.ToString().ToLowerInvariant();
+                    var lastCreated = conv.ToInt64(CultureInfo.InvariantCulture);
+                    if (lastCreated <= 0) continue;
+
+                    // Take the max rather than overwrite: if the server ever returns more than one row
+                    // for the same username (the "grouped by username" assumption above is inferred from
+                    // documented report_type behavior, not a hard API guarantee), this still converges on
+                    // the true last login instead of silently keeping whichever row happened to be last.
+                    if (!lastLoginMap.TryGetValue(username, out var existing) || lastCreated > existing)
+                    {
+                        lastLoginMap[username] = lastCreated;
+                    }
+                }
             }
         }
     }
