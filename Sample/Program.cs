@@ -851,6 +851,9 @@ namespace Sample
                 // // Enterprise User View Example
                 // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserViewExample.ViewUser(vault, email: "<userEmail_here>");
 
+                // // Enterprise User Report Example (Email, Name, Status, TransferStatus, LastLogin, Node, Roles, Teams)
+                // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseUserReportExample.GetUserReport(vault, days: 90);
+
                 // // Enterprise Add User Example
                 // await EnterpriseManagementExamples.EnterpriseUserExamples.EnterpriseAddUserExample.InviteUser(vault, email: "<userEmail_here>", fullName: "<fullName_here>", nodeNameOrId: "<nodeNameOrId_here>");
                 // // Create instance
