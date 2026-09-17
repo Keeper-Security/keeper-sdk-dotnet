@@ -74,7 +74,7 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                     }
                     else if (user.UserStatus != UserStatus.Inactive)
                     {
-                        lastLogin = $"> {days} DAYS AGO";
+                        lastLogin = $"NO LOGIN IN LAST {days} DAYS";
                     }
                     else
                     {
