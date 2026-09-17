@@ -3525,9 +3525,9 @@ namespace Commander
                     ? (u.ParentNodeId > 0 ? u.ParentNodeId : context.EnterpriseData.RootNode.Id).ToString()
                     : GetNodePath(context.EnterpriseData, u.ParentNodeId) },
                 { "role_count", u => context.RoleManagement.GetRolesForUser(u.Id)?.Count() ?? 0 },
-                { "roles", u => options.Verbose ? GetUserRoleIds(context, u.Id) : GetUserRoleNames(context, u.Id) },
+                { "roles", u => options.Verbose ? FormatVerboseIds(GetUserRoleIds(context, u.Id), options) : GetUserRoleNames(context, u.Id) },
                 { "team_count", u => context.EnterpriseData.GetTeamsForUser(u.Id)?.Length ?? 0 },
-                { "teams", u => options.Verbose ? GetUserTeamIds(context, u.Id) : GetUserTeamNames(context, u.Id) },
+                { "teams", u => options.Verbose ? FormatVerboseIds(GetUserTeamIds(context, u.Id), options) : GetUserTeamNames(context, u.Id) },
                 { "queued_team_count", u => GetQueuedTeamsForUser(context, u.Id).Count() },
                 { "queued_teams", u => GetUserQueuedTeamNames(context, u.Id) },
                 { "alias", u => u.Email },
@@ -3804,6 +3804,13 @@ namespace Commander
                 .OrderBy(id => id)
                 .Select(id => id.ToString())
                 .ToArray();
+        }
+
+        private static object FormatVerboseIds(string[] ids, EnterpriseInfoOptions options)
+        {
+            return string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
+                ? ids
+                : string.Join(", ", ids);
         }
 
         private static IEnumerable<EnterpriseQueuedTeam> GetQueuedTeamsForUser(IEnterpriseContext context, long userId)
