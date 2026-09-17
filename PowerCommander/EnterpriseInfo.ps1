@@ -254,6 +254,7 @@ function Get-KeeperEnterpriseInfoUser {
     Display user information as a table.
     .DESCRIPTION
     Outputs users with status, node, roles, teams, and optional columns.
+    With -Verbose, node, role, and team values are returned as IDs instead of names.
     .PARAMETER Pattern
     Optional search pattern to filter users.
     .PARAMETER Columns
@@ -268,6 +269,9 @@ function Get-KeeperEnterpriseInfoUser {
     Number of rows to skip (for pagination). Default 0.
     .PARAMETER Limit
     Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
+    .NOTES
+    -Verbose is used for compatibility with the Commander enterprise-info --verbose option.
+    It changes node, role, and team values to IDs; it does not emit diagnostic messages here.
     .EXAMPLE
     Get-KeeperEnterpriseInfoUser
     Get-KeeperEnterpriseInfoUser -Columns "name,status,node,roles" -Pattern "admin" -Node "Sales" -Format json -Output users.json -Offset 0 -Limit 100
@@ -288,6 +292,7 @@ function Get-KeeperEnterpriseInfoUser {
     $verboseOutput = $PSBoundParameters.ContainsKey('Verbose') -and $VerbosePreference -eq 'Continue'
     $jsonOutput = $Format -eq 'json'
     $roleUsers = @{}
+    $teamIdsByUser = @{}
     foreach ($r in $rd.Roles) {
         foreach ($uid in @($rd.GetUsersForRole($r.Id))) {
             if (-not $roleUsers[$uid]) { $roleUsers[$uid] = [System.Collections.Generic.List[long]]::new() }
@@ -299,6 +304,8 @@ function Get-KeeperEnterpriseInfoUser {
         foreach ($uid in @($ed.GetUsersForTeam($t.Uid))) {
             if (-not $teamUsers[$uid]) { $teamUsers[$uid] = [System.Collections.Generic.List[string]]::new() }
             $teamUsers[$uid].Add($t.Name) | Out-Null
+            if (-not $teamIdsByUser[$uid]) { $teamIdsByUser[$uid] = [System.Collections.Generic.List[string]]::new() }
+            $teamIdsByUser[$uid].Add($t.Uid) | Out-Null
         }
     }
     $colSet = @('name', 'status', 'transfer_status', 'node')
@@ -328,7 +335,7 @@ function Get-KeeperEnterpriseInfoUser {
                 'role_count'       { $arr = $roleUsers[$u.Id]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
                 'roles'            {
                     if ($verboseOutput) {
-                        $roleIds = @($roleUsers[$u.Id] | ForEach-Object { $_.ToString() } | Sort-Object)
+                        $roleIds = @($roleUsers[$u.Id] | Sort-Object | ForEach-Object { $_.ToString() })
                         $row['Roles'] = if ($jsonOutput) { $roleIds } else { $roleIds -join ', ' }
                     } else {
                         $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object)
@@ -338,7 +345,7 @@ function Get-KeeperEnterpriseInfoUser {
                 'team_count'       { $arr = $teamUsers[$u.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'            {
                     if ($verboseOutput) {
-                        $teamIds = @($ed.GetTeamsForUser($u.Id) | Sort-Object)
+                        $teamIds = @($teamIdsByUser[$u.Id] | Sort-Object)
                         $row['Teams'] = if ($jsonOutput) { $teamIds } else { $teamIds -join ', ' }
                     } else { $row['Teams'] = ($teamUsers[$u.Id] | Sort-Object) -join ', ' }
                 }
