@@ -39,15 +39,15 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
 
                 // New columns: team membership (sync) and last login (async, audit log query).
                 enterpriseData.RefreshUserTeams();
-                await vault.Auth.LoadLastLogins(enterpriseData, days);
+                var failedLastLoginEmails = await vault.Auth.LoadLastLogins(enterpriseData, days);
 
                 var nodePathCache = new Dictionary<long, string>();
 
                 Console.WriteLine("======== Enterprise User Report ========");
                 Console.WriteLine($"Lookback window for LastLogin: {days} day(s)");
                 Console.WriteLine(
-                    $"{"Email",-50} {"Name",-24} {"Status",-10} {"TransferStatus",-15} " +
-                    $"{"LastLogin (UTC)",-20} {"Node",-24} {"Roles",-24} {"Teams"}");
+                    $"{"Email",-50} {"Name",-25} {"Status",-10} {"TransferStatus",-15} " +
+                    $"{"LastLogin (UTC)",-20} {"Node",-24} {"Roles",-40} {"Teams"}");
                 Console.WriteLine(new string('-', 170));
 
                 foreach (var user in enterpriseData.Users.OrderBy(u => u.Email, StringComparer.OrdinalIgnoreCase))
@@ -67,6 +67,10 @@ namespace Sample.EnterpriseManagementExamples.EnterpriseUserExamples
                     if (user.LastLogin.HasValue)
                     {
                         lastLogin = user.LastLogin.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    else if (failedLastLoginEmails.Contains(user.Email))
+                    {
+                        lastLogin = "UNKNOWN (query failed)";
                     }
                     else if (user.UserStatus != UserStatus.Inactive)
                     {

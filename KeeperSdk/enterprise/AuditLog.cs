@@ -482,12 +482,16 @@ namespace KeeperSecurity
             /// <param name="auth">Keeper Connection</param>
             /// <param name="enterpriseData">Enterprise data whose users' <see cref="EnterpriseUser.LastLogin"/> will be populated</param>
             /// <param name="days">How many days back to search for a login. Default: 365.</param>
-            /// <returns>Awaitable task.</returns>
+            /// <returns>
+            /// Awaitable task returning the emails whose audit-log lookup failed. For those users,
+            /// a <c>null</c> <see cref="EnterpriseUser.LastLogin"/> means "unknown", not "never logged in".
+            /// </returns>
             /// <remarks>
-            /// This checks every user, not just active ones. If a user hasn't logged in within the given
-            /// number of days (or has never logged in), their <see cref="EnterpriseUser.LastLogin"/> is set to <c>null</c>.
+            /// Not called automatically by <see cref="EnterpriseLoader.Load"/> — call it yourself, or
+            /// <see cref="EnterpriseUser.LastLogin"/> stays <c>null</c> for everyone. A failed lookup leaves
+            /// that user's existing value untouched instead of clearing it.
             /// </remarks>
-            public static async Task LoadLastLogins(this IAuthentication auth, EnterpriseData enterpriseData, int days = 365)
+            public static async Task<ISet<string>> LoadLastLogins(this IAuthentication auth, EnterpriseData enterpriseData, int days = 365)
             {
                 if (enterpriseData == null)
                 {
@@ -495,13 +499,10 @@ namespace KeeperSecurity
                 }
 
                 var users = enterpriseData.Users.ToList();
-                foreach (var user in users)
-                {
-                    user.LastLogin = null;
-                }
 
+                var failedEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var emails = users.Select(u => u.Email.ToLowerInvariant()).ToList();
-                if (emails.Count == 0) return;
+                if (emails.Count == 0) return failedEmails;
 
                 var fromTs = DateTimeOffset.UtcNow.AddDays(-days).ToUnixTimeSeconds();
                 var lastLoginMap = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
@@ -509,31 +510,34 @@ namespace KeeperSecurity
                 for (var offset = 0; offset < emails.Count; offset += LoginReportBatchLimit)
                 {
                     var batch = emails.Skip(offset).Take(LoginReportBatchLimit).ToArray();
-                    await QueryLastLoginBatch(auth, batch, fromTs, lastLoginMap);
+                    await QueryLastLoginBatch(auth, batch, fromTs, lastLoginMap, failedEmails);
                 }
 
                 foreach (var user in users)
                 {
-                    if (lastLoginMap.TryGetValue(user.Email.ToLowerInvariant(), out var ts) && ts > 0)
-                    {
-                        user.LastLogin = DateTimeOffset.FromUnixTimeSeconds(ts);
-                    }
+                    var email = user.Email.ToLowerInvariant();
+                    if (failedEmails.Contains(email)) continue;
+
+                    user.LastLogin = lastLoginMap.TryGetValue(email, out var ts) && ts > 0
+                        ? DateTimeOffset.FromUnixTimeSeconds(ts)
+                        : null;
                 }
+
+                return failedEmails;
             }
 
-            // Queries last-login timestamps for a batch of usernames. The response is grouped by
-            // username, so its row count can never exceed the batch size; if it still comes back at
-            // exactly the requested limit, the response may have been truncated server-side, so the
-            // batch is split in half and each half is retried until every sub-batch is under the limit.
+            // Queries last-login timestamps for a batch of usernames. We ask for one row more than the
+            // batch size, so getting back more than the batch limit means the response was truncated
+            // (not just "everyone logged in"). On truncation, split the batch in half and retry each half.
             private static async Task QueryLastLoginBatch(
-                IAuthentication auth, string[] batch, long fromTs, Dictionary<string, long> lastLoginMap)
+                IAuthentication auth, string[] batch, long fromTs, Dictionary<string, long> lastLoginMap, ISet<string> failedEmails)
             {
                 if (batch.Length == 0) return;
 
                 var rq = new GetAuditEventReportsCommand
                 {
                     ReportType = "span",
-                    Limit = LoginReportBatchLimit,
+                    Limit = LoginReportBatchLimit + 1,
                     Aggregate = new[] { "last_created" },
                     Columns = new[] { "username" },
                     Filter = new ReportFilter
@@ -552,17 +556,21 @@ namespace KeeperSecurity
                 catch (Exception ex)
                 {
                     Trace.TraceWarning($"Failed to query audit events: {ex.Message}");
+                    foreach (var email in batch)
+                    {
+                        failedEmails.Add(email);
+                    }
                     return;
                 }
 
                 var events = rs.Events;
                 if (events == null) return;
 
-                if (events.Count >= LoginReportBatchLimit && batch.Length > 1)
+                if (events.Count > LoginReportBatchLimit && batch.Length > 1)
                 {
                     var mid = batch.Length / 2;
-                    await QueryLastLoginBatch(auth, batch.Take(mid).ToArray(), fromTs, lastLoginMap);
-                    await QueryLastLoginBatch(auth, batch.Skip(mid).ToArray(), fromTs, lastLoginMap);
+                    await QueryLastLoginBatch(auth, batch.Take(mid).ToArray(), fromTs, lastLoginMap, failedEmails);
+                    await QueryLastLoginBatch(auth, batch.Skip(mid).ToArray(), fromTs, lastLoginMap, failedEmails);
                     return;
                 }
 
@@ -574,7 +582,13 @@ namespace KeeperSecurity
 
                     var username = unameObj.ToString().ToLowerInvariant();
                     var lastCreated = conv.ToInt64(CultureInfo.InvariantCulture);
-                    if (lastCreated > 0)
+                    if (lastCreated <= 0) continue;
+
+                    // Take the max rather than overwrite: if the server ever returns more than one row
+                    // for the same username (the "grouped by username" assumption above is inferred from
+                    // documented report_type behavior, not a hard API guarantee), this still converges on
+                    // the true last login instead of silently keeping whichever row happened to be last.
+                    if (!lastLoginMap.TryGetValue(username, out var existing) || lastCreated > existing)
                     {
                         lastLoginMap[username] = lastCreated;
                     }

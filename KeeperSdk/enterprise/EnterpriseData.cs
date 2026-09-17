@@ -139,8 +139,9 @@ namespace KeeperSecurity.Enterprise
         /// <see cref="EnterpriseUser.TeamNames"/>) using the team data that's already been loaded.
         /// </summary>
         /// <remarks>
-        /// Call this once after <see cref="EnterpriseLoader.Load"/> completes, and again any time you reload
-        /// enterprise data, so that team membership on <see cref="EnterpriseUser"/> stays current.
+        /// Call this once after <see cref="EnterpriseLoader.Load"/> completes, and again after any reload.
+        /// It's not called automatically — skip it and <see cref="EnterpriseUser.TeamUids"/>/
+        /// <see cref="EnterpriseUser.TeamNames"/> stay empty for every user.
         /// </remarks>
         public void RefreshUserTeams()
         {
