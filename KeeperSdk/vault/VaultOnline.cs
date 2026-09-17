@@ -679,6 +679,15 @@ namespace KeeperSecurity.Vault
             return KeeperNSFSharePermissions.Create(this, folderUids, recordUids);
         }
 
+        /// <summary>
+        /// Gets NSF folder and record permissions, enriching the sync cache with batched access APIs.
+        /// </summary>
+        public Task<KeeperNSFSharePermissions> GetKeeperNSFSharePermissionsAsync(
+            IEnumerable<string> folderUids, IEnumerable<string> recordUids)
+        {
+            return KeeperNSFSharePermissions.CreateAsync(this, folderUids, recordUids);
+        }
+
         /// <inheritdoc/>
         public async Task<KeeperNSFShortcutKeepResult> KeepKeeperNSFRecordInFolder(string recordUid, string keepFolderUid)
         {
@@ -758,6 +767,35 @@ namespace KeeperSecurity.Vault
             uniqueUsers.UnionWith(rs.ShareRelationships.Where(x => x.Status == ShareStatus.Active).Select(x => x.Username));
 
             return response;
+        }
+
+        /// <summary>
+        /// Resolves account UIDs returned by NSF ACL APIs to their usernames in one share-objects request.
+        /// </summary>
+        internal async Task<IReadOnlyDictionary<string, string>> GetShareObjectUsernamesAsync()
+        {
+            var usernames = new Dictionary<string, string>(StringComparer.Ordinal);
+            try
+            {
+                var response = await Auth.ExecuteAuthRest<GetShareObjectsRequest, GetShareObjectsResponse>(
+                    "vault/get_share_objects", new GetShareObjectsRequest()).ConfigureAwait(false);
+                if (response == null) return usernames;
+                foreach (var user in response.ShareRelationships
+                    .Concat(response.ShareFamilyUsers)
+                    .Concat(response.ShareEnterpriseUsers)
+                    .Concat(response.ShareMCEnterpriseUsers))
+                {
+                    if (user?.UserAccountUid == null || user.UserAccountUid.IsEmpty ||
+                        string.IsNullOrWhiteSpace(user.Username)) continue;
+                    usernames[user.UserAccountUid.ToByteArray().Base64UrlEncode()] = user.Username;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"KeeperNSF: Could not resolve share-object usernames: {ex.Message}");
+            }
+
+            return usernames;
         }
 
         /// <inheritdoc/>
