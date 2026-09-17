@@ -1071,6 +1071,10 @@ namespace KeeperSecurity.Vault
 
     public class KeeperNSFAccessEntry
     {
+        /// <summary>
+        /// UID of the ACL subject: a record UID for record permissions or a folder UID for folder permissions.
+        /// The legacy property name is retained for API compatibility.
+        /// </summary>
         public string RecordUid { get; internal set; }
         public string AccessorName { get; internal set; }
         public string AccessTypeUid { get; internal set; }
@@ -1108,7 +1112,8 @@ namespace KeeperSecurity.Vault
             var cached = Create(vault, folderUidList, recordUidList);
             var folders = cached.FolderPermissions.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
             var records = cached.RecordPermissions.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
-            var usernames = await vault.GetShareObjectUsernamesAsync().ConfigureAwait(false);
+            var usernames = await vault.GetShareObjectUsernamesAsync().ConfigureAwait(false)
+                            ?? new Dictionary<string, string>(StringComparer.Ordinal);
 
             await Task.WhenAll(
                 PopulateFolderPermissionsAsync(vault, folderUidList, folders, usernames),
