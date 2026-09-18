@@ -269,6 +269,8 @@ function Get-KeeperEnterpriseInfoUser {
     Number of rows to skip (for pagination). Default 0.
     .PARAMETER Limit
     Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
+    .PARAMETER Verbose
+    Return node IDs, role IDs, and team UIDs instead of display names. This is the standard PowerShell common parameter and does not emit diagnostic messages for this command.
     .NOTES
     -Verbose is used for compatibility with the Commander enterprise-info --verbose option.
     It changes node, role, and team values to IDs; it does not emit diagnostic messages here.
