@@ -844,4 +844,5 @@ namespace Commander
         [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
         public bool Force { get; set; }
     }
+
 }
