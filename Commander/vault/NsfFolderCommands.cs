@@ -63,7 +63,155 @@ namespace Commander
             }
         }
 
-        // nsf-rmdir: preview batch remove, prompt, then confirm via stored chunk tokens.
+        private const int MaxUidOrNameLength = 256;
+
+        // nsf-move: moves a Keeper NSF record or folder, depending on which one the item resolves to.
+        public static async Task NsfMoveCommand(this VaultContext context, NsfMoveOptions options)
+        {
+            var vault = context.Vault;
+
+            if (string.IsNullOrWhiteSpace(options.Src))
+            {
+                Console.WriteLine("The record or folder to move (UID or name) is required as the first argument.");
+                return;
+            }
+
+            if (options.Src.Length > MaxUidOrNameLength)
+            {
+                Console.WriteLine($"Record or folder UID or name must be {MaxUidOrNameLength} characters or fewer.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(options.Dst))
+            {
+                Console.WriteLine("The destination folder (UID or name) is required as the second argument.");
+                return;
+            }
+
+            if (options.Dst.Length > MaxUidOrNameLength)
+            {
+                Console.WriteLine($"Target folder UID or name must be {MaxUidOrNameLength} characters or fewer.");
+                return;
+            }
+
+            try
+            {
+                if (vault.TryResolveKeeperNSFFolder(options.Src, out var folderNode))
+                {
+                    if (!TryResolveTargetFolder(vault, options.Dst, out var targetNode))
+                    {
+                        return;
+                    }
+
+                    var result = await vault.MoveKeeperNSFFolder(folderNode.FolderUid, targetNode.FolderUid)
+                        .ConfigureAwait(false);
+
+                    await ReportMoveResultAsync(
+                        vault, result.Success, result.Status, result.Message,
+                        $"Folder '{folderNode.FolderUid}' moved to '{targetNode.FolderUid}' successfully.",
+                        "Failed to move folder").ConfigureAwait(false);
+
+                    return;
+                }
+
+                if (vault.TryResolveKeeperNSFRecord(options.Src, out var kdRecord))
+                {
+                    var folderUids = vault.GetKeeperNSFFoldersForRecord(kdRecord.RecordUid).ToList();
+                    if (folderUids.Count == 0)
+                    {
+                        Console.WriteLine($"Record \"{options.Src}\" is not linked to any Keeper NSF folder.");
+                        return;
+                    }
+
+                    if (folderUids.Count > 1)
+                    {
+                        Console.WriteLine($"Record \"{options.Src}\" is linked to multiple Keeper NSF folders. Unable to determine which one to move from.");
+                        return;
+                    }
+
+                    // A folder UID from a record's folder link that isn't a known local NSF folder
+                    // represents the Keeper Drive root (the server's per-account root sentinel).
+                    var sourceFolderUidOrRoot = vault.TryGetKeeperNSFFolder(folderUids[0], out _) ? folderUids[0] : "root";
+
+                    if (!vault.TryResolveKeeperNSFFolderOrRoot(sourceFolderUidOrRoot, out var sourceFolder))
+                    {
+                        Console.WriteLine($"Record's current folder \"{folderUids[0]}\" was not found. Run sync-down or nsf-list first.");
+                        return;
+                    }
+
+                    if (!TryResolveTargetFolder(vault, options.Dst, out var targetFolder))
+                    {
+                        return;
+                    }
+
+                    var result = await vault.MoveKeeperNSFRecord(kdRecord.RecordUid, sourceFolder.FolderUid, targetFolder.FolderUid)
+                        .ConfigureAwait(false);
+
+                    await ReportMoveResultAsync(
+                        vault, result.Success, result.Status, result.Message,
+                        $"Record '{kdRecord.RecordUid}' moved from '{sourceFolder.FolderUid}' to '{targetFolder.FolderUid}' successfully.",
+                        "Failed to move record").ConfigureAwait(false);
+
+                    return;
+                }
+
+                Console.WriteLine($"Keeper NSF record or folder \"{options.Src}\" was not found. Run sync-down or nsf-list first.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error moving: {ex.Message}");
+            }
+        }
+
+        // Resolves the destination folder for nsf-move, printing a standard not-found message on failure.
+        private static bool TryResolveTargetFolder(VaultOnline vault, string dst, out FolderNode targetNode)
+        {
+            if (!vault.TryResolveKeeperNSFFolderOrRoot(dst, out targetNode))
+            {
+                Console.WriteLine($"Target folder \"{dst}\" was not found. Run sync-down or nsf-list first.");
+                return false;
+            }
+
+            return true;
+        }
+
+        // Shared success/failure reporting for the folder-move and record-move branches of nsf-move.
+        private static async Task ReportMoveResultAsync(VaultOnline vault, bool success, string status, string message, string successMessage, string failureLabel)
+        {
+            if (success)
+            {
+                Console.WriteLine(successMessage);
+
+                try
+                {
+                    await vault.SyncDown(false).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Move succeeded, but sync-down failed: {ex.Message}. Run sync-down manually to refresh local state.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{failureLabel}: {DescribeMoveFailure(status, message)}");
+            }
+        }
+
+        private static string DescribeMoveFailure(string status, string message)
+        {
+            switch (status)
+            {
+                case "access_denied":
+                    return "you do not have permission to perform this move." +
+                        (string.IsNullOrWhiteSpace(message) ? "" : $" ({message})");
+                case "not_found":
+                    return "the record or folder was not found on the server. Run sync-down or nsf-list first." +
+                        (string.IsNullOrWhiteSpace(message) ? "" : $" ({message})");
+                default:
+                    return string.IsNullOrWhiteSpace(message) ? status : $"{status} - {message}";
+            }
+        }
+
         public static async Task NsfRmdirCommand(this VaultContext context, NsfRmdirOptions options)
         {
             var vault = context.Vault;
@@ -320,5 +468,14 @@ namespace Commander
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
         public string Role { get; set; }
+    }
+
+    class NsfMoveOptions
+    {
+        [Value(0, Required = true, HelpText = "Source record or folder UID or name")]
+        public string Src { get; set; }
+
+        [Value(1, Required = true, HelpText = "Destination folder UID or name, or 'root'")]
+        public string Dst { get; set; }
     }
 }
