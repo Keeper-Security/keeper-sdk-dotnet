@@ -422,3 +422,41 @@ function Get-KeeperNSFFolderRecordUnlinkBatchSampleJson {
 }
 '@
 }
+
+# Placeholder JSON for Move-KeeperNSFRecords / -DownloadSampleMoves.
+function Get-KeeperNSFRecordMoveBatchSampleJson {
+    @'
+{
+  "moves": [
+    {
+      "source_folder_uid": "REPLACE_WITH_SOURCE_FOLDER_UID_1",
+      "target_folder_uid": "REPLACE_WITH_TARGET_FOLDER_UID_1",
+      "record_uid": "REPLACE_WITH_RECORD_UID_1"
+    },
+    {
+      "source_folder_uid": "REPLACE_WITH_SOURCE_FOLDER_UID_1",
+      "target_folder_uid": "REPLACE_WITH_TARGET_FOLDER_UID_2",
+      "record_uid": "REPLACE_WITH_RECORD_UID_2"
+    }
+  ]
+}
+'@
+}
+
+# Placeholder JSON for Move-KeeperNSFFolders / -DownloadSampleMoves.
+function Get-KeeperNSFFolderMoveBatchSampleJson {
+    @'
+{
+  "moves": [
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_1",
+      "target_parent_uid": "REPLACE_WITH_TARGET_PARENT_UID_1"
+    },
+    {
+      "folder_uid": "REPLACE_WITH_FOLDER_UID_2",
+      "target_parent_uid": "REPLACE_WITH_TARGET_PARENT_UID_2"
+    }
+  ]
+}
+'@
+}
