@@ -207,7 +207,7 @@ namespace Folder {
             "bHQYBCADKAsyIC5Gb2xkZXIuRm9sZGVyUmVjb3JkVXBkYXRlUmVzdWx0ImoK",
             "GEZvbGRlclJlY29yZFVwZGF0ZVJlc3VsdBIRCglyZWNvcmRVaWQYASABKAwS",
             "KgoGc3RhdHVzGAIgASgOMhouRm9sZGVyLkZvbGRlck1vZGlmeVN0YXR1cxIP",
-            "CgdtZXNzYWdlGAMgASgJIocDChBGb2xkZXJBY2Nlc3NEYXRhEhEKCWZvbGRl",
+            "CgdtZXNzYWdlGAMgASgJIp0DChBGb2xkZXJBY2Nlc3NEYXRhEhEKCWZvbGRl",
             "clVpZBgBIAEoDBIVCg1hY2Nlc3NUeXBlVWlkGAIgASgMEiYKCmFjY2Vzc1R5",
             "cGUYAyABKA4yEi5Gb2xkZXIuQWNjZXNzVHlwZRIuCg5hY2Nlc3NSb2xlVHlw",
             "ZRgEIAEoDjIWLkZvbGRlci5BY2Nlc3NSb2xlVHlwZRIrCglmb2xkZXJLZXkY",
@@ -216,70 +216,70 @@ namespace Folder {
             "Rm9sZGVyLkZvbGRlclBlcm1pc3Npb25zEjAKDXRsYVByb3BlcnRpZXMYCSAB",
             "KAsyGS5jb21tb24udGxhLlRMQVByb3BlcnRpZXMSEwoLZGF0ZUNyZWF0ZWQY",
             "CiABKAMSFAoMbGFzdE1vZGlmaWVkGAsgASgDEhQKDGRlbmllZEFjY2VzcxgM",
-            "IAEoCCJcCg1SZXZva2VkQWNjZXNzEhEKCWZvbGRlclVpZBgBIAEoDBIQCghh",
-            "Y3RvclVpZBgCIAEoDBImCgphY2Nlc3NUeXBlGAMgASgOMhIuRm9sZGVyLkFj",
-            "Y2Vzc1R5cGUiIwoNRm9sZGVyUmVtb3ZlZBISCgpmb2xkZXJfdWlkGAEgASgM",
-            "IpMEChBSZWNvcmRBY2Nlc3NEYXRhEhUKDWFjY2Vzc1R5cGVVaWQYASABKAwS",
-            "JgoKYWNjZXNzVHlwZRgCIAEoDjISLkZvbGRlci5BY2Nlc3NUeXBlEhEKCXJl",
-            "Y29yZFVpZBgDIAEoDBIuCg5hY2Nlc3NSb2xlVHlwZRgEIAEoDjIWLkZvbGRl",
-            "ci5BY2Nlc3NSb2xlVHlwZRINCgVvd25lchgFIAEoCBIRCglpbmhlcml0ZWQY",
-            "BiABKAgSDgoGaGlkZGVuGAcgASgIEhQKDGRlbmllZEFjY2VzcxgIIAEoCBIW",
-            "Cg5jYW5fdmlld190aXRsZRgJIAEoCBIQCghjYW5fZWRpdBgKIAEoCBIQCghj",
-            "YW5fdmlldxgLIAEoCBIXCg9jYW5fbGlzdF9hY2Nlc3MYDCABKAgSGQoRY2Fu",
-            "X3VwZGF0ZV9hY2Nlc3MYDSABKAgSEgoKY2FuX2RlbGV0ZRgOIAEoCBIcChRj",
-            "YW5fY2hhbmdlX293bmVyc2hpcBgPIAEoCBIaChJjYW5fcmVxdWVzdF9hY2Nl",
-            "c3MYECABKAgSGgoSY2FuX2FwcHJvdmVfYWNjZXNzGBEgASgIEhMKC2RhdGVD",
-            "cmVhdGVkGBIgASgDEhQKDGxhc3RNb2RpZmllZBgTIAEoAxIwCg10bGFQcm9w",
-            "ZXJ0aWVzGBQgASgLMhkuY29tbW9uLnRsYS5UTEFQcm9wZXJ0aWVzIrgBCgpB",
-            "Y2Nlc3NEYXRhEhUKDWFjY2Vzc1R5cGVVaWQYASABKAwSLgoOYWNjZXNzUm9s",
-            "ZVR5cGUYAiABKA4yFi5Gb2xkZXIuQWNjZXNzUm9sZVR5cGUSFAoMZGVuaWVk",
-            "QWNjZXNzGAMgASgIEhEKCWluaGVyaXRlZBgEIAEoCBIOCgZoaWRkZW4YBSAB",
-            "KAgSKgoMY2FwYWJpbGl0aWVzGAYgASgLMhQuRm9sZGVyLkNhcGFiaWxpdGll",
-            "cyK3AQoTRm9sZGVyQWNjZXNzUmVxdWVzdBIyChBmb2xkZXJBY2Nlc3NBZGRz",
-            "GAEgAygLMhguRm9sZGVyLkZvbGRlckFjY2Vzc0RhdGESNQoTZm9sZGVyQWNj",
-            "ZXNzVXBkYXRlcxgCIAMoCzIYLkZvbGRlci5Gb2xkZXJBY2Nlc3NEYXRhEjUK",
-            "E2ZvbGRlckFjY2Vzc1JlbW92ZXMYAyADKAsyGC5Gb2xkZXIuRm9sZGVyQWNj",
-            "ZXNzRGF0YSKfAQoSRm9sZGVyQWNjZXNzUmVzdWx0EhEKCWZvbGRlclVpZBgB",
-            "IAEoDBIRCglhY2Nlc3NVaWQYAiABKAwSJgoKYWNjZXNzVHlwZRgDIAEoDjIS",
-            "LkZvbGRlci5BY2Nlc3NUeXBlEioKBnN0YXR1cxgEIAEoDjIaLkZvbGRlci5G",
-            "b2xkZXJNb2RpZnlTdGF0dXMSDwoHbWVzc2FnZRgFIAEoCSJPChRGb2xkZXJB",
-            "Y2Nlc3NSZXNwb25zZRI3ChNmb2xkZXJBY2Nlc3NSZXN1bHRzGAEgAygLMhou",
-            "Rm9sZGVyLkZvbGRlckFjY2Vzc1Jlc3VsdCIwCghVc2VySW5mbxISCgphY2Nv",
-            "dW50VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJIk0KClJlY29yZERhdGES",
-            "HgoEdXNlchgBIAEoCzIQLkZvbGRlci5Vc2VySW5mbxIMCgRkYXRhGAIgASgM",
-            "EhEKCXJlY29yZFVpZBgDIAEoDCJ7CglSZWNvcmRLZXkSEAoIdXNlcl91aWQY",
-            "ASABKAwSEgoKcmVjb3JkX3VpZBgCIAEoDBISCgpyZWNvcmRfa2V5GAMgASgM",
-            "EjQKEmVuY3J5cHRlZF9rZXlfdHlwZRgEIAEoDjIYLkZvbGRlci5FbmNyeXB0",
-            "ZWRLZXlUeXBlKhoKClJlY29yZFR5cGUSDAoIcGFzc3dvcmQQACpeCgpGb2xk",
-            "ZXJUeXBlEhIKDmRlZmF1bHRfZm9sZGVyEAASDwoLdXNlcl9mb2xkZXIQARIR",
-            "Cg1zaGFyZWRfZm9sZGVyEAISGAoUc2hhcmVkX2ZvbGRlcl9mb2xkZXIQAyqW",
-            "AQoQRW5jcnlwdGVkS2V5VHlwZRIKCgZub19rZXkQABIZChVlbmNyeXB0ZWRf",
-            "YnlfZGF0YV9rZXkQARIbChdlbmNyeXB0ZWRfYnlfcHVibGljX2tleRACEh0K",
-            "GWVuY3J5cHRlZF9ieV9kYXRhX2tleV9nY20QAxIfChtlbmNyeXB0ZWRfYnlf",
-            "cHVibGljX2tleV9lY2MQBCpNCg9TZXRCb29sZWFuVmFsdWUSFQoRQk9PTEVB",
-            "Tl9OT19DSEFOR0UQABIQCgxCT09MRUFOX1RSVUUQARIRCg1CT09MRUFOX0ZB",
-            "TFNFEAIqUgoPRm9sZGVyVXNhZ2VUeXBlEg4KClVUX1VOS05PV04QABINCglV",
-            "VF9OT1JNQUwQARIPCgtVVF9XT1JLRkxPVxACEg8KC1VUX1RSQVNIQ0FOEAMq",
-            "bAoXRm9sZGVyS2V5RW5jcnlwdGlvblR5cGUSGQoVRU5DUllQVEVEX0JZX1VT",
-            "RVJfS0VZEAASGwoXRU5DUllQVEVEX0JZX1BBUkVOVF9LRVkQARIZChVFTkNS",
-            "WVBURURfQllfVEVBTV9LRVkQAipUChJGb2xkZXJNb2RpZnlTdGF0dXMSCwoH",
-            "U1VDQ0VTUxAAEg8KC0JBRF9SRVFVRVNUEAESEQoNQUNDRVNTX0RFTklFRBAC",
-            "Eg0KCU5PVF9GT1VORBADKqQCChRGb2xkZXJQZXJtaXNzaW9uQml0cxIKCgZu",
-            "b0JpdHMQABIKCgZjYW5BZGQQARINCgljYW5SZW1vdmUQAhINCgljYW5EZWxl",
-            "dGUQBBIRCg1jYW5MaXN0QWNjZXNzEAgSEwoPY2FuVXBkYXRlQWNjZXNzEBAS",
-            "FgoSY2FuQ2hhbmdlT3duZXJzaGlwECASEgoOY2FuRWRpdFJlY29yZHMQQBIT",
-            "Cg5jYW5WaWV3UmVjb3JkcxCAARIVChBjYW5BcHByb3ZlQWNjZXNzEIACEhUK",
-            "EGNhblJlcXVlc3RBY2Nlc3MQgAQSFQoQY2FuVXBkYXRlU2V0dGluZxCACBIT",
-            "Cg5jYW5MaXN0UmVjb3JkcxCAEBITCg5jYW5MaXN0Rm9sZGVycxCAICqbAQoO",
-            "QWNjZXNzUm9sZVR5cGUSDQoJTkFWSUdBVE9SEAASDQoJUkVRVUVTVE9SEAES",
-            "CgoGVklFV0VSEAISEgoOU0hBUkVEX01BTkFHRVIQAxITCg9DT05URU5UX01B",
-            "TkFHRVIQBBIZChVDT05URU5UX1NIQVJFX01BTkFHRVIQBRILCgdNQU5BR0VS",
-            "EAYSDgoKVU5SRVNPTFZFRBAHKnoKCkFjY2Vzc1R5cGUSDgoKQVRfVU5LTk9X",
-            "ThAAEgwKCEFUX09XTkVSEAESCwoHQVRfVVNFUhACEgsKB0FUX1RFQU0QAxIR",
-            "Cg1BVF9FTlRFUlBSSVNFEAQSDQoJQVRfRk9MREVSEAUSEgoOQVRfQVBQTElD",
-            "QVRJT04QBio6CgpPYmplY3RUeXBlEg4KCk9UX1VOS05PV04QABINCglPVF9S",
-            "RUNPUkQQARINCglPVF9GT0xERVIQAkIiChhjb20ua2VlcGVyc2VjdXJpdHku",
-            "cHJvdG9CBkZvbGRlcmIGcHJvdG8z"));
+            "IAEoCBIUCgxhY2Nlc3Nvck5hbWUYDSABKAkiXAoNUmV2b2tlZEFjY2VzcxIR",
+            "Cglmb2xkZXJVaWQYASABKAwSEAoIYWN0b3JVaWQYAiABKAwSJgoKYWNjZXNz",
+            "VHlwZRgDIAEoDjISLkZvbGRlci5BY2Nlc3NUeXBlIiMKDUZvbGRlclJlbW92",
+            "ZWQSEgoKZm9sZGVyX3VpZBgBIAEoDCKTBAoQUmVjb3JkQWNjZXNzRGF0YRIV",
+            "Cg1hY2Nlc3NUeXBlVWlkGAEgASgMEiYKCmFjY2Vzc1R5cGUYAiABKA4yEi5G",
+            "b2xkZXIuQWNjZXNzVHlwZRIRCglyZWNvcmRVaWQYAyABKAwSLgoOYWNjZXNz",
+            "Um9sZVR5cGUYBCABKA4yFi5Gb2xkZXIuQWNjZXNzUm9sZVR5cGUSDQoFb3du",
+            "ZXIYBSABKAgSEQoJaW5oZXJpdGVkGAYgASgIEg4KBmhpZGRlbhgHIAEoCBIU",
+            "CgxkZW5pZWRBY2Nlc3MYCCABKAgSFgoOY2FuX3ZpZXdfdGl0bGUYCSABKAgS",
+            "EAoIY2FuX2VkaXQYCiABKAgSEAoIY2FuX3ZpZXcYCyABKAgSFwoPY2FuX2xp",
+            "c3RfYWNjZXNzGAwgASgIEhkKEWNhbl91cGRhdGVfYWNjZXNzGA0gASgIEhIK",
+            "CmNhbl9kZWxldGUYDiABKAgSHAoUY2FuX2NoYW5nZV9vd25lcnNoaXAYDyAB",
+            "KAgSGgoSY2FuX3JlcXVlc3RfYWNjZXNzGBAgASgIEhoKEmNhbl9hcHByb3Zl",
+            "X2FjY2VzcxgRIAEoCBITCgtkYXRlQ3JlYXRlZBgSIAEoAxIUCgxsYXN0TW9k",
+            "aWZpZWQYEyABKAMSMAoNdGxhUHJvcGVydGllcxgUIAEoCzIZLmNvbW1vbi50",
+            "bGEuVExBUHJvcGVydGllcyK4AQoKQWNjZXNzRGF0YRIVCg1hY2Nlc3NUeXBl",
+            "VWlkGAEgASgMEi4KDmFjY2Vzc1JvbGVUeXBlGAIgASgOMhYuRm9sZGVyLkFj",
+            "Y2Vzc1JvbGVUeXBlEhQKDGRlbmllZEFjY2VzcxgDIAEoCBIRCglpbmhlcml0",
+            "ZWQYBCABKAgSDgoGaGlkZGVuGAUgASgIEioKDGNhcGFiaWxpdGllcxgGIAEo",
+            "CzIULkZvbGRlci5DYXBhYmlsaXRpZXMitwEKE0ZvbGRlckFjY2Vzc1JlcXVl",
+            "c3QSMgoQZm9sZGVyQWNjZXNzQWRkcxgBIAMoCzIYLkZvbGRlci5Gb2xkZXJB",
+            "Y2Nlc3NEYXRhEjUKE2ZvbGRlckFjY2Vzc1VwZGF0ZXMYAiADKAsyGC5Gb2xk",
+            "ZXIuRm9sZGVyQWNjZXNzRGF0YRI1ChNmb2xkZXJBY2Nlc3NSZW1vdmVzGAMg",
+            "AygLMhguRm9sZGVyLkZvbGRlckFjY2Vzc0RhdGEinwEKEkZvbGRlckFjY2Vz",
+            "c1Jlc3VsdBIRCglmb2xkZXJVaWQYASABKAwSEQoJYWNjZXNzVWlkGAIgASgM",
+            "EiYKCmFjY2Vzc1R5cGUYAyABKA4yEi5Gb2xkZXIuQWNjZXNzVHlwZRIqCgZz",
+            "dGF0dXMYBCABKA4yGi5Gb2xkZXIuRm9sZGVyTW9kaWZ5U3RhdHVzEg8KB21l",
+            "c3NhZ2UYBSABKAkiTwoURm9sZGVyQWNjZXNzUmVzcG9uc2USNwoTZm9sZGVy",
+            "QWNjZXNzUmVzdWx0cxgBIAMoCzIaLkZvbGRlci5Gb2xkZXJBY2Nlc3NSZXN1",
+            "bHQiMAoIVXNlckluZm8SEgoKYWNjb3VudFVpZBgBIAEoDBIQCgh1c2VybmFt",
+            "ZRgCIAEoCSJNCgpSZWNvcmREYXRhEh4KBHVzZXIYASABKAsyEC5Gb2xkZXIu",
+            "VXNlckluZm8SDAoEZGF0YRgCIAEoDBIRCglyZWNvcmRVaWQYAyABKAwiewoJ",
+            "UmVjb3JkS2V5EhAKCHVzZXJfdWlkGAEgASgMEhIKCnJlY29yZF91aWQYAiAB",
+            "KAwSEgoKcmVjb3JkX2tleRgDIAEoDBI0ChJlbmNyeXB0ZWRfa2V5X3R5cGUY",
+            "BCABKA4yGC5Gb2xkZXIuRW5jcnlwdGVkS2V5VHlwZSoaCgpSZWNvcmRUeXBl",
+            "EgwKCHBhc3N3b3JkEAAqXgoKRm9sZGVyVHlwZRISCg5kZWZhdWx0X2ZvbGRl",
+            "chAAEg8KC3VzZXJfZm9sZGVyEAESEQoNc2hhcmVkX2ZvbGRlchACEhgKFHNo",
+            "YXJlZF9mb2xkZXJfZm9sZGVyEAMqlgEKEEVuY3J5cHRlZEtleVR5cGUSCgoG",
+            "bm9fa2V5EAASGQoVZW5jcnlwdGVkX2J5X2RhdGFfa2V5EAESGwoXZW5jcnlw",
+            "dGVkX2J5X3B1YmxpY19rZXkQAhIdChllbmNyeXB0ZWRfYnlfZGF0YV9rZXlf",
+            "Z2NtEAMSHwobZW5jcnlwdGVkX2J5X3B1YmxpY19rZXlfZWNjEAQqTQoPU2V0",
+            "Qm9vbGVhblZhbHVlEhUKEUJPT0xFQU5fTk9fQ0hBTkdFEAASEAoMQk9PTEVB",
+            "Tl9UUlVFEAESEQoNQk9PTEVBTl9GQUxTRRACKlIKD0ZvbGRlclVzYWdlVHlw",
+            "ZRIOCgpVVF9VTktOT1dOEAASDQoJVVRfTk9STUFMEAESDwoLVVRfV09SS0ZM",
+            "T1cQAhIPCgtVVF9UUkFTSENBThADKmwKF0ZvbGRlcktleUVuY3J5cHRpb25U",
+            "eXBlEhkKFUVOQ1JZUFRFRF9CWV9VU0VSX0tFWRAAEhsKF0VOQ1JZUFRFRF9C",
+            "WV9QQVJFTlRfS0VZEAESGQoVRU5DUllQVEVEX0JZX1RFQU1fS0VZEAIqVAoS",
+            "Rm9sZGVyTW9kaWZ5U3RhdHVzEgsKB1NVQ0NFU1MQABIPCgtCQURfUkVRVUVT",
+            "VBABEhEKDUFDQ0VTU19ERU5JRUQQAhINCglOT1RfRk9VTkQQAyqkAgoURm9s",
+            "ZGVyUGVybWlzc2lvbkJpdHMSCgoGbm9CaXRzEAASCgoGY2FuQWRkEAESDQoJ",
+            "Y2FuUmVtb3ZlEAISDQoJY2FuRGVsZXRlEAQSEQoNY2FuTGlzdEFjY2VzcxAI",
+            "EhMKD2NhblVwZGF0ZUFjY2VzcxAQEhYKEmNhbkNoYW5nZU93bmVyc2hpcBAg",
+            "EhIKDmNhbkVkaXRSZWNvcmRzEEASEwoOY2FuVmlld1JlY29yZHMQgAESFQoQ",
+            "Y2FuQXBwcm92ZUFjY2VzcxCAAhIVChBjYW5SZXF1ZXN0QWNjZXNzEIAEEhUK",
+            "EGNhblVwZGF0ZVNldHRpbmcQgAgSEwoOY2FuTGlzdFJlY29yZHMQgBASEwoO",
+            "Y2FuTGlzdEZvbGRlcnMQgCAqmwEKDkFjY2Vzc1JvbGVUeXBlEg0KCU5BVklH",
+            "QVRPUhAAEg0KCVJFUVVFU1RPUhABEgoKBlZJRVdFUhACEhIKDlNIQVJFRF9N",
+            "QU5BR0VSEAMSEwoPQ09OVEVOVF9NQU5BR0VSEAQSGQoVQ09OVEVOVF9TSEFS",
+            "RV9NQU5BR0VSEAUSCwoHTUFOQUdFUhAGEg4KClVOUkVTT0xWRUQQByp6CgpB",
+            "Y2Nlc3NUeXBlEg4KCkFUX1VOS05PV04QABIMCghBVF9PV05FUhABEgsKB0FU",
+            "X1VTRVIQAhILCgdBVF9URUFNEAMSEQoNQVRfRU5URVJQUklTRRAEEg0KCUFU",
+            "X0ZPTERFUhAFEhIKDkFUX0FQUExJQ0FUSU9OEAYqOgoKT2JqZWN0VHlwZRIO",
+            "CgpPVF9VTktOT1dOEAASDQoJT1RfUkVDT1JEEAESDQoJT1RfRk9MREVSEAJC",
+            "IgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQgZGb2xkZXJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::Common.Tla.TlaReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), typeof(global::Folder.FolderUsageType), typeof(global::Folder.FolderKeyEncryptionType), typeof(global::Folder.FolderModifyStatus), typeof(global::Folder.FolderPermissionBits), typeof(global::Folder.AccessRoleType), typeof(global::Folder.AccessType), typeof(global::Folder.ObjectType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -327,7 +327,7 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecord), global::Folder.FolderRecord.Parser, new[]{ "FolderUid", "RecordMetadata", "FolderKeyEncryptionType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecordUpdateResponse), global::Folder.FolderRecordUpdateResponse.Parser, new[]{ "FolderUid", "FolderRecordUpdateResult" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRecordUpdateResult), global::Folder.FolderRecordUpdateResult.Parser, new[]{ "RecordUid", "Status", "Message" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessData), global::Folder.FolderAccessData.Parser, new[]{ "FolderUid", "AccessTypeUid", "AccessType", "AccessRoleType", "FolderKey", "Inherited", "Hidden", "Permissions", "TlaProperties", "DateCreated", "LastModified", "DeniedAccess" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderAccessData), global::Folder.FolderAccessData.Parser, new[]{ "FolderUid", "AccessTypeUid", "AccessType", "AccessRoleType", "FolderKey", "Inherited", "Hidden", "Permissions", "TlaProperties", "DateCreated", "LastModified", "DeniedAccess", "AccessorName" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RevokedAccess), global::Folder.RevokedAccess.Parser, new[]{ "FolderUid", "ActorUid", "AccessType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRemoved), global::Folder.FolderRemoved.Parser, new[]{ "FolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.RecordAccessData), global::Folder.RecordAccessData.Parser, new[]{ "AccessTypeUid", "AccessType", "RecordUid", "AccessRoleType", "Owner", "Inherited", "Hidden", "DeniedAccess", "CanViewTitle", "CanEdit", "CanView", "CanListAccess", "CanUpdateAccess", "CanDelete", "CanChangeOwnership", "CanRequestAccess", "CanApproveAccess", "DateCreated", "LastModified", "TlaProperties" }, null, null, null, null),
@@ -14779,6 +14779,7 @@ namespace Folder {
       dateCreated_ = other.dateCreated_;
       lastModified_ = other.lastModified_;
       deniedAccess_ = other.deniedAccess_;
+      accessorName_ = other.accessorName_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -14968,6 +14969,22 @@ namespace Folder {
       }
     }
 
+    /// <summary>Field number for the "accessorName" field.</summary>
+    public const int AccessorNameFieldNumber = 13;
+    private string accessorName_ = "";
+    /// <summary>
+    ///*
+    /// The name of the accessor (user or team). Only used at read time (only within the /folders/v3/access scope)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string AccessorName {
+      get { return accessorName_; }
+      set {
+        accessorName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -14995,6 +15012,7 @@ namespace Folder {
       if (DateCreated != other.DateCreated) return false;
       if (LastModified != other.LastModified) return false;
       if (DeniedAccess != other.DeniedAccess) return false;
+      if (AccessorName != other.AccessorName) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -15014,6 +15032,7 @@ namespace Folder {
       if (DateCreated != 0L) hash ^= DateCreated.GetHashCode();
       if (LastModified != 0L) hash ^= LastModified.GetHashCode();
       if (DeniedAccess != false) hash ^= DeniedAccess.GetHashCode();
+      if (AccessorName.Length != 0) hash ^= AccessorName.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -15080,6 +15099,10 @@ namespace Folder {
         output.WriteRawTag(96);
         output.WriteBool(DeniedAccess);
       }
+      if (AccessorName.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(AccessorName);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -15138,6 +15161,10 @@ namespace Folder {
         output.WriteRawTag(96);
         output.WriteBool(DeniedAccess);
       }
+      if (AccessorName.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(AccessorName);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -15183,6 +15210,9 @@ namespace Folder {
       }
       if (DeniedAccess != false) {
         size += 1 + 1;
+      }
+      if (AccessorName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AccessorName);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -15240,6 +15270,9 @@ namespace Folder {
       }
       if (other.DeniedAccess != false) {
         DeniedAccess = other.DeniedAccess;
+      }
+      if (other.AccessorName.Length != 0) {
+        AccessorName = other.AccessorName;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -15317,6 +15350,10 @@ namespace Folder {
             DeniedAccess = input.ReadBool();
             break;
           }
+          case 106: {
+            AccessorName = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -15391,6 +15428,10 @@ namespace Folder {
           }
           case 96: {
             DeniedAccess = input.ReadBool();
+            break;
+          }
+          case 106: {
+            AccessorName = input.ReadString();
             break;
           }
         }
