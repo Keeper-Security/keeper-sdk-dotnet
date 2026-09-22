@@ -65,8 +65,8 @@ Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
 Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
-Get-KeeperObject
-Export-ModuleMember -Alias kpwd, kcd, kdir, ko
+Get-KeeperObject, Get-KeeperTree
+Export-ModuleMember -Alias kpwd, kcd, kdir, ko, ktree
 
 Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-TwoFactorCode,
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,Get-KeeperPasswordVisible, 
