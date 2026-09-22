@@ -92,7 +92,7 @@ function script:writePamWorkflowExemptMessage {
     Write-Output ''
 }
 
-function script:resolvePamWorkflowPendingResourceName {
+function script:resolvePamWorkflowRecordName {
     Param (
         [KeeperSecurity.Vault.VaultOnline] $Vault,
         $Resource
@@ -106,20 +106,27 @@ function script:resolvePamWorkflowPendingResourceName {
         return $Resource.Name
     }
 
-    if ($null -ne $Resource.Value -and -not $Resource.Value.IsEmpty) {
-        $uid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Resource.Value.ToByteArray())
-        [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-        if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and $null -ne $rec -and -not [string]::IsNullOrEmpty($rec.Title)) {
-            return $rec.Title
-        }
-        [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRec = $null
-        if ($null -ne $Vault -and $Vault.TryGetKeeperNSFRecord($uid, [ref]$nsfRec) -and $null -ne $nsfRec -and -not [string]::IsNullOrEmpty($nsfRec.Title)) {
-            return $nsfRec.Title
-        }
-        return $null
+    if ($null -eq $Resource.Value -or $Resource.Value.IsEmpty) {
+        return ''
+    }
+
+    $uid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Resource.Value.ToByteArray())
+    [KeeperSecurity.Vault.TypedRecord]$record = $null
+    if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetTypedRecord(
+            $Vault, $uid, [ref]$record) -and $null -ne $record) {
+        return $record.Title
     }
 
     return ''
+}
+
+function script:resolvePamWorkflowPendingResourceName {
+    Param (
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        $Resource
+    )
+
+    return resolvePamWorkflowRecordName -Vault $Vault -Resource $Resource
 }
 
 function script:getPamWorkflowFlowUidString {
@@ -988,17 +995,9 @@ function script:resolvePamWorkflowResourceName {
         return $State.Resource.Name
     }
 
-    if ($Vault -and $State.Resource -and $State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
-        $recordUid = encodePamByteString -ByteString $State.Resource.Value
-        $record = $null
-        if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record) {
-            return $record.Title
-        }
-
-        $nsfRecord = $null
-        if ($Vault.TryGetKeeperNSFRecord($recordUid, [ref]$nsfRecord) -and $nsfRecord) {
-            return $nsfRecord.Title
-        }
+    $resolved = resolvePamWorkflowRecordName -Vault $Vault -Resource $State.Resource
+    if (-not [string]::IsNullOrEmpty($resolved)) {
+        return $resolved
     }
 
     return $FallbackName

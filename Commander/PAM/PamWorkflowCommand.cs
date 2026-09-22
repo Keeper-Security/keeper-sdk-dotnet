@@ -1700,7 +1700,7 @@ namespace Commander.PAM
         var recordUid = wf.Resource?.Value != null && !wf.Resource.Value.IsEmpty
           ? wf.Resource.Value.ToByteArray().Base64UrlEncode()
           : string.Empty;
-        var recordKey = TryGetRecordKey(vault, recordUid);
+        PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey);
         var duration = wf.ExpiresOn > 0 && wf.StartedOn > 0
           ? WorkflowUtils.FormatDuration(wf.ExpiresOn - wf.StartedOn)
           : null;
@@ -1738,7 +1738,7 @@ namespace Commander.PAM
         var recordUid = wf.Resource?.Value != null && !wf.Resource.Value.IsEmpty
           ? wf.Resource.Value.ToByteArray().Base64UrlEncode()
           : string.Empty;
-        var recordKey = TryGetRecordKey(vault, recordUid);
+        PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey);
         var reason = WorkflowUtils.DecryptWorkflowParameter(
           recordKey, WorkflowUtils.ExtractWorkflowParameter(wf, "reason")) ?? string.Empty;
         var ticket = WorkflowUtils.DecryptWorkflowParameter(
@@ -1768,11 +1768,6 @@ namespace Commander.PAM
       Console.WriteLine();
       tab.Dump();
       Console.WriteLine();
-    }
-
-    private static byte[] TryGetRecordKey(VaultOnline vault, string recordUid)
-    {
-      return PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey) ? recordKey : null;
     }
 
     private string ResolveRequestedBy(WorkflowProcess wf)
@@ -2017,17 +2012,10 @@ namespace Commander.PAM
       {
         var uid = resource.Value.ToByteArray().Base64UrlEncode();
         var vault = Context.GetVault();
-        if (vault != null && vault.TryGetKeeperRecord(uid, out var record))
+        if (vault != null && PamVaultHelpers.TryGetTypedRecord(vault, uid, out var record)
+            && record != null)
         {
           return record.Title ?? uid;
-        }
-
-        // Approver may not have direct vault access to the record (not shared with them yet).
-        // Nested Share Folder sync still exposes title/type metadata without requiring full record decrypt.
-        if (vault != null && vault.TryGetKeeperNSFRecord(uid, out var nsfRecord)
-            && !string.IsNullOrEmpty(nsfRecord.Title))
-        {
-          return nsfRecord.Title;
         }
 
         return string.Empty;
