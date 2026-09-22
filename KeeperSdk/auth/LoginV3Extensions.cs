@@ -492,6 +492,68 @@ namespace KeeperSecurity.Authentication
             return authContext;
         }
 
+        /// <summary>
+        /// Emails the user an Account Recovery verification code.
+        /// </summary>
+        internal static async Task ExecuteMasterPasswordRecoveryVerification(this IAuth auth, ByteString loginToken)
+        {
+            var request = new MasterPasswordRecoveryVerificationRequest
+            {
+                EncryptedLoginToken = loginToken,
+            };
+            try
+            {
+                await auth.Endpoint.ExecuteRest("authentication/master_password_recovery_verification_v2",
+                    new ApiRequestPayload { Payload = request.ToByteString() });
+            }
+            catch (KeeperApiException e)
+            {
+                // The server reports the "verification email sent" outcome as a bad_request error.
+                if (e.Code != "bad_request" || !e.Message.StartsWith("Email has been sent."))
+                {
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Submits the verification code and gets back the account's configured recovery method.
+        /// </summary>
+        internal static async Task<AccountRecoveryVerifyCodeResponse> ExecuteAccountRecoveryVerifyCode(
+            this IAuth auth,
+            ByteString loginToken,
+            string verificationCode)
+        {
+            var request = new GetDataKeyBackupV3Request
+            {
+                EncryptedLoginToken = loginToken,
+                VerificationCode = verificationCode,
+            };
+            var rs = await auth.Endpoint.ExecuteRest("authentication/account_recovery_verify_code",
+                new ApiRequestPayload { Payload = request.ToByteString() });
+            return AccountRecoveryVerifyCodeResponse.Parser.ParseFrom(rs);
+        }
+
+        /// <summary>
+        /// Retrieves the encrypted vault data key backup once the recovery proof is verified.
+        /// </summary>
+        internal static async Task<GetDataKeyBackupV3Response> ExecuteGetDataKeyBackupV3(
+            this IAuth auth,
+            ByteString loginToken,
+            string verificationCode,
+            byte[] securityAnswerHash)
+        {
+            var request = new GetDataKeyBackupV3Request
+            {
+                EncryptedLoginToken = loginToken,
+                VerificationCode = verificationCode,
+                SecurityAnswerHash = ByteString.CopyFrom(securityAnswerHash),
+            };
+            var rs = await auth.Endpoint.ExecuteRest("authentication/get_data_key_backup_v3",
+                new ApiRequestPayload { Payload = request.ToByteString() });
+            return GetDataKeyBackupV3Response.Parser.ParseFrom(rs);
+        }
+
         internal static MasterPasswordInfo ValidateAuthHashPrepare(
             this IAuth auth,
             LoginContext v3,

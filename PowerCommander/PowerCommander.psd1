@@ -82,7 +82,7 @@
         )
 
     # Functions to export from this module
-    FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
+    FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Set-KeeperAccountRecovery', 'Get-KeeperLocation', 'Set-KeeperLocation',
         'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 

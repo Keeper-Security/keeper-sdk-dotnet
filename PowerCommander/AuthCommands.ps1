@@ -1,5 +1,49 @@
 #requires -Version 5.1
 
+# Handles required actions after login, such as changing an expired or recovered Master Password.
+# This lets the user complete these steps interactively instead of having the login fail with
+# an "expired, you are required to change it" message.
+class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, KeeperSecurity.Authentication.IPostLoginTaskUI {
+    [void] OnNextStep() {
+    }
+
+    [System.Threading.Tasks.Task[bool]] Confirmation([string] $information) {
+        Write-Host ''
+        Write-Host $information -ForegroundColor Yellow
+        $answer = Read-Host 'Do you want to continue? (y/n)'
+        return [System.Threading.Tasks.Task]::FromResult([bool]($answer -match '^y(es)?$'))
+    }
+
+    [System.Threading.Tasks.Task[string]] GetNewPassword([KeeperSecurity.Utils.PasswordRuleMatcher] $matcher) {
+        Write-Host ''
+        Write-Host 'Please set a new Master Password.' -ForegroundColor Yellow
+        while ($true) {
+            $secured = Read-Host -Prompt 'New Master Password' -AsSecureString
+            $newPassword = [Net.NetworkCredential]::new('', $secured).Password
+            if ([string]::IsNullOrEmpty($newPassword)) {
+                Write-Warning 'Password cannot be empty.'
+                continue
+            }
+
+            $failedRules = $matcher.MatchFailedRules($newPassword)
+            if ($failedRules -and $failedRules.Count -gt 0) {
+                $failedRules | ForEach-Object { Write-Warning $_ }
+                continue
+            }
+
+            $confirmSecured = Read-Host -Prompt 'Confirm New Master Password' -AsSecureString
+            $confirmPassword = [Net.NetworkCredential]::new('', $confirmSecured).Password
+            if ($newPassword -ne $confirmPassword) {
+                Write-Warning 'Passwords do not match.'
+                continue
+            }
+
+            return [System.Threading.Tasks.Task]::FromResult($newPassword)
+        }
+        throw [System.InvalidOperationException]::new('unreachable')
+    }
+}
+
 function New-SqliteIdbConnectionFunc {
     param([Parameter(Mandatory)][string] $ConnectionString)
     $connType = [Microsoft.Data.Sqlite.SqliteConnection]
@@ -205,6 +249,17 @@ function getStepPrompt ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
         $prompt = "`nMaster Password"
     }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.AccountRecoveryStep]) {
+        if ($null -eq $auth.step.RecoveryType) {
+            $prompt = "`nAccount Recovery: Verification Code"
+        }
+        elseif ($auth.step.RecoveryType -eq [Authentication.BackupKeyType]::BktSecAnswer) {
+            $prompt = "`nSecurity Question: $($auth.step.SecurityQuestion)"
+        }
+        else {
+            $prompt = "`nRecovery Phrase (24 words)"
+        }
+    }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
         $prompt = "`nSSO Token"
     }
@@ -266,6 +321,19 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
 
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
         $commands += '<password> to send a master password.'
+        $commands += '"recover" if you forgot your password and want to recover your account.'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.AccountRecoveryStep]) {
+        if ($null -eq $auth.step.RecoveryType) {
+            $commands += '<code> the verification code emailed to you.'
+        }
+        elseif ($auth.step.RecoveryType -eq [Authentication.BackupKeyType]::BktSecAnswer) {
+            $commands += '<answer> the answer to the security question above.'
+        }
+        else {
+            $commands += '<recovery phrase> your 24-word recovery phrase.'
+        }
+        $commands += '"cancel" to go back to entering your master password.'
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
         $commands += $auth.step.SsoLoginUrl
@@ -421,6 +489,19 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         }
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
+        if ($action -eq 'recover') {
+            $auth.step.RecoverAccount().GetAwaiter().GetResult() | Out-Null
+            if ($auth.step -is [KeeperSecurity.Authentication.Sync.AccountRecoveryStep]) {
+                Try {
+                    $auth.step.RequestVerificationCode().GetAwaiter().GetResult() | Out-Null
+                    Write-Host 'A verification code has been emailed to you.' -ForegroundColor Cyan
+                }
+                Catch {
+                    Write-Error $_
+                }
+            }
+            return
+        }
         Try {
             $auth.step.VerifyPassword($action).GetAwaiter().GetResult() | Out-Null
         }
@@ -433,6 +514,29 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             } else {
                 Write-Error $_
             }
+        }
+        Catch {
+            Write-Error $_
+        }
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.AccountRecoveryStep]) {
+        if ($action -eq 'cancel') {
+            $auth.step.Resume().GetAwaiter().GetResult() | Out-Null
+            return
+        }
+        Try {
+            if ($null -eq $auth.step.RecoveryType) {
+                $auth.step.SubmitVerificationCode($action).GetAwaiter().GetResult() | Out-Null
+            }
+            elseif ($auth.step.RecoveryType -eq [Authentication.BackupKeyType]::BktSecAnswer) {
+                $auth.step.SubmitSecurityAnswer($action).GetAwaiter().GetResult() | Out-Null
+            }
+            else {
+                $auth.step.SubmitRecoveryPhrase($action).GetAwaiter().GetResult() | Out-Null
+            }
+        }
+        Catch [KeeperSecurity.Authentication.KeeperApiException] {
+            Write-Warning "Account recovery failed: $($_.Exception.Message)"
         }
         Catch {
             Write-Error $_
@@ -584,6 +688,7 @@ function Connect-Keeper {
     Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n" -InformationAction Continue
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
+    $authFlow.UiCallback = [KeeperPostLoginUI]::new()
 
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
     $authFlow.NoNewDevice = $deviceTokenOnly
@@ -703,7 +808,9 @@ function Connect-Keeper {
         }
         $prompt = getStepPrompt $authFlow
 
-        if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
+        $maskInput = $authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep] -or
+            ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.AccountRecoveryStep] -and $null -ne $authFlow.Step.RecoveryType)
+        if ($maskInput) {
             if (Test-InteractiveSession) {
                 $securedPassword = Read-Host -Prompt $prompt -AsSecureString
                 if ($securedPassword.Length -gt 0) {
@@ -713,7 +820,7 @@ function Connect-Keeper {
                     $action = ''
                 }
             } else {
-                Write-Error "Non-interactive session detected" -ErrorAction Stop 
+                Write-Error "Non-interactive session detected" -ErrorAction Stop
             }
         }
         else {
@@ -763,15 +870,31 @@ function Connect-Keeper {
             $vaultStorage = Get-SqliteVaultStorageFromHelper -ConnectionString $connectionString -OwnerUid $ownerUid
         }
         $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth, $vaultStorage)
-        if ($SkipSync.IsPresent) {
-            $vault.AutoSync = $false
-            Write-Information -MessageData 'SkipSync: vault SyncDown skipped. Local folder tree and records are empty until you run Sync-Keeper.' -InformationAction Continue
+        try {
+            if ($SkipSync.IsPresent) {
+                $vault.AutoSync = $false
+                Write-Information -MessageData 'SkipSync: vault SyncDown skipped. Local folder tree and records are empty until you run Sync-Keeper.' -InformationAction Continue
+            }
+            else {
+                $task = $vault.SyncDown()
+                Write-Information -MessageData 'Syncing ...' -InformationAction Continue
+                $task.GetAwaiter().GetResult() | Out-Null
+                $vault.AutoSync = $true
+            }
         }
-        else {
-            $task = $vault.SyncDown()
-            Write-Information -MessageData 'Syncing ...' -InformationAction Continue
-            $task.GetAwaiter().GetResult() | Out-Null
-            $vault.AutoSync = $true
+        catch {
+            if ($_.Exception.Message -match 'ACCOUNT_RECOVERY') {
+                Write-Host ''
+                Write-Host 'Your Master Password has been changed successfully.' -ForegroundColor Green
+                Write-Host 'This session was created during account recovery and cannot be used to access the vault - you need to log in again with your new password.' -ForegroundColor Yellow
+                $reconnect = Read-Host 'Reconnect now with your new password? (y/n)'
+                if ($reconnect -match '^y(es)?$') {
+                    $PSBoundParameters.Remove('Password') | Out-Null
+                    Connect-Keeper @PSBoundParameters
+                }
+                return
+            }
+            throw
         }
 
         $Script:Context.Auth = $auth
@@ -889,6 +1012,81 @@ function Sync-Keeper {
     }
 }
 New-Alias -Name ks -Value Sync-Keeper
+
+function Set-KeeperAccountRecovery {
+    <#
+    .SYNOPSIS
+        Sets up, delays, verifies, or previews Account Recovery via a Recovery Phrase
+
+    .PARAMETER Generate
+        Generates a new recovery phrase, shows it, and asks you to confirm you saved it
+        before setting it on the account
+
+    .PARAMETER Snooze
+        Delays the account recovery setup prompt for 30 days
+
+    .PARAMETER Verify
+        Checks a phrase against the one already on file (does not set anything)
+
+    .EXAMPLE
+        C:\PS> Set-KeeperAccountRecovery -Generate
+    .EXAMPLE
+        C:\PS> Set-KeeperAccountRecovery -Snooze
+    .EXAMPLE
+        C:\PS> Set-KeeperAccountRecovery -Verify $phrase
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter()][Switch] $Generate,
+        [Parameter()][Switch] $Snooze,
+        [Parameter()][String] $Verify
+    )
+
+    $specified = @('Generate', 'Snooze', 'Verify') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+    if ($specified.Count -eq 0) {
+        Write-Error "Specify one of -Generate, -Snooze, or -Verify." -ErrorAction Stop
+        return
+    }
+    if ($specified.Count -gt 1) {
+        Write-Error "-$($specified -join ', -') cannot be used together. Specify only one." -ErrorAction Stop
+        return
+    }
+
+    $vault = getVault
+    $auth = $vault.Auth
+
+    if ($Snooze.IsPresent) {
+        [KeeperSecurity.Authentication.AccountRecoveryExtensions]::SnoozeAccountRecoverySetup($auth).GetAwaiter().GetResult() | Out-Null
+        Write-Host 'Account recovery prompt delayed for 30 days.'
+        return
+    }
+
+    if ($Verify) {
+        return [KeeperSecurity.Authentication.AccountRecoveryExtensions]::VerifyAccountRecoveryPhrase($auth, $Verify).GetAwaiter().GetResult()
+    }
+
+    $phrase = [KeeperSecurity.Utils.RecoveryPhrase]::Generate()
+    Write-Host ''
+    Write-Host 'Your new Recovery Phrase:' -ForegroundColor Yellow
+    Write-Host $phrase -ForegroundColor Yellow
+    Write-Host ''
+
+    if (-not (Test-InteractiveSession)) {
+        Write-Error "Non-interactive session detected. Cannot confirm the recovery phrase was saved." -ErrorAction Stop
+        return
+    }
+
+    $confirm = Read-Host 'Have you saved this recovery phrase somewhere safe? (y/n)'
+    if ($confirm -notmatch '^y(es)?$') {
+        Write-Warning 'Recovery phrase was NOT saved on the server. Run Set-KeeperAccountRecovery -Generate again when ready.'
+        return
+    }
+
+    [KeeperSecurity.Authentication.AccountRecoveryExtensions]::SetupAccountRecovery($auth, $phrase).GetAwaiter().GetResult() | Out-Null
+    Write-Host 'Recovery phrase has been set on your account.' -ForegroundColor Green
+    return $phrase
+}
 
 function Get-KeeperInformation {
     <#
