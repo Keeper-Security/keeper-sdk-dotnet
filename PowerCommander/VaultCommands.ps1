@@ -437,6 +437,314 @@ function Get-KeeperChildItem {
 Register-ArgumentCompleter -CommandName Get-KeeperChildItem -ParameterName Path -ScriptBlock $Keeper_FolderPathRecordCompleter
 New-Alias -Name kdir -Value Get-KeeperChildItem
 
+function Get-KeeperTree {
+    <#
+    .Synopsis
+    Display the Keeper folder tree.
+
+    .Description
+    With -Shares, displays classic shared-folder and direct record permissions.
+    With -NsfShares, displays NSF folder and record permissions from the sync cache.
+    JSON output is intended for machine-readable integrations.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0)][string] $Path,
+        [Alias('r')][Switch] $Record,
+        [Alias('s')][Switch] $Shares,
+        [Alias('ns')][Switch] $NsfShares,
+        [Alias('v')][Switch] $VerboseOutput,
+        [Alias('f')][ValidateSet('table', 'json')][string] $Format = 'table',
+        [Alias('hk')][Switch] $HideSharesKey,
+        [Alias('t')][string] $Title,
+        [string] $Output
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    [KeeperSecurity.Vault.FolderNode]$base = $null
+    if ($Path -and $vault.TryGetKeeperNSFFolder($Path, [ref]$base)) {
+        # NSF UID was supplied directly.
+    }
+    elseif ($Path -and $vault.TryGetFolder($Path, [ref]$base)) {
+        # Classic UID was supplied directly.
+    }
+    elseif ($Path) {
+        $current = $null
+        if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$current)) { $current = $vault.RootFolder }
+        $rs = parseKeeperPath (splitKeeperPath $Path) $vault $current
+        if ($rs -is [array] -and !$rs[1]) { $base = $rs[0] }
+    }
+    else {
+        $base = $vault.RootFolder
+    }
+    if (!$base) { Write-Error "Cannot find path '$Path'" -ErrorAction Stop }
+
+    $nsfFolders = @{}
+    foreach ($folder in @($vault.KeeperNSFFolderNodes)) { $nsfFolders[$folder.FolderUid] = $folder }
+    $nsfRecords = @{}
+    foreach ($item in @($vault.KeeperNSFRecordEntries)) { $nsfRecords[$item.RecordUid] = $item }
+    $classicRecordUidSet = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($item in @($vault.KeeperRecords)) { [void]$classicRecordUidSet.Add($item.Uid) }
+
+    $classicRecordUids = New-Object 'System.Collections.Generic.HashSet[string]'
+    $nsfRecordUids = New-Object 'System.Collections.Generic.HashSet[string]'
+    $nsfFolderUids = New-Object 'System.Collections.Generic.HashSet[string]'
+    $collectVisited = New-Object 'System.Collections.Generic.HashSet[string]'
+    $collectPending = New-Object 'System.Collections.Generic.Stack[object]'
+    [void]$collectVisited.Add($(if ($base.FolderUid) { $base.FolderUid } else { '__root__' }))
+    [void]$collectPending.Push($base)
+    while ($collectPending.Count -gt 0) {
+        $folder = $collectPending.Pop()
+        if ($NsfShares -and $nsfFolders.ContainsKey($folder.FolderUid)) { [void]$nsfFolderUids.Add($folder.FolderUid) }
+        if ($Record) {
+            foreach ($uid in @($folder.Records)) {
+                if ($NsfShares -and $nsfRecords.ContainsKey($uid)) { [void]$nsfRecordUids.Add($uid) }
+                elseif ($Shares -and $classicRecordUidSet.Contains($uid)) { [void]$classicRecordUids.Add($uid) }
+            }
+        }
+        foreach ($uid in @($folder.Subfolders)) {
+            $child = $null
+            if ($vault.TryGetFolder($uid, [ref]$child) -or $vault.TryGetKeeperNSFFolder($uid, [ref]$child)) {
+                $childKey = if ($child.FolderUid) { $child.FolderUid } else { '__root__' }
+                if ($collectVisited.Add($childKey)) { [void]$collectPending.Push($child) }
+            }
+        }
+    }
+    if ($NsfShares -and [string]::IsNullOrEmpty($base.FolderUid)) {
+        foreach ($uid in $nsfFolders.Keys) { [void]$nsfFolderUids.Add($uid) }
+        if ($Record) {
+            foreach ($uid in $nsfRecords.Keys) { [void]$nsfRecordUids.Add($uid) }
+        }
+    }
+
+    $classicShares = @{}
+    if ($Shares -and $classicRecordUids.Count -gt 0) {
+        foreach ($share in @($vault.GetSharesForRecords($classicRecordUids))) {
+            if ($share -and -not [string]::IsNullOrEmpty($share.RecordUid)) { $classicShares[$share.RecordUid] = $share }
+        }
+    }
+    $nsfSharePermissions = $null
+    if ($NsfShares) {
+        $nsfSharePermissions = $vault.GetKeeperNSFSharePermissionsAsync($nsfFolderUids, $nsfRecordUids).GetAwaiter().GetResult()
+    }
+
+    $nsfPermission = {
+        Param([string]$uid, [bool]$recordPermission)
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetNsfPermissions($vault, $nsfSharePermissions, $uid, $recordPermission)
+    }
+    $nsfPermissionText = {
+        Param([string]$uid, [bool]$recordPermission)
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatNsfPermissionText($vault, $nsfSharePermissions, $uid, $recordPermission)
+    }
+    $classicFolderPermission = {
+        Param($folder)
+        $sf = $null
+        if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return $null }
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetClassicFolderPermissions($vault, $sf)
+    }
+    $classicFolderPermissionText = {
+        Param($folder)
+        $sf = $null
+        if (!$vault.TryGetSharedFolder($folder.FolderUid, [ref]$sf)) { return '' }
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatClassicFolderPermissionText($vault, $sf)
+    }
+    $classicRecordPermission = {
+        Param($share)
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::GetClassicRecordPermissions($share)
+    }
+    $classicRecordPermissionText = {
+        Param($share)
+        return [KeeperSecurity.Vault.KeeperTreePermissionFormatter]::FormatClassicRecordPermissionText($share)
+    }
+
+    # Table output is streamed from the vault graph. Avoid building a nested object graph because
+    # large vault trees can consume excessive memory in Windows PowerShell 5.1.
+    if ($Format -ne 'json') {
+        $treeWriter = $null
+        if ($Output) { $treeWriter = [System.IO.StreamWriter]::new($Output, $false, [System.Text.UTF8Encoding]::new($false)) }
+        $writeTreeLine = {
+            Param([string]$line)
+            if ($treeWriter) { $treeWriter.WriteLine($line) }
+            else { Write-Output $line }
+        }
+        try {
+        if (($Shares -or $NsfShares) -and !$HideSharesKey) {
+            & $writeTreeLine 'Share Permissions Key:'
+            & $writeTreeLine '======================'
+            if ($Shares) {
+                foreach ($line in @('RO = Read-Only', 'MU = Can Manage Users', 'MR = Can Manage Records', 'CE = Can Edit', 'CS = Can Share', 'OW = Owner')) { & $writeTreeLine $line }
+            }
+            if ($NsfShares) {
+                foreach ($line in @('OW = NSF Owner', 'VW = NSF Viewer', 'SM = NSF Share Manager', 'CM = NSF Content Manager', 'CSM = NSF Content + Share Manager', 'FM = NSF Full Manager')) { & $writeTreeLine $line }
+            }
+            & $writeTreeLine '======================'
+            & $writeTreeLine ''
+        }
+        if ($Title) { & $writeTreeLine $Title }
+
+        $tableVisited = New-Object 'System.Collections.Generic.HashSet[string]'
+        $baseKey = if ($base.FolderUid) { $base.FolderUid } else { '__root__' }
+        [void]$tableVisited.Add($baseKey)
+        $tablePending = New-Object 'System.Collections.Generic.Stack[object]'
+    [void]$tablePending.Push([ordered]@{ Kind = 'folder'; Folder = $base; Prefix = ''; Last = $true })
+        while ($tablePending.Count -gt 0) {
+            $entry = $tablePending.Pop()
+            $prefix = $entry.Prefix
+            $last = $entry.Last
+            if ($entry.Kind -eq 'record') {
+                $label = $entry.Label
+            }
+            else {
+                $folder = $entry.Folder
+                $isNsf = $nsfFolders.ContainsKey($folder.FolderUid)
+                $label = if ($folder.Name) { [string]$folder.Name } else { 'My Vault' }
+                if ($VerboseOutput -and $folder.FolderUid) { $label += " ($($folder.FolderUid))" }
+                if ($isNsf) {
+                    $label += ' [Nested Share Folder]'
+                    if ($NsfShares) { $label += & $nsfPermissionText $folder.FolderUid $false }
+                }
+                else {
+                    $sharedFolder = $null
+                    if ($folder.FolderUid -and $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) {
+                        $label += ' [SHARED]'
+                        if ($Shares) { $label += & $classicFolderPermissionText $folder }
+                    }
+                }
+            }
+            $branch = if ($last) { ([char]0x2514).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' } else { ([char]0x251C).ToString() + ([char]0x2500).ToString() + ([char]0x2500).ToString() + ' ' }
+            if ($prefix) { & $writeTreeLine ($prefix + $branch + $label) }
+            else { & $writeTreeLine $label }
+
+            if ($entry.Kind -eq 'record') { continue }
+            $children = New-Object 'System.Collections.Generic.List[object]'
+            foreach ($uid in @($entry.Folder.Subfolders)) {
+                $child = $null
+                if ($vault.TryGetFolder($uid, [ref]$child) -or $vault.TryGetKeeperNSFFolder($uid, [ref]$child)) {
+                    $childKey = if ($child.FolderUid) { $child.FolderUid } else { '__root__' }
+                    if ($tableVisited.Add($childKey)) { [void]$children.Add([ordered]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
+                }
+            }
+            if ([string]::IsNullOrEmpty($entry.Folder.FolderUid)) {
+                foreach ($child in @($vault.KeeperNSFFolderNodes | Where-Object { !$_.ParentUid -or !$nsfFolders.ContainsKey($_.ParentUid) })) {
+                    if ($tableVisited.Add($child.FolderUid)) { [void]$children.Add([ordered]@{ Kind = 'folder'; Folder = $child; Name = $child.Name }) }
+                }
+            }
+            if ($Record) {
+                foreach ($uid in @($entry.Folder.Records)) {
+                    if ($nsfRecords.ContainsKey($uid)) {
+                        $nsfRecord = $nsfRecords[$uid]
+                        $recordName = if ($nsfRecord.Title) { $nsfRecord.Title } else { $nsfRecord.RecordUid }
+                        $recordLabel = $recordName + ' [' + $nsfRecord.Type + '] [Nested Record]'
+                        if ($VerboseOutput) { $recordLabel += " ($($nsfRecord.RecordUid))" }
+                        if ($NsfShares) { $recordLabel += & $nsfPermissionText $nsfRecord.RecordUid $true }
+                        [void]$children.Add([ordered]@{ Kind = 'record'; Label = $recordLabel; Name = $nsfRecord.Title })
+                    }
+                    else {
+                        [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
+                        if ($vault.TryGetKeeperRecord($uid, [ref]$classicRecord) -and ($classicRecord.Version -eq 2 -or $classicRecord.Version -eq 3)) {
+                            $recordName = if ($classicRecord.Title) { $classicRecord.Title } else { $classicRecord.Uid }
+                            $recordLabel = $recordName + ' [' + [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($classicRecord) + '] [Record]'
+                            if ($VerboseOutput) { $recordLabel += " ($($classicRecord.Uid))" }
+                            if ($Shares -and $classicShares.ContainsKey($uid)) { $recordLabel += & $classicRecordPermissionText $classicShares[$uid] }
+                            [void]$children.Add([ordered]@{ Kind = 'record'; Label = $recordLabel; Name = $classicRecord.Title })
+                        }
+                    }
+                }
+            }
+            $branchPrefix = ' '
+            if ($prefix -and $last) { $branchPrefix = '    ' }
+            elseif ($prefix) { $branchPrefix = ([char]0x2502).ToString() + '   ' }
+            $childPrefix = $prefix + $branchPrefix
+            $orderedChildren = @($children | Sort-Object { $_['Name'] })
+            for ($i = $orderedChildren.Count - 1; $i -ge 0; $i--) {
+                $childEntry = $orderedChildren[$i]
+                $childEntry['Prefix'] = $childPrefix
+                $childEntry['Last'] = $i -eq ($orderedChildren.Count - 1)
+                [void]$tablePending.Push($childEntry)
+            }
+        }
+        }
+        finally {
+            if ($treeWriter) { $treeWriter.Dispose() }
+        }
+        if ($Output) { Write-Host "Output written to $Output" }
+        return
+    }
+
+    $renderedFolders = New-Object 'System.Collections.Generic.HashSet[string]'
+    $buildPending = New-Object 'System.Collections.Generic.Stack[object]'
+    $rootPath = if ($base.FolderUid) { '/' + $base.Name } else { '/' }
+    [void]$renderedFolders.Add($(if ($base.FolderUid) { $base.FolderUid } else { '__root__' }))
+    $rootItem = [ordered]@{ name = $(if ($base.Name) { $base.Name } else { 'My Vault' }); path = $rootPath; kind = $(if ($nsfFolders.ContainsKey($base.FolderUid)) { 'nested_share_folder' } else { 'folder' }) }
+    [void]$buildPending.Push([ordered]@{ Folder = $base; Node = $rootItem; Path = $rootPath })
+    while ($buildPending.Count -gt 0) {
+        $buildEntry = $buildPending.Pop()
+        $folder = $buildEntry.Folder
+        $nodePath = $buildEntry.Path
+        $isNsf = $nsfFolders.ContainsKey($folder.FolderUid)
+        $itemObject = $buildEntry.Node
+        if ($VerboseOutput -and $folder.FolderUid) { $itemObject['uid'] = $folder.FolderUid }
+        if ($isNsf -and $NsfShares) { $itemObject['share_permissions'] = (& $nsfPermission $folder.FolderUid $false) }
+        elseif (!$isNsf -and $Shares) {
+            $perm = & $classicFolderPermission $folder
+            if ($perm) { $itemObject['share_permissions'] = $perm }
+        }
+        $children = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($uid in @($folder.Subfolders)) {
+            $child = $null
+            if ($vault.TryGetFolder($uid, [ref]$child) -or $vault.TryGetKeeperNSFFolder($uid, [ref]$child)) {
+                $childKey = if ($child.FolderUid) { $child.FolderUid } else { '__root__' }
+                if (!$renderedFolders.Add($childKey)) { continue }
+                $childItem = [ordered]@{ name = $(if ($child.Name) { $child.Name } else { 'My Vault' }); path = (($nodePath.TrimEnd('/') + '/' + $child.Name).Replace('//', '/')); kind = $(if ($nsfFolders.ContainsKey($child.FolderUid)) { 'nested_share_folder' } else { 'folder' }) }
+                if ($VerboseOutput -and $child.FolderUid) { $childItem['uid'] = $child.FolderUid }
+                [void]$children.Add($childItem)
+                [void]$buildPending.Push([ordered]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
+            }
+        }
+        if ([string]::IsNullOrEmpty($folder.FolderUid)) {
+            foreach ($child in @($vault.KeeperNSFFolderNodes | Where-Object { !$_.ParentUid -or !$nsfFolders.ContainsKey($_.ParentUid) })) {
+                $childKey = if ($child.FolderUid) { $child.FolderUid } else { '__root__' }
+                if (!$renderedFolders.Add($childKey)) { continue }
+                $childItem = [ordered]@{ name = $child.Name; path = (($nodePath.TrimEnd('/') + '/' + $child.Name).Replace('//', '/')); kind = 'nested_share_folder' }
+                if ($VerboseOutput -and $child.FolderUid) { $childItem['uid'] = $child.FolderUid }
+                [void]$children.Add($childItem)
+                [void]$buildPending.Push([ordered]@{ Folder = $child; Node = $childItem; Path = $childItem['path'] })
+            }
+        }
+        if ($Record) {
+            foreach ($uid in @($folder.Records)) {
+                if ($nsfRecords.ContainsKey($uid)) {
+                    $nsfRecord = $nsfRecords[$uid]; $recordItem = [ordered]@{ name = $(if ($nsfRecord.Title) { $nsfRecord.Title } else { $nsfRecord.RecordUid }); path = $nodePath; kind = 'nested_record'; record_type = $nsfRecord.Type }
+                    if ($VerboseOutput) { $recordItem['uid'] = $nsfRecord.RecordUid }
+                    if ($NsfShares) { $recordItem['share_permissions'] = (& $nsfPermission $nsfRecord.RecordUid $true) }
+                    [void]$children.Add($recordItem)
+                }
+                else {
+                    [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
+                    if ($vault.TryGetKeeperRecord($uid, [ref]$classicRecord) -and ($classicRecord.Version -eq 2 -or $classicRecord.Version -eq 3)) {
+                        $recordItem = [ordered]@{ name = $(if ($classicRecord.Title) { $classicRecord.Title } else { $classicRecord.Uid }); path = $nodePath; kind = 'record'; record_type = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($classicRecord) }
+                        if ($VerboseOutput) { $recordItem['uid'] = $classicRecord.Uid }
+                        if ($classicShares.ContainsKey($uid)) { $recordItem['share_permissions'] = (& $classicRecordPermission $classicShares[$uid]) }
+                        [void]$children.Add($recordItem)
+                    }
+                }
+            }
+        }
+        if ($children.Count -gt 0) { $itemObject['children'] = @($children | Sort-Object { $_['name'] }) }
+    }
+    $tree = [ordered]@{ tree = $rootItem }
+    if ($Title) { $tree.title = $Title }
+    if (($Shares -or $NsfShares) -and !$HideSharesKey) {
+        $key = [ordered]@{}
+        if ($Shares) { $key.classic = [ordered]@{ RO = 'Read-Only'; MU = 'Can Manage Users'; MR = 'Can Manage Records'; CE = 'Can Edit'; CS = 'Can Share'; OW = 'Owner' } }
+        if ($NsfShares) { $key.nsf = [ordered]@{ OW = 'NSF Owner'; VW = 'NSF Viewer'; SM = 'NSF Share Manager'; CM = 'NSF Content Manager'; CSM = 'NSF Content + Share Manager'; FM = 'NSF Full Manager' } }
+        $tree.share_permissions_key = $key
+    }
+    $json = $tree | ConvertTo-Json -Depth 100
+    if ($Output) { Set-Content -Path $Output -Value $json -Encoding UTF8 } else { $json }
+}
+New-Alias -Name ktree -Value Get-KeeperTree
+
 
 function Get-KeeperObject {
     <#

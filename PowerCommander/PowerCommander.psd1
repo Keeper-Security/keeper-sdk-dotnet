@@ -83,7 +83,7 @@
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
-        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
+        'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperTree', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder', 'Remove-KeeperFolder', 
         'Get-KeeperRecordType', 'Get-KeeperFolder', 'Get-KeeperFolders', 'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 
@@ -163,7 +163,7 @@
     # VariablesToExport = '*'
 
     # Aliases to export from this module
-    AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 
+    AliasesToExport      = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'ktree', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv',
         'kmkdir', 'krmdir', 'krti', 'kfolders', 'kgetfolder','ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'kete', 'ketdel', 'ketu', 'ketr', 'keut', 'keru', 'kert',
         'kepm-sync','kepm-deployment-list', 'kepm-deployment-view', 'kepm-deployment-add', 'kepm-deployment-edit', 'kepm-deployment-delete', 'kepm-deployment-download',
         'kepm-approval-list', 'kepm-approval-view', 'kepm-approval-approve', 'kepm-approval-deny', 'kepm-approval-remove',
