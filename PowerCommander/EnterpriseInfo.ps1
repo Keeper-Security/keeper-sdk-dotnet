@@ -254,6 +254,7 @@ function Get-KeeperEnterpriseInfoUser {
     Display user information as a table.
     .DESCRIPTION
     Outputs users with status, node, roles, teams, and optional columns.
+    With -Verbose, node, role, and team values are returned as IDs instead of names.
     .PARAMETER Pattern
     Optional search pattern to filter users.
     .PARAMETER Columns
@@ -268,6 +269,11 @@ function Get-KeeperEnterpriseInfoUser {
     Number of rows to skip (for pagination). Default 0.
     .PARAMETER Limit
     Maximum number of rows to return (0 = no limit). Use with Offset for range/pagination.
+    .PARAMETER Verbose
+    Return node IDs, role IDs, and team UIDs instead of display names. This is the standard PowerShell common parameter and does not emit diagnostic messages for this command.
+    .NOTES
+    -Verbose is used for compatibility with the Commander enterprise-info --verbose option.
+    It changes node, role, and team values to IDs; it does not emit diagnostic messages here.
     .EXAMPLE
     Get-KeeperEnterpriseInfoUser
     Get-KeeperEnterpriseInfoUser -Columns "name,status,node,roles" -Pattern "admin" -Node "Sales" -Format json -Output users.json -Offset 0 -Limit 100
@@ -285,7 +291,10 @@ function Get-KeeperEnterpriseInfoUser {
     $enterprise = getEnterprise
     $ed = $enterprise.enterpriseData
     $rd = $enterprise.roleData
+    $verboseOutput = $PSBoundParameters.ContainsKey('Verbose') -and $VerbosePreference -eq 'Continue'
+    $jsonOutput = $Format -eq 'json'
     $roleUsers = @{}
+    $teamIdsByUser = @{}
     foreach ($r in $rd.Roles) {
         foreach ($uid in @($rd.GetUsersForRole($r.Id))) {
             if (-not $roleUsers[$uid]) { $roleUsers[$uid] = [System.Collections.Generic.List[long]]::new() }
@@ -297,6 +306,8 @@ function Get-KeeperEnterpriseInfoUser {
         foreach ($uid in @($ed.GetUsersForTeam($t.Uid))) {
             if (-not $teamUsers[$uid]) { $teamUsers[$uid] = [System.Collections.Generic.List[string]]::new() }
             $teamUsers[$uid].Add($t.Name) | Out-Null
+            if (-not $teamIdsByUser[$uid]) { $teamIdsByUser[$uid] = [System.Collections.Generic.List[string]]::new() }
+            $teamIdsByUser[$uid].Add($t.Uid) | Out-Null
         }
     }
     $colSet = @('name', 'status', 'transfer_status', 'node')
@@ -322,11 +333,24 @@ function Get-KeeperEnterpriseInfoUser {
                 'name'             { $row['Name'] = $u.DisplayName }
                 'status'           { $row['Status'] = & $statusText $u.UserStatus }
                 'transfer_status'  { $row['TransferStatus'] = & $transferText $u.TransferAcceptanceStatus }
-                'node'             { $row['Node'] = Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot }
+                'node'             { $row['Node'] = if ($verboseOutput) { $nid.ToString() } else { Get-KeeperNodePath -NodeId $u.ParentNodeId -OmitRoot } }
                 'role_count'       { $arr = $roleUsers[$u.Id]; if ($null -ne $arr) { $row['RoleCount'] = $arr.Count } else { $row['RoleCount'] = 0 } }
-                'roles'            { $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object); $row['Roles'] = ($rnames -join ', ') }
+                'roles'            {
+                    if ($verboseOutput) {
+                        $roleIds = @($roleUsers[$u.Id] | Sort-Object | ForEach-Object { $_.ToString() })
+                        $row['Roles'] = if ($jsonOutput) { $roleIds } else { $roleIds -join ', ' }
+                    } else {
+                        $rnames = @($roleUsers[$u.Id] | ForEach-Object { $rr = $null; if ($rd.TryGetRole($_, [ref]$rr)) { $rr.DisplayName } } | Sort-Object)
+                        $row['Roles'] = $rnames -join ', '
+                    }
+                }
                 'team_count'       { $arr = $teamUsers[$u.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
-                'teams'            { $row['Teams'] = (($teamUsers[$u.Id] | Sort-Object) -join ', ') }
+                'teams'            {
+                    if ($verboseOutput) {
+                        $teamIds = @($teamIdsByUser[$u.Id] | Sort-Object)
+                        $row['Teams'] = if ($jsonOutput) { $teamIds } else { $teamIds -join ', ' }
+                    } else { $row['Teams'] = ($teamUsers[$u.Id] | Sort-Object) -join ', ' }
+                }
                 'queued_team_count' { $row['QueuedTeamCount'] = 0 }
                 'queued_teams'      { $row['QueuedTeams'] = '' }
                 'alias'            { $row['Alias'] = '' }
