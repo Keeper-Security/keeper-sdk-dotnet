@@ -2018,6 +2018,14 @@ namespace Commander.PAM
           return record.Title ?? uid;
         }
 
+        // Approvers may have NSF metadata without a usable record key. Keep the title
+        // visible without exposing or requiring record contents.
+        if (vault != null && vault.TryGetKeeperNSFRecord(uid, out var nsfRecord)
+            && !string.IsNullOrEmpty(nsfRecord.Title))
+        {
+          return nsfRecord.Title;
+        }
+
         return string.Empty;
       }
 
