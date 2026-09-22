@@ -58,25 +58,9 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      // Preserve classic title resolution precedence. NSF records are considered only when
-      // no classic record has the requested title, so adding NSF records cannot change an
-      // existing classic title lookup into an ambiguity.
-      var matches = EnumerateClassicTypedRecords(vault)
-        .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
-        .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
-        .ToList();
-
-      if (matches.Count == 1)
-      {
-        return matches[0];
-      }
-
-      if (matches.Count > 1)
-      {
-        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-      }
-
-      matches = EnumerateNsfTypedRecords(vault)
+      // A title shared by classic and NSF records is ambiguous. Require a UID rather than
+      // silently targeting one store based on cache order.
+      var matches = EnumerateTypedRecords(vault)
         .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
         .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
         .ToList();
@@ -887,20 +871,21 @@ namespace KeeperSecurity.Plugins.PAM
     public static bool TryGetRecordKey(VaultOnline vault, string recordUid, out byte[] recordKey)
     {
       recordKey = null;
-      if (vault == null || string.IsNullOrEmpty(recordUid))
+      if (vault == null || string.IsNullOrWhiteSpace(recordUid))
       {
         return false;
       }
 
-      if (vault.TryGetKeeperRecord(recordUid, out var record)
-          && record?.RecordKey != null
-          && record.RecordKey.Length > 0)
+      var trimmedUid = recordUid.Trim();
+      if (TryGetTypedRecord(vault, trimmedUid, out var typed)
+          && typed?.RecordKey != null
+          && typed.RecordKey.Length > 0)
       {
-        recordKey = record.RecordKey;
+        recordKey = typed.RecordKey;
         return true;
       }
 
-      if (vault.TryGetKeeperNSFRecord(recordUid, out var nsfRecord)
+      if (vault.TryGetKeeperNSFRecord(trimmedUid, out var nsfRecord)
           && nsfRecord?.RecordKey != null
           && nsfRecord.RecordKey.Length > 0)
       {
