@@ -889,6 +889,14 @@ function Resolve-KdUsername {
                     }
                 }
             }
+            foreach ($team in (@($rs.ShareTeams) + @($rs.ShareMCTeams))) {
+                if ($team -and $team.TeamUid -and -not $team.TeamUid.IsEmpty -and $team.Teamname) {
+                    $teamUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($team.TeamUid.ToByteArray())
+                    if (-not $cache.ContainsKey($teamUid)) {
+                        $cache[$teamUid] = $team.Teamname
+                    }
+                }
+            }
             $script:ShareObjectsCache = $cache
             $script:ShareObjectsCacheAccountUid = $currentAccountUid
         } catch {
