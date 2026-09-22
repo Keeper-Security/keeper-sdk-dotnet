@@ -1646,21 +1646,7 @@ namespace Commander.PAM
 
     private TypedRecord TryResolveRecordAllowMissing(VaultOnline vault, string identifier)
     {
-      if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
-      {
-        return typedByUid;
-      }
-
-      var matches = vault.KeeperRecords
-        .OfType<TypedRecord>()
-        .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
-        .ToList();
-      if (matches.Count > 1)
-      {
-        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-      }
-
-      return matches.Count == 1 ? matches[0] : null;
+      return PamVaultHelpers.ResolveRecord(vault, identifier, null);
     }
 
     private const int KeeperUidByteLength = 16;
@@ -1786,12 +1772,7 @@ namespace Commander.PAM
 
     private static byte[] TryGetRecordKey(VaultOnline vault, string recordUid)
     {
-      if (vault == null || string.IsNullOrEmpty(recordUid))
-      {
-        return null;
-      }
-
-      return vault.TryGetKeeperRecord(recordUid, out var record) ? record.RecordKey : null;
+      return PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey) ? recordKey : null;
     }
 
     private string ResolveRequestedBy(WorkflowProcess wf)
@@ -2095,27 +2076,7 @@ namespace Commander.PAM
       string identifier,
       bool validateWorkflowType = true)
     {
-      TypedRecord record = null;
-      if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
-      {
-        record = typedByUid;
-      }
-      else
-      {
-        var matches = vault.KeeperRecords
-          .OfType<TypedRecord>()
-          .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
-          .ToList();
-        if (matches.Count > 1)
-        {
-          throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-        }
-
-        if (matches.Count == 1)
-        {
-          record = matches[0];
-        }
-      }
+      var record = PamVaultHelpers.ResolveRecord(vault, identifier, null);
 
       if (record == null)
       {
