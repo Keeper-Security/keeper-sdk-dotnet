@@ -117,6 +117,14 @@ function script:resolvePamWorkflowRecordName {
         return $record.Title
     }
 
+    [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
+    if ($null -ne $Vault -and
+        $Vault.TryGetKeeperNSFRecord($uid, [ref]$nsfRecord) -and
+        $null -ne $nsfRecord -and
+        -not [string]::IsNullOrEmpty($nsfRecord.Title)) {
+        return $nsfRecord.Title
+    }
+
     return ''
 }
 
