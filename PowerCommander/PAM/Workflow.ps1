@@ -92,7 +92,7 @@ function script:writePamWorkflowExemptMessage {
     Write-Output ''
 }
 
-function script:resolvePamWorkflowResourceName {
+function script:resolvePamWorkflowPendingResourceName {
     Param (
         [KeeperSecurity.Vault.VaultOnline] $Vault,
         $Resource
@@ -111,6 +111,10 @@ function script:resolvePamWorkflowResourceName {
         [KeeperSecurity.Vault.KeeperRecord]$rec = $null
         if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and $null -ne $rec -and -not [string]::IsNullOrEmpty($rec.Title)) {
             return $rec.Title
+        }
+        [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRec = $null
+        if ($null -ne $Vault -and $Vault.TryGetKeeperNSFRecord($uid, [ref]$nsfRec) -and $null -ne $nsfRec -and -not [string]::IsNullOrEmpty($nsfRec.Title)) {
+            return $nsfRec.Title
         }
         return $null
     }
@@ -185,9 +189,10 @@ function Get-KeeperPamWorkflowPending {
 
         $recordKey = $null
         if (-not [string]::IsNullOrEmpty($recordUid)) {
-            [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-            if ($vault.TryGetKeeperRecord($recordUid, [ref]$rec)) {
-                $recordKey = $rec.RecordKey
+            [byte[]]$resolvedRecordKey = $null
+            if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetRecordKey(
+                    $vault, $recordUid, [ref]$resolvedRecordKey)) {
+                $recordKey = $resolvedRecordKey
             }
         }
 
@@ -226,7 +231,7 @@ function Get-KeeperPamWorkflowPending {
         $requestedBy = if (-not [string]::IsNullOrEmpty($wf.User)) { $wf.User } else { "User ID $($wf.UserId)" }
 
         $row = [PamWorkflowRow]@{
-            RecordName  = resolvePamWorkflowResourceName -Vault $vault -Resource $wf.Resource
+            RecordName  = resolvePamWorkflowPendingResourceName -Vault $vault -Resource $wf.Resource
             RecordUid   = $recordUid
             FlowUid     = getPamWorkflowFlowUidString $wf.FlowUid
             RequestedBy = $requestedBy
