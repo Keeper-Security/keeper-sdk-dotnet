@@ -58,9 +58,25 @@ namespace KeeperSecurity.Plugins.PAM
         return null;
       }
 
-      // Title search. EnumerateTypedRecords already unique-by-UID, so each match is a different record.
-      // Count > 1 means two different UIDs share the same title — caller must pass a UID.
-      var matches = EnumerateTypedRecords(vault)
+      // Preserve classic title resolution precedence. NSF records are considered only when
+      // no classic record has the requested title, so adding NSF records cannot change an
+      // existing classic title lookup into an ambiguity.
+      var matches = EnumerateClassicTypedRecords(vault)
+        .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
+        .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+      if (matches.Count == 1)
+      {
+        return matches[0];
+      }
+
+      if (matches.Count > 1)
+      {
+        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
+      }
+
+      matches = EnumerateNsfTypedRecords(vault)
         .Where(x => allowed == null || allowed.Contains(x.TypeName ?? string.Empty))
         .Where(x => string.Equals(x.Title, trimmed, StringComparison.OrdinalIgnoreCase))
         .ToList();
@@ -794,7 +810,7 @@ namespace KeeperSecurity.Plugins.PAM
     {
       var seen = new HashSet<string>(StringComparer.Ordinal);
 
-      foreach (var record in vault.KeeperRecords?.OfType<TypedRecord>() ?? Enumerable.Empty<TypedRecord>())
+      foreach (var record in EnumerateClassicTypedRecords(vault))
       {
         if (!string.IsNullOrEmpty(record.Uid) && seen.Add(record.Uid))
         {
@@ -802,17 +818,30 @@ namespace KeeperSecurity.Plugins.PAM
         }
       }
 
-      foreach (var nsf in vault.KeeperNSFRecordEntries ?? Enumerable.Empty<KeeperNSFRecord>())
+      foreach (var typed in EnumerateNsfTypedRecords(vault))
       {
-        if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed)
-            || typed == null
-            || string.IsNullOrEmpty(typed.Uid)
-            || !seen.Add(typed.Uid))
+        if (!string.IsNullOrEmpty(typed.Uid) && seen.Add(typed.Uid))
         {
-          continue;
+          yield return typed;
         }
+      }
+    }
 
-        yield return typed;
+    private static IEnumerable<TypedRecord> EnumerateClassicTypedRecords(VaultOnline vault)
+    {
+      return vault?.KeeperRecords?.OfType<TypedRecord>() ?? Enumerable.Empty<TypedRecord>();
+    }
+
+    private static IEnumerable<TypedRecord> EnumerateNsfTypedRecords(VaultOnline vault)
+    {
+      foreach (var nsf in vault?.KeeperNSFRecordEntries ?? Enumerable.Empty<KeeperNSFRecord>())
+      {
+        if (VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out var typed)
+            && typed != null
+            && !string.IsNullOrEmpty(typed.Uid))
+        {
+          yield return typed;
+        }
       }
     }
 
@@ -846,6 +875,36 @@ namespace KeeperSecurity.Plugins.PAM
           && VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsf, out record)
           && record != null)
       {
+        return true;
+      }
+
+      return false;
+    }
+
+    /// <summary>
+    /// Gets a record key from either the classic vault record cache or the NSF record cache.
+    /// </summary>
+    public static bool TryGetRecordKey(VaultOnline vault, string recordUid, out byte[] recordKey)
+    {
+      recordKey = null;
+      if (vault == null || string.IsNullOrEmpty(recordUid))
+      {
+        return false;
+      }
+
+      if (vault.TryGetKeeperRecord(recordUid, out var record)
+          && record?.RecordKey != null
+          && record.RecordKey.Length > 0)
+      {
+        recordKey = record.RecordKey;
+        return true;
+      }
+
+      if (vault.TryGetKeeperNSFRecord(recordUid, out var nsfRecord)
+          && nsfRecord?.RecordKey != null
+          && nsfRecord.RecordKey.Length > 0)
+      {
+        recordKey = nsfRecord.RecordKey;
         return true;
       }
 
