@@ -883,7 +883,7 @@ function Connect-Keeper {
             }
         }
         catch {
-            if ($_.Exception.Message -match 'ACCOUNT_RECOVERY') {
+            if ($auth.AuthContext.IsAccountRecoverySession) {
                 Write-Host ''
                 Write-Host 'Your Master Password has been changed successfully.' -ForegroundColor Green
                 Write-Host 'This session was created during account recovery and cannot be used to access the vault - you need to log in again with your new password.' -ForegroundColor Yellow

@@ -508,8 +508,11 @@ namespace KeeperSecurity.Authentication
             }
             catch (KeeperApiException e)
             {
-                // The server reports the "verification email sent" outcome as a bad_request error.
-                if (e.Code != "bad_request" || !e.Message.StartsWith("Email has been sent."))
+                // The server returns this as a bad_request, so we check the message text.
+                // Ignore case and allow the text to appear anywhere in the message.
+                var isVerificationEmailSent = e.Code == "bad_request" &&
+                    e.Message?.IndexOf("Email has been sent.", StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!isVerificationEmailSent)
                 {
                     throw;
                 }

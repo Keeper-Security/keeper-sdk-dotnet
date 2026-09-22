@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
@@ -14,8 +15,9 @@ namespace KeeperSecurity.Authentication
         private const string AccountRecoverySetupEndpoint = "authentication/account_recovery_setup";
 
         /// <summary>
-        /// Sets the account recovery phrase for the currently logged in user. Invalidates any
-        /// previously configured recovery phrase or security question / answer.
+        /// Sets the account recovery phrase for the currently logged in user.
+        /// This replaces any existing recovery phrase or security question.
+        /// Callers should verify the user's identity again before calling this method.
         /// </summary>
         /// <param name="auth">Authenticated Keeper connection.</param>
         /// <param name="recoveryPhrase">A 24-word recovery phrase. See <see cref="RecoveryPhrase.Generate"/>.</param>
@@ -66,7 +68,7 @@ namespace KeeperSecurity.Authentication
                 await auth.ExecuteAuthRest("authentication/account_recovery_verify_phrase", request);
                 return true;
             }
-            catch (KeeperApiException e) when (!e.IsThrottleError())
+            catch (KeeperApiException e) when (string.Equals(e.Code, "auth_failed", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
