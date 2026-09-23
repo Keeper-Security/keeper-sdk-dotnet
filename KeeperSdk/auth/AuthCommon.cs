@@ -351,6 +351,12 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude />
         bool ForbidKeyType2 { get; }
+
+        /// <summary>
+        /// Gets whether this session was created during account recovery and is restricted to
+        /// changing the Master Password; it cannot be used to access the vault.
+        /// </summary>
+        bool IsAccountRecoverySession { get; }
     }
 
     [Flags]
@@ -398,6 +404,9 @@ namespace KeeperSecurity.Authentication
         public AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; internal set; }
         internal byte[] PasswordValidator { get; set; }
+
+        public bool IsAccountRecoverySession =>
+            (SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0;
 
         public bool CheckPasswordValid(string password)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Authentication;
 
 namespace KeeperSecurity.Authentication.Sync
 {
@@ -24,6 +25,10 @@ namespace KeeperSecurity.Authentication.Sync
         /// Master Password
         /// </summary>
         Password,
+        /// <summary>
+        /// Account Recovery
+        /// </summary>
+        AccountRecovery,
         /// <summary>
         /// SSO Login
         /// </summary>
@@ -287,6 +292,90 @@ namespace KeeperSecurity.Authentication.Sync
         public Task VerifyBiometricKey(byte[] biometricKey)
         {
             return OnBiometricKey?.Invoke(biometricKey);
+        }
+
+        internal Func<Task> OnRecoverAccount;
+        /// <summary>
+        /// Switches to Account Recovery when the master password is unavailable.
+        /// </summary>
+        /// <returns>Awaitable task</returns>
+        public Task RecoverAccount()
+        {
+            return OnRecoverAccount?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Recovers account access using an emailed code plus either the account's Recovery Phrase
+    /// or (for older accounts) its Security Question.
+    /// </summary>
+    public class AccountRecoveryStep : AuthStep
+    {
+        internal AccountRecoveryStep() : base(AuthState.AccountRecovery)
+        {
+        }
+
+        /// <summary>
+        /// Which recovery method this account uses. <c>null</c> until <see cref="SubmitVerificationCode"/> succeeds.
+        /// </summary>
+        public BackupKeyType? RecoveryType { get; internal set; }
+
+        /// <summary>
+        /// The security question to show the user, when <see cref="RecoveryType"/> is <see cref="BackupKeyType.BktSecAnswer"/>.
+        /// </summary>
+        public string SecurityQuestion { get; internal set; }
+
+        internal Func<Task> OnRequestVerificationCode;
+        /// <summary>
+        /// emails the user a verification code.
+        /// </summary>
+        /// <returns>Awaitable task</returns>
+        public Task RequestVerificationCode()
+        {
+            return OnRequestVerificationCode?.Invoke();
+        }
+
+        internal Func<string, Task> OnSubmitVerificationCode;
+        /// <summary>
+        /// submits the emailed code, which fills in <see cref="RecoveryType"/> for the next step.
+        /// </summary>
+        /// <param name="code">Verification code from the email.</param>
+        /// <returns>Awaitable task</returns>
+        public Task SubmitVerificationCode(string code)
+        {
+            return OnSubmitVerificationCode?.Invoke(code);
+        }
+
+        internal Func<string, Task> OnSubmitSecurityAnswer;
+        /// <summary>
+        /// submits the answer to <see cref="SecurityQuestion"/>. Only valid when <see cref="RecoveryType"/> is <see cref="BackupKeyType.BktSecAnswer"/>.
+        /// </summary>
+        /// <param name="answer">The user's answer to the security question.</param>
+        /// <returns>Awaitable task</returns>
+        public Task SubmitSecurityAnswer(string answer)
+        {
+            return OnSubmitSecurityAnswer?.Invoke(answer);
+        }
+
+        internal Func<string, Task> OnSubmitRecoveryPhrase;
+        /// <summary>
+        /// submits the user's 24-word Recovery Phrase. Only valid when <see cref="RecoveryType"/> is <see cref="BackupKeyType.BktPassphraseHash"/>.
+        /// </summary>
+        /// <param name="recoveryPhrase">The user's 24-word recovery phrase.</param>
+        /// <returns>Awaitable task</returns>
+        public Task SubmitRecoveryPhrase(string recoveryPhrase)
+        {
+            return OnSubmitRecoveryPhrase?.Invoke(recoveryPhrase);
+        }
+
+        internal Func<Task> OnResume;
+        /// <summary>
+        /// Cancels account recovery and returns to the Master Password step.
+        /// </summary>
+        /// <returns>Awaitable task</returns>
+        public Task Resume()
+        {
+            return OnResume?.Invoke();
         }
     }
 
