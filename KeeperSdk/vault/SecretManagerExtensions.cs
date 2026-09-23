@@ -637,7 +637,7 @@ namespace KeeperSecurity.Vault
                 case "keepersecurity.com":
                     host = "US";
                     break;
-                case "keeperseurity.eu":
+                case "keepersecurity.eu":
                     host = "EU";
                     break;
                 case "keepersecurity.com.au":
