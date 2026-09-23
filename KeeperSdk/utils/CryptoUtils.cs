@@ -667,6 +667,10 @@ namespace KeeperSecurity.Utils
         /// <returns>Derived key.</returns>
         public static byte[] DeriveHkdfSha512(byte[] ikm, byte[] info, int length = 32, byte[] salt = null)
         {
+            if (ikm == null) throw new ArgumentNullException(nameof(ikm));
+            if (info == null) throw new ArgumentNullException(nameof(info));
+            if (length < 0 || length > 255 * 64) throw new ArgumentOutOfRangeException(nameof(length));
+
             salt ??= Array.Empty<byte>();
             using var extractHmac = new HMACSHA512(salt);
             var prk = extractHmac.ComputeHash(ikm);

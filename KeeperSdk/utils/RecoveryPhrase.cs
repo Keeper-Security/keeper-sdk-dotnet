@@ -17,7 +17,12 @@ namespace KeeperSecurity.Utils
         private static readonly Lazy<IReadOnlyList<string>> _lazyWords =
             new(LoadCompressedWordList);
 
+        private static readonly Lazy<HashSet<string>> _lazyWordSet =
+            new(() => new HashSet<string>(Words, StringComparer.Ordinal));
+
         internal static IReadOnlyList<string> Words => _lazyWords.Value;
+
+        internal static bool Contains(string word) => _lazyWordSet.Value.Contains(word);
 
         private static IReadOnlyList<string> LoadCompressedWordList()
         {
@@ -112,6 +117,11 @@ namespace KeeperSecurity.Utils
             if (words.Length != WordCount)
             {
                 throw new ArgumentException($"Recovery phrase must contain exactly {WordCount} words.", nameof(phrase));
+            }
+
+            if (words.Any(word => !RecoveryPhraseWordList.Contains(word)))
+            {
+                throw new ArgumentException("Recovery phrase contains a word that is not in the recovery phrase word list.", nameof(phrase));
             }
 
             return string.Join(" ", words);

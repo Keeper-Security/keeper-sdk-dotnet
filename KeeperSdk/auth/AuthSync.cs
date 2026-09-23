@@ -476,24 +476,51 @@ namespace KeeperSecurity.Authentication.Sync
             string verificationCode = null;
             byte[] securityQuestionSalt = null;
             var securityQuestionIterations = 0;
+            var verificationVersion = 0;
+            var isCompleted = false;
+
+            void EnsureNotCompleted()
+            {
+                if (isCompleted)
+                {
+                    throw new InvalidOperationException("This account recovery step has already completed and cannot be reused.");
+                }
+            }
+
+            async Task<GetDataKeyBackupV3Response> SubmitBackupKey(byte[] authToken, string mismatchMessage)
+            {
+                var expectedVersion = verificationVersion;
+                var rs = await this.ExecuteGetDataKeyBackupV3(loginToken, verificationCode, authToken);
+                if (verificationVersion != expectedVersion)
+                {
+                    throw new InvalidOperationException(mismatchMessage);
+                }  
+
+                isCompleted = true;
+                return rs;
+            }
 
             recoveryStep.OnRequestVerificationCode = async () =>
             {
+                EnsureNotCompleted();
                 await this.ExecuteMasterPasswordRecoveryVerification(loginToken);
             };
 
             recoveryStep.OnSubmitVerificationCode = async code =>
             {
+                EnsureNotCompleted();
                 var rs = await this.ExecuteAccountRecoveryVerifyCode(loginToken, code);
                 verificationCode = code;
                 recoveryStep.RecoveryType = rs.BackupKeyType;
                 recoveryStep.SecurityQuestion = rs.SecurityQuestion;
                 securityQuestionSalt = rs.Salt.ToByteArray();
                 securityQuestionIterations = rs.Iterations;
+                verificationVersion++;
             };
 
             recoveryStep.OnSubmitSecurityAnswer = async answer =>
             {
+                EnsureNotCompleted();
                 if (recoveryStep.RecoveryType != BackupKeyType.BktSecAnswer)
                 {
                     throw new InvalidOperationException(
@@ -502,13 +529,15 @@ namespace KeeperSecurity.Authentication.Sync
 
                 var normalizedAnswer = answer.ToLowerInvariant();
                 var hash = CryptoUtils.DeriveV1KeyHash(normalizedAnswer, securityQuestionSalt, securityQuestionIterations);
-                var rs = await this.ExecuteGetDataKeyBackupV3(loginToken, verificationCode, hash);
+                var rs = await SubmitBackupKey(hash,
+                    "A new verification code was submitted while this answer was being processed. Please resubmit.");
                 var dataKey = CryptoUtils.DecryptEncryptionParams(normalizedAnswer, rs.DataKeyBackup.ToByteArray());
                 Step = await OnConnected(BuildAccountRecoveryContext(rs, dataKey));
             };
 
             recoveryStep.OnSubmitRecoveryPhrase = async phrase =>
             {
+                EnsureNotCompleted();
                 if (recoveryStep.RecoveryType != BackupKeyType.BktPassphraseHash)
                 {
                     throw new InvalidOperationException(
@@ -518,7 +547,8 @@ namespace KeeperSecurity.Authentication.Sync
                 var normalizedPhrase = RecoveryPhrase.Normalize(phrase);
                 var recoveryAuthToken = RecoveryPhrase.DeriveRecoveryAuthToken(normalizedPhrase);
                 var recoveryKey = RecoveryPhrase.DeriveRecoveryKey(normalizedPhrase);
-                var rs = await this.ExecuteGetDataKeyBackupV3(loginToken, verificationCode, recoveryAuthToken);
+                var rs = await SubmitBackupKey(recoveryAuthToken,
+                    "A new verification code was submitted while this recovery phrase was being processed. Please resubmit.");
                 var dataKey = CryptoUtils.DecryptAesV2(rs.DataKeyBackup.ToByteArray(), recoveryKey);
                 Step = await OnConnected(BuildAccountRecoveryContext(rs, dataKey));
             };
