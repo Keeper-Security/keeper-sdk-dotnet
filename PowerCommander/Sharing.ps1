@@ -289,7 +289,11 @@ function Grant-KeeperRecordAccess {
                 }
             }
             catch {
-                Write-Error -Message $_.Exception.GetBaseException().Message -ErrorAction Stop
+                $message = $_.Exception.Message
+                if ($_.Exception -is [System.Management.Automation.MethodInvocationException] -and $_.Exception.InnerException) {
+                    $message = $_.Exception.InnerException.Message
+                }
+                Write-Error -Message $message -ErrorAction Stop
             }
         }
         else {
@@ -769,7 +773,11 @@ function Grant-KeeperSharedFolderAccess {
         }
     }
     catch {
-        Write-Error -Message $_.Exception.GetBaseException().Message -ErrorAction Stop
+        $message = $_.Exception.Message
+        if ($_.Exception -is [System.Management.Automation.MethodInvocationException] -and $_.Exception.InnerException) {
+            $message = $_.Exception.InnerException.Message
+        }
+        Write-Error -Message $message -ErrorAction Stop
     }
 
 }

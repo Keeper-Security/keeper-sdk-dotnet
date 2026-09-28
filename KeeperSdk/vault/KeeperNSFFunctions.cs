@@ -604,12 +604,8 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
                 throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
 
-            KeeperNSFAccessHelpers.ThrowIfKeeperNSFUserOwner(vault, folderUid, accessor, asTeam);
-
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
-
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             NsfShareRecipient recipient;
             if (asTeam.HasValue)
@@ -667,6 +663,12 @@ namespace KeeperSecurity.Vault
 
             if (pkRs.PublicEccKey.IsEmpty && pkRs.PublicKey.IsEmpty)
                 throw new KeeperApiException("public_key_error", $"User '{userEmail}' not found or has no public key: {pkRs.Message}");
+
+            var recipient = new NsfShareRecipient(NsfShareRecipientKind.User, userEmail);
+            if (KeeperNSFAccessHelpers.IsKeeperNSFFolderOwner(vault, folderUid, recipient, pkRs.AccountUid))
+                throw ShareOwnerValidation.FolderOwner(userEmail, sharedFolder: false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             var folderKey = folder.FolderKey;
             if (folderKey == null)
@@ -780,6 +782,8 @@ namespace KeeperSecurity.Vault
                 .ConfigureAwait(false);
             var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
 
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var folderKey = folder.FolderKey;
             if (folderKey == null)
                 throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
@@ -868,12 +872,8 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
                 throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
 
-            KeeperNSFAccessHelpers.ThrowIfKeeperNSFUserOwner(vault, folderUid, accessor, asTeam);
-
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
-
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             NsfShareRecipient recipient;
             if (asTeam.HasValue)
@@ -922,6 +922,12 @@ namespace KeeperSecurity.Vault
             if (pkRs.AccountUid.IsEmpty)
                 throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found");
 
+            var recipient = new NsfShareRecipient(NsfShareRecipientKind.User, userEmail);
+            if (KeeperNSFAccessHelpers.IsKeeperNSFFolderOwner(vault, folderUid, recipient, pkRs.AccountUid))
+                throw ShareOwnerValidation.FolderOwner(userEmail, sharedFolder: false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -948,6 +954,9 @@ namespace KeeperSecurity.Vault
         {
             var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, teamNameOrUid)
                 .ConfigureAwait(false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -1065,6 +1074,9 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
 
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
@@ -1258,6 +1270,9 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
+
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
                 var resolvedDupKey = BuildFolderAccessLookupKey(folder.FolderUid, recipient.Kind, accessUidB64);
@@ -1413,6 +1428,9 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
 
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
@@ -1684,6 +1702,24 @@ namespace KeeperSecurity.Vault
             }
 
             accessTypeUid = pkRs.AccountUid;
+            return true;
+        }
+
+        // Batch access methods report per-item failures rather than throwing.
+        private static bool TryRejectKeeperNSFFolderOwner(
+            VaultOnline vault,
+            string folderUid,
+            NsfShareRecipient recipient,
+            ByteString accessTypeUid,
+            KeeperNSFFolderAccessResult result)
+        {
+            if (!KeeperNSFAccessHelpers.IsKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid))
+            {
+                return false;
+            }
+
+            result.Status = "owner";
+            result.Message = ShareOwnerValidation.FolderOwnerMessage(recipient.Identifier, sharedFolder: false);
             return true;
         }
 
@@ -2140,6 +2176,11 @@ namespace KeeperSecurity.Vault
             var result = results[0];
             if (!result.Success)
             {
+                if (result.Status == "owner")
+                {
+                    throw new VaultException(result.Message);
+                }
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to create record: {result.Status ?? "unknown error"}"
                     : $"Failed to create record: {result.Message}");
@@ -3135,9 +3176,6 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            await KeeperNSFAccessHelpers.ThrowIfKeeperNSFRecordOwnerAsync(vault, recordUid, userEmail.Trim())
-                .ConfigureAwait(false);
-
             var results = await vault.ShareKeeperNSFRecordsInternal(new[]
             {
                 new KeeperNSFRecordShareRequest
@@ -3152,6 +3190,11 @@ namespace KeeperSecurity.Vault
             var result = results[0];
             if (!result.Success)
             {
+                if (result.Status == "owner")
+                {
+                    throw new VaultException(result.Message);
+                }
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to share record: {result.Status ?? "unknown error"}"
                     : $"Failed to share record: {result.Message}");
@@ -3221,9 +3264,6 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
-            await KeeperNSFAccessHelpers.ThrowIfKeeperNSFRecordOwnerAsync(vault, recordUid, userEmail.Trim())
-                .ConfigureAwait(false);
-
             var results = await vault.UnshareKeeperNSFRecordsInternal(new[]
             {
                 new KeeperNSFRecordUnshareRequest
@@ -3236,6 +3276,11 @@ namespace KeeperSecurity.Vault
             var result = results[0];
             if (!result.Success)
             {
+                if (result.Status == "owner")
+                {
+                    throw new VaultException(result.Message);
+                }
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to revoke record access: {result.Status ?? "unknown error"}"
                     : $"Failed to revoke record access: {result.Message}");
@@ -3356,6 +3401,14 @@ namespace KeeperSecurity.Vault
                     results[i].Message = string.IsNullOrEmpty(pkRs.Message)
                         ? $"User '{userEmail}' not found or has no public key."
                         : pkRs.Message;
+                    continue;
+                }
+
+                if (await KeeperNSFAccessHelpers.IsKeeperNSFRecordOwnerAsync(vault, recordUid, pkRs.AccountUid)
+                    .ConfigureAwait(false))
+                {
+                    results[i].Status = "owner";
+                    results[i].Message = ShareOwnerValidation.RecordOwnerMessage(userEmail);
                     continue;
                 }
 
@@ -3579,6 +3632,14 @@ namespace KeeperSecurity.Vault
                 {
                     results[i].Status = "user_not_found";
                     results[i].Message = $"User '{userEmail}' not found.";
+                    continue;
+                }
+
+                if (await KeeperNSFAccessHelpers.IsKeeperNSFRecordOwnerAsync(vault, recordUid, pkRs.AccountUid)
+                    .ConfigureAwait(false))
+                {
+                    results[i].Status = "owner";
+                    results[i].Message = ShareOwnerValidation.RecordOwnerMessage(userEmail);
                     continue;
                 }
 
