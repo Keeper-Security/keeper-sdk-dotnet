@@ -786,6 +786,41 @@ namespace KeeperSecurity.Vault
             return IsKeeperNSFFolderAccessorOwner(accountUidB64, username, ownerAccountUid, ownerUsername);
         }
 
+        internal static async Task ThrowIfKeeperNSFRecordOwnerAsync(
+            VaultOnline vault, string recordUid, string userEmail)
+        {
+            var accessors = await CollectKeeperNSFRecordAccessorsAsync(vault, recordUid).ConfigureAwait(false);
+            var currentUsername = vault.Auth?.Username;
+            if (accessors.Any(a => a.Owner &&
+                (string.Equals(a.Username, userEmail, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(currentUsername, userEmail, StringComparison.OrdinalIgnoreCase))))
+            {
+                throw ShareOwnerValidation.RecordOwner(userEmail);
+            }
+        }
+
+        internal static void ThrowIfKeeperNSFFolderOwner(
+            VaultOnline vault, string folderUid, string userEmail)
+        {
+            var (ownerUsername, _) = GetFolderOwnerInfo(vault, folderUid);
+            var currentUsername = vault.Auth?.Username;
+            var isOwner = string.Equals(ownerUsername, userEmail, StringComparison.OrdinalIgnoreCase)
+                          || string.Equals(currentUsername, userEmail, StringComparison.OrdinalIgnoreCase);
+            if (isOwner)
+            {
+                throw ShareOwnerValidation.FolderOwner(userEmail, sharedFolder: false);
+            }
+        }
+
+        internal static void ThrowIfKeeperNSFUserOwner(
+            VaultOnline vault, string folderUid, string accessor, bool? asTeam)
+        {
+            if (asTeam != true && accessor.Contains("@"))
+            {
+                ThrowIfKeeperNSFFolderOwner(vault, folderUid, accessor.Trim());
+            }
+        }
+
         internal static bool IsKeeperNSFFolderAccessorOwner(
             string accessTypeUid,
             string username,

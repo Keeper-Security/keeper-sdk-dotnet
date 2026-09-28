@@ -863,10 +863,8 @@ namespace KeeperSecurity.Vault
                 throw new KeeperApiException("not_found", "Record not found");
             }
 
-            var recordShares = (await GetSharesForRecords(new[] { recordUid })).FirstOrDefault(x => x.RecordUid == recordUid);
-
-            var targetPermission = recordShares?.UserPermissions
-                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            var targetPermission = await GetRecordPermissionAsync(recordUid, username).ConfigureAwait(false);
+            ThrowIfRecordOwner(targetPermission, username);
 
             var accessPath = new RecordAccessPath
             {
@@ -1099,6 +1097,10 @@ namespace KeeperSecurity.Vault
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
+
+            var targetPermission = await GetRecordPermissionAsync(recordUid, username).ConfigureAwait(false);
+            ThrowIfRecordOwner(targetPermission, username);
+
             var accessPath = new RecordAccessPath
             {
                 RecordUid = recordUid,
@@ -1129,6 +1131,22 @@ namespace KeeperSecurity.Vault
             if (status != null && status.Status != "success")
             {
                 throw new KeeperApiException(status.Status, status.Message);
+            }
+        }
+
+        private async Task<UserRecordPermissions> GetRecordPermissionAsync(string recordUid, string username)
+        {
+            var recordShares = (await GetSharesForRecords(new[] { recordUid }).ConfigureAwait(false))
+                .FirstOrDefault(x => x.RecordUid == recordUid);
+            return recordShares?.UserPermissions
+                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        private static void ThrowIfRecordOwner(UserRecordPermissions permission, string username)
+        {
+            if (permission?.Owner == true)
+            {
+                throw ShareOwnerValidation.RecordOwner(username);
             }
         }
 

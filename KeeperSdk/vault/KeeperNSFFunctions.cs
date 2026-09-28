@@ -604,6 +604,8 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
                 throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
 
+            KeeperNSFAccessHelpers.ThrowIfKeeperNSFUserOwner(vault, folderUid, accessor, asTeam);
+
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
 
@@ -865,6 +867,8 @@ namespace KeeperSecurity.Vault
 
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
                 throw new VaultException($"Keeper NSF folder '{folderUid}' not found");
+
+            KeeperNSFAccessHelpers.ThrowIfKeeperNSFUserOwner(vault, folderUid, accessor, asTeam);
 
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
@@ -3131,6 +3135,9 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
 
+            await KeeperNSFAccessHelpers.ThrowIfKeeperNSFRecordOwnerAsync(vault, recordUid, userEmail.Trim())
+                .ConfigureAwait(false);
+
             var results = await vault.ShareKeeperNSFRecordsInternal(new[]
             {
                 new KeeperNSFRecordShareRequest
@@ -3213,6 +3220,9 @@ namespace KeeperSecurity.Vault
                 throw new VaultException("Record UID cannot be empty");
             if (string.IsNullOrEmpty(userEmail))
                 throw new VaultException("User email cannot be empty");
+
+            await KeeperNSFAccessHelpers.ThrowIfKeeperNSFRecordOwnerAsync(vault, recordUid, userEmail.Trim())
+                .ConfigureAwait(false);
 
             var results = await vault.UnshareKeeperNSFRecordsInternal(new[]
             {

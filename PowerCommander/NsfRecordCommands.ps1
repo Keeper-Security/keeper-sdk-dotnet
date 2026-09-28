@@ -884,7 +884,7 @@ function Set-KeeperNSFRecordAccess {
             }
         }
         catch {
-            Write-Host "Error ${Action}ing access for '$user': $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Error ${Action}ing access for '$user': $($_.Exception.GetBaseException().Message)" -ForegroundColor Red
         }
     }
 }

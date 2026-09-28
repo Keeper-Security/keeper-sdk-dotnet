@@ -288,6 +288,9 @@ function Grant-KeeperRecordAccess {
                     Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
+            catch {
+                Write-Error -Message $_.Exception.GetBaseException().Message -ErrorAction Stop
+            }
         }
         else {
             Write-Error -Message "Cannot find a Keeper record: $Record"
@@ -764,6 +767,9 @@ function Grant-KeeperSharedFolderAccess {
             $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
             Write-Output("Invitation has been sent to `"$($User)`"`nPlease repeat this command when your invitation is accepted.");
         }
+    }
+    catch {
+        Write-Error -Message $_.Exception.GetBaseException().Message -ErrorAction Stop
     }
 
 }
