@@ -58,6 +58,30 @@ namespace Commander
                         Action = ThisDeviceCommand,
                     });
 
+                Commands.Add("device-list",
+                    new ParseableCommand<DeviceListOptions>
+                    {
+                        Order = 53,
+                        Description = "List devices registered to the current user",
+                        Action = DeviceListCommand,
+                    });
+
+                Commands.Add("device-action",
+                    new ParseableCommand<DeviceActionOptions>
+                    {
+                        Order = 54,
+                        Description = "Perform an action on one or more devices (logout, remove, lock, unlock, account-lock, account-unlock, link, unlink)",
+                        Action = DeviceActionCommand,
+                    });
+
+                Commands.Add("device-rename",
+                    new ParseableCommand<DeviceRenameOptions>
+                    {
+                        Order = 55,
+                        Description = "Rename a device",
+                        Action = DeviceRenameCommand,
+                    });
+
                 Commands.Add("biometric",
                     new ParseableCommand<BiometricOptions>
                     {
@@ -500,6 +524,243 @@ namespace Commander
             Console.WriteLine($"Unsupported device command {arguments.Command}");
         }
 
+        private async Task<DeviceManagement.Device[]> GetSortedUserDevices()
+        {
+            var devices = await _auth.GetUserDevices();
+            return devices.OrderByDescending(x => x.LastModifiedTime).ToArray();
+        }
+
+        // Device identifiers are 1-based, matching the row numbers displayed by "device-list"
+        // (and Python Commander's DeviceResolver), which sorts devices the same way.
+        private static DeviceManagement.Device[] ResolveUserDevices(DeviceManagement.Device[] devices, string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier) || identifier == "all")
+            {
+                return devices;
+            }
+
+            if (int.TryParse(identifier, out var index) && index >= 1 && index <= devices.Length)
+            {
+                return new[] { devices[index - 1] };
+            }
+
+            var matches = devices
+                .Where(x => x.EncryptedDeviceToken.ToByteArray().TokenToString().StartsWith(identifier) ||
+                            (!string.IsNullOrEmpty(x.DeviceName) && x.DeviceName.IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0))
+                .ToArray();
+            return matches;
+        }
+
+        private static readonly IDictionary<string, DeviceManagement.DeviceActionType> DeviceActionNames =
+            new Dictionary<string, DeviceManagement.DeviceActionType>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["logout"] = DeviceManagement.DeviceActionType.DaLogout,
+                ["remove"] = DeviceManagement.DeviceActionType.DaRemove,
+                ["lock"] = DeviceManagement.DeviceActionType.DaLock,
+                ["unlock"] = DeviceManagement.DeviceActionType.DaUnlock,
+                ["account-lock"] = DeviceManagement.DeviceActionType.DaDeviceAccountLock,
+                ["account-unlock"] = DeviceManagement.DeviceActionType.DaDeviceAccountUnlock,
+                ["link"] = DeviceManagement.DeviceActionType.DaLink,
+                ["unlink"] = DeviceManagement.DeviceActionType.DaUnlink,
+            };
+
+        private static string GetDeviceClientCategory(DeviceManagement.Device device)
+        {
+            switch (device.ClientTypeCategory)
+            {
+                case DeviceManagement.ClientTypeCategory.CatExtension:
+                    return "Browser Extension";
+                case DeviceManagement.ClientTypeCategory.CatDesktop:
+                    return "Desktop";
+                case DeviceManagement.ClientTypeCategory.CatWebVault:
+                    return "Web Vault";
+                case DeviceManagement.ClientTypeCategory.CatAdmin:
+                    return "Admin Console";
+                case DeviceManagement.ClientTypeCategory.CatSecretsManager:
+                    return "Secrets Manager";
+                case DeviceManagement.ClientTypeCategory.CatChatDesktop:
+                    return "Chat Desktop";
+                case DeviceManagement.ClientTypeCategory.CatChatMobile:
+                    return "Chat Mobile";
+                case DeviceManagement.ClientTypeCategory.CatMobile:
+                    switch (device.ClientFormFactor)
+                    {
+                        case ClientFormFactor.FfTablet:
+                            return "Tablet App";
+                        case ClientFormFactor.FfWatch:
+                            return "Wear OS App";
+                        default:
+                            switch (device.ClientType)
+                            {
+                                case DeviceManagement.ClientType.Ios:
+                                    return "iOS App";
+                                case DeviceManagement.ClientType.Android:
+                                    return "Android App";
+                                default:
+                                    return "Mobile App";
+                            }
+                    }
+                default:
+                    switch (device.ClientType)
+                    {
+                        case DeviceManagement.ClientType.Commander:
+                            return "Commander CLI";
+                        case DeviceManagement.ClientType.Server:
+                            return "Server";
+                        case DeviceManagement.ClientType.None:
+                        case DeviceManagement.ClientType.Unknown:
+                            return "Unknown";
+                        default:
+                            return device.ClientType.ToString();
+                    }
+            }
+        }
+
+        private async Task DeviceListCommand(DeviceListOptions arguments)
+        {
+            var devices = await GetSortedUserDevices();
+            if (devices.Length == 0)
+            {
+                Console.WriteLine("No devices found");
+                return;
+            }
+
+            var format = (arguments.Format ?? "table").ToLowerInvariant();
+            var headerRow = new[] { "Device Name", "Client", "ID", "Status", "Login State", "Last Accessed" };
+            var rows = devices.Select(device =>
+            {
+                var deviceToken = device.EncryptedDeviceToken.ToByteArray();
+                var lastAccessed = device.LastModifiedTime > 0
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(device.LastModifiedTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    : "";
+                return new object[]
+                {
+                    device.DeviceName,
+                    GetDeviceClientCategory(device),
+                    deviceToken.TokenToString(),
+                    device.DeviceStatus.DeviceStatusToString(),
+                    device.LoginState.ToString(),
+                    lastAccessed
+                };
+            }).ToList();
+
+            var jsonData = format == "json"
+                ? rows.Select(row => headerRow.Zip(row, (col, val) => new { col, val }).ToDictionary(x => x.col, x => x.val)).ToList()
+                : null;
+
+            if (!string.IsNullOrEmpty(arguments.Output) && format == "table")
+            {
+                Console.WriteLine("Output file is ignored for table format. Use json.");
+            }
+
+            if (!string.IsNullOrEmpty(arguments.Output) && format != "table")
+            {
+                using var writer = new System.IO.StreamWriter(arguments.Output);
+                EnterpriseExtensions.WriteFormattedOutput(writer, format, headerRow, rows, jsonData);
+                Console.WriteLine($"Output written to {arguments.Output}");
+                return;
+            }
+
+            if (format == "table")
+            {
+                Console.WriteLine();
+            }
+            EnterpriseExtensions.WriteFormattedOutput(Console.Out, format, headerRow, rows, jsonData);
+        }
+
+        private async Task DeviceActionCommand(DeviceActionOptions arguments)
+        {
+            if (string.IsNullOrEmpty(arguments.Action) || !DeviceActionNames.TryGetValue(arguments.Action, out var actionType))
+            {
+                Console.WriteLine($"Unsupported device action \"{arguments.Action}\". Valid actions: {string.Join(", ", DeviceActionNames.Keys)}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.Devices))
+            {
+                Console.WriteLine("At least one device must be specified");
+                return;
+            }
+
+            var devices = await GetSortedUserDevices();
+            var identifiers = arguments.Devices.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
+            var toAct = new List<DeviceManagement.Device>();
+            foreach (var identifier in identifiers)
+            {
+                var matches = ResolveUserDevices(devices, identifier);
+                if (matches.Length == 0)
+                {
+                    Console.WriteLine($"No device found for \"{identifier}\"");
+                    continue;
+                }
+
+                toAct.AddRange(matches);
+            }
+
+            toAct = toAct.GroupBy(x => x.EncryptedDeviceToken).Select(x => x.First()).ToList();
+
+            if (toAct.Count == 0)
+            {
+                Console.WriteLine("No devices to act on");
+                return;
+            }
+
+            if ((actionType == DeviceManagement.DeviceActionType.DaLink || actionType == DeviceManagement.DeviceActionType.DaUnlink) && toAct.Count < 2)
+            {
+                Console.WriteLine($"Action \"{arguments.Action}\" requires at least 2 devices");
+                return;
+            }
+
+            var results = await _auth.ExecuteDeviceAction(actionType, toAct.Select(x => x.EncryptedDeviceToken));
+            foreach (var result in results)
+            {
+                foreach (var token in result.EncryptedDeviceToken)
+                {
+                    Console.WriteLine($"Device {token.ToByteArray().TokenToString()}: {result.DeviceActionStatus}");
+                }
+            }
+        }
+
+        private async Task DeviceRenameCommand(DeviceRenameOptions arguments)
+        {
+            if (string.IsNullOrEmpty(arguments.Device) || string.IsNullOrEmpty(arguments.NewName))
+            {
+                Console.WriteLine("Usage: device-rename <device> <new_name>");
+                return;
+            }
+
+            var devices = await GetSortedUserDevices();
+            var matches = ResolveUserDevices(devices, arguments.Device);
+            if (matches.Length == 0)
+            {
+                Console.WriteLine($"No device found for \"{arguments.Device}\"");
+                return;
+            }
+
+            if (matches.Length > 1)
+            {
+                Console.WriteLine($"Multiple devices match \"{arguments.Device}\". Please be more specific.");
+                return;
+            }
+
+            var result = await _auth.RenameUserDevice(matches[0].EncryptedDeviceToken, arguments.NewName);
+            if (result == null)
+            {
+                Console.WriteLine("Device rename failed: no response from server");
+                return;
+            }
+
+            if (result.DeviceActionStatus == DeviceManagement.DeviceActionStatus.Success)
+            {
+                Console.WriteLine($"Device renamed to \"{result.DeviceNewName}\"");
+                await DeviceListCommand(new DeviceListOptions());
+            }
+            else
+            {
+                Console.WriteLine($"Device rename failed: {result.DeviceActionStatus}");
+            }
+        }
+
         public override async Task<bool> ProcessException(Exception e)
         {
             if (!(e is KeeperAuthFailed)) return await base.ProcessException(e);
@@ -830,6 +1091,33 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]
         public string Parameter { get; set; }
+    }
+
+    class DeviceListOptions
+    {
+        [Option("format", Required = false, Default = "table", HelpText = "output format: table, json")]
+        public string Format { get; set; }
+
+        [Option('o', "output", Required = false, HelpText = "output file name (ignored for table format)")]
+        public string Output { get; set; }
+    }
+
+    class DeviceActionOptions
+    {
+        [Value(0, Required = true, HelpText = "device action: \"logout\", \"remove\", \"lock\", \"unlock\", \"account-lock\", \"account-unlock\", \"link\", \"unlink\"")]
+        public string Action { get; set; }
+
+        [Value(1, Required = true, HelpText = "comma separated list of device number(s) (as shown in device-list), name(s), or \"all\"")]
+        public string Devices { get; set; }
+    }
+
+    class DeviceRenameOptions
+    {
+        [Value(0, Required = true, HelpText = "device number (as shown in device-list) or name")]
+        public string Device { get; set; }
+
+        [Value(1, Required = true, HelpText = "new device name")]
+        public string NewName { get; set; }
     }
 
     class BiometricOptions
