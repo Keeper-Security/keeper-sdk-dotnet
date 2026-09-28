@@ -2,6 +2,8 @@ namespace KeeperSecurity.Vault
 {
     internal static class ShareOwnerValidation
     {
+        internal const string OwnerStatus = "owner";
+
         // Sharing an owner was previously allowed to reach the API. Keep the intentional
         // client-side rejection and its user-facing text consistent across all share APIs.
         internal static string RecordOwnerMessage(string username)

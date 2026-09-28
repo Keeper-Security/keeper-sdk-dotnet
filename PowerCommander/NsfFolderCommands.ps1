@@ -359,11 +359,8 @@ function Set-KeeperNSFFolderAccess {
             }
         }
         catch {
-            $message = $_.Exception.Message
-            if ($_.Exception -is [System.Management.Automation.MethodInvocationException] -and $_.Exception.InnerException) {
-                $message = $_.Exception.InnerException.Message
-            }
-            Write-Error -Message $message
+            $message = Get-KeeperExceptionMessage -Exception $_.Exception
+            Write-Error -Message "Error ${Action}ing access for '$user': $message"
         }
     }
 }

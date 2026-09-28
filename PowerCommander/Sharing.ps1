@@ -289,11 +289,7 @@ function Grant-KeeperRecordAccess {
                 }
             }
             catch {
-                $message = $_.Exception.Message
-                if ($_.Exception -is [System.Management.Automation.MethodInvocationException] -and $_.Exception.InnerException) {
-                    $message = $_.Exception.InnerException.Message
-                }
-                Write-Error -Message $message -ErrorAction Stop
+                Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
             }
         }
         else {
@@ -423,8 +419,13 @@ function Revoke-KeeperRecordAccess {
         }
         if ($rec) {
             $found = $true
-            $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
+            try {
+                $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
+            }
+            catch {
+                Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+            }
         }
     }
     if (-not $found) {
@@ -773,11 +774,7 @@ function Grant-KeeperSharedFolderAccess {
         }
     }
     catch {
-        $message = $_.Exception.Message
-        if ($_.Exception -is [System.Management.Automation.MethodInvocationException] -and $_.Exception.InnerException) {
-            $message = $_.Exception.InnerException.Message
-        }
-        Write-Error -Message $message -ErrorAction Stop
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
     }
 
 }
@@ -869,8 +866,13 @@ function Revoke-KeeperSharedFolderAccess {
         }
     }
 
-    $vault.RemoveUserFromSharedFolder($sf.Uid, $userId, $userType).GetAwaiter().GetResult() | Out-Null
-    Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
+    try {
+        $vault.RemoveUserFromSharedFolder($sf.Uid, $userId, $userType).GetAwaiter().GetResult() | Out-Null
+        Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
+    }
+    catch {
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+    }
 }
 
 function ensureAvalableLoaded {

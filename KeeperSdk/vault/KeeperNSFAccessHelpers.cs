@@ -786,20 +786,6 @@ namespace KeeperSecurity.Vault
             return IsKeeperNSFFolderAccessorOwner(accountUidB64, username, ownerAccountUid, ownerUsername);
         }
 
-        internal static async Task<bool> IsKeeperNSFRecordOwnerAsync(
-            VaultOnline vault, string recordUid, ByteString accountUid)
-        {
-            if (accountUid == null || accountUid.IsEmpty)
-            {
-                return false;
-            }
-
-            var accountUidB64 = CryptoUtils.Base64UrlEncode(accountUid.ToByteArray());
-            var accessors = await CollectKeeperNSFRecordAccessorsAsync(vault, recordUid).ConfigureAwait(false);
-            return accessors.Any(a => a.Owner
-                                      && string.Equals(a.AccessTypeUid, accountUidB64, StringComparison.Ordinal));
-        }
-
         internal static bool IsKeeperNSFFolderOwner(
             VaultOnline vault, string folderUid, NsfShareRecipient recipient, ByteString accessTypeUid)
         {
