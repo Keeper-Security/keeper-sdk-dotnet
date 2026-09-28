@@ -1063,7 +1063,14 @@ function Set-KeeperAccountRecovery {
     }
 
     if ($Verify) {
-        return [KeeperSecurity.Authentication.AccountRecoveryExtensions]::VerifyAccountRecoveryPhrase($auth, $Verify).GetAwaiter().GetResult()
+        try {
+            return [KeeperSecurity.Authentication.AccountRecoveryExtensions]::VerifyAccountRecoveryPhrase($auth, $Verify).GetAwaiter().GetResult()
+        }
+        catch {
+            $message = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { $_.Exception.Message }
+            Write-Error $message -ErrorAction Stop
+            return
+        }
     }
 
     $phrase = [KeeperSecurity.Utils.RecoveryPhrase]::Generate()
