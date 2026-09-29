@@ -464,6 +464,30 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
     }
 }
 
+function Resolve-KeeperServer {
+    <#
+    .Synopsis
+    Resolves a Keeper region code or hostname to a valid Keeper server hostname.
+    Returns $null for empty input and throws an error for unknown values.
+    Uses KeeperRegions from the SDK as the single source of truth for region mappings.
+    #>
+    param(
+        [Parameter()] [string] $Server
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Server)) {
+        return $null
+    }
+
+    $resolved = [KeeperSecurity.Authentication.KeeperRegions]::ResolveServer($Server)
+    if ($resolved) {
+        return $resolved
+    }
+
+    $validRegions = ([KeeperSecurity.Authentication.KeeperRegions]::Servers.Keys | Sort-Object) -join ', '
+    Write-Error "Invalid region: $Server`nValid regions: $validRegions" -ErrorAction Stop
+}
+
 function getConfigurationForDevice {
     param(
         [Parameter(Mandatory=$true)] [string] $Device,
@@ -561,6 +585,10 @@ function Connect-Keeper {
         [Parameter()][switch] $KeepAlive,
         [Parameter()][switch] $PushNotifications
     )
+
+    if ($Server) {
+        $Server = Resolve-KeeperServer -Server $Server
+    }
 
     Disconnect-Keeper -Resume | Out-Null
     $deviceTokenOnly = $false
