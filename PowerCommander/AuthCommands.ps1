@@ -8,6 +8,9 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
     }
 
     [System.Threading.Tasks.Task[bool]] Confirmation([string] $information) {
+        if ($information -like 'Your Master Password has expired*') {
+            return [System.Threading.Tasks.Task]::FromResult($true)
+        }
         Write-Host ''
         Write-Host $information -ForegroundColor Yellow
         $answer = Read-Host 'Do you want to continue? (y/n)'
@@ -689,6 +692,7 @@ function Connect-Keeper {
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
     $authFlow.UiCallback = [KeeperPostLoginUI]::new()
+    $authFlow.SupportRestrictedSession = $true
 
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
     $authFlow.NoNewDevice = $deviceTokenOnly
@@ -883,7 +887,9 @@ function Connect-Keeper {
             }
         }
         catch {
-            if ($auth.AuthContext.IsAccountRecoverySession) {
+            $isRecoverySessionError = $auth.AuthContext.IsAccountRecoverySession -or
+                $_.Exception.Message -like '*ACCOUNT_RECOVERY*'
+            if ($isRecoverySessionError) {
                 Write-Host ''
                 Write-Host 'Your Master Password has been changed successfully.' -ForegroundColor Green
                 Write-Host 'This session was created during account recovery and cannot be used to access the vault - you need to log in again with your new password.' -ForegroundColor Yellow
