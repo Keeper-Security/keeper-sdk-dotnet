@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Authentication;
 using Cli;
@@ -94,9 +95,31 @@ namespace Commander
                 Description = "Display or change Keeper Server",
                 Action = (args) =>
                 {
-                    if (!string.IsNullOrEmpty(args))
+                    var server = args?.Trim() ?? "";
+
+                    if (server == "-h" || server == "--help")
                     {
-                        _auth.Endpoint.Server = args;
+                        Console.WriteLine("Usage: server [REGION]");
+                        Console.WriteLine();
+                        Console.WriteLine("Set or display the current Keeper region.");
+                        Console.WriteLine();
+                        Console.WriteLine("Valid regions:");
+                        Console.WriteLine("  Production: US, EU, AU, CA, JP, GOV");
+                        Console.WriteLine("  Dev:        US_DEV, EU_DEV, AU_DEV, CA_DEV, JP_DEV, GOV_DEV");
+                        Console.WriteLine("  QA:         US_QA, EU_QA, AU_QA, CA_QA, JP_QA, GOV_QA");
+                        return Task.FromResult(true);
+                    }
+
+                    if (!string.IsNullOrEmpty(server))
+                    {
+                        var resolved = KeeperRegions.ResolveServer(server);
+                        if (resolved == null)
+                        {
+                            Console.WriteLine($"Invalid region: {server}");
+                            Console.WriteLine($"Valid regions: {string.Join(", ", KeeperRegions.Servers.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}");
+                            return Task.FromResult(true);
+                        }
+                        _auth.Endpoint.Server = resolved;
                     }
 
                     Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
