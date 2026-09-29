@@ -718,7 +718,14 @@ function Grant-KeeperSharedFolderUserSkipSync {
     $didGrant = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to $email")) {
         $auth = getKeeperAuth
-        __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutUserToSharedFolderAsync($auth, $sfUid, $email, $options)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email added or updated."
@@ -758,7 +765,14 @@ function Revoke-KeeperSharedFolderUserSkipSync {
     $didRevoke = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Remove shared folder access for $email")) {
         $auth = getKeeperAuth
-        __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveUserFromSharedFolderAsync($auth, $sfUid, $email)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email removed."

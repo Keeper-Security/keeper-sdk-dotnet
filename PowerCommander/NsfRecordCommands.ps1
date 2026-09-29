@@ -884,8 +884,7 @@ function Set-KeeperNSFRecordAccess {
             }
         }
         catch {
-            $message = Get-KeeperExceptionMessage -Exception $_.Exception
-            Write-Error -Message "Error ${Action}ing access for '$user': $message"
+            [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
         }
     }
 }

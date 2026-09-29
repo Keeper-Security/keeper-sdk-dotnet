@@ -289,7 +289,9 @@ function Grant-KeeperRecordAccess {
                 }
             }
             catch {
-                Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+                if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                    return
+                }
             }
         }
         else {
@@ -424,7 +426,9 @@ function Revoke-KeeperRecordAccess {
                 Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
             }
             catch {
-                Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+                if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                    return
+                }
             }
         }
     }
@@ -774,7 +778,9 @@ function Grant-KeeperSharedFolderAccess {
         }
     }
     catch {
-        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+        if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+            return
+        }
     }
 
 }
@@ -871,7 +877,9 @@ function Revoke-KeeperSharedFolderAccess {
         Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
     }
     catch {
-        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop
+        if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+            return
+        }
     }
 }
 
