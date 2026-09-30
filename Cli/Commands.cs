@@ -75,10 +75,23 @@ namespace Cli
 
         public static IEnumerable<string> TokenizeArguments(this string args)
         {
-            return TokenizeArguments(args, IsWhiteSpace);
+            return TokenizeArguments(args, IsWhiteSpace, false);
         }
 
         public static IEnumerable<string> TokenizeArguments(this string args, Func<char, bool> isDelimiter)
+        {
+            return TokenizeArguments(args, isDelimiter, false);
+        }
+
+        public static IEnumerable<string> TokenizeArgumentsPreservingEmpty(this string args)
+        {
+            return TokenizeArguments(args, IsWhiteSpace, true);
+        }
+
+        private static IEnumerable<string> TokenizeArguments(
+            string args,
+            Func<char, bool> isDelimiter,
+            bool preserveEmptyQuotedArguments)
         {
             var sb = new StringBuilder();
             var pos = 0;
@@ -102,11 +115,13 @@ namespace Cli
                     {
                         case '\\':
                             isEscape = true;
-                            tokenStarted = true;
                             break;
                         case '"':
                             isQuote = !isQuote;
-                            tokenStarted = true;
+                            if (preserveEmptyQuotedArguments)
+                            {
+                                tokenStarted = true;
+                            }
                             break;
                         default:
                         {
