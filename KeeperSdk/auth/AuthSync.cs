@@ -460,10 +460,113 @@ namespace KeeperSecurity.Authentication.Sync
                 OnBiometricKey = async bioKey =>
                 {
                     await passwordInfo.InvokeBiometricsActionDelegate.Invoke(bioKey);
-                }
+                },
+                OnRecoverAccount = async () =>
+                {
+                    Step = StartAccountRecovery(loginToken, async () => { Step = await ValidateAuthHash(loginToken, salts); });
+                },
             };
 
             return step;
+        }
+
+        private AccountRecoveryStep StartAccountRecovery(ByteString loginToken, Func<Task> resumeToPassword)
+        {
+            var recoveryStep = new AccountRecoveryStep();
+            string verificationCode = null;
+            byte[] securityQuestionSalt = null;
+            var securityQuestionIterations = 0;
+            var verificationVersion = 0;
+            var isCompleted = false;
+
+            void EnsureNotCompleted()
+            {
+                if (isCompleted)
+                {
+                    throw new InvalidOperationException("This account recovery step has already completed and cannot be reused.");
+                }
+            }
+
+            async Task<GetDataKeyBackupV3Response> SubmitBackupKey(byte[] authToken, string mismatchMessage)
+            {
+                var expectedVersion = verificationVersion;
+                var rs = await this.ExecuteGetDataKeyBackupV3(loginToken, verificationCode, authToken);
+                if (verificationVersion != expectedVersion)
+                {
+                    throw new InvalidOperationException(mismatchMessage);
+                }  
+
+                isCompleted = true;
+                return rs;
+            }
+
+            recoveryStep.OnRequestVerificationCode = async () =>
+            {
+                EnsureNotCompleted();
+                await this.ExecuteMasterPasswordRecoveryVerification(loginToken);
+            };
+
+            recoveryStep.OnSubmitVerificationCode = async code =>
+            {
+                EnsureNotCompleted();
+                var rs = await this.ExecuteAccountRecoveryVerifyCode(loginToken, code);
+                verificationCode = code;
+                recoveryStep.RecoveryType = rs.BackupKeyType;
+                recoveryStep.SecurityQuestion = rs.SecurityQuestion;
+                securityQuestionSalt = rs.Salt.ToByteArray();
+                securityQuestionIterations = rs.Iterations;
+                verificationVersion++;
+            };
+
+            recoveryStep.OnSubmitSecurityAnswer = async answer =>
+            {
+                EnsureNotCompleted();
+                if (recoveryStep.RecoveryType != BackupKeyType.BktSecAnswer)
+                {
+                    throw new InvalidOperationException(
+                        $"{nameof(recoveryStep.SubmitSecurityAnswer)} is only valid when {nameof(recoveryStep.RecoveryType)} is {BackupKeyType.BktSecAnswer}.");
+                }
+
+                var normalizedAnswer = answer.ToLowerInvariant();
+                var hash = CryptoUtils.DeriveV1KeyHash(normalizedAnswer, securityQuestionSalt, securityQuestionIterations);
+                var rs = await SubmitBackupKey(hash,
+                    "A new verification code was submitted while this answer was being processed. Please resubmit.");
+                var dataKey = CryptoUtils.DecryptEncryptionParams(normalizedAnswer, rs.DataKeyBackup.ToByteArray());
+                Step = await OnConnected(BuildAccountRecoveryContext(rs, dataKey));
+            };
+
+            recoveryStep.OnSubmitRecoveryPhrase = async phrase =>
+            {
+                EnsureNotCompleted();
+                if (recoveryStep.RecoveryType != BackupKeyType.BktPassphraseHash)
+                {
+                    throw new InvalidOperationException(
+                        $"{nameof(recoveryStep.SubmitRecoveryPhrase)} is only valid when {nameof(recoveryStep.RecoveryType)} is {BackupKeyType.BktPassphraseHash}.");
+                }
+
+                var normalizedPhrase = RecoveryPhrase.Normalize(phrase);
+                var recoveryAuthToken = RecoveryPhrase.DeriveRecoveryAuthToken(normalizedPhrase);
+                var recoveryKey = RecoveryPhrase.DeriveRecoveryKey(normalizedPhrase);
+                var rs = await SubmitBackupKey(recoveryAuthToken,
+                    "A new verification code was submitted while this recovery phrase was being processed. Please resubmit.");
+                var dataKey = CryptoUtils.DecryptAesV2(rs.DataKeyBackup.ToByteArray(), recoveryKey);
+                Step = await OnConnected(BuildAccountRecoveryContext(rs, dataKey));
+            };
+
+            recoveryStep.OnResume = resumeToPassword;
+
+            return recoveryStep;
+        }
+
+        // Restriction forces a Master Password change in PostLogin before normal login completes.
+        private static AuthContext BuildAccountRecoveryContext(GetDataKeyBackupV3Response rs, byte[] dataKey)
+        {
+            return new AuthContext
+            {
+                SessionToken = rs.EncryptedSessionToken.ToByteArray(),
+                SessionTokenRestriction = SessionTokenRestriction.AccountRecovery,
+                DataKey = dataKey,
+            };
         }
 
         private DeviceApprovalStep ApproveDevice(ByteString loginToken)

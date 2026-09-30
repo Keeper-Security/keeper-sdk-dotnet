@@ -658,6 +658,46 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
+        ///     Derives a key using HKDF (RFC 5869) with HMAC-SHA512 as the underlying hash.
+        /// </summary>
+        /// <param name="ikm">Input keying material.</param>
+        /// <param name="info">Context / domain-separation string.</param>
+        /// <param name="length">Length of the derived key in bytes.</param>
+        /// <param name="salt">Optional salt. Defaults to an empty byte array.</param>
+        /// <returns>Derived key.</returns>
+        public static byte[] DeriveHkdfSha512(byte[] ikm, byte[] info, int length = 32, byte[] salt = null)
+        {
+            if (ikm == null) throw new ArgumentNullException(nameof(ikm));
+            if (info == null) throw new ArgumentNullException(nameof(info));
+            if (length < 0 || length > 255 * 64) throw new ArgumentOutOfRangeException(nameof(length));
+
+            salt ??= Array.Empty<byte>();
+            using var extractHmac = new HMACSHA512(salt);
+            var prk = extractHmac.ComputeHash(ikm);
+
+            using var expandHmac = new HMACSHA512(prk);
+            var okm = new byte[length];
+            var previousBlock = Array.Empty<byte>();
+            var offset = 0;
+            byte counter = 1;
+            while (offset < length)
+            {
+                var input = new byte[previousBlock.Length + info.Length + 1];
+                Array.Copy(previousBlock, input, previousBlock.Length);
+                Array.Copy(info, 0, input, previousBlock.Length, info.Length);
+                input[input.Length - 1] = counter;
+
+                previousBlock = expandHmac.ComputeHash(input);
+                var toCopy = Math.Min(previousBlock.Length, length - offset);
+                Array.Copy(previousBlock, 0, okm, offset, toCopy);
+                offset += toCopy;
+                counter++;
+            }
+
+            return okm;
+        }
+
+        /// <summary>
         /// Creates Auth hash for authorization with Biometrics
         /// </summary>
         /// <param name="biometricKey">Biometric key</param>

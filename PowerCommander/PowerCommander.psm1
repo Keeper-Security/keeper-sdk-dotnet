@@ -60,8 +60,8 @@ if ($null -ne $Script:Context.Enterprise -and -not ($Script:Context.Enterprise -
     $Script:Context.ManagedCompanyId = 0
 }
 
-Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
-Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
+Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation,
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Set-KeeperAccountRecovery
 Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,

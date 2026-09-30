@@ -42,5 +42,6 @@
 
     <ItemGroup>
     <EmbeddedResource Include="utils\eff_words.txt.gz" />
+    <EmbeddedResource Include="utils\recovery_phrase_words.txt.gz" />
   </ItemGroup>
 </Project>
