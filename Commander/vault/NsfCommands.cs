@@ -61,7 +61,6 @@ namespace Commander
                 {
                     Order = 46,
                     Description = "Rename or recolor a Keeper NSF folder",
-                    PreserveEmptyArguments = true,
                     Validate = tokens => ValidateOptionValue(
                         tokens,
                         "--name",
@@ -109,7 +108,6 @@ namespace Commander
                 {
                     Order = 47,
                     Description = "Update a Keeper NSF record",
-                    PreserveEmptyArguments = true,
                     Validate = tokens => ValidateOptionValue(
                         tokens,
                         "--title",

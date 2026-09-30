@@ -38,15 +38,9 @@ namespace Cli
 
         public Func<IReadOnlyList<string>, string> Validate { get; set; }
 
-        // Needed by commands that must distinguish an explicit empty value from an omitted option.
-        public bool PreserveEmptyArguments { get; set; }
-
         public Task ExecuteCommand(string args)
         {
-            var tokens = (PreserveEmptyArguments
-                    ? args.TokenizeArgumentsPreservingEmpty()
-                    : args.TokenizeArguments())
-                .ToList();
+            var tokens = args.TokenizeArguments().ToList();
             var validationError = Validate?.Invoke(tokens);
             if (!string.IsNullOrEmpty(validationError))
             {

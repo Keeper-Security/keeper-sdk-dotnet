@@ -75,30 +75,15 @@ namespace Cli
 
         public static IEnumerable<string> TokenizeArguments(this string args)
         {
-            return TokenizeArguments(args, IsWhiteSpace, false);
+            return TokenizeArguments(args, IsWhiteSpace);
         }
 
         public static IEnumerable<string> TokenizeArguments(this string args, Func<char, bool> isDelimiter)
-        {
-            return TokenizeArguments(args, isDelimiter, false);
-        }
-
-        public static IEnumerable<string> TokenizeArgumentsPreservingEmpty(this string args)
-        {
-            return TokenizeArguments(args, IsWhiteSpace, true);
-        }
-
-        private static IEnumerable<string> TokenizeArguments(
-            string args,
-            Func<char, bool> isDelimiter,
-            bool preserveEmptyQuotedArguments)
         {
             var sb = new StringBuilder();
             var pos = 0;
             var isQuote = false;
             var isEscape = false;
-            // Preserve explicitly quoted empty arguments so option validation can distinguish them from omitted values.
-            var tokenStarted = false;
             while (pos < args.Length)
             {
                 var ch = args[pos];
@@ -106,7 +91,6 @@ namespace Cli
                 if (isEscape)
                 {
                     isEscape = false;
-                    tokenStarted = true;
                     sb.Append(ch);
                 }
                 else
@@ -118,25 +102,19 @@ namespace Cli
                             break;
                         case '"':
                             isQuote = !isQuote;
-                            if (preserveEmptyQuotedArguments)
-                            {
-                                tokenStarted = true;
-                            }
                             break;
                         default:
                         {
                             if (!isQuote && isDelimiter(ch))
                             {
-                                if (tokenStarted)
+                                if (sb.Length > 0)
                                 {
                                     yield return sb.ToString();
                                     sb.Length = 0;
-                                    tokenStarted = false;
                                 }
                             }
                             else
                             {
-                                tokenStarted = true;
                                 sb.Append(ch);
                             }
 
@@ -148,7 +126,7 @@ namespace Cli
                 pos++;
             }
 
-            if (tokenStarted)
+            if (sb.Length > 0)
             {
                 yield return sb.ToString();
             }
