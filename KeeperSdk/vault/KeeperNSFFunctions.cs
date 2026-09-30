@@ -2755,6 +2755,11 @@ namespace KeeperSecurity.Vault
                 {
                     throw new ArgumentException($"Record UID cannot be empty (index {i}).", nameof(records));
                 }
+
+                if (records[i].Title != null && string.IsNullOrWhiteSpace(records[i].Title))
+                {
+                    throw new ArgumentException($"Record title cannot be empty (index {i}).", nameof(records));
+                }
             }
 
             var preparedRecordRequestArray = new List<(KeeperNSFRecordUpdateRequest Request, string Title, RecordUpdate RecordUpdate)>();

@@ -84,6 +84,8 @@ namespace Cli
             var pos = 0;
             var isQuote = false;
             var isEscape = false;
+            // Preserve explicitly quoted empty arguments so option validation can distinguish them from omitted values.
+            var tokenStarted = false;
             while (pos < args.Length)
             {
                 var ch = args[pos];
@@ -91,6 +93,7 @@ namespace Cli
                 if (isEscape)
                 {
                     isEscape = false;
+                    tokenStarted = true;
                     sb.Append(ch);
                 }
                 else
@@ -99,22 +102,26 @@ namespace Cli
                     {
                         case '\\':
                             isEscape = true;
+                            tokenStarted = true;
                             break;
                         case '"':
                             isQuote = !isQuote;
+                            tokenStarted = true;
                             break;
                         default:
                         {
                             if (!isQuote && isDelimiter(ch))
                             {
-                                if (sb.Length > 0)
+                                if (tokenStarted)
                                 {
                                     yield return sb.ToString();
                                     sb.Length = 0;
+                                    tokenStarted = false;
                                 }
                             }
                             else
                             {
+                                tokenStarted = true;
                                 sb.Append(ch);
                             }
 
@@ -126,7 +133,7 @@ namespace Cli
                 pos++;
             }
 
-            if (sb.Length > 0)
+            if (tokenStarted)
             {
                 yield return sb.ToString();
             }

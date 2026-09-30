@@ -596,6 +596,11 @@ function Edit-KeeperNSFRecord {
     $hasFields = $Fields -and $Fields.Count -gt 0
     $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
 
+    if ($hasTitle -and [string]::IsNullOrWhiteSpace($Title)) {
+        Write-Error -Message "Record title cannot be empty."
+        return
+    }
+
     if ($GeneratePassword.IsPresent -and $generatePassphrase) {
         Write-Host "Error: -GeneratePassword and -GeneratePassphrase cannot be used together." -ForegroundColor Red
         return

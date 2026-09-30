@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Cli;
 
 namespace Commander
@@ -55,10 +57,11 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-rndir",
-                new ParseableCommand<NsfRndirOptions>
+                new ValidatingParseableCommand<NsfRndirOptions>
                 {
                     Order = 46,
                     Description = "Rename or recolor a Keeper NSF folder",
+                    Validate = tokens => ValidateOptionValue(tokens, "--name", "-n", "Folder name cannot be empty."),
                     Action = context.NsfRndirCommand
                 });
 
@@ -95,10 +98,11 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-record-update",
-                new ParseableCommand<NsfRecordUpdateOptions>
+                new ValidatingParseableCommand<NsfRecordUpdateOptions>
                 {
                     Order = 47,
                     Description = "Update a Keeper NSF record",
+                    Validate = tokens => ValidateOptionValue(tokens, "--title", null, "Record title cannot be empty."),
                     Action = context.NsfRecordUpdateCommand
                 });
 
@@ -158,6 +162,39 @@ namespace Commander
                     Action = context.NsfTransferRecordCommand
                 });
         }
+
+        private static string ValidateOptionValue(
+            IReadOnlyList<string> tokens,
+            string longOption,
+            string shortOption,
+            string errorMessage)
+        {
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                var hasOption = string.Equals(token, longOption, StringComparison.Ordinal)
+                    || (!string.IsNullOrEmpty(shortOption)
+                        && string.Equals(token, shortOption, StringComparison.Ordinal));
+
+                if (hasOption)
+                {
+                    if (i + 1 >= tokens.Count
+                        || tokens[i + 1].StartsWith("-", StringComparison.Ordinal)
+                        || string.IsNullOrWhiteSpace(tokens[i + 1]))
+                    {
+                        return errorMessage;
+                    }
+                }
+                else if ((token.StartsWith(longOption + "=", StringComparison.Ordinal)
+                        || (!string.IsNullOrEmpty(shortOption)
+                            && token.StartsWith(shortOption + "=", StringComparison.Ordinal)))
+                    && string.IsNullOrWhiteSpace(token.Substring(token.IndexOf('=') + 1)))
+                {
+                    return errorMessage;
+                }
+            }
+
+            return null;
+        }
     }
 }
-

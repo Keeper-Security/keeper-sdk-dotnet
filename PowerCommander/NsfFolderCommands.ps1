@@ -1017,6 +1017,11 @@ function Set-KeeperNSFFolder {
         [switch] $NoInheritPermissions
     )
 
+    if ($PSBoundParameters.ContainsKey('Name') -and [string]::IsNullOrWhiteSpace($Name)) {
+        Write-Error -Message "Folder name cannot be empty."
+        return
+    }
+
     if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color') -and -not $NoInheritPermissions.IsPresent) {
         Write-Error -Message "Specify -Name, -Color, and/or -NoInheritPermissions to update the folder."
         return
