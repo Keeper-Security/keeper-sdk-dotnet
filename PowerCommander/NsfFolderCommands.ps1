@@ -1018,7 +1018,7 @@ function Set-KeeperNSFFolder {
     )
 
     if ($PSBoundParameters.ContainsKey('Name') -and [string]::IsNullOrWhiteSpace($Name)) {
-        Write-Error -Message "Folder name cannot be empty."
+        Write-Host "Error: Folder name cannot be empty." -ForegroundColor Red
         return
     }
 

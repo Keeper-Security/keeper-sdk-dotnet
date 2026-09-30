@@ -597,7 +597,7 @@ function Edit-KeeperNSFRecord {
     $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
 
     if ($hasTitle -and [string]::IsNullOrWhiteSpace($Title)) {
-        Write-Error -Message "Record title cannot be empty."
+        Write-Host "Error: Record title cannot be empty." -ForegroundColor Red
         return
     }
 
