@@ -62,7 +62,13 @@ namespace Commander
                     Order = 46,
                     Description = "Rename or recolor a Keeper NSF folder",
                     PreserveEmptyArguments = true,
-                    Validate = tokens => ValidateOptionValue(tokens, "--name", "-n", "Folder name cannot be empty."),
+                    Validate = tokens => ValidateOptionValue(
+                        tokens,
+                        "--name",
+                        "-n",
+                        "Folder name cannot be empty.",
+                        "--color",
+                        "--no-inherit"),
                     Action = context.NsfRndirCommand
                 });
 
@@ -104,7 +110,16 @@ namespace Commander
                     Order = 47,
                     Description = "Update a Keeper NSF record",
                     PreserveEmptyArguments = true,
-                    Validate = tokens => ValidateOptionValue(tokens, "--title", null, "Record title cannot be empty."),
+                    Validate = tokens => ValidateOptionValue(
+                        tokens,
+                        "--title",
+                        null,
+                        "Record title cannot be empty.",
+                        "--type",
+                        "-t",
+                        "--notes",
+                        "--generate",
+                        "-g"),
                     Action = context.NsfRecordUpdateCommand
                 });
 
@@ -169,7 +184,8 @@ namespace Commander
             IReadOnlyList<string> tokens,
             string longOption,
             string shortOption,
-            string errorMessage)
+            string errorMessage,
+            params string[] recognizedOptions)
         {
             for (var i = 0; i < tokens.Count; i++)
             {
@@ -181,7 +197,7 @@ namespace Commander
                 if (hasOption)
                 {
                     if (i + 1 >= tokens.Count
-                        || tokens[i + 1].StartsWith("-", StringComparison.Ordinal)
+                        || IsRecognizedOption(tokens[i + 1], recognizedOptions)
                         || string.IsNullOrWhiteSpace(tokens[i + 1]))
                     {
                         return errorMessage;
@@ -197,6 +213,19 @@ namespace Commander
             }
 
             return null;
+        }
+
+        private static bool IsRecognizedOption(string token, string[] recognizedOptions)
+        {
+            foreach (var option in recognizedOptions)
+            {
+                if (string.Equals(token, option, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
