@@ -556,9 +556,27 @@ namespace Commander
 
                 await ResolveUsernameAsync(vault, accessTypeUid);
 
-                return _shareObjectsTeamCache != null && _shareObjectsTeamCache.TryGetValue(accessTypeUid, out var teamName)
-                    ? teamName
-                    : accessTypeUid;
+                if (_shareObjectsTeamCache != null && _shareObjectsTeamCache.TryGetValue(accessTypeUid, out var teamName))
+                {
+                    return teamName;
+                }
+
+                try
+                {
+                    var availableTeams = await SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(vault.Auth);
+                    var match = availableTeams.FirstOrDefault(t =>
+                        string.Equals(t.TeamUid, accessTypeUid, StringComparison.OrdinalIgnoreCase));
+                    if (match != null && !string.IsNullOrEmpty(match.Name))
+                    {
+                        return match.Name;
+                    }
+                }
+                catch
+                {
+                    // fall through
+                }
+
+                return accessTypeUid;
             }
 
             var username = await ResolveUsernameAsync(vault, accessTypeUid, emailHint);

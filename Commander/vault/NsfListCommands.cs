@@ -934,6 +934,8 @@ namespace Commander
             public bool CanEdit { get; set; }
             public bool CanView { get; set; }
             public bool CanDelete { get; set; }
+            public bool CanApproveAccess { get; set; }
+            public bool CanUpdateAccess { get; set; }
             public string AccessorEmail { get; set; }
         }
 
@@ -963,6 +965,8 @@ namespace Commander
                         CanEdit = d.CanEdit,
                         CanView = d.CanView,
                         CanDelete = d.CanDelete,
+                        CanApproveAccess = d.CanApproveAccess,
+                        CanUpdateAccess = d.CanUpdateAccess,
                         AccessorEmail = emailHint
                     });
                 }
@@ -979,7 +983,9 @@ namespace Commander
                         Owner = a.Owner,
                         CanEdit = a.CanEdit,
                         CanView = a.CanView,
-                        CanDelete = a.CanDelete
+                        CanDelete = a.CanDelete,
+                        CanApproveAccess = a.CanApproveAccess,
+                        CanUpdateAccess = a.CanUpdateAccess
                     }).ToList();
             }
         }
@@ -1052,6 +1058,8 @@ namespace Commander
             public bool CanEdit { get; set; }
             public bool CanView { get; set; }
             public bool CanDelete { get; set; }
+            public bool CanApproveAccess { get; set; }
+            public bool CanUpdateAccess { get; set; }
         }
 
         private static async Task<List<object>> BuildUserPermissionsAsync(
@@ -1070,7 +1078,7 @@ namespace Commander
                 {
                     ["username"] = perm.Username,
                     ["owner"] = perm.Owner,
-                    ["shareable"] = perm.CanEdit || perm.Owner,
+                    ["shareable"] = perm.CanApproveAccess || perm.CanUpdateAccess,
                     ["editable"] = perm.CanEdit,
                     ["role"] = perm.Role
                 });
@@ -1105,7 +1113,9 @@ namespace Commander
                     Role = NsfHelpers.GetAccessRoleLabel(access.AccessRoleType),
                     CanEdit = access.CanEdit,
                     CanView = access.CanView,
-                    CanDelete = access.CanDelete
+                    CanDelete = access.CanDelete,
+                    CanApproveAccess = access.CanApproveAccess,
+                    CanUpdateAccess = access.CanUpdateAccess
                 });
             }
 
