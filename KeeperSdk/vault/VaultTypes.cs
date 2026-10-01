@@ -2990,6 +2990,11 @@ namespace KeeperSecurity.Vault
         public bool ManageRecords { get; internal set; }
 
         /// <summary>
+        /// Is the user the owner of the shared folder?
+        /// </summary>
+        public bool Owner { get; internal set; }
+
+        /// <summary>
         /// Can Manage Users?
         /// </summary>
         public bool ManageUsers { get; internal set; }

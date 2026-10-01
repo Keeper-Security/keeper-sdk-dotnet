@@ -288,6 +288,11 @@ function Grant-KeeperRecordAccess {
                     Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
+            catch {
+                if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                    return
+                }
+            }
         }
         else {
             Write-Error -Message "Cannot find a Keeper record: $Record"
@@ -416,8 +421,15 @@ function Revoke-KeeperRecordAccess {
         }
         if ($rec) {
             $found = $true
-            $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
-            Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
+            try {
+                $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
+            }
+            catch {
+                if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                    return
+                }
+            }
         }
     }
     if (-not $found) {
@@ -765,6 +777,11 @@ function Grant-KeeperSharedFolderAccess {
             Write-Output("Invitation has been sent to `"$($User)`"`nPlease repeat this command when your invitation is accepted.");
         }
     }
+    catch {
+        if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+            return
+        }
+    }
 
 }
 
@@ -855,8 +872,15 @@ function Revoke-KeeperSharedFolderAccess {
         }
     }
 
-    $vault.RemoveUserFromSharedFolder($sf.Uid, $userId, $userType).GetAwaiter().GetResult() | Out-Null
-    Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
+    try {
+        $vault.RemoveUserFromSharedFolder($sf.Uid, $userId, $userType).GetAwaiter().GetResult() | Out-Null
+        Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
+    }
+    catch {
+        if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+            return
+        }
+    }
 }
 
 function ensureAvalableLoaded {
