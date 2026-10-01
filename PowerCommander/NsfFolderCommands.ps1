@@ -359,7 +359,7 @@ function Set-KeeperNSFFolderAccess {
             }
         }
         catch {
-            Write-Host "Error ${Action}ing access for '$user': $($_.Exception.Message)" -ForegroundColor Red
+            [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
         }
     }
 }

@@ -29,6 +29,10 @@ namespace KeeperSecurity.Vault
             };
             var existingPermission = sharedFolder.UsersPermissions
                 .FirstOrDefault(x => x.UserType == userType && (string.Equals(x.Name, userId, StringComparison.InvariantCultureIgnoreCase) || x.Uid == userId));
+            if (userType == UserType.User && existingPermission?.Owner == true)
+            {
+                throw ShareOwnerValidation.FolderOwner(userId, sharedFolder: true);
+            }
             if (userType == UserType.User)
             {
                 if (TryGetUsername(userId, out var u))
@@ -202,6 +206,11 @@ namespace KeeperSecurity.Vault
             if (perm == null)
             {
                 return;
+            }
+
+            if (userType == UserType.User && perm.Owner)
+            {
+                throw ShareOwnerValidation.FolderOwner(userId, sharedFolder: true);
             }
 
             var request = new SharedFolderUpdateV3Request

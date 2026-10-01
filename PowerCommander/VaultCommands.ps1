@@ -746,6 +746,53 @@ function Get-KeeperTree {
 New-Alias -Name ktree -Value Get-KeeperTree
 
 
+function ConvertTo-KeeperSharedFolderJson {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SharedFolder] $SharedFolder
+    )
+
+    [ordered]@{
+        folder_uid = $SharedFolder.Uid
+        type = 'classic_folder'
+        name = $SharedFolder.Name
+        users = @(
+            $SharedFolder.UsersPermissions |
+            Where-Object { $_.UserType -eq [KeeperSecurity.Vault.UserType]::User } |
+            ForEach-Object {
+                [ordered]@{
+                    username = $_.Name
+                    user_id = $_.Uid
+                    owner = [bool]$_.Owner
+                    manage_records = [bool]$_.ManageRecords
+                    manage_users = [bool]$_.ManageUsers
+                    expiration = if ($_.Expiration) {
+                        $_.Expiration.UtcDateTime.ToString('o')
+                    }
+                    else {
+                        'never'
+                    }
+                }
+            }
+        )
+        share_admins = @(
+            $SharedFolder.UsersPermissions |
+            Where-Object {
+                $_.UserType -eq [KeeperSecurity.Vault.UserType]::User -and
+                $_.ManageUsers
+            } |
+            ForEach-Object { $_.Name }
+        )
+        records = @(
+            $SharedFolder.RecordPermissions |
+            ForEach-Object {
+                [ordered]@{
+                    record_uid = $_.RecordUid
+                }
+            }
+        )
+    } | ConvertTo-Json -Depth 10
+}
+
 function Get-KeeperObject {
     <#
 	.Synopsis
@@ -759,12 +806,16 @@ function Get-KeeperObject {
 
 	.Parameter PropertyName
 	Return object property not the entire object
+
+	.Parameter Format
+	Output format: table or json
 #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)][string[]] $Uid,
         [string] [ValidateSet('Record' , 'SharedFolder', 'Folder', 'Team')] $ObjectType,
-        [string] $PropertyName
+        [string] $PropertyName,
+        [ValidateSet('table', 'json')][string] $Format = 'table'
     )
 
     Begin {
@@ -802,7 +853,12 @@ function Get-KeeperObject {
                         }
                     }
                     else {
-                        $sf
+                        if ($Format -eq 'json') {
+                            ConvertTo-KeeperSharedFolderJson -SharedFolder $sf
+                        }
+                        else {
+                            $sf
+                        }
                     }
                     continue
                 }
