@@ -786,6 +786,22 @@ namespace KeeperSecurity.Vault
             return IsKeeperNSFFolderAccessorOwner(accountUidB64, username, ownerAccountUid, ownerUsername);
         }
 
+        internal static bool IsKeeperNSFFolderOwner(
+            VaultOnline vault, string folderUid, NsfShareRecipient recipient, ByteString accessTypeUid)
+        {
+            if (recipient.Kind != NsfShareRecipientKind.User || accessTypeUid == null || accessTypeUid.IsEmpty)
+            {
+                return false;
+            }
+
+            var (ownerUsername, ownerAccountUid) = GetFolderOwnerInfo(vault, folderUid);
+            return IsKeeperNSFFolderAccessorOwner(
+                CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray()),
+                recipient.Identifier,
+                ownerAccountUid,
+                ownerUsername);
+        }
+
         internal static bool IsKeeperNSFFolderAccessorOwner(
             string accessTypeUid,
             string username,

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZeroDep;
 
 namespace Commander
 {
@@ -60,6 +61,12 @@ namespace Commander
                 var sharedFolder = TryResolveSharedFolder(context, identifier);
                 if (sharedFolder != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DisplaySharedFolderJsonInfo(sharedFolder, options.IncludeDag);
+                        return;
+                    }
+
                     DisplaySharedFolderInfo(context, sharedFolder, tab);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
@@ -424,6 +431,49 @@ namespace Commander
             }
         }
 
+        private static void DisplaySharedFolderJsonInfo(SharedFolder sf, bool includeDag)
+        {
+            var users = sf.UsersPermissions
+                .Where(x => x.UserType == UserType.User)
+                .Select(x => new Dictionary<string, object>
+                {
+                    ["username"] = x.Name,
+                    ["user_id"] = x.Uid,
+                    ["owner"] = x.Owner,
+                    ["manage_records"] = x.ManageRecords,
+                    ["manage_users"] = x.ManageUsers,
+                    ["expiration"] = x.Expiration.HasValue
+                        ? x.Expiration.Value.UtcDateTime.ToString("o")
+                        : "never"
+                })
+                .ToList();
+
+            var json = new Dictionary<string, object>
+            {
+                ["folder_uid"] = sf.Uid,
+                ["type"] = "classic_folder",
+                ["name"] = sf.Name,
+                ["users"] = users,
+                ["share_admins"] = sf.UsersPermissions
+                    .Where(x => x.UserType == UserType.User && x.ManageUsers)
+                    .Select(x => x.Name)
+                    .ToList()
+            };
+
+            if (includeDag)
+            {
+                json["records"] = sf.RecordPermissions
+                    .Select(x => new Dictionary<string, object>
+                    {
+                        ["record_uid"] = x.RecordUid
+                    })
+                    .ToList();
+            }
+
+            Json.WriteFormatted(Console.Out, json);
+            Console.WriteLine();
+        }
+
         private static void DisplayFolderInfo(FolderNode f, Tabulate tab)
         {
             tab.AddRow("Folder UID:", f.FolderUid);
@@ -457,5 +507,11 @@ namespace Commander
 
         [Option('t', "team", Required = false, HelpText = "Specify that the UID is a team")]
         public bool IsTeam { get; set; }
+
+        [Option("format", Required = false, Default = "table", HelpText = "table or json")]
+        public string Format { get; set; }
+
+        [Option("include-dag", Required = false, HelpText = "Include classic shared-folder record graph data")]
+        public bool IncludeDag { get; set; }
     }
 }

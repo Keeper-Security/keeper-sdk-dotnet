@@ -607,8 +607,6 @@ namespace KeeperSecurity.Vault
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
 
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             NsfShareRecipient recipient;
             if (asTeam.HasValue)
             {
@@ -665,6 +663,10 @@ namespace KeeperSecurity.Vault
 
             if (pkRs.PublicEccKey.IsEmpty && pkRs.PublicKey.IsEmpty)
                 throw new KeeperApiException("public_key_error", $"User '{userEmail}' not found or has no public key: {pkRs.Message}");
+
+            ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             var folderKey = folder.FolderKey;
             if (folderKey == null)
@@ -778,6 +780,8 @@ namespace KeeperSecurity.Vault
                 .ConfigureAwait(false);
             var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
 
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var folderKey = folder.FolderKey;
             if (folderKey == null)
                 throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
@@ -869,8 +873,6 @@ namespace KeeperSecurity.Vault
             await KeeperNSFAccessHelpers.RequireKeeperNSFFolderSharePermissionAsync(vault, folderUid)
                 .ConfigureAwait(false);
 
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             NsfShareRecipient recipient;
             if (asTeam.HasValue)
             {
@@ -918,6 +920,10 @@ namespace KeeperSecurity.Vault
             if (pkRs.AccountUid.IsEmpty)
                 throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found");
 
+            ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -944,6 +950,9 @@ namespace KeeperSecurity.Vault
         {
             var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, teamNameOrUid)
                 .ConfigureAwait(false);
+
+            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
+
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -1061,6 +1070,9 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
 
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
@@ -1254,6 +1266,9 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
+
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
                 var resolvedDupKey = BuildFolderAccessLookupKey(folder.FolderUid, recipient.Kind, accessUidB64);
@@ -1409,6 +1424,9 @@ namespace KeeperSecurity.Vault
                 {
                     continue;
                 }
+
+                if (TryRejectKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid, results[i]))
+                    continue;
 
                 results[i].AccessType = recipient.Kind == NsfShareRecipientKind.Team ? "team" : "user";
                 var accessUidB64 = CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray());
@@ -1681,6 +1699,39 @@ namespace KeeperSecurity.Vault
 
             accessTypeUid = pkRs.AccountUid;
             return true;
+        }
+
+        // Batch access methods report per-item failures rather than throwing.
+        private static bool TryRejectKeeperNSFFolderOwner(
+            VaultOnline vault,
+            string folderUid,
+            NsfShareRecipient recipient,
+            ByteString accessTypeUid,
+            KeeperNSFFolderAccessResult result)
+        {
+            if (!KeeperNSFAccessHelpers.IsKeeperNSFFolderOwner(vault, folderUid, recipient, accessTypeUid))
+            {
+                return false;
+            }
+
+            result.Status = ShareOwnerValidation.OwnerStatus;
+            result.Message = ShareOwnerValidation.FolderOwnerMessage(recipient.Identifier, sharedFolder: false);
+            return true;
+        }
+
+        private static void ThrowIfKeeperNSFFolderOwner(
+            VaultOnline vault,
+            string folderUid,
+            string userEmail,
+            ByteString accountUid)
+        {
+            // Ownership is read from the current synchronized vault snapshot. Preparing direct
+            // permissions only changes inheritance and cannot make this owner data fresher.
+            var recipient = new NsfShareRecipient(NsfShareRecipientKind.User, userEmail);
+            if (KeeperNSFAccessHelpers.IsKeeperNSFFolderOwner(vault, folderUid, recipient, accountUid))
+            {
+                throw ShareOwnerValidation.FolderOwner(userEmail, sharedFolder: false);
+            }
         }
 
         private static string BuildAccessorResolveKey(string accessor, bool? asTeam)
@@ -3145,6 +3196,8 @@ namespace KeeperSecurity.Vault
             var result = results[0];
             if (!result.Success)
             {
+                ThrowIfOwnerShareResult(result.Status, result.Message);
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to share record: {result.Status ?? "unknown error"}"
                     : $"Failed to share record: {result.Message}");
@@ -3226,6 +3279,8 @@ namespace KeeperSecurity.Vault
             var result = results[0];
             if (!result.Success)
             {
+                ThrowIfOwnerShareResult(result.Status, result.Message);
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to revoke record access: {result.Status ?? "unknown error"}"
                     : $"Failed to revoke record access: {result.Message}");
@@ -3271,6 +3326,9 @@ namespace KeeperSecurity.Vault
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
             var publicKeysByEmail = await ResolveKeeperNSFPublicKeysAsync(vault, uniqueEmails).ConfigureAwait(false);
+
+            var ownerAccesses = await LoadRecordOwnerAccessesAsync(vault, uniqueRecordUids, "share")
+                .ConfigureAwait(false);
 
             var seenShareKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var prepared = new List<(int Index, KeeperNSFRecordShareRequest Request, RecordSharingProto.Permissions Permission)>();
@@ -3346,6 +3404,13 @@ namespace KeeperSecurity.Vault
                     results[i].Message = string.IsNullOrEmpty(pkRs.Message)
                         ? $"User '{userEmail}' not found or has no public key."
                         : pkRs.Message;
+                    continue;
+                }
+
+                if (IsRecordOwner(ownerAccesses, recordUid, pkRs.AccountUid))
+                {
+                    results[i].Status = ShareOwnerValidation.OwnerStatus;
+                    results[i].Message = ShareOwnerValidation.RecordOwnerMessage(userEmail);
                     continue;
                 }
 
@@ -3497,6 +3562,8 @@ namespace KeeperSecurity.Vault
             }
 
             var accessFlags = BuildRecordUserAccessFlags(accessDetails);
+            var ownerAccesses = BuildStoredRecordOwnerAccesses(vault, uniqueRecordUids);
+            ownerAccesses.UnionWith(BuildRecordOwnerAccesses(accessDetails));
 
             var seenUnshareKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var pendingRevoke = new List<(int Index, RecordSharingProto.Permissions Permission)>();
@@ -3569,6 +3636,13 @@ namespace KeeperSecurity.Vault
                 {
                     results[i].Status = "user_not_found";
                     results[i].Message = $"User '{userEmail}' not found.";
+                    continue;
+                }
+
+                if (IsRecordOwner(ownerAccesses, recordUid, pkRs.AccountUid))
+                {
+                    results[i].Status = ShareOwnerValidation.OwnerStatus;
+                    results[i].Message = ShareOwnerValidation.RecordOwnerMessage(userEmail);
                     continue;
                 }
 
@@ -3777,6 +3851,90 @@ namespace KeeperSecurity.Vault
             }
 
             return map;
+        }
+
+        private static async Task<HashSet<(string RecordUid, string AccountUid)>> LoadRecordOwnerAccessesAsync(
+            VaultOnline vault,
+            IReadOnlyCollection<string> recordUids,
+            string operation)
+        {
+            var ownerAccesses = BuildStoredRecordOwnerAccesses(vault, recordUids);
+            try
+            {
+                var accessDetails = await KeeperNSFAccessHelpers.FetchRecordAccessDetailsAsync(vault, recordUids)
+                    .ConfigureAwait(false);
+                ownerAccesses.UnionWith(BuildRecordOwnerAccesses(accessDetails));
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning(
+                    $"KeeperNSF: Could not batch-fetch record ownership for {operation}; using synced access data: {ex.Message}");
+            }
+
+            return ownerAccesses;
+        }
+
+        private static HashSet<(string RecordUid, string AccountUid)> BuildStoredRecordOwnerAccesses(
+            VaultOnline vault,
+            IEnumerable<string> recordUids)
+        {
+            var ownerAccesses = new HashSet<(string, string)>(new RecordAccountUidComparer());
+            foreach (var recordUid in recordUids)
+            {
+                foreach (var access in vault.Storage.KdRecordAccesses.GetLinksForSubject(recordUid))
+                {
+                    if (access.Owner && !string.IsNullOrEmpty(access.AccessTypeUid))
+                    {
+                        ownerAccesses.Add((recordUid, access.AccessTypeUid));
+                    }
+                }
+            }
+
+            return ownerAccesses;
+        }
+
+        private static HashSet<(string RecordUid, string AccountUid)> BuildRecordOwnerAccesses(
+            RecordDetailsProto.RecordAccessResponse accessDetails)
+        {
+            var ownerAccesses = new HashSet<(string, string)>(new RecordAccountUidComparer());
+            if (accessDetails?.RecordAccesses == null)
+            {
+                return ownerAccesses;
+            }
+
+            foreach (var recordAccess in accessDetails.RecordAccesses)
+            {
+                var data = recordAccess?.Data;
+                if (data == null || !data.Owner
+                    || data.RecordUid == null || data.RecordUid.IsEmpty
+                    || data.AccessTypeUid == null || data.AccessTypeUid.IsEmpty)
+                {
+                    continue;
+                }
+
+                ownerAccesses.Add((
+                    CryptoUtils.Base64UrlEncode(data.RecordUid.ToByteArray()),
+                    CryptoUtils.Base64UrlEncode(data.AccessTypeUid.ToByteArray())));
+            }
+
+            return ownerAccesses;
+        }
+
+        private static bool IsRecordOwner(
+            ISet<(string RecordUid, string AccountUid)> ownerAccesses,
+            string recordUid,
+            ByteString accountUid)
+        {
+            return accountUid != null && !accountUid.IsEmpty
+                   && ownerAccesses.Contains((recordUid, CryptoUtils.Base64UrlEncode(accountUid.ToByteArray())));
+        }
+
+        private static void ThrowIfOwnerShareResult(string status, string message)
+        {
+            if (status == ShareOwnerValidation.OwnerStatus)
+            {
+                throw new VaultException(message);
+            }
         }
 
         private sealed class RecordAccountUidComparer : IEqualityComparer<(string RecordUid, string AccountUid)>

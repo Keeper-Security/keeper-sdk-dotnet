@@ -116,6 +116,42 @@ function __TestSharedFolderOwnerIsCurrentUserSkipSync {
     [string]::Equals($owner.Trim(), $myUid.Trim(), [StringComparison]::OrdinalIgnoreCase)
 }
 
+function __AssertSharedFolderUserNotOwnerSkipSync {
+    param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Authentication.IAuthentication] $Auth,
+        [Parameter(Mandatory = $true)][string] $SharedFolderUid,
+        [Parameter(Mandatory = $true)][string] $User
+    )
+
+    $folderResponse = __AwaitSkipSyncTask ([KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetSharedFolderAsync($Auth, $SharedFolderUid))
+    $sharedFolder = __GetSharedFolderObjectFromResponseSkipSync $folderResponse $SharedFolderUid
+    if (-not $sharedFolder -or [string]::IsNullOrWhiteSpace($sharedFolder.Owner)) {
+        return
+    }
+
+    $request = [Authentication.GetPublicKeysRequest]::new()
+    $request.Usernames.Add($User)
+    $response = __AwaitSkipSyncTask ($Auth.ExecuteAuthRest(
+        'vault/get_public_keys', $request, [Authentication.GetPublicKeysResponse]))
+    $publicKey = $response.KeyResponses | Select-Object -First 1
+    if (-not $publicKey) {
+        return
+    }
+
+    $owner = $sharedFolder.Owner.Trim()
+    $accountUid = if ($publicKey.AccountUid -and -not $publicKey.AccountUid.IsEmpty) {
+        [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($publicKey.AccountUid.ToByteArray())
+    } else {
+        $null
+    }
+    $isOwner = [string]::Equals($owner, $accountUid, [StringComparison]::Ordinal) -or
+        [string]::Equals($owner, $User, [StringComparison]::OrdinalIgnoreCase) -or
+        [string]::Equals($owner, $publicKey.Username, [StringComparison]::OrdinalIgnoreCase)
+    if ($isOwner) {
+        throw "'$User' is the owner of this shared folder and already has full access. Share permissions cannot be granted, changed, or revoked for the owner."
+    }
+}
+
 function __WriteRecordDetailsSkipSyncResult {
     param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.RecordDetailsSkipSyncResult] $Result,
@@ -682,6 +718,14 @@ function Grant-KeeperSharedFolderUserSkipSync {
     $didGrant = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to $email")) {
         $auth = getKeeperAuth
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutUserToSharedFolderAsync($auth, $sfUid, $email, $options)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email added or updated."
@@ -721,6 +765,14 @@ function Revoke-KeeperSharedFolderUserSkipSync {
     $didRevoke = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Remove shared folder access for $email")) {
         $auth = getKeeperAuth
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveUserFromSharedFolderAsync($auth, $sfUid, $email)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email removed."
