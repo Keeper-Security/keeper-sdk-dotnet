@@ -201,6 +201,20 @@ namespace Commander
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
+            cli.Commands.Add("device-admin-list",
+                new ParseableCommand<DeviceAdminListOptions>
+                {
+                    Order = 64,
+                    Description = "List devices registered to enterprise user(s)",
+                    Action = async options => { await context.DeviceAdminListCommand(options); },
+                });
+            cli.Commands.Add("device-admin-action",
+                new ParseableCommand<DeviceAdminActionOptions>
+                {
+                    Order = 65,
+                    Description = "Perform an action on enterprise user device(s) (logout, remove, lock, unlock, account-lock, account-unlock)",
+                    Action = async options => { await context.DeviceAdminActionCommand(options); },
+                });
             cli.Commands.Add("team-approve",
                 new ParseableCommand<TeamApproveCommandOptions>
                 {
@@ -2655,6 +2669,152 @@ namespace Commander
             }
         }
 
+        private static readonly IDictionary<string, DeviceManagement.DeviceActionType> AdminDeviceActionNames =
+            new Dictionary<string, DeviceManagement.DeviceActionType>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["logout"] = DeviceManagement.DeviceActionType.DaLogout,
+                ["remove"] = DeviceManagement.DeviceActionType.DaRemove,
+                ["lock"] = DeviceManagement.DeviceActionType.DaLock,
+                ["unlock"] = DeviceManagement.DeviceActionType.DaUnlock,
+                ["account-lock"] = DeviceManagement.DeviceActionType.DaDeviceAccountLock,
+                ["account-unlock"] = DeviceManagement.DeviceActionType.DaDeviceAccountUnlock,
+            };
+
+        private static bool TryResolveEnterpriseUserByIdentifier(this IEnterpriseContext context, string identifier, out EnterpriseUser user)
+        {
+            if (long.TryParse(identifier, out var userId))
+            {
+                return context.EnterpriseData.TryGetUserById(userId, out user);
+            }
+
+            return context.EnterpriseData.TryGetUserByEmail(identifier, out user);
+        }
+
+        private static long[] ResolveAdminEnterpriseUsers(this IEnterpriseContext context, string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier) || identifier.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                return context.EnterpriseData.Users.Select(x => x.Id).ToArray();
+            }
+
+            return context.TryResolveEnterpriseUserByIdentifier(identifier, out var user) ? new[] { user.Id } : new long[0];
+        }
+
+        public static async Task DeviceAdminListCommand(this IEnterpriseContext context, DeviceAdminListOptions arguments)
+        {
+            var userIds = context.ResolveAdminEnterpriseUsers(arguments.User);
+            if (userIds.Length == 0)
+            {
+                Console.WriteLine($"No enterprise user found matching \"{arguments.User}\"");
+                return;
+            }
+
+            var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(userIds)).ToArray();
+            if (userLists.Length == 0)
+            {
+                Console.WriteLine("No devices available");
+                return;
+            }
+
+            context.PrintAdminUserDevices(userLists);
+        }
+
+        private static void PrintAdminUserDevices(this IEnterpriseContext context, IEnumerable<DeviceManagement.DeviceUserList> userLists)
+        {
+            var tab = new Tabulate(7)
+            {
+                DumpRowNo = true
+            };
+            tab.AddHeader(new[] { "Email", "Device Name", "ID", "Status", "Login State", "UI Category", "Last Accessed" });
+            foreach (var userList in userLists)
+            {
+                var email = context.EnterpriseData.TryGetUserById(userList.EnterpriseUserId, out var user) ? user.Email : userList.EnterpriseUserId.ToString();
+                foreach (var device in userList.DeviceGroups.SelectMany(x => x.Devices))
+                {
+                    var deviceToken = device.EncryptedDeviceToken.ToByteArray();
+                    var lastAccessed = device.LastModifiedTime > 0
+                        ? DateTimeOffset.FromUnixTimeMilliseconds(device.LastModifiedTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                        : "";
+                    tab.AddRow(
+                        email,
+                        device.DeviceName,
+                        deviceToken.TokenToString(),
+                        device.DeviceStatus.DeviceStatusToString(),
+                        device.LoginState.ToString(),
+                        KeeperSecurity.Authentication.DeviceManagementExtensions.GetUiCategory(device),
+                        lastAccessed
+                    );
+                }
+            }
+
+            Console.WriteLine();
+            tab.Dump();
+        }
+
+        public static async Task DeviceAdminActionCommand(this IEnterpriseContext context, DeviceAdminActionOptions arguments)
+        {
+            if (string.IsNullOrEmpty(arguments.Action) || !AdminDeviceActionNames.TryGetValue(arguments.Action, out var actionType))
+            {
+                Console.WriteLine($"Unsupported device action \"{arguments.Action}\". Valid actions: {string.Join(", ", AdminDeviceActionNames.Keys)}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.User))
+            {
+                Console.WriteLine("No enterprise user specified");
+                return;
+            }
+
+            if (!context.TryResolveEnterpriseUserByIdentifier(arguments.User, out var enterpriseUser))
+            {
+                Console.WriteLine($"No enterprise user found matching \"{arguments.User}\"");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.Devices))
+            {
+                Console.WriteLine("No device Id(s) specified");
+                return;
+            }
+
+            var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+            var devices = userLists.SelectMany(x => x.DeviceGroups).SelectMany(x => x.Devices).ToArray();
+            if (devices.Length == 0)
+            {
+                Console.WriteLine($"No devices found for user \"{enterpriseUser.Email}\"");
+                return;
+            }
+
+            var identifiers = arguments.Devices.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
+            var toAct = KeeperSecurity.Authentication.DeviceManagementExtensions.ResolveDevicesByIdentifiers(
+                devices, identifiers, token => token.TokenToString(), out var notFound);
+            foreach (var identifier in notFound)
+            {
+                Console.WriteLine($"No device found for \"{identifier}\"");
+            }
+
+            if (toAct.Count == 0)
+            {
+                Console.WriteLine("No devices to act on");
+                return;
+            }
+
+            var results = await context.Enterprise.Auth.ExecuteAdminDeviceAction(actionType, enterpriseUser.Id, toAct.Select(x => x.EncryptedDeviceToken));
+            foreach (var result in results)
+            {
+                foreach (var token in result.EncryptedDeviceToken)
+                {
+                    Console.WriteLine($"Device {token.ToByteArray().TokenToString()}: {result.DeviceActionStatus}");
+                }
+            }
+
+            var updatedUserLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+            if (updatedUserLists.Length > 0)
+            {
+                context.PrintAdminUserDevices(updatedUserLists);
+            }
+        }
+
         internal static async Task EnterpriseRegisterEcKey(this IEnterpriseContext context, Cli.CliCommands cli)
         {
             if (context.Enterprise.TreeKey == null)
@@ -4467,6 +4627,24 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "device approval request: \"all\", email, or device id")]
         public string Match { get; set; }
+    }
+
+    class DeviceAdminListOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = false, HelpText = "enterprise user email, ID, or \"all\"")]
+        public string User { get; set; }
+    }
+
+    class DeviceAdminActionOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = true, HelpText = "device action: \"logout\", \"remove\", \"lock\", \"unlock\", \"account-lock\", \"account-unlock\"")]
+        public string Action { get; set; }
+
+        [Value(1, Required = true, HelpText = "enterprise user email or ID")]
+        public string User { get; set; }
+
+        [Value(2, Required = true, HelpText = "comma separated list of device id(s), name(s), 1-based row number(s) from device-admin-list, or \"all\"")]
+        public string Devices { get; set; }
     }
 
     class AuditReportOptions 
