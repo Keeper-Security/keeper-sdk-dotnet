@@ -56,7 +56,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="identifiers">The identifiers to resolve.</param>
         /// <param name="deviceIdSelector">Formats a device's token into the display ID string the caller matches/shows to the user.</param>
         /// <param name="notFound">Identifiers that matched no device.</param>
-        /// <returns>The matched devices, in identifier order. May contain duplicates if identifiers overlap.</returns>
+        /// <returns>The matched devices, de-duplicated and in first-matched order, even if identifiers overlap.</returns>
         public static List<Device> ResolveDevicesByIdentifiers(
             IReadOnlyList<Device> devices,
             IEnumerable<string> identifiers,
@@ -64,6 +64,7 @@ namespace KeeperSecurity.Authentication
             out List<string> notFound)
         {
             var result = new List<Device>();
+            var seenTokens = new HashSet<ByteString>();
             notFound = new List<string>();
 
             foreach (var identifier in identifiers)
@@ -91,7 +92,13 @@ namespace KeeperSecurity.Authentication
                     continue;
                 }
 
-                result.AddRange(matches);
+                foreach (var match in matches)
+                {
+                    if (seenTokens.Add(match.EncryptedDeviceToken))
+                    {
+                        result.Add(match);
+                    }
+                }
             }
 
             return result;
