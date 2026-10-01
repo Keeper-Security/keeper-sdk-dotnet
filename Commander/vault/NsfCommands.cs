@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Cli;
+using CommandLine;
 
 namespace Commander
 {
@@ -55,10 +60,15 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-rndir",
-                new ParseableCommand<NsfRndirOptions>
+                new ValidatingParseableCommand<NsfRndirOptions>
                 {
                     Order = 46,
                     Description = "Rename or recolor a Keeper NSF folder",
+                    Validate = tokens => ThrowOnValidationError(ValidateOptionValue<NsfRndirOptions>(
+                        tokens,
+                        "--name",
+                        "-n",
+                        "Folder name cannot be empty.")),
                     Action = context.NsfRndirCommand
                 });
 
@@ -95,10 +105,15 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-record-update",
-                new ParseableCommand<NsfRecordUpdateOptions>
+                new ValidatingParseableCommand<NsfRecordUpdateOptions>
                 {
                     Order = 47,
                     Description = "Update a Keeper NSF record",
+                    Validate = tokens => ThrowOnValidationError(ValidateOptionValue<NsfRecordUpdateOptions>(
+                        tokens,
+                        "--title",
+                        null,
+                        "Record title cannot be empty.")),
                     Action = context.NsfRecordUpdateCommand
                 });
 
@@ -158,6 +173,72 @@ namespace Commander
                     Action = context.NsfTransferRecordCommand
                 });
         }
+
+        private static string ValidateOptionValue<TOptions>(
+            IReadOnlyList<string> tokens,
+            string longOption,
+            string shortOption,
+            string errorMessage)
+        {
+            var optionNames = GetOptionNames<TOptions>();
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                var hasOption = string.Equals(token, longOption, StringComparison.OrdinalIgnoreCase)
+                    || (!string.IsNullOrEmpty(shortOption)
+                        && string.Equals(token, shortOption, StringComparison.OrdinalIgnoreCase));
+
+                if (hasOption)
+                {
+                    if (i + 1 >= tokens.Count
+                        || IsRecognizedOption(tokens[i + 1], optionNames)
+                        || string.IsNullOrWhiteSpace(tokens[i + 1]))
+                    {
+                        return errorMessage;
+                    }
+                }
+                else if ((token.StartsWith(longOption + "=", StringComparison.OrdinalIgnoreCase)
+                        || (!string.IsNullOrEmpty(shortOption)
+                            && token.StartsWith(shortOption + "=", StringComparison.OrdinalIgnoreCase)))
+                    && string.IsNullOrWhiteSpace(token.Substring(token.IndexOf('=') + 1)))
+                {
+                    return errorMessage;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ThrowOnValidationError(string validationError)
+        {
+            if (!string.IsNullOrEmpty(validationError))
+            {
+                throw new CommandError(validationError);
+            }
+
+            return null;
+        }
+
+        private static HashSet<string> GetOptionNames<TOptions>()
+        {
+            return new HashSet<string>(
+                typeof(TOptions).GetProperties()
+                    .Select(property => property.GetCustomAttribute<OptionAttribute>())
+                    .Where(option => option != null)
+                    .SelectMany(option => new[]
+                    {
+                        string.IsNullOrEmpty(option.LongName) ? null : "--" + option.LongName,
+                        string.IsNullOrEmpty(option.ShortName) ? null : "-" + option.ShortName
+                    })
+                    .Where(option => option != null),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static bool IsRecognizedOption(string token, ISet<string> recognizedOptions)
+        {
+            var equalsIndex = token.IndexOf('=');
+            var optionName = equalsIndex >= 0 ? token.Substring(0, equalsIndex) : token;
+            return recognizedOptions.Contains(optionName);
+        }
     }
 }
-
