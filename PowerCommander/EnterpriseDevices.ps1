@@ -414,7 +414,7 @@ function Deny-KeeperDevice {
 function Get-KdUiCategory {
     <#
         .Synopsis
-        Internal helper function to determine the UI category label for a device
+        Figures out which app/device type label to show for a device
     #>
     Param (
         [Parameter(Mandatory = $true)]
@@ -439,8 +439,8 @@ function Get-KeeperAdminUserDevice {
         List devices registered to enterprise user(s)
 
         .Description
-        Displays a list of devices registered to one or more enterprise users via the device
-        management admin API (dm/device_admin_list). Requires enterprise administrator privileges.
+        Shows the devices registered to one or more enterprise users. Requires enterprise
+        administrator privileges.
 
         .Parameter User
         Enterprise user email or ID. If omitted, devices for all enterprise users are listed.
@@ -489,7 +489,7 @@ function Get-KeeperAdminUserDevice {
 function Show-KdAdminUserDevices {
     <#
         .Synopsis
-        Internal helper function to render a table of admin user devices
+        Prints a device table for one or more enterprise users
     #>
     Param (
         [Parameter(Mandatory = $true)] $Enterprise,
@@ -541,9 +541,8 @@ function Invoke-KeeperAdminUserDeviceAction {
         Performs an action on enterprise user device(s)
 
         .Description
-        Performs an action (logout, remove, lock, unlock, account-lock, account-unlock) on one or more
-        devices belonging to an enterprise user via the device management admin API (dm/device_admin_action).
-        Requires enterprise administrator privileges.
+        Logs out, removes, locks, unlocks, or account-locks/unlocks one or more devices belonging
+        to an enterprise user. Requires enterprise administrator privileges.
 
         .Parameter Action
         Device action: "logout", "remove", "lock", "unlock", "account-lock", "account-unlock"
@@ -552,9 +551,8 @@ function Invoke-KeeperAdminUserDeviceAction {
         Enterprise user email or ID that owns the target device(s)
 
         .Parameter Devices
-        Device ID(s) (partial match supported), device name(s), 1-based row number(s) from
-        Get-KeeperAdminUserDevice, or "all". Accepts a comma separated
-        string or an array of strings.
+        Device ID(s), device name(s), row number(s) from
+        Get-KeeperAdminUserDevice, or "all". Accepts a comma separated string or an array of strings.
 
         .Example
         Invoke-KeeperAdminUserDeviceAction -Action lock -User "user@example.com" -Devices "all"

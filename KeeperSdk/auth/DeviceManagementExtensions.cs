@@ -75,7 +75,6 @@ namespace KeeperSecurity.Authentication
                 }
                 else if (int.TryParse(identifier, out var rowNo) && rowNo >= 1 && rowNo <= devices.Count)
                 {
-                    // Row numbers are 1-based to match the "#" column printed alongside the device list.
                     matches = new[] { devices[rowNo - 1] };
                 }
                 else
