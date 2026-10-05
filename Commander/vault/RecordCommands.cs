@@ -18,6 +18,7 @@ using Authentication;
 using Google.Protobuf;
 using System.Security.Cryptography;
 using System.Threading;
+using ZeroDep;
 
 namespace Commander
 {
@@ -414,8 +415,21 @@ namespace Commander
                 {
                     var destructTime = ParseUtils.ParseTimePeriod(options.SelfDestruct);
                     var shareUrl = await CreateSelfDestructShare(context.Vault, createdRecord, destructTime);
-                    Console.WriteLine($"Record created with self-destruct enabled ({destructTime.TotalMinutes} minutes)");
-                    Console.WriteLine($"Share URL: {shareUrl}");
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                        {
+                            ["record_uid"] = createdRecord.Uid,
+                            ["share_url"] = shareUrl
+                        }));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Record created with self-destruct enabled ({destructTime.TotalMinutes} minutes)");
+                        Console.WriteLine($"Record UID: {createdRecord.Uid}");
+                        Console.WriteLine($"Share URL: {shareUrl}");
+                    }
+
                     return;
                 }
                 catch (Exception ex)
@@ -426,7 +440,17 @@ namespace Commander
             }
             else
             {
-                Console.WriteLine($"Record created: {createdRecord.Uid}");
+                if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                    {
+                        ["record_uid"] = createdRecord.Uid
+                    }));
+                }
+                else
+                {
+                    Console.WriteLine($"Record created: {createdRecord.Uid}");
+                }
             }
 
         }
@@ -1670,6 +1694,9 @@ namespace Commander
 
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
         public string SelfDestruct { get; set; }
+
+        [Option('f', "format", Required = false, Default = "table", HelpText = "output format: table or json")]
+        public string Format { get; set; }
 
         [Value(0, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
         public IEnumerable<string> Fields { get; set; }

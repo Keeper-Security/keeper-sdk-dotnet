@@ -1005,6 +1005,9 @@ function Add-KeeperRecord {
     Month is considered as 30 days
     year is considered as 365 days
 
+	.Parameter Format
+	Output format: table (default) or json. json returns record_uid and, when -SelfDestruct is used, share_url.
+
 	.Parameter Fields
 	A list of record Fields. See DESCRIPTION
     
@@ -1105,6 +1108,7 @@ function Add-KeeperRecord {
         [Parameter()] [string] $Title,
         [Parameter()] [string] $Notes,
         [Parameter()] [string] $SelfDestruct,
+        [Parameter()] [ValidateSet('table', 'json')] [string] $Format = 'table',
         [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
 
@@ -1319,15 +1323,26 @@ function Add-KeeperRecord {
                 try {
                     $destructTime = ConvertTo-TimeSpan -Period $SelfDestruct
                     $shareUrl = New-SelfDestructShare -Vault $vault -Record $createdRecord -ExpireIn $destructTime
-                    Write-Host "Record created with self-destruct enabled ($($destructTime.TotalMinutes) minutes)"
-                    Write-Host "Share URL: $shareUrl"
+                    if ($Format -eq 'json') {
+                        [PSCustomObject]@{ record_uid = $createdRecord.Uid; share_url = $shareUrl } | ConvertTo-Json -Compress
+                    }
+                    else {
+                        Write-Host "Record created with self-destruct enabled ($($destructTime.TotalMinutes) minutes)"
+                        Write-Host "Record UID: $($createdRecord.Uid)"
+                        Write-Host "Share URL: $shareUrl"
+                    }
                 }
                 catch {
                     Write-Error "Failed to create self-destruct share: $($_.Exception.Message)"
                 }
             }
             else {
-                Write-Host "Record created: $($createdRecord.Uid)"
+                if ($Format -eq 'json') {
+                    [PSCustomObject]@{ record_uid = $createdRecord.Uid } | ConvertTo-Json -Compress
+                }
+                else {
+                    Write-Host "Record created: $($createdRecord.Uid)"
+                }
             }
         }
     }
