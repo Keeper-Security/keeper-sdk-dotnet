@@ -112,6 +112,11 @@ namespace KeeperSecurity.Vault
                     throw new ArgumentException($"Folder UID cannot be empty (index {i}).", nameof(folders));
                 }
 
+                if (folders[i].Name != null && string.IsNullOrWhiteSpace(folders[i].Name))
+                {
+                    throw new ArgumentException($"Folder name cannot be empty (index {i}).", nameof(folders));
+                }
+
                 if (folders[i].Name == null
                     && folders[i].Color == null
                     && !folders[i].InheritPermissions.HasValue)
@@ -319,6 +324,11 @@ namespace KeeperSecurity.Vault
             if (newName == null && color == null && !inheritPermissions.HasValue)
             {
                 throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), "newName/color/inheritPermissions", "", "at least one field required");
+            }
+
+            if (newName != null && string.IsNullOrWhiteSpace(newName))
+            {
+                throw new KeeperInvalidParameter(nameof(UpdateKeeperNSFFolder), nameof(newName), newName, "Folder name cannot be empty");
             }
 
             if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
