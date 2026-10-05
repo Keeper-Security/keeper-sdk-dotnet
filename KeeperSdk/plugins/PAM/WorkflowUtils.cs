@@ -119,6 +119,40 @@ namespace KeeperSecurity.Plugins.PAM
       return false;
     }
 
+    /// <summary>
+    /// Refreshes the enforcement policy and checks if the current user can manage workflow settings.
+    /// Use this before admin actions to ensure the latest policy is applied.
+    /// </summary>
+    public static async Task<bool> CanManageWorkflowSettingsFreshAsync(IAuthentication auth)
+    {
+      if (auth == null)
+      {
+        return false;
+      }
+
+      try
+      {
+        var summary = await auth.LoadAccountSummary();
+        if (summary?.Enforcements?.Booleans != null)
+        {
+          foreach (var kvp in summary.Enforcements.Booleans)
+          {
+            if (string.Equals(kvp.Key, AllowConfigureWorkflowSettings, StringComparison.Ordinal))
+            {
+              return kvp.Value;
+            }
+          }
+        }
+
+        return false;
+      }
+      catch (Exception ex)
+      {
+        Trace.TraceWarning($"Failed to refresh workflow management enforcement: {ex.Message}");
+        return false;
+      }
+    }
+
     /// <summary>Creates a record reference from its UID bytes.</summary>
     public static GraphSyncRef CreateRecordRef(byte[] recordUidBytes, string recordName = null)
     {
