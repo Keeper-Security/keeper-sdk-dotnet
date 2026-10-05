@@ -9,6 +9,30 @@ function Convert-DeviceTokenToString {
     )
     
     $sb = New-Object System.Text.StringBuilder
+    $maxLength = 50
+    foreach ($b in $Token) {
+        if ($sb.Length -ge $maxLength) {
+            break
+        }
+        [void]$sb.AppendFormat("{0:x2}", $b)
+    }
+    return $sb.ToString()
+}
+
+function Convert-DeviceTokenToShortId {
+    <#
+        .Synopsis
+        Internal helper function to convert a device token byte array to a short display ID,
+        used by the device-admin commands. Distinct from Convert-DeviceTokenToString (used by
+        the device-approval cmdlets) so that changing the display length here does not change
+        matching behavior for Approve-/Deny-KeeperDevice.
+    #>
+    Param (
+        [Parameter(Mandatory = $true)]
+        [byte[]] $Token
+    )
+
+    $sb = New-Object System.Text.StringBuilder
     $maxLength = 20
     foreach ($b in $Token) {
         if ($sb.Length -ge $maxLength) {
@@ -411,28 +435,6 @@ function Deny-KeeperDevice {
     }
 }
 
-function Get-KdUiCategory {
-    <#
-        .Synopsis
-        Figures out which app/device type label to show for a device
-    #>
-    Param (
-        [Parameter(Mandatory = $true)]
-        $Device
-    )
-
-    return [KeeperSecurity.Authentication.DeviceManagementExtensions]::GetUiCategory($Device)
-}
-
-$Script:AdminDeviceActionMap = @{
-    'logout'         = [DeviceManagement.DeviceActionType]::DaLogout
-    'remove'         = [DeviceManagement.DeviceActionType]::DaRemove
-    'lock'           = [DeviceManagement.DeviceActionType]::DaLock
-    'unlock'         = [DeviceManagement.DeviceActionType]::DaUnlock
-    'account-lock'   = [DeviceManagement.DeviceActionType]::DaDeviceAccountLock
-    'account-unlock' = [DeviceManagement.DeviceActionType]::DaDeviceAccountUnlock
-}
-
 function Get-KeeperAdminUserDevice {
     <#
         .Synopsis
@@ -445,6 +447,9 @@ function Get-KeeperAdminUserDevice {
         .Parameter User
         Enterprise user email or ID. If omitted, devices for all enterprise users are listed.
 
+        .Parameter Format
+        Output format: table or json. Defaults to table.
+
         .Example
         Get-KeeperAdminUserDevice -User "user@example.com"
         Lists all devices registered to user@example.com
@@ -452,10 +457,15 @@ function Get-KeeperAdminUserDevice {
         .Example
         Get-KeeperAdminUserDevice
         Lists all devices registered to every enterprise user
+
+        .Example
+        Get-KeeperAdminUserDevice -User "user@example.com" -Format json
+        Lists devices registered to user@example.com as JSON
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position = 0)][string] $User
+        [Parameter(Position = 0)][string] $User,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table'
     )
 
     [Enterprise]$enterprise = getEnterprise
@@ -467,33 +477,51 @@ function Get-KeeperAdminUserDevice {
         $userObject = resolveUser $enterprise.enterpriseData $User
         if (-not $userObject) {
             Write-Error "No enterprise user found matching `"$User`"" -ErrorAction Stop
-            return
         }
         $userIds = @($userObject.Id)
     }
 
     if ($userIds.Count -eq 0) {
-        Write-Output "No enterprise users found"
+        Write-Warning "No enterprise users found"
         return
     }
 
-    $userLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]$userIds).GetAwaiter().GetResult())
+    try {
+        $userLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]$userIds).GetAwaiter().GetResult())
+    }
+    catch {
+        Write-Error "Failed to retrieve devices: $($_.Exception.Message)" -ErrorAction Stop
+    }
+
     if ($userLists.Count -eq 0) {
-        Write-Output "No devices available"
+        Write-Warning "No devices available"
         return
     }
 
-    Show-KdAdminUserDevices -Enterprise $enterprise -UserLists $userLists
+    $devices = Get-KdAdminUserDeviceObject -Enterprise $enterprise -UserLists $userLists
+    if ($devices.Count -eq 0) {
+        Write-Warning "No devices available"
+        return
+    }
+
+    if ($Format -eq 'json') {
+        Write-Output ($devices | ConvertTo-Json)
+    }
+    else {
+        $devices | Format-Table -AutoSize '#', Email, DeviceName, DeviceId, Status, LoginState, UiCategory, LastModified
+    }
 }
 
-function Show-KdAdminUserDevices {
+function Get-KdAdminUserDeviceObject {
     <#
         .Synopsis
-        Prints a device table for one or more enterprise users
+        Builds the device rows for one or more enterprise users. Returns plain objects;
+        formatting/output is left to the caller.
     #>
+    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true)] $Enterprise,
-        [Parameter(Mandatory = $true)] $UserLists
+        [Parameter(Mandatory = $true)] [Enterprise] $Enterprise,
+        [Parameter(Mandatory = $true)] [object[]] $UserLists
     )
 
     $deviceList = New-Object System.Collections.ArrayList
@@ -508,31 +536,26 @@ function Show-KdAdminUserDevices {
         foreach ($group in $userList.DeviceGroups) {
             foreach ($device in $group.Devices) {
                 $deviceTokenBytes = $device.EncryptedDeviceToken.ToByteArray()
-                $lastAccessed = ''
+                $lastModified = ''
                 if ($device.LastModifiedTime -gt 0) {
-                    $lastAccessed = [DateTimeOffset]::FromUnixTimeMilliseconds($device.LastModifiedTime).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
+                    $lastModified = [DateTimeOffset]::FromUnixTimeMilliseconds($device.LastModifiedTime).LocalDateTime.ToString('yyyy-MM-dd HH:mm:ss')
                 }
                 [void]$deviceList.Add([PSCustomObject]@{
                     '#'          = $rowNo
                     Email        = $email
                     DeviceName   = $device.DeviceName
-                    DeviceId     = Convert-DeviceTokenToString -Token $deviceTokenBytes
+                    DeviceId     = Convert-DeviceTokenToShortId -Token $deviceTokenBytes
                     Status       = $device.DeviceStatus
                     LoginState   = $device.LoginState
-                    UiCategory   = Get-KdUiCategory -Device $device
-                    LastAccessed = $lastAccessed
+                    UiCategory   = [KeeperSecurity.Authentication.DeviceManagementExtensions]::GetUiCategory($device)
+                    LastModified = $lastModified
                 })
                 $rowNo++
             }
         }
     }
 
-    if ($deviceList.Count -eq 0) {
-        Write-Output "No devices available"
-        return
-    }
-
-    $deviceList | Format-Table -AutoSize '#', Email, DeviceName, DeviceId, Status, LoginState, UiCategory, LastAccessed
+    return $deviceList.ToArray()
 }
 
 function Invoke-KeeperAdminUserDeviceAction {
@@ -562,7 +585,7 @@ function Invoke-KeeperAdminUserDeviceAction {
         Invoke-KeeperAdminUserDeviceAction -Action remove -User "user@example.com" -Devices "a1b2c3"
         Removes the device whose ID starts with "a1b2c3" for user@example.com
     #>
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     Param (
         [Parameter(Position = 0, Mandatory = $true)]
         [ValidateSet('logout', 'remove', 'lock', 'unlock', 'account-lock', 'account-unlock')]
@@ -580,53 +603,89 @@ function Invoke-KeeperAdminUserDeviceAction {
     $userObject = resolveUser $enterprise.enterpriseData $User
     if (-not $userObject) {
         Write-Error "No enterprise user found matching `"$User`"" -ErrorAction Stop
-        return
     }
 
-    $userLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]@($userObject.Id)).GetAwaiter().GetResult())
+    try {
+        $userLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]@($userObject.Id)).GetAwaiter().GetResult())
+    }
+    catch {
+        Write-Error "Failed to retrieve devices for user `"$($userObject.Email)`": $($_.Exception.Message)" -ErrorAction Stop
+    }
+
     $allDevices = @($userLists | ForEach-Object { $_.DeviceGroups } | ForEach-Object { $_.Devices })
     if ($allDevices.Count -eq 0) {
-        Write-Output "No devices found for user `"$($userObject.Email)`""
+        Write-Warning "No devices found for user `"$($userObject.Email)`""
         return
     }
 
     $identifiers = @($Devices | ForEach-Object { $_.Split(',') } | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
 
-    $notFound = $null
-    $deviceIdSelector = { param($token) Convert-DeviceTokenToString -Token $token }
-    $toAct = [KeeperSecurity.Authentication.DeviceManagementExtensions]::ResolveDevicesByIdentifiers(
+    $deviceIdSelector = { param($token) Convert-DeviceTokenToShortId -Token $token }
+    $resolved = [KeeperSecurity.Authentication.DeviceManagementExtensions]::ResolveDevicesByIdentifiers(
         [DeviceManagement.Device[]]$allDevices,
         [string[]]$identifiers,
-        $deviceIdSelector,
-        [ref]$notFound)
+        $deviceIdSelector)
 
-    foreach ($identifier in $notFound) {
+    foreach ($identifier in $resolved.NotFound) {
         Write-Warning "No device found for `"$identifier`""
     }
 
+    foreach ($identifier in $resolved.Ambiguous) {
+        Write-Warning "`"$identifier`" matches more than one device. Use `"id:`", `"name:`", `"#<row>`", or `"all`" to disambiguate."
+    }
+
+    $toAct = @($resolved.Matched)
     if ($toAct.Count -eq 0) {
-        Write-Output "No devices to act on"
+        Write-Warning "No devices to act on"
         return
     }
 
-    $actionType = $Script:AdminDeviceActionMap[$Action]
+    $actionType = [DeviceManagement.DeviceActionType]::DaInvalid
+    if (-not [KeeperSecurity.Authentication.DeviceManagementExtensions]::TryParseDeviceAction($Action, [ref]$actionType)) {
+        Write-Error "Unsupported device action `"$Action`"" -ErrorAction Stop
+    }
 
-    if ($PSCmdlet.ShouldProcess("$($toAct.Count) device(s) for $($userObject.Email)", $Action)) {
+    $deviceNames = ($toAct | ForEach-Object { "$(Convert-DeviceTokenToShortId -Token $_.EncryptedDeviceToken.ToByteArray()) ($($_.DeviceName))" }) -join ', '
+
+    if ($PSCmdlet.ShouldProcess("$($toAct.Count) device(s) for $($userObject.Email): $deviceNames", $Action)) {
         $tokens = New-Object 'System.Collections.Generic.List[Google.Protobuf.ByteString]'
         foreach ($d in $toAct) {
             $tokens.Add($d.EncryptedDeviceToken)
         }
-        $results = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::ExecuteAdminDeviceAction($enterprise.loader.Auth, $actionType, $userObject.Id, $tokens).GetAwaiter().GetResult())
+
+        try {
+            $results = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::ExecuteAdminDeviceAction($enterprise.loader.Auth, $actionType, $userObject.Id, $tokens).GetAwaiter().GetResult())
+        }
+        catch {
+            Write-Error "Device action `"$Action`" failed: $($_.Exception.Message)" -ErrorAction Stop
+        }
+
         foreach ($result in $results) {
+            $isSuccess = $result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::Success
             foreach ($token in $result.EncryptedDeviceToken) {
-                $deviceId = Convert-DeviceTokenToString -Token $token.ToByteArray()
-                Write-Output "Device $deviceId : $($result.DeviceActionStatus)"
+                $deviceId = Convert-DeviceTokenToShortId -Token $token.ToByteArray()
+                $resultObject = [PSCustomObject]@{
+                    DeviceId = $deviceId
+                    Status   = $result.DeviceActionStatus
+                }
+                if ($isSuccess) {
+                    Write-Output $resultObject
+                }
+                else {
+                    Write-Error "Device $deviceId : $($result.DeviceActionStatus)"
+                }
             }
         }
 
-        $updatedUserLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]@($userObject.Id)).GetAwaiter().GetResult())
-        if ($updatedUserLists.Count -gt 0) {
-            Show-KdAdminUserDevices -Enterprise $enterprise -UserLists $updatedUserLists
+        try {
+            $updatedUserLists = @([KeeperSecurity.Authentication.DeviceManagementExtensions]::GetAdminUserDevices($enterprise.loader.Auth, [long[]]@($userObject.Id)).GetAwaiter().GetResult())
+            if ($updatedUserLists.Count -gt 0) {
+                Get-KdAdminUserDeviceObject -Enterprise $enterprise -UserLists $updatedUserLists |
+                    Format-Table -AutoSize '#', Email, DeviceName, DeviceId, Status, LoginState, UiCategory, LastModified
+            }
+        }
+        catch {
+            Write-Warning "Device action completed, but failed to refresh the device list: $($_.Exception.Message)"
         }
     }
 }

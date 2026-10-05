@@ -204,14 +204,14 @@ namespace Commander
             cli.Commands.Add("device-admin-list",
                 new ParseableCommand<DeviceAdminListOptions>
                 {
-                    Order = 64,
+                    Order = 95,
                     Description = "List devices registered to enterprise user(s)",
                     Action = async options => { await context.DeviceAdminListCommand(options); },
                 });
             cli.Commands.Add("device-admin-action",
                 new ParseableCommand<DeviceAdminActionOptions>
                 {
-                    Order = 65,
+                    Order = 96,
                     Description = "Perform an action on enterprise user device(s) (logout, remove, lock, unlock, account-lock, account-unlock)",
                     Action = async options => { await context.DeviceAdminActionCommand(options); },
                 });
@@ -233,7 +233,7 @@ namespace Commander
                 new ParseableCommand<EnterpriseTransferUserOptions>
                 {
                     Order = 66,
-                    Description = "Transfer User Account",
+                    Description = "Transfer User Account",  
                     Action = async options => { await context.TransferUserCommand(options); },
                 });
 
@@ -2669,16 +2669,8 @@ namespace Commander
             }
         }
 
-        private static readonly IDictionary<string, DeviceManagement.DeviceActionType> AdminDeviceActionNames =
-            new Dictionary<string, DeviceManagement.DeviceActionType>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["logout"] = DeviceManagement.DeviceActionType.DaLogout,
-                ["remove"] = DeviceManagement.DeviceActionType.DaRemove,
-                ["lock"] = DeviceManagement.DeviceActionType.DaLock,
-                ["unlock"] = DeviceManagement.DeviceActionType.DaUnlock,
-                ["account-lock"] = DeviceManagement.DeviceActionType.DaDeviceAccountLock,
-                ["account-unlock"] = DeviceManagement.DeviceActionType.DaDeviceAccountUnlock,
-            };
+        private static readonly HashSet<string> DestructiveDeviceActions =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "remove", "lock", "account-lock" };
 
         private static bool TryResolveEnterpriseUserByIdentifier(this IEnterpriseContext context, string identifier, out EnterpriseUser user)
         {
@@ -2697,7 +2689,7 @@ namespace Commander
                 return context.EnterpriseData.Users.Select(x => x.Id).ToArray();
             }
 
-            return context.TryResolveEnterpriseUserByIdentifier(identifier, out var user) ? new[] { user.Id } : new long[0];
+            return context.TryResolveEnterpriseUserByIdentifier(identifier, out var user) ? new[] { user.Id } : Array.Empty<long>();
         }
 
         public static async Task DeviceAdminListCommand(this IEnterpriseContext context, DeviceAdminListOptions arguments)
@@ -2716,46 +2708,55 @@ namespace Commander
                 return;
             }
 
-            context.PrintAdminUserDevices(userLists);
+            context.PrintAdminUserDevices(userLists, arguments.Format?.ToLowerInvariant());
         }
 
-        private static void PrintAdminUserDevices(this IEnterpriseContext context, IEnumerable<DeviceManagement.DeviceUserList> userLists)
+        private static readonly string[] AdminDeviceHeaderRow =
+            { "Email", "Device Name", "ID", "Status", "Login State", "UI Category", "Last Modified" };
+
+        private static void PrintAdminUserDevices(this IEnterpriseContext context, IEnumerable<DeviceManagement.DeviceUserList> userLists, string format = "table")
         {
-            var tab = new Tabulate(7)
-            {
-                DumpRowNo = true
-            };
-            tab.AddHeader(new[] { "Email", "Device Name", "ID", "Status", "Login State", "UI Category", "Last Accessed" });
+            var rows = new List<object[]>();
+            var jsonData = new List<Dictionary<string, object>>();
             foreach (var userList in userLists)
             {
                 var email = context.EnterpriseData.TryGetUserById(userList.EnterpriseUserId, out var user) ? user.Email : userList.EnterpriseUserId.ToString();
                 foreach (var device in userList.DeviceGroups.SelectMany(x => x.Devices))
                 {
                     var deviceToken = device.EncryptedDeviceToken.ToByteArray();
-                    var lastAccessed = device.LastModifiedTime > 0
+                    var lastModified = device.LastModifiedTime > 0
                         ? DateTimeOffset.FromUnixTimeMilliseconds(device.LastModifiedTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")
                         : "";
-                    tab.AddRow(
-                        email,
-                        device.DeviceName,
-                        deviceToken.TokenToString(),
-                        device.DeviceStatus.DeviceStatusToString(),
-                        device.LoginState.ToString(),
-                        KeeperSecurity.Authentication.DeviceManagementExtensions.GetUiCategory(device),
-                        lastAccessed
-                    );
+                    var deviceId = deviceToken.TokenToString();
+                    var status = device.DeviceStatus.DeviceStatusToString();
+                    var loginState = device.LoginState.ToString();
+                    var uiCategory = KeeperSecurity.Authentication.DeviceManagementExtensions.GetUiCategory(device);
+
+                    rows.Add(new object[] { email, device.DeviceName, deviceId, status, loginState, uiCategory, lastModified });
+                    jsonData.Add(new Dictionary<string, object>
+                    {
+                        ["email"] = email,
+                        ["deviceName"] = device.DeviceName,
+                        ["id"] = deviceId,
+                        ["status"] = status,
+                        ["loginState"] = loginState,
+                        ["uiCategory"] = uiCategory,
+                        ["lastModified"] = lastModified,
+                    });
                 }
             }
 
             Console.WriteLine();
-            tab.Dump();
+            WriteFormattedOutput(Console.Out, format, AdminDeviceHeaderRow, rows, jsonData);
         }
 
         public static async Task DeviceAdminActionCommand(this IEnterpriseContext context, DeviceAdminActionOptions arguments)
         {
-            if (string.IsNullOrEmpty(arguments.Action) || !AdminDeviceActionNames.TryGetValue(arguments.Action, out var actionType))
+            if (string.IsNullOrEmpty(arguments.Action) ||
+                !KeeperSecurity.Authentication.DeviceManagementExtensions.TryParseDeviceAction(arguments.Action, out var actionType))
             {
-                Console.WriteLine($"Unsupported device action \"{arguments.Action}\". Valid actions: {string.Join(", ", AdminDeviceActionNames.Keys)}");
+                Console.WriteLine($"Unsupported device action \"{arguments.Action}\". Valid actions: " +
+                                   string.Join(", ", KeeperSecurity.Authentication.DeviceManagementExtensions.DeviceActionNameList));
                 return;
             }
 
@@ -2777,8 +2778,18 @@ namespace Commander
                 return;
             }
 
-            var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
-            var devices = userLists.SelectMany(x => x.DeviceGroups).SelectMany(x => x.Devices).ToArray();
+            DeviceManagement.Device[] devices;
+            try
+            {
+                var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+                devices = userLists.SelectMany(x => x.DeviceGroups).SelectMany(x => x.Devices).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to retrieve devices for user \"{enterpriseUser.Email}\": {e.Message}");
+                return;
+            }
+
             if (devices.Length == 0)
             {
                 Console.WriteLine($"No devices found for user \"{enterpriseUser.Email}\"");
@@ -2786,32 +2797,97 @@ namespace Commander
             }
 
             var identifiers = arguments.Devices.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
-            var toAct = KeeperSecurity.Authentication.DeviceManagementExtensions.ResolveDevicesByIdentifiers(
-                devices, identifiers, token => token.TokenToString(), out var notFound);
-            foreach (var identifier in notFound)
+            var resolved = KeeperSecurity.Authentication.DeviceManagementExtensions.ResolveDevicesByIdentifiers(
+                devices, identifiers, token => token.TokenToString());
+            foreach (var identifier in resolved.NotFound)
             {
                 Console.WriteLine($"No device found for \"{identifier}\"");
             }
+            foreach (var identifier in resolved.Ambiguous)
+            {
+                Console.WriteLine($"\"{identifier}\" matches more than one device. Use \"id:\", \"name:\", \"#<row>\", or \"all\" to disambiguate.");
+            }
 
-            if (toAct.Count == 0)
+            if (resolved.Matched.Count == 0)
             {
                 Console.WriteLine("No devices to act on");
                 return;
             }
 
-            var results = await context.Enterprise.Auth.ExecuteAdminDeviceAction(actionType, enterpriseUser.Id, toAct.Select(x => x.EncryptedDeviceToken));
-            foreach (var result in results)
+            Console.WriteLine($"The following device(s) will be \"{arguments.Action}\"'d for \"{enterpriseUser.Email}\":");
+            foreach (var device in resolved.Matched)
             {
-                foreach (var token in result.EncryptedDeviceToken)
+                Console.WriteLine($"  {device.EncryptedDeviceToken.ToByteArray().TokenToString()}  {device.DeviceName}");
+            }
+
+            if (DestructiveDeviceActions.Contains(arguments.Action) && !arguments.Yes)
+            {
+                Console.Write($"Do you want to \"{arguments.Action}\" {resolved.Matched.Count} device(s) (Yes/No)? > ");
+                var answer = await Program.GetInputManager().ReadLine();
+                if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
                 {
-                    Console.WriteLine($"Device {token.ToByteArray().TokenToString()}: {result.DeviceActionStatus}");
+                    answer = "yes";
+                }
+
+                if (!string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Console.WriteLine("Cancelled");
+                    return;
                 }
             }
 
-            var updatedUserLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
-            if (updatedUserLists.Length > 0)
+            IEnumerable<DeviceManagement.DeviceAdminActionResult> results;
+            try
             {
-                context.PrintAdminUserDevices(updatedUserLists);
+                results = await context.Enterprise.Auth.ExecuteAdminDeviceAction(actionType, enterpriseUser.Id, resolved.Matched.Select(x => x.EncryptedDeviceToken));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Device action \"{arguments.Action}\" failed: {e.Message}");
+                return;
+            }
+
+            var succeeded = 0;
+            var failed = 0;
+            foreach (var result in results)
+            {
+                var isSuccess = result.DeviceActionStatus == DeviceManagement.DeviceActionStatus.Success;
+                if (isSuccess)
+                {
+                    succeeded += result.EncryptedDeviceToken.Count;
+                }
+                else
+                {
+                    failed += result.EncryptedDeviceToken.Count;
+                }
+
+                foreach (var token in result.EncryptedDeviceToken)
+                {
+                    var line = $"Device {token.ToByteArray().TokenToString()}: {result.DeviceActionStatus}";
+                    if (isSuccess)
+                    {
+                        Console.WriteLine(line);
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine(line);
+                    }
+                }
+            }
+
+            Console.WriteLine($"{succeeded} succeeded, {failed} failed");
+
+            try
+            {
+                var updatedUserLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+                if (updatedUserLists.Length > 0)
+                {
+                    context.PrintAdminUserDevices(updatedUserLists);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Device action completed, but failed to refresh the device list: {e.Message}");
             }
         }
 
@@ -4633,6 +4709,9 @@ namespace Commander
     {
         [Value(0, Required = false, HelpText = "enterprise user email, ID, or \"all\"")]
         public string User { get; set; }
+
+        [Option("format", Required = false, Default = "table", HelpText = "Output format: table, json")]
+        public string Format { get; set; }
     }
 
     class DeviceAdminActionOptions : EnterpriseGenericOptions
@@ -4643,8 +4722,11 @@ namespace Commander
         [Value(1, Required = true, HelpText = "enterprise user email or ID")]
         public string User { get; set; }
 
-        [Value(2, Required = true, HelpText = "comma separated list of device id(s), name(s), 1-based row number(s) from device-admin-list, or \"all\"")]
+        [Value(2, Required = true, HelpText = "comma separated list of device id(s), name(s), \"#<row>\" (row number resolved against this user's devices only), or \"all\"")]
         public string Devices { get; set; }
+
+        [Option("yes", Required = false, Default = false, HelpText = "skip the confirmation prompt")]
+        public bool Yes { get; set; }
     }
 
     class AuditReportOptions 
