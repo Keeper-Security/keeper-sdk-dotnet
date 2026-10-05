@@ -60,6 +60,9 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Copy-FileToKeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#power-commander)                                 |                  | Upload file attachment to a record
 | [Get-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander)                               |                  | Print the current device settings
 | [Set-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander-1)                                | this-device      | Modifies the current device settings
+| Get-KeeperDeviceList                                  | device-list      | Lists devices registered to the current Keeper account
+| Invoke-KeeperDeviceAction                             | device-action     | Logs out, removes, locks, unlocks, links, or unlinks user devices
+| Rename-KeeperDevice                                    | device-rename     | Renames a user device
 | [Get-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Show/hide secret fields setting
 | [Set-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Sets whether password fields should be visible or not
 
