@@ -1333,7 +1333,12 @@ function Add-KeeperRecord {
                     }
                 }
                 catch {
-                    Write-Error "Failed to create self-destruct share: $($_.Exception.Message)"
+                    if ($Format -eq 'json') {
+                        [PSCustomObject]@{ status = 'error'; record_uid = $createdRecord.Uid; message = "Record was created, but failed to create self-destruct share: $($_.Exception.Message)" } | ConvertTo-Json -Compress
+                    }
+                    else {
+                        Write-Error "Record $($createdRecord.Uid) was created, but failed to create self-destruct share: $($_.Exception.Message)"
+                    }
                 }
             }
             else {

@@ -358,6 +358,13 @@ namespace Commander
 
         public static async Task AddRecordCommand(this VaultContext context, AddRecordOptions options)
         {
+            if (!string.IsNullOrEmpty(options.Format)
+                && !string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Output format must be table or json");
+            }
+
             if (!context.TryResolvePath(options.Folder, out var node))
             {
                 Console.WriteLine($"Cannot resolve folder {options.Folder}");
@@ -434,7 +441,20 @@ namespace Commander
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to create self-destruct share: {ex.Message}");
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                        {
+                            ["status"] = "error",
+                            ["record_uid"] = createdRecord.Uid,
+                            ["message"] = $"Record was created, but failed to create self-destruct share: {ex.Message}"
+                        }));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Record {createdRecord.Uid} was created, but failed to create self-destruct share: {ex.Message}");
+                    }
+
                     return;
                 }
             }

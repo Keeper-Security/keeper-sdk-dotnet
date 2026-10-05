@@ -148,8 +148,8 @@ namespace KeeperSecurity.Plugins.PAM
       }
       catch (Exception ex)
       {
-        Debug.WriteLine(ex.Message);
-        return CanManageWorkflowSettings(auth);
+        Trace.TraceWarning($"Failed to refresh workflow management enforcement: {ex.Message}");
+        return false;
       }
     }
 
