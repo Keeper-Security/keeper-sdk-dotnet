@@ -585,7 +585,7 @@ namespace KeeperSecurity.Authentication
             UsePushNotifications = true;
             messageSessionUid ??= CryptoUtils.GetRandomBytes(16);
 
-            var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
+            var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy, Endpoint.IgnoreCertificateErrors);
             var sessionToken = authContext.SessionToken;
             var deviceToken = DeviceToken;
 

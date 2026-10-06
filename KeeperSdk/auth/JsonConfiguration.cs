@@ -527,6 +527,27 @@ namespace KeeperSecurity.Configuration
     }
 
     [DataContract]
+    internal class JsonServerPublicKeyConfiguration : IServerPublicKeyConfiguration,
+        IEntityCopy<IServerPublicKeyConfiguration>
+    {
+        [DataMember(Name = "key_id", EmitDefaultValue = false)]
+        public int keyId;
+
+        [DataMember(Name = "public_key", EmitDefaultValue = false)]
+        public string publicKey;
+
+        int IServerPublicKeyConfiguration.KeyId => keyId;
+        string IServerPublicKeyConfiguration.PublicKey => publicKey;
+        string IConfigurationId.Id => keyId.ToString();
+
+        void IEntityCopy<IServerPublicKeyConfiguration>.CopyFields(IServerPublicKeyConfiguration entity)
+        {
+            keyId = entity.KeyId;
+            publicKey = entity.PublicKey;
+        }
+    }
+
+    [DataContract]
     internal class JsonServerConfiguration : IServerConfiguration, IEntityCopy<IServerConfiguration>,
         IExtensibleDataObject
     {
@@ -536,9 +557,28 @@ namespace KeeperSecurity.Configuration
         [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
         public int serverKeyId;
 
+        [DataMember(Name = "server_public_keys", EmitDefaultValue = false)]
+        public List<JsonServerPublicKeyConfiguration> serverPublicKeys;
+
+        [DataMember(Name = "ignore_certificate_errors", EmitDefaultValue = false)]
+        public bool ignoreCertificateErrors;
+
         string IServerConfiguration.Server => server;
         int IServerConfiguration.ServerKeyId => serverKeyId;
+        bool IServerConfiguration.IgnoreCertificateErrors => ignoreCertificateErrors;
         string IConfigurationId.Id => server;
+
+        private IConfigCollection<IServerPublicKeyConfiguration> _publicKeys;
+
+        public IConfigCollection<IServerPublicKeyConfiguration> PublicKeys
+        {
+            get
+            {
+                return _publicKeys ??=
+                    new ListConfigCollection<JsonServerPublicKeyConfiguration, IServerPublicKeyConfiguration>(
+                        () => serverPublicKeys ??= new List<JsonServerPublicKeyConfiguration>());
+            }
+        }
 
         void IEntityCopy<IServerConfiguration>.CopyFields(IServerConfiguration serverConf)
         {
@@ -548,6 +588,22 @@ namespace KeeperSecurity.Configuration
             }
 
             serverKeyId = serverConf.ServerKeyId;
+            ignoreCertificateErrors = serverConf.IgnoreCertificateErrors;
+
+            if (serverConf.PublicKeys == null) return;
+
+            var existing = new HashSet<string>();
+            existing.UnionWith(PublicKeys.List.Select(x => x.Id));
+            foreach (var pk in serverConf.PublicKeys.List)
+            {
+                existing.Remove(pk.Id);
+                PublicKeys.Put(pk);
+            }
+
+            foreach (var id in existing)
+            {
+                PublicKeys.Delete(id);
+            }
         }
 
         public ExtensionDataObject ExtensionData { get; set; }
