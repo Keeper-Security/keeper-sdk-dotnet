@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Configuration
 {
@@ -89,6 +90,26 @@ namespace KeeperSecurity.Configuration
     }
 
     /// <summary>
+    /// Defines server public key entity.
+    /// </summary>
+    /// <remarks>
+    /// Self hosted Keeper instances use their own transmission keys.
+    /// These keys are not known to the library and are configured per server.
+    /// </remarks>
+    public interface IServerPublicKeyConfiguration : IConfigurationId
+    {
+        /// <summary>
+        /// Server Key ID.
+        /// </summary>
+        int KeyId { get; }
+
+        /// <summary>
+        /// Base64 URL encoded EC public key.
+        /// </summary>
+        string PublicKey { get; }
+    }
+
+    /// <summary>
     /// Defines Keeper server entity.
     /// </summary>
     public interface IServerConfiguration : IConfigurationId
@@ -102,6 +123,24 @@ namespace KeeperSecurity.Configuration
         /// Server Key ID.
         /// </summary>
         int ServerKeyId { get; }
+
+        /// <summary>
+        /// Server public key collection.
+        /// </summary>
+        /// <remarks>
+        /// Ad-hoc keys of self hosted Keeper instances. They take precedence over the keys built into the library.
+        /// </remarks>
+        IConfigCollection<IServerPublicKeyConfiguration> PublicKeys { get; }
+
+        /// <summary>
+        /// Accept any TLS certificate presented by this server.
+        /// </summary>
+        /// <remarks>
+        /// Intended for self hosted Keeper instances with self signed certificates.
+        /// The connection is encrypted but the server is not authenticated,
+        /// so an attacker on the network path can impersonate the server.
+        /// </remarks>
+        bool IgnoreCertificateErrors { get; }
     }
 
     /// <summary>
@@ -290,10 +329,46 @@ namespace KeeperSecurity.Configuration
     }
 
     /// <summary>
+    /// Server public key entity.
+    /// </summary>
+    public class ServerPublicKeyConfiguration : IServerPublicKeyConfiguration
+    {
+        /// <summary>
+        /// Creates instance for server key ID.
+        /// </summary>
+        /// <param name="keyId">Server Key ID.</param>
+        public ServerPublicKeyConfiguration(int keyId)
+        {
+            KeyId = keyId;
+        }
+
+        /// <summary>
+        /// Creates instance from another server public key entity.
+        /// </summary>
+        /// <param name="other">Server public key entity.</param>
+        public ServerPublicKeyConfiguration(IServerPublicKeyConfiguration other) : this(other.KeyId)
+        {
+            PublicKey = other.PublicKey;
+        }
+
+        /// <inheritdoc/>>
+        public int KeyId { get; }
+
+        /// <inheritdoc/>>
+        public string PublicKey { get; set; }
+
+        /// <exclude/>
+        string IConfigurationId.Id => KeyId.ToString();
+    }
+
+    /// <summary>
     /// Server entity.
     /// </summary>
     public class ServerConfiguration : IServerConfiguration
     {
+        private readonly IConfigCollection<IServerPublicKeyConfiguration> _publicKeys =
+            new InMemoryConfigCollection<IServerPublicKeyConfiguration>();
+
         /// <summary>
         /// Creates instance for Keeper server.
         /// </summary>
@@ -310,6 +385,12 @@ namespace KeeperSecurity.Configuration
         public ServerConfiguration(IServerConfiguration other) : this(other.Server)
         {
             ServerKeyId = other.ServerKeyId;
+            IgnoreCertificateErrors = other.IgnoreCertificateErrors;
+            if (other.PublicKeys == null) return;
+            foreach (var publicKey in other.PublicKeys.List)
+            {
+                _publicKeys.Put(new ServerPublicKeyConfiguration(publicKey));
+            }
         }
 
         /// <inheritdoc/>>
@@ -317,6 +398,12 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public int ServerKeyId { get; set; } = 1;
+
+        /// <inheritdoc/>>
+        public IConfigCollection<IServerPublicKeyConfiguration> PublicKeys => _publicKeys;
+
+        /// <inheritdoc/>>
+        public bool IgnoreCertificateErrors { get; set; }
 
         /// <exclude/>
         string IConfigurationId.Id => Server;
@@ -464,6 +551,85 @@ namespace KeeperSecurity.Configuration
         public void Put(IKeeperConfiguration configuration)
         {
             _configuration = new KeeperConfiguration(configuration);
+        }
+    }
+
+    /// <summary>
+    /// Keeper server configuration extensions.
+    /// </summary>
+    public static class ServerConfigurationExtensions
+    {
+        /// <summary>
+        /// Stores an ad-hoc server public key and makes it the active server key.
+        /// </summary>
+        /// <param name="storage">Configuration storage.</param>
+        /// <param name="server">Keeper server host.</param>
+        /// <param name="keyId">Server Key ID.</param>
+        /// <param name="publicKey">Base64 URL encoded EC public key.</param>
+        /// <remarks>
+        /// Self hosted Keeper instances use their own transmission keys.
+        /// </remarks>
+        /// <exception cref="Authentication.KeeperInvalidParameter">Public key is not a valid EC public key.</exception>
+        public static void SetServerPublicKey(this IConfigurationStorage storage, string server, int keyId, string publicKey)
+        {
+            try
+            {
+                CryptoUtils.LoadEcPublicKey(publicKey.Base64UrlDecode());
+            }
+            catch (Exception e)
+            {
+                throw new KeeperInvalidParameter("SetServerPublicKey", "publicKey", publicKey ?? "",
+                    $"EC public key expected: {e.Message}");
+            }
+
+            storage.UpdateServerConfiguration(server, serverConfiguration =>
+            {
+                serverConfiguration.PublicKeys.Put(new ServerPublicKeyConfiguration(keyId)
+                {
+                    PublicKey = publicKey
+                });
+                serverConfiguration.ServerKeyId = keyId;
+            });
+        }
+
+        /// <summary>
+        /// Makes an already stored server key the active one.
+        /// </summary>
+        /// <param name="storage">Configuration storage.</param>
+        /// <param name="server">Keeper server host.</param>
+        /// <param name="keyId">Server Key ID.</param>
+        public static void SetServerKeyId(this IConfigurationStorage storage, string server, int keyId)
+        {
+            storage.UpdateServerConfiguration(server, serverConfiguration => serverConfiguration.ServerKeyId = keyId);
+        }
+
+        /// <summary>
+        /// Accepts any TLS certificate presented by the server.
+        /// </summary>
+        /// <param name="storage">Configuration storage.</param>
+        /// <param name="server">Keeper server host.</param>
+        /// <param name="ignore">Ignore certificate errors.</param>
+        /// <remarks>
+        /// Intended for self hosted Keeper instances with self signed certificates.
+        /// The connection is encrypted but the server is not authenticated,
+        /// so an attacker on the network path can impersonate the server.
+        /// </remarks>
+        public static void SetIgnoreCertificateErrors(this IConfigurationStorage storage, string server, bool ignore)
+        {
+            storage.UpdateServerConfiguration(server,
+                serverConfiguration => serverConfiguration.IgnoreCertificateErrors = ignore);
+        }
+
+        private static void UpdateServerConfiguration(this IConfigurationStorage storage, string server,
+            Action<ServerConfiguration> action)
+        {
+            var serverName = server.AdjustServerName();
+            var configuration = storage.Get();
+            var sc = configuration.Servers.Get(serverName);
+            var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(serverName);
+            action(serverConfiguration);
+            configuration.Servers.Put(serverConfiguration);
+            storage.Put(configuration);
         }
     }
 

@@ -576,6 +576,7 @@ function Resolve-KeeperServer {
     .Synopsis
     Resolves a Keeper region code or hostname to a valid Keeper server hostname.
     Returns $null for empty input and throws an error for unknown values.
+    Host names of self hosted Keeper instances are passed through.
     Uses KeeperRegions from the SDK as the single source of truth for region mappings.
     #>
     param(
@@ -591,8 +592,85 @@ function Resolve-KeeperServer {
         return $resolved
     }
 
+    # Not a known region: a self hosted Keeper instance.
+    if ($Server.Contains('.')) {
+        return $Server.Trim().ToLowerInvariant()
+    }
+
     $validRegions = ([KeeperSecurity.Authentication.KeeperRegions]::Servers.Keys | Sort-Object) -join ', '
-    Write-Error "Invalid region: $Server`nValid regions: $validRegions" -ErrorAction Stop
+    Write-Error "Invalid region: $Server`nValid regions: $validRegions`nSelf hosted instances are set by their host name." -ErrorAction Stop
+}
+
+function Set-KeeperServerKey {
+    <#
+    .Synopsis
+    Stores the transmission public key of a self hosted Keeper instance.
+
+    .Parameter Server
+    Keeper host name.
+
+    .Parameter KeyId
+    Server key ID.
+
+    .Parameter PublicKey
+    Base64 URL encoded EC public key.
+
+    .Parameter Config
+    Configuration file name. Default is "config.json"
+    #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)][string] $Server,
+        [Parameter(Mandatory = $true)][int] $KeyId,
+        [Parameter(Mandatory = $true)][string] $PublicKey,
+        [Parameter()][string] $Config
+    )
+
+    if ($Config) {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage $Config
+    } else {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
+    }
+
+    [KeeperSecurity.Configuration.ServerConfigurationExtensions]::SetServerPublicKey($storage, $Server, $KeyId, $PublicKey)
+    Write-Information -MessageData "Public key $KeyId is set for Keeper server `"$Server`"" -InformationAction Continue
+}
+
+function Set-KeeperServerCertificateCheck {
+    <#
+    .Synopsis
+    Enables or disables TLS certificate verification for a Keeper server.
+
+    .Parameter Server
+    Keeper host name.
+
+    .Parameter IgnoreCertificateErrors
+    Accept any TLS certificate presented by the server. The server is not authenticated,
+    so an attacker on the network path can impersonate it. Self hosted instances only.
+
+    .Parameter Config
+    Configuration file name. Default is "config.json"
+    #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)][string] $Server,
+        [Parameter()][switch] $IgnoreCertificateErrors,
+        [Parameter()][string] $Config
+    )
+
+    if ($Config) {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage $Config
+    } else {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
+    }
+
+    $ignore = $IgnoreCertificateErrors.IsPresent
+    [KeeperSecurity.Configuration.ServerConfigurationExtensions]::SetIgnoreCertificateErrors($storage, $Server, $ignore)
+    if ($ignore) {
+        Write-Warning "TLS certificate verification is disabled for Keeper server `"$Server`". The server is not authenticated."
+    } else {
+        Write-Information -MessageData "TLS certificate verification is enabled for Keeper server `"$Server`"" -InformationAction Continue
+    }
 }
 
 function getConfigurationForDevice {
