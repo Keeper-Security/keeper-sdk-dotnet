@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -10,12 +11,15 @@ using Authentication;
 using BreachWatch;
 using Cli;
 using CommandLine;
+using DeviceManagement;
 using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.BreachWatch;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
+using ZeroDep;
+using UserDevice = DeviceManagement.Device;
 
 namespace Commander
 {
@@ -64,6 +68,30 @@ namespace Commander
                         Order = 52,
                         Description = "Manage Windows Hello biometric authentication",
                         Action = BiometricCommand,
+                    });
+
+                Commands.Add("device-list",
+                    new ParseableCommand<DeviceListOptions>
+                    {
+                        Order = 53,
+                        Description = "List devices registered to the current account",
+                        Action = DeviceListCommand,
+                    });
+
+                Commands.Add("device-action",
+                    new ParseableCommand<DeviceActionOptions>
+                    {
+                        Order = 54,
+                        Description = "Perform an action on devices registered to the current account",
+                        Action = DeviceActionCommand,
+                    });
+
+                Commands.Add("device-rename",
+                    new ParseableCommand<DeviceRenameOptions>
+                    {
+                        Order = 55,
+                        Description = "Rename a device registered to the current account",
+                        Action = DeviceRenameCommand,
                     });
 
                 if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
@@ -500,6 +528,308 @@ namespace Commander
             Console.WriteLine($"Unsupported device command {arguments.Command}");
         }
 
+        private async Task DeviceListCommand(DeviceListOptions options)
+        {
+            var format = (options.Format ?? "table").ToLowerInvariant();
+            if (format != "table" && format != "json")
+            {
+                Console.WriteLine("Unsupported output format. Valid formats: table, json");
+                return;
+            }
+
+            UserDevice[] devices;
+            try
+            {
+                devices = (await _auth.GetUserDevices()).OrderByDescending(x => x.LastModifiedTime).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Failed to retrieve devices: {e.Message}");
+                return;
+            }
+
+            if (format == "json")
+            {
+                var jsonDevices = new List<Dictionary<string, object>>();
+                for (var i = 0; i < devices.Length; i++)
+                {
+                    var device = devices[i];
+                    jsonDevices.Add(new Dictionary<string, object>
+                    {
+                        ["id"] = i + 1,
+                        ["deviceName"] = device.DeviceName,
+                        ["clientType"] = device.ClientType.ToString().ToUpperInvariant(),
+                        ["loginStatus"] = GetDeviceLoginStatus(device.LoginState),
+                        ["lastAccessedTimestamp"] = GetDeviceTimestamp(device.LastModifiedTime),
+                    });
+                }
+
+                var json = Json.Serialize(new Dictionary<string, object> { ["devices"] = jsonDevices });
+                if (!string.IsNullOrEmpty(options.Output))
+                {
+                    try
+                    {
+                        File.WriteAllText(options.Output, json, Encoding.UTF8);
+                        Console.WriteLine($"Results saved to {options.Output}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Error.WriteLine($"Failed to save results to {options.Output}: {e.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(json);
+                }
+                return;
+            }
+
+            if (devices.Length == 0)
+            {
+                Console.WriteLine("No devices found");
+                return;
+            }
+
+            Console.WriteLine($"User Devices ({devices.Length} found)");
+            var table = new Tabulate(5);
+            table.AddHeader("ID", "Device Name", "Client Type", "Login Status", "Last Accessed");
+            for (var i = 0; i < devices.Length; i++)
+            {
+                var device = devices[i];
+                table.AddRow(i + 1, device.DeviceName, device.ClientType.ToString().ToUpperInvariant(),
+                    GetDeviceLoginStatus(device.LoginState), GetDeviceTimestamp(device.LastModifiedTime));
+            }
+            table.Dump();
+        }
+
+        private async Task DeviceActionCommand(DeviceActionOptions options)
+        {
+            if (!DeviceManagementExtensions.TryParseDeviceAction(options.Action, out var actionType))
+            {
+                Console.Error.WriteLine($"Unsupported device action \"{options.Action}\"");
+                return;
+            }
+
+            UserDevice[] devices;
+            try
+            {
+                devices = (await _auth.GetUserDevices()).OrderByDescending(x => x.LastModifiedTime).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Failed to retrieve devices: {e.Message}");
+                return;
+            }
+
+            if (devices.Length == 0)
+            {
+                Console.Error.WriteLine("No devices found");
+                return;
+            }
+
+            var selected = new List<UserDevice>();
+            var resolutionErrors = new List<string>();
+            foreach (var identifier in options.Devices.SelectMany(x => x.Split(',')))
+            {
+                var text = identifier.Trim();
+                if (text.Length == 0) continue;
+
+                var matches = ResolveUserDevices(devices, text);
+                if (matches.Length == 0)
+                    resolutionErrors.Add($"No device found for \"{text}\"");
+                else if (matches.Length > 1)
+                    resolutionErrors.Add($"Multiple devices match \"{text}\". Use a row number or a more specific device token.");
+                else if (!selected.Any(x => x.EncryptedDeviceToken.Equals(matches[0].EncryptedDeviceToken)))
+                    selected.Add(matches[0]);
+            }
+
+            if (resolutionErrors.Count > 0)
+            {
+                foreach (var error in resolutionErrors) Console.Error.WriteLine(error);
+                return;
+            }
+            if (selected.Count == 0)
+            {
+                Console.Error.WriteLine("At least one device identifier must be specified");
+                return;
+            }
+            if ((actionType == DeviceActionType.DaLink || actionType == DeviceActionType.DaUnlink) && selected.Count < 2)
+            {
+                Console.Error.WriteLine($"Action \"{options.Action}\" requires at least 2 devices");
+                return;
+            }
+
+            IEnumerable<DeviceActionResult> results;
+            try
+            {
+                results = await _auth.ExecuteDeviceAction(actionType, selected.Select(x => x.EncryptedDeviceToken));
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Device action \"{options.Action}\" failed: {e.Message}");
+                return;
+            }
+
+            var deviceNames = selected.ToDictionary(x => x.EncryptedDeviceToken.ToByteArray().Base64UrlEncode(),
+                x => x.DeviceName ?? "Unknown Device");
+            var succeeded = false;
+            foreach (var result in results)
+            {
+                foreach (var token in result.EncryptedDeviceToken)
+                {
+                    var tokenText = token.ToByteArray().Base64UrlEncode();
+                    var deviceName = deviceNames.TryGetValue(tokenText, out var name) ? name : "Unknown Device";
+                    if (result.DeviceActionStatus == DeviceActionStatus.Success)
+                    {
+                        Console.WriteLine($"✓ Device '{deviceName}' successfully {GetDeviceActionVerb(options.Action)}");
+                        succeeded = true;
+                    }
+                    else if (result.DeviceActionStatus == DeviceActionStatus.NotAllowed)
+                        Console.Error.WriteLine($"Device '{deviceName}': Operation not allowed");
+                    else
+                        Console.Error.WriteLine($"Device '{deviceName}': Action failed ({result.DeviceActionStatus.ToString().ToUpperInvariant()})");
+                }
+            }
+
+            if (succeeded)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Updated device list:");
+                await DeviceListCommand(new DeviceListOptions());
+            }
+        }
+
+        private async Task DeviceRenameCommand(DeviceRenameOptions options)
+        {
+            if (string.IsNullOrWhiteSpace(options.NewName))
+            {
+                Console.Error.WriteLine("A new device name must be specified");
+                return;
+            }
+            if (options.NewName.Any(x => x == '<' || x == '>' || x == '\"' || x == '\'' || char.IsControl(x)))
+            {
+                Console.Error.WriteLine("Device name contains invalid characters");
+                return;
+            }
+
+            UserDevice[] devices;
+            try
+            {
+                devices = (await _auth.GetUserDevices()).OrderByDescending(x => x.LastModifiedTime).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Failed to retrieve devices: {e.Message}");
+                return;
+            }
+            if (devices.Length == 0)
+            {
+                Console.Error.WriteLine("No devices found");
+                return;
+            }
+
+            var matches = ResolveUserDevices(devices, options.Device);
+            if (matches.Length == 0)
+            {
+                Console.Error.WriteLine($"No device found for \"{options.Device}\"");
+                return;
+            }
+            if (matches.Length > 1)
+            {
+                Console.Error.WriteLine($"Multiple devices match \"{options.Device}\". Use a row number or a more specific device token.");
+                return;
+            }
+
+            var device = matches[0];
+            DeviceRenameResult result;
+            try
+            {
+                result = await _auth.RenameUserDevice(device.EncryptedDeviceToken, options.NewName);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Device rename failed: {e.Message}");
+                return;
+            }
+            if (result == null)
+            {
+                Console.Error.WriteLine("Device rename failed: no response from server");
+                return;
+            }
+            if (result.DeviceActionStatus == DeviceActionStatus.NotAllowed)
+            {
+                Console.Error.WriteLine($"Device '{device.DeviceName}': Operation not allowed");
+                return;
+            }
+            if (result.DeviceActionStatus != DeviceActionStatus.Success)
+            {
+                Console.Error.WriteLine($"Device '{device.DeviceName}': Rename failed ({result.DeviceActionStatus.ToString().ToUpperInvariant()})");
+                return;
+            }
+
+            Console.WriteLine($"✓ Device name updated from '{device.DeviceName}' to '{result.DeviceNewName}'");
+            Console.WriteLine();
+            Console.WriteLine("Updated device list:");
+            await DeviceListCommand(new DeviceListOptions());
+        }
+
+        private static UserDevice[] ResolveUserDevices(IReadOnlyList<UserDevice> devices, string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier)) return Array.Empty<UserDevice>();
+
+            identifier = identifier.Trim();
+            if (int.TryParse(identifier, out var rowNumber))
+                return rowNumber >= 1 && rowNumber <= devices.Count ? new[] { devices[rowNumber - 1] } : Array.Empty<UserDevice>();
+
+            var matches = devices.Where(x => x.EncryptedDeviceToken.ToByteArray().Base64UrlEncode()
+                .Equals(identifier, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (matches.Length == 0)
+                matches = devices.Where(x => x.EncryptedDeviceToken.ToByteArray().Base64UrlEncode()
+                    .StartsWith(identifier, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (matches.Length == 0)
+                matches = devices.Where(x => !string.IsNullOrEmpty(x.DeviceName) && x.DeviceName
+                    .IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0).ToArray();
+            return matches;
+        }
+
+        private static string GetDeviceLoginStatus(LoginState loginState)
+        {
+            return loginState switch
+            {
+                LoginState.LoggedIn => "LOGGED_IN",
+                LoginState.LoggedOut => "LOGGED_OUT",
+                LoginState.DeviceLocked => "DEVICE_LOCKED",
+                LoginState.DeviceAccountLocked => "DEVICE_ACCOUNT_LOCKED",
+                LoginState.AccountLocked => "ACCOUNT_LOCKED",
+                LoginState.LicenseExpired => "LICENSE_EXPIRED",
+                _ => loginState.ToString().ToUpperInvariant(),
+            };
+        }
+
+        private static string GetDeviceTimestamp(long timestamp)
+        {
+            if (timestamp <= 0) return "N/A";
+            try
+            {
+                return (timestamp > 10000000000 ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp) : DateTimeOffset.FromUnixTimeSeconds(timestamp))
+                    .LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return $"Invalid timestamp: {timestamp}";
+            }
+        }
+
+        private static string GetDeviceActionVerb(string action)
+        {
+            return action.ToLowerInvariant() switch
+            {
+                "logout" => "logged out", "remove" => "removed", "lock" => "locked", "unlock" => "unlocked",
+                "account-lock" => "account locked", "account-unlock" => "account unlocked", "link" => "linked", "unlink" => "unlinked",
+                _ => action,
+            };
+        }
+
         public override async Task<bool> ProcessException(Exception e)
         {
             if (!(e is KeeperAuthFailed)) return await base.ProcessException(e);
@@ -821,6 +1151,33 @@ namespace Commander
 
         [Option('l', "link", Required = false, Default = false, HelpText = "link device")]
         public bool Link { get; set; }
+    }
+
+    class DeviceListOptions
+    {
+        [Option("format", Required = false, Default = "table", HelpText = "output format: table or json")]
+        public string Format { get; set; }
+
+        [Option("output", Required = false, HelpText = "JSON output file; ignored for table format")]
+        public string Output { get; set; }
+    }
+
+    class DeviceActionOptions
+    {
+        [Value(0, Required = true, HelpText = "device action: logout, remove, lock, unlock, account-lock, account-unlock, link, unlink")]
+        public string Action { get; set; }
+
+        [Value(1, Required = true, Min = 1, HelpText = "device row ID, device token, or device name")]
+        public IEnumerable<string> Devices { get; set; }
+    }
+
+    class DeviceRenameOptions
+    {
+        [Value(0, Required = true, HelpText = "device row ID, device token, or device name")]
+        public string Device { get; set; }
+
+        [Value(1, Required = true, HelpText = "new device name")]
+        public string NewName { get; set; }
     }
 
     class ThisDeviceOptions
