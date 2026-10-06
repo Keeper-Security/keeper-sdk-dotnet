@@ -95,7 +95,10 @@ namespace Tests
                         lrs.CloneCode = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8));
                         lrs.EncryptedSessionToken = ByteString.CopyFrom(DataVault.SessionToken);
                         var configuration = auth.Storage.Get();
-                        var device = configuration.Devices.List.FirstOrDefault();
+                        // Encrypt for the device this login used, not merely the first one stored.
+                        var startLogin = StartLoginRequest.Parser.ParseFrom(payload.Payload);
+                        var device = configuration.Devices.Get(startLogin.EncryptedDeviceToken.ToByteArray().Base64UrlEncode())
+                                     ?? configuration.Devices.List.FirstOrDefault();
                         Assert.NotNull(device);
                         var devicePrivateKey = CryptoUtils.LoadEcPrivateKey(device.DeviceKey);
                         var devicePublicKey = CryptoUtils.GetEcPublicKey(devicePrivateKey);
@@ -349,7 +352,7 @@ fwIDAQAB
                         CryptoUtils.GetRandomBytes(16),
                         DataVault.UserDataKey)),
                 IsEnterpriseAdmin = false,
-                KeysInfo = new KeysInfo
+                KeysInfo = new AccountSummary.KeysInfo
                 {
                     EncryptionParams = ByteString.CopyFrom(DataVault.EncryptionParams),
                     EncryptedPrivateKey = ByteString.CopyFrom(DataVault.EncryptedPrivateKey),
