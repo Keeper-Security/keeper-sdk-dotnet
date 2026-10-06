@@ -492,7 +492,7 @@ namespace Commander
                 ["version"] = record.Version,
                 ["revision"] = record.Revision,
                 ["shared"] = record.Shared,
-                ["permissions"] = userPerms,
+                ["user_permissions"] = userPerms,
                 ["share_admins"] = shareAdmins
             };
         }
@@ -583,12 +583,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
 
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
 
@@ -936,6 +934,8 @@ namespace Commander
             public bool CanEdit { get; set; }
             public bool CanView { get; set; }
             public bool CanDelete { get; set; }
+            public bool CanApproveAccess { get; set; }
+            public bool CanUpdateAccess { get; set; }
             public string AccessorEmail { get; set; }
         }
 
@@ -965,6 +965,8 @@ namespace Commander
                         CanEdit = d.CanEdit,
                         CanView = d.CanView,
                         CanDelete = d.CanDelete,
+                        CanApproveAccess = d.CanApproveAccess,
+                        CanUpdateAccess = d.CanUpdateAccess,
                         AccessorEmail = emailHint
                     });
                 }
@@ -981,7 +983,9 @@ namespace Commander
                         Owner = a.Owner,
                         CanEdit = a.CanEdit,
                         CanView = a.CanView,
-                        CanDelete = a.CanDelete
+                        CanDelete = a.CanDelete,
+                        CanApproveAccess = a.CanApproveAccess,
+                        CanUpdateAccess = a.CanUpdateAccess
                     }).ToList();
             }
         }
@@ -1054,6 +1058,8 @@ namespace Commander
             public bool CanEdit { get; set; }
             public bool CanView { get; set; }
             public bool CanDelete { get; set; }
+            public bool CanApproveAccess { get; set; }
+            public bool CanUpdateAccess { get; set; }
         }
 
         private static async Task<List<object>> BuildUserPermissionsAsync(
@@ -1068,22 +1074,14 @@ namespace Commander
             var result = new List<object>();
             foreach (var perm in userPerms)
             {
-                var entry = new Dictionary<string, object>
+                result.Add(new Dictionary<string, object>
                 {
-                    ["user"] = perm.Username,
-                    ["shareable"] = perm.CanEdit || perm.Owner ? "Yes" : "No",
-                    ["read_only"] = !perm.CanEdit && !perm.Owner ? "Yes" : "No"
-                };
-                if (perm.Owner)
-                {
-                    entry["owner"] = "Yes";
-                }
-                else
-                {
-                    entry["role"] = perm.Role;
-                }
-
-                result.Add(entry);
+                    ["username"] = perm.Username,
+                    ["owner"] = perm.Owner,
+                    ["shareable"] = perm.CanApproveAccess || perm.CanUpdateAccess,
+                    ["editable"] = perm.CanEdit,
+                    ["role"] = perm.Role
+                });
             }
 
             return result;
@@ -1115,7 +1113,9 @@ namespace Commander
                     Role = NsfHelpers.GetAccessRoleLabel(access.AccessRoleType),
                     CanEdit = access.CanEdit,
                     CanView = access.CanView,
-                    CanDelete = access.CanDelete
+                    CanDelete = access.CanDelete,
+                    CanApproveAccess = access.CanApproveAccess,
+                    CanUpdateAccess = access.CanUpdateAccess
                 });
             }
 
@@ -1142,12 +1142,10 @@ namespace Commander
 
             foreach (var access in accesses)
             {
-                var username = !string.IsNullOrEmpty(access.AccessorEmail)
-                    ? access.AccessorEmail
-                    : await NsfHelpers.ResolveUsernameAsync(vault, access.AccessTypeUid);
-
                 var accessTypeLabel = NsfHelpers.GetAccessTypeLabel(access.AccessType);
-                var accessor = !string.IsNullOrEmpty(username) ? username : access.AccessTypeUid;
+                var accessor = await NsfHelpers.ResolveAccessorNameAsync(
+                    vault, access.AccessTypeUid, accessTypeLabel, access.AccessorEmail);
+                var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
                 var roleLabel = isOwner ? "owner" : NsfHelpers.GetAccessRoleLabel(access.AccessRoleType);
 
