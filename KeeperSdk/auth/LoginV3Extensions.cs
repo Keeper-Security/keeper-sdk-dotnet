@@ -157,7 +157,20 @@ namespace KeeperSecurity.Authentication
                 if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
                 if (deviceConf.ServerInfo?.Get(auth.Endpoint.Server) == null)
                 {
-                    await auth.RegisterDeviceInRegion(deviceConf);
+                    try
+                    {
+                        await auth.RegisterDeviceInRegion(deviceConf);
+                    }
+                    catch (KeeperInvalidDeviceToken idt)
+                    {
+                        // The server does not recognise this device: it was registered with a Keeper
+                        // server this one is not a region of. Keep it for that server and register
+                        // a new device here.
+                        Debug.WriteLine($"Device is not known to {auth.Endpoint.Server}: {idt.Message}");
+                        deviceConf = await auth.RegisterDevice();
+                        auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
+                        v3.DeviceKey = CryptoUtils.LoadEcPrivateKey(deviceConf.DeviceKey);
+                    }
                 }
             }
 
