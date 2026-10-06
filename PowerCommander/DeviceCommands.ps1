@@ -252,7 +252,7 @@ function Invoke-KeeperDeviceAction {
             $deviceName = $deviceNames[$tokenText]
             if (-not $deviceName) { $deviceName = 'Unknown Device' }
             if ($result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::Success) {
-                Write-Output "✓ Device '$deviceName' successfully $($actionVerbs[$Action])"
+                Write-Output ("{0} Device '{1}' successfully {2}" -f [char]0x2713, $deviceName, $actionVerbs[$Action])
                 $successful = $true
             }
             elseif ($result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::NotAllowed) {
@@ -341,7 +341,7 @@ function Rename-KeeperDevice {
         Write-Error "Device '$($target.DeviceName)': Rename failed ($($result.DeviceActionStatus.ToString().ToUpperInvariant()))" -ErrorAction Stop
     }
 
-    Write-Output "✓ Device name updated from '$($target.DeviceName)' to '$($result.DeviceNewName)'"
+    Write-Output ("{0} Device name updated from '{1}' to '{2}'" -f [char]0x2713, $target.DeviceName, $result.DeviceNewName)
     Write-Output ''
     Write-Output 'Updated device list:'
     try {
