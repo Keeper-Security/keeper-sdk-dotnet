@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DeviceManagement;
 using Google.Protobuf;
@@ -13,6 +15,7 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public static class DeviceManagementExtensions
     {
+        private const int MaxDeviceNameLength = 255;
         private static readonly IDictionary<string, DeviceActionType> DeviceActionNames =
             new Dictionary<string, DeviceActionType>(StringComparer.OrdinalIgnoreCase)
             {
@@ -32,6 +35,35 @@ namespace KeeperSecurity.Authentication
         public static bool TryParseDeviceAction(string action, out DeviceActionType actionType)
         {
             return DeviceActionNames.TryGetValue(action ?? string.Empty, out actionType);
+        }
+
+        /// <summary>
+        /// Normalizes and validates a device name before it is sent to the service.
+        /// </summary>
+        public static string NormalizeDeviceName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("A new device name must be specified", nameof(name));
+
+            string normalizedName;
+            try
+            {
+                normalizedName = name.Normalize(NormalizationForm.FormKC).Trim();
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException("The device name is not valid Unicode text", nameof(name), e);
+            }
+
+            if (normalizedName.Length == 0)
+                throw new ArgumentException("A new device name must be specified", nameof(name));
+            if (normalizedName.Length > MaxDeviceNameLength)
+                throw new ArgumentException($"Device name cannot exceed {MaxDeviceNameLength} characters", nameof(name));
+            if (normalizedName.Any(x => x == '<' || x == '>' || x == '"' || x == '\'' ||
+                                        char.IsControl(x) || char.GetUnicodeCategory(x) == UnicodeCategory.Format))
+                throw new ArgumentException("Device name contains invalid characters", nameof(name));
+
+            return normalizedName;
         }
 
         /// <summary>
@@ -82,14 +114,13 @@ namespace KeeperSecurity.Authentication
             if (encryptedDeviceToken == null || encryptedDeviceToken.Length == 0)
                 throw new ArgumentException("A device token must be specified", nameof(encryptedDeviceToken));
 
-            if (string.IsNullOrWhiteSpace(newName))
-                throw new ArgumentException("A new device name must be specified", nameof(newName));
+            var normalizedName = NormalizeDeviceName(newName);
 
             var request = new DeviceRenameRequest();
             request.DeviceRename.Add(new DeviceRename
             {
                 EncryptedDeviceToken = encryptedDeviceToken,
-                DeviceNewName = newName,
+                DeviceNewName = normalizedName,
             });
 
             var response = await auth.ExecuteAuthRest<DeviceRenameRequest, DeviceRenameResponse>(
