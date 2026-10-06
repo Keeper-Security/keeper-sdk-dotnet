@@ -205,11 +205,8 @@ namespace KeeperSecurity.Authentication
                 ["account-unlock"] = DeviceActionType.DaDeviceAccountUnlock,
             };
 
-        private const int MaxEnterpriseUserIdsPerRequest = 1000;
-
         /// <summary>
         /// Lists all devices registered to the given enterprise users. Requires enterprise administrator privileges.
-        /// Large user ID sets are split into multiple requests to avoid request-size/timeout failures.
         /// </summary>
         /// <param name="auth">The authenticated connection.</param>
         /// <param name="enterpriseUserIds">The enterprise user IDs to list devices for.</param>
@@ -227,18 +224,11 @@ namespace KeeperSecurity.Authentication
             if (userIds.Length == 0)
                 return Enumerable.Empty<DeviceUserList>();
 
-            var result = new List<DeviceUserList>();
-            for (var offset = 0; offset < userIds.Length; offset += MaxEnterpriseUserIdsPerRequest)
-            {
-                var chunk = userIds.Skip(offset).Take(MaxEnterpriseUserIdsPerRequest);
-                var request = new DeviceAdminRequest();
-                request.EnterpriseUserIds.AddRange(chunk);
+            var request = new DeviceAdminRequest();
+            request.EnterpriseUserIds.AddRange(userIds);
 
-                var rs = await auth.ExecuteAuthRest<DeviceAdminRequest, DeviceAdminResponse>("dm/device_admin_list", request);
-                result.AddRange(rs.DeviceUserList);
-            }
-
-            return result;
+            var rs = await auth.ExecuteAuthRest<DeviceAdminRequest, DeviceAdminResponse>("dm/device_admin_list", request);
+            return rs.DeviceUserList;
         }
 
         /// <summary>
