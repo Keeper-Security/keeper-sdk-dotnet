@@ -672,26 +672,46 @@ namespace Commander
 
             var deviceNames = selected.ToDictionary(x => x.EncryptedDeviceToken.ToByteArray().Base64UrlEncode(),
                 x => x.DeviceName ?? "Unknown Device");
-            var succeeded = false;
-            foreach (var result in results)
+            var returnedTokens = new HashSet<string>(StringComparer.Ordinal);
+            var succeeded = 0;
+            var failed = 0;
+            foreach (var result in results ?? Enumerable.Empty<DeviceActionResult>())
             {
                 foreach (var token in result.EncryptedDeviceToken)
                 {
                     var tokenText = token.ToByteArray().Base64UrlEncode();
+                    if (!deviceNames.ContainsKey(tokenText) || !returnedTokens.Add(tokenText)) continue;
+
                     var deviceName = deviceNames.TryGetValue(tokenText, out var name) ? name : "Unknown Device";
                     if (result.DeviceActionStatus == DeviceActionStatus.Success)
                     {
                         Console.WriteLine($"✓ Device '{deviceName}' successfully {GetDeviceActionVerb(options.Action)}");
-                        succeeded = true;
+                        succeeded++;
                     }
                     else if (result.DeviceActionStatus == DeviceActionStatus.NotAllowed)
+                    {
                         Console.Error.WriteLine($"Device '{deviceName}': Operation not allowed");
+                        failed++;
+                    }
                     else
+                    {
                         Console.Error.WriteLine($"Device '{deviceName}': Action failed ({result.DeviceActionStatus.ToString().ToUpperInvariant()})");
+                        failed++;
+                    }
                 }
             }
 
-            if (succeeded)
+            var missing = deviceNames.Keys.Where(x => !returnedTokens.Contains(x)).ToArray();
+            foreach (var token in missing)
+            {
+                Console.Error.WriteLine($"Device '{deviceNames[token]}': Action result was not returned by the server");
+            }
+            if (failed > 0 || missing.Length > 0)
+            {
+                Console.Error.WriteLine($"Device action \"{options.Action}\" completed with partial failure: {succeeded} succeeded, {failed + missing.Length} failed or missing.");
+            }
+
+            if (succeeded > 0)
             {
                 Console.WriteLine();
                 Console.WriteLine("Updated device list:");
@@ -701,14 +721,14 @@ namespace Commander
 
         private async Task DeviceRenameCommand(DeviceRenameOptions options)
         {
-            if (string.IsNullOrWhiteSpace(options.NewName))
+            string newName;
+            try
             {
-                Console.Error.WriteLine("A new device name must be specified");
-                return;
+                newName = DeviceManagementExtensions.NormalizeDeviceName(options.NewName);
             }
-            if (options.NewName.Any(x => x == '<' || x == '>' || x == '\"' || x == '\'' || char.IsControl(x)))
+            catch (ArgumentException e)
             {
-                Console.Error.WriteLine("Device name contains invalid characters");
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -741,10 +761,15 @@ namespace Commander
             }
 
             var device = matches[0];
+            if (HasNormalizedDeviceName(devices, device, newName))
+            {
+                Console.Error.WriteLine($"Another device already uses the name '{newName}'");
+                return;
+            }
             DeviceRenameResult result;
             try
             {
-                result = await _auth.RenameUserDevice(device.EncryptedDeviceToken, options.NewName);
+                result = await _auth.RenameUserDevice(device.EncryptedDeviceToken, newName);
             }
             catch (Exception e)
             {
@@ -790,6 +815,24 @@ namespace Commander
                 matches = devices.Where(x => !string.IsNullOrEmpty(x.DeviceName) && x.DeviceName
                     .IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0).ToArray();
             return matches;
+        }
+
+        private static bool HasNormalizedDeviceName(IEnumerable<UserDevice> devices, UserDevice target, string normalizedName)
+        {
+            foreach (var device in devices)
+            {
+                if (device.EncryptedDeviceToken.Equals(target.EncryptedDeviceToken)) continue;
+                try
+                {
+                    if (string.Equals(DeviceManagementExtensions.NormalizeDeviceName(device.DeviceName), normalizedName,
+                        StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                catch (ArgumentException)
+                {
+                    // Existing legacy names may not pass current validation and cannot be compared safely.
+                }
+            }
+            return false;
         }
 
         private static string GetDeviceLoginStatus(LoginState loginState)

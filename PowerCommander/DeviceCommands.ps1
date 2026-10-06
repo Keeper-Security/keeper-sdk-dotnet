@@ -246,22 +246,39 @@ function Invoke-KeeperDeviceAction {
         'account-lock' = 'account locked'; 'account-unlock' = 'account unlocked'; link = 'linked'; unlink = 'unlinked'
     }
     $successful = $false
+    $successCount = 0
+    $failureCount = 0
+    $returnedTokens = @{}
     foreach ($result in $results) {
         foreach ($token in $result.EncryptedDeviceToken) {
             $tokenText = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($token.ToByteArray())
+            if (-not $deviceNames.ContainsKey($tokenText) -or $returnedTokens.ContainsKey($tokenText)) {
+                continue
+            }
+            $returnedTokens[$tokenText] = $true
             $deviceName = $deviceNames[$tokenText]
             if (-not $deviceName) { $deviceName = 'Unknown Device' }
             if ($result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::Success) {
                 Write-Output ("{0} Device '{1}' successfully {2}" -f [char]0x2713, $deviceName, $actionVerbs[$Action])
                 $successful = $true
+                $successCount++
             }
             elseif ($result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::NotAllowed) {
                 Write-Error "Device '$deviceName': Operation not allowed"
+                $failureCount++
             }
             else {
                 Write-Error "Device '$deviceName': Action failed ($($result.DeviceActionStatus.ToString().ToUpperInvariant()))"
+                $failureCount++
             }
         }
+    }
+    $missingTokens = @($deviceNames.Keys | Where-Object { -not $returnedTokens.ContainsKey($_) })
+    foreach ($tokenText in $missingTokens) {
+        Write-Error "Device '$($deviceNames[$tokenText])': Action result was not returned by the server"
+    }
+    if ($failureCount -gt 0 -or $missingTokens.Count -gt 0) {
+        Write-Error "Device action `"$Action`" completed with partial failure: $successCount succeeded, $($failureCount + $missingTokens.Count) failed or missing."
     }
     if ($successful) {
         Write-Output ''
@@ -292,11 +309,11 @@ function Rename-KeeperDevice {
         [Parameter(Mandatory = $true, Position = 1)] [ValidateNotNullOrEmpty()] [string] $NewName
     )
 
-    if ([string]::IsNullOrWhiteSpace($NewName)) {
-        Write-Error 'A new device name must be specified' -ErrorAction Stop
+    try {
+        $normalizedName = [KeeperSecurity.Authentication.DeviceManagementExtensions]::NormalizeDeviceName($NewName)
     }
-    if ($NewName -match '[<>"''\x00-\x1f\x7f-\x9f]') {
-        Write-Error 'Device name contains invalid characters' -ErrorAction Stop
+    catch {
+        Write-Error $_.Exception.Message -ErrorAction Stop
     }
 
     try {
@@ -321,12 +338,26 @@ function Rename-KeeperDevice {
     }
 
     $target = $matches[0]
-    if (-not $PSCmdlet.ShouldProcess($target.DeviceName, "Rename device to '$NewName'")) {
+    foreach ($device in $availableDevices) {
+        if ((Get-KeeperDeviceManagementToken -Device $device) -eq (Get-KeeperDeviceManagementToken -Device $target)) {
+            continue
+        }
+        try {
+            $existingName = [KeeperSecurity.Authentication.DeviceManagementExtensions]::NormalizeDeviceName($device.DeviceName)
+            if ([string]::Equals($existingName, $normalizedName, [System.StringComparison]::OrdinalIgnoreCase)) {
+                Write-Error "Another device already uses the name '$normalizedName'" -ErrorAction Stop
+            }
+        }
+        catch [System.ArgumentException] {
+            # Existing legacy names that do not meet current validation are not comparable.
+        }
+    }
+    if (-not $PSCmdlet.ShouldProcess($target.DeviceName, "Rename device to '$normalizedName'")) {
         return
     }
     try {
         $result = [KeeperSecurity.Authentication.DeviceManagementExtensions]::RenameUserDevice(
-            $auth, $target.EncryptedDeviceToken, $NewName).GetAwaiter().GetResult()
+            $auth, $target.EncryptedDeviceToken, $normalizedName).GetAwaiter().GetResult()
     }
     catch {
         Write-Error "Device rename failed: $($_.Exception.Message)" -ErrorAction Stop
