@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Net;
 using KeeperSecurity.Vault;
 using Cli;
 using CommandLine;
@@ -28,7 +27,6 @@ namespace Commander
         {
             Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
             Utils.Welcome();
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             var configFile = "";
             CommandExtensions.DefaultParser.ParseArguments<CommanderLaunchOptions>(args).WithParsed(x =>
