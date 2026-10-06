@@ -349,7 +349,7 @@ fwIDAQAB
                         CryptoUtils.GetRandomBytes(16),
                         DataVault.UserDataKey)),
                 IsEnterpriseAdmin = false,
-                KeysInfo = new KeysInfo
+                KeysInfo = new AccountSummary.KeysInfo
                 {
                     EncryptionParams = ByteString.CopyFrom(DataVault.EncryptionParams),
                     EncryptedPrivateKey = ByteString.CopyFrom(DataVault.EncryptedPrivateKey),

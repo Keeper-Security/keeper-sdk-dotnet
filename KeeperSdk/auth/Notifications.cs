@@ -128,10 +128,12 @@ namespace KeeperSecurity.Authentication
         private readonly byte[] _transmissionKey = CryptoUtils.GenerateEncryptionKey();
         private CancellationTokenSource _cancellationTokenSource;
         private readonly IWebProxy _webProxy;
+        private readonly bool _ignoreCertificateErrors;
 
-        public KeeperPushNotifications(IWebProxy webProxy = null)
+        public KeeperPushNotifications(IWebProxy webProxy = null, bool ignoreCertificateErrors = false)
         {
             _webProxy = webProxy;
+            _ignoreCertificateErrors = ignoreCertificateErrors;
         }
 
         public void ConnectToPushServer(Func<byte[], Task<Uri>> getPushUrl, byte[] data = null)
@@ -156,6 +158,12 @@ namespace KeeperSecurity.Authentication
 
                     var ws = new ClientWebSocket();
                     ws.Options.Proxy = _webProxy;
+#if NET8_0_OR_GREATER
+                    if (_ignoreCertificateErrors)
+                    {
+                        ws.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+                    }
+#endif
                     var delayTask = Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
                     var connectTask = ws.ConnectAsync(uri, _cancellationTokenSource.Token);
                     var t = await Task.WhenAny(delayTask, connectTask);

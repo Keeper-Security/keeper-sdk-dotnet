@@ -14,6 +14,7 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using System.Net.Http;
+using System.Net.Security;
 using Router;
 using System.Reflection;
 
@@ -51,6 +52,16 @@ namespace KeeperSecurity.Authentication
         /// Gets / sets HTTP Proxy
         /// </summary>
         IWebProxy WebProxy { get; set; }
+
+        /// <summary>
+        /// Gets / sets accepting any TLS certificate presented by the Keeper server.
+        /// </summary>
+        /// <remarks>
+        /// Intended for self hosted Keeper instances with self signed certificates.
+        /// The connection is encrypted but the server is not authenticated,
+        /// so an attacker on the network path can impersonate the server.
+        /// </remarks>
+        bool IgnoreCertificateErrors { get; set; }
 
         /// <summary>
         /// Executes Protobuf request.
@@ -157,9 +168,7 @@ namespace KeeperSecurity.Authentication
             }
 
             var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
-            var encKey = endpoint.ServerKeyId <= 6
-                ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[endpoint.ServerKeyId])
-                : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[endpoint.ServerKeyId]);
+            var encKey = endpoint.EncryptWithKeeperKey(transmissionKey, endpoint.ServerKeyId);
             return new ApiRequest()
             {
                 EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
@@ -192,6 +201,20 @@ namespace KeeperSecurity.Authentication
         public KeeperEndpoint(IConfigurationStorage storage, string keeperServer = null)
         {
             _httpMessageHandler = new HttpClientHandler();
+            try
+            {
+                // Installed once: the handler cannot be modified after the first request is sent.
+                // The callback reads IgnoreCertificateErrors every time a connection is established.
+                _httpMessageHandler.ServerCertificateCustomValidationCallback =
+                    (request, _, _, sslPolicyErrors) => sslPolicyErrors == SslPolicyErrors.None ||
+                                                        (_ignoreCertificateErrors &&
+                                                         IsConfiguredServer(request?.RequestUri?.Host));
+            }
+            catch (PlatformNotSupportedException)
+            {
+                _certificateValidationSupported = false;
+            }
+
             _httpClient = new HttpClient(_httpMessageHandler, disposeHandler: true);
             _httpClient.Timeout = TimeSpan.FromSeconds(ThrottleHandling.DefaultTimeoutSeconds);
             ClientVersion = DefaultClientVersion;
@@ -268,9 +291,7 @@ namespace KeeperSecurity.Authentication
             while (true)
             {
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
-                var encKey = keyId <= 6
-                    ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
-                    : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
+                var encKey = EncryptWithKeeperKey(transmissionKey, keyId);
 
                 var apiRequest = new ApiRequest()
                 {
@@ -725,6 +746,9 @@ namespace KeeperSecurity.Authentication
 
         private string _server;
 
+        // Ad-hoc public keys of a self hosted Keeper instance. Reloaded every time the server changes.
+        private IDictionary<int, EcPublicKey> _serverPublicKeys = new Dictionary<int, EcPublicKey>();
+
         public string Server
         {
             get => string.IsNullOrEmpty(_server) ? DefaultKeeperServer : _server;
@@ -733,8 +757,11 @@ namespace KeeperSecurity.Authentication
                 _server = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
                 var configuration = _storage.Get();
                 var sc = configuration.Servers.Get(_server);
+                _serverPublicKeys = LoadServerPublicKeys(sc);
+                IgnoreCertificateErrors = sc?.IgnoreCertificateErrors ?? false;
                 if (sc == null) return;
-                if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(sc.ServerKeyId) ||
+                if (_serverPublicKeys.ContainsKey(sc.ServerKeyId) ||
+                    KeeperSettings.KeeperRsaPublicKeys.ContainsKey(sc.ServerKeyId) ||
                     KeeperSettings.KeeperEcPublicKeys.ContainsKey(sc.ServerKeyId))
                 {
                     ServerKeyId = sc.ServerKeyId;
@@ -746,7 +773,73 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private static IDictionary<int, EcPublicKey> LoadServerPublicKeys(IServerConfiguration serverConfiguration)
+        {
+            var keys = new Dictionary<int, EcPublicKey>();
+            if (serverConfiguration?.PublicKeys == null) return keys;
+
+            foreach (var pk in serverConfiguration.PublicKeys.List)
+            {
+                if (string.IsNullOrEmpty(pk.PublicKey)) continue;
+                try
+                {
+                    keys[pk.KeyId] = CryptoUtils.LoadEcPublicKey(pk.PublicKey.Base64UrlDecode());
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError(
+                        $"Invalid public key for server \"{serverConfiguration.Server}\" key ID {pk.KeyId}: {e.Message}");
+                }
+            }
+
+            return keys;
+        }
+
         public int ServerKeyId { get; private set; }
+
+        private volatile bool _ignoreCertificateErrors;
+        private readonly bool _certificateValidationSupported = true;
+
+        private bool IsConfiguredServer(string host)
+        {
+            return IsServerOrSubdomain(host, Server);
+        }
+
+        /// <summary>
+        /// Certificate errors are ignored for the configured server and its subdomains only:
+        /// the Keeper host itself, "connect." for Router and "push.services." for notifications.
+        /// </summary>
+        internal static bool IsServerOrSubdomain(string host, string server)
+        {
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(server)) return false;
+            return host.Equals(server, StringComparison.OrdinalIgnoreCase) ||
+                   host.EndsWith("." + server, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// When true, any TLS certificate presented by the Keeper server is accepted.
+        /// </summary>
+        /// <remarks>
+        /// Intended for self hosted Keeper instances with self signed certificates.
+        /// The connection is encrypted but the server is not authenticated,
+        /// so an attacker on the network path can impersonate the server.
+        /// Set from <see cref="IServerConfiguration.IgnoreCertificateErrors"/> every time <see cref="Server"/> changes.
+        /// Takes effect on connections established after it is set.
+        /// </remarks>
+        public bool IgnoreCertificateErrors
+        {
+            get => _ignoreCertificateErrors;
+            set
+            {
+                if (value && !_certificateValidationSupported)
+                {
+                    throw new PlatformNotSupportedException(
+                        "TLS certificate validation cannot be customized on this platform. .NET Framework 4.7.1 or newer is required.");
+                }
+
+                _ignoreCertificateErrors = value;
+            }
+        }
 
         /// <summary>
         /// When true, rate-limit errors fail immediately instead of waiting and retrying.
@@ -800,15 +893,24 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public byte[] EncryptWithKeeperKey(byte[] data, int keyId)
         {
-            return keyId switch
+            // Keys configured for the server take precedence over the keys built into the library.
+            if (_serverPublicKeys.TryGetValue(keyId, out var serverKey))
             {
-                >= 1 and <= 6 when KeeperSettings.KeeperRsaPublicKeys.TryGetValue(keyId, value: out var key) =>
-                    CryptoUtils.EncryptRsa(data, key),
-                >= 7 and <= 18 when KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var publicKey) =>
-                    CryptoUtils.EncryptEc(data, publicKey),
-                _ => throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(),
-                    "Server Key Id is invalid")
-            };
+                return CryptoUtils.EncryptEc(data, serverKey);
+            }
+
+            if (KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var ecPublicKey))
+            {
+                return CryptoUtils.EncryptEc(data, ecPublicKey);
+            }
+
+            if (KeeperSettings.KeeperRsaPublicKeys.TryGetValue(keyId, out var rsaPublicKey))
+            {
+                return CryptoUtils.EncryptRsa(data, rsaPublicKey);
+            }
+
+            throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(),
+                $"Public key is not known for Keeper server \"{Server}\"");
         }
     }
 
