@@ -76,42 +76,56 @@ namespace Folder.V3.Remove {
             "ChZUcmFzaGNhblJlc3RvcmVSZXF1ZXN0EjAKB3JlY29yZHMYASADKAsyHy5m",
             "b2xkZXIudjMucmVtb3ZlLlJlc3RvcmVSZWNvcmQSMAoHZm9sZGVycxgCIAMo",
             "CzIfLmZvbGRlci52My5yZW1vdmUuUmVzdG9yZUZvbGRlchIZChF0YXJnZXRf",
-            "Zm9sZGVyX3VpZBgDIAEoDCpECgxSZW1vdmVBY3Rpb24SGQoVUkVNT1ZFX0FD",
-            "VElPTl9QUkVWSUVXEAASGQoVUkVNT1ZFX0FDVElPTl9DT05GSVJNEAEqfgoT",
-            "UmVjb3JkT3BlcmF0aW9uVHlwZRIcChhSRUNPUkRfT1BFUkFUSU9OX1VOS05P",
-            "V04QABIWChJVTkxJTktfRlJPTV9GT0xERVIQARIYChRNT1ZFX1RPX0ZPTERF",
-            "Ul9UUkFTSBACEhcKE01PVkVfVE9fT1dORVJfVFJBU0gQAyqRAQoTRm9sZGVy",
-            "T3BlcmF0aW9uVHlwZRIcChhGT0xERVJfT1BFUkFUSU9OX1VOS05PV04QABIf",
-            "ChtGT0xERVJfTU9WRV9UT19GT0xERVJfVFJBU0gQARIeChpGT0xERVJfTU9W",
-            "RV9UT19PV05FUl9UUkFTSBACEhsKF0ZPTERFUl9ERUxFVEVfUEVSTUFORU5U",
-            "EAMqywEKD1JlbW92ZUVycm9yQ29kZRIYChRSRU1PVkVfRVJST1JfVU5LTk9X",
-            "ThAAEhoKFlJFTU9WRV9FUlJPUl9OT1RfRk9VTkQQARIeChpSRU1PVkVfRVJS",
-            "T1JfQUNDRVNTX0RFTklFRBACEiAKHFJFTU9WRV9FUlJPUl9UUkFTSENBTl9G",
-            "T0xERVIQAxIcChhSRU1PVkVfRVJST1JfUk9PVF9GT0xERVIQBBIiCh5SRU1P",
-            "VkVfRVJST1JfREVTQ0VOREFOVF9ERU5JRUQQBSrsAQoMUmVtb3ZlU3RhdHVz",
-            "EhkKFVJFTU9WRV9TVEFUVVNfVU5LTk9XThAAEhkKFVJFTU9WRV9TVEFUVVNf",
-            "U1VDQ0VTUxABEh8KG1JFTU9WRV9TVEFUVVNfU1RBTEVfUFJFVklFVxACEh8K",
-            "G1JFTU9WRV9TVEFUVVNfVE9LRU5fRVhQSVJFRBADEh8KG1JFTU9WRV9TVEFU",
-            "VVNfVE9LRU5fSU5WQUxJRBAEEh8KG1JFTU9WRV9TVEFUVVNfQUNDRVNTX0RF",
-            "TklFRBAFEiIKHlJFTU9WRV9TVEFUVVNfVkFMSURBVElPTl9FUlJPUhAGKrcB",
-            "Cg1SZXN0b3JlU3RhdHVzEhoKFlJFU1RPUkVfU1RBVFVTX1VOS05PV04QABIO",
-            "CgpSU19TVUNDRVNTEAESFgoSUlNfTk9UX0lOX1RSQVNIQ0FOEAISFAoQUlNf",
-            "QUNDRVNTX0RFTklFRBADEh4KGlJTX1RBUkdFVF9GT0xERVJfTk9UX0ZPVU5E",
-            "EAQSHwobUlNfQUxSRUFEWV9FWElTVFNfSU5fVEFSR0VUEAUSCwoHUlNfRkFJ",
-            "TBAGKl0KD1Jlc3RvcmVJdGVtVHlwZRIYChRSRVNUT1JFX0lURU1fVU5LTk9X",
-            "ThAAEhcKE1JFU1RPUkVfSVRFTV9SRUNPUkQQARIXChNSRVNUT1JFX0lURU1f",
-            "Rk9MREVSEAIyzgMKDVJlbW92ZVNlcnZpY2USjAEKDFJlbW92ZVJlY29yZBIl",
-            "LmZvbGRlci52My5yZW1vdmUuUmVtb3ZlUmVjb3JkUmVxdWVzdBogLmZvbGRl",
-            "ci52My5yZW1vdmUuUmVtb3ZlUmVzcG9uc2UiM4LT5JMCLSIoL2FwaS9yZXN0",
-            "L3ZhdWx0L2ZvbGRlcnMvdjMvcmVtb3ZlX3JlY29yZDoBKhKMAQoMUmVtb3Zl",
-            "Rm9sZGVyEiUuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVGb2xkZXJSZXF1ZXN0",
-            "GiAuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVSZXNwb25zZSIzgtPkkwItIigv",
-            "YXBpL3Jlc3QvdmF1bHQvZm9sZGVycy92My9yZW1vdmVfZm9sZGVyOgEqEp4B",
-            "Cg9UcmFzaGNhblJlc3RvcmUSKC5mb2xkZXIudjMucmVtb3ZlLlRyYXNoY2Fu",
-            "UmVzdG9yZVJlcXVlc3QaKS5mb2xkZXIudjMucmVtb3ZlLlRyYXNoY2FuUmVz",
-            "dG9yZVJlc3BvbnNlIjaC0+STAjAiKy9hcGkvcmVzdC92YXVsdC9mb2xkZXJz",
-            "L3YzL3RyYXNoY2FuL3Jlc3RvcmU6ASpCMQotY29tLmtlZXBlcnNlY3VyaXR5",
-            "LnByb3RvLmFwaS5mb2xkZXIudjMucmVtb3ZlUAFiBnByb3RvMw=="));
+            "Zm9sZGVyX3VpZBgDIAEoDCJ4ChRFbXB0eVRyYXNoY2FuUmVxdWVzdBIuCgZh",
+            "Y3Rpb24YASABKA4yHi5mb2xkZXIudjMucmVtb3ZlLlJlbW92ZUFjdGlvbhIa",
+            "ChJjb25maXJtYXRpb25fdG9rZW4YAiABKAwSFAoMdHJhc2hjYW5fdWlkGAMg",
+            "ASgMItcBChVFbXB0eVRyYXNoY2FuUmVzcG9uc2USGgoSY29uZmlybWF0aW9u",
+            "X3Rva2VuGAEgASgMEhgKEHRva2VuX2V4cGlyZXNfYXQYAiABKAMSKAoGaW1w",
+            "YWN0GAMgASgLMhguZm9sZGVyLnYzLnJlbW92ZS5JbXBhY3QSLwoHcmVzdWx0",
+            "cxgEIAMoCzIeLmZvbGRlci52My5yZW1vdmUuUmVtb3ZlUmVzdWx0EhUKDWVy",
+            "cm9yX21lc3NhZ2UYBSABKAkSFgoObW9yZV9yZW1haW5pbmcYBiABKAgqRAoM",
+            "UmVtb3ZlQWN0aW9uEhkKFVJFTU9WRV9BQ1RJT05fUFJFVklFVxAAEhkKFVJF",
+            "TU9WRV9BQ1RJT05fQ09ORklSTRABKpQBChNSZWNvcmRPcGVyYXRpb25UeXBl",
+            "EhwKGFJFQ09SRF9PUEVSQVRJT05fVU5LTk9XThAAEhYKElVOTElOS19GUk9N",
+            "X0ZPTERFUhABEhgKFE1PVkVfVE9fRk9MREVSX1RSQVNIEAISFwoTTU9WRV9U",
+            "T19PV05FUl9UUkFTSBADEhQKEERFTEVURV9QRVJNQU5FTlQQBCqRAQoTRm9s",
+            "ZGVyT3BlcmF0aW9uVHlwZRIcChhGT0xERVJfT1BFUkFUSU9OX1VOS05PV04Q",
+            "ABIfChtGT0xERVJfTU9WRV9UT19GT0xERVJfVFJBU0gQARIeChpGT0xERVJf",
+            "TU9WRV9UT19PV05FUl9UUkFTSBACEhsKF0ZPTERFUl9ERUxFVEVfUEVSTUFO",
+            "RU5UEAMqsQIKD1JlbW92ZUVycm9yQ29kZRIYChRSRU1PVkVfRVJST1JfVU5L",
+            "Tk9XThAAEhoKFlJFTU9WRV9FUlJPUl9OT1RfRk9VTkQQARIeChpSRU1PVkVf",
+            "RVJST1JfQUNDRVNTX0RFTklFRBACEiAKHFJFTU9WRV9FUlJPUl9UUkFTSENB",
+            "Tl9GT0xERVIQAxIcChhSRU1PVkVfRVJST1JfUk9PVF9GT0xERVIQBBIiCh5S",
+            "RU1PVkVfRVJST1JfREVTQ0VOREFOVF9ERU5JRUQQBRIdChlSRU1PVkVfRVJS",
+            "T1JfTk9UX0lOX1RSQVNIEAYSIgoeUkVNT1ZFX0VSUk9SX1JFVEVOVElPTl9O",
+            "T1RfTUVUEAcSIQodUkVNT1ZFX0VSUk9SX1NUSUxMX1JFRkVSRU5DRUQQCCrs",
+            "AQoMUmVtb3ZlU3RhdHVzEhkKFVJFTU9WRV9TVEFUVVNfVU5LTk9XThAAEhkK",
+            "FVJFTU9WRV9TVEFUVVNfU1VDQ0VTUxABEh8KG1JFTU9WRV9TVEFUVVNfU1RB",
+            "TEVfUFJFVklFVxACEh8KG1JFTU9WRV9TVEFUVVNfVE9LRU5fRVhQSVJFRBAD",
+            "Eh8KG1JFTU9WRV9TVEFUVVNfVE9LRU5fSU5WQUxJRBAEEh8KG1JFTU9WRV9T",
+            "VEFUVVNfQUNDRVNTX0RFTklFRBAFEiIKHlJFTU9WRV9TVEFUVVNfVkFMSURB",
+            "VElPTl9FUlJPUhAGKrcBCg1SZXN0b3JlU3RhdHVzEhoKFlJFU1RPUkVfU1RB",
+            "VFVTX1VOS05PV04QABIOCgpSU19TVUNDRVNTEAESFgoSUlNfTk9UX0lOX1RS",
+            "QVNIQ0FOEAISFAoQUlNfQUNDRVNTX0RFTklFRBADEh4KGlJTX1RBUkdFVF9G",
+            "T0xERVJfTk9UX0ZPVU5EEAQSHwobUlNfQUxSRUFEWV9FWElTVFNfSU5fVEFS",
+            "R0VUEAUSCwoHUlNfRkFJTBAGKl0KD1Jlc3RvcmVJdGVtVHlwZRIYChRSRVNU",
+            "T1JFX0lURU1fVU5LTk9XThAAEhcKE1JFU1RPUkVfSVRFTV9SRUNPUkQQARIX",
+            "ChNSRVNUT1JFX0lURU1fRk9MREVSEAIy5wQKDVJlbW92ZVNlcnZpY2USjAEK",
+            "DFJlbW92ZVJlY29yZBIlLmZvbGRlci52My5yZW1vdmUuUmVtb3ZlUmVjb3Jk",
+            "UmVxdWVzdBogLmZvbGRlci52My5yZW1vdmUuUmVtb3ZlUmVzcG9uc2UiM4LT",
+            "5JMCLSIoL2FwaS9yZXN0L3ZhdWx0L2ZvbGRlcnMvdjMvcmVtb3ZlX3JlY29y",
+            "ZDoBKhKMAQoMUmVtb3ZlRm9sZGVyEiUuZm9sZGVyLnYzLnJlbW92ZS5SZW1v",
+            "dmVGb2xkZXJSZXF1ZXN0GiAuZm9sZGVyLnYzLnJlbW92ZS5SZW1vdmVSZXNw",
+            "b25zZSIzgtPkkwItIigvYXBpL3Jlc3QvdmF1bHQvZm9sZGVycy92My9yZW1v",
+            "dmVfZm9sZGVyOgEqEp4BCg9UcmFzaGNhblJlc3RvcmUSKC5mb2xkZXIudjMu",
+            "cmVtb3ZlLlRyYXNoY2FuUmVzdG9yZVJlcXVlc3QaKS5mb2xkZXIudjMucmVt",
+            "b3ZlLlRyYXNoY2FuUmVzdG9yZVJlc3BvbnNlIjaC0+STAjAiKy9hcGkvcmVz",
+            "dC92YXVsdC9mb2xkZXJzL3YzL3RyYXNoY2FuL3Jlc3RvcmU6ASoSlgEKDVRy",
+            "YXNoY2FuRW1wdHkSJi5mb2xkZXIudjMucmVtb3ZlLkVtcHR5VHJhc2hjYW5S",
+            "ZXF1ZXN0GicuZm9sZGVyLnYzLnJlbW92ZS5FbXB0eVRyYXNoY2FuUmVzcG9u",
+            "c2UiNILT5JMCLiIpL2FwaS9yZXN0L3ZhdWx0L2ZvbGRlcnMvdjMvdHJhc2hj",
+            "YW4vZW1wdHk6ASpCMQotY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvLmFwaS5m",
+            "b2xkZXIudjMucmVtb3ZlUAFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Api.AnnotationsReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.V3.Remove.RemoveAction), typeof(global::Folder.V3.Remove.RecordOperationType), typeof(global::Folder.V3.Remove.FolderOperationType), typeof(global::Folder.V3.Remove.RemoveErrorCode), typeof(global::Folder.V3.Remove.RemoveStatus), typeof(global::Folder.V3.Remove.RestoreStatus), typeof(global::Folder.V3.Remove.RestoreItemType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -132,7 +146,9 @@ namespace Folder.V3.Remove {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.TrashcanRestoreResponse), global::Folder.V3.Remove.TrashcanRestoreResponse.Parser, new[]{ "Results", "ErrorMessage" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RestoreRecord), global::Folder.V3.Remove.RestoreRecord.Parser, new[]{ "RecordUid", "EncryptedRecordKey", "SourceFolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.RestoreFolder), global::Folder.V3.Remove.RestoreFolder.Parser, new[]{ "FolderUid", "EncryptedFolderKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.TrashcanRestoreRequest), global::Folder.V3.Remove.TrashcanRestoreRequest.Parser, new[]{ "Records", "Folders", "TargetFolderUid" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.TrashcanRestoreRequest), global::Folder.V3.Remove.TrashcanRestoreRequest.Parser, new[]{ "Records", "Folders", "TargetFolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.EmptyTrashcanRequest), global::Folder.V3.Remove.EmptyTrashcanRequest.Parser, new[]{ "Action", "ConfirmationToken", "TrashcanUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.V3.Remove.EmptyTrashcanResponse), global::Folder.V3.Remove.EmptyTrashcanResponse.Parser, new[]{ "ConfirmationToken", "TokenExpiresAt", "Impact", "Results", "ErrorMessage", "MoreRemaining" }, null, null, null, null)
           }));
     }
     #endregion
@@ -164,6 +180,10 @@ namespace Folder.V3.Remove {
     /// Remove from all folders, move to owner's trash
     /// </summary>
     [pbr::OriginalName("MOVE_TO_OWNER_TRASH")] MoveToOwnerTrash = 3,
+    /// <summary>
+    /// KA-9109: physically delete a trashed record (irreversible)
+    /// </summary>
+    [pbr::OriginalName("DELETE_PERMANENT")] DeletePermanent = 4,
   }
 
   public enum FolderOperationType {
@@ -189,6 +209,18 @@ namespace Folder.V3.Remove {
     [pbr::OriginalName("REMOVE_ERROR_TRASHCAN_FOLDER")] RemoveErrorTrashcanFolder = 3,
     [pbr::OriginalName("REMOVE_ERROR_ROOT_FOLDER")] RemoveErrorRootFolder = 4,
     [pbr::OriginalName("REMOVE_ERROR_DESCENDANT_DENIED")] RemoveErrorDescendantDenied = 5,
+    /// <summary>
+    /// KA-9109: permanent delete requires the item to be in trash
+    /// </summary>
+    [pbr::OriginalName("REMOVE_ERROR_NOT_IN_TRASH")] RemoveErrorNotInTrash = 6,
+    /// <summary>
+    /// KA-9109: enterprise retention window has not elapsed
+    /// </summary>
+    [pbr::OriginalName("REMOVE_ERROR_RETENTION_NOT_MET")] RemoveErrorRetentionNotMet = 7,
+    /// <summary>
+    /// KA-9109: record is still linked or shared outside the trash
+    /// </summary>
+    [pbr::OriginalName("REMOVE_ERROR_STILL_REFERENCED")] RemoveErrorStillReferenced = 8,
   }
 
   public enum RemoveStatus {
@@ -5400,6 +5432,707 @@ namespace Folder.V3.Remove {
           }
           case 26: {
             TargetFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Request to permanently delete everything in the caller's trash.
+  ///
+  /// The server enumerates the trash itself, so there is no per-item input. Items
+  /// the caller may not delete, that are still reachable outside the trash, or
+  /// that are inside the enterprise retention window are refused and reported,
+  /// they do not fail the rest of the batch.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class EmptyTrashcanRequest : pb::IMessage<EmptyTrashcanRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<EmptyTrashcanRequest> _parser = new pb::MessageParser<EmptyTrashcanRequest>(() => new EmptyTrashcanRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<EmptyTrashcanRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanRequest(EmptyTrashcanRequest other) : this() {
+      action_ = other.action_;
+      confirmationToken_ = other.confirmationToken_;
+      trashcanUid_ = other.trashcanUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanRequest Clone() {
+      return new EmptyTrashcanRequest(this);
+    }
+
+    /// <summary>Field number for the "action" field.</summary>
+    public const int ActionFieldNumber = 1;
+    private global::Folder.V3.Remove.RemoveAction action_ = global::Folder.V3.Remove.RemoveAction.Preview;
+    /// <summary>
+    /// PREVIEW (default) or CONFIRM
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.V3.Remove.RemoveAction Action {
+      get { return action_; }
+      set {
+        action_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "confirmation_token" field.</summary>
+    public const int ConfirmationTokenFieldNumber = 2;
+    private pb::ByteString confirmationToken_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Required when action = CONFIRM
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConfirmationToken {
+      get { return confirmationToken_; }
+      set {
+        confirmationToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "trashcan_uid" field.</summary>
+    public const int TrashcanUidFieldNumber = 3;
+    private pb::ByteString trashcanUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Optional scope: empty just this trashcan (16 bytes). When unset, every
+    /// trashcan the caller can empty is included.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString TrashcanUid {
+      get { return trashcanUid_; }
+      set {
+        trashcanUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as EmptyTrashcanRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(EmptyTrashcanRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Action != other.Action) return false;
+      if (ConfirmationToken != other.ConfirmationToken) return false;
+      if (TrashcanUid != other.TrashcanUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Action != global::Folder.V3.Remove.RemoveAction.Preview) hash ^= Action.GetHashCode();
+      if (ConfirmationToken.Length != 0) hash ^= ConfirmationToken.GetHashCode();
+      if (TrashcanUid.Length != 0) hash ^= TrashcanUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Action != global::Folder.V3.Remove.RemoveAction.Preview) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Action);
+      }
+      if (ConfirmationToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConfirmationToken);
+      }
+      if (TrashcanUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TrashcanUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Action != global::Folder.V3.Remove.RemoveAction.Preview) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Action);
+      }
+      if (ConfirmationToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConfirmationToken);
+      }
+      if (TrashcanUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TrashcanUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Action != global::Folder.V3.Remove.RemoveAction.Preview) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Action);
+      }
+      if (ConfirmationToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConfirmationToken);
+      }
+      if (TrashcanUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TrashcanUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(EmptyTrashcanRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Action != global::Folder.V3.Remove.RemoveAction.Preview) {
+        Action = other.Action;
+      }
+      if (other.ConfirmationToken.Length != 0) {
+        ConfirmationToken = other.ConfirmationToken;
+      }
+      if (other.TrashcanUid.Length != 0) {
+        TrashcanUid = other.TrashcanUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Action = (global::Folder.V3.Remove.RemoveAction) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ConfirmationToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            TrashcanUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Action = (global::Folder.V3.Remove.RemoveAction) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ConfirmationToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            TrashcanUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Response for trashcan/empty.
+  ///
+  /// For PREVIEW: aggregate impact plus a confirmation token, with `results`
+  /// carrying the items that will be refused.
+  /// For CONFIRM: `results` carries one entry per item that was refused or failed;
+  /// destroyed items are counted in `impact` rather than listed one by one, since
+  /// a full trash can hold thousands.
+  ///
+  /// A call destroys a bounded batch, so a large trash takes several rounds. While
+  /// `more_remaining` is set, preview and confirm again to continue.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class EmptyTrashcanResponse : pb::IMessage<EmptyTrashcanResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<EmptyTrashcanResponse> _parser = new pb::MessageParser<EmptyTrashcanResponse>(() => new EmptyTrashcanResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<EmptyTrashcanResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.V3.Remove.RemoveReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanResponse(EmptyTrashcanResponse other) : this() {
+      confirmationToken_ = other.confirmationToken_;
+      tokenExpiresAt_ = other.tokenExpiresAt_;
+      impact_ = other.impact_ != null ? other.impact_.Clone() : null;
+      results_ = other.results_.Clone();
+      errorMessage_ = other.errorMessage_;
+      moreRemaining_ = other.moreRemaining_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EmptyTrashcanResponse Clone() {
+      return new EmptyTrashcanResponse(this);
+    }
+
+    /// <summary>Field number for the "confirmation_token" field.</summary>
+    public const int ConfirmationTokenFieldNumber = 1;
+    private pb::ByteString confirmationToken_ = pb::ByteString.Empty;
+    /// <summary>
+    /// PREVIEW only
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConfirmationToken {
+      get { return confirmationToken_; }
+      set {
+        confirmationToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "token_expires_at" field.</summary>
+    public const int TokenExpiresAtFieldNumber = 2;
+    private long tokenExpiresAt_;
+    /// <summary>
+    /// Epoch millis; PREVIEW only
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long TokenExpiresAt {
+      get { return tokenExpiresAt_; }
+      set {
+        tokenExpiresAt_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "impact" field.</summary>
+    public const int ImpactFieldNumber = 3;
+    private global::Folder.V3.Remove.Impact impact_;
+    /// <summary>
+    /// Aggregate over this batch
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.V3.Remove.Impact Impact {
+      get { return impact_; }
+      set {
+        impact_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "results" field.</summary>
+    public const int ResultsFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Folder.V3.Remove.RemoveResult> _repeated_results_codec
+        = pb::FieldCodec.ForMessage(34, global::Folder.V3.Remove.RemoveResult.Parser);
+    private readonly pbc::RepeatedField<global::Folder.V3.Remove.RemoveResult> results_ = new pbc::RepeatedField<global::Folder.V3.Remove.RemoveResult>();
+    /// <summary>
+    /// Refusals and failures
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.V3.Remove.RemoveResult> Results {
+      get { return results_; }
+    }
+
+    /// <summary>Field number for the "error_message" field.</summary>
+    public const int ErrorMessageFieldNumber = 5;
+    private string errorMessage_ = "";
+    /// <summary>
+    /// Request-level error only
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ErrorMessage {
+      get { return errorMessage_; }
+      set {
+        errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "more_remaining" field.</summary>
+    public const int MoreRemainingFieldNumber = 6;
+    private bool moreRemaining_;
+    /// <summary>
+    /// Trash still holds items after this batch
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool MoreRemaining {
+      get { return moreRemaining_; }
+      set {
+        moreRemaining_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as EmptyTrashcanResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(EmptyTrashcanResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ConfirmationToken != other.ConfirmationToken) return false;
+      if (TokenExpiresAt != other.TokenExpiresAt) return false;
+      if (!object.Equals(Impact, other.Impact)) return false;
+      if(!results_.Equals(other.results_)) return false;
+      if (ErrorMessage != other.ErrorMessage) return false;
+      if (MoreRemaining != other.MoreRemaining) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (ConfirmationToken.Length != 0) hash ^= ConfirmationToken.GetHashCode();
+      if (TokenExpiresAt != 0L) hash ^= TokenExpiresAt.GetHashCode();
+      if (impact_ != null) hash ^= Impact.GetHashCode();
+      hash ^= results_.GetHashCode();
+      if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
+      if (MoreRemaining != false) hash ^= MoreRemaining.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (ConfirmationToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ConfirmationToken);
+      }
+      if (TokenExpiresAt != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(TokenExpiresAt);
+      }
+      if (impact_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Impact);
+      }
+      results_.WriteTo(output, _repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ErrorMessage);
+      }
+      if (MoreRemaining != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(MoreRemaining);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ConfirmationToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ConfirmationToken);
+      }
+      if (TokenExpiresAt != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(TokenExpiresAt);
+      }
+      if (impact_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Impact);
+      }
+      results_.WriteTo(ref output, _repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ErrorMessage);
+      }
+      if (MoreRemaining != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(MoreRemaining);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (ConfirmationToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConfirmationToken);
+      }
+      if (TokenExpiresAt != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(TokenExpiresAt);
+      }
+      if (impact_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Impact);
+      }
+      size += results_.CalculateSize(_repeated_results_codec);
+      if (ErrorMessage.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
+      }
+      if (MoreRemaining != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(EmptyTrashcanResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.ConfirmationToken.Length != 0) {
+        ConfirmationToken = other.ConfirmationToken;
+      }
+      if (other.TokenExpiresAt != 0L) {
+        TokenExpiresAt = other.TokenExpiresAt;
+      }
+      if (other.impact_ != null) {
+        if (impact_ == null) {
+          Impact = new global::Folder.V3.Remove.Impact();
+        }
+        Impact.MergeFrom(other.Impact);
+      }
+      results_.Add(other.results_);
+      if (other.ErrorMessage.Length != 0) {
+        ErrorMessage = other.ErrorMessage;
+      }
+      if (other.MoreRemaining != false) {
+        MoreRemaining = other.MoreRemaining;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            ConfirmationToken = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            TokenExpiresAt = input.ReadInt64();
+            break;
+          }
+          case 26: {
+            if (impact_ == null) {
+              Impact = new global::Folder.V3.Remove.Impact();
+            }
+            input.ReadMessage(Impact);
+            break;
+          }
+          case 34: {
+            results_.AddEntriesFrom(input, _repeated_results_codec);
+            break;
+          }
+          case 42: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+          case 48: {
+            MoreRemaining = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ConfirmationToken = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            TokenExpiresAt = input.ReadInt64();
+            break;
+          }
+          case 26: {
+            if (impact_ == null) {
+              Impact = new global::Folder.V3.Remove.Impact();
+            }
+            input.ReadMessage(Impact);
+            break;
+          }
+          case 34: {
+            results_.AddEntriesFrom(ref input, _repeated_results_codec);
+            break;
+          }
+          case 42: {
+            ErrorMessage = input.ReadString();
+            break;
+          }
+          case 48: {
+            MoreRemaining = input.ReadBool();
             break;
           }
         }
