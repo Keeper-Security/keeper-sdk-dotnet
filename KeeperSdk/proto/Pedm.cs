@@ -161,13 +161,14 @@ namespace PEDM {
             "dGVycHJpc2VXb3JrbG9hZENvdW50EhQKDGVudGVycHJpc2VJZBgBIAEoBRIV",
             "Cg13b3JrbG9hZENvdW50GAIgASgDIlAKH0dldEFnZW50aWNXb3JrbG9hZENv",
             "dW50UmVzcG9uc2USLQoGY291bnRzGAEgAygLMh0uUEVETS5FbnRlcnByaXNl",
-            "V29ya2xvYWRDb3VudCpqChJDb2xsZWN0aW9uTGlua1R5cGUSDQoJQ0xUX09U",
-            "SEVSEAASDQoJQ0xUX0FHRU5UEAESDgoKQ0xUX1BPTElDWRACEhIKDkNMVF9D",
-            "T0xMRUNUSU9OEAMSEgoOQ0xUX0RFUExPWU1FTlQQBCpvChJBcHByb3ZhbFN0",
-            "YXR1c1R5cGUSEwoPQVNUX1VOU1BFQ0lGSUVEEAASEAoMQVNUX0FQUFJPVkVE",
-            "EAESDgoKQVNUX0RFTklFRBACEg8KC0FTVF9FWFBJUkVEEAMSEQoNQVNUX0VT",
-            "Q0FMQVRFRBAFQiAKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IEUEVETWIG",
-            "cHJvdG8z"));
+            "V29ya2xvYWRDb3VudCI3ChtHZXRLcm91dGVyUHVibGljS2V5UmVzcG9uc2US",
+            "GAoQa3JvdXRlclB1YmxpY0tleRgBIAEoDCpqChJDb2xsZWN0aW9uTGlua1R5",
+            "cGUSDQoJQ0xUX09USEVSEAASDQoJQ0xUX0FHRU5UEAESDgoKQ0xUX1BPTElD",
+            "WRACEhIKDkNMVF9DT0xMRUNUSU9OEAMSEgoOQ0xUX0RFUExPWU1FTlQQBCpv",
+            "ChJBcHByb3ZhbFN0YXR1c1R5cGUSEwoPQVNUX1VOU1BFQ0lGSUVEEAASEAoM",
+            "QVNUX0FQUFJPVkVEEAESDgoKQVNUX0RFTklFRBACEg8KC0FTVF9FWFBJUkVE",
+            "EAMSEQoNQVNUX0VTQ0FMQVRFRBAFQiAKGGNvbS5rZWVwZXJzZWN1cml0eS5w",
+            "cm90b0IEUEVETWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Folder.FolderReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::PEDM.CollectionLinkType), typeof(global::PEDM.ApprovalStatusType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -230,7 +231,8 @@ namespace PEDM {
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgentDailyCountResponse), global::PEDM.GetAgentDailyCountResponse.Parser, new[]{ "EnterpriseCounts" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgenticWorkloadCountRequest), global::PEDM.GetAgenticWorkloadCountRequest.Parser, new[]{ "EnterpriseId", "Preset", "Range" }, new[]{ "Period" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.EnterpriseWorkloadCount), global::PEDM.EnterpriseWorkloadCount.Parser, new[]{ "EnterpriseId", "WorkloadCount" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgenticWorkloadCountResponse), global::PEDM.GetAgenticWorkloadCountResponse.Parser, new[]{ "Counts" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetAgenticWorkloadCountResponse), global::PEDM.GetAgenticWorkloadCountResponse.Parser, new[]{ "Counts" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::PEDM.GetKrouterPublicKeyResponse), global::PEDM.GetKrouterPublicKeyResponse.Parser, new[]{ "KrouterPublicKey" }, null, null, null, null)
           }));
     }
     #endregion
@@ -16410,6 +16412,207 @@ namespace PEDM {
             break;
           case 10: {
             counts_.AddEntriesFrom(ref input, _repeated_counts_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class GetKrouterPublicKeyResponse : pb::IMessage<GetKrouterPublicKeyResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<GetKrouterPublicKeyResponse> _parser = new pb::MessageParser<GetKrouterPublicKeyResponse>(() => new GetKrouterPublicKeyResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<GetKrouterPublicKeyResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::PEDM.PedmReflection.Descriptor.MessageTypes[60]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetKrouterPublicKeyResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetKrouterPublicKeyResponse(GetKrouterPublicKeyResponse other) : this() {
+      krouterPublicKey_ = other.krouterPublicKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetKrouterPublicKeyResponse Clone() {
+      return new GetKrouterPublicKeyResponse(this);
+    }
+
+    /// <summary>Field number for the "krouterPublicKey" field.</summary>
+    public const int KrouterPublicKeyFieldNumber = 1;
+    private pb::ByteString krouterPublicKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// Raw uncompressed P-256 public key. Always 65 bytes and begins with 0x04.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString KrouterPublicKey {
+      get { return krouterPublicKey_; }
+      set {
+        krouterPublicKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as GetKrouterPublicKeyResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(GetKrouterPublicKeyResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (KrouterPublicKey != other.KrouterPublicKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (KrouterPublicKey.Length != 0) hash ^= KrouterPublicKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (KrouterPublicKey.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(KrouterPublicKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (KrouterPublicKey.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(KrouterPublicKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (KrouterPublicKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(KrouterPublicKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(GetKrouterPublicKeyResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.KrouterPublicKey.Length != 0) {
+        KrouterPublicKey = other.KrouterPublicKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            KrouterPublicKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            KrouterPublicKey = input.ReadBytes();
             break;
           }
         }

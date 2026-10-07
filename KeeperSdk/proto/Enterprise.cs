@@ -332,232 +332,246 @@ namespace Enterprise {
             "ZmllZBgGIAEoAxIZChFub2RlRW5jcnlwdGVkRGF0YRgHIAEoDCJiChhDb21w",
             "bGlhbmNlUmVwb3J0Q3JpdGVyaWESEQoJam9iVGl0bGVzGAEgAygJEhkKEWVu",
             "dGVycHJpc2VVc2VySWRzGAIgAygDEhgKEGluY2x1ZGVOb25TaGFyZWQYAyAB",
-            "KAgieAoWQ29tcGxpYW5jZVJlcG9ydEZpbHRlchIUCgxyZWNvcmRUaXRsZXMY",
-            "ASADKAkSEgoKcmVjb3JkVWlkcxgCIAMoDBIRCglqb2JUaXRsZXMYAyADKAkS",
-            "DAoEdXJscxgEIAMoCRITCgtyZWNvcmRUeXBlcxgFIAMoCSKhBQoYQ29tcGxp",
-            "YW5jZVJlcG9ydFJlc3BvbnNlEhUKDWRhdGVHZW5lcmF0ZWQYASABKAMSFQoN",
-            "cnVuQnlVc2VyTmFtZRgCIAEoCRISCgpyZXBvcnROYW1lGAMgASgJEhEKCXJl",
-            "cG9ydFVpZBgEIAEoDBI8ChNjb21wbGlhbmNlUmVwb3J0UnVuGAUgASgLMh8u",
-            "RW50ZXJwcmlzZS5Db21wbGlhbmNlUmVwb3J0UnVuEi0KDHVzZXJQcm9maWxl",
-            "cxgGIAMoCzIXLkVudGVycHJpc2UuVXNlclByb2ZpbGUSKQoKYXVkaXRUZWFt",
-            "cxgHIAMoCzIVLkVudGVycHJpc2UuQXVkaXRUZWFtEi0KDGF1ZGl0UmVjb3Jk",
-            "cxgIIAMoCzIXLkVudGVycHJpc2UuQXVkaXRSZWNvcmQSKwoLdXNlclJlY29y",
-            "ZHMYCSADKAsyFi5FbnRlcnByaXNlLlVzZXJSZWNvcmQSOwoTc2hhcmVkRm9s",
-            "ZGVyUmVjb3JkcxgKIAMoCzIeLkVudGVycHJpc2UuU2hhcmVkRm9sZGVyUmVj",
-            "b3JkEjcKEXNoYXJlZEZvbGRlclVzZXJzGAsgAygLMhwuRW50ZXJwcmlzZS5T",
-            "aGFyZWRGb2xkZXJVc2VyEjcKEXNoYXJlZEZvbGRlclRlYW1zGAwgAygLMhwu",
-            "RW50ZXJwcmlzZS5TaGFyZWRGb2xkZXJUZWFtEjEKDmF1ZGl0VGVhbVVzZXJz",
-            "GA0gAygLMhkuRW50ZXJwcmlzZS5BdWRpdFRlYW1Vc2VyEikKCmF1ZGl0Um9s",
-            "ZXMYDiADKAsyFS5FbnRlcnByaXNlLkF1ZGl0Um9sZRIvCg1saW5rZWRSZWNv",
-            "cmRzGA8gAygLMhguRW50ZXJwcmlzZS5MaW5rZWRSZWNvcmQimAEKC0F1ZGl0",
-            "UmVjb3JkEhEKCXJlY29yZFVpZBgBIAEoDBIRCglhdWRpdERhdGEYAiABKAwS",
-            "FgoOaGFzQXR0YWNobWVudHMYAyABKAgSDwoHaW5UcmFzaBgEIAEoCBIQCgh0",
-            "cmVlTGVmdBgFIAEoBRIRCgl0cmVlUmlnaHQYBiABKAUSFQoNaXNEcml2ZVJl",
-            "Y29yZBgHIAEoCCKAAgoJQXVkaXRSb2xlEg4KBnJvbGVJZBgBIAEoAxIVCg1l",
-            "bmNyeXB0ZWREYXRhGAIgASgMEiYKHnJlc3RyaWN0U2hhcmVPdXRzaWRlRW50",
-            "ZXJwcmlzZRgDIAEoCBIYChByZXN0cmljdFNoYXJlQWxsGAQgASgIEiIKGnJl",
-            "c3RyaWN0U2hhcmVPZkF0dGFjaG1lbnRzGAUgASgIEikKIXJlc3RyaWN0TWFz",
-            "a1Bhc3N3b3Jkc1doaWxlRWRpdGluZxgGIAEoCBI7ChNyb2xlTm9kZU1hbmFn",
-            "ZW1lbnRzGAcgAygLMh4uRW50ZXJwcmlzZS5Sb2xlTm9kZU1hbmFnZW1lbnQi",
-            "XgoSUm9sZU5vZGVNYW5hZ2VtZW50EhAKCHRyZWVMZWZ0GAEgASgFEhEKCXRy",
-            "ZWVSaWdodBgCIAEoBRIPCgdjYXNjYWRlGAMgASgIEhIKCnByaXZpbGVnZXMY",
-            "BCABKAUiawoLVXNlclByb2ZpbGUSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEo",
-            "AxIQCghmdWxsTmFtZRgCIAEoCRIQCghqb2JUaXRsZRgDIAEoCRINCgVlbWFp",
-            "bBgEIAEoCRIPCgdyb2xlSWRzGAUgAygDInsKEFJlY29yZFBlcm1pc3Npb24S",
-            "EQoJcmVjb3JkVWlkGAEgASgMEhgKDnBlcm1pc3Npb25CaXRzGAIgASgFSAAS",
-            "LAoFZHJpdmUYAyABKAsyGy5FbnRlcnByaXNlLkRyaXZlUGVybWlzc2lvbkgA",
-            "QgwKCnBlcm1pc3Npb24ixwEKD0RyaXZlUGVybWlzc2lvbhINCgVvd25lchgB",
-            "IAEoCBIOCgZkZW5pZWQYAiABKAgSDwoHY2FuRWRpdBgDIAEoCBIQCghjYW5T",
-            "aGFyZRgEIAEoCBIUCgxpc1NoYXJlQWRtaW4YBSABKAgSJgoKYWNjZXNzVHlw",
-            "ZRgGIAEoDjISLkZvbGRlci5BY2Nlc3NUeXBlEjQKEWZvbGRlclBlcm1pc3Np",
-            "b25zGAcgASgLMhkuRm9sZGVyLkZvbGRlclBlcm1pc3Npb25zIl8KClVzZXJS",
-            "ZWNvcmQSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxI3ChFyZWNvcmRQZXJt",
-            "aXNzaW9ucxgCIAMoCzIcLkVudGVycHJpc2UuUmVjb3JkUGVybWlzc2lvbiJb",
-            "CglBdWRpdFRlYW0SDwoHdGVhbVVpZBgBIAEoDBIQCgh0ZWFtTmFtZRgCIAEo",
-            "CRIUCgxyZXN0cmljdEVkaXQYAyABKAgSFQoNcmVzdHJpY3RTaGFyZRgEIAEo",
-            "CCI7Cg1BdWRpdFRlYW1Vc2VyEg8KB3RlYW1VaWQYASABKAwSGQoRZW50ZXJw",
-            "cmlzZVVzZXJJZHMYAiADKAMinwEKElNoYXJlZEZvbGRlclJlY29yZBIXCg9z",
-            "aGFyZWRGb2xkZXJVaWQYASABKAwSNwoRcmVjb3JkUGVybWlzc2lvbnMYAiAD",
-            "KAsyHC5FbnRlcnByaXNlLlJlY29yZFBlcm1pc3Npb24SNwoRc2hhcmVBZG1p",
-            "blJlY29yZHMYAyADKAsyHC5FbnRlcnByaXNlLlNoYXJlQWRtaW5SZWNvcmQi",
-            "TQoQU2hhcmVBZG1pblJlY29yZBIYChBlbnRlcnByaXNlVXNlcklkGAEgASgD",
-            "Eh8KF3JlY29yZFBlcm1pc3Npb25JbmRleGVzGAIgAygFIkYKEFNoYXJlZEZv",
-            "bGRlclVzZXISFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhkKEWVudGVycHJp",
-            "c2VVc2VySWRzGAIgAygDIj0KEFNoYXJlZEZvbGRlclRlYW0SFwoPc2hhcmVk",
-            "Rm9sZGVyVWlkGAEgASgMEhAKCHRlYW1VaWRzGAIgAygMIi8KGkdldENvbXBs",
-            "aWFuY2VSZXBvcnRSZXF1ZXN0EhEKCXJlcG9ydFVpZBgBIAEoDCIyChtHZXRD",
-            "b21wbGlhbmNlUmVwb3J0UmVzcG9uc2USEwoLZG93bmxvYWRVcmwYASABKAki",
-            "NgofQ29tcGxpYW5jZVJlcG9ydENyaXRlcmlhUmVxdWVzdBITCgtjcml0ZXJp",
-            "YVVpZBgBIAEoDCI7CiRTYXZlQ29tcGxpYW5jZVJlcG9ydENyaXRlcmlhUmVz",
-            "cG9uc2USEwoLY3JpdGVyaWFVaWQYASABKAwiNAoMTGlua2VkUmVjb3JkEhAK",
-            "CG93bmVyVWlkGAEgASgMEhIKCnJlY29yZFVpZHMYAiADKAwiVwoXR2V0U2hh",
-            "cmluZ0FkbWluc1JlcXVlc3QSFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhEK",
-            "CXJlY29yZFVpZBgCIAEoDBIQCgh1c2VybmFtZRgDIAEoCSLgAQoOVXNlclBy",
-            "b2ZpbGVFeHQSDQoFZW1haWwYASABKAkSEAoIZnVsbE5hbWUYAiABKAkSEAoI",
-            "am9iVGl0bGUYAyABKAkSFAoMaXNNU1BNQ0FkbWluGAQgASgIEhgKEGlzSW5T",
-            "aGFyZWRGb2xkZXIYBSABKAgSJgoeaXNTaGFyZUFkbWluRm9yUmVxdWVzdGVk",
-            "T2JqZWN0GAYgASgIEigKIGlzU2hhcmVBZG1pbkZvclNoYXJlZEZvbGRlck93",
-            "bmVyGAcgASgIEhkKEWhhc0FjY2Vzc1RvT2JqZWN0GAggASgIIk8KGEdldFNo",
-            "YXJpbmdBZG1pbnNSZXNwb25zZRIzCg91c2VyUHJvZmlsZUV4dHMYASADKAsy",
-            "Gi5FbnRlcnByaXNlLlVzZXJQcm9maWxlRXh0Il8KHlRlYW1zRW50ZXJwcmlz",
-            "ZVVzZXJzQWRkUmVxdWVzdBI9CgV0ZWFtcxgBIAMoCzIuLkVudGVycHJpc2Uu",
-            "VGVhbXNFbnRlcnByaXNlVXNlcnNBZGRUZWFtUmVxdWVzdCJ0CiJUZWFtc0Vu",
-            "dGVycHJpc2VVc2Vyc0FkZFRlYW1SZXF1ZXN0Eg8KB3RlYW1VaWQYASABKAwS",
-            "PQoFdXNlcnMYAiADKAsyLi5FbnRlcnByaXNlLlRlYW1zRW50ZXJwcmlzZVVz",
-            "ZXJzQWRkVXNlclJlcXVlc3QiqwEKIlRlYW1zRW50ZXJwcmlzZVVzZXJzQWRk",
-            "VXNlclJlcXVlc3QSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxIqCgh1c2Vy",
-            "VHlwZRgCIAEoDjIYLkVudGVycHJpc2UuVGVhbVVzZXJUeXBlEhMKB3RlYW1L",
-            "ZXkYAyABKAlCAhgBEioKDHR5cGVkVGVhbUtleRgEIAEoCzIULkVudGVycHJp",
-            "c2UuVHlwZWRLZXkiRgoIVHlwZWRLZXkSCwoDa2V5GAEgASgMEi0KB2tleVR5",
-            "cGUYAiABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtleVR5cGUicwofVGVh",
-            "bXNFbnRlcnByaXNlVXNlcnNBZGRSZXNwb25zZRI+CgV0ZWFtcxgBIAMoCzIv",
-            "LkVudGVycHJpc2UuVGVhbXNFbnRlcnByaXNlVXNlcnNBZGRUZWFtUmVzcG9u",
-            "c2USEAoIcmV2aXNpb24YAiABKAMixAEKI1RlYW1zRW50ZXJwcmlzZVVzZXJz",
-            "QWRkVGVhbVJlc3BvbnNlEg8KB3RlYW1VaWQYASABKAwSPgoFdXNlcnMYAiAD",
-            "KAsyLy5FbnRlcnByaXNlLlRlYW1zRW50ZXJwcmlzZVVzZXJzQWRkVXNlclJl",
-            "c3BvbnNlEg8KB3N1Y2Nlc3MYAyABKAgSDwoHbWVzc2FnZRgEIAEoCRISCgpy",
-            "ZXN1bHRDb2RlGAUgASgJEhYKDmFkZGl0aW9uYWxJbmZvGAYgASgJIp8BCiNU",
-            "ZWFtc0VudGVycHJpc2VVc2Vyc0FkZFVzZXJSZXNwb25zZRIYChBlbnRlcnBy",
-            "aXNlVXNlcklkGAEgASgDEhAKCHJldmlzaW9uGAIgASgDEg8KB3N1Y2Nlc3MY",
-            "AyABKAgSDwoHbWVzc2FnZRgEIAEoCRISCgpyZXN1bHRDb2RlGAUgASgJEhYK",
-            "DmFkZGl0aW9uYWxJbmZvGAYgASgJIkUKGFRlYW1FbnRlcnByaXNlVXNlclJl",
-            "bW92ZRIPCgd0ZWFtVWlkGAEgASgMEhgKEGVudGVycHJpc2VVc2VySWQYAiAB",
-            "KAMiagogVGVhbUVudGVycHJpc2VVc2VyUmVtb3Zlc1JlcXVlc3QSRgoYdGVh",
-            "bUVudGVycHJpc2VVc2VyUmVtb3ZlGAEgAygLMiQuRW50ZXJwcmlzZS5UZWFt",
-            "RW50ZXJwcmlzZVVzZXJSZW1vdmUiewohVGVhbUVudGVycHJpc2VVc2VyUmVt",
-            "b3Zlc1Jlc3BvbnNlElYKIHRlYW1FbnRlcnByaXNlVXNlclJlbW92ZVJlc3Bv",
-            "bnNlGAEgAygLMiwuRW50ZXJwcmlzZS5UZWFtRW50ZXJwcmlzZVVzZXJSZW1v",
-            "dmVSZXNwb25zZSK4AQogVGVhbUVudGVycHJpc2VVc2VyUmVtb3ZlUmVzcG9u",
-            "c2USRgoYdGVhbUVudGVycHJpc2VVc2VyUmVtb3ZlGAEgASgLMiQuRW50ZXJw",
-            "cmlzZS5UZWFtRW50ZXJwcmlzZVVzZXJSZW1vdmUSDwoHc3VjY2VzcxgCIAEo",
-            "CBISCgpyZXN1bHRDb2RlGAMgASgJEg8KB21lc3NhZ2UYBCABKAkSFgoOYWRk",
-            "aXRpb25hbEluZm8YBSABKAkiTQoLRG9tYWluQWxpYXMSDgoGZG9tYWluGAEg",
-            "ASgJEg0KBWFsaWFzGAIgASgJEg4KBnN0YXR1cxgDIAEoBRIPCgdtZXNzYWdl",
-            "GAQgASgJIkIKEkRvbWFpbkFsaWFzUmVxdWVzdBIsCgtkb21haW5BbGlhcxgB",
-            "IAMoCzIXLkVudGVycHJpc2UuRG9tYWluQWxpYXMiQwoTRG9tYWluQWxpYXNS",
-            "ZXNwb25zZRIsCgtkb21haW5BbGlhcxgBIAMoCzIXLkVudGVycHJpc2UuRG9t",
-            "YWluQWxpYXMibQofRW50ZXJwcmlzZVVzZXJzUHJvdmlzaW9uUmVxdWVzdBIz",
-            "CgV1c2VycxgBIAMoCzIkLkVudGVycHJpc2UuRW50ZXJwcmlzZVVzZXJzUHJv",
-            "dmlzaW9uEhUKDWNsaWVudFZlcnNpb24YAiABKAkitgMKGEVudGVycHJpc2VV",
-            "c2Vyc1Byb3Zpc2lvbhIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEhAKCHVz",
-            "ZXJuYW1lGAIgASgJEg4KBm5vZGVJZBgDIAEoAxIVCg1lbmNyeXB0ZWREYXRh",
-            "GAQgASgJEi0KB2tleVR5cGUYBSABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRl",
-            "ZEtleVR5cGUSEAoIZnVsbE5hbWUYBiABKAkSEAoIam9iVGl0bGUYByABKAkS",
-            "HgoWZW50ZXJwcmlzZVVzZXJzRGF0YUtleRgIIAEoDBIUCgxhdXRoVmVyaWZp",
-            "ZXIYCSABKAwSGAoQZW5jcnlwdGlvblBhcmFtcxgKIAEoDBIUCgxyc2FQdWJs",
-            "aWNLZXkYCyABKAwSHgoWcnNhRW5jcnlwdGVkUHJpdmF0ZUtleRgMIAEoDBIU",
-            "CgxlY2NQdWJsaWNLZXkYDSABKAwSHgoWZWNjRW5jcnlwdGVkUHJpdmF0ZUtl",
-            "eRgOIAEoDBIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgPIAEoDBIaChJlbmNy",
-            "eXB0ZWRDbGllbnRLZXkYECABKAwiXwogRW50ZXJwcmlzZVVzZXJzUHJvdmlz",
-            "aW9uUmVzcG9uc2USOwoHcmVzdWx0cxgBIAMoCzIqLkVudGVycHJpc2UuRW50",
-            "ZXJwcmlzZVVzZXJzUHJvdmlzaW9uUmVzdWx0InEKHkVudGVycHJpc2VVc2Vy",
-            "c1Byb3Zpc2lvblJlc3VsdBIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEgwK",
-            "BGNvZGUYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIWCg5hZGRpdGlvbmFsSW5m",
-            "bxgEIAEoCSJhChlFbnRlcnByaXNlVXNlcnNBZGRSZXF1ZXN0Ei0KBXVzZXJz",
-            "GAEgAygLMh4uRW50ZXJwcmlzZS5FbnRlcnByaXNlVXNlcnNBZGQSFQoNY2xp",
-            "ZW50VmVyc2lvbhgCIAEoCSKMAgoSRW50ZXJwcmlzZVVzZXJzQWRkEhgKEGVu",
-            "dGVycHJpc2VVc2VySWQYASABKAMSEAoIdXNlcm5hbWUYAiABKAkSDgoGbm9k",
-            "ZUlkGAMgASgDEhUKDWVuY3J5cHRlZERhdGEYBCABKAkSLQoHa2V5VHlwZRgF",
-            "IAEoDjIcLkVudGVycHJpc2UuRW5jcnlwdGVkS2V5VHlwZRIQCghmdWxsTmFt",
-            "ZRgGIAEoCRIQCghqb2JUaXRsZRgHIAEoCRIbChNzdXBwcmVzc0VtYWlsSW52",
-            "aXRlGAggASgIEhUKDWludml0ZWVMb2NhbGUYCSABKAkSDAoEbW92ZRgKIAEo",
-            "CBIOCgZyb2xlSWQYCyABKAMimwEKGkVudGVycHJpc2VVc2Vyc0FkZFJlc3Bv",
-            "bnNlEjUKB3Jlc3VsdHMYASADKAsyJC5FbnRlcnByaXNlLkVudGVycHJpc2VV",
-            "c2Vyc0FkZFJlc3VsdBIPCgdzdWNjZXNzGAIgASgIEgwKBGNvZGUYAyABKAkS",
-            "DwoHbWVzc2FnZRgEIAEoCRIWCg5hZGRpdGlvbmFsSW5mbxgFIAEoCSKWAQoY",
-            "RW50ZXJwcmlzZVVzZXJzQWRkUmVzdWx0EhgKEGVudGVycHJpc2VVc2VySWQY",
-            "ASABKAMSDwoHc3VjY2VzcxgCIAEoCBIYChB2ZXJpZmljYXRpb25Db2RlGAMg",
-            "ASgJEgwKBGNvZGUYBCABKAkSDwoHbWVzc2FnZRgFIAEoCRIWCg5hZGRpdGlv",
-            "bmFsSW5mbxgGIAEoCSK5AQoXVXBkYXRlTVNQUGVybWl0c1JlcXVlc3QSFwoP",
-            "bXNwRW50ZXJwcmlzZUlkGAEgASgFEhoKEm1heEFsbG93ZWRMaWNlbnNlcxgC",
-            "IAEoBRIZChFhbGxvd2VkTWNQcm9kdWN0cxgDIAMoCRIVCg1hbGxvd2VkQWRk",
-            "T25zGAQgAygJEhcKD21heEZpbGVQbGFuVHlwZRgFIAEoCRIeChZhbGxvd1Vu",
-            "bGltaXRlZExpY2Vuc2VzGAYgASgIIjkKHERlbGV0ZUVudGVycHJpc2VVc2Vy",
-            "c1JlcXVlc3QSGQoRZW50ZXJwcmlzZVVzZXJJZHMYASADKAMibwoaRGVsZXRl",
-            "RW50ZXJwcmlzZVVzZXJTdGF0dXMSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEo",
-            "AxI3CgZzdGF0dXMYAiABKA4yJy5FbnRlcnByaXNlLkRlbGV0ZUVudGVycHJp",
-            "c2VVc2Vyc1Jlc3VsdCJdCh1EZWxldGVFbnRlcnByaXNlVXNlcnNSZXNwb25z",
-            "ZRI8CgxkZWxldGVTdGF0dXMYASADKAsyJi5FbnRlcnByaXNlLkRlbGV0ZUVu",
-            "dGVycHJpc2VVc2VyU3RhdHVzIncKGENsZWFyU2VjdXJpdHlEYXRhUmVxdWVz",
-            "dBIYChBlbnRlcnByaXNlVXNlcklkGAEgAygDEhAKCGFsbFVzZXJzGAIgASgI",
-            "Ei8KBHR5cGUYAyABKA4yIS5FbnRlcnByaXNlLkNsZWFyU2VjdXJpdHlEYXRh",
-            "VHlwZSIlChNMaXN0RG9tYWluc1Jlc3BvbnNlEg4KBmRvbWFpbhgBIAMoCSJk",
-            "ChRSZXNlcnZlRG9tYWluUmVxdWVzdBI8ChNyZXNlcnZlRG9tYWluQWN0aW9u",
-            "GAEgASgOMh8uRW50ZXJwcmlzZS5SZXNlcnZlRG9tYWluQWN0aW9uEg4KBmRv",
-            "bWFpbhgCIAEoCSImChVSZXNlcnZlRG9tYWluUmVzcG9uc2USDQoFdG9rZW4Y",
-            "ASABKAkiLgoLUm9sZXNCeVRlYW0SDwoHdGVhbVVpZBgBIAEoDBIOCgZyb2xl",
-            "SWQYAiADKAMijQEKEExvY2tVc2Vyc1JlcXVlc3QSHQoVbG9ja0VudGVycHJp",
-            "c2VVc2VySWRzGAEgAygDEiAKGGRpc2FibGVFbnRlcnByaXNlVXNlcklkcxgC",
-            "IAMoAxIfChd1bmxvY2tFbnRlcnByaXNlVXNlcklkcxgDIAMoAxIXCg9kZWxl",
-            "dGVJZlBlbmRpbmcYBCABKAgiQwoRTG9ja1VzZXJzUmVzcG9uc2USLgoIcmVz",
-            "cG9uc2UYASADKAsyHC5FbnRlcnByaXNlLkxvY2tVc2VyUmVzcG9uc2UibgoQ",
-            "TG9ja1VzZXJSZXNwb25zZRIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEioK",
-            "BnN0YXR1cxgCIAEoDjIaLkVudGVycHJpc2UuVXNlckxvY2tTdGF0dXMSFAoM",
-            "ZXJyb3JNZXNzYWdlGAMgASgJKhsKB0tleVR5cGUSBwoDUlNBEAASBwoDRUND",
-            "EAEqrwIKFFJvbGVVc2VyTW9kaWZ5U3RhdHVzEg8KC1JPTEVfRVhJU1RTEAAS",
-            "FAoQTUlTU0lOR19UUkVFX0tFWRABEhQKEE1JU1NJTkdfUk9MRV9LRVkQAhIe",
-            "ChpJTlZBTElEX0VOVEVSUFJJU0VfVVNFUl9JRBADEhsKF1BFTkRJTkdfRU5U",
-            "RVJQUklTRV9VU0VSEAQSEwoPSU5WQUxJRF9OT0RFX0lEEAUSIQodTUFZX05P",
-            "VF9SRU1PVkVfU0VMRl9GUk9NX1JPTEUQBhIcChhNVVNUX0hBVkVfT05FX1VT",
-            "RVJfQURNSU4QBxITCg9JTlZBTElEX1JPTEVfSUQQCBIdChlQQU1fTElDRU5T",
-            "RV9TRUFUX0VYQ0VFREVEEAkSEwoPV09VTERfTE9DS19TRUxGEAoqPQoORW50",
-            "ZXJwcmlzZVR5cGUSFwoTRU5URVJQUklTRV9TVEFOREFSRBAAEhIKDkVOVEVS",
-            "UFJJU0VfTVNQEAEqcwoYVHJhbnNmZXJBY2NlcHRhbmNlU3RhdHVzEg0KCVVO",
-            "REVGSU5FRBAAEhAKDE5PVF9SRVFVSVJFRBABEhAKDE5PVF9BQ0NFUFRFRBAC",
-            "EhYKElBBUlRJQUxMWV9BQ0NFUFRFRBADEgwKCEFDQ0VQVEVEEAQq4QMKFEVu",
-            "dGVycHJpc2VEYXRhRW50aXR5EgsKB1VOS05PV04QABIJCgVOT0RFUxABEgkK",
-            "BVJPTEVTEAISCQoFVVNFUlMQAxIJCgVURUFNUxAEEg4KClRFQU1fVVNFUlMQ",
-            "BRIOCgpST0xFX1VTRVJTEAYSEwoPUk9MRV9QUklWSUxFR0VTEAcSFQoRUk9M",
-            "RV9FTkZPUkNFTUVOVFMQCBIOCgpST0xFX1RFQU1TEAkSDAoITElDRU5TRVMQ",
-            "ChIRCg1NQU5BR0VEX05PREVTEAsSFQoRTUFOQUdFRF9DT01QQU5JRVMQDBIL",
-            "CgdCUklER0VTEA0SCQoFU0NJTVMQDhITCg9FTUFJTF9QUk9WSVNJT04QDxIQ",
-            "CgxRVUVVRURfVEVBTVMQEBIVChFRVUVVRURfVEVBTV9VU0VSUxAREhAKDFNT",
-            "T19TRVJWSUNFUxASEhcKE1JFUE9SVF9GSUxURVJfVVNFUlMQExImCiJERVZJ",
-            "Q0VTX1JFUVVFU1RfRk9SX0FETUlOX0FQUFJPVkFMEBQSEAoMVVNFUl9BTElB",
-            "U0VTEBUSKQolQ09NUExJQU5DRV9SRVBPUlRfQ1JJVEVSSUFfQU5EX0ZJTFRF",
-            "UhAWEhYKEkNPTVBMSUFOQ0VfUkVQT1JUUxAXKiIKC0NhY2hlU3RhdHVzEggK",
-            "BEtFRVAQABIJCgVDTEVBUhABKpMBCg1CYWNrdXBLZXlUeXBlEgoKBk5PX0tF",
-            "WRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZUFRFRF9C",
-            "WV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dDTRAD",
-            "Eh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEKjoKFUJhY2t1cFVz",
-            "ZXJEYXRhS2V5VHlwZRIHCgNPV04QABIYChRTSEFSRURfVE9fRU5URVJQUklT",
-            "RRABKqUBChBFbmNyeXB0ZWRLZXlUeXBlEg0KCUtUX05PX0tFWRAAEhwKGEtU",
-            "X0VOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEh4KGktUX0VOQ1JZUFRFRF9CWV9Q",
-            "VUJMSUNfS0VZEAISIAocS1RfRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dDTRAD",
-            "EiIKHktUX0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEKrcCChJFbnRl",
-            "cnByaXNlRmxhZ1R5cGUSCwoHSU5WQUxJRBAAEhoKFkFMTE9XX1BFUlNPTkFM",
-            "X0xJQ0VOU0UQARIYChRTUEVDSUFMX1BST1ZJU0lPTklORxACEhAKDFJFQ09S",
-            "RF9UWVBFUxADEhMKD1NFQ1JFVFNfTUFOQUdFUhAEEhUKEUVOVEVSUFJJU0Vf",
-            "TE9DS0VEEAUSFQoRRk9SQklEX0tFWV9UWVBFXzIQBhIVChFDT05TT0xFX09O",
-            "Qk9BUkRFRBAHEhsKF0ZPUkJJRF9BQ0NPVU5UX1RSQU5TRkVSEAgSFQoRTlBT",
-            "X1BPUFVQX09QVF9PVVQQCRIVChFTSE9XX1VTRVJfT05CT0FSRBAKEhUKEUZP",
-            "UkJJRF9LRVlfVFlQRV8xEAsSEAoMS0VFUEVSX0RSSVZFEAwq8wEKEFVzZXJV",
-            "cGRhdGVTdGF0dXMSEgoOVVNFUl9VUERBVEVfT0sQABIdChlVU0VSX1VQREFU",
-            "RV9BQ0NFU1NfREVOSUVEEAESJgoiVVNFUl9VUERBVEVfRVhDRUVERURfTElD",
-            "RU5TRV9TRUFUUxACEhsKF1VTRVJfVVBEQVRFX0JBRF9SRVFVRVNUEAMSGQoV",
-            "VVNFUl9VUERBVEVfRFVQTElDQVRFEAQSHQoZVVNFUl9VUERBVEVfSU5WQUxJ",
-            "RF9TVEFURRAFEhYKElVTRVJfVVBEQVRFX0ZBSUxFRBAGEhUKEVVTRVJfVVBE",
-            "QVRFX0VSUk9SEAcqSQoPQXVkaXRVc2VyU3RhdHVzEgYKAk9LEAASEQoNQUND",
-            "RVNTX0RFTklFRBABEhsKF05PX0xPTkdFUl9JTl9FTlRFUlBSSVNFEAIqMwoM",
-            "VGVhbVVzZXJUeXBlEggKBFVTRVIQABIJCgVBRE1JThABEg4KCkFETUlOX09O",
-            "TFkQAip4Cg1BcHBDbGllbnRUeXBlEgwKCE5PVF9VU0VEEAASCwoHR0VORVJB",
-            "TBABEiUKIURJU0NPVkVSWV9BTkRfUk9UQVRJT05fQ09OVFJPTExFUhACEhIK",
-            "DktDTV9DT05UUk9MTEVSEAMSEQoNU0VMRl9ERVNUUlVDVBAEKo8BChtEZWxl",
-            "dGVFbnRlcnByaXNlVXNlcnNSZXN1bHQSCwoHU1VDQ0VTUxAAEhoKFk5PVF9B",
-            "Tl9FTlRFUlBSSVNFX1VTRVIQARIWChJDQU5OT1RfREVMRVRFX1NFTEYQAhIk",
-            "CiBCUklER0VfQ0FOTk9UX0RFTEVURV9BQ1RJVkVfVVNFUhADEgkKBUVSUk9S",
-            "EAQqhwEKFUNsZWFyU2VjdXJpdHlEYXRhVHlwZRIeChpSRUNBTENVTEFURV9T",
-            "VU1NQVJZX1JFUE9SVBAAEicKI0ZPUkNFX0NMSUVOVF9DSEVDS19GT1JfTUlT",
-            "U0lOR19EQVRBEAESJQohRk9SQ0VfQ0xJRU5UX1JFU0VORF9TRUNVUklUWV9E",
-            "QVRBEAIqSgoTUmVzZXJ2ZURvbWFpbkFjdGlvbhIQCgxET01BSU5fVE9LRU4Q",
-            "ABIOCgpET01BSU5fQUREEAESEQoNRE9NQUlOX0RFTEVURRACKnMKDlVzZXJM",
-            "b2NrU3RhdHVzEhcKE1VOS05PV05fTE9DS19TVEFUVVMQABIKCgZMT0NLRUQQ",
-            "ARIMCghESVNBQkxFRBACEgwKCFVOTE9DS0VEEAMSCwoHREVMRVRFRBAEEhMK",
-            "D0NBTlRfQkVfUEVORElORxAFKoABCh1FeHRlcm5hbENsb3VkU2VjcmV0c1N0",
-            "b3JlVHlwZRIWChJVTktOT1dOX1NUT1JFX1RZUEUQABIXChNBV1NfU0VDUkVU",
-            "U19NQU5BR0VSEAESEwoPQVpVUkVfS0VZX1ZBVUxUEAISGQoVR09PR0xFX1NF",
-            "Q1JFVF9NQU5BR0VSEANCJgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQgpF",
-            "bnRlcnByaXNlYgZwcm90bzM="));
+            "KAgikgEKFkNvbXBsaWFuY2VSZXBvcnRGaWx0ZXISFAoMcmVjb3JkVGl0bGVz",
+            "GAEgAygJEhIKCnJlY29yZFVpZHMYAiADKAwSEQoJam9iVGl0bGVzGAMgAygJ",
+            "EgwKBHVybHMYBCADKAkSEwoLcmVjb3JkVHlwZXMYBSADKAkSGAoQc2hhcmVk",
+            "Rm9sZGVyVWlkcxgGIAMoDCKPBgoYQ29tcGxpYW5jZVJlcG9ydFJlc3BvbnNl",
+            "EhUKDWRhdGVHZW5lcmF0ZWQYASABKAMSFQoNcnVuQnlVc2VyTmFtZRgCIAEo",
+            "CRISCgpyZXBvcnROYW1lGAMgASgJEhEKCXJlcG9ydFVpZBgEIAEoDBI8ChNj",
+            "b21wbGlhbmNlUmVwb3J0UnVuGAUgASgLMh8uRW50ZXJwcmlzZS5Db21wbGlh",
+            "bmNlUmVwb3J0UnVuEi0KDHVzZXJQcm9maWxlcxgGIAMoCzIXLkVudGVycHJp",
+            "c2UuVXNlclByb2ZpbGUSKQoKYXVkaXRUZWFtcxgHIAMoCzIVLkVudGVycHJp",
+            "c2UuQXVkaXRUZWFtEi0KDGF1ZGl0UmVjb3JkcxgIIAMoCzIXLkVudGVycHJp",
+            "c2UuQXVkaXRSZWNvcmQSKwoLdXNlclJlY29yZHMYCSADKAsyFi5FbnRlcnBy",
+            "aXNlLlVzZXJSZWNvcmQSOwoTc2hhcmVkRm9sZGVyUmVjb3JkcxgKIAMoCzIe",
+            "LkVudGVycHJpc2UuU2hhcmVkRm9sZGVyUmVjb3JkEjcKEXNoYXJlZEZvbGRl",
+            "clVzZXJzGAsgAygLMhwuRW50ZXJwcmlzZS5TaGFyZWRGb2xkZXJVc2VyEjcK",
+            "EXNoYXJlZEZvbGRlclRlYW1zGAwgAygLMhwuRW50ZXJwcmlzZS5TaGFyZWRG",
+            "b2xkZXJUZWFtEjEKDmF1ZGl0VGVhbVVzZXJzGA0gAygLMhkuRW50ZXJwcmlz",
+            "ZS5BdWRpdFRlYW1Vc2VyEikKCmF1ZGl0Um9sZXMYDiADKAsyFS5FbnRlcnBy",
+            "aXNlLkF1ZGl0Um9sZRIvCg1saW5rZWRSZWNvcmRzGA8gAygLMhguRW50ZXJw",
+            "cmlzZS5MaW5rZWRSZWNvcmQSLQoMYXVkaXRGb2xkZXJzGBAgAygLMhcuRW50",
+            "ZXJwcmlzZS5BdWRpdEZvbGRlchI9ChRhdWRpdEZvbGRlckFjY2Vzc29ycxgR",
+            "IAMoCzIfLkVudGVycHJpc2UuQXVkaXRGb2xkZXJBY2Nlc3NvciKYAQoLQXVk",
+            "aXRSZWNvcmQSEQoJcmVjb3JkVWlkGAEgASgMEhEKCWF1ZGl0RGF0YRgCIAEo",
+            "DBIWCg5oYXNBdHRhY2htZW50cxgDIAEoCBIPCgdpblRyYXNoGAQgASgIEhAK",
+            "CHRyZWVMZWZ0GAUgASgFEhEKCXRyZWVSaWdodBgGIAEoBRIVCg1pc0RyaXZl",
+            "UmVjb3JkGAcgASgIImwKC0F1ZGl0Rm9sZGVyEhEKCWZvbGRlclVpZBgBIAEo",
+            "DBIaChJlbmNyeXB0ZWRBdWRpdERhdGEYAiABKAwSFwoPcGFyZW50Rm9sZGVy",
+            "VWlkGAMgASgMEhUKDWlzRHJpdmVGb2xkZXIYBCABKAgigAIKCUF1ZGl0Um9s",
+            "ZRIOCgZyb2xlSWQYASABKAMSFQoNZW5jcnlwdGVkRGF0YRgCIAEoDBImCh5y",
+            "ZXN0cmljdFNoYXJlT3V0c2lkZUVudGVycHJpc2UYAyABKAgSGAoQcmVzdHJp",
+            "Y3RTaGFyZUFsbBgEIAEoCBIiChpyZXN0cmljdFNoYXJlT2ZBdHRhY2htZW50",
+            "cxgFIAEoCBIpCiFyZXN0cmljdE1hc2tQYXNzd29yZHNXaGlsZUVkaXRpbmcY",
+            "BiABKAgSOwoTcm9sZU5vZGVNYW5hZ2VtZW50cxgHIAMoCzIeLkVudGVycHJp",
+            "c2UuUm9sZU5vZGVNYW5hZ2VtZW50Il4KElJvbGVOb2RlTWFuYWdlbWVudBIQ",
+            "Cgh0cmVlTGVmdBgBIAEoBRIRCgl0cmVlUmlnaHQYAiABKAUSDwoHY2FzY2Fk",
+            "ZRgDIAEoCBISCgpwcml2aWxlZ2VzGAQgASgFImsKC1VzZXJQcm9maWxlEhgK",
+            "EGVudGVycHJpc2VVc2VySWQYASABKAMSEAoIZnVsbE5hbWUYAiABKAkSEAoI",
+            "am9iVGl0bGUYAyABKAkSDQoFZW1haWwYBCABKAkSDwoHcm9sZUlkcxgFIAMo",
+            "AyJ7ChBSZWNvcmRQZXJtaXNzaW9uEhEKCXJlY29yZFVpZBgBIAEoDBIYCg5w",
+            "ZXJtaXNzaW9uQml0cxgCIAEoBUgAEiwKBWRyaXZlGAMgASgLMhsuRW50ZXJw",
+            "cmlzZS5Ecml2ZVBlcm1pc3Npb25IAEIMCgpwZXJtaXNzaW9uIugCCg9Ecml2",
+            "ZVBlcm1pc3Npb24SDQoFb3duZXIYASABKAgSDgoGZGVuaWVkGAIgASgIEg8K",
+            "B2NhbkVkaXQYAyABKAgSEAoIY2FuU2hhcmUYBCABKAgSFAoMaXNTaGFyZUFk",
+            "bWluGAUgASgIEiYKCmFjY2Vzc1R5cGUYBiABKA4yEi5Gb2xkZXIuQWNjZXNz",
+            "VHlwZRI0ChFmb2xkZXJQZXJtaXNzaW9ucxgHIAEoCzIZLkZvbGRlci5Gb2xk",
+            "ZXJQZXJtaXNzaW9ucxIUCgxjYW5WaWV3VGl0bGUYCCABKAgSDwoHY2FuVmll",
+            "dxgJIAEoCBIVCg1jYW5MaXN0QWNjZXNzGAogASgIEhEKCWNhbkRlbGV0ZRgL",
+            "IAEoCBIaChJjYW5DaGFuZ2VPd25lcnNoaXAYDCABKAgSGAoQY2FuUmVxdWVz",
+            "dEFjY2VzcxgNIAEoCBIYChBjYW5BcHByb3ZlQWNjZXNzGA4gASgIIl8KClVz",
+            "ZXJSZWNvcmQSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxI3ChFyZWNvcmRQ",
+            "ZXJtaXNzaW9ucxgCIAMoCzIcLkVudGVycHJpc2UuUmVjb3JkUGVybWlzc2lv",
+            "biJbCglBdWRpdFRlYW0SDwoHdGVhbVVpZBgBIAEoDBIQCgh0ZWFtTmFtZRgC",
+            "IAEoCRIUCgxyZXN0cmljdEVkaXQYAyABKAgSFQoNcmVzdHJpY3RTaGFyZRgE",
+            "IAEoCCI7Cg1BdWRpdFRlYW1Vc2VyEg8KB3RlYW1VaWQYASABKAwSGQoRZW50",
+            "ZXJwcmlzZVVzZXJJZHMYAiADKAMinwEKElNoYXJlZEZvbGRlclJlY29yZBIX",
+            "Cg9zaGFyZWRGb2xkZXJVaWQYASABKAwSNwoRcmVjb3JkUGVybWlzc2lvbnMY",
+            "AiADKAsyHC5FbnRlcnByaXNlLlJlY29yZFBlcm1pc3Npb24SNwoRc2hhcmVB",
+            "ZG1pblJlY29yZHMYAyADKAsyHC5FbnRlcnByaXNlLlNoYXJlQWRtaW5SZWNv",
+            "cmQiTQoQU2hhcmVBZG1pblJlY29yZBIYChBlbnRlcnByaXNlVXNlcklkGAEg",
+            "ASgDEh8KF3JlY29yZFBlcm1pc3Npb25JbmRleGVzGAIgAygFIkYKEFNoYXJl",
+            "ZEZvbGRlclVzZXISFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhkKEWVudGVy",
+            "cHJpc2VVc2VySWRzGAIgAygDIj0KEFNoYXJlZEZvbGRlclRlYW0SFwoPc2hh",
+            "cmVkRm9sZGVyVWlkGAEgASgMEhAKCHRlYW1VaWRzGAIgAygMIrsBChNBdWRp",
+            "dEZvbGRlckFjY2Vzc29yEhEKCWZvbGRlclVpZBgBIAEoDBImCgphY2Nlc3NU",
+            "eXBlGAIgASgOMhIuRm9sZGVyLkFjY2Vzc1R5cGUSGgoQZW50ZXJwcmlzZVVz",
+            "ZXJJZBgDIAEoA0gAEhEKB3RlYW1VaWQYBCABKAxIABIuCgtwZXJtaXNzaW9u",
+            "cxgFIAEoCzIZLkZvbGRlci5Gb2xkZXJQZXJtaXNzaW9uc0IKCghhY2Nlc3Nv",
+            "ciIvChpHZXRDb21wbGlhbmNlUmVwb3J0UmVxdWVzdBIRCglyZXBvcnRVaWQY",
+            "ASABKAwiMgobR2V0Q29tcGxpYW5jZVJlcG9ydFJlc3BvbnNlEhMKC2Rvd25s",
+            "b2FkVXJsGAEgASgJIjYKH0NvbXBsaWFuY2VSZXBvcnRDcml0ZXJpYVJlcXVl",
+            "c3QSEwoLY3JpdGVyaWFVaWQYASABKAwiOwokU2F2ZUNvbXBsaWFuY2VSZXBv",
+            "cnRDcml0ZXJpYVJlc3BvbnNlEhMKC2NyaXRlcmlhVWlkGAEgASgMIjQKDExp",
+            "bmtlZFJlY29yZBIQCghvd25lclVpZBgBIAEoDBISCgpyZWNvcmRVaWRzGAIg",
+            "AygMIlcKF0dldFNoYXJpbmdBZG1pbnNSZXF1ZXN0EhcKD3NoYXJlZEZvbGRl",
+            "clVpZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSEAoIdXNlcm5hbWUYAyAB",
+            "KAki4AEKDlVzZXJQcm9maWxlRXh0Eg0KBWVtYWlsGAEgASgJEhAKCGZ1bGxO",
+            "YW1lGAIgASgJEhAKCGpvYlRpdGxlGAMgASgJEhQKDGlzTVNQTUNBZG1pbhgE",
+            "IAEoCBIYChBpc0luU2hhcmVkRm9sZGVyGAUgASgIEiYKHmlzU2hhcmVBZG1p",
+            "bkZvclJlcXVlc3RlZE9iamVjdBgGIAEoCBIoCiBpc1NoYXJlQWRtaW5Gb3JT",
+            "aGFyZWRGb2xkZXJPd25lchgHIAEoCBIZChFoYXNBY2Nlc3NUb09iamVjdBgI",
+            "IAEoCCJPChhHZXRTaGFyaW5nQWRtaW5zUmVzcG9uc2USMwoPdXNlclByb2Zp",
+            "bGVFeHRzGAEgAygLMhouRW50ZXJwcmlzZS5Vc2VyUHJvZmlsZUV4dCJfCh5U",
+            "ZWFtc0VudGVycHJpc2VVc2Vyc0FkZFJlcXVlc3QSPQoFdGVhbXMYASADKAsy",
+            "Li5FbnRlcnByaXNlLlRlYW1zRW50ZXJwcmlzZVVzZXJzQWRkVGVhbVJlcXVl",
+            "c3QidAoiVGVhbXNFbnRlcnByaXNlVXNlcnNBZGRUZWFtUmVxdWVzdBIPCgd0",
+            "ZWFtVWlkGAEgASgMEj0KBXVzZXJzGAIgAygLMi4uRW50ZXJwcmlzZS5UZWFt",
+            "c0VudGVycHJpc2VVc2Vyc0FkZFVzZXJSZXF1ZXN0IqsBCiJUZWFtc0VudGVy",
+            "cHJpc2VVc2Vyc0FkZFVzZXJSZXF1ZXN0EhgKEGVudGVycHJpc2VVc2VySWQY",
+            "ASABKAMSKgoIdXNlclR5cGUYAiABKA4yGC5FbnRlcnByaXNlLlRlYW1Vc2Vy",
+            "VHlwZRITCgd0ZWFtS2V5GAMgASgJQgIYARIqCgx0eXBlZFRlYW1LZXkYBCAB",
+            "KAsyFC5FbnRlcnByaXNlLlR5cGVkS2V5IkYKCFR5cGVkS2V5EgsKA2tleRgB",
+            "IAEoDBItCgdrZXlUeXBlGAIgASgOMhwuRW50ZXJwcmlzZS5FbmNyeXB0ZWRL",
+            "ZXlUeXBlInMKH1RlYW1zRW50ZXJwcmlzZVVzZXJzQWRkUmVzcG9uc2USPgoF",
+            "dGVhbXMYASADKAsyLy5FbnRlcnByaXNlLlRlYW1zRW50ZXJwcmlzZVVzZXJz",
+            "QWRkVGVhbVJlc3BvbnNlEhAKCHJldmlzaW9uGAIgASgDIsQBCiNUZWFtc0Vu",
+            "dGVycHJpc2VVc2Vyc0FkZFRlYW1SZXNwb25zZRIPCgd0ZWFtVWlkGAEgASgM",
+            "Ej4KBXVzZXJzGAIgAygLMi8uRW50ZXJwcmlzZS5UZWFtc0VudGVycHJpc2VV",
+            "c2Vyc0FkZFVzZXJSZXNwb25zZRIPCgdzdWNjZXNzGAMgASgIEg8KB21lc3Nh",
+            "Z2UYBCABKAkSEgoKcmVzdWx0Q29kZRgFIAEoCRIWCg5hZGRpdGlvbmFsSW5m",
+            "bxgGIAEoCSKfAQojVGVhbXNFbnRlcnByaXNlVXNlcnNBZGRVc2VyUmVzcG9u",
+            "c2USGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxIQCghyZXZpc2lvbhgCIAEo",
+            "AxIPCgdzdWNjZXNzGAMgASgIEg8KB21lc3NhZ2UYBCABKAkSEgoKcmVzdWx0",
+            "Q29kZRgFIAEoCRIWCg5hZGRpdGlvbmFsSW5mbxgGIAEoCSJFChhUZWFtRW50",
+            "ZXJwcmlzZVVzZXJSZW1vdmUSDwoHdGVhbVVpZBgBIAEoDBIYChBlbnRlcnBy",
+            "aXNlVXNlcklkGAIgASgDImoKIFRlYW1FbnRlcnByaXNlVXNlclJlbW92ZXNS",
+            "ZXF1ZXN0EkYKGHRlYW1FbnRlcnByaXNlVXNlclJlbW92ZRgBIAMoCzIkLkVu",
+            "dGVycHJpc2UuVGVhbUVudGVycHJpc2VVc2VyUmVtb3ZlInsKIVRlYW1FbnRl",
+            "cnByaXNlVXNlclJlbW92ZXNSZXNwb25zZRJWCiB0ZWFtRW50ZXJwcmlzZVVz",
+            "ZXJSZW1vdmVSZXNwb25zZRgBIAMoCzIsLkVudGVycHJpc2UuVGVhbUVudGVy",
+            "cHJpc2VVc2VyUmVtb3ZlUmVzcG9uc2UiuAEKIFRlYW1FbnRlcnByaXNlVXNl",
+            "clJlbW92ZVJlc3BvbnNlEkYKGHRlYW1FbnRlcnByaXNlVXNlclJlbW92ZRgB",
+            "IAEoCzIkLkVudGVycHJpc2UuVGVhbUVudGVycHJpc2VVc2VyUmVtb3ZlEg8K",
+            "B3N1Y2Nlc3MYAiABKAgSEgoKcmVzdWx0Q29kZRgDIAEoCRIPCgdtZXNzYWdl",
+            "GAQgASgJEhYKDmFkZGl0aW9uYWxJbmZvGAUgASgJIk0KC0RvbWFpbkFsaWFz",
+            "Eg4KBmRvbWFpbhgBIAEoCRINCgVhbGlhcxgCIAEoCRIOCgZzdGF0dXMYAyAB",
+            "KAUSDwoHbWVzc2FnZRgEIAEoCSJCChJEb21haW5BbGlhc1JlcXVlc3QSLAoL",
+            "ZG9tYWluQWxpYXMYASADKAsyFy5FbnRlcnByaXNlLkRvbWFpbkFsaWFzIkMK",
+            "E0RvbWFpbkFsaWFzUmVzcG9uc2USLAoLZG9tYWluQWxpYXMYASADKAsyFy5F",
+            "bnRlcnByaXNlLkRvbWFpbkFsaWFzIm0KH0VudGVycHJpc2VVc2Vyc1Byb3Zp",
+            "c2lvblJlcXVlc3QSMwoFdXNlcnMYASADKAsyJC5FbnRlcnByaXNlLkVudGVy",
+            "cHJpc2VVc2Vyc1Byb3Zpc2lvbhIVCg1jbGllbnRWZXJzaW9uGAIgASgJIrYD",
+            "ChhFbnRlcnByaXNlVXNlcnNQcm92aXNpb24SGAoQZW50ZXJwcmlzZVVzZXJJ",
+            "ZBgBIAEoAxIQCgh1c2VybmFtZRgCIAEoCRIOCgZub2RlSWQYAyABKAMSFQoN",
+            "ZW5jcnlwdGVkRGF0YRgEIAEoCRItCgdrZXlUeXBlGAUgASgOMhwuRW50ZXJw",
+            "cmlzZS5FbmNyeXB0ZWRLZXlUeXBlEhAKCGZ1bGxOYW1lGAYgASgJEhAKCGpv",
+            "YlRpdGxlGAcgASgJEh4KFmVudGVycHJpc2VVc2Vyc0RhdGFLZXkYCCABKAwS",
+            "FAoMYXV0aFZlcmlmaWVyGAkgASgMEhgKEGVuY3J5cHRpb25QYXJhbXMYCiAB",
+            "KAwSFAoMcnNhUHVibGljS2V5GAsgASgMEh4KFnJzYUVuY3J5cHRlZFByaXZh",
+            "dGVLZXkYDCABKAwSFAoMZWNjUHVibGljS2V5GA0gASgMEh4KFmVjY0VuY3J5",
+            "cHRlZFByaXZhdGVLZXkYDiABKAwSHAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4Y",
+            "DyABKAwSGgoSZW5jcnlwdGVkQ2xpZW50S2V5GBAgASgMIl8KIEVudGVycHJp",
+            "c2VVc2Vyc1Byb3Zpc2lvblJlc3BvbnNlEjsKB3Jlc3VsdHMYASADKAsyKi5F",
+            "bnRlcnByaXNlLkVudGVycHJpc2VVc2Vyc1Byb3Zpc2lvblJlc3VsdCJxCh5F",
+            "bnRlcnByaXNlVXNlcnNQcm92aXNpb25SZXN1bHQSGAoQZW50ZXJwcmlzZVVz",
+            "ZXJJZBgBIAEoAxIMCgRjb2RlGAIgASgJEg8KB21lc3NhZ2UYAyABKAkSFgoO",
+            "YWRkaXRpb25hbEluZm8YBCABKAkiYQoZRW50ZXJwcmlzZVVzZXJzQWRkUmVx",
+            "dWVzdBItCgV1c2VycxgBIAMoCzIeLkVudGVycHJpc2UuRW50ZXJwcmlzZVVz",
+            "ZXJzQWRkEhUKDWNsaWVudFZlcnNpb24YAiABKAkijAIKEkVudGVycHJpc2VV",
+            "c2Vyc0FkZBIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEhAKCHVzZXJuYW1l",
+            "GAIgASgJEg4KBm5vZGVJZBgDIAEoAxIVCg1lbmNyeXB0ZWREYXRhGAQgASgJ",
+            "Ei0KB2tleVR5cGUYBSABKA4yHC5FbnRlcnByaXNlLkVuY3J5cHRlZEtleVR5",
+            "cGUSEAoIZnVsbE5hbWUYBiABKAkSEAoIam9iVGl0bGUYByABKAkSGwoTc3Vw",
+            "cHJlc3NFbWFpbEludml0ZRgIIAEoCBIVCg1pbnZpdGVlTG9jYWxlGAkgASgJ",
+            "EgwKBG1vdmUYCiABKAgSDgoGcm9sZUlkGAsgASgDIpsBChpFbnRlcnByaXNl",
+            "VXNlcnNBZGRSZXNwb25zZRI1CgdyZXN1bHRzGAEgAygLMiQuRW50ZXJwcmlz",
+            "ZS5FbnRlcnByaXNlVXNlcnNBZGRSZXN1bHQSDwoHc3VjY2VzcxgCIAEoCBIM",
+            "CgRjb2RlGAMgASgJEg8KB21lc3NhZ2UYBCABKAkSFgoOYWRkaXRpb25hbElu",
+            "Zm8YBSABKAkilgEKGEVudGVycHJpc2VVc2Vyc0FkZFJlc3VsdBIYChBlbnRl",
+            "cnByaXNlVXNlcklkGAEgASgDEg8KB3N1Y2Nlc3MYAiABKAgSGAoQdmVyaWZp",
+            "Y2F0aW9uQ29kZRgDIAEoCRIMCgRjb2RlGAQgASgJEg8KB21lc3NhZ2UYBSAB",
+            "KAkSFgoOYWRkaXRpb25hbEluZm8YBiABKAkiuQEKF1VwZGF0ZU1TUFBlcm1p",
+            "dHNSZXF1ZXN0EhcKD21zcEVudGVycHJpc2VJZBgBIAEoBRIaChJtYXhBbGxv",
+            "d2VkTGljZW5zZXMYAiABKAUSGQoRYWxsb3dlZE1jUHJvZHVjdHMYAyADKAkS",
+            "FQoNYWxsb3dlZEFkZE9ucxgEIAMoCRIXCg9tYXhGaWxlUGxhblR5cGUYBSAB",
+            "KAkSHgoWYWxsb3dVbmxpbWl0ZWRMaWNlbnNlcxgGIAEoCCI5ChxEZWxldGVF",
+            "bnRlcnByaXNlVXNlcnNSZXF1ZXN0EhkKEWVudGVycHJpc2VVc2VySWRzGAEg",
+            "AygDIm8KGkRlbGV0ZUVudGVycHJpc2VVc2VyU3RhdHVzEhgKEGVudGVycHJp",
+            "c2VVc2VySWQYASABKAMSNwoGc3RhdHVzGAIgASgOMicuRW50ZXJwcmlzZS5E",
+            "ZWxldGVFbnRlcnByaXNlVXNlcnNSZXN1bHQiXQodRGVsZXRlRW50ZXJwcmlz",
+            "ZVVzZXJzUmVzcG9uc2USPAoMZGVsZXRlU3RhdHVzGAEgAygLMiYuRW50ZXJw",
+            "cmlzZS5EZWxldGVFbnRlcnByaXNlVXNlclN0YXR1cyJ3ChhDbGVhclNlY3Vy",
+            "aXR5RGF0YVJlcXVlc3QSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAMoAxIQCghh",
+            "bGxVc2VycxgCIAEoCBIvCgR0eXBlGAMgASgOMiEuRW50ZXJwcmlzZS5DbGVh",
+            "clNlY3VyaXR5RGF0YVR5cGUiJQoTTGlzdERvbWFpbnNSZXNwb25zZRIOCgZk",
+            "b21haW4YASADKAkiZAoUUmVzZXJ2ZURvbWFpblJlcXVlc3QSPAoTcmVzZXJ2",
+            "ZURvbWFpbkFjdGlvbhgBIAEoDjIfLkVudGVycHJpc2UuUmVzZXJ2ZURvbWFp",
+            "bkFjdGlvbhIOCgZkb21haW4YAiABKAkiJgoVUmVzZXJ2ZURvbWFpblJlc3Bv",
+            "bnNlEg0KBXRva2VuGAEgASgJIi4KC1JvbGVzQnlUZWFtEg8KB3RlYW1VaWQY",
+            "ASABKAwSDgoGcm9sZUlkGAIgAygDIo0BChBMb2NrVXNlcnNSZXF1ZXN0Eh0K",
+            "FWxvY2tFbnRlcnByaXNlVXNlcklkcxgBIAMoAxIgChhkaXNhYmxlRW50ZXJw",
+            "cmlzZVVzZXJJZHMYAiADKAMSHwoXdW5sb2NrRW50ZXJwcmlzZVVzZXJJZHMY",
+            "AyADKAMSFwoPZGVsZXRlSWZQZW5kaW5nGAQgASgIIkMKEUxvY2tVc2Vyc1Jl",
+            "c3BvbnNlEi4KCHJlc3BvbnNlGAEgAygLMhwuRW50ZXJwcmlzZS5Mb2NrVXNl",
+            "clJlc3BvbnNlIm4KEExvY2tVc2VyUmVzcG9uc2USGAoQZW50ZXJwcmlzZVVz",
+            "ZXJJZBgBIAEoAxIqCgZzdGF0dXMYAiABKA4yGi5FbnRlcnByaXNlLlVzZXJM",
+            "b2NrU3RhdHVzEhQKDGVycm9yTWVzc2FnZRgDIAEoCSobCgdLZXlUeXBlEgcK",
+            "A1JTQRAAEgcKA0VDQxABKq8CChRSb2xlVXNlck1vZGlmeVN0YXR1cxIPCgtS",
+            "T0xFX0VYSVNUUxAAEhQKEE1JU1NJTkdfVFJFRV9LRVkQARIUChBNSVNTSU5H",
+            "X1JPTEVfS0VZEAISHgoaSU5WQUxJRF9FTlRFUlBSSVNFX1VTRVJfSUQQAxIb",
+            "ChdQRU5ESU5HX0VOVEVSUFJJU0VfVVNFUhAEEhMKD0lOVkFMSURfTk9ERV9J",
+            "RBAFEiEKHU1BWV9OT1RfUkVNT1ZFX1NFTEZfRlJPTV9ST0xFEAYSHAoYTVVT",
+            "VF9IQVZFX09ORV9VU0VSX0FETUlOEAcSEwoPSU5WQUxJRF9ST0xFX0lEEAgS",
+            "HQoZUEFNX0xJQ0VOU0VfU0VBVF9FWENFRURFRBAJEhMKD1dPVUxEX0xPQ0tf",
+            "U0VMRhAKKj0KDkVudGVycHJpc2VUeXBlEhcKE0VOVEVSUFJJU0VfU1RBTkRB",
+            "UkQQABISCg5FTlRFUlBSSVNFX01TUBABKnMKGFRyYW5zZmVyQWNjZXB0YW5j",
+            "ZVN0YXR1cxINCglVTkRFRklORUQQABIQCgxOT1RfUkVRVUlSRUQQARIQCgxO",
+            "T1RfQUNDRVBURUQQAhIWChJQQVJUSUFMTFlfQUNDRVBURUQQAxIMCghBQ0NF",
+            "UFRFRBAEKuEDChRFbnRlcnByaXNlRGF0YUVudGl0eRILCgdVTktOT1dOEAAS",
+            "CQoFTk9ERVMQARIJCgVST0xFUxACEgkKBVVTRVJTEAMSCQoFVEVBTVMQBBIO",
+            "CgpURUFNX1VTRVJTEAUSDgoKUk9MRV9VU0VSUxAGEhMKD1JPTEVfUFJJVklM",
+            "RUdFUxAHEhUKEVJPTEVfRU5GT1JDRU1FTlRTEAgSDgoKUk9MRV9URUFNUxAJ",
+            "EgwKCExJQ0VOU0VTEAoSEQoNTUFOQUdFRF9OT0RFUxALEhUKEU1BTkFHRURf",
+            "Q09NUEFOSUVTEAwSCwoHQlJJREdFUxANEgkKBVNDSU1TEA4SEwoPRU1BSUxf",
+            "UFJPVklTSU9OEA8SEAoMUVVFVUVEX1RFQU1TEBASFQoRUVVFVUVEX1RFQU1f",
+            "VVNFUlMQERIQCgxTU09fU0VSVklDRVMQEhIXChNSRVBPUlRfRklMVEVSX1VT",
+            "RVJTEBMSJgoiREVWSUNFU19SRVFVRVNUX0ZPUl9BRE1JTl9BUFBST1ZBTBAU",
+            "EhAKDFVTRVJfQUxJQVNFUxAVEikKJUNPTVBMSUFOQ0VfUkVQT1JUX0NSSVRF",
+            "UklBX0FORF9GSUxURVIQFhIWChJDT01QTElBTkNFX1JFUE9SVFMQFyoiCgtD",
+            "YWNoZVN0YXR1cxIICgRLRUVQEAASCQoFQ0xFQVIQASqTAQoNQmFja3VwS2V5",
+            "VHlwZRIKCgZOT19LRVkQABIZChVFTkNSWVBURURfQllfREFUQV9LRVkQARIb",
+            "ChdFTkNSWVBURURfQllfUFVCTElDX0tFWRACEh0KGUVOQ1JZUFRFRF9CWV9E",
+            "QVRBX0tFWV9HQ00QAxIfChtFTkNSWVBURURfQllfUFVCTElDX0tFWV9FQ0MQ",
+            "BCo6ChVCYWNrdXBVc2VyRGF0YUtleVR5cGUSBwoDT1dOEAASGAoUU0hBUkVE",
+            "X1RPX0VOVEVSUFJJU0UQASqlAQoQRW5jcnlwdGVkS2V5VHlwZRINCglLVF9O",
+            "T19LRVkQABIcChhLVF9FTkNSWVBURURfQllfREFUQV9LRVkQARIeChpLVF9F",
+            "TkNSWVBURURfQllfUFVCTElDX0tFWRACEiAKHEtUX0VOQ1JZUFRFRF9CWV9E",
+            "QVRBX0tFWV9HQ00QAxIiCh5LVF9FTkNSWVBURURfQllfUFVCTElDX0tFWV9F",
+            "Q0MQBCrWAgoSRW50ZXJwcmlzZUZsYWdUeXBlEgsKB0lOVkFMSUQQABIaChZB",
+            "TExPV19QRVJTT05BTF9MSUNFTlNFEAESGAoUU1BFQ0lBTF9QUk9WSVNJT05J",
+            "TkcQAhIQCgxSRUNPUkRfVFlQRVMQAxITCg9TRUNSRVRTX01BTkFHRVIQBBIV",
+            "ChFFTlRFUlBSSVNFX0xPQ0tFRBAFEhUKEUZPUkJJRF9LRVlfVFlQRV8yEAYS",
+            "FQoRQ09OU09MRV9PTkJPQVJERUQQBxIbChdGT1JCSURfQUNDT1VOVF9UUkFO",
+            "U0ZFUhAIEhUKEU5QU19QT1BVUF9PUFRfT1VUEAkSFQoRU0hPV19VU0VSX09O",
+            "Qk9BUkQQChIVChFGT1JCSURfS0VZX1RZUEVfMRALEhAKDEtFRVBFUl9EUklW",
+            "RRAMEh0KGUxPQ0tfQUxFUlRTX1NJRU1TX0NPTkZJR1MQDSrzAQoQVXNlclVw",
+            "ZGF0ZVN0YXR1cxISCg5VU0VSX1VQREFURV9PSxAAEh0KGVVTRVJfVVBEQVRF",
+            "X0FDQ0VTU19ERU5JRUQQARImCiJVU0VSX1VQREFURV9FWENFRURFRF9MSUNF",
+            "TlNFX1NFQVRTEAISGwoXVVNFUl9VUERBVEVfQkFEX1JFUVVFU1QQAxIZChVV",
+            "U0VSX1VQREFURV9EVVBMSUNBVEUQBBIdChlVU0VSX1VQREFURV9JTlZBTElE",
+            "X1NUQVRFEAUSFgoSVVNFUl9VUERBVEVfRkFJTEVEEAYSFQoRVVNFUl9VUERB",
+            "VEVfRVJST1IQBypJCg9BdWRpdFVzZXJTdGF0dXMSBgoCT0sQABIRCg1BQ0NF",
+            "U1NfREVOSUVEEAESGwoXTk9fTE9OR0VSX0lOX0VOVEVSUFJJU0UQAiozCgxU",
+            "ZWFtVXNlclR5cGUSCAoEVVNFUhAAEgkKBUFETUlOEAESDgoKQURNSU5fT05M",
+            "WRACKngKDUFwcENsaWVudFR5cGUSDAoITk9UX1VTRUQQABILCgdHRU5FUkFM",
+            "EAESJQohRElTQ09WRVJZX0FORF9ST1RBVElPTl9DT05UUk9MTEVSEAISEgoO",
+            "S0NNX0NPTlRST0xMRVIQAxIRCg1TRUxGX0RFU1RSVUNUEAQqjwEKG0RlbGV0",
+            "ZUVudGVycHJpc2VVc2Vyc1Jlc3VsdBILCgdTVUNDRVNTEAASGgoWTk9UX0FO",
+            "X0VOVEVSUFJJU0VfVVNFUhABEhYKEkNBTk5PVF9ERUxFVEVfU0VMRhACEiQK",
+            "IEJSSURHRV9DQU5OT1RfREVMRVRFX0FDVElWRV9VU0VSEAMSCQoFRVJST1IQ",
+            "BCqHAQoVQ2xlYXJTZWN1cml0eURhdGFUeXBlEh4KGlJFQ0FMQ1VMQVRFX1NV",
+            "TU1BUllfUkVQT1JUEAASJwojRk9SQ0VfQ0xJRU5UX0NIRUNLX0ZPUl9NSVNT",
+            "SU5HX0RBVEEQARIlCiFGT1JDRV9DTElFTlRfUkVTRU5EX1NFQ1VSSVRZX0RB",
+            "VEEQAipKChNSZXNlcnZlRG9tYWluQWN0aW9uEhAKDERPTUFJTl9UT0tFThAA",
+            "Eg4KCkRPTUFJTl9BREQQARIRCg1ET01BSU5fREVMRVRFEAIqcwoOVXNlckxv",
+            "Y2tTdGF0dXMSFwoTVU5LTk9XTl9MT0NLX1NUQVRVUxAAEgoKBkxPQ0tFRBAB",
+            "EgwKCERJU0FCTEVEEAISDAoIVU5MT0NLRUQQAxILCgdERUxFVEVEEAQSEwoP",
+            "Q0FOVF9CRV9QRU5ESU5HEAUqgAEKHUV4dGVybmFsQ2xvdWRTZWNyZXRzU3Rv",
+            "cmVUeXBlEhYKElVOS05PV05fU1RPUkVfVFlQRRAAEhcKE0FXU19TRUNSRVRT",
+            "X01BTkFHRVIQARITCg9BWlVSRV9LRVlfVkFVTFQQAhIZChVHT09HTEVfU0VD",
+            "UkVUX01BTkFHRVIQA0ImChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCkVu",
+            "dGVycHJpc2ViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Folder.FolderReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.RoleUserModifyStatus), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.TransferAcceptanceStatus), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), typeof(global::Enterprise.EncryptedKeyType), typeof(global::Enterprise.EnterpriseFlagType), typeof(global::Enterprise.UserUpdateStatus), typeof(global::Enterprise.AuditUserStatus), typeof(global::Enterprise.TeamUserType), typeof(global::Enterprise.AppClientType), typeof(global::Enterprise.DeleteEnterpriseUsersResult), typeof(global::Enterprise.ClearSecurityDataType), typeof(global::Enterprise.ReserveDomainAction), typeof(global::Enterprise.UserLockStatus), typeof(global::Enterprise.ExternalCloudSecretsStoreType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -672,14 +686,15 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportRun), global::Enterprise.ComplianceReportRun.Parser, new[]{ "ReportCriteriaAndFilter", "Users", "Records" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportCriteriaAndFilter), global::Enterprise.ComplianceReportCriteriaAndFilter.Parser, new[]{ "NodeId", "CriteriaUid", "CriteriaName", "Criteria", "Filters", "LastModified", "NodeEncryptedData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportCriteria), global::Enterprise.ComplianceReportCriteria.Parser, new[]{ "JobTitles", "EnterpriseUserIds", "IncludeNonShared" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportFilter), global::Enterprise.ComplianceReportFilter.Parser, new[]{ "RecordTitles", "RecordUids", "JobTitles", "Urls", "RecordTypes" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportResponse), global::Enterprise.ComplianceReportResponse.Parser, new[]{ "DateGenerated", "RunByUserName", "ReportName", "ReportUid", "ComplianceReportRun", "UserProfiles", "AuditTeams", "AuditRecords", "UserRecords", "SharedFolderRecords", "SharedFolderUsers", "SharedFolderTeams", "AuditTeamUsers", "AuditRoles", "LinkedRecords" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportFilter), global::Enterprise.ComplianceReportFilter.Parser, new[]{ "RecordTitles", "RecordUids", "JobTitles", "Urls", "RecordTypes", "SharedFolderUids" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportResponse), global::Enterprise.ComplianceReportResponse.Parser, new[]{ "DateGenerated", "RunByUserName", "ReportName", "ReportUid", "ComplianceReportRun", "UserProfiles", "AuditTeams", "AuditRecords", "UserRecords", "SharedFolderRecords", "SharedFolderUsers", "SharedFolderTeams", "AuditTeamUsers", "AuditRoles", "LinkedRecords", "AuditFolders", "AuditFolderAccessors" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditRecord), global::Enterprise.AuditRecord.Parser, new[]{ "RecordUid", "AuditData", "HasAttachments", "InTrash", "TreeLeft", "TreeRight", "IsDriveRecord" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditFolder), global::Enterprise.AuditFolder.Parser, new[]{ "FolderUid", "EncryptedAuditData", "ParentFolderUid", "IsDriveFolder" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditRole), global::Enterprise.AuditRole.Parser, new[]{ "RoleId", "EncryptedData", "RestrictShareOutsideEnterprise", "RestrictShareAll", "RestrictShareOfAttachments", "RestrictMaskPasswordsWhileEditing", "RoleNodeManagements" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RoleNodeManagement), global::Enterprise.RoleNodeManagement.Parser, new[]{ "TreeLeft", "TreeRight", "Cascade", "Privileges" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UserProfile), global::Enterprise.UserProfile.Parser, new[]{ "EnterpriseUserId", "FullName", "JobTitle", "Email", "RoleIds" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RecordPermission), global::Enterprise.RecordPermission.Parser, new[]{ "RecordUid", "PermissionBits", "Drive" }, new[]{ "Permission" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DrivePermission), global::Enterprise.DrivePermission.Parser, new[]{ "Owner", "Denied", "CanEdit", "CanShare", "IsShareAdmin", "AccessType", "FolderPermissions" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DrivePermission), global::Enterprise.DrivePermission.Parser, new[]{ "Owner", "Denied", "CanEdit", "CanShare", "IsShareAdmin", "AccessType", "FolderPermissions", "CanViewTitle", "CanView", "CanListAccess", "CanDelete", "CanChangeOwnership", "CanRequestAccess", "CanApproveAccess" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UserRecord), global::Enterprise.UserRecord.Parser, new[]{ "EnterpriseUserId", "RecordPermissions" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditTeam), global::Enterprise.AuditTeam.Parser, new[]{ "TeamUid", "TeamName", "RestrictEdit", "RestrictShare" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditTeamUser), global::Enterprise.AuditTeamUser.Parser, new[]{ "TeamUid", "EnterpriseUserIds" }, null, null, null, null),
@@ -687,6 +702,7 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ShareAdminRecord), global::Enterprise.ShareAdminRecord.Parser, new[]{ "EnterpriseUserId", "RecordPermissionIndexes" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SharedFolderUser), global::Enterprise.SharedFolderUser.Parser, new[]{ "SharedFolderUid", "EnterpriseUserIds" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SharedFolderTeam), global::Enterprise.SharedFolderTeam.Parser, new[]{ "SharedFolderUid", "TeamUids" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.AuditFolderAccessor), global::Enterprise.AuditFolderAccessor.Parser, new[]{ "FolderUid", "AccessType", "EnterpriseUserId", "TeamUid", "Permissions" }, new[]{ "Accessor" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetComplianceReportRequest), global::Enterprise.GetComplianceReportRequest.Parser, new[]{ "ReportUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetComplianceReportResponse), global::Enterprise.GetComplianceReportResponse.Parser, new[]{ "DownloadUrl" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ComplianceReportCriteriaRequest), global::Enterprise.ComplianceReportCriteriaRequest.Parser, new[]{ "CriteriaUid" }, null, null, null, null),
@@ -846,6 +862,7 @@ namespace Enterprise {
     [pbr::OriginalName("SHOW_USER_ONBOARD")] ShowUserOnboard = 10,
     [pbr::OriginalName("FORBID_KEY_TYPE_1")] ForbidKeyType1 = 11,
     [pbr::OriginalName("KEEPER_DRIVE")] KeeperDrive = 12,
+    [pbr::OriginalName("LOCK_ALERTS_SIEMS_CONFIGS")] LockAlertsSiemsConfigs = 13,
   }
 
   public enum UserUpdateStatus {
@@ -34693,6 +34710,7 @@ namespace Enterprise {
       jobTitles_ = other.jobTitles_.Clone();
       urls_ = other.urls_.Clone();
       recordTypes_ = other.recordTypes_.Clone();
+      sharedFolderUids_ = other.sharedFolderUids_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -34757,6 +34775,20 @@ namespace Enterprise {
       get { return recordTypes_; }
     }
 
+    /// <summary>Field number for the "sharedFolderUids" field.</summary>
+    public const int SharedFolderUidsFieldNumber = 6;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_sharedFolderUids_codec
+        = pb::FieldCodec.ForBytes(50);
+    private readonly pbc::RepeatedField<pb::ByteString> sharedFolderUids_ = new pbc::RepeatedField<pb::ByteString>();
+    /// <summary>
+    ///Folder-scoped filter: restrict the report to records granted via these shared/Drive folders. Empty = no folder filtering. Server support in KA-9098.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> SharedFolderUids {
+      get { return sharedFolderUids_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -34777,6 +34809,7 @@ namespace Enterprise {
       if(!jobTitles_.Equals(other.jobTitles_)) return false;
       if(!urls_.Equals(other.urls_)) return false;
       if(!recordTypes_.Equals(other.recordTypes_)) return false;
+      if(!sharedFolderUids_.Equals(other.sharedFolderUids_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -34789,6 +34822,7 @@ namespace Enterprise {
       hash ^= jobTitles_.GetHashCode();
       hash ^= urls_.GetHashCode();
       hash ^= recordTypes_.GetHashCode();
+      hash ^= sharedFolderUids_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -34812,6 +34846,7 @@ namespace Enterprise {
       jobTitles_.WriteTo(output, _repeated_jobTitles_codec);
       urls_.WriteTo(output, _repeated_urls_codec);
       recordTypes_.WriteTo(output, _repeated_recordTypes_codec);
+      sharedFolderUids_.WriteTo(output, _repeated_sharedFolderUids_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -34827,6 +34862,7 @@ namespace Enterprise {
       jobTitles_.WriteTo(ref output, _repeated_jobTitles_codec);
       urls_.WriteTo(ref output, _repeated_urls_codec);
       recordTypes_.WriteTo(ref output, _repeated_recordTypes_codec);
+      sharedFolderUids_.WriteTo(ref output, _repeated_sharedFolderUids_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -34842,6 +34878,7 @@ namespace Enterprise {
       size += jobTitles_.CalculateSize(_repeated_jobTitles_codec);
       size += urls_.CalculateSize(_repeated_urls_codec);
       size += recordTypes_.CalculateSize(_repeated_recordTypes_codec);
+      size += sharedFolderUids_.CalculateSize(_repeated_sharedFolderUids_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -34859,6 +34896,7 @@ namespace Enterprise {
       jobTitles_.Add(other.jobTitles_);
       urls_.Add(other.urls_);
       recordTypes_.Add(other.recordTypes_);
+      sharedFolderUids_.Add(other.sharedFolderUids_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -34898,6 +34936,10 @@ namespace Enterprise {
             recordTypes_.AddEntriesFrom(input, _repeated_recordTypes_codec);
             break;
           }
+          case 50: {
+            sharedFolderUids_.AddEntriesFrom(input, _repeated_sharedFolderUids_codec);
+            break;
+          }
         }
       }
     #endif
@@ -34935,6 +34977,10 @@ namespace Enterprise {
           }
           case 42: {
             recordTypes_.AddEntriesFrom(ref input, _repeated_recordTypes_codec);
+            break;
+          }
+          case 50: {
+            sharedFolderUids_.AddEntriesFrom(ref input, _repeated_sharedFolderUids_codec);
             break;
           }
         }
@@ -34994,6 +35040,8 @@ namespace Enterprise {
       auditTeamUsers_ = other.auditTeamUsers_.Clone();
       auditRoles_ = other.auditRoles_.Clone();
       linkedRecords_ = other.linkedRecords_.Clone();
+      auditFolders_ = other.auditFolders_.Clone();
+      auditFolderAccessors_ = other.auditFolderAccessors_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -35173,6 +35221,34 @@ namespace Enterprise {
       get { return linkedRecords_; }
     }
 
+    /// <summary>Field number for the "auditFolders" field.</summary>
+    public const int AuditFoldersFieldNumber = 16;
+    private static readonly pb::FieldCodec<global::Enterprise.AuditFolder> _repeated_auditFolders_codec
+        = pb::FieldCodec.ForMessage(130, global::Enterprise.AuditFolder.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.AuditFolder> auditFolders_ = new pbc::RepeatedField<global::Enterprise.AuditFolder>();
+    /// <summary>
+    ///Folder identity + hierarchy for every folder that grants access to a record in this report. Populated only when FeatureFlag.KEEPER_DRIVE is enabled (server-side population: KA-9098).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Enterprise.AuditFolder> AuditFolders {
+      get { return auditFolders_; }
+    }
+
+    /// <summary>Field number for the "auditFolderAccessors" field.</summary>
+    public const int AuditFolderAccessorsFieldNumber = 17;
+    private static readonly pb::FieldCodec<global::Enterprise.AuditFolderAccessor> _repeated_auditFolderAccessors_codec
+        = pb::FieldCodec.ForMessage(138, global::Enterprise.AuditFolderAccessor.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.AuditFolderAccessor> auditFolderAccessors_ = new pbc::RepeatedField<global::Enterprise.AuditFolderAccessor>();
+    /// <summary>
+    ///Per-accessor (unmerged) Drive folder permissions; see AuditFolderAccessor. Populated only when FeatureFlag.KEEPER_DRIVE is enabled (server-side population: KA-9098).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Enterprise.AuditFolderAccessor> AuditFolderAccessors {
+      get { return auditFolderAccessors_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -35203,6 +35279,8 @@ namespace Enterprise {
       if(!auditTeamUsers_.Equals(other.auditTeamUsers_)) return false;
       if(!auditRoles_.Equals(other.auditRoles_)) return false;
       if(!linkedRecords_.Equals(other.linkedRecords_)) return false;
+      if(!auditFolders_.Equals(other.auditFolders_)) return false;
+      if(!auditFolderAccessors_.Equals(other.auditFolderAccessors_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -35225,6 +35303,8 @@ namespace Enterprise {
       hash ^= auditTeamUsers_.GetHashCode();
       hash ^= auditRoles_.GetHashCode();
       hash ^= linkedRecords_.GetHashCode();
+      hash ^= auditFolders_.GetHashCode();
+      hash ^= auditFolderAccessors_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -35273,6 +35353,8 @@ namespace Enterprise {
       auditTeamUsers_.WriteTo(output, _repeated_auditTeamUsers_codec);
       auditRoles_.WriteTo(output, _repeated_auditRoles_codec);
       linkedRecords_.WriteTo(output, _repeated_linkedRecords_codec);
+      auditFolders_.WriteTo(output, _repeated_auditFolders_codec);
+      auditFolderAccessors_.WriteTo(output, _repeated_auditFolderAccessors_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -35313,6 +35395,8 @@ namespace Enterprise {
       auditTeamUsers_.WriteTo(ref output, _repeated_auditTeamUsers_codec);
       auditRoles_.WriteTo(ref output, _repeated_auditRoles_codec);
       linkedRecords_.WriteTo(ref output, _repeated_linkedRecords_codec);
+      auditFolders_.WriteTo(ref output, _repeated_auditFolders_codec);
+      auditFolderAccessors_.WriteTo(ref output, _repeated_auditFolderAccessors_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -35348,6 +35432,8 @@ namespace Enterprise {
       size += auditTeamUsers_.CalculateSize(_repeated_auditTeamUsers_codec);
       size += auditRoles_.CalculateSize(_repeated_auditRoles_codec);
       size += linkedRecords_.CalculateSize(_repeated_linkedRecords_codec);
+      size += auditFolders_.CalculateSize(_repeated_auditFolders_codec);
+      size += auditFolderAccessors_.CalculateSize(_repeated_auditFolderAccessors_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -35388,6 +35474,8 @@ namespace Enterprise {
       auditTeamUsers_.Add(other.auditTeamUsers_);
       auditRoles_.Add(other.auditRoles_);
       linkedRecords_.Add(other.linkedRecords_);
+      auditFolders_.Add(other.auditFolders_);
+      auditFolderAccessors_.Add(other.auditFolderAccessors_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -35470,6 +35558,14 @@ namespace Enterprise {
             linkedRecords_.AddEntriesFrom(input, _repeated_linkedRecords_codec);
             break;
           }
+          case 130: {
+            auditFolders_.AddEntriesFrom(input, _repeated_auditFolders_codec);
+            break;
+          }
+          case 138: {
+            auditFolderAccessors_.AddEntriesFrom(input, _repeated_auditFolderAccessors_codec);
+            break;
+          }
         }
       }
     #endif
@@ -35550,6 +35646,14 @@ namespace Enterprise {
           }
           case 122: {
             linkedRecords_.AddEntriesFrom(ref input, _repeated_linkedRecords_codec);
+            break;
+          }
+          case 130: {
+            auditFolders_.AddEntriesFrom(ref input, _repeated_auditFolders_codec);
+            break;
+          }
+          case 138: {
+            auditFolderAccessors_.AddEntriesFrom(ref input, _repeated_auditFolderAccessors_codec);
             break;
           }
         }
@@ -35991,6 +36095,343 @@ namespace Enterprise {
 
   }
 
+  /// <summary>
+  ///*
+  /// Folder identity and hierarchy carrier on the compliance response — the folder-level
+  /// analog of {@link AuditRecord}. One entry per distinct folder that grants access to a
+  /// record in the report: Drive folders from the {@code folder} table
+  /// ({@code isDriveFolder = true}) and legacy shared folders from {@code shared_folder}
+  /// ({@code isDriveFolder = false}).
+  ///
+  /// &lt;p>Tree contract (Drive folders only): every non-root {@code parentFolderUid} referenced
+  /// by a Drive {@code AuditFolder} resolves to another {@code AuditFolder} in the same
+  /// response. The response therefore carries the full ancestor chain of every granting
+  /// folder, so clients can reconstruct the nested path (e.g.
+  /// {@code Engineering / DevOps / Prod Credentials}) without extra round-trips. Root-level
+  /// Drive folders leave {@code parentFolderUid} unset. Legacy shared folders have no
+  /// server-side hierarchy and are always flat entries ({@code parentFolderUid} unset).
+  ///
+  /// &lt;p>Populated only when {@code FeatureFlag.KEEPER_DRIVE} is enabled (server-side
+  /// population: KA-9098).
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class AuditFolder : pb::IMessage<AuditFolder>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<AuditFolder> _parser = new pb::MessageParser<AuditFolder>(() => new AuditFolder());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<AuditFolder> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[114]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolder() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolder(AuditFolder other) : this() {
+      folderUid_ = other.folderUid_;
+      encryptedAuditData_ = other.encryptedAuditData_;
+      parentFolderUid_ = other.parentFolderUid_;
+      isDriveFolder_ = other.isDriveFolder_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolder Clone() {
+      return new AuditFolder(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedAuditData" field.</summary>
+    public const int EncryptedAuditDataFieldNumber = 2;
+    private pb::ByteString encryptedAuditData_ = pb::ByteString.Empty;
+    /// <summary>
+    ///Folder name blob encrypted to the enterprise audit key (folder-level analog of AuditRecord.auditData). Sourcing/backfill per KA-9097 Decision 1; may be unset until a name source exists (folderUid-only fallback).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString EncryptedAuditData {
+      get { return encryptedAuditData_; }
+      set {
+        encryptedAuditData_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "parentFolderUid" field.</summary>
+    public const int ParentFolderUidFieldNumber = 3;
+    private pb::ByteString parentFolderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///From folder.parent_uid. Set for non-root Drive folders (see tree contract); unset for root Drive folders and all legacy shared folders.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ParentFolderUid {
+      get { return parentFolderUid_; }
+      set {
+        parentFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "isDriveFolder" field.</summary>
+    public const int IsDriveFolderFieldNumber = 4;
+    private bool isDriveFolder_;
+    /// <summary>
+    ///True for Drive folders (folder table); false for legacy shared folders (shared_folder).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsDriveFolder {
+      get { return isDriveFolder_; }
+      set {
+        isDriveFolder_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as AuditFolder);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(AuditFolder other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (EncryptedAuditData != other.EncryptedAuditData) return false;
+      if (ParentFolderUid != other.ParentFolderUid) return false;
+      if (IsDriveFolder != other.IsDriveFolder) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (EncryptedAuditData.Length != 0) hash ^= EncryptedAuditData.GetHashCode();
+      if (ParentFolderUid.Length != 0) hash ^= ParentFolderUid.GetHashCode();
+      if (IsDriveFolder != false) hash ^= IsDriveFolder.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (EncryptedAuditData.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedAuditData);
+      }
+      if (ParentFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ParentFolderUid);
+      }
+      if (IsDriveFolder != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(IsDriveFolder);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (EncryptedAuditData.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedAuditData);
+      }
+      if (ParentFolderUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ParentFolderUid);
+      }
+      if (IsDriveFolder != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(IsDriveFolder);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (EncryptedAuditData.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedAuditData);
+      }
+      if (ParentFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ParentFolderUid);
+      }
+      if (IsDriveFolder != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(AuditFolder other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.EncryptedAuditData.Length != 0) {
+        EncryptedAuditData = other.EncryptedAuditData;
+      }
+      if (other.ParentFolderUid.Length != 0) {
+        ParentFolderUid = other.ParentFolderUid;
+      }
+      if (other.IsDriveFolder != false) {
+        IsDriveFolder = other.IsDriveFolder;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedAuditData = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ParentFolderUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            IsDriveFolder = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedAuditData = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ParentFolderUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            IsDriveFolder = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class AuditRole : pb::IMessage<AuditRole>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -36006,7 +36447,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[114]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[115]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -36427,7 +36868,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[115]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[116]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -36739,7 +37180,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[116]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[117]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -37075,8 +37516,8 @@ namespace Enterprise {
   /// &lt;p>For KeeperDrive records (gated on {@code FeatureFlag.KEEPER_DRIVE}),
   /// {@code drive} is set with the Drive-native permission payload instead.
   /// The two branches are mutually exclusive: clients should switch on
-  /// {@code AuditRecord.source} (or {@code AuditUserRecord.source}) to decide
-  /// which branch to read.
+  /// {@code AuditRecord.isDriveRecord} (or {@code AuditUserRecord.isDriveRecord})
+  /// to decide which branch to read.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordPermission : pb::IMessage<RecordPermission>
@@ -37093,7 +37534,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[117]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[118]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -37420,6 +37861,26 @@ namespace Enterprise {
   ///
   /// &lt;p>Reuses {@link Folder.FolderPermissions} for the 13-bit Drive permission
   /// set and {@link Folder.AccessType} for the access-type discriminant.
+  ///
+  /// &lt;p>All permission fields are individual booleans, never an encoded bitmask.
+  ///
+  /// &lt;p>&lt;b>Population by access path:&lt;/b>
+  /// &lt;ul>
+  ///   &lt;li>&lt;b>Owner / direct record share&lt;/b> (entry in {@code UserRecord}): the top-level
+  ///       booleans are populated per-column from the user's own {@code record_access} row.&lt;/li>
+  ///   &lt;li>&lt;b>Folder-derived&lt;/b> (entry in {@code SharedFolderRecord}): folder-derived Drive
+  ///       entries have no {@code record_access} row — permissions come from {@code folder_access}
+  ///       capability columns, so {@code canEdit &lt;- folder_access.can_edit_records} and
+  ///       {@code canShare &lt;- folder_access.can_update_access}, and {@code folderPermissions} is
+  ///       the field-wise OR of &lt;b>all accessors'&lt;/b> {@code folder_access} rows on the granting
+  ///       folder (union semantics; {@code accessType} keeps whichever accessor was processed
+  ///       first). This union is lossy for individual members — use {@link AuditFolderAccessor}
+  ///       for per-accessor fidelity.&lt;/li>
+  /// &lt;/ul>
+  ///
+  /// &lt;p>&lt;b>accessType semantics:&lt;/b> {@code AT_USER} + {@code owner=true} = owner (see KA-9097
+  /// Decision 4 re: AT_OWNER); {@code AT_USER} = direct record share or named shared-folder
+  /// member; {@code AT_TEAM} = team-based shared-folder membership.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class DrivePermission : pb::IMessage<DrivePermission>
@@ -37436,7 +37897,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[118]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[119]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -37463,6 +37924,13 @@ namespace Enterprise {
       isShareAdmin_ = other.isShareAdmin_;
       accessType_ = other.accessType_;
       folderPermissions_ = other.folderPermissions_ != null ? other.folderPermissions_.Clone() : null;
+      canViewTitle_ = other.canViewTitle_;
+      canView_ = other.canView_;
+      canListAccess_ = other.canListAccess_;
+      canDelete_ = other.canDelete_;
+      canChangeOwnership_ = other.canChangeOwnership_;
+      canRequestAccess_ = other.canRequestAccess_;
+      canApproveAccess_ = other.canApproveAccess_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -37506,7 +37974,7 @@ namespace Enterprise {
     public const int CanEditFieldNumber = 3;
     private bool canEdit_;
     /// <summary>
-    /// record_access.can_edit
+    /// record_access.can_edit (folder-derived: folder_access.can_edit_records)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -37521,7 +37989,7 @@ namespace Enterprise {
     public const int CanShareFieldNumber = 4;
     private bool canShare_;
     /// <summary>
-    /// explicit reshare semantic for direct/owner shares
+    /// explicit reshare semantic for direct/owner shares (folder-derived: folder_access.can_update_access)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -37577,6 +38045,111 @@ namespace Enterprise {
       }
     }
 
+    /// <summary>Field number for the "canViewTitle" field.</summary>
+    public const int CanViewTitleFieldNumber = 8;
+    private bool canViewTitle_;
+    /// <summary>
+    /// record_access.can_view_title
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanViewTitle {
+      get { return canViewTitle_; }
+      set {
+        canViewTitle_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canView" field.</summary>
+    public const int CanViewFieldNumber = 9;
+    private bool canView_;
+    /// <summary>
+    /// record_access.can_view
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanView {
+      get { return canView_; }
+      set {
+        canView_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canListAccess" field.</summary>
+    public const int CanListAccessFieldNumber = 10;
+    private bool canListAccess_;
+    /// <summary>
+    /// record_access.can_list_access
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanListAccess {
+      get { return canListAccess_; }
+      set {
+        canListAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canDelete" field.</summary>
+    public const int CanDeleteFieldNumber = 11;
+    private bool canDelete_;
+    /// <summary>
+    /// record_access.can_delete
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanDelete {
+      get { return canDelete_; }
+      set {
+        canDelete_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canChangeOwnership" field.</summary>
+    public const int CanChangeOwnershipFieldNumber = 12;
+    private bool canChangeOwnership_;
+    /// <summary>
+    /// record_access.can_change_ownership
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanChangeOwnership {
+      get { return canChangeOwnership_; }
+      set {
+        canChangeOwnership_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canRequestAccess" field.</summary>
+    public const int CanRequestAccessFieldNumber = 13;
+    private bool canRequestAccess_;
+    /// <summary>
+    /// record_access.can_request_access
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanRequestAccess {
+      get { return canRequestAccess_; }
+      set {
+        canRequestAccess_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canApproveAccess" field.</summary>
+    public const int CanApproveAccessFieldNumber = 14;
+    private bool canApproveAccess_;
+    /// <summary>
+    /// record_access.can_approve_access
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool CanApproveAccess {
+      get { return canApproveAccess_; }
+      set {
+        canApproveAccess_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -37599,6 +38172,13 @@ namespace Enterprise {
       if (IsShareAdmin != other.IsShareAdmin) return false;
       if (AccessType != other.AccessType) return false;
       if (!object.Equals(FolderPermissions, other.FolderPermissions)) return false;
+      if (CanViewTitle != other.CanViewTitle) return false;
+      if (CanView != other.CanView) return false;
+      if (CanListAccess != other.CanListAccess) return false;
+      if (CanDelete != other.CanDelete) return false;
+      if (CanChangeOwnership != other.CanChangeOwnership) return false;
+      if (CanRequestAccess != other.CanRequestAccess) return false;
+      if (CanApproveAccess != other.CanApproveAccess) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -37613,6 +38193,13 @@ namespace Enterprise {
       if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
       if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
       if (folderPermissions_ != null) hash ^= FolderPermissions.GetHashCode();
+      if (CanViewTitle != false) hash ^= CanViewTitle.GetHashCode();
+      if (CanView != false) hash ^= CanView.GetHashCode();
+      if (CanListAccess != false) hash ^= CanListAccess.GetHashCode();
+      if (CanDelete != false) hash ^= CanDelete.GetHashCode();
+      if (CanChangeOwnership != false) hash ^= CanChangeOwnership.GetHashCode();
+      if (CanRequestAccess != false) hash ^= CanRequestAccess.GetHashCode();
+      if (CanApproveAccess != false) hash ^= CanApproveAccess.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -37659,6 +38246,34 @@ namespace Enterprise {
         output.WriteRawTag(58);
         output.WriteMessage(FolderPermissions);
       }
+      if (CanViewTitle != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(CanViewTitle);
+      }
+      if (CanView != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanView);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanDelete);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(112);
+        output.WriteBool(CanApproveAccess);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -37697,6 +38312,34 @@ namespace Enterprise {
         output.WriteRawTag(58);
         output.WriteMessage(FolderPermissions);
       }
+      if (CanViewTitle != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(CanViewTitle);
+      }
+      if (CanView != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(CanView);
+      }
+      if (CanListAccess != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(CanListAccess);
+      }
+      if (CanDelete != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(CanDelete);
+      }
+      if (CanChangeOwnership != false) {
+        output.WriteRawTag(96);
+        output.WriteBool(CanChangeOwnership);
+      }
+      if (CanRequestAccess != false) {
+        output.WriteRawTag(104);
+        output.WriteBool(CanRequestAccess);
+      }
+      if (CanApproveAccess != false) {
+        output.WriteRawTag(112);
+        output.WriteBool(CanApproveAccess);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -37727,6 +38370,27 @@ namespace Enterprise {
       }
       if (folderPermissions_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(FolderPermissions);
+      }
+      if (CanViewTitle != false) {
+        size += 1 + 1;
+      }
+      if (CanView != false) {
+        size += 1 + 1;
+      }
+      if (CanListAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanDelete != false) {
+        size += 1 + 1;
+      }
+      if (CanChangeOwnership != false) {
+        size += 1 + 1;
+      }
+      if (CanRequestAccess != false) {
+        size += 1 + 1;
+      }
+      if (CanApproveAccess != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -37763,6 +38427,27 @@ namespace Enterprise {
           FolderPermissions = new global::Folder.FolderPermissions();
         }
         FolderPermissions.MergeFrom(other.FolderPermissions);
+      }
+      if (other.CanViewTitle != false) {
+        CanViewTitle = other.CanViewTitle;
+      }
+      if (other.CanView != false) {
+        CanView = other.CanView;
+      }
+      if (other.CanListAccess != false) {
+        CanListAccess = other.CanListAccess;
+      }
+      if (other.CanDelete != false) {
+        CanDelete = other.CanDelete;
+      }
+      if (other.CanChangeOwnership != false) {
+        CanChangeOwnership = other.CanChangeOwnership;
+      }
+      if (other.CanRequestAccess != false) {
+        CanRequestAccess = other.CanRequestAccess;
+      }
+      if (other.CanApproveAccess != false) {
+        CanApproveAccess = other.CanApproveAccess;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -37812,6 +38497,34 @@ namespace Enterprise {
               FolderPermissions = new global::Folder.FolderPermissions();
             }
             input.ReadMessage(FolderPermissions);
+            break;
+          }
+          case 64: {
+            CanViewTitle = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanView = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 112: {
+            CanApproveAccess = input.ReadBool();
             break;
           }
         }
@@ -37864,6 +38577,34 @@ namespace Enterprise {
             input.ReadMessage(FolderPermissions);
             break;
           }
+          case 64: {
+            CanViewTitle = input.ReadBool();
+            break;
+          }
+          case 72: {
+            CanView = input.ReadBool();
+            break;
+          }
+          case 80: {
+            CanListAccess = input.ReadBool();
+            break;
+          }
+          case 88: {
+            CanDelete = input.ReadBool();
+            break;
+          }
+          case 96: {
+            CanChangeOwnership = input.ReadBool();
+            break;
+          }
+          case 104: {
+            CanRequestAccess = input.ReadBool();
+            break;
+          }
+          case 112: {
+            CanApproveAccess = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -37886,7 +38627,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[119]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[120]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -38110,7 +38851,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[120]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[121]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -38419,7 +39160,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[121]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[122]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -38645,7 +39386,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[122]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[123]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -38895,7 +39636,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[123]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[124]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -39121,7 +39862,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[124]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[125]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -39347,7 +40088,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[125]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[126]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -39556,6 +40297,457 @@ namespace Enterprise {
 
   }
 
+  /// <summary>
+  ///*
+  /// Per-accessor Drive folder permissions — the unmerged counterpart to the folder-wide
+  /// union carried in {@code SharedFolderRecord.recordPermissions} ({@link DrivePermission}).
+  ///
+  /// &lt;p>Drive stores folder capabilities per accessor in {@code folder_access}, but the legacy
+  /// compliance shape merges every accessor's row into a single per-(folder, record)
+  /// {@code DrivePermission} (field-wise OR, {@code accessType} first-writer-wins), which
+  /// over-reports low-privilege members (a view-only member shows {@code canEdit = true} if any
+  /// other member has it). This message restores attribution: one entry per (folder, accessor),
+  /// sized |accessors| per folder to match {@code folder_access} 1:1 — NOT |accessors| ×
+  /// |records| — each carrying that accessor's own access type and folder permission set. The
+  /// union {@code DrivePermission} entry on {@code SharedFolderRecord} is retained for backward
+  /// compatibility.
+  ///
+  /// &lt;p>The accessor is either an enterprise user (AT_USER, a named folder member) or a team
+  /// (AT_TEAM, team-based membership), carried in the {@code accessor} oneof and disambiguated by
+  /// {@code accessType}. User identity uses {@code enterpriseUserId} (anonymized for users outside
+  /// the enterprise, exactly like {@code SharedFolderUser.enterpriseUserIds}); team identity uses
+  /// {@code teamUid} (like {@code SharedFolderTeam.teamUids}). Populated only when {@code
+  /// FeatureFlag.KEEPER_DRIVE} is enabled (server-side population per KA-9097 Decision 2 outcome:
+  /// KA-9098).
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class AuditFolderAccessor : pb::IMessage<AuditFolderAccessor>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<AuditFolderAccessor> _parser = new pb::MessageParser<AuditFolderAccessor>(() => new AuditFolderAccessor());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<AuditFolderAccessor> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[127]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolderAccessor() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolderAccessor(AuditFolderAccessor other) : this() {
+      folderUid_ = other.folderUid_;
+      accessType_ = other.accessType_;
+      permissions_ = other.permissions_ != null ? other.permissions_.Clone() : null;
+      switch (other.AccessorCase) {
+        case AccessorOneofCase.EnterpriseUserId:
+          EnterpriseUserId = other.EnterpriseUserId;
+          break;
+        case AccessorOneofCase.TeamUid:
+          TeamUid = other.TeamUid;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AuditFolderAccessor Clone() {
+      return new AuditFolderAccessor(this);
+    }
+
+    /// <summary>Field number for the "folderUid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accessType" field.</summary>
+    public const int AccessTypeFieldNumber = 2;
+    private global::Folder.AccessType accessType_ = global::Folder.AccessType.AtUnknown;
+    /// <summary>
+    ///AT_USER for a named folder member, AT_TEAM for a team-based member.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.AccessType AccessType {
+      get { return accessType_; }
+      set {
+        accessType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 3;
+    /// <summary>
+    ///AT_USER: the folder member, anonymized for users outside the enterprise (mirrors SharedFolderUser.enterpriseUserIds).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long EnterpriseUserId {
+      get { return HasEnterpriseUserId ? (long) accessor_ : 0L; }
+      set {
+        accessor_ = value;
+        accessorCase_ = AccessorOneofCase.EnterpriseUserId;
+      }
+    }
+    /// <summary>Gets whether the "enterpriseUserId" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasEnterpriseUserId {
+      get { return accessorCase_ == AccessorOneofCase.EnterpriseUserId; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "enterpriseUserId" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearEnterpriseUserId() {
+      if (HasEnterpriseUserId) {
+        ClearAccessor();
+      }
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 4;
+    /// <summary>
+    ///AT_TEAM: the team on the folder (mirrors SharedFolderTeam.teamUids).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString TeamUid {
+      get { return HasTeamUid ? (pb::ByteString) accessor_ : pb::ByteString.Empty; }
+      set {
+        accessor_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        accessorCase_ = AccessorOneofCase.TeamUid;
+      }
+    }
+    /// <summary>Gets whether the "teamUid" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTeamUid {
+      get { return accessorCase_ == AccessorOneofCase.TeamUid; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "teamUid" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTeamUid() {
+      if (HasTeamUid) {
+        ClearAccessor();
+      }
+    }
+
+    /// <summary>Field number for the "permissions" field.</summary>
+    public const int PermissionsFieldNumber = 5;
+    private global::Folder.FolderPermissions permissions_;
+    /// <summary>
+    ///This accessor's own folder_access capabilities (unmerged).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Folder.FolderPermissions Permissions {
+      get { return permissions_; }
+      set {
+        permissions_ = value;
+      }
+    }
+
+    private object accessor_;
+    /// <summary>Enum of possible cases for the "accessor" oneof.</summary>
+    public enum AccessorOneofCase {
+      None = 0,
+      EnterpriseUserId = 3,
+      TeamUid = 4,
+    }
+    private AccessorOneofCase accessorCase_ = AccessorOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AccessorOneofCase AccessorCase {
+      get { return accessorCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearAccessor() {
+      accessorCase_ = AccessorOneofCase.None;
+      accessor_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as AuditFolderAccessor);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(AuditFolderAccessor other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (AccessType != other.AccessType) return false;
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
+      if (TeamUid != other.TeamUid) return false;
+      if (!object.Equals(Permissions, other.Permissions)) return false;
+      if (AccessorCase != other.AccessorCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (AccessType != global::Folder.AccessType.AtUnknown) hash ^= AccessType.GetHashCode();
+      if (HasEnterpriseUserId) hash ^= EnterpriseUserId.GetHashCode();
+      if (HasTeamUid) hash ^= TeamUid.GetHashCode();
+      if (permissions_ != null) hash ^= Permissions.GetHashCode();
+      hash ^= (int) accessorCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessType);
+      }
+      if (HasEnterpriseUserId) {
+        output.WriteRawTag(24);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (HasTeamUid) {
+        output.WriteRawTag(34);
+        output.WriteBytes(TeamUid);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Permissions);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) AccessType);
+      }
+      if (HasEnterpriseUserId) {
+        output.WriteRawTag(24);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (HasTeamUid) {
+        output.WriteRawTag(34);
+        output.WriteBytes(TeamUid);
+      }
+      if (permissions_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Permissions);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (AccessType != global::Folder.AccessType.AtUnknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccessType);
+      }
+      if (HasEnterpriseUserId) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
+      }
+      if (HasTeamUid) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      if (permissions_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Permissions);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(AuditFolderAccessor other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.AccessType != global::Folder.AccessType.AtUnknown) {
+        AccessType = other.AccessType;
+      }
+      if (other.permissions_ != null) {
+        if (permissions_ == null) {
+          Permissions = new global::Folder.FolderPermissions();
+        }
+        Permissions.MergeFrom(other.Permissions);
+      }
+      switch (other.AccessorCase) {
+        case AccessorOneofCase.EnterpriseUserId:
+          EnterpriseUserId = other.EnterpriseUserId;
+          break;
+        case AccessorOneofCase.TeamUid:
+          TeamUid = other.TeamUid;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 34: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            AccessType = (global::Folder.AccessType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 34: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            if (permissions_ == null) {
+              Permissions = new global::Folder.FolderPermissions();
+            }
+            input.ReadMessage(Permissions);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetComplianceReportRequest : pb::IMessage<GetComplianceReportRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -39571,7 +40763,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[126]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[128]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -39769,7 +40961,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[127]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[129]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -39967,7 +41159,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[128]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[130]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -40165,7 +41357,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[129]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[131]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -40363,7 +41555,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[130]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[132]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -40593,7 +41785,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[131]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[133]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -40865,7 +42057,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[132]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[134]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -41325,7 +42517,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[133]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[135]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -41512,7 +42704,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[134]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[136]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -41699,7 +42891,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[135]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[137]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -41923,7 +43115,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[136]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[138]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -42248,7 +43440,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[137]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[139]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -42483,7 +43675,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[138]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[140]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -42707,7 +43899,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[139]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[141]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -43079,7 +44271,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[140]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[142]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -43462,7 +44654,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[141]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[143]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -43697,7 +44889,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[142]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[144]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -43884,7 +45076,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[143]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[145]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -44071,7 +45263,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[144]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[146]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -44426,7 +45618,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[145]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[147]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -44738,7 +45930,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[146]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[148]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -44925,7 +46117,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[147]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[149]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -45112,7 +46304,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[148]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[150]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -45336,7 +46528,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[149]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[151]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -46098,7 +47290,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[150]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[152]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -46285,7 +47477,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[151]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[153]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -46594,7 +47786,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[152]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[154]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -46818,7 +48010,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[153]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[155]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -47386,7 +48578,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[154]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[156]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -47721,7 +48913,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[155]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[157]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -48104,7 +49296,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[156]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[158]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -48468,7 +49660,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[157]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[159]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -48657,7 +49849,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[158]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[160]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -48898,7 +50090,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[159]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[161]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -49085,7 +50277,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[160]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[162]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -49348,7 +50540,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[161]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[163]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -49535,7 +50727,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[162]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[164]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -49770,7 +50962,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[163]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[165]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -49968,7 +51160,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[164]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[166]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -50197,7 +51389,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[165]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[167]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -50479,7 +51671,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[166]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[168]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -50666,7 +51858,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[167]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[169]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
