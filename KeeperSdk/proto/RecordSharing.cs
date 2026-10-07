@@ -44,15 +44,17 @@ namespace Record.V3.Sharing {
             "b2tlZEFjY2VzcxIRCglyZWNvcmRVaWQYASABKAwSEAoIYWN0b3JVaWQYAiAB",
             "KAwibwoSUmVjb3JkU2hhcmluZ1N0YXRlEhEKCXJlY29yZFVpZBgBIAEoDBIY",
             "ChBpc0RpcmVjdGx5U2hhcmVkGAIgASgIEhoKEmlzSW5kaXJlY3RseVNoYXJl",
-            "ZBgDIAEoCBIQCghpc1NoYXJlZBgEIAEoCCqpAQoNU2hhcmluZ1N0YXR1cxIL",
+            "ZBgDIAEoCBIQCghpc1NoYXJlZBgEIAEoCCrrAQoNU2hhcmluZ1N0YXR1cxIL",
             "CgdTVUNDRVNTEAASEgoOUEVORElOR19BQ0NFUFQQARISCg5VU0VSX05PVF9G",
             "T1VORBACEhIKDkFMUkVBRFlfU0hBUkVEEAMSGAoUTk9UX0FMTE9XRURfVE9f",
             "U0hBUkUQBBIRCg1BQ0NFU1NfREVOSUVEEAUSIgoeTk9UX0FMTE9XRURfVE9f",
-            "U0VUX1BFUk1JU1NJT05TEAYyiwEKFFJlY29yZFNoYXJpbmdTZXJ2aWNlEnMK",
-            "C1NoYXJlUmVjb3JkEhoucmVjb3JkLnYzLnNoYXJpbmcuUmVxdWVzdBobLnJl",
-            "Y29yZC52My5zaGFyaW5nLlJlc3BvbnNlIiuC0+STAiUiIC9hcGkvcmVzdC92",
-            "YXVsdC9yZWNvcmRzL3YzL3NoYXJlOgEqQjIKLmNvbS5rZWVwZXJzZWN1cml0",
-            "eS5wcm90by5hcGkucmVjb3JkLnYzLnNoYXJpbmdQAWIGcHJvdG8z"));
+            "U0VUX1BFUk1JU1NJT05TEAYSFgoSRk9SQklEREVOX0tFWV9UWVBFEAcSFgoS",
+            "SU5WQUxJRF9SRUNPUkRfS0VZEAgSEAoMU0VSVkVSX0VSUk9SEA8yiwEKFFJl",
+            "Y29yZFNoYXJpbmdTZXJ2aWNlEnMKC1NoYXJlUmVjb3JkEhoucmVjb3JkLnYz",
+            "LnNoYXJpbmcuUmVxdWVzdBobLnJlY29yZC52My5zaGFyaW5nLlJlc3BvbnNl",
+            "IiuC0+STAiUiIC9hcGkvcmVzdC92YXVsdC9yZWNvcmRzL3YzL3NoYXJlOgEq",
+            "QjIKLmNvbS5rZWVwZXJzZWN1cml0eS5wcm90by5hcGkucmVjb3JkLnYzLnNo",
+            "YXJpbmdQAWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Folder.FolderReflection.Descriptor, global::Common.Tla.TlaReflection.Descriptor, global::Google.Api.AnnotationsReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Record.V3.Sharing.SharingStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -76,6 +78,12 @@ namespace Record.V3.Sharing {
     [pbr::OriginalName("NOT_ALLOWED_TO_SHARE")] NotAllowedToShare = 4,
     [pbr::OriginalName("ACCESS_DENIED")] AccessDenied = 5,
     [pbr::OriginalName("NOT_ALLOWED_TO_SET_PERMISSIONS")] NotAllowedToSetPermissions = 6,
+    [pbr::OriginalName("FORBIDDEN_KEY_TYPE")] ForbiddenKeyType = 7,
+    [pbr::OriginalName("INVALID_RECORD_KEY")] InvalidRecordKey = 8,
+    /// <summary>
+    ///add some extra buffer in case we decide to add new status
+    /// </summary>
+    [pbr::OriginalName("SERVER_ERROR")] ServerError = 15,
   }
 
   #endregion
