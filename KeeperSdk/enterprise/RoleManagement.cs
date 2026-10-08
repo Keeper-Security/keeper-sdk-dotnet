@@ -134,20 +134,28 @@ namespace KeeperSecurity.Enterprise
     {
         private const int MaxRoleNameLength = 255;
 
-        private static void ValidateRoleName(string roleName)
+        private static string ValidateRoleName(string roleName)
         {
-            if (roleName != null && roleName.Length > MaxRoleNameLength)
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                throw new ArgumentException("Role name cannot be empty.", nameof(roleName));
+            }
+
+            roleName = roleName.Trim();
+            if (roleName.Length > MaxRoleNameLength)
             {
                 throw new ArgumentException(
                     $"Allowed length is {MaxRoleNameLength} characters (provided length: {roleName.Length})",
                     nameof(roleName));
             }
+
+            return roleName;
         }
 
         /// <inheritdoc />
         public async Task<EnterpriseRole> CreateRole(string roleName, long nodeId, bool newUserInherit)
         {
-            ValidateRoleName(roleName);
+            roleName = ValidateRoleName(roleName);
 
             var encryptedData = new EncryptedData
             {
@@ -171,6 +179,11 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task<EnterpriseRole> UpdateRole(EnterpriseRole role, bool? newUserInherit = null, bool? visibleBelow = null, string displayName = null)
         {
+            if (displayName != null)
+            {
+                displayName = ValidateRoleName(displayName);
+            }
+
             var encryptedData = new EncryptedData();
             if (!string.IsNullOrEmpty(displayName))
             {
