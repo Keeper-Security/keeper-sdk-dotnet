@@ -922,13 +922,9 @@ namespace KeeperSecurity.Vault
 
             ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
 
-            var existingAccess = await FindKeeperNSFFolderAccessAsync(
-                vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid).ConfigureAwait(false);
-            if (existingAccess?.Inherited == true)
+            if (await TryDenyInheritedKeeperNSFFolderAccessAsync(
+                    vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid).ConfigureAwait(false))
             {
-                await DenyInheritedKeeperNSFFolderAccessAsync(
-                    vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid,
-                    existingAccess.AccessRoleType).ConfigureAwait(false);
                 return;
             }
 
@@ -962,13 +958,9 @@ namespace KeeperSecurity.Vault
                 .ConfigureAwait(false);
             var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
 
-            var existingAccess = await FindKeeperNSFFolderAccessAsync(
-                vault, folderUid, FolderProto.AccessType.AtTeam, teamUidBytes).ConfigureAwait(false);
-            if (existingAccess?.Inherited == true)
+            if (await TryDenyInheritedKeeperNSFFolderAccessAsync(
+                    vault, folderUid, FolderProto.AccessType.AtTeam, teamUidBytes).ConfigureAwait(false))
             {
-                await DenyInheritedKeeperNSFFolderAccessAsync(
-                    vault, folderUid, FolderProto.AccessType.AtTeam, teamUidBytes,
-                    existingAccess.AccessRoleType).ConfigureAwait(false);
                 return;
             }
 
@@ -1005,6 +997,21 @@ namespace KeeperSecurity.Vault
                 accessor.AccessType == accessType && accessor.AccessTypeUid.Equals(accessTypeUid));
         }
 
+        private static async Task<bool> TryDenyInheritedKeeperNSFFolderAccessAsync(
+            VaultOnline vault, string folderUid, FolderProto.AccessType accessType, ByteString accessTypeUid)
+        {
+            var existingAccess = await FindKeeperNSFFolderAccessAsync(
+                vault, folderUid, accessType, accessTypeUid).ConfigureAwait(false);
+            if (existingAccess?.Inherited != true)
+            {
+                return false;
+            }
+
+            await DenyInheritedKeeperNSFFolderAccessAsync(
+                vault, folderUid, accessType, accessTypeUid, existingAccess.AccessRoleType).ConfigureAwait(false);
+            return true;
+        }
+
         private static async Task DenyInheritedKeeperNSFFolderAccessAsync(
             VaultOnline vault,
             string folderUid,
@@ -1027,11 +1034,18 @@ namespace KeeperSecurity.Vault
             var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
                 "vault/folders/v3/access_update", rq).ConfigureAwait(false);
 
+            if (rs?.FolderAccessResults == null || rs.FolderAccessResults.Count == 0)
+            {
+                throw new VaultException(
+                    $"Failed to deny inherited access for folder '{folderUid}' and accessor '{accessTypeUid.ToByteArray().Base64UrlEncode()}': empty API response.");
+            }
+
             foreach (var result in rs.FolderAccessResults)
             {
-                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                if (result == null || result.Status != FolderProto.FolderModifyStatus.Success)
                 {
-                    throw new VaultException($"Failed to deny inherited access: {result.Message}");
+                    throw new VaultException(
+                        $"Failed to deny inherited access for folder '{folderUid}' and accessor '{accessTypeUid.ToByteArray().Base64UrlEncode()}': {result?.Message ?? "empty API result"}");
                 }
             }
         }
