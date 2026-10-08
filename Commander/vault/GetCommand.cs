@@ -63,7 +63,7 @@ namespace Commander
                 {
                     if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
                     {
-                        DisplaySharedFolderJsonInfo(sharedFolder, options.IncludeDag);
+                        DisplaySharedFolderJsonInfo(context, sharedFolder, options.IncludeDag);
                         return;
                     }
 
@@ -93,6 +93,12 @@ namespace Commander
 
                 if (folder != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DisplayFolderJsonInfo(context, folder);
+                        return;
+                    }
+
                     DisplayFolderInfo(folder, tab);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
@@ -431,7 +437,7 @@ namespace Commander
             }
         }
 
-        private static void DisplaySharedFolderJsonInfo(SharedFolder sf, bool includeDag)
+        private static void DisplaySharedFolderJsonInfo(VaultContext context, SharedFolder sf, bool includeDag)
         {
             var users = sf.UsersPermissions
                 .Where(x => x.UserType == UserType.User)
@@ -453,6 +459,7 @@ namespace Commander
                 ["folder_uid"] = sf.Uid,
                 ["type"] = "classic_folder",
                 ["name"] = sf.Name,
+                ["folder"] = GetFolderLocation(context, sf.Uid),
                 ["users"] = users,
                 ["share_admins"] = sf.UsersPermissions
                     .Where(x => x.UserType == UserType.User && x.ManageUsers)
@@ -465,13 +472,76 @@ namespace Commander
                 json["records"] = sf.RecordPermissions
                     .Select(x => new Dictionary<string, object>
                     {
-                        ["record_uid"] = x.RecordUid
+                        ["record_uid"] = x.RecordUid,
+                        ["record_name"] = context.Vault.TryGetKeeperRecord(x.RecordUid, out var record)
+                            ? (record.Title ?? x.RecordUid)
+                            : x.RecordUid
                     })
                     .ToList();
             }
 
             Json.WriteFormatted(Console.Out, json);
             Console.WriteLine();
+        }
+
+        private static void DisplayFolderJsonInfo(VaultContext context, FolderNode folder)
+        {
+            var records = folder.Records
+                .Select(recordUid => new Dictionary<string, object>
+                {
+                    ["record_uid"] = recordUid,
+                    ["record_name"] = context.Vault.TryGetKeeperRecord(recordUid, out var record)
+                        ? (record.Title ?? recordUid)
+                        : recordUid
+                })
+                .ToList();
+
+            var json = new Dictionary<string, object>
+            {
+                ["folder_uid"] = folder.FolderUid,
+                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_folder",
+                ["name"] = folder.Name,
+                ["path"] = GetFolderPath(context, folder.FolderUid),
+                ["folder"] = GetFolderLocation(context, folder.FolderUid),
+                ["records"] = records
+            };
+
+            Json.WriteFormatted(Console.Out, json);
+            Console.WriteLine();
+        }
+
+        private static Dictionary<string, object> GetFolderLocation(VaultContext context, string folderUid)
+        {
+            if (context.Vault.TryGetFolder(folderUid, out var folder))
+            {
+                return new Dictionary<string, object>
+                {
+                    ["uid"] = folder.ParentUid ?? "",
+                    ["path"] = GetFolderPath(context, folder.ParentUid)
+                };
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["uid"] = "",
+                ["path"] = ""
+            };
+        }
+
+        private static string GetFolderPath(VaultContext context, string folderUid)
+        {
+            var components = new List<string>();
+            var currentUid = folderUid;
+            var visited = new HashSet<string>();
+            while (!string.IsNullOrEmpty(currentUid) && visited.Add(currentUid) &&
+                   context.Vault.TryGetFolder(currentUid, out var folder))
+            {
+                components.Add(folder.Name);
+                currentUid = folder.ParentUid;
+            }
+
+            components.Reverse();
+            return string.Join("/", components);
         }
 
         private static void DisplayFolderInfo(FolderNode f, Tabulate tab)

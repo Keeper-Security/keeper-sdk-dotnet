@@ -922,6 +922,16 @@ namespace KeeperSecurity.Vault
 
             ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
 
+            var existingAccess = await FindKeeperNSFFolderAccessAsync(
+                vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid).ConfigureAwait(false);
+            if (existingAccess?.Inherited == true)
+            {
+                await DenyInheritedKeeperNSFFolderAccessAsync(
+                    vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid,
+                    existingAccess.AccessRoleType).ConfigureAwait(false);
+                return;
+            }
+
             await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             var accessData = new FolderProto.FolderAccessData
@@ -950,13 +960,24 @@ namespace KeeperSecurity.Vault
         {
             var teamUid = await NsfShareRecipientHelper.ResolveTeamUidAsync(vault.Auth, teamNameOrUid)
                 .ConfigureAwait(false);
+            var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
+
+            var existingAccess = await FindKeeperNSFFolderAccessAsync(
+                vault, folderUid, FolderProto.AccessType.AtTeam, teamUidBytes).ConfigureAwait(false);
+            if (existingAccess?.Inherited == true)
+            {
+                await DenyInheritedKeeperNSFFolderAccessAsync(
+                    vault, folderUid, FolderProto.AccessType.AtTeam, teamUidBytes,
+                    existingAccess.AccessRoleType).ConfigureAwait(false);
+                return;
+            }
 
             await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
 
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
-                AccessTypeUid = ByteString.CopyFrom(teamUid.Base64UrlDecode()),
+                AccessTypeUid = teamUidBytes,
                 AccessType = FolderProto.AccessType.AtTeam,
             };
 
@@ -971,6 +992,46 @@ namespace KeeperSecurity.Vault
                 if (result.Status != FolderProto.FolderModifyStatus.Success)
                 {
                     throw new VaultException($"Failed to revoke access: {result.Message}");
+                }
+            }
+        }
+
+        private static async Task<FolderProto.FolderAccessData> FindKeeperNSFFolderAccessAsync(
+            VaultOnline vault, string folderUid, FolderProto.AccessType accessType, ByteString accessTypeUid)
+        {
+            var accessors = await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                .ConfigureAwait(false);
+            return accessors.FirstOrDefault(accessor =>
+                accessor.AccessType == accessType && accessor.AccessTypeUid.Equals(accessTypeUid));
+        }
+
+        private static async Task DenyInheritedKeeperNSFFolderAccessAsync(
+            VaultOnline vault,
+            string folderUid,
+            FolderProto.AccessType accessType,
+            ByteString accessTypeUid,
+            FolderProto.AccessRoleType accessRoleType)
+        {
+            var accessData = new FolderProto.FolderAccessData
+            {
+                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                AccessTypeUid = accessTypeUid,
+                AccessType = accessType,
+                AccessRoleType = accessRoleType,
+                DeniedAccess = true,
+            };
+
+            var rq = new FolderProto.FolderAccessRequest();
+            rq.FolderAccessUpdates.Add(accessData);
+
+            var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                "vault/folders/v3/access_update", rq).ConfigureAwait(false);
+
+            foreach (var result in rs.FolderAccessResults)
+            {
+                if (result.Status != FolderProto.FolderModifyStatus.Success)
+                {
+                    throw new VaultException($"Failed to deny inherited access: {result.Message}");
                 }
             }
         }

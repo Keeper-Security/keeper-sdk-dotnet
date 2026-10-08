@@ -748,13 +748,18 @@ New-Alias -Name ktree -Value Get-KeeperTree
 
 function ConvertTo-KeeperSharedFolderJson {
     Param(
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SharedFolder] $SharedFolder
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SharedFolder] $SharedFolder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
     )
+
+    [KeeperSecurity.Vault.FolderNode]$folder = $null
+    $Vault.TryGetFolder($SharedFolder.Uid, [ref]$folder) | Out-Null
 
     [ordered]@{
         folder_uid = $SharedFolder.Uid
         type = 'classic_folder'
         name = $SharedFolder.Name
+        folder = ConvertTo-KeeperFolderLocation -Folder $folder -Vault $Vault
         users = @(
             $SharedFolder.UsersPermissions |
             Where-Object { $_.UserType -eq [KeeperSecurity.Vault.UserType]::User } |
@@ -787,9 +792,50 @@ function ConvertTo-KeeperSharedFolderJson {
             ForEach-Object {
                 [ordered]@{
                     record_uid = $_.RecordUid
+                    record_name = $(
+                        [KeeperSecurity.Vault.KeeperRecord]$record = $null
+                        if ($Vault.TryGetKeeperRecord($_.RecordUid, [ref]$record) -and $record.Title) { $record.Title } else { $_.RecordUid }
+                    )
                 }
             }
         )
+    } | ConvertTo-Json -Depth 10
+}
+
+function ConvertTo-KeeperFolderLocation {
+    Param(
+        [Parameter(Mandatory = $false)][KeeperSecurity.Vault.FolderNode] $Folder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    $parentUid = if ($Folder) { $Folder.ParentUid } else { $null }
+    [ordered]@{
+        uid  = if ($parentUid) { $parentUid } else { '' }
+        path = if ($parentUid) { (getVaultFolderPath $Vault $parentUid).TrimStart($Script:PathDelimiter) } else { '' }
+    }
+}
+
+function ConvertTo-KeeperFolderJson {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.FolderNode] $Folder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    $records = foreach ($recordUid in @($Folder.Records)) {
+        [KeeperSecurity.Vault.KeeperRecord]$record = $null
+        [ordered]@{
+            record_uid  = $recordUid
+            record_name = if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record.Title) { $record.Title } else { $recordUid }
+        }
+    }
+
+    [ordered]@{
+        folder_uid = $Folder.FolderUid
+        type       = if ($Folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::UserFolder) { 'user_folder' } else { 'classic_folder' }
+        name       = $Folder.Name
+        path       = (getVaultFolderPath $Vault $Folder.FolderUid).TrimStart($Script:PathDelimiter)
+        folder     = ConvertTo-KeeperFolderLocation -Folder $Folder -Vault $Vault
+        records    = @($records)
     } | ConvertTo-Json -Depth 10
 }
 
@@ -854,7 +900,7 @@ function Get-KeeperObject {
                     }
                     else {
                         if ($Format -eq 'json') {
-                            ConvertTo-KeeperSharedFolderJson -SharedFolder $sf
+                            ConvertTo-KeeperSharedFolderJson -SharedFolder $sf -Vault $vault
                         }
                         else {
                             $sf
@@ -871,6 +917,9 @@ function Get-KeeperObject {
                         if ($mp) {
                             $f | Select-Object -ExpandProperty $PropertyName
                         }
+                    }
+                    elseif ($Format -eq 'json') {
+                        ConvertTo-KeeperFolderJson -Folder $f -Vault $vault
                     }
                     else {
                         $f

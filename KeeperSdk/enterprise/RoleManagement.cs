@@ -132,9 +132,23 @@ namespace KeeperSecurity.Enterprise
 
     public partial class RoleData : IRoleDataManagement
     {
+        private const int MaxRoleNameLength = 255;
+
+        private static void ValidateRoleName(string roleName)
+        {
+            if (roleName != null && roleName.Length > MaxRoleNameLength)
+            {
+                throw new ArgumentException(
+                    $"Allowed length is {MaxRoleNameLength} characters (provided length: {roleName.Length})",
+                    nameof(roleName));
+            }
+        }
+
         /// <inheritdoc />
         public async Task<EnterpriseRole> CreateRole(string roleName, long nodeId, bool newUserInherit)
         {
+            ValidateRoleName(roleName);
+
             var encryptedData = new EncryptedData
             {
                 DisplayName = roleName
