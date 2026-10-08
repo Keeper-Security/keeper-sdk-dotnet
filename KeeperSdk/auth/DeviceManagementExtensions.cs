@@ -45,6 +45,9 @@ namespace KeeperSecurity.Authentication
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("A new device name must be specified", nameof(name));
 
+            if (!HasValidSurrogatePairs(name))
+                throw new ArgumentException("The device name contains invalid Unicode text", nameof(name));
+
             string normalizedName;
             try
             {
@@ -64,6 +67,33 @@ namespace KeeperSecurity.Authentication
                 throw new ArgumentException("Device name contains invalid characters", nameof(name));
 
             return normalizedName;
+        }
+
+        /// <summary>
+        /// Compares two device names after applying the same normalization and validation rules.
+        /// </summary>
+        public static bool DeviceNamesEqual(string firstName, string secondName)
+        {
+            return string.Equals(NormalizeDeviceName(firstName), NormalizeDeviceName(secondName),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HasValidSurrogatePairs(string value)
+        {
+            for (var index = 0; index < value.Length; index++)
+            {
+                if (char.IsHighSurrogate(value[index]))
+                {
+                    if (index + 1 >= value.Length || !char.IsLowSurrogate(value[index + 1]))
+                        return false;
+                    index++;
+                }
+                else if (char.IsLowSurrogate(value[index]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>

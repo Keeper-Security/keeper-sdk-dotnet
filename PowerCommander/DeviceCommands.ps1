@@ -72,7 +72,7 @@ function Resolve-KeeperDeviceManagementDevices {
     }
     if ($matches.Count -eq 0) {
         $matches = @($Devices | Where-Object {
-            $_.DeviceName -and $_.DeviceName.IndexOf($Identifier, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+            $_.DeviceName -and $_.DeviceName.Equals($Identifier, [System.StringComparison]::OrdinalIgnoreCase)
         })
     }
 
@@ -343,8 +343,7 @@ function Rename-KeeperDevice {
             continue
         }
         try {
-            $existingName = [KeeperSecurity.Authentication.DeviceManagementExtensions]::NormalizeDeviceName($device.DeviceName)
-            if ([string]::Equals($existingName, $normalizedName, [System.StringComparison]::OrdinalIgnoreCase)) {
+            if ([KeeperSecurity.Authentication.DeviceManagementExtensions]::DeviceNamesEqual($device.DeviceName, $normalizedName)) {
                 Write-Error "Another device already uses the name '$normalizedName'" -ErrorAction Stop
             }
         }
