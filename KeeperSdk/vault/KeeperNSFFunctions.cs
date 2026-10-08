@@ -988,27 +988,29 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private static async Task<FolderProto.FolderAccessData> FindKeeperNSFFolderAccessAsync(
-            VaultOnline vault, string folderUid, FolderProto.AccessType accessType, ByteString accessTypeUid)
-        {
-            var accessors = await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
-                .ConfigureAwait(false);
-            return accessors.FirstOrDefault(accessor =>
-                accessor.AccessType == accessType && accessor.AccessTypeUid.Equals(accessTypeUid));
-        }
-
         private static async Task<bool> TryDenyInheritedKeeperNSFFolderAccessAsync(
             VaultOnline vault, string folderUid, FolderProto.AccessType accessType, ByteString accessTypeUid)
         {
-            var existingAccess = await FindKeeperNSFFolderAccessAsync(
-                vault, folderUid, accessType, accessTypeUid).ConfigureAwait(false);
-            if (existingAccess?.Inherited != true)
+            var inheritedAccesses = (await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                    .ConfigureAwait(false))
+                .Where(accessor => accessor.Inherited
+                    && accessor.AccessType == accessType
+                    && accessor.AccessTypeUid.Equals(accessTypeUid))
+                .ToList();
+
+            if (inheritedAccesses.Count == 0)
             {
                 return false;
             }
 
             await DenyInheritedKeeperNSFFolderAccessAsync(
-                vault, folderUid, accessType, accessTypeUid, existingAccess.AccessRoleType).ConfigureAwait(false);
+                vault,
+                folderUid,
+                accessType,
+                accessTypeUid,
+                inheritedAccesses.Select(access => access.AccessRoleType).Distinct())
+                .ConfigureAwait(false);
+
             return true;
         }
 
@@ -1017,19 +1019,25 @@ namespace KeeperSecurity.Vault
             string folderUid,
             FolderProto.AccessType accessType,
             ByteString accessTypeUid,
-            FolderProto.AccessRoleType accessRoleType)
+            IEnumerable<FolderProto.AccessRoleType> accessRoleTypes)
         {
-            var accessData = new FolderProto.FolderAccessData
-            {
-                FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
-                AccessTypeUid = accessTypeUid,
-                AccessType = accessType,
-                AccessRoleType = accessRoleType,
-                DeniedAccess = true,
-            };
-
             var rq = new FolderProto.FolderAccessRequest();
-            rq.FolderAccessUpdates.Add(accessData);
+            foreach (var accessRoleType in accessRoleTypes.Distinct())
+            {
+                rq.FolderAccessUpdates.Add(new FolderProto.FolderAccessData
+                {
+                    FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                    AccessTypeUid = accessTypeUid,
+                    AccessType = accessType,
+                    AccessRoleType = accessRoleType,
+                    DeniedAccess = true,
+                });
+            }
+
+            if (rq.FolderAccessUpdates.Count == 0)
+            {
+                return;
+            }
 
             var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
                 "vault/folders/v3/access_update", rq).ConfigureAwait(false);

@@ -179,7 +179,8 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc />
         public async Task<EnterpriseRole> UpdateRole(EnterpriseRole role, bool? newUserInherit = null, bool? visibleBelow = null, string displayName = null)
         {
-            if (displayName != null)
+            // Preserve the existing contract: null and empty display names mean no rename.
+            if (!string.IsNullOrEmpty(displayName))
             {
                 displayName = ValidateRoleName(displayName);
             }
