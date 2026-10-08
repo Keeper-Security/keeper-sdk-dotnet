@@ -813,7 +813,7 @@ namespace Commander
                     .StartsWith(identifier, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (matches.Length == 0)
                 matches = devices.Where(x => !string.IsNullOrEmpty(x.DeviceName) && x.DeviceName
-                    .IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0).ToArray();
+                    .Equals(identifier, StringComparison.OrdinalIgnoreCase)).ToArray();
             return matches;
         }
 
@@ -824,8 +824,7 @@ namespace Commander
                 if (device.EncryptedDeviceToken.Equals(target.EncryptedDeviceToken)) continue;
                 try
                 {
-                    if (string.Equals(DeviceManagementExtensions.NormalizeDeviceName(device.DeviceName), normalizedName,
-                        StringComparison.OrdinalIgnoreCase)) return true;
+                    if (DeviceManagementExtensions.DeviceNamesEqual(device.DeviceName, normalizedName)) return true;
                 }
                 catch (ArgumentException)
                 {
