@@ -182,6 +182,9 @@ Export-ModuleMember -Alias nsf-record-add, nsf-records-add, nsf-record-update, n
 nsf-rm, nsf-records-rm, nsf-ln, nsf-lns, nsf-unln, nsf-move-records, nsf-transfer-record,
 nsf-shortcut-list, nsf-shortcut-keep
 
+Export-ModuleMember -Function Get-KeeperNSFTrashList, Get-KeeperNSFTrashItem, Restore-KeeperNSFTrash
+Export-ModuleMember -Alias nsf-trash-list, nsf-trash-get, nsf-trash-restore
+
 Export-ModuleMember -Function Sync-KeeperEpm,
 Get-KeeperEpmDeploymentList, Get-KeeperEpmDeployment, Add-KeeperEpmDeployment,
 Update-KeeperEpmDeployment, Remove-KeeperEpmDeployment, Get-KeeperEpmDeploymentDownload,
