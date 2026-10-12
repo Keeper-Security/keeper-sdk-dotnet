@@ -172,6 +172,30 @@ namespace Commander
                     Description = "Transfer Keeper NSF record ownership",
                     Action = context.NsfTransferRecordCommand
                 });
+
+            cli.Commands.Add("nsf-trash-list",
+                new ParseableCommand<NsfTrashListOptions>
+                {
+                    Order = 48,
+                    Description = "List Keeper NSF records and folders in trash",
+                    Action = context.NsfTrashListCommand
+                });
+
+            cli.Commands.Add("nsf-trash-get",
+                new ParseableCommand<NsfTrashGetOptions>
+                {
+                    Order = 48,
+                    Description = "Show details for one Keeper NSF record or folder in trash",
+                    Action = context.NsfTrashGetCommand
+                });
+
+            cli.Commands.Add("nsf-trash-restore",
+                new ParseableCommand<NsfTrashRestoreOptions>
+                {
+                    Order = 48,
+                    Description = "Restore Keeper NSF record(s) and/or folder(s) from trash",
+                    Action = context.NsfTrashRestoreCommand
+                });
         }
 
         private static string ValidateOptionValue<TOptions>(
