@@ -655,7 +655,8 @@ function script:assertPamWorkflowManagementPermission {
         [KeeperSecurity.Authentication.IAuthentication] $Auth
     )
 
-    if (-not [KeeperSecurity.Plugins.PAM.WorkflowUtils]::CanManageWorkflowSettings($Auth)) {
+    $canManage = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::CanManageWorkflowSettingsFreshAsync($Auth).GetAwaiter().GetResult()
+    if (-not $canManage) {
         Write-Error -Message ('You do not have permission to manage PAM workflow settings. ' +
             'Contact your Keeper administrator to enable the workflow-management enforcement for your role.') -ErrorAction Stop
     }

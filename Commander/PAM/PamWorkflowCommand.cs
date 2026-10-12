@@ -53,7 +53,7 @@ namespace Commander.PAM
           throw new InvalidOperationException("Output format must be table or json");
         }
 
-        if (AdminVerbs.Contains(command) && !WorkflowUtils.CanManageWorkflowSettings(Context.Enterprise.Auth))
+        if (AdminVerbs.Contains(command) && !await WorkflowUtils.CanManageWorkflowSettingsFreshAsync(Context.Enterprise.Auth))
         {
           PrintError(
             options.IsFormatOutputJson,
