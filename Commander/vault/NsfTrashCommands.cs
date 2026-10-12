@@ -90,6 +90,43 @@ namespace Commander
 
             try
             {
+                if (!options.Force)
+                {
+                    var preview = await context.Vault.RestoreKeeperNSFTrash(uids, options.TargetFolder, options.SourceFolder, dryRun: true);
+                    if (preview.RestoredRecordUids.Count == 0 && preview.RestoredFolderUids.Count == 0)
+                    {
+                        foreach (var error in preview.Errors)
+                        {
+                            Console.WriteLine($"Error: {error}");
+                        }
+
+                        if (preview.Errors.Count == 0)
+                        {
+                            Console.WriteLine("Nothing matched - nothing to restore.");
+                        }
+
+                        return;
+                    }
+
+                    var toDo = new List<string>();
+                    if (preview.RestoredRecordUids.Count > 0)
+                    {
+                        toDo.Add($"{preview.RestoredRecordUids.Count} record(s)");
+                    }
+
+                    if (preview.RestoredFolderUids.Count > 0)
+                    {
+                        toDo.Add($"{preview.RestoredFolderUids.Count} folder(s)");
+                    }
+
+                    var destination = string.IsNullOrEmpty(options.TargetFolder) ? "" : $" into \"{options.TargetFolder}\"";
+                    if (!await NsfHelpers.ConfirmAsync($"Do you want to restore {string.Join(" and ", toDo)}{destination}? (yes/No) "))
+                    {
+                        Console.WriteLine("Restore cancelled.");
+                        return;
+                    }
+                }
+
                 var result = await context.Vault.RestoreKeeperNSFTrash(uids, options.TargetFolder, options.SourceFolder);
 
                 if (result.RestoredRecordUids.Count > 0)
@@ -141,5 +178,8 @@ namespace Commander
 
         [Option("source-folder", Required = false, HelpText = "Folder UID (or \"root\"/\"/\" for the Drive root) a record is being restored out of. Only needed if the server rejects the restore with \"source_folder_uid is required\" (the record was trashed under more than one folder)")]
         public string SourceFolder { get; set; }
+
+        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
+        public bool Force { get; set; }
     }
 }

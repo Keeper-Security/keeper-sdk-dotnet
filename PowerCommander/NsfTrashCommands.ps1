@@ -120,7 +120,11 @@ function Restore-KeeperNSFTrash {
 
 	.Parameter SourceFolder
 	Folder UID (or "root"/"/" for the Drive root) a record is being restored out of. Only needed if the server rejects the restore with "source_folder_uid is required" (the record was trashed under more than one folder).
+
+	.Parameter Force
+	Skip confirmation.
 #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments = $true)]
@@ -130,7 +134,10 @@ function Restore-KeeperNSFTrash {
         [string] $TargetFolder,
 
         [Parameter()]
-        [string] $SourceFolder
+        [string] $SourceFolder,
+
+        [Parameter()]
+        [switch] $Force
     )
 
     try {
@@ -143,6 +150,36 @@ function Restore-KeeperNSFTrash {
     if (-not $Uids -or $Uids.Count -eq 0) {
         Write-Host 'At least one record or folder UID is required.' -ForegroundColor Red
         return
+    }
+
+    if (-not $Force) {
+        try {
+            $preview = $vault.RestoreKeeperNSFTrash([string[]]$Uids, $TargetFolder, $SourceFolder, $true).GetAwaiter().GetResult()
+        } catch {
+            Write-Host "Failed to restore from trash: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
+
+        if ($preview.RestoredRecordUids.Count -eq 0 -and $preview.RestoredFolderUids.Count -eq 0) {
+            foreach ($error_ in $preview.Errors) {
+                Write-Host "Error: $error_" -ForegroundColor Red
+            }
+            if ($preview.Errors.Count -eq 0) {
+                Write-Host "Nothing matched - nothing to restore."
+            }
+            return
+        }
+
+        $toDo = @()
+        if ($preview.RestoredRecordUids.Count -gt 0) { $toDo += "$($preview.RestoredRecordUids.Count) record(s)" }
+        if ($preview.RestoredFolderUids.Count -gt 0) { $toDo += "$($preview.RestoredFolderUids.Count) folder(s)" }
+        $destination = if ($TargetFolder) { " into `"$TargetFolder`"" } else { "" }
+
+        $confirmation = Read-Host "Do you want to restore $($toDo -join ' and ')$($destination)? (yes/No)"
+        if ($confirmation -notmatch '^(?i)y(es)?$') {
+            Write-Host "Restore cancelled."
+            return
+        }
     }
 
     try {

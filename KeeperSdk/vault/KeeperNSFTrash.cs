@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -111,7 +112,7 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public async Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
-            IReadOnlyList<string> uids, string targetFolderUid = null, string sourceFolderUid = null)
+            IReadOnlyList<string> uids, string targetFolderUid = null, string sourceFolderUid = null, bool dryRun = false)
         {
             if (uids == null || uids.Count == 0)
             {
@@ -211,6 +212,17 @@ namespace KeeperSecurity.Vault
                 };
             }
 
+            if (dryRun)
+            {
+                return new KeeperNSFTrashRestoreResult
+                {
+                    Success = errors.Count == 0,
+                    RestoredRecordUids = recordsToRestore.Keys.ToList(),
+                    RestoredFolderUids = foldersToRestore.Keys.ToList(),
+                    Errors = errors,
+                };
+            }
+
             byte[] explicitTargetKey = null;
             if (!string.IsNullOrEmpty(targetFolderUid))
             {
@@ -259,7 +271,16 @@ namespace KeeperSecurity.Vault
                 var destUid = groupEntry.Key;
                 var group = groupEntry.Value;
 
-                var targetKey = explicitTargetKey ?? GetNsfRestoreDestinationKey(destUid);
+                byte[] targetKey;
+                if (explicitTargetKey != null)
+                {
+                    targetKey = explicitTargetKey;
+                }
+                else if (!TryGetNsfRestoreDestinationKey(destUid, out targetKey, out var keyError))
+                {
+                    errors.Add($"Restore into \"{destUid}\" failed: {keyError}");
+                    continue;
+                }
 
                 var request = new TrashcanRestoreRequest();
                 if (!string.IsNullOrEmpty(destUid))
@@ -349,19 +370,25 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        private byte[] GetNsfRestoreDestinationKey(string folderUid)
+        private bool TryGetNsfRestoreDestinationKey(string folderUid, out byte[] key, out string error)
         {
             if (string.IsNullOrEmpty(folderUid))
             {
-                return Auth.AuthContext.DataKey;
+                key = Auth.AuthContext.DataKey;
+                error = null;
+                return true;
             }
 
             if (TryResolveKeeperNSFFolderOrRoot(folderUid, out var folder) && folder.FolderKey != null && folder.FolderKey.Length > 0)
             {
-                return folder.FolderKey;
+                key = folder.FolderKey;
+                error = null;
+                return true;
             }
 
-            return Auth.AuthContext.DataKey;
+            key = null;
+            error = $"destination folder \"{folderUid}\" was not found or its key is unavailable";
+            return false;
         }
 
         private static string NormalizeKeeperNSFRootAlias(string folderUid)
@@ -398,9 +425,9 @@ namespace KeeperSecurity.Vault
                 title = entry?.Title;
                 recordType = entry?.Type;
             }
-            catch
+            catch (Exception e)
             {
-                // Leave title/type blank if details couldn't be fetched.
+                Trace.TraceWarning($"NSF trash: failed to fetch details for record {record.RecordUid}: {e.Message}");
             }
 
             return new KeeperNSFTrashGetResult

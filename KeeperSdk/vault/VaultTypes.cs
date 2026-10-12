@@ -730,8 +730,9 @@ namespace KeeperSecurity.Vault
         /// Optional override for the folder a record is being restored out of, needed only when the
         /// server rejects a restore with "source_folder_uid is required". Accepts "root"/"/" aliases.
         /// </param>
+        /// <param name="dryRun">When <c>true</c>, reports what would be restored (e.g. for a confirmation prompt) without calling the restore endpoint.</param>
         Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
-            IReadOnlyList<string> uids, string targetFolderUid = null, string sourceFolderUid = null);
+            IReadOnlyList<string> uids, string targetFolderUid = null, string sourceFolderUid = null, bool dryRun = false);
 
         /// <summary>Looks up a single record or folder in the Keeper NSF trash. Returns <c>null</c> if not found.</summary>
         /// <param name="uid">Record or folder UID to look up.</param>
