@@ -559,6 +559,17 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        /// <summary>
+        /// Converts classic records from a synchronous host such as Windows PowerShell 5.1.
+        /// The conversion runs without the caller's synchronization context.
+        /// </summary>
+        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFSynchronous(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            return Task.Run(() => ConvertClassicRecordsToKeeperNSF(recordUids, folderUid))
+                .GetAwaiter().GetResult();
+        }
+
         /// <inheritdoc/>
         public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
             ImportFile import,

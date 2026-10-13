@@ -50,7 +50,7 @@ namespace Commander
 
                     var matches = node.Records
                         .Select(uid => vault.TryGetKeeperRecord(uid, out var candidate) ? candidate : null)
-                        .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.Ordinal))
+                        .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
                         .Take(2).ToList();
                     if (matches.Count != 1)
                     {

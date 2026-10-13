@@ -127,7 +127,7 @@ namespace KeeperSecurity.Vault
         {
             switch (status)
             {
-                case ConvertRecordStatus.ConvertRecordStatusUnspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status.");
+                case ConvertRecordStatus.Unspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status.");
                 case ConvertRecordStatus.Ok: return ("OK", "Converted successfully.");
                 case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper Drive enabled.");
                 case ConvertRecordStatus.NotRecordOwner: return ("NOT_RECORD_OWNER", "The record is not owned by the caller.");

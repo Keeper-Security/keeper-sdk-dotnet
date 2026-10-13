@@ -51,7 +51,7 @@ function ConvertTo-KeeperNSFRecord {
 
             [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
             if (-not $vault.TryGetKeeperRecord($identifier, [ref]$classicRecord)) {
-                $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ceq $identifier } | Select-Object -First 2)
+                $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $identifier } | Select-Object -First 2)
                 if ($matches.Count -ne 1) {
                     throw "Classic record '$identifier' was not found or title is ambiguous. Specify its UID."
                 }
@@ -84,7 +84,7 @@ function ConvertTo-KeeperNSFRecord {
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        $result = $vault.ConvertClassicRecordsToKeeperNSF($recordUids, $FolderUid).GetAwaiter().GetResult()
+        $result = $vault.ConvertClassicRecordsToKeeperNSFSynchronous($recordUids, $FolderUid)
         foreach ($entry in $result) {
             $entry
         }
