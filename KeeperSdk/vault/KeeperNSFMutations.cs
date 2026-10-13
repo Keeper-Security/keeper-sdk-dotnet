@@ -15,11 +15,166 @@ using KeeperSecurity.Utils;
 using Records;
 using AuthProto = Authentication;
 using Drive.Move;
+using Drive.Convert;
 
 namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline
     {
+        private const int MaxClassicRecordConversions = 100;
+
+        internal async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSFInternal(
+            IReadOnlyList<string> recordUids, string folderUid)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new ArgumentException("At least one classic record UID is required.", nameof(recordUids));
+            }
+
+            if (recordUids.Count > MaxClassicRecordConversions)
+            {
+                throw new ArgumentException($"Convert at most {MaxClassicRecordConversions} classic records per request.", nameof(recordUids));
+            }
+
+            var ownerKey = Auth.AuthContext?.DataKey;
+            ValidateConversionKey(ownerKey, "User data key");
+
+            var destinationFolderUid = string.Empty;
+            var destinationFolderKey = ownerKey;
+            if (!string.IsNullOrWhiteSpace(folderUid))
+            {
+                var folderRef = folderUid.Trim();
+                if (IsKeeperDriveRootFolderIdentifier(folderRef))
+                {
+                    // Root uses an empty folder UID and the owner data key.
+                }
+                else
+                {
+                    if (!TryGetKeeperNSFFolder(folderRef, out var folder))
+                    {
+                        throw new ArgumentException($"'{folderRef}' is not a Keeper NSF folder in the local cache.", nameof(folderUid));
+                    }
+
+                    destinationFolderUid = folder.FolderUid;
+                    destinationFolderKey = folder.FolderKey;
+                    ValidateConversionKey(destinationFolderKey, $"Destination folder key for '{destinationFolderUid}'");
+                }
+            }
+
+            var request = new ConvertRecordRequest();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var recordUid in recordUids)
+            {
+                var uid = ValidateConversionUid(recordUid, nameof(recordUids));
+                if (!seen.Add(uid))
+                {
+                    throw new ArgumentException($"Duplicate record UID in conversion request: '{uid}'.", nameof(recordUids));
+                }
+
+                if (TryGetKeeperNSFRecord(uid, out _))
+                {
+                    throw new ArgumentException($"Record '{uid}' is already a Keeper NSF record.", nameof(recordUids));
+                }
+
+                if (!TryGetKeeperRecord(uid, out var record))
+                {
+                    throw new ArgumentException($"Classic record '{uid}' was not found in the local cache.", nameof(recordUids));
+                }
+
+                ValidateConversionKey(record.RecordKey, $"Record key for '{uid}'");
+                request.Records.Add(new ConvertRecord
+                {
+                    RecordUid = ByteString.CopyFrom(uid.Base64UrlDecode()),
+                    FolderUid = string.IsNullOrEmpty(destinationFolderUid)
+                        ? ByteString.Empty
+                        : ByteString.CopyFrom(destinationFolderUid.Base64UrlDecode()),
+                    RecordKeyEncryptedByFolderKey = ByteString.CopyFrom(
+                        CryptoUtils.EncryptAesV2(record.RecordKey, destinationFolderKey)),
+                    RecordKeyEncryptedByOwnerKey = ByteString.CopyFrom(
+                        CryptoUtils.EncryptAesV2(record.RecordKey, ownerKey)),
+                });
+            }
+
+            var response = await Auth.ExecuteAuthRest<ConvertRecordRequest, ConvertRecordResponse>(
+                "vault/records/v3/convert", request).ConfigureAwait(false);
+            if (response == null)
+            {
+                throw new KeeperApiException("record_conversion_failed", "The record conversion service returned no response.");
+            }
+
+            return response.Results.Select(x =>
+            {
+                var status = GetConversionStatus(x.Status);
+                return new KeeperNSFRecordConversionResult
+                {
+                    RecordUid = x.RecordUid == null || x.RecordUid.IsEmpty ? null : x.RecordUid.ToByteArray().Base64UrlEncode(),
+                    Status = status.Name,
+                    Message = status.Message,
+                    Success = x.Status == ConvertRecordStatus.Ok,
+                };
+            }).ToList();
+        }
+
+        private static void ValidateConversionKey(byte[] key, string keyName)
+        {
+            if (key == null || key.Length != 32)
+            {
+                throw new InvalidOperationException($"{keyName} must be a 32-byte AES key.");
+            }
+        }
+
+        private static (string Name, string Message) GetConversionStatus(ConvertRecordStatus status)
+        {
+            switch (status)
+            {
+                case ConvertRecordStatus.ConvertRecordStatusUnspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status.");
+                case ConvertRecordStatus.Ok: return ("OK", "Converted successfully.");
+                case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper Drive enabled.");
+                case ConvertRecordStatus.NotRecordOwner: return ("NOT_RECORD_OWNER", "The record is not owned by the caller.");
+                case ConvertRecordStatus.RecordNotFound: return ("RECORD_NOT_FOUND", "No active owned record was found.");
+                case ConvertRecordStatus.RecordAlreadyConverted: return ("RECORD_ALREADY_CONVERTED", "The record is already an NSF record.");
+                case ConvertRecordStatus.FolderAccessDenied: return ("FOLDER_ACCESS_DENIED", "The caller cannot add records to the destination folder.");
+                case ConvertRecordStatus.InvalidFolderKey: return ("INVALID_FOLDER_KEY", "The destination folder key is invalid.");
+                case ConvertRecordStatus.InvalidOwnerKey: return ("INVALID_OWNER_KEY", "The owner key is invalid.");
+                case ConvertRecordStatus.RecordNotLegacy: return ("RECORD_NOT_LEGACY", "The record is not a classic record.");
+                case ConvertRecordStatus.TargetNotDriveFolder: return ("TARGET_NOT_DRIVE_FOLDER", "The destination is not an NSF folder.");
+                case ConvertRecordStatus.RecordLinkChildNotOwned: return ("RECORD_LINK_CHILD_NOT_OWNED", "A linked child record is not owned by the caller.");
+                case ConvertRecordStatus.RecordLinkParentNotOwned: return ("RECORD_LINK_PARENT_NOT_OWNED", "A linked parent record is not owned by the caller.");
+                case ConvertRecordStatus.RecordLinkRecordInTrash: return ("RECORD_LINK_RECORD_IN_TRASH", "A linked record is in the caller's trash.");
+                case ConvertRecordStatus.InternalError: return ("INTERNAL_ERROR", "The server could not complete the conversion.");
+                case ConvertRecordStatus.RecordLinkChildNotIncluded: return ("RECORD_LINK_CHILD_NOT_INCLUDED", "A linked classic record must also be included.");
+                case ConvertRecordStatus.RecordLinkFilePromotionFailed: return ("RECORD_LINK_FILE_PROMOTION_FAILED", "A linked file attachment could not be promoted.");
+                case ConvertRecordStatus.RecordLinkComponentFailed: return ("RECORD_LINK_COMPONENT_FAILED", "A related record failed and this record was rolled back.");
+                case ConvertRecordStatus.RecordVersionNotConvertible: return ("RECORD_VERSION_NOT_CONVERTIBLE", "The record version cannot be converted.");
+                default: return ($"UNKNOWN_STATUS_{(int)status}", $"The server returned unknown conversion status {(int)status}.");
+            }
+        }
+
+        private static string ValidateConversionUid(string uid, string parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(uid))
+            {
+                throw new ArgumentException("Record UID cannot be empty.", parameterName);
+            }
+
+            byte[] bytes;
+            try
+            {
+                bytes = uid.Base64UrlDecode();
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"'{uid}' is not a valid Keeper UID.", parameterName, ex);
+            }
+
+            if (bytes.Length != 16 || !string.Equals(bytes.Base64UrlEncode(), uid, StringComparison.Ordinal))
+            {
+                throw new ArgumentException($"'{uid}' is not a canonical 16-byte Keeper UID.", parameterName);
+            }
+
+            return uid;
+        }
+
         /// <inheritdoc/>
         public async Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecords(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false)

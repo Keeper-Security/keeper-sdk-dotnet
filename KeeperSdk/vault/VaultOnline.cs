@@ -546,6 +546,19 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            var results = await ConvertClassicRecordsToKeeperNSFInternal(recordUids, folderUid).ConfigureAwait(false);
+            if (results.Count != recordUids.Count || results.Any(x => x.Success))
+            {
+                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+            }
+
+            return results;
+        }
+
         /// <inheritdoc/>
         public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
             ImportFile import,

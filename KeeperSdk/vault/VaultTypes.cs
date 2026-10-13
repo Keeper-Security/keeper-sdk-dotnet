@@ -568,6 +568,17 @@ namespace KeeperSecurity.Vault
             IReadOnlyList<KeeperNSFRecordCreateRequest> records);
 
         /// <summary>
+        /// Permanently converts classic records to Keeper NSF records. The caller must own every
+        /// source record. When <paramref name="folderUid"/> is omitted the records are placed at
+        /// the Keeper Drive root; otherwise it must identify a cached Keeper NSF folder.
+        /// </summary>
+        /// <param name="recordUids">Classic record UIDs to convert (one to 100).</param>
+        /// <param name="folderUid">Optional destination Keeper NSF folder UID.</param>
+        /// <returns>A server outcome for each converted record.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null);
+
+        /// <summary>
         /// Creates multiple Keeper NSF records from an import file payload (same JSON record shape as Export/Import-KeeperVault).
         /// </summary>
         /// <param name="import">Import file containing records. <c>shared_folders</c> are ignored.</param>
@@ -1497,6 +1508,22 @@ namespace KeeperSecurity.Vault
 
         /// <summary>True when the record was created successfully.</summary>
         public bool Success { get; set; }
+    }
+
+    /// <summary>Per-record outcome from <see cref="IVault.ConvertClassicRecordsToKeeperNSF"/>.</summary>
+    public class KeeperNSFRecordConversionResult
+    {
+        /// <summary>Classic record UID supplied by the server.</summary>
+        public string RecordUid { get; internal set; }
+
+        /// <summary>Protocol status returned by the conversion service.</summary>
+        public string Status { get; internal set; }
+
+        /// <summary>Human-readable explanation of the conversion status.</summary>
+        public string Message { get; internal set; }
+
+        /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
+        public bool Success { get; internal set; }
     }
 
     /// <summary>

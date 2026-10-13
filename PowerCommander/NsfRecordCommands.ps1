@@ -2,6 +2,100 @@
 
 . "$PSScriptRoot/NsfBatchSampleData.ps1"
 
+function ConvertTo-KeeperNSFRecord {
+    <#
+    .SYNOPSIS
+    Permanently converts classic records to Keeper NSF records.
+
+    .DESCRIPTION
+    Uses the .NET SDK conversion API; this cmdlet does not duplicate request or encryption logic.
+    The current user must own each classic record. Omit -FolderUid to convert to Keeper Drive root.
+
+    .EXAMPLE
+    ConvertTo-KeeperNSFRecord -Record abc123
+
+    .EXAMPLE
+    ConvertTo-KeeperNSFRecord -Record abc123,def456 -FolderUid <nsf-folder-uid> -Force
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [Alias('RecordUid')]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $Record,
+
+        [Parameter()]
+        [string] $FolderUid,
+
+        [Parameter()]
+        [switch] $Force
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        $classicRecords = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperRecord]'
+        $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($identifier in $Record) {
+            if ([string]::IsNullOrWhiteSpace($identifier)) {
+                throw 'Record UID or title cannot be empty.'
+            }
+
+            [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
+            if ($vault.TryGetKeeperNSFRecord($identifier, [ref]$nsfRecord)) {
+                Write-Host "Record '$($nsfRecord.RecordUid)' is already an NSF record; skipped."
+                if (-not $seen.Add($nsfRecord.RecordUid)) {
+                    throw "The same record '$($nsfRecord.RecordUid)' was selected more than once."
+                }
+                continue
+            }
+
+            [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
+            if (-not $vault.TryGetKeeperRecord($identifier, [ref]$classicRecord)) {
+                $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ceq $identifier } | Select-Object -First 2)
+                if ($matches.Count -ne 1) {
+                    throw "Classic record '$identifier' was not found or title is ambiguous. Specify its UID."
+                }
+                $classicRecord = $matches[0]
+            }
+
+            if (-not $seen.Add($classicRecord.Uid)) {
+                throw "The same record '$($classicRecord.Uid)' was selected more than once."
+            }
+            $classicRecords.Add($classicRecord)
+        }
+
+        if ($classicRecords.Count -eq 0) {
+            Write-Host 'No classic records remain to convert.'
+            return
+        }
+        if ($classicRecords.Count -gt 100) {
+            throw 'At most 100 classic records can be converted per request.'
+        }
+
+        $recordUids = @($classicRecords | ForEach-Object { $_.Uid })
+        $oldConfirmPreference = $ConfirmPreference
+        try {
+            if ($Force.IsPresent) { $ConfirmPreference = 'None' }
+            if (-not $PSCmdlet.ShouldProcess(($recordUids -join ', '), 'Permanently convert classic record(s) to Keeper NSF')) {
+                return
+            }
+        }
+        finally {
+            $ConfirmPreference = $oldConfirmPreference
+        }
+
+        $result = $vault.ConvertClassicRecordsToKeeperNSF($recordUids, $FolderUid).GetAwaiter().GetResult()
+        foreach ($entry in $result) {
+            $entry
+        }
+    }
+    catch {
+        Write-Error "Error converting classic records: $($_.Exception.Message)"
+    }
+}
+
+New-Alias -Name nsf-convert -Value ConvertTo-KeeperNSFRecord
+
 function Script:ConvertTo-NSFJsonValue {
     <#
     .SYNOPSIS
