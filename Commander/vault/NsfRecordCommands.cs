@@ -62,11 +62,23 @@ namespace Commander
                     .ConfigureAwait(false);
                 foreach (var result in results)
                 {
-                    Console.WriteLine(result.Success
-                        ? $"Classic record '{result.RecordUid}' converted to a Keeper NSF record."
-                        : $"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
+                    if (result.Success)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' converted to a Keeper NSF record.");
+                    }
+                    else if (result.OutcomeUncertain)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' conversion outcome is uncertain: {result.Message} (status: {result.Status}).");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
+                    }
                 }
-                Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} of {records.Count} classic record(s) converted; {alreadyNsf.Count} already NSF record(s) skipped.");
+                Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} confirmed converted, "
+                    + $"{results.Count(x => x.OutcomeUncertain)} uncertain, "
+                    + $"{results.Count(x => !x.Success && !x.OutcomeUncertain)} failed; "
+                    + $"{alreadyNsf.Count} already NSF record(s) skipped.");
             }
             catch (Exception ex)
             {

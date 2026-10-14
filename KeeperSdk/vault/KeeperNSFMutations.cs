@@ -132,7 +132,7 @@ namespace KeeperSecurity.Vault
                     {
                         RecordUid = uid,
                         Status = "RESULT_DUPLICATE",
-                        Message = "The server returned multiple results for this record; its conversion state is uncertain.",
+                        Message = "The server returned multiple results for this record. Refresh the vault and verify its current state before retrying.",
                         ServerOutcomeUncertain = true,
                     };
                 }
@@ -143,7 +143,7 @@ namespace KeeperSecurity.Vault
                     {
                         RecordUid = uid,
                         Status = "RESULT_MISSING",
-                        Message = "The server did not return a result for this record; its conversion state is uncertain.",
+                        Message = "The server did not return a result for this record. Refresh the vault and verify its current state before retrying.",
                         ServerOutcomeUncertain = true,
                     };
                 }
@@ -173,7 +173,7 @@ namespace KeeperSecurity.Vault
         {
             switch (status)
             {
-                case ConvertRecordStatus.Unspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status.");
+                case ConvertRecordStatus.Unspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status. Refresh the vault and verify its current state before retrying.");
                 case ConvertRecordStatus.Ok: return ("OK", "Converted successfully.");
                 case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper Drive enabled.");
                 case ConvertRecordStatus.NotRecordOwner: return ("NOT_RECORD_OWNER", "The record is not owned by the caller.");
@@ -1228,10 +1228,13 @@ namespace KeeperSecurity.Vault
             var nodes = KeeperNSFFolderNodes
                 .Where(node => node != null && !string.IsNullOrEmpty(node.FolderUid))
                 .ToDictionary(node => node.FolderUid, StringComparer.Ordinal);
-            var path = identifier.Trim('/');
+            // A path must match its full ancestry; a plain name can match only one folder.
+            // Accept both separator styles because PowerCommander also runs on Windows.
+            var isPath = identifier.IndexOfAny(new[] { '/', '\\' }) >= 0;
+            var path = string.Join("/", identifier.Replace('\\', '/').Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries));
             var matches = nodes.Values.Where(node =>
             {
-                if (string.Equals(node.Name, path, StringComparison.OrdinalIgnoreCase))
+                if (!isPath && string.Equals(node.Name, path, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

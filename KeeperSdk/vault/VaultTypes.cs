@@ -1525,6 +1525,12 @@ namespace KeeperSecurity.Vault
         /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
         public bool Success { get; internal set; }
 
+        /// <summary>
+        /// Whether the response cannot establish success or failure. Refresh the vault and check the record's
+        /// current permission model before retrying a permanent conversion.
+        /// </summary>
+        public bool OutcomeUncertain => ServerOutcomeUncertain;
+
         // A missing, duplicate, unspecified, or unrecognized response may conceal a completed conversion.
         // Refresh the vault before the caller relies on cached record state.
         internal bool ServerOutcomeUncertain { get; set; }
