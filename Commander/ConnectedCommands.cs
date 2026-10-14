@@ -570,7 +570,7 @@ namespace Commander
                     });
                 }
 
-                var json = Json.Serialize(new Dictionary<string, object> { ["devices"] = jsonDevices });
+                var json = Json.WriteFormatted(new Dictionary<string, object> { ["devices"] = jsonDevices });
                 if (!string.IsNullOrEmpty(options.Output))
                 {
                     try
