@@ -178,7 +178,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Maps the user-facing action name (as used by Commander/PowerCommander) to the protocol
+        /// Maps each user-facing action name to its corresponding protocol.
         /// <see cref="DeviceActionType"/> value, shared so both front-ends use identical action names.
         /// </summary>
         /// <param name="action">The action name, e.g. "logout", "remove", "lock", "unlock", "account-lock", "account-unlock".</param>
