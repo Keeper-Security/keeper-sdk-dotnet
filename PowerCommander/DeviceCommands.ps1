@@ -107,6 +107,11 @@ function Get-KeeperDeviceList {
         Write-Error "Failed to retrieve devices: $($_.Exception.Message)" -ErrorAction Stop
     }
 
+    if ($devices.Count -eq 0 -and $Format -ne 'json') {
+        Write-Output 'No devices found'
+        return
+    }
+
     if ($Format -eq 'json') {
         $jsonDevices = New-Object 'System.Collections.Generic.List[object]'
         $deviceId = 0
@@ -133,11 +138,6 @@ function Get-KeeperDeviceList {
         else {
             Write-Output $json
         }
-        return
-    }
-
-    if ($devices.Count -eq 0) {
-        Write-Output 'No devices found'
         return
     }
 
@@ -259,7 +259,7 @@ function Invoke-KeeperDeviceAction {
             $deviceName = $deviceNames[$tokenText]
             if (-not $deviceName) { $deviceName = 'Unknown Device' }
             if ($result.DeviceActionStatus -eq [DeviceManagement.DeviceActionStatus]::Success) {
-                Write-Output ("{0} Device '{1}' successfully {2}" -f [char]0x2713, $deviceName, $actionVerbs[$Action])
+                Write-Output ("Device '{0}' successfully {1}" -f $deviceName, $actionVerbs[$Action])
                 $successful = $true
                 $successCount++
             }
@@ -371,7 +371,7 @@ function Rename-KeeperDevice {
         Write-Error "Device '$($target.DeviceName)': Rename failed ($($result.DeviceActionStatus.ToString().ToUpperInvariant()))" -ErrorAction Stop
     }
 
-    Write-Output ("{0} Device name updated from '{1}' to '{2}'" -f [char]0x2713, $target.DeviceName, $result.DeviceNewName)
+    Write-Output ("Device name updated from '{0}' to '{1}'" -f $target.DeviceName, $result.DeviceNewName)
     Write-Output ''
     Write-Output 'Updated device list:'
     try {

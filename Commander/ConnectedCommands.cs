@@ -548,6 +548,12 @@ namespace Commander
                 return;
             }
 
+            if (devices.Length == 0 && format != "json")
+            {
+                Console.WriteLine("No devices found");
+                return;
+            }
+
             if (format == "json")
             {
                 var jsonDevices = new List<Dictionary<string, object>>();
@@ -581,12 +587,6 @@ namespace Commander
                 {
                     Console.WriteLine(json);
                 }
-                return;
-            }
-
-            if (devices.Length == 0)
-            {
-                Console.WriteLine("No devices found");
                 return;
             }
 
@@ -685,7 +685,7 @@ namespace Commander
                     var deviceName = deviceNames.TryGetValue(tokenText, out var name) ? name : "Unknown Device";
                     if (result.DeviceActionStatus == DeviceActionStatus.Success)
                     {
-                        Console.WriteLine($"✓ Device '{deviceName}' successfully {GetDeviceActionVerb(options.Action)}");
+                        Console.WriteLine($"Device '{deviceName}' successfully {GetDeviceActionVerb(options.Action)}");
                         succeeded++;
                     }
                     else if (result.DeviceActionStatus == DeviceActionStatus.NotAllowed)
@@ -792,7 +792,7 @@ namespace Commander
                 return;
             }
 
-            Console.WriteLine($"✓ Device name updated from '{device.DeviceName}' to '{result.DeviceNewName}'");
+            Console.WriteLine($"Device name updated from '{device.DeviceName}' to '{result.DeviceNewName}'");
             Console.WriteLine();
             Console.WriteLine("Updated device list:");
             await DeviceListCommand(new DeviceListOptions());
