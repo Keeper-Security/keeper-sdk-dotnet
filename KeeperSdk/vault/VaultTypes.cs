@@ -1516,7 +1516,7 @@ namespace KeeperSecurity.Vault
         /// <summary>Classic record UID from the conversion request.</summary>
         public string RecordUid { get; internal set; }
 
-        /// <summary>Protocol status returned by the conversion service.</summary>
+        /// <summary>Protocol status, or RESULT_MISSING/RESULT_DUPLICATE when the server response cannot be matched reliably.</summary>
         public string Status { get; internal set; }
 
         /// <summary>Human-readable explanation of the conversion status.</summary>
@@ -1525,6 +1525,8 @@ namespace KeeperSecurity.Vault
         /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
         public bool Success { get; internal set; }
 
+        // A missing, duplicate, unspecified, or unrecognized response may conceal a completed conversion.
+        // Refresh the vault before the caller relies on cached record state.
         internal bool ServerOutcomeUncertain { get; set; }
     }
 

@@ -52,36 +52,7 @@ function ConvertTo-KeeperNSFRecord {
                 continue
             }
 
-            [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
-            if (-not $vault.TryGetKeeperRecord($identifier, [ref]$classicRecord)) {
-                $matches = @()
-                if ($identifier.Contains('/') -or $identifier.Contains('\')) {
-                    $path = $identifier.Replace('/', [string]$Script:PathDelimiter).Replace('\', [string]$Script:PathDelimiter)
-                    [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
-                    if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
-                        $currentFolder = $vault.RootFolder
-                    }
-                    $resolved = @(parseKeeperPath (splitKeeperPath $path) $vault $currentFolder)
-                    if ($resolved.Count -eq 2 -and $resolved[0] -and $resolved[1] -and
-                        -not ([string]$resolved[1]).Contains([string]$Script:PathDelimiter)) {
-                        $folder = $resolved[0]
-                        $title = [string]$resolved[1]
-                        $matches = @($folder.Records | ForEach-Object {
-                            [KeeperSecurity.Vault.KeeperRecord]$candidate = $null
-                            if ($vault.TryGetKeeperRecord($_, [ref]$candidate) -and $candidate.Title -ieq $title) {
-                                $candidate
-                            }
-                        } | Select-Object -First 2)
-                    }
-                }
-                else {
-                    $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $identifier } | Select-Object -First 2)
-                }
-                if ($matches.Count -ne 1) {
-                    throw "Classic record '$identifier' was not found or is ambiguous. Specify its UID or full path."
-                }
-                $classicRecord = $matches[0]
-            }
+            [KeeperSecurity.Vault.KeeperRecord]$classicRecord = Resolve-ClassicRecordForNSFConversion -Vault $vault -Identifier $identifier
 
             if (-not $seen.Add($classicRecord.Uid)) {
                 throw "The same record '$($classicRecord.Uid)' was selected more than once."
@@ -107,6 +78,9 @@ function ConvertTo-KeeperNSFRecord {
         }
 
         [string[]]$recordUids = @($classicRecords | ForEach-Object { $_.Uid })
+        if (-not $Force.IsPresent) {
+            Write-Warning 'Conversion is permanent. Classic shared-folder membership and additional classic folder placements are not retained.'
+        }
         $oldConfirmPreference = $ConfirmPreference
         try {
             if ($Force.IsPresent) { $ConfirmPreference = 'None' }
@@ -124,11 +98,53 @@ function ConvertTo-KeeperNSFRecord {
         }
     }
     catch {
-        Write-Error "Error converting classic records: $($_.Exception.Message)"
+        $PSCmdlet.ThrowTerminatingError($_)
     }
 }
 
 New-Alias -Name nsf-convert -Value ConvertTo-KeeperNSFRecord
+
+function script:Resolve-ClassicRecordForNSFConversion {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline]$Vault,
+        [Parameter(Mandatory = $true)][string]$Identifier
+    )
+
+    [KeeperSecurity.Vault.KeeperRecord]$record = $null
+    if ($Vault.TryGetKeeperRecord($Identifier, [ref]$record)) {
+        return $record
+    }
+
+    $matches = @()
+    if ($Identifier.Contains('/') -or $Identifier.Contains('\')) {
+        # Classic record paths are relative to the current classic folder unless rooted.
+        $path = $Identifier.Replace('/', [string]$Script:PathDelimiter).Replace('\', [string]$Script:PathDelimiter)
+        [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
+        if (-not $Vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
+            $currentFolder = $Vault.RootFolder
+        }
+        $resolved = @(parseKeeperPath (splitKeeperPath $path) $Vault $currentFolder)
+        if ($resolved.Count -eq 2 -and $resolved[0] -and $resolved[1] -and
+            -not ([string]$resolved[1]).Contains([string]$Script:PathDelimiter)) {
+            $folder = $resolved[0]
+            $title = [string]$resolved[1]
+            $matches = @($folder.Records | ForEach-Object {
+                [KeeperSecurity.Vault.KeeperRecord]$candidate = $null
+                if ($Vault.TryGetKeeperRecord($_, [ref]$candidate) -and $candidate.Title -ieq $title) {
+                    $candidate
+                }
+            } | Select-Object -First 2)
+        }
+    }
+    else {
+        $matches = @($Vault.KeeperRecords | Where-Object { $_.Title -ieq $Identifier } | Select-Object -First 2)
+    }
+
+    if ($matches.Count -ne 1) {
+        throw "Classic record '$Identifier' was not found or is ambiguous. Specify its UID or full path."
+    }
+    return $matches[0]
+}
 
 function Script:ConvertTo-NSFJsonValue {
     <#

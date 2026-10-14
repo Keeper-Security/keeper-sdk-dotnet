@@ -155,7 +155,8 @@ namespace KeeperSecurity.Vault
                     Status = status.Name,
                     Message = status.Message,
                     Success = item.Status == ConvertRecordStatus.Ok,
-                    ServerOutcomeUncertain = status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
+                    ServerOutcomeUncertain = item.Status == ConvertRecordStatus.Unspecified
+                        || status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
                 };
             }).ToList();
         }
@@ -1183,36 +1184,17 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder)
         {
-            folder = null;
-            if (string.IsNullOrWhiteSpace(uidOrName))
-            {
-                return false;
-            }
-
-            var trimmed = uidOrName.Trim();
-            if (IsKeeperDriveRootFolderIdentifier(trimmed))
-            {
-                folder = TryCreateKeeperDriveRootFolderNode();
-                return folder != null;
-            }
-
-            if (TryGetKeeperNSFFolder(uidOrName, out folder))
-            {
-                return true;
-            }
-
-            folder = KeeperNSFFolderNodes
-                .Where(node => node != null)
-                .FirstOrDefault(node =>
-                    string.Equals(node.FolderUid, trimmed, StringComparison.OrdinalIgnoreCase)
-                    || (!string.IsNullOrEmpty(node.Name)
-                        && string.Equals(node.Name, trimmed, StringComparison.OrdinalIgnoreCase)));
-
-            return folder != null;
+            return TryResolveKeeperNSFFolderCore(uidOrName, false, out folder);
         }
 
         /// <summary>Resolves an NSF destination by UID, unique name, or path without choosing an ambiguous name.</summary>
+        /// <remarks>The older UID/name resolver keeps its original first-name-match behavior for existing callers.</remarks>
         public bool TryResolveKeeperNSFFolderReference(string reference, out FolderNode folder)
+        {
+            return TryResolveKeeperNSFFolderCore(reference, true, out folder);
+        }
+
+        private bool TryResolveKeeperNSFFolderCore(string reference, bool requireUniqueMatch, out FolderNode folder)
         {
             folder = null;
             if (string.IsNullOrWhiteSpace(reference))
@@ -1227,9 +1209,20 @@ namespace KeeperSecurity.Vault
                 return folder != null;
             }
 
-            if (TryGetKeeperNSFFolder(identifier, out folder))
+            if (TryGetKeeperNSFFolder(requireUniqueMatch ? identifier : reference, out folder))
             {
                 return true;
+            }
+
+            if (!requireUniqueMatch)
+            {
+                folder = KeeperNSFFolderNodes
+                    .Where(node => node != null)
+                    .FirstOrDefault(node =>
+                        string.Equals(node.FolderUid, identifier, StringComparison.OrdinalIgnoreCase)
+                        || (!string.IsNullOrEmpty(node.Name)
+                            && string.Equals(node.Name, identifier, StringComparison.OrdinalIgnoreCase)));
+                return folder != null;
             }
 
             var nodes = KeeperNSFFolderNodes

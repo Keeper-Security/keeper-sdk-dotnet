@@ -15,52 +15,13 @@ namespace Commander
     {
         public static async Task NsfConvertCommand(this VaultContext context, NsfConvertOptions options)
         {
-            var recordRefs = options.Record?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList()
-                ?? new List<string>();
-            if (recordRefs.Count == 0)
+            if (!TrySelectClassicRecords(context, options.Record, out var records, out var alreadyNsf, out var error))
             {
-                Console.WriteLine("At least one classic record UID or title is required.");
+                Console.WriteLine(error);
                 return;
             }
 
             var vault = context.Vault;
-            var records = new List<KeeperRecord>();
-            var alreadyNsf = new List<string>();
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var recordRef in recordRefs)
-            {
-                if (vault.TryGetKeeperNSFRecord(recordRef, out var nsfRecord))
-                {
-                    if (!seen.Add(nsfRecord.RecordUid))
-                    {
-                        Console.WriteLine("The same record was selected more than once; remove duplicate records.");
-                        return;
-                    }
-                    alreadyNsf.Add(nsfRecord.RecordUid);
-                    continue;
-                }
-
-                if (!TryResolveClassicRecord(context, recordRef, out var record, out var error))
-                {
-                    Console.WriteLine(error);
-                    return;
-                }
-
-                if (!seen.Add(record.Uid))
-                {
-                    Console.WriteLine("The same record was selected more than once; remove duplicate records.");
-                    return;
-                }
-
-                records.Add(record);
-            }
-
-            if (records.Count > 100)
-            {
-                Console.WriteLine("At most 100 classic records can be converted per request.");
-                return;
-            }
-
             string folderUid = null;
             if (!string.IsNullOrWhiteSpace(options.Folder))
             {
@@ -111,6 +72,55 @@ namespace Commander
             {
                 Console.WriteLine($"Error converting records: {ex.Message}");
             }
+        }
+
+        private static bool TrySelectClassicRecords(VaultContext context, IEnumerable<string> recordRefs,
+            out List<KeeperRecord> records, out List<string> alreadyNsf, out string error)
+        {
+            records = new List<KeeperRecord>();
+            alreadyNsf = new List<string>();
+            error = null;
+            var references = recordRefs?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+            if (references == null || references.Count == 0)
+            {
+                error = "At least one classic record UID, title, or path is required.";
+                return false;
+            }
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var recordRef in references)
+            {
+                if (context.Vault.TryGetKeeperNSFRecord(recordRef, out var nsfRecord))
+                {
+                    if (!seen.Add(nsfRecord.RecordUid))
+                    {
+                        error = "The same record was selected more than once; remove duplicate records.";
+                        return false;
+                    }
+                    alreadyNsf.Add(nsfRecord.RecordUid);
+                    continue;
+                }
+
+                if (!TryResolveClassicRecord(context, recordRef, out var record, out error))
+                {
+                    return false;
+                }
+
+                if (!seen.Add(record.Uid))
+                {
+                    error = "The same record was selected more than once; remove duplicate records.";
+                    return false;
+                }
+
+                records.Add(record);
+                if (records.Count > 100)
+                {
+                    error = "At most 100 classic records can be converted per request.";
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool TryResolveClassicRecord(VaultContext context, string recordRef,
