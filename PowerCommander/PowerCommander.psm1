@@ -100,7 +100,8 @@ Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Rem
 Get-KeeperEnterpriseUserTeam, Invoke-KeeperEnterprisePush, Invoke-KeeperTeamApprove,
 Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
-Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
+Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice,
+Get-KeeperAdminUserDevice, Invoke-KeeperAdminUserDeviceAction
 
 Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
