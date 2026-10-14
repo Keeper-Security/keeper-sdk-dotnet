@@ -266,6 +266,7 @@ namespace Commander
                     if (!device.EncryptedDataKeyPresent)
                     {
                         await _auth.RegisterDataKeyForDevice(device);
+                        _accountSummary = null;
                     }
                     else
                     {

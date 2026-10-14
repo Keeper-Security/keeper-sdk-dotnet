@@ -10,6 +10,9 @@ function Get-KeeperDeviceManagementDevices {
 function Get-KeeperDeviceManagementToken {
     param([Parameter(Mandatory = $true)] [object] $Device)
 
+    if ($null -eq $Device.EncryptedDeviceToken -or $Device.EncryptedDeviceToken.Length -eq 0) {
+        throw "Device '$($Device.DeviceName)' has no usable device token"
+    }
     [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Device.EncryptedDeviceToken.ToByteArray())
 }
 
@@ -141,20 +144,25 @@ function Get-KeeperDeviceList {
         return
     }
 
-    $displayIds = @{}
+    $table = New-Object System.Data.DataTable
+    [void]$table.Columns.Add('ID', [int])
+    [void]$table.Columns.Add('Device Name', [string])
+    [void]$table.Columns.Add('Client Type', [string])
+    [void]$table.Columns.Add('Login Status', [string])
+    [void]$table.Columns.Add('Last Accessed', [string])
     $deviceId = 0
     foreach ($device in $devices) {
         $deviceId++
-        $displayIds[(Get-KeeperDeviceManagementToken -Device $device)] = $deviceId
+        [void]$table.Rows.Add(
+            $deviceId,
+            $device.DeviceName,
+            $device.ClientType.ToString().ToUpperInvariant(),
+            (Get-KeeperDeviceManagementLoginStatus -LoginState $device.LoginState),
+            (Get-KeeperDeviceManagementTimestamp -Timestamp $device.LastModifiedTime)
+        )
     }
     Write-Output "User Devices ($($devices.Count) found)"
-    $devices | Format-Table -Property @(
-        @{ Label = 'ID'; Expression = { $displayIds[(Get-KeeperDeviceManagementToken -Device $_)] } },
-        @{ Label = 'Device Name'; Expression = { $_.DeviceName } },
-        @{ Label = 'Client Type'; Expression = { $_.ClientType.ToString().ToUpperInvariant() } },
-        @{ Label = 'Login Status'; Expression = { Get-KeeperDeviceManagementLoginStatus -LoginState $_.LoginState } },
-        @{ Label = 'Last Accessed'; Expression = { Get-KeeperDeviceManagementTimestamp -Timestamp $_.LastModifiedTime } }
-    ) -AutoSize
+    $table.Rows | Format-Table -Property 'ID', 'Device Name', 'Client Type', 'Login Status', 'Last Accessed' -AutoSize
 }
 
 function Invoke-KeeperDeviceAction {
@@ -339,7 +347,7 @@ function Rename-KeeperDevice {
 
     $target = $matches[0]
     foreach ($device in $availableDevices) {
-        if ((Get-KeeperDeviceManagementToken -Device $device) -eq (Get-KeeperDeviceManagementToken -Device $target)) {
+        if ([object]::Equals($device.EncryptedDeviceToken, $target.EncryptedDeviceToken)) {
             continue
         }
         try {
