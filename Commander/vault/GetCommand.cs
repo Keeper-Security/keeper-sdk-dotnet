@@ -496,7 +496,7 @@ namespace Commander
             var json = new Dictionary<string, object>
             {
                 ["folder_uid"] = folder.FolderUid,
-                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_folder",
+                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_shared_folder",
                 ["name"] = folder.Name,
                 ["path"] = GetFolderPath(context, folder.FolderUid),
                 ["folder"] = GetFolderLocation(context, folder.FolderUid),
