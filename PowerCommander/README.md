@@ -223,6 +223,12 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Approve-KeeperDevice](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/device-approve-commands#powercommander-1)                                    |                  | Approve pending device requests by device ID (partial match) or user email. Supports -TrustedIp to filter by trusted IP addresses
 | [Deny-KeeperDevice](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/device-approve-commands#powercommander-2)                                       |                  | Deny pending device requests by device ID (partial match) or user email
 
+### Device Admin Cmdlets
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Get-KeeperAdminUserDevice                               |                  | List devices registered to one or more enterprise users (-User email, ID, or "all"). Supports -Format table/json
+| Invoke-KeeperAdminUserDeviceAction                      |                  | Perform an action (logout, remove, lock, unlock, account-lock, account-unlock) on one or more devices of an enterprise user (-Action, -User, -Devices by ID, name, "id:", "name:", "#<row>", or "all"). Prompts for confirmation before remove/lock/account-lock; use -Confirm:$false to skip
+
 ### BreachWatch Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
