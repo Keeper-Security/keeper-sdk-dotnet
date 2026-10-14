@@ -1513,7 +1513,7 @@ namespace KeeperSecurity.Vault
     /// <summary>Per-record outcome from <see cref="IVault.ConvertClassicRecordsToKeeperNSF"/>.</summary>
     public class KeeperNSFRecordConversionResult
     {
-        /// <summary>Classic record UID supplied by the server.</summary>
+        /// <summary>Classic record UID from the conversion request.</summary>
         public string RecordUid { get; internal set; }
 
         /// <summary>Protocol status returned by the conversion service.</summary>
@@ -1524,6 +1524,8 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
         public bool Success { get; internal set; }
+
+        internal bool ServerOutcomeUncertain { get; set; }
     }
 
     /// <summary>

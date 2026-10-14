@@ -9,13 +9,14 @@ function ConvertTo-KeeperNSFRecord {
 
     .DESCRIPTION
     Uses the .NET SDK conversion API; this cmdlet does not duplicate request or encryption logic.
-    The current user must own each classic record. Omit -FolderUid to convert to Keeper Drive root.
+    The current user must own each classic record. Accepts up to 100 classic record UIDs, titles, or paths.
+    Conversion is permanent. Omit -FolderUid to convert to Vault (root); otherwise supply an existing NSF folder UID, unique name, or path.
 
     .EXAMPLE
     ConvertTo-KeeperNSFRecord -Record abc123
 
     .EXAMPLE
-    ConvertTo-KeeperNSFRecord -Record abc123,def456 -FolderUid <nsf-folder-uid> -Force
+    ConvertTo-KeeperNSFRecord -Record abc123,def456 -FolderUid '/Team/Secrets' -Force
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param(
@@ -25,6 +26,8 @@ function ConvertTo-KeeperNSFRecord {
         [string[]] $Record,
 
         [Parameter()]
+        [Alias('Folder')]
+        [ValidateNotNullOrEmpty()]
         [string] $FolderUid,
 
         [Parameter()]
@@ -51,9 +54,31 @@ function ConvertTo-KeeperNSFRecord {
 
             [KeeperSecurity.Vault.KeeperRecord]$classicRecord = $null
             if (-not $vault.TryGetKeeperRecord($identifier, [ref]$classicRecord)) {
-                $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $identifier } | Select-Object -First 2)
+                $matches = @()
+                if ($identifier.Contains('/') -or $identifier.Contains('\')) {
+                    $path = $identifier.Replace('/', [string]$Script:PathDelimiter).Replace('\', [string]$Script:PathDelimiter)
+                    [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
+                    if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
+                        $currentFolder = $vault.RootFolder
+                    }
+                    $resolved = @(parseKeeperPath (splitKeeperPath $path) $vault $currentFolder)
+                    if ($resolved.Count -eq 2 -and $resolved[0] -and $resolved[1] -and
+                        -not ([string]$resolved[1]).Contains([string]$Script:PathDelimiter)) {
+                        $folder = $resolved[0]
+                        $title = [string]$resolved[1]
+                        $matches = @($folder.Records | ForEach-Object {
+                            [KeeperSecurity.Vault.KeeperRecord]$candidate = $null
+                            if ($vault.TryGetKeeperRecord($_, [ref]$candidate) -and $candidate.Title -ieq $title) {
+                                $candidate
+                            }
+                        } | Select-Object -First 2)
+                    }
+                }
+                else {
+                    $matches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $identifier } | Select-Object -First 2)
+                }
                 if ($matches.Count -ne 1) {
-                    throw "Classic record '$identifier' was not found or title is ambiguous. Specify its UID."
+                    throw "Classic record '$identifier' was not found or is ambiguous. Specify its UID or full path."
                 }
                 $classicRecord = $matches[0]
             }
@@ -72,7 +97,16 @@ function ConvertTo-KeeperNSFRecord {
             throw 'At most 100 classic records can be converted per request.'
         }
 
-        $recordUids = @($classicRecords | ForEach-Object { $_.Uid })
+        $destinationFolderUid = $null
+        if ($PSBoundParameters.ContainsKey('FolderUid')) {
+            [KeeperSecurity.Vault.FolderNode]$destinationFolder = $null
+            if (-not $vault.TryResolveKeeperNSFFolderReference($FolderUid, [ref]$destinationFolder)) {
+                throw "Keeper NSF folder '$FolderUid' was not found or is ambiguous. Specify its UID or full path."
+            }
+            $destinationFolderUid = $destinationFolder.FolderUid
+        }
+
+        [string[]]$recordUids = @($classicRecords | ForEach-Object { $_.Uid })
         $oldConfirmPreference = $ConfirmPreference
         try {
             if ($Force.IsPresent) { $ConfirmPreference = 'None' }
@@ -84,7 +118,7 @@ function ConvertTo-KeeperNSFRecord {
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        $result = $vault.ConvertClassicRecordsToKeeperNSFSynchronous($recordUids, $FolderUid)
+        $result = $vault.ConvertClassicRecordsToKeeperNSFForPowerCommander($recordUids, $destinationFolderUid)
         foreach ($entry in $result) {
             $entry
         }

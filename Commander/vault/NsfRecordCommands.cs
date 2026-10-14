@@ -40,24 +40,10 @@ namespace Commander
                     continue;
                 }
 
-                if (!vault.TryGetKeeperRecord(recordRef, out var record))
+                if (!TryResolveClassicRecord(context, recordRef, out var record, out var error))
                 {
-                    if (!context.TryResolvePath(recordRef, out var node, out var title))
-                    {
-                        Console.WriteLine($"Classic record '{recordRef}' was not found. Specify its UID or path.");
-                        return;
-                    }
-
-                    var matches = node.Records
-                        .Select(uid => vault.TryGetKeeperRecord(uid, out var candidate) ? candidate : null)
-                        .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
-                        .Take(2).ToList();
-                    if (matches.Count != 1)
-                    {
-                        Console.WriteLine($"Classic record '{recordRef}' was not found or is ambiguous. Specify its UID.");
-                        return;
-                    }
-                    record = matches[0];
+                    Console.WriteLine(error);
+                    return;
                 }
 
                 if (!seen.Add(record.Uid))
@@ -78,16 +64,18 @@ namespace Commander
             string folderUid = null;
             if (!string.IsNullOrWhiteSpace(options.Folder))
             {
-                if (!string.Equals(options.Folder, "root", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(options.Folder, "/", StringComparison.OrdinalIgnoreCase))
+                if (!vault.TryResolveKeeperNSFFolderReference(options.Folder, out var folder))
                 {
-                    if (!vault.TryResolveKeeperNSFFolder(options.Folder, out var folder))
-                    {
-                        Console.WriteLine($"Keeper NSF folder '{options.Folder}' was not found. Run sync-down or nsf-list first.");
-                        return;
-                    }
-                    folderUid = folder.FolderUid;
+                    Console.WriteLine($"Keeper NSF folder '{options.Folder}' was not found or is ambiguous. Specify its UID or full path.");
+                    return;
                 }
+                folderUid = folder.FolderUid;
+            }
+
+            if (records.Count == 0)
+            {
+                Console.WriteLine($"No classic records remain to convert ({alreadyNsf.Count} already NSF).");
+                return;
             }
 
             foreach (var uid in alreadyNsf)
@@ -95,16 +83,10 @@ namespace Commander
                 Console.WriteLine($"Record '{uid}' is already an NSF record; skipped.");
             }
 
-            if (records.Count == 0)
-            {
-                Console.WriteLine("No classic records remain to convert.");
-                return;
-            }
-
             if (!options.Force)
             {
                 Console.WriteLine("WARNING: Conversion is permanent. Classic shared-folder membership and additional classic folder placements are not retained.");
-                Console.WriteLine($"Destination: {(folderUid ?? "Keeper Drive root")}");
+                Console.WriteLine($"Destination: {(folderUid ?? "Vault (root)")}");
                 foreach (var record in records) Console.WriteLine($"  {record.Uid}: {record.Title}");
                 if (!await NsfHelpers.ConfirmAsync("Continue? (yes/No) ").ConfigureAwait(false))
                 {
@@ -123,11 +105,41 @@ namespace Commander
                         ? $"Classic record '{result.RecordUid}' converted to a Keeper NSF record."
                         : $"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
                 }
+                Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} of {records.Count} classic record(s) converted; {alreadyNsf.Count} already NSF record(s) skipped.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error converting records: {ex.Message}");
             }
+        }
+
+        private static bool TryResolveClassicRecord(VaultContext context, string recordRef,
+            out KeeperRecord record, out string error)
+        {
+            error = null;
+            if (context.Vault.TryGetKeeperRecord(recordRef, out record))
+            {
+                return true;
+            }
+
+            if (!context.TryResolvePath(recordRef, out var folder, out var title))
+            {
+                error = $"Classic record '{recordRef}' was not found. Specify its UID or path.";
+                return false;
+            }
+
+            var matches = folder.Records
+                .Select(uid => context.Vault.TryGetKeeperRecord(uid, out var candidate) ? candidate : null)
+                .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
+                .Take(2).ToList();
+            if (matches.Count != 1)
+            {
+                error = $"Classic record '{recordRef}' was not found or is ambiguous. Specify its UID.";
+                return false;
+            }
+
+            record = matches[0];
+            return true;
         }
 
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
@@ -868,10 +880,10 @@ namespace Commander
 
     class NsfConvertOptions
     {
-        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s) or unique title(s)")]
+        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s), title(s), or path(s) to convert (maximum 100 per request)")]
         public IEnumerable<string> Record { get; set; }
 
-        [Option("folder", Required = false, HelpText = "Destination Keeper NSF folder UID or name (root if omitted)")]
+        [Option("folder", Required = false, HelpText = "Existing Keeper NSF folder UID, name, or path; omit for Vault (root)")]
         public string Folder { get; set; }
 
         [Option('f', "force", Required = false, HelpText = "Skip permanent-conversion confirmation")]

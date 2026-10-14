@@ -102,15 +102,60 @@ namespace KeeperSecurity.Vault
                 throw new KeeperApiException("record_conversion_failed", "The record conversion service returned no response.");
             }
 
-            return response.Results.Select(x =>
+            var requested = new HashSet<string>(recordUids, StringComparer.Ordinal);
+            var returned = new Dictionary<string, ConvertRecordResult>(StringComparer.Ordinal);
+            var duplicates = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var item in response.Results)
             {
-                var status = GetConversionStatus(x.Status);
+                var uid = item.RecordUid.IsEmpty ? null : item.RecordUid.ToByteArray().Base64UrlEncode();
+                if (uid == null || !requested.Contains(uid))
+                {
+                    Trace.TraceWarning("KeeperNSF: Conversion response contained a missing or unrequested record UID.");
+                    continue;
+                }
+
+                if (returned.ContainsKey(uid))
+                {
+                    duplicates.Add(uid);
+                }
+                else
+                {
+                    returned.Add(uid, item);
+                }
+            }
+
+            return recordUids.Select(uid =>
+            {
+                if (duplicates.Contains(uid))
+                {
+                    return new KeeperNSFRecordConversionResult
+                    {
+                        RecordUid = uid,
+                        Status = "RESULT_DUPLICATE",
+                        Message = "The server returned multiple results for this record; its conversion state is uncertain.",
+                        ServerOutcomeUncertain = true,
+                    };
+                }
+
+                if (!returned.TryGetValue(uid, out var item))
+                {
+                    return new KeeperNSFRecordConversionResult
+                    {
+                        RecordUid = uid,
+                        Status = "RESULT_MISSING",
+                        Message = "The server did not return a result for this record; its conversion state is uncertain.",
+                        ServerOutcomeUncertain = true,
+                    };
+                }
+
+                var status = GetConversionStatus(item.Status);
                 return new KeeperNSFRecordConversionResult
                 {
-                    RecordUid = x.RecordUid == null || x.RecordUid.IsEmpty ? null : x.RecordUid.ToByteArray().Base64UrlEncode(),
+                    RecordUid = uid,
                     Status = status.Name,
                     Message = status.Message,
-                    Success = x.Status == ConvertRecordStatus.Ok,
+                    Success = item.Status == ConvertRecordStatus.Ok,
+                    ServerOutcomeUncertain = status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
                 };
             }).ToList();
         }
@@ -146,7 +191,9 @@ namespace KeeperSecurity.Vault
                 case ConvertRecordStatus.RecordLinkFilePromotionFailed: return ("RECORD_LINK_FILE_PROMOTION_FAILED", "A linked file attachment could not be promoted.");
                 case ConvertRecordStatus.RecordLinkComponentFailed: return ("RECORD_LINK_COMPONENT_FAILED", "A related record failed and this record was rolled back.");
                 case ConvertRecordStatus.RecordVersionNotConvertible: return ("RECORD_VERSION_NOT_CONVERTIBLE", "The record version cannot be converted.");
-                default: return ($"UNKNOWN_STATUS_{(int)status}", $"The server returned unknown conversion status {(int)status}.");
+                default:
+                    Trace.TraceWarning($"KeeperNSF: Conversion response contained unknown status {(int)status}.");
+                    return ($"UNKNOWN_STATUS_{(int)status}", $"The server returned unknown conversion status {(int)status}; verify the record state after sync-down.");
             }
         }
 
@@ -1161,6 +1208,61 @@ namespace KeeperSecurity.Vault
                     || (!string.IsNullOrEmpty(node.Name)
                         && string.Equals(node.Name, trimmed, StringComparison.OrdinalIgnoreCase)));
 
+            return folder != null;
+        }
+
+        /// <summary>Resolves an NSF destination by UID, unique name, or path without choosing an ambiguous name.</summary>
+        public bool TryResolveKeeperNSFFolderReference(string reference, out FolderNode folder)
+        {
+            folder = null;
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return false;
+            }
+
+            var identifier = reference.Trim();
+            if (IsKeeperDriveRootFolderIdentifier(identifier))
+            {
+                folder = TryCreateKeeperDriveRootFolderNode();
+                return folder != null;
+            }
+
+            if (TryGetKeeperNSFFolder(identifier, out folder))
+            {
+                return true;
+            }
+
+            var nodes = KeeperNSFFolderNodes
+                .Where(node => node != null && !string.IsNullOrEmpty(node.FolderUid))
+                .ToDictionary(node => node.FolderUid, StringComparer.Ordinal);
+            var path = identifier.Trim('/');
+            var matches = nodes.Values.Where(node =>
+            {
+                if (string.Equals(node.Name, path, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var components = new List<string>();
+                var current = node;
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                while (current != null && visited.Add(current.FolderUid))
+                {
+                    if (!string.IsNullOrEmpty(current.Name))
+                    {
+                        components.Add(current.Name);
+                    }
+
+                    current = !string.IsNullOrEmpty(current.ParentUid) && nodes.TryGetValue(current.ParentUid, out var parent)
+                        ? parent
+                        : null;
+                }
+
+                components.Reverse();
+                return string.Equals(string.Join("/", components), path, StringComparison.OrdinalIgnoreCase);
+            }).Take(2).ToList();
+
+            folder = matches.Count == 1 ? matches[0] : null;
             return folder != null;
         }
 

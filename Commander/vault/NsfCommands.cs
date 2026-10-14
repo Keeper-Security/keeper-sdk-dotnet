@@ -121,7 +121,7 @@ namespace Commander
                 new ParseableCommand<NsfConvertOptions>
                 {
                     Order = 47,
-                    Description = "Convert classic records to Keeper NSF records (permanent)",
+                    Description = "Convert classic records to Keeper NSF records. Conversion is permanent.",
                     Action = context.NsfConvertCommand
                 });
 

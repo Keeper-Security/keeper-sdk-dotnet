@@ -551,7 +551,7 @@ namespace KeeperSecurity.Vault
             IReadOnlyList<string> recordUids, string folderUid = null)
         {
             var results = await ConvertClassicRecordsToKeeperNSFInternal(recordUids, folderUid).ConfigureAwait(false);
-            if (results.Count != recordUids.Count || results.Any(x => x.Success))
+            if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
             {
                 await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             }
@@ -560,10 +560,11 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Converts classic records from a synchronous host such as Windows PowerShell 5.1.
-        /// The conversion runs without the caller's synchronization context.
+        /// PowerCommander-only bridge for Windows PowerShell 5.1, which cannot await the SDK task.
+        /// The conversion runs without the PowerShell host's synchronization context.
         /// </summary>
-        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFSynchronous(
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFForPowerCommander(
             IReadOnlyList<string> recordUids, string folderUid = null)
         {
             return Task.Run(() => ConvertClassicRecordsToKeeperNSF(recordUids, folderUid))
