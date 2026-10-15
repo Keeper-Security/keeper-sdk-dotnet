@@ -1115,9 +1115,10 @@ function Get-KdFolderAccesses {
                         AccessType     = [int]$a.AccessType
                         AccessRoleType = [int]$a.AccessRoleType
                         Inherited      = [bool]$a.Inherited
+                        DeniedAccess   = [bool]$a.DeniedAccess
                     }) | Out-Null
                 }
-                return @($converted)
+                return @($converted | Where-Object { -not $_.DeniedAccess })
             }
         }
     }
@@ -1132,9 +1133,10 @@ function Get-KdFolderAccesses {
             AccessType     = $a.AccessType
             AccessRoleType = $a.AccessRoleType
             Inherited      = [bool]$a.Inherited
+            DeniedAccess   = [bool]$a.DeniedAccess
         }) | Out-Null
     }
-    return @($cached)
+    return @($cached | Where-Object { -not $_.DeniedAccess })
 }
 
 function Show-KdFolderPermissions {
