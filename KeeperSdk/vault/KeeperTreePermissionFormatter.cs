@@ -39,7 +39,7 @@ namespace KeeperSecurity.Vault
             var applications = new List<string>();
             foreach (var entry in entries)
             {
-                if (entry == null) continue;
+                if (entry == null || !entry.CanView) continue;
                 var accessor = ResolveNsfAccessor(vault, entry);
                 if (entry.AccessType != NsfAccessTypeTeam && entry.AccessType != NsfAccessTypeApplication &&
                     string.Equals(accessor, entry.AccessTypeUid, StringComparison.Ordinal)) continue;
@@ -171,7 +171,7 @@ namespace KeeperSecurity.Vault
             var applications = new List<object>();
             foreach (var entry in entries ?? Enumerable.Empty<KeeperNSFAccessEntry>())
             {
-                if (entry == null) continue;
+                if (entry == null || !entry.CanView) continue;
                 var row = new Dictionary<string, object>
                 {
                     ["accessor"] = ResolveNsfAccessor(vault, entry),
