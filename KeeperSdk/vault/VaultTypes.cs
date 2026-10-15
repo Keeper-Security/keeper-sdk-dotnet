@@ -1516,7 +1516,7 @@ namespace KeeperSecurity.Vault
         /// <summary>Classic record UID from the conversion request.</summary>
         public string RecordUid { get; internal set; }
 
-        /// <summary>Protocol status, or RESULT_MISSING/RESULT_DUPLICATE when the server response cannot be matched reliably.</summary>
+        /// <summary>Protocol status, or a synthetic response status when the server outcome cannot be determined.</summary>
         public string Status { get; internal set; }
 
         /// <summary>Human-readable explanation of the conversion status.</summary>
@@ -1530,6 +1530,9 @@ namespace KeeperSecurity.Vault
         /// current permission model before retrying a permanent conversion.
         /// </summary>
         public bool OutcomeUncertain => ServerOutcomeUncertain;
+
+        /// <summary>A vault refresh warning after the conversion response was received, if sync-down failed.</summary>
+        public string RefreshWarning { get; internal set; }
 
         // A missing, duplicate, unspecified, or unrecognized response may conceal a completed conversion.
         // Refresh the vault before the caller relies on cached record state.

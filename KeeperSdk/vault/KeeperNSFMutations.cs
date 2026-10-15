@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
@@ -95,11 +96,27 @@ namespace KeeperSecurity.Vault
                 });
             }
 
-            var response = await Auth.ExecuteAuthRest<ConvertRecordRequest, ConvertRecordResponse>(
-                "vault/records/v3/convert", request).ConfigureAwait(false);
+            ConvertRecordResponse response;
+            try
+            {
+                response = await Auth.ExecuteAuthRest<ConvertRecordRequest, ConvertRecordResponse>(
+                    "vault/records/v3/convert", request).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is HttpRequestException || ex is System.IO.IOException
+                                       || ex is TimeoutException || ex is TaskCanceledException
+                                       || ex is ArgumentNullException
+                                       || (ex is KeeperApiException apiError
+                                           && string.Equals(apiError.Code, "http_error", StringComparison.OrdinalIgnoreCase)))
+            {
+                Trace.TraceWarning($"KeeperNSF: Conversion response unavailable ({ex.GetType().Name}).");
+                return CreateUncertainConversionResults(recordUids, "RESPONSE_UNAVAILABLE",
+                    "No reliable conversion response was received. Refresh the vault and verify each record before retrying.");
+            }
+
             if (response == null)
             {
-                throw new KeeperApiException("record_conversion_failed", "The record conversion service returned no response.");
+                return CreateUncertainConversionResults(recordUids, "RESPONSE_MISSING",
+                    "The conversion service returned no response. Refresh the vault and verify each record before retrying.");
             }
 
             var requested = new HashSet<string>(recordUids, StringComparer.Ordinal);
@@ -158,6 +175,18 @@ namespace KeeperSecurity.Vault
                     ServerOutcomeUncertain = item.Status == ConvertRecordStatus.Unspecified
                         || status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
                 };
+            }).ToList();
+        }
+
+        private static IReadOnlyList<KeeperNSFRecordConversionResult> CreateUncertainConversionResults(
+            IReadOnlyList<string> recordUids, string status, string message)
+        {
+            return recordUids.Select(uid => new KeeperNSFRecordConversionResult
+            {
+                RecordUid = uid,
+                Status = status,
+                Message = message,
+                ServerOutcomeUncertain = true,
             }).ToList();
         }
 

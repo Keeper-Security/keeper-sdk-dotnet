@@ -75,6 +75,10 @@ namespace Commander
                         Console.WriteLine($"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
                     }
                 }
+                if (results.Any(x => !string.IsNullOrEmpty(x.RefreshWarning)))
+                {
+                    Console.WriteLine($"WARNING: {results.First(x => !string.IsNullOrEmpty(x.RefreshWarning)).RefreshWarning}");
+                }
                 Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} confirmed converted, "
                     + $"{results.Count(x => x.OutcomeUncertain)} uncertain, "
                     + $"{results.Count(x => !x.Success && !x.OutcomeUncertain)} failed; "

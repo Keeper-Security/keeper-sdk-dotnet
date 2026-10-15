@@ -93,6 +93,10 @@ function ConvertTo-KeeperNSFRecord {
         }
 
         $result = $vault.ConvertClassicRecordsToKeeperNSFForPowerCommander($recordUids, $destinationFolderUid)
+        $refreshWarning = @($result | Where-Object { $_.RefreshWarning } | Select-Object -First 1)
+        if ($refreshWarning.Count -gt 0) {
+            Write-Warning $refreshWarning[0].RefreshWarning
+        }
         foreach ($entry in $result) {
             if ($entry.OutcomeUncertain) {
                 Write-Warning "Conversion outcome for '$($entry.RecordUid)' is uncertain; refresh the vault and verify the record before retrying."

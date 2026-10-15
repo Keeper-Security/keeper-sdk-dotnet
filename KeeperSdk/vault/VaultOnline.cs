@@ -553,7 +553,18 @@ namespace KeeperSecurity.Vault
             var results = await ConvertClassicRecordsToKeeperNSFInternal(recordUids, folderUid).ConfigureAwait(false);
             if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
             {
-                await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                try
+                {
+                    await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Vault refresh after conversion failed ({ex.GetType().Name}).");
+                    foreach (var result in results.Where(x => x.Success || x.ServerOutcomeUncertain))
+                    {
+                        result.RefreshWarning = "Vault refresh failed after the conversion response. Refresh the vault and verify record state before relying on cached data.";
+                    }
+                }
             }
 
             return results;
