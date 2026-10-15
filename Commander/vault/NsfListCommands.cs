@@ -1026,7 +1026,7 @@ namespace Commander
                         continue;
                     }
 
-                    return result.Accessors.Select(a => new NsfAccessView
+                    return result.Accessors.Where(a => !a.DeniedAccess).Select(a => new NsfAccessView
                     {
                         AccessTypeUid = a.AccessTypeUid.ToByteArray().Base64UrlEncode(),
                         AccessType = (int)a.AccessType,
@@ -1041,6 +1041,7 @@ namespace Commander
             }
 
             return vault.Storage.KdFolderAccesses.GetLinksForSubject(folder.FolderUid)
+                .Where(a => !a.DeniedAccess)
                 .Select(a => new NsfAccessView
                 {
                     AccessTypeUid = a.AccessTypeUid,
