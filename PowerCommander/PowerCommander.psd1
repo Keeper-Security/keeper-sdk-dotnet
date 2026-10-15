@@ -68,7 +68,7 @@
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'CommandHelpers.ps1', 'VaultCommands.ps1', 'KeeperPassphrase.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
-        'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
+        'FolderCommands.ps1', 'DeviceCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1',
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
@@ -102,7 +102,7 @@
         'Deny-KeeperDevice','Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 
         'Get-KeeperMspLegacyReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 
-        'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
+        'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'Get-KeeperDeviceList', 'Invoke-KeeperDeviceAction', 'Rename-KeeperDevice', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
         'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
         'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole', 'Copy-KeeperEnterpriseRole', 
@@ -170,7 +170,7 @@
         'kepm-agent-list', 'kepm-agent-view', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kuser-alias-add', 'kuser-alias-remove', 'kshrsh', 'kshr', 'kushr', 'ksfr', 'kcancelshare', 'kshf',
-        'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
+        'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device', 'device-list', 'device-action', 'device-rename', 'ksm', 'ksm-create', 'ksm-delete',
         'ksm-share', 'ksm-unshare', 'ksm-share-update', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree', 'kep', 'kta',

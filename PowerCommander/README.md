@@ -60,6 +60,9 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Copy-FileToKeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#power-commander)                                 |                  | Upload file attachment to a record
 | [Get-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander)                               |                  | Print the current device settings
 | [Set-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander-1)                                | this-device      | Modifies the current device settings
+| Get-KeeperDeviceList                                  | device-list      | Lists devices registered to the current Keeper account; supports `-Format table/json` and `-Output` for JSON files
+| Invoke-KeeperDeviceAction                             | device-action     | Performs `logout`, `remove`, `lock`, `unlock`, `account-lock`, `account-unlock`, `link`, or `unlink`; accepts row IDs, device-token prefixes, or device names
+| Rename-KeeperDevice                                    | device-rename     | Renames one user device selected by row ID, device-token prefix, or device name
 | [Get-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Show/hide secret fields setting
 | [Set-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Sets whether password fields should be visible or not
 
