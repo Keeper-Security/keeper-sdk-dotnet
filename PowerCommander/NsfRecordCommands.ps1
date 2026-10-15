@@ -1434,7 +1434,13 @@ function Set-KeeperNSFRecordPermission {
     }
 
     if ($FolderUid) {
-        $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+        try {
+            $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
         if ($resolvedFolder) {
             $FolderUid = $resolvedFolder.FolderUid
         }
@@ -1628,13 +1634,25 @@ function Get-KeeperNSFShortcut {
                 $folderUid = $Target
             } else {
                 $foundByTitle = $false
-                $resolvedRecord = resolveKeeperNSFRecord -Identifier $Target -Vault $vault
+                try {
+                    $resolvedRecord = resolveKeeperNSFRecord -Identifier $Target -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+                    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+                    return
+                }
                 if ($resolvedRecord) {
                     $recordUid = $resolvedRecord.RecordUid
                     $foundByTitle = $true
                 }
                 if (-not $foundByTitle) {
-                    $resolvedFolder = resolveKeeperNSFFolder -Identifier $Target -Vault $vault
+                    try {
+                        $resolvedFolder = resolveKeeperNSFFolder -Identifier $Target -Vault $vault
+                    }
+                    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+                        return
+                    }
                     if ($resolvedFolder) {
                         $folderUid = $resolvedFolder.FolderUid
                         $foundByTitle = $true
@@ -1757,7 +1775,13 @@ function Set-KeeperNSFShortcutKeep {
         return
     }
 
-    $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+    try {
+        $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
     if ($resolvedRecord) {
         $RecordUid = $resolvedRecord.RecordUid
     }
@@ -1766,7 +1790,13 @@ function Set-KeeperNSFShortcutKeep {
         return
     }
 
-    $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+    try {
+        $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
     if ($resolvedFolder) {
         $FolderUid = $resolvedFolder.FolderUid
     }
@@ -1901,7 +1931,13 @@ function Remove-KeeperNSFRecord {
         $folderHint = $null
 
         if ($Folder) {
-            $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+            try {
+                $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                writeAmbiguousNsfError -ErrorRecord $_
+                return
+            }
             if (-not $folderNode) {
                 Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
                 return
@@ -2322,13 +2358,25 @@ function Link-KeeperNSFRecord {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-    $kdRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    try {
+        $kdRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     if (-not $kdRecord) {
         Write-Error -Message "Keeper NSF record `"$Record`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
 
-    $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     if (-not $folderNode) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
         return
@@ -2972,7 +3020,13 @@ function Transfer-KeeperNSFRecordOwnership {
     $resolvedRecords = New-Object 'System.Collections.Generic.List[string]'
 
     foreach ($name in $recordArgs) {
-        $kdRecord = resolveKeeperNSFRecord -Identifier $name -Vault $vault
+        try {
+            $kdRecord = resolveKeeperNSFRecord -Identifier $name -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
         if (-not $kdRecord) {
             Write-Error -Message "Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first."
             return

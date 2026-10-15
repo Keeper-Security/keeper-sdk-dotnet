@@ -58,7 +58,17 @@ namespace Commander
 
             if (checkSharedFolders)
             {
-                var sharedFolder = TryResolveSharedFolder(context, identifier);
+                SharedFolder sharedFolder;
+                try
+                {
+                    sharedFolder = TryResolveSharedFolder(context, identifier);
+                }
+                catch (AmbiguousSharedFolderException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
+
                 if (sharedFolder != null)
                 {
                     if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))

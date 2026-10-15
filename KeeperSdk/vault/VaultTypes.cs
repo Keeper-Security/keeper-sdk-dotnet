@@ -1890,8 +1890,8 @@ namespace KeeperSecurity.Vault
             string kind, string identifier, string uidLabel, IEnumerable<(string Uid, string Name)> matches)
         {
             var list = matches.ToList();
-            var details = string.Join("\n", list.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
-            return $"There are {list.Count} {kind} with name \"{identifier}\". Use {uidLabel} to specify the correct one:\n{details}";
+            var details = string.Join(Environment.NewLine, list.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
+            return $"There are {list.Count} {kind} with name \"{identifier}\". Use {uidLabel} to specify the correct one:{Environment.NewLine}{details}";
         }
     }
 

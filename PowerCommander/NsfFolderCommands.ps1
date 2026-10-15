@@ -1035,7 +1035,13 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     if (-not $folderNode) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
         return
@@ -1335,9 +1341,21 @@ function Move-KeeperNSFItem {
         return
     }
 
-    $folderNode = resolveKeeperNSFFolder -Identifier $Src -Vault $vault
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Src -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     if ($folderNode) {
-        $targetNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        try {
+            $targetNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
         if (-not $targetNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return
@@ -1366,7 +1384,13 @@ function Move-KeeperNSFItem {
         return
     }
 
-    $kdRecord = resolveKeeperNSFRecord -Identifier $Src -Vault $vault
+    try {
+        $kdRecord = resolveKeeperNSFRecord -Identifier $Src -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     if ($kdRecord) {
         [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
 
@@ -1389,7 +1413,13 @@ function Move-KeeperNSFItem {
             return
         }
 
-        $targetFolderNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        try {
+            $targetFolderNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
         if (-not $targetFolderNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return

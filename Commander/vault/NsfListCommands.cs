@@ -248,7 +248,17 @@ namespace Commander
 
             var vault = context.Vault;
             var currentAccountUid = vault.Auth.AuthContext.AccountUid.Base64UrlEncode();
-            var (record, folder) = NsfHelpers.ResolveNsfObject(vault, options.Uid, options.Name);
+            KeeperNSFRecord record;
+            FolderNode folder;
+            try
+            {
+                (record, folder) = NsfHelpers.ResolveNsfObject(vault, options.Uid, options.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousFolderException || ex is AmbiguousNsfRecordException)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return;
+            }
 
             if (record == null && folder == null)
             {

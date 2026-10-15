@@ -27,6 +27,13 @@ namespace Commander
             Vault = vault;
         }
 
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a single classic folder.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a segment matches zero subfolders.
+        /// </remarks>
         public bool TryResolvePath(string path, out FolderNode node)
         {
             var res = TryResolvePath(path, out node, out var text);
@@ -38,6 +45,14 @@ namespace Commander
             return res;
         }
 
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a folder, treating a trailing unresolved segment as a record
+        /// title/pattern returned via <paramref name="text"/> instead of failing.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a non-trailing segment matches zero subfolders.
+        /// </remarks>
         public bool TryResolvePath(string path, out FolderNode node, out string text)
         {
             node = null;

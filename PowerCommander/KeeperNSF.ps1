@@ -472,11 +472,11 @@ function Get-KeeperNSFRecord {
         $resolved = Resolve-KdNsfObject -vault $vault -Uid $Uid -Name $Name
     }
     catch [KeeperSecurity.Vault.AmbiguousFolderException] {
-        Write-Error -Message $_.Exception.Message
+        writeAmbiguousNsfError -ErrorRecord $_
         return
     }
     catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
-        Write-Error -Message $_.Exception.Message
+        writeAmbiguousNsfError -ErrorRecord $_
         return
     }
     $kdRecord = $resolved.Record

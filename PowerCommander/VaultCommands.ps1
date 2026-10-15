@@ -38,6 +38,19 @@ function getAmbiguousNsfException {
     return $null
 }
 
+function writeAmbiguousNsfError {
+    <#
+    .Synopsis
+    Internal helper. Prints the message of a caught AmbiguousFolderException/AmbiguousNsfRecordException
+    via Write-Error, so every cmdlet reports ambiguity the same way instead of re-typing the same line.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    Write-Error -Message $ErrorRecord.Exception.Message
+}
+
 function resolveKeeperNSFFolder {
     <#
     .Synopsis
@@ -963,7 +976,7 @@ function Get-KeeperObject {
                     $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
                 }
                 catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
-                    Write-Error -Message $_.Exception.Message
+                    writeAmbiguousNsfError -ErrorRecord $_
                     continue
                 }
                 if ($nsfRecord) {
@@ -980,7 +993,7 @@ function Get-KeeperObject {
                     $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
                 }
                 catch [KeeperSecurity.Vault.AmbiguousFolderException] {
-                    Write-Error -Message $_.Exception.Message
+                    writeAmbiguousNsfError -ErrorRecord $_
                     continue
                 }
                 if ($nsfFolder) {
