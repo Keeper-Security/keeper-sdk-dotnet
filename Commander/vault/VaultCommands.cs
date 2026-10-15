@@ -86,19 +86,41 @@ namespace Commander
                 }
                 else
                 {
-                    var found = false;
+                    FolderNode uidMatch = null;
+                    var nameMatches = new List<FolderNode>();
                     foreach (var subFolder in node.Subfolders)
                     {
                         if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                        if ((string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) && (string.Compare(folder, subNode.FolderUid, StringComparison.CurrentCultureIgnoreCase) != 0))
-                            continue;
-                        found = true;
-                        node = subNode;
-                        break;
+                        if (string.Equals(folder, subNode.FolderUid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            uidMatch = subNode;
+                            break;
+                        }
+
+                        if (!string.IsNullOrEmpty(subNode.Name) && string.Equals(folder, subNode.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            nameMatches.Add(subNode);
+                        }
                     }
 
-                    if (found) continue;
+                    if (uidMatch != null)
+                    {
+                        node = uidMatch;
+                        continue;
+                    }
+
+                    if (nameMatches.Count > 1)
+                    {
+                        throw new AmbiguousFolderException(folder, nameMatches);
+                    }
+
+                    if (nameMatches.Count == 1)
+                    {
+                        node = nameMatches[0];
+                        continue;
+                    }
+
                     if (string.IsNullOrEmpty(text))
                     {
                         text = folder;
@@ -112,7 +134,34 @@ namespace Commander
 
             return true;
         }
-    
+
+    }
+
+    /// <summary>
+    /// Thrown when a classic folder identifier (name) matches more than one folder.
+    /// </summary>
+    /// <remarks>
+    /// Raised by <see cref="VaultContext.TryResolvePath(string, out FolderNode, out string)"/>
+    /// instead of silently resolving to the first match.
+    /// </remarks>
+    internal class AmbiguousFolderException : VaultException
+    {
+        internal string Identifier { get; }
+
+        internal IReadOnlyList<FolderNode> Matches { get; }
+
+        internal AmbiguousFolderException(string identifier, IReadOnlyList<FolderNode> matches)
+            : base(BuildMessage(identifier, matches))
+        {
+            Identifier = identifier;
+            Matches = matches;
+        }
+
+        private static string BuildMessage(string identifier, IReadOnlyList<FolderNode> matches)
+        {
+            var details = string.Join("\n", matches.Select(m => $"  UID: {m.FolderUid}, Name: {m.Name}"));
+            return $"There are {matches.Count} folders with name \"{identifier}\". Use Folder UID or full path to specify the correct one:\n{details}";
+        }
     }
 
     internal static class VaultCommandExtensions

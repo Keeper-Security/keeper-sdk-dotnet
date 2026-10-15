@@ -98,6 +98,32 @@ namespace Commander
             return (recordType, title);
         }
 
+        /// <summary>
+        /// Resolves an NSF folder by UID or exact name. Throws <see cref="AmbiguousNsfFolderException"/>
+        /// when the name matches more than one folder. Thin wrapper over the SDK's strict resolver.
+        /// </summary>
+        internal static FolderNode ResolveNsfFolderByUidOrName(VaultOnline vault, string uidOrName)
+        {
+            return vault.ResolveKeeperNSFFolderStrict(uidOrName);
+        }
+
+        /// <summary>
+        /// Same as <see cref="ResolveNsfFolderByUidOrName"/>, but also accepts "", "/" or "root" to mean the Keeper Drive root.
+        /// </summary>
+        internal static FolderNode ResolveNsfFolderOrRootByUidOrName(VaultOnline vault, string uidOrName)
+        {
+            return vault.ResolveKeeperNSFFolderOrRootStrict(uidOrName);
+        }
+
+        /// <summary>
+        /// Resolves an NSF record by UID or exact title. Throws <see cref="AmbiguousNsfRecordException"/>
+        /// when the title matches more than one record. Thin wrapper over the SDK's strict resolver.
+        /// </summary>
+        internal static KeeperNSFRecord ResolveNsfRecordByUidOrTitle(VaultOnline vault, string uidOrTitle)
+        {
+            return vault.ResolveKeeperNSFRecordStrict(uidOrTitle);
+        }
+
         internal static (KeeperNSFRecord Record, FolderNode Folder) ResolveNsfObject(VaultOnline vault, string uid, string name)
         {
             if (!string.IsNullOrEmpty(uid))
@@ -117,66 +143,44 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(name))
             {
-                foreach (var f in vault.KeeperNSFFolderNodes)
+                var folderMatch = ResolveNsfFolderByUidOrName(vault, name);
+                if (folderMatch != null)
                 {
-                    if (f.Name != null && string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (null, f);
-                    }
+                    return (null, folderMatch);
                 }
 
-                foreach (var r in vault.KeeperNSFRecordEntries)
+                var recordMatch = ResolveNsfRecordByUidOrTitle(vault, name);
+                if (recordMatch != null)
                 {
-                    if (r.Title != null && string.Equals(r.Title, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (r, null);
-                    }
+                    return (recordMatch, null);
                 }
 
-                foreach (var f in vault.KeeperNSFFolderNodes)
+                var partialFolderMatches = vault.KeeperNSFFolderNodes
+                    .Where(f => f.Name != null && f.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+                if (partialFolderMatches.Count > 1)
                 {
-                    if (f.Name != null && f.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        return (null, f);
-                    }
+                    throw new AmbiguousNsfFolderException(name, partialFolderMatches);
+                }
+                if (partialFolderMatches.Count == 1)
+                {
+                    return (null, partialFolderMatches[0]);
                 }
 
-                foreach (var r in vault.KeeperNSFRecordEntries)
+                var partialRecordMatches = vault.KeeperNSFRecordEntries
+                    .Where(r => r.Title != null && r.Title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+                if (partialRecordMatches.Count > 1)
                 {
-                    if (r.Title != null && r.Title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        return (r, null);
-                    }
+                    throw new AmbiguousNsfRecordException(name, partialRecordMatches);
+                }
+                if (partialRecordMatches.Count == 1)
+                {
+                    return (partialRecordMatches[0], null);
                 }
             }
 
             return (null, null);
-        }
-
-        internal static KeeperNSFRecord ResolveNsfRecord(VaultOnline vault, string identifier)
-        {
-            if (vault.TryGetKeeperNSFRecord(identifier, out var record))
-            {
-                return record;
-            }
-
-            foreach (var r in vault.KeeperNSFRecordEntries)
-            {
-                if (r.Title != null && string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
-                {
-                    return r;
-                }
-            }
-
-            foreach (var r in vault.KeeperNSFRecordEntries)
-            {
-                if (r.Title != null && r.Title.IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return r;
-                }
-            }
-
-            return null;
         }
 
         internal static Dictionary<string, FolderNode> GetFolderNodeMap(VaultOnline vault)

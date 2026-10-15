@@ -978,6 +978,43 @@ namespace KeeperSecurity.Vault
             return false;
         }
 
+        /// <summary>
+        /// Resolves a Keeper NSF record by UID or exact title, like <see cref="TryResolveKeeperNSFRecord"/>, but
+        /// throws <see cref="AmbiguousNsfRecordException"/> instead of silently picking the first match
+        /// when the title matches more than one record. Returns <c>null</c> when nothing matches.
+        /// </summary>
+        public KeeperNSFRecord ResolveKeeperNSFRecordStrict(string uidOrTitle)
+        {
+            if (string.IsNullOrWhiteSpace(uidOrTitle))
+            {
+                return null;
+            }
+
+            if (TryGetKeeperNSFRecord(uidOrTitle, out var exact) && exact != null)
+            {
+                return exact;
+            }
+
+            var trimmed = uidOrTitle.Trim();
+            var uidMatch = KeeperNSFRecordEntries
+                .FirstOrDefault(entry => entry != null && string.Equals(entry.RecordUid, trimmed, StringComparison.OrdinalIgnoreCase));
+            if (uidMatch != null)
+            {
+                return uidMatch;
+            }
+
+            var matches = KeeperNSFRecordEntries
+                .Where(entry => entry?.Title != null && string.Equals(entry.Title, trimmed, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousNsfRecordException(trimmed, matches);
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
+        }
+
         /// <inheritdoc/>
         public bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder)
         {
@@ -1065,6 +1102,67 @@ namespace KeeperSecurity.Vault
             return TryResolveKeeperNSFFolder(folderUidOrName, out folder);
         }
 
+        /// <summary>
+        /// Resolves a Keeper NSF folder by UID or name, like <see cref="TryResolveKeeperNSFFolder"/>, but
+        /// throws <see cref="AmbiguousNsfFolderException"/> instead of silently picking the first match
+        /// when the name matches more than one Nested Shared Folder. Returns <c>null</c> when nothing matches.
+        /// </summary>
+        public FolderNode ResolveKeeperNSFFolderStrict(string uidOrName)
+        {
+            if (string.IsNullOrWhiteSpace(uidOrName))
+            {
+                return null;
+            }
+
+            var trimmed = uidOrName.Trim();
+            if (IsKeeperDriveRootFolderIdentifier(trimmed))
+            {
+                return TryCreateKeeperDriveRootFolderNode();
+            }
+
+            if (TryGetKeeperNSFFolder(uidOrName, out var exact))
+            {
+                return exact;
+            }
+
+            var uidMatch = KeeperNSFFolderNodes
+                .FirstOrDefault(node => string.Equals(node?.FolderUid, trimmed, StringComparison.OrdinalIgnoreCase));
+            if (uidMatch != null)
+            {
+                return uidMatch;
+            }
+
+            var matches = KeeperNSFFolderNodes
+                .Where(node => node?.Name != null && string.Equals(node.Name, trimmed, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousNsfFolderException(trimmed, matches);
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
+        }
+
+        /// <summary>
+        /// Same as <see cref="ResolveKeeperNSFFolderStrict"/>, but also accepts an empty string, "/" or "root"
+        /// to mean the Keeper Drive root.
+        /// </summary>
+        public FolderNode ResolveKeeperNSFFolderOrRootStrict(string folderUidOrName)
+        {
+            if (folderUidOrName == null)
+            {
+                return null;
+            }
+
+            if (folderUidOrName.Length == 0 || IsKeeperDriveRootFolderIdentifier(folderUidOrName))
+            {
+                return TryCreateKeeperDriveRootFolderNode();
+            }
+
+            return ResolveKeeperNSFFolderStrict(folderUidOrName);
+        }
+
         /// <inheritdoc/>
         public IEnumerable<string> GetKeeperNSFFoldersForRecord(string recordUid)
         {
@@ -1091,7 +1189,8 @@ namespace KeeperSecurity.Vault
             {
                 if (!string.IsNullOrWhiteSpace(folderUidOrName))
                 {
-                    if (!TryResolveKeeperNSFFolder(folderUidOrName, out var ownerTrashFolder))
+                    var ownerTrashFolder = ResolveKeeperNSFFolderStrict(folderUidOrName);
+                    if (ownerTrashFolder == null)
                     {
                         return false;
                     }
@@ -1108,7 +1207,8 @@ namespace KeeperSecurity.Vault
 
             if (!string.IsNullOrWhiteSpace(folderUidOrName))
             {
-                if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
+                var folder = ResolveKeeperNSFFolderStrict(folderUidOrName);
+                if (folder == null)
                 {
                     return false;
                 }

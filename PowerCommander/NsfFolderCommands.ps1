@@ -1035,8 +1035,8 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+    $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    if (-not $folderNode) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
@@ -1335,10 +1335,10 @@ function Move-KeeperNSFItem {
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if ($vault.TryResolveKeeperNSFFolder($Src, [ref]$folderNode)) {
-        [KeeperSecurity.Vault.FolderNode]$targetNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetNode)) {
+    $folderNode = resolveKeeperNSFFolder -Identifier $Src -Vault $vault
+    if ($folderNode) {
+        $targetNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        if (-not $targetNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return
         }
@@ -1366,8 +1366,8 @@ function Move-KeeperNSFItem {
         return
     }
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-    if ($vault.TryResolveKeeperNSFRecord($Src, [ref]$kdRecord)) {
+    $kdRecord = resolveKeeperNSFRecord -Identifier $Src -Vault $vault
+    if ($kdRecord) {
         [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
 
         $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
@@ -1389,8 +1389,8 @@ function Move-KeeperNSFItem {
             return
         }
 
-        [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetFolderNode)) {
+        $targetFolderNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        if (-not $targetFolderNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return
         }
@@ -1674,8 +1674,14 @@ function Remove-KeeperNSFFolder {
 
     process {
         foreach ($name in $Folder) {
-            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-            if (-not $vault.TryResolveKeeperNSFFolder($name, [ref]$folderNode)) {
+            try {
+                $folderNode = resolveKeeperNSFFolder -Identifier $name -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
+                Write-Error -Message $_.Exception.Message
+                continue
+            }
+            if (-not $folderNode) {
                 Write-Error -Message "Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first."
                 continue
             }
@@ -1902,8 +1908,15 @@ function Remove-KeeperNSFFolders {
     $resolveErrors = New-Object System.Collections.Generic.List[string]
     $index = 0
     foreach ($spec in $specs) {
-        [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolder($spec.FolderUid, [ref]$folderNode)) {
+        try {
+            $folderNode = resolveKeeperNSFFolder -Identifier $spec.FolderUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
+            $resolveErrors.Add("$($_.Exception.Message) (index $index)")
+            $index++
+            continue
+        }
+        if (-not $folderNode) {
             $resolveErrors.Add("Keeper NSF folder `"$($spec.FolderUid)`" was not found (index $index). Run Sync-Keeper or nsf-list first.")
             $index++
             continue

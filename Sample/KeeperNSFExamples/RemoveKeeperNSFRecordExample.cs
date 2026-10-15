@@ -26,10 +26,19 @@ namespace Sample.KeeperNSFExamples
                 return;
             }
 
-            if (!vault.TryResolveKeeperNSFRecordRemovalFolder(
-                    record.RecordUid, folderUidOrName, operation, out var folderUid))
+            string folderUid;
+            try
             {
-                Console.WriteLine("Could not resolve folder context for record removal.");
+                if (!vault.TryResolveKeeperNSFRecordRemovalFolder(
+                        record.RecordUid, folderUidOrName, operation, out folderUid))
+                {
+                    Console.WriteLine("Could not resolve folder context for record removal.");
+                    return;
+                }
+            }
+            catch (AmbiguousNsfFolderException ex)
+            {
+                Console.WriteLine(ex.Message);
                 return;
             }
 

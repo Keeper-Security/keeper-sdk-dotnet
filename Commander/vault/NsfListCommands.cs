@@ -294,15 +294,26 @@ namespace Commander
                 return;
             }
 
-            var recordUids = identifiers
-                .Select(uid =>
+            var recordUids = new List<string>();
+            foreach (var uid in identifiers)
+            {
+                var trimmed = uid?.Trim();
+                string resolvedUid;
+                try
                 {
-                    var trimmed = uid?.Trim();
-                    var resolved = NsfHelpers.ResolveNsfRecord(vault, trimmed);
-                    return resolved?.RecordUid ?? trimmed;
-                })
-                .Where(uid => !string.IsNullOrEmpty(uid))
-                .ToList();
+                    resolvedUid = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, trimmed)?.RecordUid ?? trimmed;
+                }
+                catch (AmbiguousNsfRecordException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(resolvedUid))
+                {
+                    recordUids.Add(resolvedUid);
+                }
+            }
 
             KeeperNSFRecordDetailsResult details;
             try

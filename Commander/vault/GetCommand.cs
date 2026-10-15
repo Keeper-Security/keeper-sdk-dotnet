@@ -176,8 +176,17 @@ namespace Commander
                 return sharedFolder;
             }
 
-            return context.Vault.SharedFolders
-                .FirstOrDefault(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase));
+            var matches = context.Vault.SharedFolders
+                .Where(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                var details = string.Join("\n", matches.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
+                throw new Exception($"There are {matches.Count} shared folders with name \"{identifier}\". Use Shared Folder UID to specify the correct one:\n{details}");
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
         }
 
         private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab)
