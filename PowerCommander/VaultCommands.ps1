@@ -21,7 +21,7 @@ function getAmbiguousNsfException {
     MethodInvocationException, which breaks both `catch [ExactType]` reliability and
     `$_.Exception.Message` (it shows "Exception calling "X" with "N" argument(s): ..."
     instead of the clean message). Given a caught ErrorRecord, returns the real
-    AmbiguousNsfFolderException/AmbiguousNsfRecordException (unwrapped if necessary),
+    AmbiguousFolderException/AmbiguousNsfRecordException (unwrapped if necessary),
     or $null if the error isn't one of those - callers should `throw` in that case.
     #>
     Param(
@@ -29,10 +29,10 @@ function getAmbiguousNsfException {
     )
 
     $ex = $ErrorRecord.Exception
-    if ($ex -is [KeeperSecurity.Vault.AmbiguousNsfFolderException] -or $ex -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+    if ($ex -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
         return $ex
     }
-    if ($ex.InnerException -is [KeeperSecurity.Vault.AmbiguousNsfFolderException] -or $ex.InnerException -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+    if ($ex.InnerException -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex.InnerException -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
         return $ex.InnerException
     }
     return $null
@@ -42,7 +42,7 @@ function resolveKeeperNSFFolder {
     <#
     .Synopsis
     Internal helper. Resolves a Keeper NSF folder by UID or name via the SDK's strict resolver.
-    Throws [KeeperSecurity.Vault.AmbiguousNsfFolderException] when the name matches more than one folder;
+    Throws [KeeperSecurity.Vault.AmbiguousFolderException] when the name matches more than one folder;
     callers processing multiple identifiers in a loop should catch it to continue past a single bad entry.
     #>
     Param(
@@ -979,7 +979,7 @@ function Get-KeeperObject {
                 try {
                     $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
                 }
-                catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
+                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
                     Write-Error -Message $_.Exception.Message
                     continue
                 }

@@ -99,7 +99,7 @@ namespace Commander
         }
 
         /// <summary>
-        /// Resolves an NSF folder by UID or exact name. Throws <see cref="AmbiguousNsfFolderException"/>
+        /// Resolves an NSF folder by UID or exact name. Throws <see cref="AmbiguousFolderException"/>
         /// when the name matches more than one folder. Thin wrapper over the SDK's strict resolver.
         /// </summary>
         internal static FolderNode ResolveNsfFolderByUidOrName(VaultOnline vault, string uidOrName)
@@ -160,7 +160,7 @@ namespace Commander
                     .ToList();
                 if (partialFolderMatches.Count > 1)
                 {
-                    throw new AmbiguousNsfFolderException(name, partialFolderMatches);
+                    throw new AmbiguousFolderException(name, partialFolderMatches, "Nested Shared Folders");
                 }
                 if (partialFolderMatches.Count == 1)
                 {

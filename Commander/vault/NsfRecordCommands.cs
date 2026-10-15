@@ -473,7 +473,10 @@ namespace Commander
                 return;
             }
 
+            // Resolve every record before removing anything: a destructive batch either runs in full or not at all,
+            // so one ambiguous/missing identifier can't result in a half-done delete of the others.
             var removals = new List<KeeperNSFRecordRemoval>();
+            var resolveErrors = new List<string>();
             foreach (var name in records)
             {
                 KeeperNSFRecord kdRecord;
@@ -483,13 +486,13 @@ namespace Commander
                 }
                 catch (AmbiguousNsfRecordException ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    resolveErrors.Add(ex.Message);
                     continue;
                 }
 
                 if (kdRecord == null)
                 {
-                    Console.WriteLine($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
+                    resolveErrors.Add($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
                     continue;
                 }
 
@@ -499,7 +502,7 @@ namespace Commander
                     var folderUids = vault.GetKeeperNSFFoldersForRecord(kdRecord.RecordUid).ToList();
                     if (folderUids.Count == 0)
                     {
-                        Console.WriteLine($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
+                        resolveErrors.Add($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
                         continue;
                     }
 
@@ -512,6 +515,16 @@ namespace Commander
                     FolderUid = folderUid,
                     Operation = op
                 });
+            }
+
+            if (resolveErrors.Count > 0)
+            {
+                foreach (var error in resolveErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                Console.WriteLine($"Aborted: {resolveErrors.Count} of {records.Count} record(s) could not be resolved. No records were removed.");
+                return;
             }
 
             if (removals.Count == 0)

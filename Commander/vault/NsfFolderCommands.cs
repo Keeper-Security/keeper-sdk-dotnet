@@ -230,7 +230,10 @@ namespace Commander
                 ? KeeperNSFFolderRemoveOperation.DeletePermanent
                 : KeeperNSFFolderRemoveOperation.FolderTrash;
 
+            // Resolve every folder before removing anything: a destructive batch either runs in full or not at all,
+            // so one ambiguous/missing name can't result in a half-done delete of the others.
             var removals = new List<KeeperNSFFolderRemoval>();
+            var resolveErrors = new List<string>();
             foreach (var name in folders)
             {
                 FolderNode folderNode;
@@ -238,15 +241,15 @@ namespace Commander
                 {
                     folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, name);
                 }
-                catch (AmbiguousNsfFolderException ex)
+                catch (AmbiguousFolderException ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    resolveErrors.Add(ex.Message);
                     continue;
                 }
 
                 if (folderNode == null)
                 {
-                    Console.WriteLine($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
+                    resolveErrors.Add($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
                     continue;
                 }
 
@@ -255,6 +258,16 @@ namespace Commander
                     FolderUid = folderNode.FolderUid,
                     Operation = op
                 });
+            }
+
+            if (resolveErrors.Count > 0)
+            {
+                foreach (var error in resolveErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                Console.WriteLine($"Aborted: {resolveErrors.Count} of {folders.Count} folder(s) could not be resolved. No folders were removed.");
+                return;
             }
 
             if (removals.Count == 0)

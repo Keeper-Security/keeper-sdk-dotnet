@@ -182,8 +182,7 @@ namespace Commander
 
             if (matches.Count > 1)
             {
-                var details = string.Join("\n", matches.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
-                throw new Exception($"There are {matches.Count} shared folders with name \"{identifier}\". Use Shared Folder UID to specify the correct one:\n{details}");
+                throw new AmbiguousSharedFolderException(identifier, matches);
             }
 
             return matches.Count == 1 ? matches[0] : null;

@@ -137,33 +137,6 @@ namespace Commander
 
     }
 
-    /// <summary>
-    /// Thrown when a classic folder identifier (name) matches more than one folder.
-    /// </summary>
-    /// <remarks>
-    /// Raised by <see cref="VaultContext.TryResolvePath(string, out FolderNode, out string)"/>
-    /// instead of silently resolving to the first match.
-    /// </remarks>
-    internal class AmbiguousFolderException : VaultException
-    {
-        internal string Identifier { get; }
-
-        internal IReadOnlyList<FolderNode> Matches { get; }
-
-        internal AmbiguousFolderException(string identifier, IReadOnlyList<FolderNode> matches)
-            : base(BuildMessage(identifier, matches))
-        {
-            Identifier = identifier;
-            Matches = matches;
-        }
-
-        private static string BuildMessage(string identifier, IReadOnlyList<FolderNode> matches)
-        {
-            var details = string.Join("\n", matches.Select(m => $"  UID: {m.FolderUid}, Name: {m.Name}"));
-            return $"There are {matches.Count} folders with name \"{identifier}\". Use Folder UID or full path to specify the correct one:\n{details}";
-        }
-    }
-
     internal static class VaultCommandExtensions
     {
         internal static void AppendVaultCommands(this VaultContext context, CliCommands cli)

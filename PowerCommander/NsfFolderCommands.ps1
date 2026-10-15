@@ -1665,6 +1665,10 @@ function Remove-KeeperNSFFolder {
     begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRemoval]'
+        # Resolve every folder before removing anything: a destructive batch either runs in full or not at all,
+        # so one ambiguous/missing name can't result in a half-done delete of the others.
+        $resolveErrors = New-Object 'System.Collections.Generic.List[string]'
+        $totalFolderCount = 0
 
         $op = switch ($Operation) {
             'folder-trash' { [KeeperSecurity.Vault.KeeperNSFFolderRemoveOperation]::FolderTrash }
@@ -1674,15 +1678,16 @@ function Remove-KeeperNSFFolder {
 
     process {
         foreach ($name in $Folder) {
+            $totalFolderCount++
             try {
                 $folderNode = resolveKeeperNSFFolder -Identifier $name -Vault $vault
             }
-            catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
-                Write-Error -Message $_.Exception.Message
+            catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                $resolveErrors.Add($_.Exception.Message)
                 continue
             }
             if (-not $folderNode) {
-                Write-Error -Message "Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+                $resolveErrors.Add("Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first.")
                 continue
             }
 
@@ -1694,6 +1699,14 @@ function Remove-KeeperNSFFolder {
     }
 
     end {
+        if ($resolveErrors.Count -gt 0) {
+            foreach ($resolveError in $resolveErrors) {
+                Write-Error -Message $resolveError
+            }
+            Write-Host "Aborted: $($resolveErrors.Count) of $totalFolderCount folder(s) could not be resolved. No folders were removed." -ForegroundColor Red
+            return
+        }
+
         if ($removals.Count -eq 0) {
             return
         }
@@ -1911,7 +1924,7 @@ function Remove-KeeperNSFFolders {
         try {
             $folderNode = resolveKeeperNSFFolder -Identifier $spec.FolderUid -Vault $vault
         }
-        catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
             $resolveErrors.Add("$($_.Exception.Message) (index $index)")
             $index++
             continue

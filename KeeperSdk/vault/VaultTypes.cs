@@ -804,11 +804,9 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Resolves folder context for record removal (explicit folder, first containing folder, or none for owner-trash).
+        /// Never throws: if <paramref name="folderUidOrName"/> is a name that matches more than one
+        /// Nested Shared Folder, it fails safe and returns <c>false</c> rather than silently picking one.
         /// </summary>
-        /// <exception cref="AmbiguousNsfFolderException">
-        /// <paramref name="folderUidOrName"/> is a name that matches more than one Nested Shared Folder.
-        /// Unlike other <c>Try*</c> methods, this is not reported via the <c>bool</c> return value.
-        /// </exception>
         bool TryResolveKeeperNSFRecordRemovalFolder(
             string recordUid,
             string folderUidOrName,
@@ -1873,32 +1871,63 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Thrown when a Nested Shared Folder identifier (name) matches more than one folder.
-    /// </summary>
-    /// <remarks>
-    /// Raised by the "Strict" NSF folder resolvers (e.g. <see cref="VaultOnline.ResolveKeeperNSFFolderStrict"/>)
+    /// Base type for exceptions thrown when an identifier (name/title) matches more than one object,
     /// instead of silently resolving to the first match.
-    /// </remarks>
-    public class AmbiguousNsfFolderException : VaultException
+    /// </summary>
+    public abstract class AmbiguousIdentifierException : VaultException
     {
         /// <summary>The ambiguous identifier that was searched for.</summary>
         public string Identifier { get; }
 
-        /// <summary>All Nested Shared Folders whose name matched <see cref="Identifier"/>.</summary>
+        /// <exclude/>
+        protected AmbiguousIdentifierException(string identifier, string message) : base(message)
+        {
+            Identifier = identifier;
+        }
+
+        /// <exclude/>
+        protected static string BuildMessage(
+            string kind, string identifier, string uidLabel, IEnumerable<(string Uid, string Name)> matches)
+        {
+            var list = matches.ToList();
+            var details = string.Join("\n", list.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
+            return $"There are {list.Count} {kind} with name \"{identifier}\". Use {uidLabel} to specify the correct one:\n{details}";
+        }
+    }
+
+    /// <summary>
+    /// Thrown when a folder identifier (name) matches more than one folder - classic or Nested Shared Folder.
+    /// </summary>
+    /// <remarks>
+    /// Raised instead of silently resolving to the first match, e.g. by
+    /// <see cref="VaultOnline.ResolveKeeperNSFFolderStrict"/> for Nested Shared Folders.
+    /// </remarks>
+    public class AmbiguousFolderException : AmbiguousIdentifierException
+    {
+        /// <summary>All folders whose name matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
         public IReadOnlyList<FolderNode> Matches { get; }
 
         /// <exclude/>
-        public AmbiguousNsfFolderException(string identifier, IReadOnlyList<FolderNode> matches)
-            : base(BuildMessage(identifier, matches))
+        public AmbiguousFolderException(string identifier, IReadOnlyList<FolderNode> matches, string kind = "folders")
+            : base(identifier, BuildMessage(kind, identifier, "Folder UID", matches.Select(m => (m.FolderUid, m.Name))))
         {
-            Identifier = identifier;
             Matches = matches;
         }
+    }
 
-        private static string BuildMessage(string identifier, IReadOnlyList<FolderNode> matches)
+    /// <summary>
+    /// Thrown when a classic shared folder identifier (name) matches more than one shared folder.
+    /// </summary>
+    public class AmbiguousSharedFolderException : AmbiguousIdentifierException
+    {
+        /// <summary>All shared folders whose name matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
+        public IReadOnlyList<SharedFolder> Matches { get; }
+
+        /// <exclude/>
+        public AmbiguousSharedFolderException(string identifier, IReadOnlyList<SharedFolder> matches)
+            : base(identifier, BuildMessage("shared folders", identifier, "Shared Folder UID", matches.Select(m => (m.Uid, m.Name))))
         {
-            var details = string.Join("\n", matches.Select(m => $"  UID: {m.FolderUid}, Name: {m.Name}"));
-            return $"There are {matches.Count} Nested Shared Folders with name \"{identifier}\". Use Folder UID to specify the correct one:\n{details}";
+            Matches = matches;
         }
     }
 
@@ -1909,26 +1938,16 @@ namespace KeeperSecurity.Vault
     /// Raised by the "Strict" NSF record resolvers (e.g. <see cref="VaultOnline.ResolveKeeperNSFRecordStrict"/>)
     /// instead of silently resolving to the first match.
     /// </remarks>
-    public class AmbiguousNsfRecordException : VaultException
+    public class AmbiguousNsfRecordException : AmbiguousIdentifierException
     {
-        /// <summary>The ambiguous identifier that was searched for.</summary>
-        public string Identifier { get; }
-
-        /// <summary>All Nested Shared Folder records whose title matched <see cref="Identifier"/>.</summary>
+        /// <summary>All Nested Shared Folder records whose title matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
         public IReadOnlyList<KeeperNSFRecord> Matches { get; }
 
         /// <exclude/>
         public AmbiguousNsfRecordException(string identifier, IReadOnlyList<KeeperNSFRecord> matches)
-            : base(BuildMessage(identifier, matches))
+            : base(identifier, BuildMessage("Nested Shared Folder records", identifier, "Record UID", matches.Select(m => (m.RecordUid, m.Title))))
         {
-            Identifier = identifier;
             Matches = matches;
-        }
-
-        private static string BuildMessage(string identifier, IReadOnlyList<KeeperNSFRecord> matches)
-        {
-            var details = string.Join("\n", matches.Select(m => $"  UID: {m.RecordUid}, Title: {m.Title}"));
-            return $"There are {matches.Count} Nested Shared Folder records with title \"{identifier}\". Use Record UID to specify the correct one:\n{details}";
         }
     }
 

@@ -471,7 +471,7 @@ function Get-KeeperNSFRecord {
     try {
         $resolved = Resolve-KdNsfObject -vault $vault -Uid $Uid -Name $Name
     }
-    catch [KeeperSecurity.Vault.AmbiguousNsfFolderException] {
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
         Write-Error -Message $_.Exception.Message
         return
     }
