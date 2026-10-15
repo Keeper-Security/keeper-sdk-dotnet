@@ -61,8 +61,9 @@ if ($null -ne $Script:Context.Enterprise -and -not ($Script:Context.Enterprise -
 }
 
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation,
-Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Set-KeeperAccountRecovery
-Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Set-KeeperAccountRecovery,
+Get-KeeperDeviceList, Invoke-KeeperDeviceAction, Rename-KeeperDevice
+Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device, device-list, device-action, device-rename
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject, Get-KeeperTree
