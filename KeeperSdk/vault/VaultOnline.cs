@@ -546,6 +546,42 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            var results = await ConvertClassicRecordsToKeeperNSFInternal(recordUids, folderUid).ConfigureAwait(false);
+            if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
+            {
+                try
+                {
+                    await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Vault refresh after conversion failed ({ex.GetType().Name}).");
+                    foreach (var result in results.Where(x => x.Success || x.ServerOutcomeUncertain))
+                    {
+                        result.RefreshWarning = "Vault refresh failed after the conversion response. Refresh the vault and verify record state before relying on cached data.";
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// PowerCommander-only bridge for Windows PowerShell 5.1, which cannot await the SDK task.
+        /// The conversion runs without the PowerShell host's synchronization context.
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFForPowerCommander(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            return Task.Run(() => ConvertClassicRecordsToKeeperNSF(recordUids, folderUid))
+                .GetAwaiter().GetResult();
+        }
+
         /// <inheritdoc/>
         public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
             ImportFile import,

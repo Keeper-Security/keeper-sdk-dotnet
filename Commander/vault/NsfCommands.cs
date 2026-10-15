@@ -117,6 +117,14 @@ namespace Commander
                     Action = context.NsfRecordUpdateCommand
                 });
 
+            cli.Commands.Add("nsf-convert",
+                new ParseableCommand<NsfConvertOptions>
+                {
+                    Order = 47,
+                    Description = "Convert classic records to Keeper NSF records. Conversion is permanent.",
+                    Action = context.NsfConvertCommand
+                });
+
             cli.Commands.Add("nsf-share-record",
                 new ParseableCommand<NsfShareRecordOptions>
                 {

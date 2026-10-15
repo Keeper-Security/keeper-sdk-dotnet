@@ -13,6 +13,161 @@ namespace Commander
 {
     internal static class NsfRecordCommandExtensions
     {
+        public static async Task NsfConvertCommand(this VaultContext context, NsfConvertOptions options)
+        {
+            if (!TrySelectClassicRecords(context, options.Record, out var records, out var alreadyNsf, out var error))
+            {
+                Console.WriteLine(error);
+                return;
+            }
+
+            var vault = context.Vault;
+            string folderUid = null;
+            if (!string.IsNullOrWhiteSpace(options.Folder))
+            {
+                if (!vault.TryResolveKeeperNSFFolderReference(options.Folder, out var folder))
+                {
+                    Console.WriteLine($"Keeper NSF folder '{options.Folder}' was not found or is ambiguous. Specify its UID or full path.");
+                    return;
+                }
+                folderUid = folder.FolderUid;
+            }
+
+            if (records.Count == 0)
+            {
+                Console.WriteLine($"No classic records remain to convert ({alreadyNsf.Count} already NSF).");
+                return;
+            }
+
+            foreach (var uid in alreadyNsf)
+            {
+                Console.WriteLine($"Record '{uid}' is already an NSF record; skipped.");
+            }
+
+            if (!options.Force)
+            {
+                Console.WriteLine("WARNING: Conversion is permanent. Classic shared-folder membership and additional classic folder placements are not retained.");
+                Console.WriteLine($"Destination: {(folderUid ?? "Vault (root)")}");
+                foreach (var record in records) Console.WriteLine($"  {record.Uid}: {record.Title}");
+                if (!await NsfHelpers.ConfirmAsync("Continue? (yes/No) ").ConfigureAwait(false))
+                {
+                    Console.WriteLine("Conversion cancelled.");
+                    return;
+                }
+            }
+
+            try
+            {
+                var results = await vault.ConvertClassicRecordsToKeeperNSF(records.Select(x => x.Uid).ToList(), folderUid)
+                    .ConfigureAwait(false);
+                foreach (var result in results)
+                {
+                    if (result.Success)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' converted to a Keeper NSF record.");
+                    }
+                    else if (result.OutcomeUncertain)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' conversion outcome is uncertain: {result.Message} (status: {result.Status}).");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
+                    }
+                }
+                if (results.Any(x => !string.IsNullOrEmpty(x.RefreshWarning)))
+                {
+                    Console.WriteLine($"WARNING: {results.First(x => !string.IsNullOrEmpty(x.RefreshWarning)).RefreshWarning}");
+                }
+                Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} confirmed converted, "
+                    + $"{results.Count(x => x.OutcomeUncertain)} uncertain, "
+                    + $"{results.Count(x => !x.Success && !x.OutcomeUncertain)} failed; "
+                    + $"{alreadyNsf.Count} already NSF record(s) skipped.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error converting records: {ex.Message}");
+            }
+        }
+
+        private static bool TrySelectClassicRecords(VaultContext context, IEnumerable<string> recordRefs,
+            out List<KeeperRecord> records, out List<string> alreadyNsf, out string error)
+        {
+            records = new List<KeeperRecord>();
+            alreadyNsf = new List<string>();
+            error = null;
+            var references = recordRefs?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+            if (references == null || references.Count == 0)
+            {
+                error = "At least one classic record UID, title, or path is required.";
+                return false;
+            }
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var recordRef in references)
+            {
+                if (context.Vault.TryGetKeeperNSFRecord(recordRef, out var nsfRecord))
+                {
+                    if (!seen.Add(nsfRecord.RecordUid))
+                    {
+                        error = "The same record was selected more than once; remove duplicate records.";
+                        return false;
+                    }
+                    alreadyNsf.Add(nsfRecord.RecordUid);
+                    continue;
+                }
+
+                if (!TryResolveClassicRecord(context, recordRef, out var record, out error))
+                {
+                    return false;
+                }
+
+                if (!seen.Add(record.Uid))
+                {
+                    error = "The same record was selected more than once; remove duplicate records.";
+                    return false;
+                }
+
+                records.Add(record);
+                if (records.Count > 100)
+                {
+                    error = "At most 100 classic records can be converted per request.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TryResolveClassicRecord(VaultContext context, string recordRef,
+            out KeeperRecord record, out string error)
+        {
+            error = null;
+            if (context.Vault.TryGetKeeperRecord(recordRef, out record))
+            {
+                return true;
+            }
+
+            if (!context.TryResolvePath(recordRef, out var folder, out var title))
+            {
+                error = $"Classic record '{recordRef}' was not found. Specify its UID or path.";
+                return false;
+            }
+
+            var matches = folder.Records
+                .Select(uid => context.Vault.TryGetKeeperRecord(uid, out var candidate) ? candidate : null)
+                .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
+                .Take(2).ToList();
+            if (matches.Count != 1)
+            {
+                error = $"Classic record '{recordRef}' was not found or is ambiguous. Specify its UID.";
+                return false;
+            }
+
+            record = matches[0];
+            return true;
+        }
+
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
         {
             Dictionary<string, object> fieldDict = null;
@@ -747,6 +902,18 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "Field values as key=value")]
         public IEnumerable<string> Fields { get; set; }
+    }
+
+    class NsfConvertOptions
+    {
+        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s), title(s), or path(s) to convert (maximum 100 per request)")]
+        public IEnumerable<string> Record { get; set; }
+
+        [Option("folder", Required = false, HelpText = "Existing Keeper NSF folder UID, name, or path; omit for Vault (root)")]
+        public string Folder { get; set; }
+
+        [Option('f', "force", Required = false, HelpText = "Skip permanent-conversion confirmation")]
+        public bool Force { get; set; }
     }
 
     class NsfShareRecordOptions

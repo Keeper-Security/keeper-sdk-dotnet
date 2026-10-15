@@ -175,11 +175,11 @@ Export-ModuleMember -Alias nsf-list, nsf-folders, nsf-records, nsf-get, nsf-reco
 Export-ModuleMember -Function New-KeeperNSFFolder, New-KeeperNSFFolders, Set-KeeperNSFFolderAccess, Share-KeeperNSFFolderAccesses, Update-KeeperNSFFolderAccesses, Unshare-KeeperNSFFolderAccesses, Set-KeeperNSFFolder, Set-KeeperNSFFolders, Remove-KeeperNSFFolder, Remove-KeeperNSFFolders, Move-KeeperNSFItem, Move-KeeperNSFFolders
 Export-ModuleMember -Alias nsf-mkdir, nsf-mkdirs, nsf-share-folder, nsf-share-folders, nsf-update-folder-access, nsf-unshare-folders, nsf-rndir, nsf-folders-update, nsf-rmdir, nsf-rmdirs, nsf-move, nsf-move-folders
 
-Export-ModuleMember -Function Add-KeeperNSFRecord, Add-KeeperNSFRecords, Edit-KeeperNSFRecord, Edit-KeeperNSFRecords, Set-KeeperNSFRecordAccess, Share-KeeperNSFRecords, Unshare-KeeperNSFRecords, Set-KeeperNSFRecordPermission,
+Export-ModuleMember -Function Add-KeeperNSFRecord, Add-KeeperNSFRecords, Edit-KeeperNSFRecord, Edit-KeeperNSFRecords, ConvertTo-KeeperNSFRecord, Set-KeeperNSFRecordAccess, Share-KeeperNSFRecords, Unshare-KeeperNSFRecords, Set-KeeperNSFRecordPermission,
 Remove-KeeperNSFRecord, Remove-KeeperNSFRecords, Link-KeeperNSFRecord, Link-KeeperNSFRecords, Unlink-KeeperNSFRecords, Move-KeeperNSFRecords, Transfer-KeeperNSFRecordOwnership,
 Get-KeeperNSFShortcut, Set-KeeperNSFShortcutKeep
 Export-ModuleMember -Alias nsf-record-add, nsf-records-add, nsf-record-update, nsf-records-update, nsf-share-record, nsf-share-records, nsf-unshare-records, nsf-record-permission,
-nsf-rm, nsf-records-rm, nsf-ln, nsf-lns, nsf-unln, nsf-move-records, nsf-transfer-record,
+nsf-convert, nsf-rm, nsf-records-rm, nsf-ln, nsf-lns, nsf-unln, nsf-move-records, nsf-transfer-record,
 nsf-shortcut-list, nsf-shortcut-keep
 
 Export-ModuleMember -Function Sync-KeeperEpm,

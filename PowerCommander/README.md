@@ -90,6 +90,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | Add-KeeperNSFRecords                                    | nsf-records-add  | Batch create NSF records from JSON (`-DownloadSampleRecords` writes a starter template)
 | Edit-KeeperNSFRecord                                    | nsf-record-update | Update an existing Keeper NSF record
 | Edit-KeeperNSFRecords                                   | nsf-records-update | Batch update NSF records from JSON (`-DownloadSampleRecords`)
+| ConvertTo-KeeperNSFRecord                               | nsf-convert       | Permanently convert up to 100 owned classic records by UID/title/path; optional `-FolderUid` or `-Folder` accepts an NSF folder UID/unique name/path (omitted = Vault root)
 | Remove-KeeperNSFRecord                                  | nsf-rm           | Remove Keeper NSF record(s) by UID/title
 | Remove-KeeperNSFRecords                                 | nsf-records-rm   | Batch remove NSF records from JSON (`-DownloadSampleRemovals`; preview then confirm)
 | Set-KeeperNSFRecordAccess                               | nsf-share-record | Grant or revoke user access to an NSF record
