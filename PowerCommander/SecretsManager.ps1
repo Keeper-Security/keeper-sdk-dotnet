@@ -264,13 +264,13 @@ function Resolve-KeeperSecretManagerSecret {
         }
     }
 
-    $nsfFolder = $null
-    if ($vault.TryResolveKeeperNSFFolder($secretInput, [ref]$nsfFolder) -and $nsfFolder) {
+    $nsfFolder = resolveKeeperNSFFolder -Identifier $secretInput -Vault $vault
+    if ($nsfFolder) {
         return $nsfFolder.FolderUid
     }
 
-    $nsfRecord = $null
-    if ($vault.TryResolveKeeperNSFRecord($secretInput, [ref]$nsfRecord) -and $nsfRecord) {
+    $nsfRecord = resolveKeeperNSFRecord -Identifier $secretInput -Vault $vault
+    if ($nsfRecord) {
         return $nsfRecord.RecordUid
     }
 

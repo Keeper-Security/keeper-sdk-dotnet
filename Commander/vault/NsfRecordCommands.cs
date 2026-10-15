@@ -24,10 +24,8 @@ namespace Commander
             try
             {
                 string folderUid = options.FolderUid;
-                if (!string.IsNullOrWhiteSpace(folderUid)
-                    && !context.Vault.TryGetKeeperNSFFolder(folderUid, out _)
-                    && context.Vault.TryResolveKeeperNSFFolder(folderUid, out var folderNode)
-                    && folderNode != null)
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(context.Vault, folderUid);
+                if (folderNode != null)
                 {
                     folderUid = folderNode.FolderUid;
                 }
@@ -129,14 +127,10 @@ namespace Commander
             }
 
             var folderUid = options.FolderUid;
-            if (!string.IsNullOrEmpty(folderUid) && !vault.TryGetKeeperNSFFolder(folderUid, out _))
+            var permFolderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
+            if (permFolderMatch != null)
             {
-                var match = vault.KeeperNSFFolderNodes
-                    .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, folderUid, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
-                {
-                    folderUid = match.FolderUid;
-                }
+                folderUid = permFolderMatch.FolderUid;
             }
 
             var folderDisplay = string.IsNullOrEmpty(folderUid) ? "root" : folderUid;
@@ -234,8 +228,7 @@ namespace Commander
                     }
                     else
                     {
-                        var folderMatch = vault.KeeperNSFFolderNodes
-                            .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, options.Target, StringComparison.OrdinalIgnoreCase));
+                        var folderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Target);
                         if (folderMatch != null)
                         {
                             folderUid = folderMatch.FolderUid;
@@ -367,8 +360,7 @@ namespace Commander
 
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
             {
-                var match = vault.KeeperNSFFolderNodes
-                    .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, folderUid, StringComparison.OrdinalIgnoreCase));
+                var match = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
                 if (match != null)
                 {
                     folderUid = match.FolderUid;
@@ -457,7 +449,8 @@ namespace Commander
             string resolvedFolderUid = null;
             if (!string.IsNullOrEmpty(options.Folder))
             {
-                if (!vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Folder);
+                if (folderNode == null)
                 {
                     Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
                     return;
@@ -480,12 +473,26 @@ namespace Commander
                 return;
             }
 
+            // Resolve every record before removing anything: a destructive batch either runs in full or not at all,
+            // so one ambiguous/missing identifier can't result in a half-done delete of the others.
             var removals = new List<KeeperNSFRecordRemoval>();
+            var resolveErrors = new List<string>();
             foreach (var name in records)
             {
-                if (!vault.TryResolveKeeperNSFRecord(name, out var kdRecord))
+                KeeperNSFRecord kdRecord;
+                try
                 {
-                    Console.WriteLine($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
+                    kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, name);
+                }
+                catch (AmbiguousNsfRecordException ex)
+                {
+                    resolveErrors.Add(ex.Message);
+                    continue;
+                }
+
+                if (kdRecord == null)
+                {
+                    resolveErrors.Add($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
                     continue;
                 }
 
@@ -495,7 +502,7 @@ namespace Commander
                     var folderUids = vault.GetKeeperNSFFoldersForRecord(kdRecord.RecordUid).ToList();
                     if (folderUids.Count == 0)
                     {
-                        Console.WriteLine($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
+                        resolveErrors.Add($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
                         continue;
                     }
 
@@ -508,6 +515,16 @@ namespace Commander
                     FolderUid = folderUid,
                     Operation = op
                 });
+            }
+
+            if (resolveErrors.Count > 0)
+            {
+                foreach (var error in resolveErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                Console.WriteLine($"Aborted: {resolveErrors.Count} of {records.Count} record(s) could not be resolved. No records were removed.");
+                return;
             }
 
             if (removals.Count == 0)
@@ -595,13 +612,15 @@ namespace Commander
         public static async Task NsfLnCommand(this VaultContext context, NsfLnOptions options)
         {
             var vault = context.Vault;
-            if (!vault.TryResolveKeeperNSFRecord(options.Record, out var kdRecord))
+            var kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, options.Record);
+            if (kdRecord == null)
             {
                 Console.WriteLine($"Keeper NSF record \"{options.Record}\" was not found. Run sync-down or nsf-list first.");
                 return;
             }
 
-            if (!vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+            var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Folder);
+            if (folderNode == null)
             {
                 Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
                 return;
@@ -648,7 +667,8 @@ namespace Commander
             var resolvedRecords = new List<string>();
             foreach (var name in recordArgs)
             {
-                if (!vault.TryResolveKeeperNSFRecord(name, out var kdRecord))
+                var kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, name);
+                if (kdRecord == null)
                 {
                     Console.WriteLine($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
                     return;

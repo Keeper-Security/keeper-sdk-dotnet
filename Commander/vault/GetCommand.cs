@@ -58,7 +58,17 @@ namespace Commander
 
             if (checkSharedFolders)
             {
-                var sharedFolder = TryResolveSharedFolder(context, identifier);
+                SharedFolder sharedFolder;
+                try
+                {
+                    sharedFolder = TryResolveSharedFolder(context, identifier);
+                }
+                catch (AmbiguousSharedFolderException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
+
                 if (sharedFolder != null)
                 {
                     if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
@@ -176,8 +186,16 @@ namespace Commander
                 return sharedFolder;
             }
 
-            return context.Vault.SharedFolders
-                .FirstOrDefault(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase));
+            var matches = context.Vault.SharedFolders
+                .Where(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousSharedFolderException(identifier, matches);
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
         }
 
         private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab)

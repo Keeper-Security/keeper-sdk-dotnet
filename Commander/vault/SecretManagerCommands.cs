@@ -313,11 +313,13 @@ namespace Commander
             {
                 return sf.Uid;
             }
-            if (context.Vault.TryResolveKeeperNSFFolder(secret, out var nsfFolder) && nsfFolder != null)
+            var nsfFolder = NsfHelpers.ResolveNsfFolderByUidOrName(context.Vault, secret);
+            if (nsfFolder != null)
             {
                 return nsfFolder.FolderUid;
             }
-            if (context.Vault.TryResolveKeeperNSFRecord(secret, out var nsfRecord) && nsfRecord != null)
+            var nsfRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(context.Vault, secret);
+            if (nsfRecord != null)
             {
                 return nsfRecord.RecordUid;
             }
