@@ -929,9 +929,13 @@ function Get-KdUserPermissions {
 
     $userPerms = [System.Collections.ArrayList]::new()
     foreach ($access in $directAccesses) {
+        if ($access.Inherited -or $access.DeniedAccess) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
+        }
+        elseif ($access.PSObject.Properties.Match('AccessorName').Count -gt 0) {
+            $hint = $access.AccessorName
         }
         if ($hint) {
             $username = $hint
@@ -1002,9 +1006,13 @@ function ConvertTo-KdFolderPermissionsJson {
     $shareAdmins = [System.Collections.ArrayList]::new()
 
     foreach ($access in $folderAccesses) {
+        if ($access.Inherited -or $access.DeniedAccess) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
+        }
+        elseif ($access.PSObject.Properties.Match('AccessorName').Count -gt 0) {
+            $hint = $access.AccessorName
         }
         $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
 
@@ -1052,33 +1060,15 @@ function Get-KdRecordAccesses {
     Param($vault, $storage, $record)
 
     try {
-        $rq = New-Object Record.V3.Details.RecordAccessRequest
-        $rq.RecordUids.Add([Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($record.RecordUid)))
-        $rs = $vault.Auth.ExecuteAuthRest("vault/records/v3/details/access", $rq, [Record.V3.Details.RecordAccessResponse]).GetAwaiter().GetResult()
-        $converted = [System.Collections.ArrayList]::new()
-        foreach ($ra in $rs.RecordAccesses) {
-            $d = $ra.Data
-            if ($null -eq $d) { continue }
-            $emailHint = $null
-            if ($ra.AccessorInfo -and $ra.AccessorInfo.Name) { $emailHint = $ra.AccessorInfo.Name }
-            $converted.Add([PSCustomObject]@{
-                AccessTypeUid  = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($d.AccessTypeUid.ToByteArray())
-                AccessType     = [int]$d.AccessType
-                AccessRoleType = [int]$d.AccessRoleType
-                Owner          = [bool]$d.Owner
-                Inherited      = [bool]$d.Inherited
-                CanEdit        = [bool]$d.CanEdit
-                CanView        = [bool]$d.CanView
-                CanDelete      = [bool]$d.CanDelete
-                AccessorEmail  = $emailHint
-            }) | Out-Null
+        $permissions = $vault.GetKeeperNSFSharePermissionsAsync(@(), @([string]$record.RecordUid)).GetAwaiter().GetResult()
+        if ($permissions.RecordPermissions.ContainsKey($record.RecordUid)) {
+            return @($permissions.RecordPermissions[$record.RecordUid])
         }
-        return @($converted)
     }
     catch {
-        Write-Verbose "Could not retrieve record access from server: $($_.Exception.Message)"
-        return @($storage.KdRecordAccesses.GetLinksForSubject($record.RecordUid))
+        Write-Verbose "Could not retrieve record access: $($_.Exception.Message)"
     }
+    return @()
 }
 
 function Get-KdRecordShareAdminEmails {
@@ -1103,40 +1093,15 @@ function Get-KdFolderAccesses {
     Param($vault, $storage, $folder)
 
     try {
-        $rq = New-Object Folder.V3.GetFolderAccessRequest
-        $rq.FolderUid.Add([Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($folder.FolderUid)))
-        $rs = $vault.Auth.ExecuteAuthRest("vault/folders/v3/access", $rq, [Folder.V3.GetFolderAccessResponse]).GetAwaiter().GetResult()
-        foreach ($result in $rs.FolderAccessResults) {
-            if ($null -eq $result.Error) {
-                $converted = [System.Collections.ArrayList]::new()
-                foreach ($a in $result.Accessors) {
-                    $converted.Add([PSCustomObject]@{
-                        AccessTypeUid  = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($a.AccessTypeUid.ToByteArray())
-                        AccessType     = [int]$a.AccessType
-                        AccessRoleType = [int]$a.AccessRoleType
-                        Inherited      = [bool]$a.Inherited
-                        DeniedAccess   = [bool]$a.DeniedAccess
-                    }) | Out-Null
-                }
-                return @($converted | Where-Object { -not $_.DeniedAccess })
-            }
+        $permissions = $vault.GetKeeperNSFSharePermissionsAsync(@([string]$folder.FolderUid), @()).GetAwaiter().GetResult()
+        if ($permissions.FolderPermissions.ContainsKey($folder.FolderUid)) {
+            return @($permissions.FolderPermissions[$folder.FolderUid])
         }
     }
     catch {
         Write-Verbose "Could not retrieve folder access: $($_.Exception.Message)"
     }
-
-    $cached = [System.Collections.ArrayList]::new()
-    foreach ($a in $storage.KdFolderAccesses.GetLinksForSubject($folder.FolderUid)) {
-        $cached.Add([PSCustomObject]@{
-            AccessTypeUid  = $a.AccessTypeUid
-            AccessType     = $a.AccessType
-            AccessRoleType = $a.AccessRoleType
-            Inherited      = [bool]$a.Inherited
-            DeniedAccess   = [bool]$a.DeniedAccess
-        }) | Out-Null
-    }
-    return @($cached | Where-Object { -not $_.DeniedAccess })
+    return @()
 }
 
 function Show-KdFolderPermissions {
@@ -1153,9 +1118,13 @@ function Show-KdFolderPermissions {
     $shareAdmins = [System.Collections.ArrayList]::new()
 
     foreach ($access in $folderAccesses) {
+        if ($access.Inherited -or $access.DeniedAccess) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
+        }
+        elseif ($access.PSObject.Properties.Match('AccessorName').Count -gt 0) {
+            $hint = $access.AccessorName
         }
         $username = if ($hint) { $hint } else { Resolve-KdUsername $vault $access.AccessTypeUid $currentAccountUid }
 

@@ -544,56 +544,6 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private static bool FolderInheritsParentPermissions(VaultOnline vault, string folderUid)
-        {
-            string parentUid = null;
-            if (vault.TryGetKeeperNSFFolder(folderUid, out var node))
-            {
-                parentUid = node.ParentUid;
-            }
-
-            var row = vault.Storage.KdFolders.GetEntity(folderUid);
-            if (string.IsNullOrEmpty(parentUid) && row != null)
-            {
-                parentUid = row.ParentUid;
-            }
-
-            if (string.IsNullOrEmpty(parentUid)
-                || parentUid == KeeperNSFConstants.KeeperDriveRootFolderUid)
-            {
-                return false;
-            }
-
-            if (row == null)
-            {
-                return true;
-            }
-
-            return row.InheritPermissions != (int)FolderProto.SetBooleanValue.BooleanFalse;
-        }
-
-        private static async Task EnsureKeeperNSFFolderDirectPermissionsAsync(
-            VaultOnline vault, string folderUid)
-        {
-            if (!FolderInheritsParentPermissions(vault, folderUid))
-            {
-                return;
-            }
-
-            System.Diagnostics.Trace.TraceInformation(
-                $"KeeperNSF: Disabled folder inheritance for '{folderUid}' to apply direct permissions.");
-
-            var updateResult = await vault.UpdateKeeperNSFFolderCore(
-                folderUid, null, null, inheritPermissions: false, requestSync: false).ConfigureAwait(false);
-            VaultOnline.ValidateFolderModifyResult(updateResult);
-        }
-
-        private static async Task PrepareKeeperNSFFolderForAccessChangeAsync(
-            VaultOnline vault, string folderUid)
-        {
-            await EnsureKeeperNSFFolderDirectPermissionsAsync(vault, folderUid).ConfigureAwait(false);
-        }
-
         public static async Task GrantKeeperNSFFolderAccessInternal(this VaultOnline vault, string folderUid, string accessor, string role, SharedFolderUserOptions options = null, bool? asTeam = null)
         {
             if (string.IsNullOrEmpty(folderUid))
@@ -666,11 +616,9 @@ namespace KeeperSecurity.Vault
 
             ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
 
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             var folderKey = folder.FolderKey;
-            if (folderKey == null)
-                throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
+            if (folderKey == null || folderKey.Length != 32)
+                throw new VaultException($"Cannot share folder: folder key is unavailable or invalid for '{folderUid}'");
 
             var accessRole = ResolveAccessRole(role);
             var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
@@ -692,7 +640,7 @@ namespace KeeperSecurity.Vault
 
             var rq = new FolderProto.FolderAccessRequest();
 
-            if (existingAccess != null)
+            if (existingAccess != null && !existingAccess.Inherited && !existingAccess.DeniedAccess)
             {
                 if (existingAccess.AccessRoleType == accessRole && tlaProperties == null)
                 {
@@ -712,6 +660,27 @@ namespace KeeperSecurity.Vault
             }
             else
             {
+                // An inherited row has no independent folder-key edge. Creating an
+                // explicit grant preserves this child folder if its parent is later
+                // revoked. A denied row must first be removed before it can be added.
+                if (existingAccess?.DeniedAccess == true)
+                {
+                    var removeRq = new FolderProto.FolderAccessRequest();
+                    removeRq.FolderAccessRemoves.Add(new FolderProto.FolderAccessData
+                    {
+                        FolderUid = folderUidBytes,
+                        AccessTypeUid = pkRs.AccountUid,
+                        AccessType = FolderProto.AccessType.AtUser,
+                    });
+                    var removeRs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                        "vault/folders/v3/access_update", removeRq).ConfigureAwait(false);
+                    var removeResult = removeRs?.FolderAccessResults?.FirstOrDefault();
+                    if (removeResult == null || removeResult.Status != FolderProto.FolderModifyStatus.Success)
+                    {
+                        throw new VaultException($"Failed to remove denied access: {removeResult?.Message ?? "server returned no result"}");
+                    }
+                }
+
                 var forbidKeyType2 = vault.Auth.AuthContext.ForbidKeyType2;
 
                 byte[] encryptedFolderKey;
@@ -765,7 +734,7 @@ namespace KeeperSecurity.Vault
             {
                 if (result.Status != FolderProto.FolderModifyStatus.Success)
                 {
-                    var action = existingAccess != null ? "update" : "grant";
+                    var action = existingAccess != null && !existingAccess.Inherited && !existingAccess.DeniedAccess ? "update" : "grant";
                     throw new VaultException($"Failed to {action} access: {result.Message}");
                 }
             }
@@ -780,11 +749,9 @@ namespace KeeperSecurity.Vault
                 .ConfigureAwait(false);
             var teamUidBytes = ByteString.CopyFrom(teamUid.Base64UrlDecode());
 
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             var folderKey = folder.FolderKey;
-            if (folderKey == null)
-                throw new VaultException($"Cannot share folder: folder key is not available for '{folderUid}'");
+            if (folderKey == null || folderKey.Length != 32)
+                throw new VaultException($"Cannot share folder: folder key is unavailable or invalid for '{folderUid}'");
 
             var accessRole = ResolveAccessRole(role);
             var folderUidBytes = ByteString.CopyFrom(folderUid.Base64UrlDecode());
@@ -806,7 +773,7 @@ namespace KeeperSecurity.Vault
 
             var rq = new FolderProto.FolderAccessRequest();
 
-            if (existingAccess != null)
+            if (existingAccess != null && !existingAccess.Inherited && !existingAccess.DeniedAccess)
             {
                 if (existingAccess.AccessRoleType == accessRole && tlaProperties == null)
                 {
@@ -826,6 +793,26 @@ namespace KeeperSecurity.Vault
             }
             else
             {
+                // See the equivalent user flow above: inherited access needs a new
+                // direct key edge, while a denial must be removed before re-adding.
+                if (existingAccess?.DeniedAccess == true)
+                {
+                    var removeRq = new FolderProto.FolderAccessRequest();
+                    removeRq.FolderAccessRemoves.Add(new FolderProto.FolderAccessData
+                    {
+                        FolderUid = folderUidBytes,
+                        AccessTypeUid = teamUidBytes,
+                        AccessType = FolderProto.AccessType.AtTeam,
+                    });
+                    var removeRs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
+                        "vault/folders/v3/access_update", removeRq).ConfigureAwait(false);
+                    var removeResult = removeRs?.FolderAccessResults?.FirstOrDefault();
+                    if (removeResult == null || removeResult.Status != FolderProto.FolderModifyStatus.Success)
+                    {
+                        throw new VaultException($"Failed to remove denied access: {removeResult?.Message ?? "server returned no result"}");
+                    }
+                }
+
                 var teamKeys = await vault.Auth.GetTeamKeysForSharingAsync(teamUid).ConfigureAwait(false);
                 var (encryptedFolderKey, keyType) = NsfShareRecipientHelper.EncryptFolderKeyForTeam(
                     folderKey, teamKeys, vault.Auth.AuthContext.ForbidKeyType2);
@@ -854,7 +841,7 @@ namespace KeeperSecurity.Vault
             {
                 if (result.Status != FolderProto.FolderModifyStatus.Success)
                 {
-                    var action = existingAccess != null ? "update" : "grant";
+                    var action = existingAccess != null && !existingAccess.Inherited && !existingAccess.DeniedAccess ? "update" : "grant";
                     throw new VaultException($"Failed to {action} access: {result.Message}");
                 }
             }
@@ -922,14 +909,6 @@ namespace KeeperSecurity.Vault
 
             ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, pkRs.AccountUid);
 
-            if (await TryDenyInheritedKeeperNSFFolderAccessAsync(
-                    vault, folderUid, FolderProto.AccessType.AtUser, pkRs.AccountUid).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -938,7 +917,18 @@ namespace KeeperSecurity.Vault
             };
 
             var rq = new FolderProto.FolderAccessRequest();
-            rq.FolderAccessRemoves.Add(accessData);
+            var existingAccess = (await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                .ConfigureAwait(false)).FirstOrDefault(access =>
+                access.AccessType == FolderProto.AccessType.AtUser && access.AccessTypeUid.Equals(pkRs.AccountUid));
+            if (existingAccess?.Inherited == true && !existingAccess.DeniedAccess)
+            {
+                accessData.DeniedAccess = true;
+                rq.FolderAccessUpdates.Add(accessData);
+            }
+            else
+            {
+                rq.FolderAccessRemoves.Add(accessData);
+            }
 
             var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
                 "vault/folders/v3/access_update", rq);
@@ -964,8 +954,6 @@ namespace KeeperSecurity.Vault
                 return;
             }
 
-            await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-
             var accessData = new FolderProto.FolderAccessData
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
@@ -974,7 +962,18 @@ namespace KeeperSecurity.Vault
             };
 
             var rq = new FolderProto.FolderAccessRequest();
-            rq.FolderAccessRemoves.Add(accessData);
+            var existingAccess = (await KeeperNSFAccessHelpers.FetchFolderAccessDataAsync(vault, folderUid)
+                .ConfigureAwait(false)).FirstOrDefault(access =>
+                access.AccessType == FolderProto.AccessType.AtTeam && access.AccessTypeUid.Equals(accessData.AccessTypeUid));
+            if (existingAccess?.Inherited == true && !existingAccess.DeniedAccess)
+            {
+                accessData.DeniedAccess = true;
+                rq.FolderAccessUpdates.Add(accessData);
+            }
+            else
+            {
+                rq.FolderAccessRemoves.Add(accessData);
+            }
 
             var rs = await vault.Auth.ExecuteAuthRest<FolderProto.FolderAccessRequest, FolderProto.FolderAccessResponse>(
                 "vault/folders/v3/access_update", rq).ConfigureAwait(false);
@@ -1087,6 +1086,8 @@ namespace KeeperSecurity.Vault
                 grants.Select(g => (g.FolderUid, g.Accessor, g.AsTeam)).ToList()).ConfigureAwait(false);
 
             var prepared = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var deniedReaddRemoves = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var deniedReaddAdds = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
             var seenResolved = new HashSet<string>(StringComparer.Ordinal);
 
             for (var i = 0; i < grants.Count; i++)
@@ -1172,7 +1173,8 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                if (context.ExistingAccessKeys.Contains(resolvedDupKey))
+                if (context.ExistingAccessByKey.TryGetValue(resolvedDupKey, out var existingAccess)
+                    && !existingAccess.Inherited && !existingAccess.DeniedAccess)
                 {
                     results[i].Status = "already_exists";
                     results[i].Message =
@@ -1243,7 +1245,22 @@ namespace KeeperSecurity.Vault
                         addData.TlaProperties = tlaProperties;
                     }
 
-                    prepared.Add((i, addData, folder.FolderUid, accessUidB64));
+                    var preparedAdd = (i, addData, folder.FolderUid, accessUidB64);
+                    if (existingAccess?.DeniedAccess == true)
+                    {
+                        var removeData = new FolderProto.FolderAccessData
+                        {
+                            FolderUid = folderUidBytes,
+                            AccessTypeUid = accessTypeUid,
+                            AccessType = addData.AccessType,
+                        };
+                        deniedReaddRemoves.Add((i, removeData, folder.FolderUid, accessUidB64));
+                        deniedReaddAdds.Add(preparedAdd);
+                    }
+                    else
+                    {
+                        prepared.Add(preparedAdd);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1252,13 +1269,25 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var prepareFailed = await PrepareFoldersForAccessChangeAsync(
-                vault, prepared.Select(p => p.FolderUid)).ConfigureAwait(false);
-            RemovePrepareFailedEntries(prepared, results, prepareFailed);
-
             await SendFolderAccessBatchesAsync(
                 vault,
                 prepared,
+                results,
+                (rq, data) => rq.FolderAccessAdds.Add(data)).ConfigureAwait(false);
+
+            // The backend does not allow an add while the denied row exists. Only
+            // create the direct grant after its removal was acknowledged.
+            await SendFolderAccessBatchesAsync(
+                vault,
+                deniedReaddRemoves,
+                results,
+                (rq, data) => rq.FolderAccessRemoves.Add(data)).ConfigureAwait(false);
+            var successfulReadds = deniedReaddAdds
+                .Where(item => results[item.Index].Success)
+                .ToList();
+            await SendFolderAccessBatchesAsync(
+                vault,
+                successfulReadds,
                 results,
                 (rq, data) => rq.FolderAccessAdds.Add(data)).ConfigureAwait(false);
 
@@ -1291,6 +1320,9 @@ namespace KeeperSecurity.Vault
                 updates.Select(u => (u.FolderUid, u.Accessor, u.AsTeam)).ToList()).ConfigureAwait(false);
 
             var prepared = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var directAdds = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var deniedReaddRemoves = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var deniedReaddAdds = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
             var seenResolved = new HashSet<string>(StringComparer.Ordinal);
 
             for (var i = 0; i < updates.Count; i++)
@@ -1367,7 +1399,7 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                if (!context.ExistingAccessKeys.Contains(resolvedDupKey))
+                if (!context.ExistingAccessByKey.TryGetValue(resolvedDupKey, out var existingAccess))
                 {
                     results[i].Status = "not_found";
                     results[i].Message =
@@ -1395,13 +1427,15 @@ namespace KeeperSecurity.Vault
 
                 try
                 {
+                    var folderUidBytes = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode());
+                    var accessType = recipient.Kind == NsfShareRecipientKind.Team
+                        ? FolderProto.AccessType.AtTeam
+                        : FolderProto.AccessType.AtUser;
                     var updateData = new FolderProto.FolderAccessData
                     {
-                        FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
+                        FolderUid = folderUidBytes,
                         AccessTypeUid = accessTypeUid,
-                        AccessType = recipient.Kind == NsfShareRecipientKind.Team
-                            ? FolderProto.AccessType.AtTeam
-                            : FolderProto.AccessType.AtUser,
+                        AccessType = accessType,
                         AccessRoleType = accessRole,
                     };
                     var tlaProperties = VaultShareExpirationExtensions.CreateNsfTlaProperties(request.Options);
@@ -1410,7 +1444,63 @@ namespace KeeperSecurity.Vault
                         updateData.TlaProperties = tlaProperties;
                     }
 
-                    prepared.Add((i, updateData, folder.FolderUid, accessUidB64));
+                    if (!existingAccess.Inherited && !existingAccess.DeniedAccess)
+                    {
+                        prepared.Add((i, updateData, folder.FolderUid, accessUidB64));
+                        continue;
+                    }
+
+                    if (folder.FolderKey == null || folder.FolderKey.Length != 32)
+                    {
+                        results[i].Status = folder.FolderKey == null || folder.FolderKey.Length == 0 ? "missing_key" : "invalid_key";
+                        results[i].Message = $"Folder key is not available or invalid for '{folderUid}'.";
+                        continue;
+                    }
+
+                    FolderProto.EncryptedDataKey encryptedFolderKey;
+                    if (recipient.Kind == NsfShareRecipientKind.Team)
+                    {
+                        if (!context.TeamKeysByUid.TryGetValue(recipient.Identifier, out var teamKeys) || teamKeys == null)
+                        {
+                            results[i].Status = "team_key_error";
+                            results[i].Message = $"Team keys are not available for '{accessor}'.";
+                            continue;
+                        }
+                        var (encryptedKey, keyType) = NsfShareRecipientHelper.EncryptFolderKeyForTeam(
+                            folder.FolderKey, teamKeys, vault.Auth.AuthContext.ForbidKeyType2);
+                        encryptedFolderKey = new FolderProto.EncryptedDataKey
+                        {
+                            EncryptedKey = ByteString.CopyFrom(encryptedKey),
+                            EncryptedKeyType = keyType,
+                        };
+                    }
+                    else
+                    {
+                        if (!context.PublicKeysByEmail.TryGetValue(recipient.Identifier, out var publicKey) || publicKey == null)
+                        {
+                            results[i].Status = "user_not_found";
+                            results[i].Message = $"User '{accessor}' not found or has no public key.";
+                            continue;
+                        }
+                        encryptedFolderKey = EncryptFolderKeyForUser(folder.FolderKey, publicKey, vault.Auth.AuthContext.ForbidKeyType2);
+                    }
+
+                    updateData.FolderKey = encryptedFolderKey;
+                    var directAdd = (i, updateData, folder.FolderUid, accessUidB64);
+                    if (existingAccess.DeniedAccess)
+                    {
+                        deniedReaddRemoves.Add((i, new FolderProto.FolderAccessData
+                        {
+                            FolderUid = folderUidBytes,
+                            AccessTypeUid = accessTypeUid,
+                            AccessType = accessType,
+                        }, folder.FolderUid, accessUidB64));
+                        deniedReaddAdds.Add(directAdd);
+                    }
+                    else
+                    {
+                        directAdds.Add(directAdd);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1419,15 +1509,27 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var prepareFailed = await PrepareFoldersForAccessChangeAsync(
-                vault, prepared.Select(p => p.FolderUid)).ConfigureAwait(false);
-            RemovePrepareFailedEntries(prepared, results, prepareFailed);
-
             await SendFolderAccessBatchesAsync(
                 vault,
                 prepared,
                 results,
                 (rq, data) => rq.FolderAccessUpdates.Add(data)).ConfigureAwait(false);
+
+            await SendFolderAccessBatchesAsync(
+                vault,
+                directAdds,
+                results,
+                (rq, data) => rq.FolderAccessAdds.Add(data)).ConfigureAwait(false);
+            await SendFolderAccessBatchesAsync(
+                vault,
+                deniedReaddRemoves,
+                results,
+                (rq, data) => rq.FolderAccessRemoves.Add(data)).ConfigureAwait(false);
+            await SendFolderAccessBatchesAsync(
+                vault,
+                deniedReaddAdds.Where(item => results[item.Index].Success).ToList(),
+                results,
+                (rq, data) => rq.FolderAccessAdds.Add(data)).ConfigureAwait(false);
 
             return results;
         }
@@ -1455,10 +1557,10 @@ namespace KeeperSecurity.Vault
             var results = new KeeperNSFFolderAccessResult[revokes.Count];
             var context = await BuildFolderAccessBatchContextAsync(
                 vault,
-                revokes.Select(r => (r.FolderUid, r.Accessor, r.AsTeam)).ToList(),
-                fetchExistingAccess: false).ConfigureAwait(false);
+                revokes.Select(r => (r.FolderUid, r.Accessor, r.AsTeam)).ToList()).ConfigureAwait(false);
 
             var prepared = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
+            var inheritedDenials = new List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)>();
             var seenResolved = new HashSet<string>(StringComparer.Ordinal);
 
             for (var i = 0; i < revokes.Count; i++)
@@ -1521,6 +1623,11 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (!TryEnsureExistingAccessLookup(context, folder.FolderUid, results[i]))
+                {
+                    continue;
+                }
+
                 var removeData = new FolderProto.FolderAccessData
                 {
                     FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()),
@@ -1529,18 +1636,28 @@ namespace KeeperSecurity.Vault
                         ? FolderProto.AccessType.AtTeam
                         : FolderProto.AccessType.AtUser,
                 };
-                prepared.Add((i, removeData, folder.FolderUid, accessUidB64));
+                if (context.ExistingAccessByKey.TryGetValue(resolvedDupKey, out var existingAccess)
+                    && existingAccess.Inherited && !existingAccess.DeniedAccess)
+                {
+                    removeData.DeniedAccess = true;
+                    inheritedDenials.Add((i, removeData, folder.FolderUid, accessUidB64));
+                }
+                else
+                {
+                    prepared.Add((i, removeData, folder.FolderUid, accessUidB64));
+                }
             }
-
-            var prepareFailed = await PrepareFoldersForAccessChangeAsync(
-                vault, prepared.Select(p => p.FolderUid)).ConfigureAwait(false);
-            RemovePrepareFailedEntries(prepared, results, prepareFailed);
 
             await SendFolderAccessBatchesAsync(
                 vault,
                 prepared,
                 results,
                 (rq, data) => rq.FolderAccessRemoves.Add(data)).ConfigureAwait(false);
+            await SendFolderAccessBatchesAsync(
+                vault,
+                inheritedDenials,
+                results,
+                (rq, data) => rq.FolderAccessUpdates.Add(data)).ConfigureAwait(false);
 
             return results;
         }
@@ -1552,8 +1669,8 @@ namespace KeeperSecurity.Vault
             public Dictionary<string, AuthProto.PublicKeyResponse> PublicKeysByEmail { get; set; }
             public Dictionary<string, UserKeys> TeamKeysByUid { get; set; }
             public Dictionary<string, NsfShareRecipient> RecipientsByAccessorKey { get; set; }
-            public HashSet<string> ExistingAccessKeys { get; set; }
             public Dictionary<string, FolderProto.AccessRoleType> ExistingAccessRoles { get; set; }
+            public Dictionary<string, FolderProto.FolderAccessData> ExistingAccessByKey { get; set; }
             public bool ExistingAccessLookupSucceeded { get; set; } = true;
             public string ExistingAccessLookupFailureMessage { get; set; }
             public Dictionary<string, string> ExistingAccessLookupErrorsByFolderUid { get; set; }
@@ -1655,8 +1772,8 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var existingAccessKeys = new HashSet<string>(StringComparer.Ordinal);
             var existingAccessRoles = new Dictionary<string, FolderProto.AccessRoleType>(StringComparer.Ordinal);
+            var existingAccessByKey = new Dictionary<string, FolderProto.FolderAccessData>(StringComparer.Ordinal);
             var existingAccessLookupErrors = new Dictionary<string, string>(StringComparer.Ordinal);
             var existingAccessLookupSucceeded = true;
             string existingAccessLookupFailureMessage = null;
@@ -1682,8 +1799,8 @@ namespace KeeperSecurity.Vault
                             ? NsfShareRecipientKind.Team
                             : NsfShareRecipientKind.User;
                         var lookupKey = BuildFolderAccessLookupKey(folderUid, kind, accessUid);
-                        existingAccessKeys.Add(lookupKey);
                         existingAccessRoles[lookupKey] = access.AccessRoleType;
+                        existingAccessByKey[lookupKey] = access;
                     }
                 }
                 catch (Exception ex)
@@ -1701,8 +1818,8 @@ namespace KeeperSecurity.Vault
                 PublicKeysByEmail = publicKeysByEmail,
                 TeamKeysByUid = teamKeysByUid,
                 RecipientsByAccessorKey = recipientsByAccessorKey,
-                ExistingAccessKeys = existingAccessKeys,
                 ExistingAccessRoles = existingAccessRoles,
+                ExistingAccessByKey = existingAccessByKey,
                 ExistingAccessLookupSucceeded = existingAccessLookupSucceeded,
                 ExistingAccessLookupFailureMessage = existingAccessLookupFailureMessage,
                 ExistingAccessLookupErrorsByFolderUid = existingAccessLookupErrors,
@@ -1823,48 +1940,6 @@ namespace KeeperSecurity.Vault
         private static string BuildFolderAccessLookupKey(
             string folderUid, NsfShareRecipientKind kind, string accessUidB64)
             => $"{folderUid}|{(kind == NsfShareRecipientKind.Team ? "team" : "user")}|{accessUidB64}";
-
-        private static async Task<Dictionary<string, string>> PrepareFoldersForAccessChangeAsync(
-            VaultOnline vault, IEnumerable<string> folderUids)
-        {
-            var failed = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var folderUid in folderUids.Distinct(StringComparer.Ordinal))
-            {
-                try
-                {
-                    await PrepareKeeperNSFFolderForAccessChangeAsync(vault, folderUid).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    failed[folderUid] = ex.Message;
-                }
-            }
-
-            return failed;
-        }
-
-        private static void RemovePrepareFailedEntries(
-            List<(int Index, FolderProto.FolderAccessData Data, string FolderUid, string AccessUidB64)> prepared,
-            KeeperNSFFolderAccessResult[] results,
-            Dictionary<string, string> prepareFailed)
-        {
-            if (prepareFailed == null || prepareFailed.Count == 0)
-            {
-                return;
-            }
-
-            prepared.RemoveAll(item =>
-            {
-                if (!prepareFailed.TryGetValue(item.FolderUid, out var message))
-                {
-                    return false;
-                }
-
-                results[item.Index].Status = "prepare_failed";
-                results[item.Index].Message = message;
-                return true;
-            });
-        }
 
         private static FolderProto.EncryptedDataKey EncryptFolderKeyForUser(
             byte[] folderKey, AuthProto.PublicKeyResponse pkRs, bool forbidKeyType2)

@@ -930,6 +930,7 @@ namespace Commander
             public int AccessType { get; set; }
             public int AccessRoleType { get; set; }
             public bool Inherited { get; set; }
+            public bool DeniedAccess { get; set; }
             public bool Owner { get; set; }
             public bool CanEdit { get; set; }
             public bool CanView { get; set; }
@@ -960,7 +961,10 @@ namespace Commander
                     converted.Add(new NsfAccessView
                     {
                         AccessTypeUid = d.AccessTypeUid.ToByteArray().Base64UrlEncode(),
+                        AccessType = (int)d.AccessType,
                         AccessRoleType = (int)d.AccessRoleType,
+                        Inherited = d.Inherited,
+                        DeniedAccess = d.DeniedAccess,
                         Owner = d.Owner,
                         CanEdit = d.CanEdit,
                         CanView = d.CanView,
@@ -971,7 +975,7 @@ namespace Commander
                     });
                 }
 
-                return converted;
+                return converted.Where(access => !access.Inherited && !access.DeniedAccess).ToList();
             }
             catch
             {
@@ -979,14 +983,19 @@ namespace Commander
                     .Select(a => new NsfAccessView
                     {
                         AccessTypeUid = a.AccessTypeUid,
+                        AccessType = a.AccessType,
                         AccessRoleType = a.AccessRoleType,
+                        Inherited = a.Inherited,
+                        DeniedAccess = a.DeniedAccess,
                         Owner = a.Owner,
                         CanEdit = a.CanEdit,
                         CanView = a.CanView,
                         CanDelete = a.CanDelete,
                         CanApproveAccess = a.CanApproveAccess,
                         CanUpdateAccess = a.CanUpdateAccess
-                    }).ToList();
+                    })
+                    .Where(access => !access.Inherited && !access.DeniedAccess)
+                    .ToList();
             }
         }
 
@@ -1031,8 +1040,11 @@ namespace Commander
                         AccessTypeUid = a.AccessTypeUid.ToByteArray().Base64UrlEncode(),
                         AccessType = (int)a.AccessType,
                         AccessRoleType = (int)a.AccessRoleType,
-                        Inherited = a.Inherited
-                    }).ToList();
+                        Inherited = a.Inherited,
+                        DeniedAccess = a.DeniedAccess
+                    })
+                    .Where(access => !access.Inherited && !access.DeniedAccess)
+                    .ToList();
                 }
             }
             catch
@@ -1047,8 +1059,11 @@ namespace Commander
                     AccessTypeUid = a.AccessTypeUid,
                     AccessType = a.AccessType,
                     AccessRoleType = a.AccessRoleType,
-                    Inherited = a.Inherited
-                }).ToList();
+                    Inherited = a.Inherited,
+                    DeniedAccess = a.DeniedAccess
+                })
+                .Where(access => !access.Inherited && !access.DeniedAccess)
+                .ToList();
         }
 
         private class UserPermView
