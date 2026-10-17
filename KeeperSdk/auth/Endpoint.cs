@@ -15,6 +15,7 @@ using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using System.Net.Http;
 using System.Net.Security;
+using System.Security.Cryptography;
 using Router;
 using System.Reflection;
 
@@ -338,7 +339,7 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
                     Debug.WriteLine("Error Response: " + errorCode + " " + errorMessage);
 #endif
-                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase) && errorRs.KeyId > 0)
+                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase))
                     {
                         keyRetries++;
                         if (keyRetries > ThrottleHandling.MaxKeyRetries)
@@ -346,8 +347,21 @@ namespace KeeperSecurity.Authentication
                             throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
                         }
 
-                        keyId = errorRs.KeyId;
-                        continue;
+                        if (errorRs.KeyId > 0 && IsServerKeyKnown(errorRs.KeyId))
+                        {
+                            keyId = errorRs.KeyId;
+                            continue;
+                        }
+
+                        // Key ID -1: the key ID is right but the public key is not.
+                        // Self hosted instance publishes its key. Retry while the published key is new.
+                        if (await DiscoverServerPublicKey())
+                        {
+                            keyId = ServerKeyId;
+                            continue;
+                        }
+
+                        throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
                     }
 
                     if (string.Equals(errorCode, "region_redirect", StringComparison.OrdinalIgnoreCase))
@@ -792,6 +806,68 @@ namespace KeeperSecurity.Authentication
             }
 
             return keys;
+        }
+
+        private bool IsServerKeyKnown(int keyId)
+        {
+            return _serverPublicKeys.ContainsKey(keyId) ||
+                   KeeperSettings.KeeperRsaPublicKeys.ContainsKey(keyId) ||
+                   KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId);
+        }
+
+        /// <summary>
+        /// Fetches the public key published by a self hosted Keeper instance.
+        /// A key that differs from the stored one is stored and made the active server key.
+        /// </summary>
+        /// <returns><c>true</c> if a new key is stored. <c>false</c> if no key is published or the key is already stored.</returns>
+        /// <remarks>
+        /// The key is trusted as much as the TLS connection it is received over.
+        /// </remarks>
+        /// <exception cref="KeeperApiException">Public key does not match its fingerprint.</exception>
+        public async Task<bool> DiscoverServerPublicKey()
+        {
+            var builder = new UriBuilder(Server)
+            {
+                Path = "/api/rest/server_public_key",
+                Scheme = "https",
+                Port = 443
+            };
+
+            ServerPublicKeyResponse rs;
+            try
+            {
+                using var response = await _httpClient.GetAsync(builder.Uri);
+                if (!response.IsSuccessStatusCode) return false;
+                rs = JsonUtils.ParseJson<ServerPublicKeyResponse>(await response.Content.ReadAsByteArrayAsync());
+                if (rs == null || rs.ServerPublicKeyId <= 0 || string.IsNullOrEmpty(rs.ServerPublicKey)) return false;
+                CryptoUtils.LoadEcPublicKey(rs.ServerPublicKey.Base64UrlDecode());
+            }
+            catch (Exception e) when (!(e is TaskCanceledException))
+            {
+                Trace.TraceError($"Keeper server \"{Server}\": public key discovery failed: {e.Message}");
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(rs.Fingerprint))
+            {
+                using var sha = SHA256.Create();
+                var fingerprint = "SHA256:" + Convert.ToBase64String(sha.ComputeHash(rs.ServerPublicKey.Base64UrlDecode()))
+                    .TrimEnd('=');
+                if (!string.Equals(fingerprint, rs.Fingerprint.TrimEnd('='), StringComparison.Ordinal))
+                {
+                    throw new KeeperApiException("key", $"Keeper server \"{Server}\": public key fingerprint mismatch");
+                }
+            }
+
+            var stored = _storage.Get().Servers.Get(Server)?.PublicKeys?.Get(rs.ServerPublicKeyId.ToString());
+            if (string.Equals(stored?.PublicKey, rs.ServerPublicKey, StringComparison.Ordinal)) return false;
+
+            _storage.SetServerPublicKey(Server, rs.ServerPublicKeyId, rs.ServerPublicKey);
+            _serverPublicKeys = LoadServerPublicKeys(_storage.Get().Servers.Get(Server));
+            ServerKeyId = rs.ServerPublicKeyId;
+            Trace.TraceInformation(
+                $"Keeper server \"{Server}\": public key ID {rs.ServerPublicKeyId} {rs.Fingerprint} stored");
+            return true;
         }
 
         public int ServerKeyId { get; private set; }
