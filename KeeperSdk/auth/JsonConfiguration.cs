@@ -606,6 +606,16 @@ namespace KeeperSecurity.Configuration
             }
         }
 
+        // The list is created on first access. Do not store an empty one.
+        [OnSerializing]
+        private void OnSerializing(StreamingContext context)
+        {
+            if (serverPublicKeys?.Count == 0)
+            {
+                serverPublicKeys = null;
+            }
+        }
+
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
