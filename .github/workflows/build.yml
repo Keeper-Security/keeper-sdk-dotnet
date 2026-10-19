@@ -199,9 +199,16 @@ jobs:
         with:
           name: KeeperSdk-Nuget-Package
           path: nuget
+
+      # Get a short-lived NuGet API key
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
           
       - name: Publish to Nuget repo
         working-directory: nuget
         run: |
-          dotnet nuget push Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg -k "${{ secrets.NUGET_PUBLISH_KEY }}" -s https://api.nuget.org/v3/index.json 
+          dotnet nuget push Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg -k "${{ steps.login.outputs.NUGET_API_KEY }}" -s https://api.nuget.org/v3/index.json 
         shell: powershell   
