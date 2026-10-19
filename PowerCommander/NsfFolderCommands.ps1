@@ -497,7 +497,10 @@ function Update-KeeperNSFFolderAccesses {
 	Batch-update existing Keeper NSF folder access (user or team) — up to 500 entries per API request.
 
 	.Description
-	Uses vault/folders/v3/access_update (FolderAccessUpdates). Independent of Set-KeeperNSFFolderAccess.
+	Uses the SDK's vault/folders/v3/access_update flow. Inherited access is converted to an explicit
+	grant via an update including the recipient-encrypted folder key; existing direct access is updated;
+	denied access is removed then re-added.
+	Independent of Set-KeeperNSFFolderAccess.
 	JSON schema: an "accesses" array. Each item: folder_uid, accessor, role and/or expire_in/expire_at.
 	Omit as_team for team names/UIDs so resolution matches nsf-share-folder auto-detect.
 
@@ -620,7 +623,9 @@ function Unshare-KeeperNSFFolderAccesses {
 	Batch-revoke Keeper NSF folder access (user or team) — up to 500 entries per API request.
 
 	.Description
-	Uses vault/folders/v3/access_update (FolderAccessRemoves). Independent of Set-KeeperNSFFolderAccess.
+	Uses the SDK's vault/folders/v3/access_update flow. Inherited access is denied by an update;
+	direct access is removed; repeated denial is idempotent. The folder inheritance setting is never
+	changed. Independent of Set-KeeperNSFFolderAccess.
 	JSON schema: an "accesses" array. Each item: folder_uid, accessor.
 	Omit as_team for team names/UIDs so resolution matches nsf-share-folder auto-detect.
 
