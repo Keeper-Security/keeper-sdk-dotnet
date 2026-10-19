@@ -1354,7 +1354,10 @@ namespace KeeperSecurity.Vault
         /// <summary>User email, team name, or team UID that already has access.</summary>
         public string Accessor { get; set; }
 
-        /// <summary>New access role (required unless <see cref="Options"/> supplies an expiration change).</summary>
+        /// <summary>
+        /// New access role (required unless <see cref="Options"/> supplies an expiration change).
+        /// When omitted for inherited access, the inherited role is preserved while access becomes explicit.
+        /// </summary>
         public string Role { get; set; }
 
         /// <summary>
@@ -1402,7 +1405,12 @@ namespace KeeperSecurity.Vault
         /// <summary>Role from the request (grant/update).</summary>
         public string Role { get; set; }
 
-        /// <summary>Server or client status code.</summary>
+        /// <summary>
+        /// Server or client status code. Client-side statuses include <c>missing_key</c>,
+        /// <c>invalid_key</c>, <c>team_key_error</c>, <c>user_not_found</c>, and <c>lookup_failed</c>.
+        /// A repeated revoke of inherited access reports successful <c>already_denied</c> without
+        /// sending another access update.
+        /// </summary>
         public string Status { get; set; }
 
         /// <summary>Server or client message.</summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -940,6 +941,11 @@ namespace Commander
             public string AccessorEmail { get; set; }
         }
 
+        private static bool IsDirectAccess(NsfAccessView access)
+        {
+            return access != null && (access.Owner || (!access.Inherited && !access.DeniedAccess));
+        }
+
         private static async Task<List<NsfAccessView>> GetRecordAccessesAsync(VaultOnline vault, KeeperNSFRecord record)
         {
             try
@@ -947,9 +953,10 @@ namespace Commander
                 var rq = new RecordAccessRequest();
                 rq.RecordUids.Add(ByteString.CopyFrom(record.RecordUid.Base64UrlDecode()));
                 var rs = await vault.Auth.ExecuteAuthRest<RecordAccessRequest, RecordAccessResponse>(
-                    "vault/records/v3/details/access", rq);
+                    "vault/records/v3/details/access", rq).ConfigureAwait(false);
                 var converted = new List<NsfAccessView>();
-                foreach (var ra in rs.RecordAccesses)
+                var serverAccesses = rs?.RecordAccesses.ToList() ?? new List<RecordAccess>();
+                foreach (var ra in serverAccesses)
                 {
                     var d = ra.Data;
                     if (d == null)
@@ -975,10 +982,11 @@ namespace Commander
                     });
                 }
 
-                return converted.Where(access => !access.Inherited && !access.DeniedAccess).ToList();
+                return converted.Where(IsDirectAccess).ToList();
             }
-            catch
+            catch (Exception ex)
             {
+                Trace.TraceWarning($"Could not retrieve NSF record permissions for '{record.RecordUid}': {ex.Message}");
                 return vault.Storage.KdRecordAccesses.GetLinksForSubject(record.RecordUid)
                     .Select(a => new NsfAccessView
                     {
@@ -994,7 +1002,7 @@ namespace Commander
                         CanApproveAccess = a.CanApproveAccess,
                         CanUpdateAccess = a.CanUpdateAccess
                     })
-                    .Where(access => !access.Inherited && !access.DeniedAccess)
+                    .Where(IsDirectAccess)
                     .ToList();
             }
         }
@@ -1008,14 +1016,16 @@ namespace Commander
                     RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode())
                 };
                 var response = await vault.Auth.ExecuteAuthRest<GetSharingAdminsRequest, GetSharingAdminsResponse>(
-                    "enterprise/get_sharing_admins", rq);
-                return response.UserProfileExts
+                    "enterprise/get_sharing_admins", rq).ConfigureAwait(false);
+                var profiles = response?.UserProfileExts.ToList() ?? new List<UserProfileExt>();
+                return profiles
                     .Where(p => !string.IsNullOrEmpty(p.Email))
                     .Select(p => p.Email)
                     .ToList();
             }
-            catch
+            catch (Exception ex)
             {
+                Trace.TraceWarning($"Could not retrieve NSF record share administrators for '{recordUid}': {ex.Message}");
                 return new List<string>();
             }
         }
@@ -1027,31 +1037,41 @@ namespace Commander
                 var rq = new GetFolderAccessRequest();
                 rq.FolderUid.Add(ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode()));
                 var rs = await vault.Auth.ExecuteAuthRest<GetFolderAccessRequest, GetFolderAccessResponse>(
-                    "vault/folders/v3/access", rq);
-                foreach (var result in rs.FolderAccessResults)
+                    "vault/folders/v3/access", rq).ConfigureAwait(false);
+                var serverResults = rs?.FolderAccessResults.ToList() ?? new List<GetFolderAccessResult>();
+                foreach (var result in serverResults)
                 {
-                    if (result.Error != null)
+                    if (result == null || result.Error != null)
                     {
                         continue;
                     }
 
-                    return result.Accessors.Select(a => new NsfAccessView
+                    var storedFolder = vault.Storage.KdFolders.GetEntity(folder.FolderUid);
+                    var ownerUid = storedFolder?.OwnerAccountUid;
+                    return result.Accessors
+                    .Where(a => a != null)
+                    .Select(a => new NsfAccessView
                     {
                         AccessTypeUid = a.AccessTypeUid.ToByteArray().Base64UrlEncode(),
                         AccessType = (int)a.AccessType,
                         AccessRoleType = (int)a.AccessRoleType,
                         Inherited = a.Inherited,
-                        DeniedAccess = a.DeniedAccess
+                        DeniedAccess = a.DeniedAccess,
+                        Owner = a.AccessType == Folder.AccessType.AtOwner
+                            || (!string.IsNullOrEmpty(ownerUid)
+                                && a.AccessTypeUid.ToByteArray().Base64UrlEncode() == ownerUid)
                     })
-                    .Where(access => !access.Inherited && !access.DeniedAccess)
+                    .Where(IsDirectAccess)
                     .ToList();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // fall through
+                Trace.TraceWarning($"Could not retrieve NSF folder permissions for '{folder.FolderUid}': {ex.Message}");
             }
 
+            var cachedFolder = vault.Storage.KdFolders.GetEntity(folder.FolderUid);
+            var cachedOwnerUid = cachedFolder?.OwnerAccountUid;
             return vault.Storage.KdFolderAccesses.GetLinksForSubject(folder.FolderUid)
                 .Select(a => new NsfAccessView
                 {
@@ -1059,9 +1079,11 @@ namespace Commander
                     AccessType = a.AccessType,
                     AccessRoleType = a.AccessRoleType,
                     Inherited = a.Inherited,
-                    DeniedAccess = a.DeniedAccess
+                    DeniedAccess = a.DeniedAccess,
+                    Owner = a.AccessType == (int)Folder.AccessType.AtOwner
+                        || (!string.IsNullOrEmpty(cachedOwnerUid) && a.AccessTypeUid == cachedOwnerUid)
                 })
-                .Where(access => !access.Inherited && !access.DeniedAccess)
+                .Where(IsDirectAccess)
                 .ToList();
         }
 
