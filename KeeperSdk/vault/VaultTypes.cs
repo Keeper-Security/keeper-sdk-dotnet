@@ -572,9 +572,9 @@ namespace KeeperSecurity.Vault
         /// source record. When <paramref name="folderUid"/> is omitted the records are placed at
         /// the Keeper Drive root; otherwise it must identify a cached Keeper NSF folder.
         /// </summary>
-        /// <param name="recordUids">Classic record UIDs to convert (one to 100).</param>
+        /// <param name="recordUids">Classic record UIDs to convert (sent in batches of up to 100).</param>
         /// <param name="folderUid">Optional destination Keeper NSF folder UID.</param>
-        /// <returns>A server outcome for each converted record.</returns>
+        /// <returns>An outcome for each input UID, including skipped and uncertain entries.</returns>
         Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
             IReadOnlyList<string> recordUids, string folderUid = null);
 
@@ -1524,6 +1524,9 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
         public bool Success { get; internal set; }
+
+        /// <summary>Whether this input was skipped before sending a conversion request.</summary>
+        public bool Skipped { get; internal set; }
 
         /// <summary>
         /// Whether the response cannot establish success or failure. Refresh the vault and check the record's

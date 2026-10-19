@@ -8,9 +8,8 @@ function ConvertTo-KeeperNSFRecord {
     Permanently converts classic records to Keeper NSF records.
 
     .DESCRIPTION
-    Uses the .NET SDK conversion API; this cmdlet does not duplicate request or encryption logic.
-    The current user must own each classic record. Accepts up to 100 classic record UIDs, titles, or paths.
-    Conversion is permanent. Omit -FolderUid to convert to Vault (root); otherwise supply an existing NSF folder UID, unique name, or path.
+    The current user must own each classic record. Accepts classic record UIDs, titles, or paths in batches of up to 100 per API request.
+    Conversion is permanent. Leave -FolderUid unspecified to convert to Vault (root); otherwise supply an existing NSF folder UID, unique name, or path.
 
     .EXAMPLE
     ConvertTo-KeeperNSFRecord -Record abc123
@@ -45,17 +44,19 @@ function ConvertTo-KeeperNSFRecord {
 
             [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
             if ($vault.TryGetKeeperNSFRecord($identifier, [ref]$nsfRecord)) {
-                Write-Host "Record '$($nsfRecord.RecordUid)' is already an NSF record; skipped."
                 if (-not $seen.Add($nsfRecord.RecordUid)) {
-                    throw "The same record '$($nsfRecord.RecordUid)' was selected more than once."
+                    Write-Warning "Record '$($nsfRecord.RecordUid)' was selected more than once; duplicate skipped."
+                    continue
                 }
+                Write-Host "Record '$($nsfRecord.RecordUid)' is already an NSF record; skipped."
                 continue
             }
 
             [KeeperSecurity.Vault.KeeperRecord]$classicRecord = Resolve-ClassicRecordForNSFConversion -Vault $vault -Identifier $identifier
 
             if (-not $seen.Add($classicRecord.Uid)) {
-                throw "The same record '$($classicRecord.Uid)' was selected more than once."
+                Write-Warning "Record '$($classicRecord.Uid)' was selected more than once; duplicate skipped."
+                continue
             }
             $classicRecords.Add($classicRecord)
         }
@@ -64,10 +65,6 @@ function ConvertTo-KeeperNSFRecord {
             Write-Host 'No classic records remain to convert.'
             return
         }
-        if ($classicRecords.Count -gt 100) {
-            throw 'At most 100 classic records can be converted per request.'
-        }
-
         $destinationFolderUid = $null
         if ($PSBoundParameters.ContainsKey('FolderUid')) {
             [KeeperSecurity.Vault.FolderNode]$destinationFolder = $null
@@ -100,6 +97,9 @@ function ConvertTo-KeeperNSFRecord {
         foreach ($entry in $result) {
             if ($entry.OutcomeUncertain) {
                 Write-Warning "Conversion outcome for '$($entry.RecordUid)' is uncertain; refresh the vault and verify the record before retrying."
+            }
+            elseif ($entry.Skipped) {
+                Write-Warning "Record '$($entry.RecordUid)' skipped: $($entry.Message)"
             }
             $entry
         }

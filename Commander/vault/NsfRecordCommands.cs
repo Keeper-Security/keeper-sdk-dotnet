@@ -70,6 +70,10 @@ namespace Commander
                     {
                         Console.WriteLine($"Classic record '{result.RecordUid}' conversion outcome is uncertain: {result.Message} (status: {result.Status}).");
                     }
+                    else if (result.Skipped)
+                    {
+                        Console.WriteLine($"WARNING: Classic record '{result.RecordUid}' skipped: {result.Message}");
+                    }
                     else
                     {
                         Console.WriteLine($"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
@@ -81,8 +85,8 @@ namespace Commander
                 }
                 Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} confirmed converted, "
                     + $"{results.Count(x => x.OutcomeUncertain)} uncertain, "
-                    + $"{results.Count(x => !x.Success && !x.OutcomeUncertain)} failed; "
-                    + $"{alreadyNsf.Count} already NSF record(s) skipped.");
+                    + $"{results.Count(x => !x.Success && !x.OutcomeUncertain && !x.Skipped)} failed; "
+                    + $"{results.Count(x => x.Skipped) + alreadyNsf.Count} skipped.");
             }
             catch (Exception ex)
             {
@@ -110,8 +114,8 @@ namespace Commander
                 {
                     if (!seen.Add(nsfRecord.RecordUid))
                     {
-                        error = "The same record was selected more than once; remove duplicate records.";
-                        return false;
+                        Console.WriteLine($"WARNING: Record '{nsfRecord.RecordUid}' was selected more than once; duplicate skipped.");
+                        continue;
                     }
                     alreadyNsf.Add(nsfRecord.RecordUid);
                     continue;
@@ -124,16 +128,11 @@ namespace Commander
 
                 if (!seen.Add(record.Uid))
                 {
-                    error = "The same record was selected more than once; remove duplicate records.";
-                    return false;
+                    Console.WriteLine($"WARNING: Record '{record.Uid}' was selected more than once; duplicate skipped.");
+                    continue;
                 }
 
                 records.Add(record);
-                if (records.Count > 100)
-                {
-                    error = "At most 100 classic records can be converted per request.";
-                    return false;
-                }
             }
 
             return true;
@@ -906,7 +905,7 @@ namespace Commander
 
     class NsfConvertOptions
     {
-        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s), title(s), or path(s) to convert (maximum 100 per request)")]
+        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s), title(s), or path(s) to convert (automatically batched in groups of 100)")]
         public IEnumerable<string> Record { get; set; }
 
         [Option("folder", Required = false, HelpText = "Existing Keeper NSF folder UID, name, or path; omit for Vault (root)")]

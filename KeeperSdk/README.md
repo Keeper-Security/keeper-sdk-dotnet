@@ -18,7 +18,6 @@
 - [Requirements](#requirements)
 - [Documentation](#documentation)
 - [Sample Applications](#sample-applications)
-- [Protobuf generation](#protobuf-generation)
 - [Support](#support)
 
 ##  Overview
@@ -406,13 +405,6 @@ dotnet build
 # Run tests
 dotnet test
 ```
-
-## Protobuf generation
-
-The conversion endpoint model in [`proto/KeeperDriveConvert.cs`](proto/KeeperDriveConvert.cs) is generated from
-`keeperdrive-convert.proto` by the Protocol Buffers C# generator; do not hand-edit the generated C# file. The
-canonical `.proto` schema is not stored in this repository, so schema changes must be reviewed against the
-Keeper API definition and the C# file regenerated from that schema.
 
 ## Release Notes
 

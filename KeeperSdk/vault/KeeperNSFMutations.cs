@@ -25,7 +25,7 @@ namespace KeeperSecurity.Vault
         private const int MaxClassicRecordConversions = 100;
 
         internal async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSFInternal(
-            IReadOnlyList<string> recordUids, string folderUid)
+            IReadOnlyList<string> recordUids, string folderUid, HashSet<string> seenUids = null)
         {
             if (recordUids == null || recordUids.Count == 0)
             {
@@ -63,26 +63,48 @@ namespace KeeperSecurity.Vault
             }
 
             var request = new ConvertRecordRequest();
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var recordUid in recordUids)
+            var seen = seenUids ?? new HashSet<string>(StringComparer.Ordinal);
+            var outcomes = new KeeperNSFRecordConversionResult[recordUids.Count];
+            var requestedUids = new List<string>();
+            for (var index = 0; index < recordUids.Count; index++)
             {
-                var uid = ValidateConversionUid(recordUid, nameof(recordUids));
+                var recordUid = recordUids[index];
+                string uid;
+                try
+                {
+                    uid = ValidateConversionUid(recordUid, nameof(recordUids));
+                }
+                catch (ArgumentException)
+                {
+                    outcomes[index] = CreateSkippedConversionResult(recordUid, "SKIPPED_INVALID_UID", "Invalid record UID; skipped.");
+                    continue;
+                }
+
                 if (!seen.Add(uid))
                 {
-                    throw new ArgumentException($"Duplicate record UID in conversion request: '{uid}'.", nameof(recordUids));
+                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_DUPLICATE", "Duplicate record UID; skipped.");
+                    continue;
                 }
 
                 if (TryGetKeeperNSFRecord(uid, out _))
                 {
-                    throw new ArgumentException($"Record '{uid}' is already a Keeper NSF record.", nameof(recordUids));
+                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_ALREADY_NSF", "Record is already a Keeper NSF record; skipped.");
+                    continue;
                 }
 
                 if (!TryGetKeeperRecord(uid, out var record))
                 {
-                    throw new ArgumentException($"Classic record '{uid}' was not found in the local cache.", nameof(recordUids));
+                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_NOT_FOUND", "Classic record was not found in the local cache; skipped.");
+                    continue;
                 }
 
-                ValidateConversionKey(record.RecordKey, $"Record key for '{uid}'");
+                if (record.RecordKey == null || record.RecordKey.Length != 32)
+                {
+                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_INVALID_KEY", "Classic record key is unavailable or invalid; skipped.");
+                    continue;
+                }
+
+                requestedUids.Add(uid);
                 request.Records.Add(new ConvertRecord
                 {
                     RecordUid = ByteString.CopyFrom(uid.Base64UrlDecode()),
@@ -94,6 +116,24 @@ namespace KeeperSecurity.Vault
                     RecordKeyEncryptedByOwnerKey = ByteString.CopyFrom(
                         CryptoUtils.EncryptAesV2(record.RecordKey, ownerKey)),
                 });
+            }
+
+            IReadOnlyList<KeeperNSFRecordConversionResult> MergeResults(IReadOnlyList<KeeperNSFRecordConversionResult> requestResults)
+            {
+                var resultIndex = 0;
+                for (var index = 0; index < outcomes.Length; index++)
+                {
+                    if (outcomes[index] == null)
+                    {
+                        outcomes[index] = requestResults[resultIndex++];
+                    }
+                }
+                return outcomes;
+            }
+
+            if (request.Records.Count == 0)
+            {
+                return outcomes;
             }
 
             ConvertRecordResponse response;
@@ -109,17 +149,17 @@ namespace KeeperSecurity.Vault
                                            && string.Equals(apiError.Code, "http_error", StringComparison.OrdinalIgnoreCase)))
             {
                 Trace.TraceWarning($"KeeperNSF: Conversion response unavailable ({ex.GetType().Name}).");
-                return CreateUncertainConversionResults(recordUids, "RESPONSE_UNAVAILABLE",
-                    "No reliable conversion response was received. Refresh the vault and verify each record before retrying.");
+                return MergeResults(CreateUncertainConversionResults(requestedUids, "RESPONSE_UNAVAILABLE",
+                    "No reliable conversion response was received. Refresh the vault and verify each record before retrying."));
             }
 
             if (response == null)
             {
-                return CreateUncertainConversionResults(recordUids, "RESPONSE_MISSING",
-                    "The conversion service returned no response. Refresh the vault and verify each record before retrying.");
+                return MergeResults(CreateUncertainConversionResults(requestedUids, "RESPONSE_MISSING",
+                    "The conversion service returned no response. Refresh the vault and verify each record before retrying."));
             }
 
-            var requested = new HashSet<string>(recordUids, StringComparer.Ordinal);
+            var requested = new HashSet<string>(requestedUids, StringComparer.Ordinal);
             var returned = new Dictionary<string, ConvertRecordResult>(StringComparer.Ordinal);
             var duplicates = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in response.Results)
@@ -141,7 +181,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            return recordUids.Select(uid =>
+            return MergeResults(requestedUids.Select(uid =>
             {
                 if (duplicates.Contains(uid))
                 {
@@ -175,7 +215,19 @@ namespace KeeperSecurity.Vault
                     ServerOutcomeUncertain = item.Status == ConvertRecordStatus.Unspecified
                         || status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
                 };
-            }).ToList();
+            }).ToList());
+        }
+
+        private static KeeperNSFRecordConversionResult CreateSkippedConversionResult(string uid, string status, string message)
+        {
+            Trace.TraceWarning($"KeeperNSF: {status}: {message}");
+            return new KeeperNSFRecordConversionResult
+            {
+                RecordUid = uid,
+                Status = status,
+                Message = message,
+                Skipped = true,
+            };
         }
 
         private static IReadOnlyList<KeeperNSFRecordConversionResult> CreateUncertainConversionResults(

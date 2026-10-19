@@ -550,7 +550,20 @@ namespace KeeperSecurity.Vault
         public async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
             IReadOnlyList<string> recordUids, string folderUid = null)
         {
-            var results = await ConvertClassicRecordsToKeeperNSFInternal(recordUids, folderUid).ConfigureAwait(false);
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new ArgumentException("At least one classic record UID is required.", nameof(recordUids));
+            }
+
+            var results = new List<KeeperNSFRecordConversionResult>(recordUids.Count);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var offset = 0; offset < recordUids.Count; offset += MaxClassicRecordConversions)
+            {
+                var batch = recordUids.Skip(offset).Take(MaxClassicRecordConversions).ToArray();
+                var batchResults = await ConvertClassicRecordsToKeeperNSFInternal(batch, folderUid, seen).ConfigureAwait(false);
+                results.AddRange(batchResults);
+            }
+
             if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
             {
                 try
