@@ -192,6 +192,8 @@ jobs:
     environment: prod
     env:
       PACKAGE_VERSION: ${{ needs.build.outputs.package-version }}
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
     
     steps:
       - name: Download Nuget package
