@@ -829,7 +829,7 @@ function Show-KdRecordDetail {
 
     Write-Host ""
 
-    $recordAccesses = Get-KdRecordAccesses $vault $storage $record
+    $recordAccesses = Get-KdRecordAccesses $vault $record
     $shareAdminEmails = Get-KdRecordShareAdminEmails $vault $record.RecordUid
 
     Show-KdPermissions $vault $recordAccesses $shareAdminEmails $currentAccountUid 'record'
@@ -848,7 +848,7 @@ function Show-KdFolderDetail {
     $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
     $ownerUsername = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
 
-    $folderAccesses = Get-KdFolderAccesses $vault $storage $folder
+    $folderAccesses = Get-KdFolderAccesses $vault $folder
     Show-KdFolderPermissions $vault $folderAccesses $currentAccountUid $ownerAccountUid $ownerUsername
 }
 
@@ -924,12 +924,19 @@ function Test-KdIsFolderOwner {
     return $false
 }
 
+function Test-KdIsDirectAccess {
+    Param($access)
+
+    if ($null -eq $access) { return $false }
+    return [bool]($access.Owner -or (-not $access.Inherited -and -not $access.DeniedAccess))
+}
+
 function Get-KdUserPermissions {
     Param($vault, $directAccesses, $currentAccountUid, $objectType, $ownerAccountUid, $ownerUsername)
 
     $userPerms = [System.Collections.ArrayList]::new()
     foreach ($access in $directAccesses) {
-        if ($access.Inherited -or $access.DeniedAccess) { continue }
+        if (-not (Test-KdIsDirectAccess $access)) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
@@ -1006,7 +1013,7 @@ function ConvertTo-KdFolderPermissionsJson {
     $shareAdmins = [System.Collections.ArrayList]::new()
 
     foreach ($access in $folderAccesses) {
-        if ($access.Inherited -or $access.DeniedAccess) { continue }
+        if (-not (Test-KdIsDirectAccess $access)) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
@@ -1025,10 +1032,8 @@ function ConvertTo-KdFolderPermissionsJson {
         $roleInt = [int]$access.AccessRoleType
         $roleLabel = if ($isOwner) { 'owner' } else { (Get-AccessRoleLabel $roleInt) }
 
+        # Keep this field for schema compatibility; only direct permissions are emitted.
         $inherited = $false
-        if ($access.PSObject.Properties.Match('Inherited').Count -gt 0) {
-            $inherited = [bool]$access.Inherited
-        }
 
         $entry = [ordered]@{
             accessor    = $accessor
@@ -1056,19 +1061,54 @@ function ConvertTo-KdFolderPermissionsJson {
     }
 }
 
-function Get-KdRecordAccesses {
-    Param($vault, $storage, $record)
+function Get-KdNsfPermissionEntries {
+    Param(
+        $vault,
+        [string] $Uid,
+        [bool] $ForRecord
+    )
+
+    [string[]] $folderUids = @()
+    [string[]] $recordUids = @()
+    if ($ForRecord) {
+        $recordUids = [string[]] @($Uid)
+    }
+    else {
+        $folderUids = [string[]] @($Uid)
+    }
 
     try {
-        $permissions = $vault.GetKeeperNSFSharePermissionsAsync(@(), @([string]$record.RecordUid)).GetAwaiter().GetResult()
-        if ($permissions.RecordPermissions.ContainsKey($record.RecordUid)) {
-            return @($permissions.RecordPermissions[$record.RecordUid])
+        $permissions = $vault.GetKeeperNSFSharePermissionsAsync($folderUids, $recordUids).GetAwaiter().GetResult()
+        if ($ForRecord -and $permissions.RecordPermissions.ContainsKey($Uid)) {
+            return @($permissions.RecordPermissions[$Uid])
+        }
+        if (-not $ForRecord -and $permissions.FolderPermissions.ContainsKey($Uid)) {
+            return @($permissions.FolderPermissions[$Uid])
         }
     }
     catch {
-        Write-Verbose "Could not retrieve record access: $($_.Exception.Message)"
+        Write-Verbose "Could not retrieve NSF access for '$Uid': $($_.Exception.Message)"
     }
+
+    try {
+        $permissions = $vault.GetKeeperNSFSharePermissions($folderUids, $recordUids)
+        if ($ForRecord -and $permissions.RecordPermissions.ContainsKey($Uid)) {
+            return @($permissions.RecordPermissions[$Uid])
+        }
+        if (-not $ForRecord -and $permissions.FolderPermissions.ContainsKey($Uid)) {
+            return @($permissions.FolderPermissions[$Uid])
+        }
+    }
+    catch {
+        Write-Verbose "Could not retrieve cached NSF access for '$Uid': $($_.Exception.Message)"
+    }
+
     return @()
+}
+
+function Get-KdRecordAccesses {
+    Param($vault, $record)
+    return Get-KdNsfPermissionEntries -vault $vault -Uid ([string]$record.RecordUid) -ForRecord $true
 }
 
 function Get-KdRecordShareAdminEmails {
@@ -1090,18 +1130,8 @@ function Get-KdRecordShareAdminEmails {
 }
 
 function Get-KdFolderAccesses {
-    Param($vault, $storage, $folder)
-
-    try {
-        $permissions = $vault.GetKeeperNSFSharePermissionsAsync(@([string]$folder.FolderUid), @()).GetAwaiter().GetResult()
-        if ($permissions.FolderPermissions.ContainsKey($folder.FolderUid)) {
-            return @($permissions.FolderPermissions[$folder.FolderUid])
-        }
-    }
-    catch {
-        Write-Verbose "Could not retrieve folder access: $($_.Exception.Message)"
-    }
-    return @()
+    Param($vault, $folder)
+    return Get-KdNsfPermissionEntries -vault $vault -Uid ([string]$folder.FolderUid) -ForRecord $false
 }
 
 function Show-KdFolderPermissions {
@@ -1118,7 +1148,7 @@ function Show-KdFolderPermissions {
     $shareAdmins = [System.Collections.ArrayList]::new()
 
     foreach ($access in $folderAccesses) {
-        if ($access.Inherited -or $access.DeniedAccess) { continue }
+        if (-not (Test-KdIsDirectAccess $access)) { continue }
         $hint = $null
         if ($access.PSObject.Properties.Match('AccessorEmail').Count -gt 0) {
             $hint = $access.AccessorEmail
@@ -1280,7 +1310,7 @@ function Build-KdRecordJson {
     $recordType = $meta.Type
     $title = $meta.Title
 
-    $recordAccesses = Get-KdRecordAccesses $vault $storage $record
+    $recordAccesses = Get-KdRecordAccesses $vault $record
     $shareAdminEmails = Get-KdRecordShareAdminEmails $vault $record.RecordUid
     $userPerms = Get-KdUserPermissions $vault $recordAccesses $currentAccountUid 'record'
     $permissions = ConvertTo-KdPermissionsJson $userPerms 'record'
@@ -1370,7 +1400,7 @@ function Get-KdFolderPath {
 function Build-KdFolderJson {
     Param($vault, $storage, $folder, $currentAccountUid)
 
-    $folderAccesses = Get-KdFolderAccesses $vault $storage $folder
+    $folderAccesses = Get-KdFolderAccesses $vault $folder
     $storedFolder = $storage.KdFolders.GetEntity($folder.FolderUid)
     $ownerAccountUid = if ($storedFolder) { $storedFolder.OwnerAccountUid } else { $null }
     $ownerUsername   = if ($storedFolder) { $storedFolder.OwnerUsername } else { $null }
