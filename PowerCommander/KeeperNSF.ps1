@@ -1077,6 +1077,7 @@ function Get-KdNsfPermissionEntries {
         $folderUids = [string[]] @($Uid)
     }
 
+    $asyncError = $null
     try {
         $permissions = $vault.GetKeeperNSFSharePermissionsAsync($folderUids, $recordUids).GetAwaiter().GetResult()
         if ($ForRecord -and $permissions.RecordPermissions.ContainsKey($Uid)) {
@@ -1088,6 +1089,7 @@ function Get-KdNsfPermissionEntries {
     }
     catch {
         Write-Verbose "Could not retrieve NSF access for '$Uid': $($_.Exception.Message)"
+        $asyncError = $_.Exception.Message
     }
 
     try {
@@ -1101,6 +1103,12 @@ function Get-KdNsfPermissionEntries {
     }
     catch {
         Write-Verbose "Could not retrieve cached NSF access for '$Uid': $($_.Exception.Message)"
+        $cacheError = $_.Exception.Message
+        if ([string]::IsNullOrEmpty($asyncError)) {
+            $asyncError = 'live lookup returned no matching permission entry'
+        }
+        $message = "Could not retrieve NSF permissions for '$Uid'. Live lookup: $asyncError; cached lookup failed: $cacheError"
+        throw (New-Object -TypeName System.InvalidOperationException -ArgumentList $message)
     }
 
     return @()
