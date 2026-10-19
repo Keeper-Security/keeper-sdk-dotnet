@@ -986,7 +986,7 @@ namespace Commander
             }
             catch (Exception ex)
             {
-                Trace.TraceWarning($"Could not retrieve NSF record permissions for '{record.RecordUid}': {ex.Message}");
+                Trace.TraceWarning($"Could not retrieve NSF record permissions for '{record.RecordUid}' ({ex.GetType().Name}): {ex.Message}");
                 return vault.Storage.KdRecordAccesses.GetLinksForSubject(record.RecordUid)
                     .Select(a => new NsfAccessView
                     {
@@ -1025,7 +1025,7 @@ namespace Commander
             }
             catch (Exception ex)
             {
-                Trace.TraceWarning($"Could not retrieve NSF record share administrators for '{recordUid}': {ex.Message}");
+                Trace.TraceWarning($"Could not retrieve NSF record share administrators for '{recordUid}' ({ex.GetType().Name}): {ex.Message}");
                 return new List<string>();
             }
         }
@@ -1067,7 +1067,7 @@ namespace Commander
             }
             catch (Exception ex)
             {
-                Trace.TraceWarning($"Could not retrieve NSF folder permissions for '{folder.FolderUid}': {ex.Message}");
+                Trace.TraceWarning($"Could not retrieve NSF folder permissions for '{folder.FolderUid}' ({ex.GetType().Name}): {ex.Message}");
             }
 
             var cachedFolder = vault.Storage.KdFolders.GetEntity(folder.FolderUid);
