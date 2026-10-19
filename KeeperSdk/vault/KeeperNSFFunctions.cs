@@ -1021,13 +1021,13 @@ namespace KeeperSecurity.Vault
 
         private static async Task RevokeKeeperNSFFolderAccessFromUser(this VaultOnline vault, string folderUid, string userEmail)
         {
-            ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, null);
             var publicKey = await GetKeeperNSFUserPublicKeyAsync(vault, userEmail, "user_not_found")
                 .ConfigureAwait(false);
             if (publicKey.AccountUid == null || publicKey.AccountUid.IsEmpty)
             {
                 throw new KeeperApiException("user_not_found", $"User '{userEmail}' not found.");
             }
+            ThrowIfKeeperNSFFolderOwner(vault, folderUid, userEmail, publicKey.AccountUid);
             await RevokeKeeperNSFFolderAccessCoreAsync(
                 vault, folderUid, userEmail, publicKey.AccountUid, FolderProto.AccessType.AtUser).ConfigureAwait(false);
         }
