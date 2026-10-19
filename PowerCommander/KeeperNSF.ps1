@@ -1111,7 +1111,11 @@ function Get-KdNsfPermissionEntries {
         throw (New-Object -TypeName System.InvalidOperationException -ArgumentList $message)
     }
 
-    return @()
+    if ([string]::IsNullOrEmpty($asyncError)) {
+        $asyncError = 'live lookup returned no matching permission entry'
+    }
+    $message = "Could not retrieve NSF permissions for '$Uid'. Live lookup: $asyncError; cached lookup returned no matching permission entry."
+    throw (New-Object -TypeName System.InvalidOperationException -ArgumentList $message)
 }
 
 function Get-KdRecordAccesses {
