@@ -79,7 +79,7 @@ function resolveKeeperNSFFolderOrRoot {
     Internal helper. Same as resolveKeeperNSFFolder, but also accepts '', '/' or 'root' to mean the Keeper Drive root.
     #>
     Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Identifier,
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
     )
 

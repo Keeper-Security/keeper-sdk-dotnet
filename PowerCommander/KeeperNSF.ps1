@@ -157,25 +157,49 @@ function Resolve-KdNsfObject {
         [string]$Name
     )
 
-    $identifier = if ($Uid) { $Uid } else { $Name }
-    if ($identifier) {
-        $resolvedFolder = resolveKeeperNSFFolder -Identifier $identifier -Vault $vault
+    if ($Uid) {
+        $resolvedFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
         if ($resolvedFolder) {
             return [PSCustomObject]@{ Record = $null; Folder = $resolvedFolder }
         }
-        $resolvedRecord = resolveKeeperNSFRecord -Identifier $identifier -Vault $vault
+        $resolvedRecord = resolveKeeperNSFRecord -Identifier $Uid -Vault $vault
         if ($resolvedRecord) {
             return [PSCustomObject]@{ Record = $resolvedRecord; Folder = $null }
         }
+    }
+
+    if ($Name) {
+        $folderMatches = [System.Collections.ArrayList]::new()
+        $recordMatches = [System.Collections.ArrayList]::new()
+
         foreach ($f in $vault.KeeperNSFFolderNodes) {
-            if ($f.Name -and $f.Name -ilike "*$identifier*") {
-                return [PSCustomObject]@{ Record = $null; Folder = $f }
+            if ($f.Name -and $f.Name -ilike "*$Name*") {
+                $folderMatches.Add($f) | Out-Null
             }
         }
+
         foreach ($r in $vault.KeeperNSFRecordEntries) {
-            if ($r.Title -and $r.Title -ilike "*$identifier*") {
-                return [PSCustomObject]@{ Record = $r; Folder = $null }
+            if ($r.Title -and $r.Title -ilike "*$Name*") {
+                $recordMatches.Add($r) | Out-Null
             }
+        }
+
+        if ($folderMatches.Count -gt 1) {
+            $folderNames = $folderMatches | ForEach-Object { $_.Name } | Join-String -Separator '", "'
+            throw [KeeperSecurity.Vault.AmbiguousFolderException]("Multiple folders matching `"$Name`": `"$folderNames`".")
+        }
+
+        if ($folderMatches.Count -eq 1) {
+            return [PSCustomObject]@{ Record = $null; Folder = $folderMatches[0] }
+        }
+
+        if ($recordMatches.Count -gt 1) {
+            $recordNames = $recordMatches | ForEach-Object { $_.Title } | Join-String -Separator '", "'
+            throw [KeeperSecurity.Vault.AmbiguousNsfRecordException]("Multiple records matching `"$Name`": `"$recordNames`".")
+        }
+
+        if ($recordMatches.Count -eq 1) {
+            return [PSCustomObject]@{ Record = $recordMatches[0]; Folder = $null }
         }
     }
 

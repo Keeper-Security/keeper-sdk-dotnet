@@ -264,14 +264,24 @@ function Resolve-KeeperSecretManagerSecret {
         }
     }
 
-    $nsfFolder = resolveKeeperNSFFolder -Identifier $secretInput -Vault $vault
-    if ($nsfFolder) {
-        return $nsfFolder.FolderUid
+    try {
+        $nsfFolder = resolveKeeperNSFFolder -Identifier $secretInput -Vault $vault
+        if ($nsfFolder) {
+            return $nsfFolder.FolderUid
+        }
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        Write-Error -Message "Multiple NSF folders match '$secretInput'. Be more specific." -ErrorAction Stop
     }
 
-    $nsfRecord = resolveKeeperNSFRecord -Identifier $secretInput -Vault $vault
-    if ($nsfRecord) {
-        return $nsfRecord.RecordUid
+    try {
+        $nsfRecord = resolveKeeperNSFRecord -Identifier $secretInput -Vault $vault
+        if ($nsfRecord) {
+            return $nsfRecord.RecordUid
+        }
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        Write-Error -Message "Multiple NSF records match '$secretInput'. Be more specific." -ErrorAction Stop
     }
 
     $exactSf = @(Get-KeeperSharedFolder | Where-Object {

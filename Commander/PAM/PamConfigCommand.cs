@@ -430,11 +430,19 @@ namespace Commander.PAM
         return null;
       }
 
-      return vaultContext.TryResolvePath(path, out var folderNode, out var remainder)
-             && string.IsNullOrEmpty(remainder)
-             && PamVaultHelpers.IsPamConfigurationFolderDestination(vault, folderNode)
-        ? folderNode
-        : null;
+      try
+      {
+        return vaultContext.ResolvePath(path, out var folderNode, out var remainder)
+               && string.IsNullOrEmpty(remainder)
+               && PamVaultHelpers.IsPamConfigurationFolderDestination(vault, folderNode)
+          ? folderNode
+          : null;
+      }
+      catch (AmbiguousFolderException ex)
+      {
+        Console.WriteLine($"Error: {ex.Message}");
+        return null;
+      }
     }
 
     private async Task ConfigureTunnelingIfNeededAsync(string configUid, PamConfigOptions options)

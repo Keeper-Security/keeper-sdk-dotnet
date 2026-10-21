@@ -18,7 +18,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(arguments.Record, out var record))
             {
             }
-            else if (context.TryResolvePath(arguments.Record, out var node, out var title))
+            else if (context.ResolvePath(arguments.Record, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -198,7 +198,16 @@ namespace Commander
                     return;
                 }
 
-                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
+                string uid;
+                try
+                {
+                    uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
+                }
+                catch (AmbiguousFolderException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
 
                 SecretsManagerApplication app;
                 if (action == "share-update")
@@ -219,7 +228,16 @@ namespace Commander
                     return;
                 }
 
-                var uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
+                string uid;
+                try
+                {
+                    uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
+                }
+                catch (AmbiguousFolderException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
                 var app = await context.Vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(context.Vault, app);
             }
@@ -324,24 +342,31 @@ namespace Commander
                 return nsfRecord.RecordUid;
             }
 
-            if (context.TryResolvePath(secret, out var folder, out var title))
+            try
             {
-                if (string.IsNullOrEmpty(title))
+                if (context.ResolvePath(secret, out var folder, out var title))
                 {
-                    if (folder.FolderType == FolderType.SharedFolder)
+                    if (string.IsNullOrEmpty(title))
                     {
-                        return folder.FolderUid;
+                        if (folder.FolderType == FolderType.SharedFolder)
+                        {
+                            return folder.FolderUid;
+                        }
+                    }
+                    else
+                    {
+                        record = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
+                            x != null && string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
+                        if (record != null)
+                        {
+                            return record.Uid;
+                        }
                     }
                 }
-                else
-                {
-                    record = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
-                        x != null && string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
-                    if (record != null)
-                    {
-                        return record.Uid;
-                    }
-                }
+            }
+            catch (AmbiguousFolderException)
+            {
+                throw;
             }
 
             return null;

@@ -305,23 +305,44 @@ namespace Commander
             }
 
             var recordUids = new List<string>();
+            var resolutionErrors = new List<string>();
             foreach (var uid in identifiers)
             {
                 var trimmed = uid?.Trim();
-                string resolvedUid;
-                try
+                if (string.IsNullOrEmpty(trimmed))
                 {
-                    resolvedUid = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, trimmed)?.RecordUid ?? trimmed;
-                }
-                catch (AmbiguousNsfRecordException ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    resolutionErrors.Add("Empty record identifier.");
                     continue;
                 }
 
-                if (!string.IsNullOrEmpty(resolvedUid))
+                try
                 {
-                    recordUids.Add(resolvedUid);
+                    var resolved = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, trimmed);
+                    if (resolved != null)
+                    {
+                        recordUids.Add(resolved.RecordUid);
+                    }
+                    else
+                    {
+                        resolutionErrors.Add($"Record '{trimmed}' not found.");
+                    }
+                }
+                catch (AmbiguousNsfRecordException ex)
+                {
+                    resolutionErrors.Add(ex.Message);
+                }
+            }
+
+            if (resolutionErrors.Count > 0)
+            {
+                foreach (var error in resolutionErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                if (recordUids.Count == 0)
+                {
+                    Console.WriteLine("No valid records to retrieve. Aborting.");
+                    return;
                 }
             }
 

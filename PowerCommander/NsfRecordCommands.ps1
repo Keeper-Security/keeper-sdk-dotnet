@@ -1936,11 +1936,16 @@ function Remove-KeeperNSFRecord {
             }
             catch [KeeperSecurity.Vault.AmbiguousFolderException] {
                 writeAmbiguousNsfError -ErrorRecord $_
-                return
+                $PSCmdlet.ThrowTerminatingError($_)
             }
             if (-not $folderNode) {
-                Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
-                return
+                $errorRecord = New-Object System.Management.Automation.ErrorRecord -ArgumentList (
+                    (New-Object System.Exception("Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first.")),
+                    'FolderNotFound',
+                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                    $Folder
+                )
+                $PSCmdlet.ThrowTerminatingError($errorRecord)
             }
             $folderHint = $Folder
         }
@@ -1955,8 +1960,13 @@ function Remove-KeeperNSFRecord {
         }
 
         if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
-            Write-Error -Message "Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder."
-            return
+            $errorRecord = New-Object System.Management.Automation.ErrorRecord -ArgumentList (
+                (New-Object System.Exception("Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder.")),
+                'FolderContextRequired',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $Operation
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
     }
 
@@ -2196,16 +2206,24 @@ function Remove-KeeperNSFRecords {
     # so one ambiguous/missing identifier can't result in a half-done delete of the others.
     $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
     $resolveErrors = New-Object 'System.Collections.Generic.List[string]'
+    $index = 0
     foreach ($spec in $specs) {
+        if ([string]::IsNullOrWhiteSpace($spec.RecordUid)) {
+            $resolveErrors.Add("Missing record_uid (or uid) at index $index")
+            $index++
+            continue
+        }
         try {
             $kdRecord = resolveKeeperNSFRecord -Identifier $spec.RecordUid -Vault $vault
         }
         catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
             $resolveErrors.Add($_.Exception.Message)
+            $index++
             continue
         }
         if (-not $kdRecord) {
             $resolveErrors.Add("Keeper NSF record `"$($spec.RecordUid)`" was not found. Run Sync-Keeper or nsf-list first.")
+            $index++
             continue
         }
 
@@ -2222,6 +2240,7 @@ function Remove-KeeperNSFRecords {
 
         if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
             $resolveErrors.Add("Folder is required for unlink of record `"$($spec.RecordUid)`".")
+            $index++
             continue
         }
 
@@ -2233,6 +2252,7 @@ function Remove-KeeperNSFRecords {
             $ambiguous = getAmbiguousNsfException -ErrorRecord $_
             if (-not $ambiguous) { throw }
             $resolveErrors.Add($ambiguous.Message)
+            $index++
             continue
         }
         if (-not $folderResolved) {
@@ -2242,6 +2262,7 @@ function Remove-KeeperNSFRecords {
             else {
                 $resolveErrors.Add("No folder context for record `"$($spec.RecordUid)`". Set folder in JSON or use operation owner-trash.")
             }
+            $index++
             continue
         }
 
@@ -2250,6 +2271,7 @@ function Remove-KeeperNSFRecords {
         $removal.FolderUid = $folderUid
         $removal.Operation = $op
         $removals.Add($removal)
+        $index++
     }
 
     if ($resolveErrors.Count -gt 0) {

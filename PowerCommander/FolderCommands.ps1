@@ -123,13 +123,6 @@ function tryResolveKeeperFolder {
     }
 
     $components = splitKeeperPath $Identifier
-    if ($components.Count -le 1) {
-        $objs = @(Get-KeeperChildItem -ObjectType Folder -Recursive | Where-Object { [string]::Equals($_.Name, $Identifier, [System.StringComparison]::OrdinalIgnoreCase) })
-        if ($objs.Count -gt 1) {
-            $details = ($objs | ForEach-Object { "  UID: $($_.Uid), Name: $($_.Name)" }) -join "`n"
-            Write-Error -Message "There are $($objs.Count) folders with name `"$Identifier`". Use Folder UID$(if ($SupportPaths.IsPresent) { ' or full path' }) to specify the correct one:`n$details" -ErrorAction Stop
-        }
-    }
 
     if ($SupportPaths.IsPresent) {
         [KeeperSecurity.Vault.FolderNode]$currentDir = $null

@@ -1951,6 +1951,11 @@ function Remove-KeeperNSFFolders {
     $resolveErrors = New-Object System.Collections.Generic.List[string]
     $index = 0
     foreach ($spec in $specs) {
+        if ([string]::IsNullOrWhiteSpace($spec.FolderUid)) {
+            $resolveErrors.Add("Missing folder_uid at index $index")
+            $index++
+            continue
+        }
         try {
             $folderNode = resolveKeeperNSFFolder -Identifier $spec.FolderUid -Vault $vault
         }

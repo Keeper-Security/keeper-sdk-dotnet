@@ -61,7 +61,7 @@ namespace Commander
                 SharedFolder sharedFolder;
                 try
                 {
-                    sharedFolder = TryResolveSharedFolder(context, identifier);
+                    sharedFolder = ResolveSharedFolder(context, identifier);
                 }
                 catch (AmbiguousSharedFolderException ex)
                 {
@@ -162,7 +162,7 @@ namespace Commander
                 return folder;
             }
 
-            if (context.TryResolvePath(identifier, out var folderByPath))
+            if (context.ResolvePath(identifier, out var folderByPath))
             {
                 return folderByPath;
             }
@@ -179,7 +179,7 @@ namespace Commander
             return matches.FirstOrDefault();
         }
 
-        private static SharedFolder TryResolveSharedFolder(VaultContext context, string identifier)
+        private static SharedFolder ResolveSharedFolder(VaultContext context, string identifier)
         {
             if (context.Vault.TryGetSharedFolder(identifier, out var sharedFolder))
             {

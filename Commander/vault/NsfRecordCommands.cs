@@ -127,13 +127,22 @@ namespace Commander
             }
 
             var folderUid = options.FolderUid;
-            var permFolderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
-            if (permFolderMatch != null)
-            {
-                folderUid = permFolderMatch.FolderUid;
-            }
+            var folderDisplay = "root";
 
-            var folderDisplay = string.IsNullOrEmpty(folderUid) ? "root" : folderUid;
+            if (!string.IsNullOrEmpty(folderUid))
+            {
+                var permFolderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
+                if (permFolderMatch != null)
+                {
+                    folderUid = permFolderMatch.FolderUid;
+                    folderDisplay = folderUid;
+                }
+                else
+                {
+                    Console.WriteLine($"Error: Folder '{folderUid}' not found.");
+                    return;
+                }
+            }
             var roleLabel = !string.IsNullOrEmpty(options.Role) ? $"'{options.Role}'" : "all";
             var scopeLabel = options.Recursive ? "recursively" : "only";
             Console.WriteLine();
@@ -220,11 +229,18 @@ namespace Commander
                 }
                 else
                 {
-                    var recordMatch = vault.KeeperNSFRecordEntries
-                        .FirstOrDefault(r => r.Title != null && string.Equals(r.Title, options.Target, StringComparison.OrdinalIgnoreCase));
-                    if (recordMatch != null)
+                    var recordMatches = vault.KeeperNSFRecordEntries
+                        .Where(r => r.Title != null && string.Equals(r.Title, options.Target, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                    if (recordMatches.Count > 1)
                     {
-                        recordUid = recordMatch.RecordUid;
+                        var titles = string.Join(", ", recordMatches.Select(r => $"\"{r.Title}\""));
+                        Console.WriteLine($"Error: Multiple records matching \"{options.Target}\": {titles}.");
+                        return Task.CompletedTask;
+                    }
+                    if (recordMatches.Count == 1)
+                    {
+                        recordUid = recordMatches[0].RecordUid;
                     }
                     else
                     {
@@ -345,11 +361,18 @@ namespace Commander
 
             if (!vault.TryGetKeeperNSFRecord(recordUid, out _))
             {
-                var match = vault.KeeperNSFRecordEntries
-                    .FirstOrDefault(r => r.Title != null && string.Equals(r.Title, recordUid, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
+                var matches = vault.KeeperNSFRecordEntries
+                    .Where(r => r.Title != null && string.Equals(r.Title, recordUid, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (matches.Count > 1)
                 {
-                    recordUid = match.RecordUid;
+                    var titles = string.Join(", ", matches.Select(r => $"\"{r.Title}\""));
+                    Console.WriteLine($"Error: Multiple records matching \"{options.RecordUid}\": {titles}.");
+                    return;
+                }
+                if (matches.Count == 1)
+                {
+                    recordUid = matches[0].RecordUid;
                 }
                 else
                 {
