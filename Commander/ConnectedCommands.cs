@@ -517,6 +517,22 @@ namespace Commander
                 return "";
             }
 
+            if (!string.IsNullOrEmpty(_vaultContext.CurrentNsfFolder))
+            {
+                var names = new List<string>();
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                var uid = _vaultContext.CurrentNsfFolder;
+                while (!string.IsNullOrEmpty(uid) && visited.Add(uid)
+                    && _vaultContext.Vault.TryGetKeeperNSFFolder(uid, out var folder))
+                {
+                    names.Add(folder.Name ?? uid);
+                    uid = folder.ParentUid;
+                }
+                names.Reverse();
+                var prompt = _vaultContext.Vault.RootFolder.Name + "/" + string.Join("/", names);
+                return prompt.Length <= 40 ? prompt : "..." + prompt.Substring(prompt.Length - 37);
+            }
+
             if (!string.IsNullOrEmpty(_vaultContext.CurrentFolder))
             {
                 var folder = _vaultContext.CurrentFolder;

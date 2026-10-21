@@ -619,9 +619,9 @@ namespace Commander
 
                 resolvedFolderUid = folderNode.FolderUid;
             }
-            else if (!string.IsNullOrEmpty(context.CurrentFolder))
+            else if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
             {
-                if (vault.TryResolveKeeperNSFFolder(context.CurrentFolder, out var currentFolder))
+                if (vault.TryResolveKeeperNSFFolder(context.CurrentNsfFolder, out var currentFolder))
                 {
                     resolvedFolderUid = currentFolder.FolderUid;
                 }

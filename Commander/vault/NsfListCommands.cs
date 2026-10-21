@@ -270,7 +270,7 @@ namespace Commander
                     jsonObj = await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid);
                 }
 
-                Console.WriteLine(Json.Serialize(jsonObj));
+                Console.WriteLine(Json.SerializeFormatted(jsonObj));
                 return;
             }
 
