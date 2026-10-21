@@ -185,8 +185,8 @@ function Resolve-KdNsfObject {
         }
 
         if ($folderMatches.Count -gt 1) {
-            $folderNames = $folderMatches | ForEach-Object { $_.Name } | Join-String -Separator '", "'
-            throw [KeeperSecurity.Vault.AmbiguousFolderException]("Multiple folders matching `"$Name`": `"$folderNames`".")
+            $folderNames = ($folderMatches | ForEach-Object { $_.Name }) -join '", "'
+            Write-Error -Message "Multiple folders matching `"$Name`": `"$folderNames`"." -ErrorAction Stop
         }
 
         if ($folderMatches.Count -eq 1) {
@@ -194,8 +194,8 @@ function Resolve-KdNsfObject {
         }
 
         if ($recordMatches.Count -gt 1) {
-            $recordNames = $recordMatches | ForEach-Object { $_.Title } | Join-String -Separator '", "'
-            throw [KeeperSecurity.Vault.AmbiguousNsfRecordException]("Multiple records matching `"$Name`": `"$recordNames`".")
+            $recordNames = ($recordMatches | ForEach-Object { $_.Title }) -join '", "'
+            Write-Error -Message "Multiple records matching `"$Name`": `"$recordNames`"." -ErrorAction Stop
         }
 
         if ($recordMatches.Count -eq 1) {

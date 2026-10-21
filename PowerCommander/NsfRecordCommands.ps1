@@ -1936,7 +1936,7 @@ function Remove-KeeperNSFRecord {
             }
             catch [KeeperSecurity.Vault.AmbiguousFolderException] {
                 writeAmbiguousNsfError -ErrorRecord $_
-                $PSCmdlet.ThrowTerminatingError($_)
+                return
             }
             if (-not $folderNode) {
                 $errorRecord = New-Object System.Management.Automation.ErrorRecord -ArgumentList (

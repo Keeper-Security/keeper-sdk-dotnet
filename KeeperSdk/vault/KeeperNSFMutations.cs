@@ -942,9 +942,12 @@ namespace KeeperSecurity.Vault
         /// <remarks>
         /// True to the <c>Try*</c> convention, this never throws: if <paramref name="uidOrTitle"/> is a title
         /// that matches more than one record, it fails safe and returns <c>false</c> rather than silently
-        /// picking one of them (which could operate on the wrong record). Use
-        /// <see cref="ResolveKeeperNSFRecordStrict"/> instead if you want that case reported as an
-        /// <see cref="AmbiguousNsfRecordException"/> with the full list of matches.
+        /// picking one of them (which could operate on the wrong record).
+        ///
+        /// <strong>Important:</strong> This method collapses ambiguity and not-found into the same <c>false</c> result,
+        /// losing the semantic distinction. For batch operations where you need to report different error messages
+        /// (e.g., "record title is ambiguous" vs. "record not found"), use <see cref="ResolveKeeperNSFRecordStrict"/> instead
+        /// and catch <see cref="AmbiguousNsfRecordException"/> separately to provide actionable diagnostics.
         /// </remarks>
         public bool TryResolveKeeperNSFRecord(string uidOrTitle, out KeeperNSFRecord record)
         {
@@ -1001,8 +1004,12 @@ namespace KeeperSecurity.Vault
         /// <remarks>
         /// True to the <c>Try*</c> convention, this never throws: if <paramref name="uidOrName"/> is a name
         /// that matches more than one folder, it fails safe and returns <c>false</c> rather than silently
-        /// picking one of them. Use <see cref="ResolveKeeperNSFFolderStrict"/> instead if you want that case
-        /// reported as an <see cref="AmbiguousFolderException"/> with the full list of matches.
+        /// picking one of them.
+        ///
+        /// <strong>Important:</strong> This method collapses ambiguity and not-found into the same <c>false</c> result,
+        /// losing the semantic distinction. For batch operations where you need to report different error messages
+        /// (e.g., "folder exists twice" vs. "folder not found"), use <see cref="ResolveKeeperNSFFolderStrict"/> instead
+        /// and catch <see cref="AmbiguousFolderException"/> separately to provide actionable diagnostics.
         /// </remarks>
         public bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder)
         {
@@ -1197,6 +1204,11 @@ namespace KeeperSecurity.Vault
         /// True to the <c>Try*</c> convention used by <see cref="TryResolveKeeperNSFRecordRemovalFolder"/>,
         /// this never throws: an ambiguous name fails safe and resolves to <c>null</c> (treated as "not found"
         /// by the caller) rather than silently picking one of the matches.
+        ///
+        /// <strong>Note:</strong> This method collapses ambiguity and not-found into the same <c>null</c> result,
+        /// which prevents callers from distinguishing between a missing folder and an ambiguous folder name.
+        /// See <see cref="TryResolveKeeperNSFFolder"/> remarks for guidance on using strict resolvers for
+        /// better diagnostics.
         /// </summary>
         private FolderNode TryResolveKeeperNSFRecordRemovalFolderNode(string folderUidOrName)
         {

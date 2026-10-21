@@ -48,7 +48,13 @@ function writeAmbiguousNsfError {
         [Parameter(Mandatory = $true)] $ErrorRecord
     )
 
-    Write-Error -Message $ErrorRecord.Exception.Message
+    $ambiguous = getAmbiguousNsfException -ErrorRecord $ErrorRecord
+    if ($ambiguous) {
+        Write-Error -Message $ambiguous.Message
+    }
+    else {
+        Write-Error -Message $ErrorRecord.Exception.Message
+    }
 }
 
 function resolveKeeperNSFFolder {

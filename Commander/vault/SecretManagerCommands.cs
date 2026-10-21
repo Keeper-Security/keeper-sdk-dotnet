@@ -203,7 +203,7 @@ namespace Commander
                 {
                     uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
                 }
-                catch (AmbiguousFolderException ex)
+                catch (AmbiguousIdentifierException ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
                     return;
@@ -233,7 +233,7 @@ namespace Commander
                 {
                     uid = ResolveSecretManagerSecretUid(context, arguments.Secret) ?? arguments.Secret;
                 }
-                catch (AmbiguousFolderException ex)
+                catch (AmbiguousIdentifierException ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
                     return;
