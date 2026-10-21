@@ -170,7 +170,7 @@ namespace Commander
                 }
             }
 
-            var nsfRestoreCount = await RestoreNsfTrashItems(context.Vault, records, options.TargetFolder, options.SourceFolder, options.Force);
+            var nsfRestoreCount = await RestoreNsfTrashItems(context.Vault, records, options.TargetFolder, options.Force);
 
             var totalRestored = classicRestoreCount + nsfRestoreCount;
             if (totalRestored > 0)
@@ -179,13 +179,13 @@ namespace Commander
             }
         }
 
-        private static async Task<int> RestoreNsfTrashItems(VaultOnline vault, List<string> records, string targetFolder, string sourceFolder, bool force)
+        private static async Task<int> RestoreNsfTrashItems(VaultOnline vault, List<string> records, string targetFolder, bool force)
         {
             try
             {
                 if (!force)
                 {
-                    var preview = await vault.RestoreKeeperNSFTrash(records, targetFolder, sourceFolder, dryRun: true);
+                    var preview = await vault.RestoreKeeperNSFTrash(records, targetFolder, dryRun: true);
                     if (preview.RestoredRecordUids.Count == 0 && preview.RestoredFolderUids.Count == 0)
                     {
                         if (preview.Errors?.Count > 0)
@@ -223,7 +223,7 @@ namespace Commander
                     }
                 }
 
-                var result = await vault.RestoreKeeperNSFTrash(records, targetFolder, sourceFolder);
+                var result = await vault.RestoreKeeperNSFTrash(records, targetFolder);
 
                 if (result == null)
                 {
@@ -1116,9 +1116,6 @@ namespace Commander
 
         [Option("target-folder", Required = false, HelpText = "Keeper NSF/Drive folder UID to restore matching Drive items into instead of their original location")]
         public string TargetFolder { get; set; }
-
-        [Option("source-folder", Required = false, HelpText = "Keeper NSF/Drive folder UID (or \"root\"/\"/\" for the Drive root) a Drive record is being restored out of. Only needed if the server rejects the restore with \"source_folder_uid is required\" (the record was trashed under more than one folder)")]
-        public string SourceFolder { get; set; }
 
         [Value(0, MetaName = "records", Required = true, HelpText = "Record UID or search pattern")]
         public IEnumerable<string> Records { get; set; }

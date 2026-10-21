@@ -618,7 +618,7 @@ function Restore-KeeperTrashRecords {
 
     $nsfRestoreCount = 0
     if ($null -ne $vault) {
-        $nsfRestoreCount = Restore-NsfTrashItems -Vault $vault -Records $validationResult.ValidRecords -TargetFolder $TargetFolder -SourceFolder $SourceFolder -Force:$Force
+        $nsfRestoreCount = Restore-NsfTrashItems -Vault $vault -Records $validationResult.ValidRecords -TargetFolder $TargetFolder -Force:$Force
     }
 
     $totalRestored = $classicRestoreCount + $nsfRestoreCount
@@ -640,13 +640,12 @@ function Restore-NsfTrashItems {
         [string[]]$Records,
 
         [string]$TargetFolder,
-        [string]$SourceFolder,
         [switch]$Force
     )
 
     try {
         if (-not $Force) {
-            $preview = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder, $SourceFolder, $true).GetAwaiter().GetResult()
+            $preview = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder, $true).GetAwaiter().GetResult()
             if ($preview.RestoredRecordUids.Count -eq 0 -and $preview.RestoredFolderUids.Count -eq 0) {
                 if ($preview.Errors -and $preview.Errors.Count -gt 0) {
                     foreach ($error in $preview.Errors) {
@@ -676,7 +675,7 @@ function Restore-NsfTrashItems {
             }
         }
 
-        $result = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder, $SourceFolder).GetAwaiter().GetResult()
+        $result = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder).GetAwaiter().GetResult()
     }
     catch {
         Write-Verbose "No Keeper NSF/Drive items restored: $($_.Exception.Message)"

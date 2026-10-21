@@ -112,7 +112,7 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public async Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
-            IReadOnlyList<string> uids, string targetFolderUid = null, string sourceFolderUid = null, bool dryRun = false)
+            IReadOnlyList<string> uids, string targetFolderUid = null, bool dryRun = false)
         {
             if (uids == null || uids.Count == 0)
             {
@@ -129,7 +129,6 @@ namespace KeeperSecurity.Vault
             }
 
             targetFolderUid = NormalizeKeeperNSFRootAlias(targetFolderUid);
-            sourceFolderUid = NormalizeKeeperNSFRootAlias(sourceFolderUid);
 
             await NsfTrashcanSync.EnsureSynced(this).ConfigureAwait(false);
 
@@ -245,15 +244,31 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                var effectiveSourceFolderUid = string.IsNullOrEmpty(kvp.Value.FolderUid) ? sourceFolderUid : kvp.Value.FolderUid;
-                var destUid = targetFolderUid ?? effectiveSourceFolderUid ?? "";
+                var sourceFolderUid = kvp.Value.FolderUid;
+
+                if (string.IsNullOrEmpty(sourceFolderUid))
+                {
+                    sourceFolderUid = kvp.Value.TrashcanUid;
+                }
+
+                if (string.IsNullOrEmpty(sourceFolderUid))
+                {
+                    if (string.IsNullOrEmpty(targetFolderUid))
+                    {
+                        errors.Add($"UID \"{kvp.Key}\": Record has no source folder or trashcan UID and no target folder specified");
+                        continue;
+                    }
+                }
+
+                var destUid = targetFolderUid ?? sourceFolderUid ?? "";
+
                 if (!groups.TryGetValue(destUid, out var group))
                 {
                     group = (new List<(string, byte[], string)>(), new List<(string, byte[])>());
                     groups[destUid] = group;
                 }
 
-                group.Records.Add((kvp.Key, kvp.Value.RecordKeyUnencrypted, effectiveSourceFolderUid));
+                group.Records.Add((kvp.Key, kvp.Value.RecordKeyUnencrypted, sourceFolderUid));
             }
 
             foreach (var kvp in foldersToRestore)
@@ -295,10 +310,13 @@ namespace KeeperSecurity.Vault
                 }
 
                 var request = new TrashcanRestoreRequest();
-                if (!string.IsNullOrEmpty(destUid))
+                if (string.IsNullOrEmpty(destUid))
                 {
-                    request.TargetFolderUid = ByteString.CopyFrom(destUid.Base64UrlDecode());
+                    errors.Add($"Restore into \"{destUid}\" failed: target folder UID is required");
+                    continue;
                 }
+
+                request.TargetFolderUid = ByteString.CopyFrom(destUid.Base64UrlDecode());
 
                 foreach (var (recordUid, recordKey, recordSourceFolderUid) in group.Records)
                 {
@@ -437,9 +455,8 @@ namespace KeeperSecurity.Vault
                 title = entry?.Title;
                 recordType = entry?.Type;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Trace.TraceWarning($"NSF trash: failed to fetch details for record {record.RecordUid}: {e.Message}");
             }
 
             return new KeeperNSFTrashGetResult
@@ -472,19 +489,27 @@ namespace KeeperSecurity.Vault
         private static RestoreRecord BuildRestoreRecord(
             string recordUid, byte[] recordKey, string sourceFolderUid, byte[] targetFolderKey)
         {
+            if (targetFolderKey == null || targetFolderKey.Length == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(BuildRestoreRecord), "targetFolderKey", "", "target folder key is required to build restore request");
+            }
+
+            if (recordKey == null || recordKey.Length == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(BuildRestoreRecord), "recordKey", "", "record key is required to build restore request");
+            }
+
+            Trace.TraceInformation($"BuildRestoreRecord: recordUid={recordUid}, sourceFolderUid={sourceFolderUid ?? "(null)"}");
+
             var restoreRecord = new RestoreRecord
             {
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(recordKey, targetFolderKey)),
             };
 
             if (!string.IsNullOrEmpty(sourceFolderUid))
             {
                 restoreRecord.SourceFolderUid = ByteString.CopyFrom(sourceFolderUid.Base64UrlDecode());
-            }
-
-            if (targetFolderKey != null && recordKey != null)
-            {
-                restoreRecord.EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(recordKey, targetFolderKey));
             }
 
             return restoreRecord;
@@ -494,15 +519,21 @@ namespace KeeperSecurity.Vault
         // since each one only ever has a single parent.
         private static RestoreFolder BuildRestoreFolder(string folderUid, byte[] folderKey, byte[] targetFolderKey)
         {
+            if (targetFolderKey == null || targetFolderKey.Length == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(BuildRestoreFolder), "targetFolderKey", "", "target folder key is required to build restore request");
+            }
+
+            if (folderKey == null || folderKey.Length == 0)
+            {
+                throw new KeeperInvalidParameter(nameof(BuildRestoreFolder), "folderKey", "", "folder key is required to build restore request");
+            }
+
             var restoreFolder = new RestoreFolder
             {
                 FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode()),
+                EncryptedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(folderKey, targetFolderKey)),
             };
-
-            if (targetFolderKey != null && folderKey != null)
-            {
-                restoreFolder.EncryptedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(folderKey, targetFolderKey));
-            }
 
             return restoreFolder;
         }
