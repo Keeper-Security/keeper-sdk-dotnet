@@ -27,9 +27,16 @@ namespace Commander
             Vault = vault;
         }
 
-        public bool TryResolvePath(string path, out FolderNode node)
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a single classic folder.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a segment matches zero subfolders.
+        /// </remarks>
+        public bool ResolvePath(string path, out FolderNode node)
         {
-            var res = TryResolvePath(path, out node, out var text);
+            var res = ResolvePath(path, out node, out var text);
             if (res)
             {
                 res = string.IsNullOrEmpty(text);
@@ -38,7 +45,15 @@ namespace Commander
             return res;
         }
 
-        public bool TryResolvePath(string path, out FolderNode node, out string text)
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a folder, treating a trailing unresolved segment as a record
+        /// title/pattern returned via <paramref name="text"/> instead of failing.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a non-trailing segment matches zero subfolders.
+        /// </remarks>
+        public bool ResolvePath(string path, out FolderNode node, out string text)
         {
             node = null;
             text = null;
@@ -86,19 +101,41 @@ namespace Commander
                 }
                 else
                 {
-                    var found = false;
+                    FolderNode uidMatch = null;
+                    var nameMatches = new List<FolderNode>();
                     foreach (var subFolder in node.Subfolders)
                     {
                         if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                        if ((string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) && (string.Compare(folder, subNode.FolderUid, StringComparison.CurrentCultureIgnoreCase) != 0))
-                            continue;
-                        found = true;
-                        node = subNode;
-                        break;
+                        if (string.Equals(folder, subNode.FolderUid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            uidMatch = subNode;
+                            break;
+                        }
+
+                        if (!string.IsNullOrEmpty(subNode.Name) && string.Equals(folder, subNode.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            nameMatches.Add(subNode);
+                        }
                     }
 
-                    if (found) continue;
+                    if (uidMatch != null)
+                    {
+                        node = uidMatch;
+                        continue;
+                    }
+
+                    if (nameMatches.Count > 1)
+                    {
+                        throw new AmbiguousFolderException(folder, nameMatches);
+                    }
+
+                    if (nameMatches.Count == 1)
+                    {
+                        node = nameMatches[0];
+                        continue;
+                    }
+
                     if (string.IsNullOrEmpty(text))
                     {
                         text = folder;
@@ -112,7 +149,7 @@ namespace Commander
 
             return true;
         }
-    
+
     }
 
     internal static class VaultCommandExtensions
@@ -839,7 +876,7 @@ namespace Commander
 
         private static Task ChangeDirectoryCommand(this VaultContext context, string name)
         {
-            if (context.TryResolvePath(name, out var node))
+            if (context.ResolvePath(name, out var node))
             {
                 context.CurrentFolder = node.FolderUid;
             }
@@ -979,7 +1016,7 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.Folder))
             {
-                if (context.TryResolvePath(options.Folder, out var folder))
+                if (context.ResolvePath(options.Folder, out var folder))
                 {
                     foreach (var recordId in folder.Records)
                     {

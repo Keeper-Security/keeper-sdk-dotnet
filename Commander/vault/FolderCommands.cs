@@ -44,7 +44,7 @@ namespace Commander
 
         public static async Task RemoveFolderCommand(this VaultContext context, FolderOptions options)
         {
-            if (context.TryResolvePath(options.FolderName, out var folder))
+            if (context.ResolvePath(options.FolderName, out var folder))
             {
                 await context.Vault.DeleteFolder(folder.FolderUid);
             }
@@ -56,7 +56,7 @@ namespace Commander
 
         public static async Task UpdateFolderCommand(this VaultContext context, UpdateFolderOptions options)
         {
-            if (context.TryResolvePath(options.FolderName, out var folder))
+            if (context.ResolvePath(options.FolderName, out var folder))
             {
                 SharedFolderOptions sharedFolderOptions = null;
                 if (folder.FolderType == FolderType.SharedFolder)
@@ -82,7 +82,7 @@ namespace Commander
         {
             if (!context.Vault.TryGetFolder(options.DestinationName, out var dstFolder))
             {
-                if (!context.TryResolvePath(options.DestinationName, out dstFolder))
+                if (!context.ResolvePath(options.DestinationName, out dstFolder))
                 {
                     Console.WriteLine($"Invalid destination folder path: {options.DestinationName}");
                     return;
@@ -115,7 +115,7 @@ namespace Commander
             }
             else
             {
-                if (!context.TryResolvePath(options.SourceName, out srcFolder, out string recordTitle))
+                if (!context.ResolvePath(options.SourceName, out srcFolder, out string recordTitle))
                 {
                     Console.WriteLine($"Invalid source path: {options.SourceName}");
                     return;
@@ -225,7 +225,7 @@ namespace Commander
             {
                 if (!context.Vault.TryGetFolder(options.FolderName, out var folder))
                 {
-                    if (!context.TryResolvePath(options.FolderName, out folder))
+                    if (!context.ResolvePath(options.FolderName, out folder))
                     {
                         Console.WriteLine($"Folder \'{options.FolderName}\' not found");
                         return;
@@ -402,7 +402,7 @@ namespace Commander
             {
                 if (!context.Vault.TryGetFolder(options.FolderName, out var folder))
                 {
-                    if (!context.TryResolvePath(options.FolderName, out folder))
+                    if (!context.ResolvePath(options.FolderName, out folder))
                     {
                         Console.WriteLine($"Folder \'{options.FolderName}\'");
                         return;
@@ -448,7 +448,7 @@ namespace Commander
                 }
                 else
                 {
-                    if (context.TryResolvePath(options.Record, out var folder, out var title))
+                    if (context.ResolvePath(options.Record, out var folder, out var title))
                     {
                         recordUid = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
                             string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0)?.Uid;
