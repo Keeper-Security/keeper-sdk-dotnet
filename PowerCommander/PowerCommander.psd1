@@ -76,7 +76,7 @@
         'ReportCommands\AgingReport.ps1', 'ReportCommands\ComplianceDetailReports.ps1',
         'ReportCommands\ExternalSharesReport.ps1','ReportCommands\ActionReport.ps1','ReportCommands\ShareReport.ps1',
         'SkipSyncCommands.ps1',  'ReportCommands\RiskManagement.ps1', 'ReportCommands\AuditAlert.ps1',
-        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1','NsfTrashCommands.ps1',
+        'KeeperNSF.ps1','NsfFolderCommands.ps1','NsfRecordCommands.ps1',
         'PAM\SyncDown.ps1', 'PAM\PamCommon.ps1', 'PAM\Gateway.ps1', 'PAM\Rotation.ps1', 'PAM\Config.ps1',
         'PAM\Action.ps1', 'PAM\Connection.ps1', 'PAM\Rbi.ps1', 'PAM\Launch.ps1', 'PAM\Workflow.ps1'
         )
@@ -142,7 +142,6 @@
         'Add-KeeperNSFRecord', 'Add-KeeperNSFRecords', 'Edit-KeeperNSFRecord', 'Edit-KeeperNSFRecords', 'Set-KeeperNSFRecordAccess', 'Share-KeeperNSFRecords', 'Unshare-KeeperNSFRecords', 'Set-KeeperNSFRecordPermission',
         'Remove-KeeperNSFRecord', 'Remove-KeeperNSFRecords', 'Link-KeeperNSFRecord', 'Link-KeeperNSFRecords', 'Unlink-KeeperNSFRecords', 'Move-KeeperNSFRecords', 'Transfer-KeeperNSFRecordOwnership',
         'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep',
-        'Get-KeeperNSFTrashList', 'Get-KeeperNSFTrashItem', 'Restore-KeeperNSFTrash',
         'Sync-KeeperPam', 'Get-KeeperPamGatewayList', 'New-KeeperPamGateway',
         'Set-KeeperPamGateway', 'Remove-KeeperPamGateway', 'Set-KeeperPamGatewayMaxInstances',
         'Get-KeeperPamRotationList', 'Get-KeeperPamRotationInfo', 'Set-KeeperPamRotation',
@@ -185,7 +184,7 @@
         'nsf-mkdir', 'nsf-mkdirs', 'nsf-share-folder', 'nsf-share-folders', 'nsf-update-folder-access', 'nsf-unshare-folders', 'nsf-rndir', 'nsf-folders-update', 'nsf-rmdir', 'nsf-rmdirs', 'nsf-move', 'nsf-move-folders',
         'nsf-record-add', 'nsf-records-add', 'nsf-record-update', 'nsf-records-update', 'nsf-share-record', 'nsf-share-records', 'nsf-unshare-records', 'nsf-record-permission',
         'nsf-rm', 'nsf-records-rm', 'nsf-ln', 'nsf-lns', 'nsf-unln', 'nsf-move-records', 'nsf-transfer-record',
-        'nsf-shortcut-list', 'nsf-shortcut-keep','nsf-trash-list', 'nsf-trash-get', 'nsf-trash-restore',
+        'nsf-shortcut-list', 'nsf-shortcut-keep',
         'pam-sync', 'pam-gateway-list', 'pam-gw-list', 'pam-gateway-new', 'pam-gw-new',
         'pam-gateway-edit', 'pam-gw-edit', 'pam-gateway-remove', 'pam-gw-remove', 'pam-gateway-rm',
         'pam-gateway-set-max-instances', 'pam-gw-set-max-instances',
