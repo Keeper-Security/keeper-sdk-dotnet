@@ -225,13 +225,19 @@ namespace KeeperSecurity.Vault
             byte[] explicitTargetKey = null;
             if (!string.IsNullOrEmpty(targetFolderUid))
             {
-                if (!TryResolveKeeperNSFFolderOrRoot(targetFolderUid, out var targetFolder) || targetFolder.FolderKey == null || targetFolder.FolderKey.Length == 0)
+                if (targetFolderUid == KeeperNSFConstants.KeeperDriveRootFolderUid)
+                {
+                    explicitTargetKey = Auth.AuthContext.DataKey;
+                }
+                else if (!TryResolveKeeperNSFFolderOrRoot(targetFolderUid, out var targetFolder) || targetFolder.FolderKey == null || targetFolder.FolderKey.Length == 0)
                 {
                     throw new KeeperInvalidParameter(
                         nameof(RestoreKeeperNSFTrash), "targetFolderUid", targetFolderUid, "target folder was not found or its key is unavailable");
                 }
-
-                explicitTargetKey = targetFolder.FolderKey;
+                else
+                {
+                    explicitTargetKey = targetFolder.FolderKey;
+                }
             }
 
             var groups = new Dictionary<string, (List<(string Uid, byte[] Key, string SourceFolderUid)> Records, List<(string Uid, byte[] Key)> Folders)>();
@@ -261,6 +267,11 @@ namespace KeeperSecurity.Vault
                 }
 
                 var destUid = targetFolderUid ?? sourceFolderUid ?? "";
+
+                if (targetFolderUid == KeeperNSFConstants.KeeperDriveRootFolderUid)
+                {
+                    destUid = "";
+                }
 
                 if (!groups.TryGetValue(destUid, out var group))
                 {
@@ -310,13 +321,11 @@ namespace KeeperSecurity.Vault
                 }
 
                 var request = new TrashcanRestoreRequest();
-                if (string.IsNullOrEmpty(destUid))
-                {
-                    errors.Add($"Restore into \"{destUid}\" failed: target folder UID is required");
-                    continue;
-                }
 
-                request.TargetFolderUid = ByteString.CopyFrom(destUid.Base64UrlDecode());
+                if (!string.IsNullOrEmpty(destUid) && destUid != KeeperNSFConstants.KeeperDriveRootFolderUid)
+                {
+                    request.TargetFolderUid = ByteString.CopyFrom(destUid.Base64UrlDecode());
+                }
 
                 foreach (var (recordUid, recordKey, recordSourceFolderUid) in group.Records)
                 {
@@ -412,6 +421,13 @@ namespace KeeperSecurity.Vault
             if (TryResolveKeeperNSFFolderOrRoot(folderUid, out var folder) && folder.FolderKey != null && folder.FolderKey.Length > 0)
             {
                 key = folder.FolderKey;
+                error = null;
+                return true;
+            }
+
+            if (folderUid == KeeperNSFConstants.KeeperDriveRootFolderUid)
+            {
+                key = Auth.AuthContext.DataKey;
                 error = null;
                 return true;
             }
