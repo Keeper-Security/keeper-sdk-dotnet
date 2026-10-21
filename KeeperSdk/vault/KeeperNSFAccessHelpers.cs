@@ -1008,6 +1008,19 @@ namespace KeeperSecurity.Vault
             return accessType == (int)FolderProto.AccessType.AtOwner;
         }
 
+        private static (string OwnerUsername, string OwnerAccountUid) GetFolderOwnerInfo(
+            VaultOnline vault,
+            string folderUid)
+        {
+            var row = vault.Storage.KdFolders.GetEntity(folderUid);
+            if (row == null)
+            {
+                return (null, null);
+            }
+
+            return (row.OwnerUsername, row.OwnerAccountUid);
+        }
+
         private static bool StoredFolderAccessNeedsPermissionRefresh(
             VaultOnline vault,
             string folderUid,
