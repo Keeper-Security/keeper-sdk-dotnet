@@ -239,6 +239,12 @@ namespace KeeperSecurity.Vault
 
             foreach (var kvp in recordsToRestore)
             {
+                if (kvp.Value.RecordKeyUnencrypted == null || kvp.Value.RecordKeyUnencrypted.Length == 0)
+                {
+                    errors.Add($"UID \"{kvp.Key}\": Cannot decrypt record key - the record's folder key is unavailable (folder may have been deleted from the active drive)");
+                    continue;
+                }
+
                 var effectiveSourceFolderUid = string.IsNullOrEmpty(kvp.Value.FolderUid) ? sourceFolderUid : kvp.Value.FolderUid;
                 var destUid = targetFolderUid ?? effectiveSourceFolderUid ?? "";
                 if (!groups.TryGetValue(destUid, out var group))
@@ -252,6 +258,12 @@ namespace KeeperSecurity.Vault
 
             foreach (var kvp in foldersToRestore)
             {
+                if (kvp.Value.FolderKeyUnencrypted == null || kvp.Value.FolderKeyUnencrypted.Length == 0)
+                {
+                    errors.Add($"UID \"{kvp.Key}\": Cannot decrypt folder key - the folder's parent key is unavailable (parent folder may have been deleted from the active drive)");
+                    continue;
+                }
+
                 var destUid = targetFolderUid ?? kvp.Value.ParentUid ?? "";
                 if (!groups.TryGetValue(destUid, out var group))
                 {
