@@ -1646,21 +1646,7 @@ namespace Commander.PAM
 
     private TypedRecord TryResolveRecordAllowMissing(VaultOnline vault, string identifier)
     {
-      if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
-      {
-        return typedByUid;
-      }
-
-      var matches = vault.KeeperRecords
-        .OfType<TypedRecord>()
-        .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
-        .ToList();
-      if (matches.Count > 1)
-      {
-        throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-      }
-
-      return matches.Count == 1 ? matches[0] : null;
+      return PamVaultHelpers.ResolveRecord(vault, identifier, null);
     }
 
     private const int KeeperUidByteLength = 16;
@@ -1714,7 +1700,7 @@ namespace Commander.PAM
         var recordUid = wf.Resource?.Value != null && !wf.Resource.Value.IsEmpty
           ? wf.Resource.Value.ToByteArray().Base64UrlEncode()
           : string.Empty;
-        var recordKey = TryGetRecordKey(vault, recordUid);
+        PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey);
         var duration = wf.ExpiresOn > 0 && wf.StartedOn > 0
           ? WorkflowUtils.FormatDuration(wf.ExpiresOn - wf.StartedOn)
           : null;
@@ -1752,7 +1738,7 @@ namespace Commander.PAM
         var recordUid = wf.Resource?.Value != null && !wf.Resource.Value.IsEmpty
           ? wf.Resource.Value.ToByteArray().Base64UrlEncode()
           : string.Empty;
-        var recordKey = TryGetRecordKey(vault, recordUid);
+        PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey);
         var reason = WorkflowUtils.DecryptWorkflowParameter(
           recordKey, WorkflowUtils.ExtractWorkflowParameter(wf, "reason")) ?? string.Empty;
         var ticket = WorkflowUtils.DecryptWorkflowParameter(
@@ -1782,16 +1768,6 @@ namespace Commander.PAM
       Console.WriteLine();
       tab.Dump();
       Console.WriteLine();
-    }
-
-    private static byte[] TryGetRecordKey(VaultOnline vault, string recordUid)
-    {
-      if (vault == null || string.IsNullOrEmpty(recordUid))
-      {
-        return null;
-      }
-
-      return vault.TryGetKeeperRecord(recordUid, out var record) ? record.RecordKey : null;
     }
 
     private string ResolveRequestedBy(WorkflowProcess wf)
@@ -2036,13 +2012,14 @@ namespace Commander.PAM
       {
         var uid = resource.Value.ToByteArray().Base64UrlEncode();
         var vault = Context.GetVault();
-        if (vault != null && vault.TryGetKeeperRecord(uid, out var record))
+        if (vault != null && PamVaultHelpers.TryGetTypedRecord(vault, uid, out var record)
+            && record != null)
         {
           return record.Title ?? uid;
         }
 
-        // Approver may not have direct vault access to the record (not shared with them yet).
-        // Nested Share Folder sync still exposes title/type metadata without requiring full record decrypt.
+        // Approvers may have NSF metadata without a usable record key. Keep the title
+        // visible without exposing or requiring record contents.
         if (vault != null && vault.TryGetKeeperNSFRecord(uid, out var nsfRecord)
             && !string.IsNullOrEmpty(nsfRecord.Title))
         {
@@ -2095,27 +2072,7 @@ namespace Commander.PAM
       string identifier,
       bool validateWorkflowType = true)
     {
-      TypedRecord record = null;
-      if (vault.TryGetKeeperRecord(identifier, out var byUid) && byUid is TypedRecord typedByUid)
-      {
-        record = typedByUid;
-      }
-      else
-      {
-        var matches = vault.KeeperRecords
-          .OfType<TypedRecord>()
-          .Where(x => string.Equals(x.Title, identifier, StringComparison.OrdinalIgnoreCase))
-          .ToList();
-        if (matches.Count > 1)
-        {
-          throw new InvalidOperationException($"Record name '{identifier}' is not unique. Use record UID.");
-        }
-
-        if (matches.Count == 1)
-        {
-          record = matches[0];
-        }
-      }
+      var record = PamVaultHelpers.ResolveRecord(vault, identifier, null);
 
       if (record == null)
       {
