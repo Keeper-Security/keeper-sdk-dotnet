@@ -24,6 +24,37 @@ namespace KeeperSecurity.Vault
     {
         private const int MaxClassicRecordConversions = 100;
 
+        // Server outcomes use the generated ConvertRecordStatus enum; these are SDK-only outcomes.
+        private enum ConversionClientStatus
+        {
+            SkippedInvalidUid,
+            SkippedDuplicate,
+            SkippedAlreadyNsf,
+            SkippedNotFound,
+            SkippedInvalidKey,
+            ResponseUnavailable,
+            ResponseMissing,
+            ResultDuplicate,
+            ResultMissing,
+        }
+
+        private static string GetConversionClientStatusName(ConversionClientStatus status)
+        {
+            switch (status)
+            {
+                case ConversionClientStatus.SkippedInvalidUid: return "SKIPPED_INVALID_UID";
+                case ConversionClientStatus.SkippedDuplicate: return "SKIPPED_DUPLICATE";
+                case ConversionClientStatus.SkippedAlreadyNsf: return "SKIPPED_ALREADY_NSF";
+                case ConversionClientStatus.SkippedNotFound: return "SKIPPED_NOT_FOUND";
+                case ConversionClientStatus.SkippedInvalidKey: return "SKIPPED_INVALID_KEY";
+                case ConversionClientStatus.ResponseUnavailable: return "RESPONSE_UNAVAILABLE";
+                case ConversionClientStatus.ResponseMissing: return "RESPONSE_MISSING";
+                case ConversionClientStatus.ResultDuplicate: return "RESULT_DUPLICATE";
+                case ConversionClientStatus.ResultMissing: return "RESULT_MISSING";
+                default: throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown conversion client status.");
+            }
+        }
+
         internal async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSFInternal(
             IReadOnlyList<string> recordUids, string folderUid, HashSet<string> seenUids = null)
         {
@@ -76,31 +107,31 @@ namespace KeeperSecurity.Vault
                 }
                 catch (ArgumentException)
                 {
-                    outcomes[index] = CreateSkippedConversionResult(recordUid, "SKIPPED_INVALID_UID", "Invalid record UID; skipped.");
+                    outcomes[index] = CreateSkippedConversionResult(recordUid, ConversionClientStatus.SkippedInvalidUid, "Invalid record UID; skipped.");
                     continue;
                 }
 
                 if (!seen.Add(uid))
                 {
-                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_DUPLICATE", "Duplicate record UID; skipped.");
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedDuplicate, "Duplicate record UID; skipped.");
                     continue;
                 }
 
                 if (TryGetKeeperNSFRecord(uid, out _))
                 {
-                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_ALREADY_NSF", "Record is already a Keeper NSF record; skipped.");
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedAlreadyNsf, "Record is already a Keeper NSF record; skipped.");
                     continue;
                 }
 
                 if (!TryGetKeeperRecord(uid, out var record))
                 {
-                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_NOT_FOUND", "Classic record was not found in the local cache; skipped.");
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedNotFound, "Classic record was not found in the local cache; skipped.");
                     continue;
                 }
 
                 if (record.RecordKey == null || record.RecordKey.Length != 32)
                 {
-                    outcomes[index] = CreateSkippedConversionResult(uid, "SKIPPED_INVALID_KEY", "Classic record key is unavailable or invalid; skipped.");
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedInvalidKey, "Classic record key is unavailable or invalid; skipped.");
                     continue;
                 }
 
@@ -149,13 +180,13 @@ namespace KeeperSecurity.Vault
                                            && string.Equals(apiError.Code, "http_error", StringComparison.OrdinalIgnoreCase)))
             {
                 Trace.TraceWarning($"KeeperNSF: Conversion response unavailable ({ex.GetType().Name}).");
-                return MergeResults(CreateUncertainConversionResults(requestedUids, "RESPONSE_UNAVAILABLE",
+                return MergeResults(CreateUncertainConversionResults(requestedUids, ConversionClientStatus.ResponseUnavailable,
                     "No reliable conversion response was received. Refresh the vault and verify each record before retrying."));
             }
 
             if (response == null)
             {
-                return MergeResults(CreateUncertainConversionResults(requestedUids, "RESPONSE_MISSING",
+                return MergeResults(CreateUncertainConversionResults(requestedUids, ConversionClientStatus.ResponseMissing,
                     "The conversion service returned no response. Refresh the vault and verify each record before retrying."));
             }
 
@@ -188,7 +219,7 @@ namespace KeeperSecurity.Vault
                     return new KeeperNSFRecordConversionResult
                     {
                         RecordUid = uid,
-                        Status = "RESULT_DUPLICATE",
+                        Status = GetConversionClientStatusName(ConversionClientStatus.ResultDuplicate),
                         Message = "The server returned multiple results for this record. Refresh the vault and verify its current state before retrying.",
                         ServerOutcomeUncertain = true,
                     };
@@ -199,7 +230,7 @@ namespace KeeperSecurity.Vault
                     return new KeeperNSFRecordConversionResult
                     {
                         RecordUid = uid,
-                        Status = "RESULT_MISSING",
+                        Status = GetConversionClientStatusName(ConversionClientStatus.ResultMissing),
                         Message = "The server did not return a result for this record. Refresh the vault and verify its current state before retrying.",
                         ServerOutcomeUncertain = true,
                     };
@@ -218,25 +249,26 @@ namespace KeeperSecurity.Vault
             }).ToList());
         }
 
-        private static KeeperNSFRecordConversionResult CreateSkippedConversionResult(string uid, string status, string message)
+        private static KeeperNSFRecordConversionResult CreateSkippedConversionResult(string uid, ConversionClientStatus status, string message)
         {
-            Trace.TraceWarning($"KeeperNSF: {status}: {message}");
+            var statusName = GetConversionClientStatusName(status);
+            Trace.TraceWarning($"KeeperNSF: {statusName}: {message}");
             return new KeeperNSFRecordConversionResult
             {
                 RecordUid = uid,
-                Status = status,
+                Status = statusName,
                 Message = message,
                 Skipped = true,
             };
         }
 
         private static IReadOnlyList<KeeperNSFRecordConversionResult> CreateUncertainConversionResults(
-            IReadOnlyList<string> recordUids, string status, string message)
+            IReadOnlyList<string> recordUids, ConversionClientStatus status, string message)
         {
             return recordUids.Select(uid => new KeeperNSFRecordConversionResult
             {
                 RecordUid = uid,
-                Status = status,
+                Status = GetConversionClientStatusName(status),
                 Message = message,
                 ServerOutcomeUncertain = true,
             }).ToList();
@@ -1290,7 +1322,7 @@ namespace KeeperSecurity.Vault
                 return folder != null;
             }
 
-            if (TryGetKeeperNSFFolder(requireUniqueMatch ? identifier : reference, out folder))
+            if (TryGetKeeperNSFFolder(identifier, out folder))
             {
                 return true;
             }
