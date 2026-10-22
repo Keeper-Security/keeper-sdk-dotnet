@@ -126,13 +126,6 @@ namespace KeeperSecurity.Vault
                         nameof(folders));
                 }
 
-                // Updates can only disable inheritance (same as single UpdateKeeperNSFFolder / nsf-rndir).
-                if (folders[i].InheritPermissions == true)
-                {
-                    throw new ArgumentException(
-                        $"inherit_permissions can only be set to false on update (index {i}); enabling inheritance is not supported.",
-                        nameof(folders));
-                }
             }
 
             const int MaxPerRequest = 100;

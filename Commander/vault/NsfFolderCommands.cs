@@ -29,9 +29,15 @@ namespace Commander
 
         public static async Task NsfRndirCommand(this VaultContext context, NsfRndirOptions options)
         {
-            if (options.Name == null && options.Color == null && !options.NoInheritPermissions)
+            if (options.NoInheritPermissions && options.InheritPermissions)
             {
-                Console.WriteLine("Specify --name, --color, and/or --no-inherit to update the folder.");
+                Console.WriteLine("Specify either --inherit or --no-inherit, not both.");
+                return;
+            }
+
+            if (options.Name == null && options.Color == null && !options.NoInheritPermissions && !options.InheritPermissions)
+            {
+                Console.WriteLine("Specify --name, --color, --inherit, and/or --no-inherit to update the folder.");
                 return;
             }
 
@@ -41,7 +47,9 @@ namespace Commander
                 return;
             }
 
-            bool? inheritPermissions = options.NoInheritPermissions ? (bool?)false : null;
+            bool? inheritPermissions = options.InheritPermissions
+                ? true
+                : options.NoInheritPermissions ? false : null;
 
             try
             {
@@ -437,6 +445,9 @@ namespace Commander
 
         [Option("no-inherit", Required = false, HelpText = "Do not inherit parent folder permissions")]
         public bool NoInheritPermissions { get; set; }
+
+        [Option("inherit", Required = false, HelpText = "Inherit parent folder permissions")]
+        public bool InheritPermissions { get; set; }
     }
 
     // CLI options for nsf-rmdir (supports multiple folders; uses batch preview/confirm APIs).
