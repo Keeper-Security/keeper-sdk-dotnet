@@ -725,7 +725,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Restores records and/or folders out of the Keeper NSF trash.</summary>
         /// <param name="uids">Record and/or folder UIDs, or title patterns (<c>*</c>/<c>?</c> wildcards supported).</param>
-        /// <param name="targetFolderUid">Optional folder to restore items into, instead of their original location.</param>
+        /// <param name="targetFolderUid">Optional target folder to restore items into. Specify "root" to restore items to the root directory.</param>
         /// <param name="dryRun">When <c>true</c>, reports what would be restored (e.g. for a confirmation prompt) without calling the restore endpoint.</param>
         Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
             IReadOnlyList<string> uids, string targetFolderUid = null, bool dryRun = false);
