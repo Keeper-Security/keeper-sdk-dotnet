@@ -546,6 +546,55 @@ namespace KeeperSecurity.Vault
             return results;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new ArgumentException("At least one classic record UID is required.", nameof(recordUids));
+            }
+
+            var results = new List<KeeperNSFRecordConversionResult>(recordUids.Count);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var offset = 0; offset < recordUids.Count; offset += MaxClassicRecordConversions)
+            {
+                var batch = recordUids.Skip(offset).Take(MaxClassicRecordConversions).ToArray();
+                var batchResults = await ConvertClassicRecordsToKeeperNSFInternal(batch, folderUid, seen).ConfigureAwait(false);
+                results.AddRange(batchResults);
+            }
+
+            if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
+            {
+                try
+                {
+                    await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Vault refresh after conversion failed ({ex.GetType().Name}).");
+                    foreach (var result in results.Where(x => x.Success || x.ServerOutcomeUncertain))
+                    {
+                        result.RefreshWarning = "Vault refresh failed after the conversion response. Refresh the vault and verify record state before relying on cached data.";
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// PowerCommander-only bridge for Windows PowerShell 5.1, which cannot await the SDK task.
+        /// The conversion runs without the PowerShell host's synchronization context.
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFForPowerCommander(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            return Task.Run(() => ConvertClassicRecordsToKeeperNSF(recordUids, folderUid))
+                .GetAwaiter().GetResult();
+        }
+
         /// <inheritdoc/>
         public async Task<IReadOnlyList<KeeperNSFRecordCreateResult>> CreateKeeperNSFRecordsFromImport(
             ImportFile import,

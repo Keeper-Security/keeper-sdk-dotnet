@@ -270,7 +270,7 @@ namespace Commander
                     jsonObj = await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid);
                 }
 
-                Console.WriteLine(Json.Serialize(jsonObj));
+                Console.WriteLine(Json.SerializeFormatted(jsonObj));
                 return;
             }
 
@@ -413,12 +413,14 @@ namespace Commander
             }
 
             var folderMap = NsfHelpers.GetFolderNodeMap(vault);
-            var pathLabel = !string.IsNullOrEmpty(record.FolderUid)
-                ? NsfHelpers.GetFolderPath(vault, record.FolderUid, folderMap)
-                : "/";
+            var isRoot = string.IsNullOrEmpty(record.FolderUid);
+            var pathLabel = isRoot ? "/" : NsfHelpers.GetFolderPath(vault, record.FolderUid, folderMap);
             Console.WriteLine($"{PadLabel("Folder UID", NsfHelpers.LabelWidth)}: {(string.IsNullOrEmpty(record.FolderUid) ? "(root)" : record.FolderUid)}");
-            Console.WriteLine($"{PadLabel("Folder Name", NsfHelpers.LabelWidth)}: {record.FolderName ?? "(unknown)"}");
-            Console.WriteLine($"{PadLabel("Folder Path", NsfHelpers.LabelWidth)}: {pathLabel}");
+            if (isRoot || !string.IsNullOrEmpty(pathLabel))
+            {
+                Console.WriteLine($"{PadLabel("Folder Name", NsfHelpers.LabelWidth)}: {(isRoot ? "Vault (root)" : record.FolderName ?? folderMap[record.FolderUid].Name)}");
+                Console.WriteLine($"{PadLabel("Folder Path", NsfHelpers.LabelWidth)}: {pathLabel}");
+            }
 
             foreach (var folderUid in vault.GetKeeperNSFFoldersForRecord(record.RecordUid))
             {
