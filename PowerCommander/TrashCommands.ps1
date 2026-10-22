@@ -528,11 +528,6 @@ function Restore-KeeperTrashRecords {
     Keeper NSF/Drive folder UID to restore matching Drive items into instead of their original
     location. Has no effect on classic vault items, which always restore to their original location.
 
-    .PARAMETER SourceFolder
-    Keeper NSF/Drive folder UID (or "root"/"/" for the Drive root) a Drive record is being
-    restored out of. Only needed if the server rejects the restore with "source_folder_uid is
-    required" (the record was trashed under more than one folder).
-
     .PARAMETER Force
     Skip confirmation prompts and restore immediately.
 
@@ -561,9 +556,6 @@ function Restore-KeeperTrashRecords {
 
         [Parameter()]
         [string]$TargetFolder,
-
-        [Parameter()]
-        [string]$SourceFolder,
 
         [Parameter()]
         [switch]$Force
