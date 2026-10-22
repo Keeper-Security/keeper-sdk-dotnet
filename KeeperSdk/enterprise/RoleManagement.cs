@@ -157,6 +157,11 @@ namespace KeeperSecurity.Enterprise
         {
             roleName = ValidateRoleName(roleName);
 
+            if (Roles.Any(x => string.Equals(x.DisplayName, roleName, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new EnterpriseException($"Role '{roleName}' already exists");
+            }
+
             var encryptedData = new EncryptedData
             {
                 DisplayName = roleName

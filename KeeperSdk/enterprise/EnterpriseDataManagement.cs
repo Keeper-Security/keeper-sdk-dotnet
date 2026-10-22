@@ -24,6 +24,11 @@ namespace KeeperSecurity.Enterprise
         {
             if (email == null) throw new ArgumentNullException(nameof(email));
 
+            if (TryGetUserByEmail(email, out _))
+            {
+                throw new EnterpriseException($"User '{email}' already exists");
+            }
+
             var userId = await Enterprise.GetEnterpriseId();
             var rq = new EnterpriseUserAddCommand
             {
@@ -354,6 +359,11 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc/>
         public async Task<EnterpriseTeam> CreateTeam(EnterpriseTeam team)
         {
+            if (Teams.Any(x => string.Equals(x.Name, team.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new EnterpriseException($"Team '{team.Name}' already exists");
+            }
+
             var teamKey = CryptoUtils.GenerateEncryptionKey();
             var teamUid = CryptoUtils.GenerateUid();
             var rq = CreateTeamAddCommand(teamUid, team.Name, team.ParentNodeId, team.RestrictEdit, team.RestrictSharing, team.RestrictView, teamKey);

@@ -248,11 +248,28 @@ namespace Commander
             }
 
             var action = options.Action ?? "grant";
-            foreach (var user in options.Email ?? Array.Empty<string>())
+            var isGrant = string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase);
+            var isRevoke = string.Equals(action, "revoke", StringComparison.OrdinalIgnoreCase);
+            if (!isGrant && !isRevoke)
+            {
+                Console.WriteLine("--action must be either grant or revoke.");
+                return;
+            }
+
+            var users = (options.Email ?? Array.Empty<string>()).ToArray();
+            if (isRevoke
+                && !options.Force
+                && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to revoke access to record '{options.RecordUid}' from {users.Length} user(s)? (yes/No) "))
+            {
+                return;
+            }
+
+            foreach (var user in users)
             {
                 try
                 {
-                    if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
+                    if (isGrant)
                     {
                         await vault.ShareKeeperNSFRecord(options.RecordUid, user, options.Role ?? "viewer");
                         Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{user}' on record '{options.RecordUid}'.");
@@ -971,6 +988,9 @@ namespace Commander
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
         public string Role { get; set; }
+
+        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
+        public bool Force { get; set; }
     }
 
     class NsfRecordPermissionOptions

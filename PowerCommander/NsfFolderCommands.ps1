@@ -1030,6 +1030,9 @@ function Set-KeeperNSFFolder {
 	.Parameter NoInheritPermissions
 	Do not inherit parent folder permissions.
 
+	.Parameter InheritPermissions
+	Inherit parent folder permissions.
+
 	.EXAMPLE
 	PS> Set-KeeperNSFFolder <folderUid> -Name "Renamed" -Color blue
 
@@ -1050,7 +1053,10 @@ function Set-KeeperNSFFolder {
         [string] $Color,
 
         [Parameter()]
-        [switch] $NoInheritPermissions
+        [switch] $NoInheritPermissions,
+
+        [Parameter()]
+        [switch] $InheritPermissions
     )
 
     if ($PSBoundParameters.ContainsKey('Name') -and [string]::IsNullOrWhiteSpace($Name)) {
@@ -1058,8 +1064,13 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color') -and -not $NoInheritPermissions.IsPresent) {
-        Write-Error -Message "Specify -Name, -Color, and/or -NoInheritPermissions to update the folder."
+    if ($NoInheritPermissions.IsPresent -and $InheritPermissions.IsPresent) {
+        Write-Error -Message "Specify either -InheritPermissions or -NoInheritPermissions, not both."
+        return
+    }
+
+    if (-not $Name -and -not $PSBoundParameters.ContainsKey('Color') -and -not $NoInheritPermissions.IsPresent -and -not $InheritPermissions.IsPresent) {
+        Write-Error -Message "Specify -Name, -Color, -InheritPermissions, and/or -NoInheritPermissions to update the folder."
         return
     }
 
@@ -1085,7 +1096,7 @@ function Set-KeeperNSFFolder {
 
     $newNameArg = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { [NullString]::Value }
     $colorArg = if ($PSBoundParameters.ContainsKey('Color')) { $Color } else { [NullString]::Value }
-    $inheritVal = if ($NoInheritPermissions.IsPresent) { $false } else { $null }
+    $inheritVal = if ($InheritPermissions.IsPresent) { $true } elseif ($NoInheritPermissions.IsPresent) { $false } else { $null }
 
     $target = if ([string]::IsNullOrEmpty($folderNode.FolderUid)) { $Folder } else { "$($folderNode.Name) ($($folderNode.FolderUid))" }
     if (-not $PSCmdlet.ShouldProcess($target, "Update Keeper NSF folder")) {
@@ -1114,12 +1125,12 @@ function Set-KeeperNSFFolders {
 	.Description
 	Uses vault/folders/v3/update batching. Independent of Set-KeeperNSFFolder / nsf-rndir (single folder).
 	Folder name/color are AES-GCM encrypted into FolderData.Data.
-	Optional inherit_permissions may only be false (disable inheritance); true is rejected — same as
-	Set-KeeperNSFFolder -NoInheritPermissions. Requires share/update-access permission on each folder.
+	Optional inherit_permissions controls whether the folder inherits permissions from its parent.
+	Requires share/update-access permission on each folder.
 	Larger sets are chunked automatically (100 folders per request).
 
 	JSON schema: a "folders" array. Each item: uid (required), optional name, optional color,
-	optional inherit_permissions (false only).
+	optional inherit_permissions.
 
 	.Parameter FilePath
 	Path to a UTF-8 JSON folder update batch file.
@@ -1315,10 +1326,6 @@ function Script:ConvertTo-KeeperNSFFolderUpdateRequests {
 
         if (-not $hasName -and -not $hasColor -and -not $hasInherit) {
             throw "Folder update item at index $index must include name, color, and/or inherit_permissions."
-        }
-
-        if ($hasInherit -and $null -ne $inherit -and $inherit -eq $true) {
-            throw "Folder update item at index ${index}: inherit_permissions can only be false on update (same as Set-KeeperNSFFolder -NoInheritPermissions)."
         }
 
         $req = New-Object KeeperSecurity.Vault.KeeperNSFFolderUpdateRequest
