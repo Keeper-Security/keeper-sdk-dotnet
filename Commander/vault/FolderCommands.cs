@@ -30,6 +30,12 @@ namespace Commander
     {
         public static async Task MakeFolderCommand(this VaultContext context, MakeFolderOptions options)
         {
+            if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
+            {
+                Console.WriteLine("mkdir creates Classic folders. Use nsf-mkdir with --parent set to the current Keeper NSF folder UID.");
+                return;
+            }
+
             var sfOptions = options.Shared
                 ? new SharedFolderOptions
                 {
@@ -39,7 +45,15 @@ namespace Commander
                     CanShare = options.CanShare,
                 }
                 : null;
-            _ = await context.Vault.CreateFolder(options.FolderName, context.CurrentFolder, sfOptions);
+            var folder = await context.Vault.CreateFolder(options.FolderName, context.CurrentFolder, sfOptions);
+            if (folder != null)
+            {
+                Console.WriteLine($"Folder '{options.FolderName}' created successfully (UID: {folder.FolderUid}).");
+            }
+            else
+            {
+                Console.WriteLine($"Folder '{options.FolderName}' was created, but its UID is not yet in the local vault. Run sync-down and list the folder to retrieve it.");
+            }
         }
 
         public static async Task RemoveFolderCommand(this VaultContext context, FolderOptions options)
