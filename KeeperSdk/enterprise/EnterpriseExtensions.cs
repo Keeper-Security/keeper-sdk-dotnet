@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Linq;
 
 namespace KeeperSecurity.Enterprise
 {
@@ -56,6 +57,12 @@ namespace KeeperSecurity.Enterprise
         public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterpriseData, string nodeName, EnterpriseNode parentNode = null)
         {
             parentNode ??= enterpriseData.RootNode;
+            if (enterpriseData.Nodes.Any(x => x.ParentNodeId == parentNode.Id
+                                              && string.Equals(x.DisplayName, nodeName, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new EnterpriseException($"Node '{nodeName}' already exists");
+            }
+
             var encryptedData = new EncryptedData
             {
                 DisplayName = nodeName
@@ -71,7 +78,14 @@ namespace KeeperSecurity.Enterprise
             {
                 rq.ParentId = parentNode.Id;
             }
-            await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+            try
+            {
+                await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+            }
+            catch (KeeperApiException ex) when (ex.Message?.IndexOf("No nodes to add", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                throw new EnterpriseException($"Node '{nodeName}' already exists");
+            }
 
             await enterpriseData.Enterprise.Load();
             enterpriseData.TryGetNode(nodeId, out var node);
