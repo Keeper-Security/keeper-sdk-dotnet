@@ -719,6 +719,21 @@ namespace KeeperSecurity.Vault
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolder(
             KeeperNSFFolderRemoval removal, bool dryRun = false);
 
+        /// <summary>Shows what's currently in the Keeper NSF trash (deleted records and folders).</summary>
+        /// <param name="reload">When <c>true</c>, discards the cached trashcan snapshot and resyncs first.</param>
+        Task<KeeperNSFTrashListResult> GetKeeperNSFTrash(bool reload = false);
+
+        /// <summary>Restores records and/or folders out of the Keeper NSF trash.</summary>
+        /// <param name="uids">Record and/or folder UIDs, or title patterns (<c>*</c>/<c>?</c> wildcards supported).</param>
+        /// <param name="targetFolderUid">Optional target folder to restore items into. Specify "root" to restore items to the root directory.</param>
+        /// <param name="dryRun">When <c>true</c>, reports what would be restored (e.g. for a confirmation prompt) without calling the restore endpoint.</param>
+        Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
+            IReadOnlyList<string> uids, string targetFolderUid = null, bool dryRun = false);
+
+        /// <summary>Looks up a single record or folder in the Keeper NSF trash. Returns <c>null</c> if not found.</summary>
+        /// <param name="uid">Record or folder UID to look up.</param>
+        Task<KeeperNSFTrashGetResult> GetKeeperNSFTrashItem(string uid);
+
         /// <summary>Renames, recolors, or disables permission inheritance for a Keeper NSF folder.</summary>
         /// <param name="inheritPermissions">When set to <c>false</c>, disables inheriting parent folder permissions.
         /// Setting <c>true</c> is not supported on update (create-time only).</param>
@@ -1179,6 +1194,81 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Chunk size used for the preview (folders: 100).</summary>
         public int PreviewChunkSize { get; set; }
+    }
+
+    /// <summary>
+    /// A single record or folder entry in the Keeper NSF trash.
+    /// </summary>
+    public class KeeperNSFTrashItem
+    {
+        /// <summary>Record or folder UID.</summary>
+        public string Uid { get; set; }
+
+        /// <summary>True when this entry is a folder; false when it is a record.</summary>
+        public bool IsFolder { get; set; }
+
+        /// <summary>Record or folder name, when it could be resolved.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type (e.g. "login"), when known. Always empty for folders.</summary>
+        public string RecordType { get; set; }
+
+        /// <summary>Deletion timestamp (epoch ms).</summary>
+        public long DateDeleted { get; set; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.GetKeeperNSFTrash"/>.
+    /// </summary>
+    public class KeeperNSFTrashListResult
+    {
+        /// <summary>Deleted and orphaned records currently in trash.</summary>
+        public IReadOnlyList<KeeperNSFTrashItem> Records { get; set; } = new List<KeeperNSFTrashItem>();
+
+        /// <summary>Deleted shared folders currently in trash.</summary>
+        public IReadOnlyList<KeeperNSFTrashItem> Folders { get; set; } = new List<KeeperNSFTrashItem>();
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.GetKeeperNSFTrashItem"/>.
+    /// </summary>
+    public class KeeperNSFTrashGetResult
+    {
+        /// <summary>Record or folder UID.</summary>
+        public string Uid { get; set; }
+
+        /// <summary>True when this is a folder; false when it's a record.</summary>
+        public bool IsFolder { get; set; }
+
+        /// <summary>Record or folder name, when it could be read.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type (e.g. "login"), when known. Always empty for folders.</summary>
+        public string RecordType { get; set; }
+
+        /// <summary>A short label describing where this item came from: "Record", "Share", or "Folder".</summary>
+        public string Status { get; set; }
+
+        /// <summary>Deletion timestamp (epoch ms).</summary>
+        public long DateDeleted { get; set; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.RestoreKeeperNSFTrash"/>.
+    /// </summary>
+    public class KeeperNSFTrashRestoreResult
+    {
+        /// <summary>True when at least one item was restored and no errors occurred.</summary>
+        public bool Success { get; set; }
+
+        /// <summary>UIDs of records that were successfully restored.</summary>
+        public IReadOnlyList<string> RestoredRecordUids { get; set; } = new List<string>();
+
+        /// <summary>UIDs of folders that were successfully restored.</summary>
+        public IReadOnlyList<string> RestoredFolderUids { get; set; } = new List<string>();
+
+        /// <summary>Per-item or request-level error messages.</summary>
+        public IReadOnlyList<string> Errors { get; set; } = new List<string>();
     }
 
     /// <summary>
