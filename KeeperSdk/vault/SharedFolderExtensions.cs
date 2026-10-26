@@ -198,7 +198,7 @@ namespace KeeperSecurity.Vault
                 if (failed != null)
                 {
                     if (!forceAdd && request.SharedFolderUpdateUser.Count > 0 &&
-                        string.Equals(failed.Status, "doesnt_exist", StringComparison.OrdinalIgnoreCase))
+                        string.Equals(failed.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
                     {
                         // The cache said this was an existing member, but the server has already
                         // removed it (normally because its time-limited share expired). Rebuild
@@ -216,7 +216,7 @@ namespace KeeperSecurity.Vault
                 if (failed != null)
                 {
                     if (!forceAdd && request.SharedFolderUpdateTeam.Count > 0 &&
-                        string.Equals(failed.Status, "doesnt_exist", StringComparison.OrdinalIgnoreCase))
+                        string.Equals(failed.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
                     {
                         await PutUserToSharedFolder(sharedFolderUid, userId, userType, options, forceAdd: true);
                         return;

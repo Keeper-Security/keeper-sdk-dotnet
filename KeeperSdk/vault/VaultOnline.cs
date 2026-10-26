@@ -18,6 +18,8 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public partial class VaultOnline : VaultData, IVault
     {
+        private const string ShareDoesNotExistStatus = "doesnt_exist";
+
         /// <summary>
         /// Instantiate <see cref="VaultOnline"/> instance.
         /// </summary>
@@ -979,7 +981,7 @@ namespace KeeperSecurity.Vault
             var status = statuses.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
             if (status != null && status.Status != "success")
             {
-                if (!isAdd && string.Equals(status.Status, "doesnt_exist", StringComparison.OrdinalIgnoreCase))
+                if (!isAdd && string.Equals(status.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
                 {
                     // The share disappeared after it was read (usually an expired share in a
                     // stale local view). Rebuild once as Add, including an encrypted record key.
