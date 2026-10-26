@@ -63,7 +63,14 @@ function New-KeeperEnterpriseTeam {
         $team.RestrictSharing = $true
     }
 
-    $t = $enterprise.enterpriseData.CreateTeam($team).GetAwaiter().GetResult()
+    try {
+        $t = $enterprise.enterpriseData.CreateTeam($team).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception)
+        return
+    }
+
     $t
 }
 New-Alias -Name keta -Value New-KeeperEnterpriseTeam

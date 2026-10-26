@@ -1109,7 +1109,7 @@ function Set-KeeperNSFFolder {
         Write-Host "Folder '$($folderNode.FolderUid)' updated." -ForegroundColor Green
     }
     catch {
-        Write-Error -Message $_.Exception.Message
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception)
         return
     }
 
@@ -1254,7 +1254,7 @@ function Set-KeeperNSFFolders {
         return ,@($results)
     }
     catch {
-        Write-Host "Error updating folders in batch: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Error updating folders in batch: $(Get-KeeperExceptionMessage -Exception $_.Exception)" -ForegroundColor Red
     }
 }
 

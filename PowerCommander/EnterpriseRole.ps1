@@ -859,10 +859,7 @@ function New-KeeperEnterpriseRole {
                 }
             }
             catch {
-                Write-Error "Failed to create role `"$roleName`": $($_.Exception.Message)" `
-                    -ErrorAction Continue `
-                    -ErrorId "RoleCreationFailed" `
-                    -Category InvalidOperation
+                Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Continue
                 continue
             }
         }
