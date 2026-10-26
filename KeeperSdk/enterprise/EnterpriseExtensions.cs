@@ -56,9 +56,16 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Awaitable task returning created node</returns>
         public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterpriseData, string nodeName, EnterpriseNode parentNode = null)
         {
+            if (enterpriseData == null) throw new ArgumentNullException(nameof(enterpriseData));
             parentNode ??= enterpriseData.RootNode;
-            if (enterpriseData.Nodes.Any(x => x.ParentNodeId == parentNode.Id
-                                              && string.Equals(x.DisplayName, nodeName, StringComparison.OrdinalIgnoreCase)))
+            if (parentNode == null)
+            {
+                throw new EnterpriseException("Enterprise root node is not loaded. Sync enterprise data and try again.");
+            }
+
+            bool NodeExists() => enterpriseData.Nodes.Any(x => x.ParentNodeId == parentNode.Id
+                && string.Equals(x.DisplayName, nodeName, StringComparison.OrdinalIgnoreCase));
+            if (NodeExists())
             {
                 throw new EnterpriseException($"Node '{nodeName}' already exists");
             }
@@ -82,9 +89,25 @@ namespace KeeperSecurity.Enterprise
             {
                 await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
             }
-            catch (KeeperApiException ex) when (ex.Message?.IndexOf("No nodes to add", StringComparison.OrdinalIgnoreCase) >= 0)
+            catch (KeeperApiException)
             {
-                throw new EnterpriseException($"Node '{nodeName}' already exists");
+                var refreshed = false;
+                try
+                {
+                    await enterpriseData.Enterprise.Load();
+                    refreshed = true;
+                }
+                catch
+                {
+                    // Preserve the original API error if refreshing enterprise data fails.
+                }
+
+                if (refreshed && NodeExists())
+                {
+                    throw new EnterpriseException($"Node '{nodeName}' already exists");
+                }
+
+                throw;
             }
 
             await enterpriseData.Enterprise.Load();
