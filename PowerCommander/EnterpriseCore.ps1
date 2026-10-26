@@ -416,6 +416,79 @@ function Get-KeeperEnterpriseNode {
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode
 
+function ConvertTo-KeeperAuditCreatedFilter {
+    param([Parameter(Mandatory = $true)][string]$Value)
+
+    $text = $Value.Trim()
+    $predefined = @('today', 'yesterday', 'last_7_days', 'last_30_days', 'month_to_date', 'last_month', 'year_to_date', 'last_year')
+    if ($predefined -contains $text.ToLowerInvariant()) {
+        return $text.ToLowerInvariant()
+    }
+
+    $parseEpoch = {
+        param([string]$InputValue)
+        $parsed = 0L
+        if ([long]::TryParse($InputValue, [ref]$parsed)) {
+            $nowCentis = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() / 10
+            if ($parsed -gt $nowCentis) { return [long]($parsed / 1000) }
+            return $parsed
+        }
+        $dto = [DateTimeOffset]::MinValue
+        $style = [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal
+        if ([DateTimeOffset]::TryParse($InputValue, [System.Globalization.CultureInfo]::InvariantCulture, $style, [ref]$dto)) {
+            return $dto.ToUnixTimeSeconds()
+        }
+        return $null
+    }
+
+    $filter = New-Object KeeperSecurity.Enterprise.AuditLogCommands.CreatedFilter
+    if ($text -match '^(>=|>|<=|<)\s*(.+)$') {
+        $epoch = & $parseEpoch $Matches[2]
+        if ($null -eq $epoch) { throw "Could not parse date: $($Matches[2])" }
+        if ($Matches[1].StartsWith('>')) {
+            $filter.Min = [long]$epoch
+            $filter.ExcludeMin = $Matches[1] -eq '>'
+        }
+        else {
+            $filter.Max = [long]$epoch
+            $filter.ExcludeMax = $Matches[1] -eq '<'
+        }
+        return $filter
+    }
+    if ($text -match '(?i)^between\s+(\S+)\s+and\s+(.+)$') {
+        $from = & $parseEpoch $Matches[1]
+        $to = & $parseEpoch $Matches[2].Trim()
+        if ($null -eq $from -or $null -eq $to -or $to -lt $from) { throw "Could not parse date range: $text" }
+        $filter.Min = [long]$from
+        $filter.Max = [long]$to
+        $filter.ExcludeMin = $false
+        $filter.ExcludeMax = $true
+        return $filter
+    }
+
+    if ($text -match '^\d{4}-\d{2}-\d{2}$') {
+        $date = [DateTimeOffset]::MinValue
+        $style = [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal
+        if (-not [DateTimeOffset]::TryParseExact($text, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, $style, [ref]$date)) {
+            throw "Could not parse date: $text"
+        }
+        $dayStart = [DateTimeOffset]::new($date.Year, $date.Month, $date.Day, 0, 0, 0, [TimeSpan]::Zero)
+        $filter.Min = $dayStart.ToUnixTimeSeconds()
+        $filter.Max = $dayStart.AddDays(1).ToUnixTimeSeconds()
+        $filter.ExcludeMin = $false
+        $filter.ExcludeMax = $true
+        return $filter
+    }
+
+    $exact = & $parseEpoch $text
+    if ($null -eq $exact) { throw "Could not parse date: $text" }
+    $filter.Min = [long]$exact
+    $filter.Max = [long]$exact + 1
+    $filter.ExcludeMin = $false
+    $filter.ExcludeMax = $true
+    return $filter
+}
+
 function Get-KeeperAuditReport {
     <#
     .SYNOPSIS
@@ -575,6 +648,221 @@ function Get-KeeperAuditReport {
 
     if ($Limit -le 0) {
         Write-Error "Limit must be greater than 0." -ErrorAction Stop
+    }
+
+    # Use ReportingPlugin from SDK (consolidates all API calls to one place)
+    try {
+        if ($ReportType -ne 'raw' -or $Order -eq 'asc' -or
+            ($Columns -and $Columns.Count -gt 0) -or ($Aggregate -and $Aggregate.Count -gt 0)) {
+            throw "Using the legacy audit reporter for non-default report shape."
+        }
+
+        Write-Host ""
+        Write-Host "Starting audit-report with compliance context" -ForegroundColor White
+        Write-Host "  Format: $Format, Limit: $Limit, ReportType: $ReportType" -ForegroundColor White
+
+        Write-Host ""
+
+        # Initialize audit event types for message template generation
+        if (-not $enterprise.auditEvents) {
+            Write-Host "  Loading audit event types..." -ForegroundColor Gray
+            $auditEvents = $auth.GetAvailableEvents().GetAwaiter().GetResult()
+            $enterprise.auditEvents = @{}
+            foreach ($evt in $auditEvents) {
+                $enterprise.auditEvents[$evt.Name] = $evt
+            }
+        }
+
+        # Create ReportingPlugin with SQLite storage
+        $storage = $null
+        try {
+            # Use SQLite storage for persistent caching (matching existing PowerCommander auth storage pattern)
+            $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $enterprise -Auth $auth
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+
+            $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
+
+            $storage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
+        }
+        catch {
+            Write-Host "  Using in-memory storage (cache will be lost when session ends)" -ForegroundColor Yellow
+            $storageType = [KeeperSecurity.Enterprise.ReportingPlugin.InMemoryReportingStorage]
+            $storage = New-Object $storageType
+        }
+
+        $enterpriseEcKey = $null
+        if ($enterprise.loader.EcPrivateKey -and $enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($enterprise.loader.EcPrivateKey)
+        }
+        $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+        $plugin = New-Object $pluginType($enterprise.enterpriseData, $storage, $enterpriseEcKey)
+
+        # Create audit report config
+        Write-Host ""
+        $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.AuditReportConfig
+        $config.IncludeAging = $true
+        $config.IncludeComplianceContext = $true
+        $config.CacheMaxAgeDays = 1
+        $config.Format = $Format
+        $config.Limit = $Limit
+        $config.ReportType = $ReportType
+        if ($Created) {
+            $config.CreatedFilter = ConvertTo-KeeperAuditCreatedFilter -Value $Created
+        }
+
+
+        # Apply filters from parameters
+        Write-Host ""
+
+        if ($EventType -and $EventType.Count -gt 0)       {
+            $config.EventTypes = @($EventType)
+        }
+        if ($Username -and $Username.Count -gt 0)         {
+            $config.Usernames = @($Username)
+        }
+        if ($ToUsername)                                   {
+            $config.ToUsername = $ToUsername
+        }
+        if ($IpAddress -and $IpAddress.Count -gt 0)       {
+            $config.IpAddresses = @($IpAddress)
+        }
+        if ($RecordUid -and $RecordUid.Count -gt 0)       {
+            $config.RecordUids = @($RecordUid)
+        }
+        if ($SharedFolderUid -and $SharedFolderUid.Count -gt 0) {
+            $config.SharedFolderUids = @($SharedFolderUid)
+        }
+        if ($NodeId -and $NodeId.Count -gt 0)             {
+            $nodeIds = New-Object System.Collections.Generic.List[long]
+            foreach ($nodeIdOrName in $NodeId) {
+                try {
+                    if ([long]::TryParse($nodeIdOrName, [ref]$null)) {
+                        $nodeIds.Add([long]$nodeIdOrName)
+                    } else {
+                        $node = $enterprise.enterpriseData.ResolveNodeName($nodeIdOrName)
+                        $nodeIds.Add($node.Id)
+                    }
+                } catch {
+                    Write-Verbose "Could not resolve node: $nodeIdOrName"
+                }
+            }
+            if ($nodeIds.Count -gt 0) { $config.NodeIds = $nodeIds }
+        }
+        if ($Columns -and $Columns.Count -gt 0)           { $config.Columns = @($Columns) }
+        if ($Aggregate -and $Aggregate.Count -gt 0)       { $config.Aggregate = @($Aggregate) }
+        if ($Order)                                       { $config.Order = $Order }
+
+        # Handle dimensional reports
+        if ($ReportType -eq 'dim') {
+            $dimRq = New-Object KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventDimensionsCommand
+            if ($config.Columns -and $config.Columns.Count -gt 0) {
+                $dimRq.Columns = $config.Columns
+            }
+            $dimRs = $auth.ExecuteAuthCommand($dimRq, [KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventDimensionsResponse], $true).GetAwaiter().GetResult()
+
+            # Display dimensions
+            if ($dimRs.Dimensions) {
+                $results = @()
+                $dimensionLimit = if ($Limit -gt 0) { $Limit } else { [int]::MaxValue }
+
+                $dimensionSections = @(
+                    @{ Property = 'AuditEventTypes';  Title = 'Audit Event Types' },
+                    @{ Property = 'KeeperVersions';   Title = 'Keeper Versions' },
+                    @{ Property = 'IpAddresses';      Title = 'IP Addresses' },
+                    @{ Property = 'GeoLocation';      Title = 'Geo Locations' },
+                    @{ Property = 'Usernames';        Title = 'Usernames' },
+                    @{ Property = 'NodeIds';          Title = 'Node IDs' },
+                    @{ Property = 'ToUsername';       Title = 'To Usernames' },
+                    @{ Property = 'FromUsername';     Title = 'From Usernames' },
+                    @{ Property = 'Channel';          Title = 'Channels' },
+                    @{ Property = 'RecordUid';        Title = 'Record UIDs' },
+                    @{ Property = 'SharedFolderUid';  Title = 'Shared Folder UIDs' },
+                    @{ Property = 'TeamUid';          Title = 'Team UIDs' }
+                )
+
+                foreach ($section in $dimensionSections) {
+                    $data = $dimRs.Dimensions.($section.Property)
+                    if ($data -and @($data).Count -gt 0) {
+                        $items = @($data | Select-Object -First $dimensionLimit)
+                        Write-Host "`n=== $($section.Title) ($($items.Count) of $(@($data).Count)) ===" -ForegroundColor Cyan
+                        $items | Format-Table -AutoSize
+                    }
+                }
+            }
+            return
+        }
+
+        # Generate audit report with compliance context via SDK
+        Write-Host ""
+        Write-Host "  (This fetches audit events AND compliance context for each record)" -ForegroundColor Cyan
+        $auditResult = $plugin.GenerateAuditReportAsync($auth, $config).GetAwaiter().GetResult()
+        if ($auditResult.ErrorMessage) {
+            throw "ReportingPlugin failed: $($auditResult.ErrorMessage)"
+        }
+
+        Write-Host ""
+
+        if ($auditResult.Entries -and $auditResult.Entries.Count -gt 0) {
+
+            # Format and display results
+            Write-Host ""
+
+            $displayRows = @()
+            foreach ($entry in $auditResult.Entries) {
+                # Generate message using syslog templates (same as C# Commander)
+                $message = ''
+                if ($entry.EventType -and $enterprise.auditEvents -and $enterprise.auditEvents.ContainsKey($entry.EventType)) {
+                    $eventType = $enterprise.auditEvents[$entry.EventType]
+                    $message = $eventType.SyslogMessage
+                    # Replace parameters in message template
+                    $pattern = '\$\{(\w+)\}'
+                    while ($message -match $pattern) {
+                        $parameter = $matches[1]
+                        $value = ''
+                        if ($parameter -eq 'username') {
+                            $value = $entry.Username
+                        } elseif ($entry.Details -and $entry.Details.ContainsKey($parameter)) {
+                            $value = $entry.Details[$parameter]
+                        }
+                        $message = $message -replace "\`\$\{$parameter\`\}", $value
+                    }
+                }
+
+                $recordTitle = $entry.RecordTitle
+                if ([string]::IsNullOrWhiteSpace($recordTitle) -and $entry.RecordUid -and
+                    $auditResult.ComplianceContext -and $auditResult.ComplianceContext.ContainsKey($entry.RecordUid)) {
+                    $recordTitle = $auditResult.ComplianceContext[$entry.RecordUid].Title
+                }
+
+                $displayRows += [PSCustomObject]@{
+                    Created = $entry.EventTime.ToString('O')
+                    EventType = $entry.EventType
+                    Username = $entry.Username
+                    IpAddress = $entry.IpAddress
+                    RecordUid = $entry.RecordUid
+                    RecordTitle = $recordTitle
+                    KeeperVersion = if ($entry.Details -and $entry.Details.ContainsKey('keeper_version')) { $entry.Details['keeper_version'] } else { '' }
+                    GeoLocation = $entry.GeoLocation
+                    Message = $message
+                }
+            }
+
+            Write-Host ""
+            Write-Host ""
+
+            switch ($Format) {
+                'json' { $displayRows | ConvertTo-Json -Depth 5 }
+                'csv'  { $displayRows | ConvertTo-Csv -NoTypeInformation }
+                default { $displayRows | Format-Table -AutoSize }
+            }
+        }
+        else {
+            Write-Host ""
+        }
+        return
+    }
+    catch {
+        Write-Verbose "ReportingPlugin failed: $($_.Exception.Message), falling back to direct API calls"
     }
 
     function TryParseUtcDate([string] $text, [ref] $epochInSec) {

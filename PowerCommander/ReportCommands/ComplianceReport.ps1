@@ -1,6 +1,11 @@
 ﻿#requires -Version 5.1
 
-function Get-KeeperComplianceSnapshot {
+<#
+    .Synopsis
+    Fetch compliance report data using SDK's ReportingPlugin
+    Replaces direct API calls for duplicate elimination
+#>
+function Get-KeeperComplianceReportViaSdk {
     [CmdletBinding()]
     param(
         [Parameter()][switch]$Rebuild,
@@ -15,435 +20,74 @@ function Get-KeeperComplianceSnapshot {
 
     Assert-KeeperComplianceReportAccess
 
-    if (-not $script:ComplianceReportCache) {
-        $script:ComplianceReportCache = @{
-            Entries = @{}
+    try {
+
+        $enterprise = getEnterprise
+        if (-not $enterprise -or -not $enterprise.loader) {
+            Write-Error "Enterprise data is required to build the compliance report." -ErrorAction Stop
         }
-    }
 
-    if (-not $script:ComplianceReportCache.Entries) {
-        $script:ComplianceReportCache.Entries = @{}
-    }
-
-    $cacheTtl = [TimeSpan]::FromDays(1)
-    $scopeKey = if ($null -eq $OwnerUserIds) {
-        'all'
-    }
-    else {
-        'users:' + ((@($OwnerUserIds | Sort-Object) | ForEach-Object { [string]$_ }) -join ',')
-    }
-    $cacheKey = if ($SharedOnly) {
-        "shared-only:$scopeKey"
-    }
-    else {
-        $scopeKey
-    }
-    $allCacheEntry = $script:ComplianceReportCache.Entries['all']
-    $cacheEntry = $script:ComplianceReportCache.Entries[$cacheKey]
-    if ($cacheEntry) {
-        $loadedAt = [datetime]$cacheEntry.LoadedAt
-        $cacheIsFresh = ((Get-Date) - $loadedAt) -lt $cacheTtl
-        if ($NoRebuild -or (-not $Rebuild -and $cacheIsFresh)) {
-            Write-KeeperComplianceStatus "Using in-session cache '$cacheKey' loaded at $($loadedAt.ToString('u'))."
-            Set-KeeperComplianceLastSnapshotStatus -FromCache $true -Incomplete $false -BuiltAt $loadedAt
-            return $cacheEntry.Snapshot
+        $auth = $enterprise.loader.Auth
+        if (-not $auth) {
+            Write-Error "Cannot fetch compliance report: enterprise authentication is not available." -ErrorAction Stop
         }
-    }
-    
-    if ($null -eq $OwnerUserIds -and $SharedOnly -and $allCacheEntry) {
-        $allLoadedAt = [datetime]$allCacheEntry.LoadedAt
-        $allCacheIsFresh = ((Get-Date) - $allLoadedAt) -lt $cacheTtl
-        if ($NoRebuild -or (-not $Rebuild -and $allCacheIsFresh)) {
-            Write-KeeperComplianceStatus "Using in-session cache 'all' for compatible shared-only request '$cacheKey', loaded at $($allLoadedAt.ToString('u'))."
-            Set-KeeperComplianceLastSnapshotStatus -FromCache $true -Incomplete $false -BuiltAt $allLoadedAt
-            return $allCacheEntry.Snapshot
-        }
-    }
 
-    $enterprise = getEnterprise
-    if (-not $enterprise -or -not $enterprise.loader) {
-        Write-Error "Enterprise data is required to build the compliance report." -ErrorAction Stop
-    }
+        # Create ReportingPlugin with SQLite storage
 
-    $auth = $enterprise.loader.Auth
-    if (-not $auth) {
-        Write-Warning "Cannot fetch compliance aging data: enterprise authentication is not available."
-        return
-    }
-
-    if (-not $Rebuild) {
+        $storage = $null
         try {
-            if ($enterprise.loader.Auth) {
-                $sqliteLoaded = Import-KeeperComplianceSnapshotFromSqlite -CacheKey $cacheKey -CacheTtl $cacheTtl `
-                    -Enterprise $enterprise -Auth $enterprise.loader.Auth
-                if ($sqliteLoaded) {
-                    $script:ComplianceReportCache.Entries[$cacheKey] = @{
-                        Snapshot = $sqliteLoaded.Snapshot
-                        LoadedAt = $sqliteLoaded.LoadedAt
-                    }
-                    Write-KeeperComplianceStatus "Using SQLite cache '$cacheKey' loaded at $($sqliteLoaded.LoadedAt.ToString('u'))."
-                    Set-KeeperComplianceLastSnapshotStatus -FromCache $true -Incomplete $sqliteLoaded.Incomplete -BuiltAt $sqliteLoaded.LoadedAt
-                    return $sqliteLoaded.Snapshot
-                }
-                if ($null -eq $OwnerUserIds -and $SharedOnly) {
-                    $sqliteAll = Import-KeeperComplianceSnapshotFromSqlite -CacheKey 'all' -CacheTtl $cacheTtl `
-                        -Enterprise $enterprise -Auth $enterprise.loader.Auth
-                    if ($sqliteAll) {
-                        $script:ComplianceReportCache.Entries['all'] = @{
-                            Snapshot = $sqliteAll.Snapshot
-                            LoadedAt = $sqliteAll.LoadedAt
-                        }
-                        Write-KeeperComplianceStatus "Using SQLite cache 'all' for compatible shared-only request '$cacheKey', loaded at $($sqliteAll.LoadedAt.ToString('u'))."
-                        Set-KeeperComplianceLastSnapshotStatus -FromCache $true -Incomplete $sqliteAll.Incomplete -BuiltAt $sqliteAll.LoadedAt
-                        return $sqliteAll.Snapshot
-                    }
-                }
-            }
+            # Use SQLite storage for persistent caching (like existing PowerCommander auth storage)
+            $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $enterprise -Auth $auth
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+
+            $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
+
+            $storage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
         }
         catch {
-            Write-Verbose -Message "[compliance] SQLite cache read skipped: $($_.Exception.Message)"
+            $storageType = [KeeperSecurity.Enterprise.ReportingPlugin.InMemoryReportingStorage]
+            $storage = New-Object $storageType
         }
+
+        $enterpriseEcKey = $null
+        if ($enterprise.loader.EcPrivateKey -and $enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($enterprise.loader.EcPrivateKey)
+        }
+        $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+        $plugin = New-Object $pluginType($enterprise.enterpriseData, $storage, $enterpriseEcKey)
+
+        # Create compliance report config (use ComplianceReportConfig)
+        $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.ComplianceReportConfig
+        $config.NoRebuild = $NoRebuild
+        $config.Rebuild = $Rebuild
+        $config.CacheMaxAgeDays = 1
+        $config.IncludeAging = $false # Aging is fetched by the report's aggregate-query path below.
+        $config.SharedRecordsOnly = $SharedOnly
+        if ($OwnerUserIds -and $OwnerUserIds.Count -gt 0) {
+            $ownerIds = [System.Collections.Generic.List[long]]::new()
+            $ownerIds.AddRange([long[]]$OwnerUserIds)
+            $config.OwnerUserIds = $ownerIds
+        }
+
+        $reportResult = $plugin.GenerateComplianceReportAsync($auth, $config).GetAwaiter().GetResult()
+
+        if ($reportResult.ErrorMessage) {
+            Write-Error "Compliance report error: $($reportResult.ErrorMessage)" -ErrorAction Stop
+        }
+
+
+        # Transform SDK results to match expected output structure
+        $result = @{
+            Entries = $reportResult.Entries
+            TotalCount = $reportResult.TotalCount
+            GeneratedAt = $reportResult.GeneratedAt
+        }
+
+        return $result
     }
-
-    if ($null -eq $OwnerUserIds -and $NoRebuild) {
-        Write-Warning "No local compliance cache is available for this request. Building it now."
+    catch {
+        Write-Error "Failed to fetch compliance report via SDK: $($_.Exception.Message)" -ErrorAction Stop
     }
-
-    $auth = $enterprise.loader.Auth
-    $ecPrivateKey = $null
-    if ($enterprise.loader.EcPrivateKey) {
-        $ecPrivateKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($enterprise.loader.EcPrivateKey)
-    }
-
-    $snapshot = [PSCustomObject]@{
-        Users              = @{}
-        Records            = @{}
-        SharedFolders      = @{}
-        Teams              = @{}
-        OwnedRecordsByUser = @{}
-        EcPrivateKey       = $ecPrivateKey
-        Diagnostics        = [PSCustomObject]@{
-            RecordDataFailures = 0
-        }
-    }
-
-    $ownerIdLookup = $null
-    if ($null -ne $OwnerUserIds) {
-        $ownerIdLookup = [System.Collections.Generic.HashSet[long]]::new()
-        foreach ($ownerUserId in $OwnerUserIds) {
-            $ownerIdLookup.Add([long]$ownerUserId) | Out-Null
-        }
-    }
-
-    $enterpriseUserIds = [System.Collections.Generic.List[long]]::new()
-    foreach ($enterpriseUser in $enterprise.enterpriseData.Users) {
-        $userUid = [long]$enterpriseUser.Id
-        $userEmail = [string]$enterpriseUser.Email
-        $snapshot.Users[$userUid] = [PSCustomObject]@{
-            UserUid  = $userUid
-            Email    = $userEmail
-            FullName = [string]$enterpriseUser.DisplayName
-            JobTitle = ''
-            NodeId   = [long]$enterpriseUser.ParentNodeId
-        }
-        if ($null -eq $ownerIdLookup -or $ownerIdLookup.Contains($userUid)) {
-            $snapshot.OwnedRecordsByUser[$userUid] = [System.Collections.Generic.HashSet[string]]::new()
-            $enterpriseUserIds.Add($userUid) | Out-Null
-        }
-    }
-
-    if ($null -ne $OwnerUserIds -and $enterpriseUserIds.Count -eq 0) {
-        Write-KeeperComplianceStatus "Owner pre-filter resolved to zero enterprise users."
-        Set-KeeperComplianceLastSnapshotStatus -FromCache $false -Incomplete $false
-        $snapshot.PSObject.Properties.Remove('EcPrivateKey')
-        $snapshot.PSObject.Properties.Remove('Diagnostics')
-        return $snapshot
-    }
-
-    Write-KeeperComplianceStatus "Building compliance snapshot for $($enterpriseUserIds.Count) owner user(s). Cache key: $cacheKey. SharedOnly=$SharedOnly."
-    $prelimPageLimit = 10000
-    $prelimFixedChunkSize = 5
-    $problemUserIds = [System.Collections.Generic.HashSet[long]]::new()
-    $prelimSingleUserIds = [System.Collections.Generic.HashSet[long]]::new()
-    $userQueue = [System.Collections.Generic.Queue[long]]::new()
-    foreach ($uid in $enterpriseUserIds) {
-        $userQueue.Enqueue($uid)
-    }
-    $prelimBatchNumber = 0
-    while ($userQueue.Count -gt 0) {
-        $prelimChunkSize = [Math]::Min($prelimFixedChunkSize, [Math]::Max(1, $userQueue.Count))
-        if ($userQueue.Count -gt 0 -and $prelimSingleUserIds.Contains([long]$userQueue.Peek())) {
-            $prelimChunkSize = 1
-        }
-        $prelimBatchNumber++
-        $takeCount = [Math]::Min($prelimChunkSize, $userQueue.Count)
-        $userChunkList = [System.Collections.Generic.List[long]]::new()
-        for ($qi = 0; $qi -lt $takeCount; $qi++) {
-            $userChunkList.Add($userQueue.Dequeue()) | Out-Null
-        }
-        $userChunk = @($userChunkList)
-        if ($userChunk.Count -eq 0) {
-            continue
-        }
-        Write-KeeperComplianceStatus "Preliminary batch ${prelimBatchNumber}: requesting $($userChunk.Count) user(s); queue remaining=$($userQueue.Count); chunk size=$prelimChunkSize."
-
-        $prelimRequest = [Enterprise.PreliminaryComplianceDataRequest]::new()
-        foreach ($userUid in $userChunk) {
-            $prelimRequest.EnterpriseUserIds.Add([long]$userUid) | Out-Null
-        }
-        $prelimRequest.IncludeNonShared = (-not $SharedOnly)
-        $prelimRequest.IncludeTotalMatchingRecordsInFirstResponse = $true
-        $prelimRequest.ContinuationToken = [Google.Protobuf.ByteString]::Empty
-
-        $hasMore = $true
-        $chunkCompleted = $true
-        $chunkTotal = 0
-        $currentBatchLoaded = 0
-        $seenUserIds = [System.Collections.Generic.List[long]]::new()
-        $prelimPageNumber = 0
-        while ($hasMore) {
-            $prelimPageNumber++
-            Write-KeeperComplianceStatus "Preliminary batch ${prelimBatchNumber} page ${prelimPageNumber}: calling enterprise/get_preliminary_compliance_data."
-            try {
-                $prelimResponse = [Enterprise.PreliminaryComplianceDataResponse](
-                    Get-KeeperComplianceRestResponse -Auth $auth -Endpoint 'enterprise/get_preliminary_compliance_data' `
-                        -Request $prelimRequest -ResponseType ([Enterprise.PreliminaryComplianceDataResponse])
-                )
-            }
-            catch {
-                $message = [string]$_.Exception.Message
-                $exceptionText = [string]$_
-                $isTimeout = (
-                    $message.IndexOf('GatewayTimeout', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $message.IndexOf('gateway_timeout', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $message.IndexOf('HttpClient.Timeout', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $message.IndexOf('The request was canceled', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $exceptionText.IndexOf('TaskCanceledException', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $exceptionText.IndexOf('OperationCanceledException', [System.StringComparison]::OrdinalIgnoreCase) -ge 0
-                )
-                if ($isTimeout) {
-                    $requeueIds = Get-KeeperCompliancePrelimRequeueUserIds -UserChunk $userChunk -SeenUserIds $seenUserIds
-                    if ($requeueIds.Count -gt 1 -or $prelimChunkSize -gt 1) {
-                        if ($prelimChunkSize -gt 1) {
-                            foreach ($requeueUserId in $requeueIds) {
-                                $prelimSingleUserIds.Add([long]$requeueUserId) | Out-Null
-                            }
-                            Write-Warning "Preliminary compliance request timed out for $($requeueIds.Count) user(s). Retrying the affected users one-by-one."
-                        }
-                        else {
-                            Write-Warning "Preliminary compliance request timed out for user $($requeueIds[0]). Skipping after single-user retry."
-                        }
-                        $userQueue = Add-KeeperComplianceUserQueueFront -Queue $userQueue -FrontIds $requeueIds
-                    }
-                    else {
-                        Write-Warning "Preliminary compliance request timed out for user $($requeueIds[0]). Skipping after single-user retry."
-                        foreach ($problemUserId in $requeueIds) {
-                            $prelimSingleUserIds.Remove([long]$problemUserId) | Out-Null
-                            $problemUserIds.Add([long]$problemUserId) | Out-Null
-                        }
-                    }
-
-                    $chunkCompleted = $false
-                    break
-                }
-                throw
-            }
-
-            if ($prelimResponse.PSObject.Properties['TotalMatchingRecords'] -and $prelimResponse.TotalMatchingRecords) {
-                $currentBatchLoaded = 0
-                $chunkTotal = [int]$prelimResponse.TotalMatchingRecords
-            }
-            Write-KeeperComplianceStatus "Preliminary batch ${prelimBatchNumber} page ${prelimPageNumber}: received $(@($prelimResponse.AuditUserData).Count) user result(s); total matching records=$chunkTotal."
-
-            foreach ($auditUserData in $prelimResponse.AuditUserData) {
-                $ownerUid = [long]$auditUserData.EnterpriseUserId
-                if (-not $snapshot.OwnedRecordsByUser.ContainsKey($ownerUid)) {
-                    $snapshot.OwnedRecordsByUser[$ownerUid] = [System.Collections.Generic.HashSet[string]]::new()
-                }
-                if (-not $seenUserIds.Contains($ownerUid)) {
-                    $seenUserIds.Add($ownerUid) | Out-Null
-                }
-
-                foreach ($auditUserRecord in $auditUserData.AuditUserRecords) {
-                    $recordUid = ConvertTo-KeeperComplianceUid -ByteString $auditUserRecord.RecordUid
-                    if (-not $recordUid) {
-                        continue
-                    }
-
-                    $recordData = Get-KeeperComplianceRecordData -EncryptedData $auditUserRecord.EncryptedData -EcPrivateKey $ecPrivateKey `
-                        -Diagnostics $snapshot.Diagnostics -RecordUid $recordUid -Source 'preliminary'
-                    if (-not $snapshot.Records.ContainsKey($recordUid)) {
-                        $snapshot.Records[$recordUid] = [PSCustomObject]@{
-                            Uid             = $recordUid
-                            Title           = [string]$recordData.Title
-                            RecordType      = [string]$recordData.RecordType
-                            Url             = [string]$recordData.Url
-                            Shared          = [bool]$auditUserRecord.Shared
-                            InTrash         = $false
-                            UserPermissions = @{}
-                            SharedFolderUids = [System.Collections.Generic.HashSet[string]]::new()
-                        }
-                    }
-                    else {
-                        if (-not $snapshot.Records[$recordUid].Shared -and $auditUserRecord.Shared) {
-                            $snapshot.Records[$recordUid].Shared = $true
-                        }
-                        Merge-KeeperComplianceRecordFields -RecordEntry $snapshot.Records[$recordUid] -RecordData $recordData
-                    }
-
-                    $snapshot.OwnedRecordsByUser[$ownerUid].Add($recordUid) | Out-Null
-                    $currentBatchLoaded++
-                }
-            }
-
-            $hasMore = [bool]$prelimResponse.HasMore
-            if ($chunkTotal -gt $prelimPageLimit -and $userChunk.Count -gt 1 -and $hasMore) {
-                foreach ($requeueUserId in $userChunk) {
-                    $prelimSingleUserIds.Add([long]$requeueUserId) | Out-Null
-                }
-                Write-Warning "Preliminary compliance response reported $chunkTotal matching records for $($userChunk.Count) user(s). Retrying the affected users one-by-one."
-
-                $requeueIds = Get-KeeperCompliancePrelimRequeueUserIds -UserChunk $userChunk -SeenUserIds $seenUserIds
-                $userQueue = Add-KeeperComplianceUserQueueFront -Queue $userQueue -FrontIds $requeueIds
-                $chunkCompleted = $false
-                break
-            }
-
-            if ($hasMore) {
-                $prelimRequest.ContinuationToken = $prelimResponse.ContinuationToken
-            }
-        }
-
-        if ($chunkCompleted) {
-            foreach ($completedUserId in $userChunk) {
-                $prelimSingleUserIds.Remove([long]$completedUserId) | Out-Null
-            }
-            Write-KeeperComplianceStatus "Preliminary batch $prelimBatchNumber completed: users seen=$($seenUserIds.Count); records loaded=$currentBatchLoaded; next chunk size=$prelimFixedChunkSize."
-        }
-    }
-
-    if ($problemUserIds.Count -gt 0) {
-        $problemEmails = @()
-        foreach ($problemUserId in $problemUserIds) {
-            $problemUser = $null
-            if ($enterprise.enterpriseData.TryGetUserById([long]$problemUserId, [ref]$problemUser) -and $problemUser) {
-                $problemEmails += [string]$problemUser.Email
-            }
-            else {
-                $problemEmails += [string]$problemUserId
-            }
-        }
-        Write-Warning "Preliminary compliance data could not be fetched for: $($problemEmails -join ', ')"
-    }
-    Write-KeeperComplianceStatus "Preliminary compliance phase complete. Owners with records tracked=$($snapshot.OwnedRecordsByUser.Count); records tracked=$($snapshot.Records.Count)."
-
-    $rootNodeId = [long]$enterprise.enterpriseData.RootNode.Id
-    $anonymousSeed = 0L
-    $maxUsersPerRequest = 5000
-    $maxRecordsPerRequest = 1000
-    $userIdList = @(
-        $snapshot.OwnedRecordsByUser.GetEnumerator() |
-            Where-Object { $_.Value -and $_.Value.Count -gt 0 } |
-            ForEach-Object { [long]$_.Key } |
-            Sort-Object
-    )
-    $fullComplianceFailures = 0
-    $stopFullCompliance = $false
-
-    for ($userIndex = 0; $userIndex -lt $userIdList.Count; $userIndex += $maxUsersPerRequest) {
-        if ($stopFullCompliance) {
-            break
-        }
-        $userChunk = @($userIdList | Select-Object -Skip $userIndex -First $maxUsersPerRequest)
-        if ($userChunk.Count -eq 0) {
-            continue
-        }
-
-        $chunkRecordSet = [System.Collections.Generic.HashSet[string]]::new()
-        foreach ($userUid in $userChunk) {
-            foreach ($recordUid in $snapshot.OwnedRecordsByUser[[long]$userUid]) {
-                $chunkRecordSet.Add($recordUid) | Out-Null
-            }
-        }
-
-        $chunkRecordList = @($chunkRecordSet)
-        for ($recordIndex = 0; $recordIndex -lt $chunkRecordList.Count; $recordIndex += $maxRecordsPerRequest) {
-            if ($stopFullCompliance) {
-                break
-            }
-            $recordChunk = @($chunkRecordList | Select-Object -Skip $recordIndex -First $maxRecordsPerRequest)
-            if ($recordChunk.Count -eq 0) {
-                continue
-            }
-
-            $request = [Enterprise.ComplianceReportRequest]::new()
-            $request.ReportName = "Compliance Report on $(Get-Date -Format o)"
-            $request.SaveReport = $false
-            $request.ComplianceReportRun = [Enterprise.ComplianceReportRun]::new()
-            $request.ComplianceReportRun.ReportCriteriaAndFilter = [Enterprise.ComplianceReportCriteriaAndFilter]::new()
-            $request.ComplianceReportRun.ReportCriteriaAndFilter.Criteria = [Enterprise.ComplianceReportCriteria]::new()
-            $request.ComplianceReportRun.ReportCriteriaAndFilter.NodeId = $rootNodeId
-            $request.ComplianceReportRun.ReportCriteriaAndFilter.Criteria.IncludeNonShared = (-not $SharedOnly)
-
-            foreach ($userUid in $userChunk) {
-                $request.ComplianceReportRun.Users.Add([long]$userUid) | Out-Null
-            }
-            foreach ($recordUid in $recordChunk) {
-                $request.ComplianceReportRun.Records.Add(
-                    [Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode([string]$recordUid))
-                ) | Out-Null
-            }
-
-            try {
-                $response = [Enterprise.ComplianceReportResponse](
-                    Get-KeeperComplianceRestResponse -Auth $auth -Endpoint 'enterprise/run_compliance_report' `
-                        -Request $request -ResponseType ([Enterprise.ComplianceReportResponse])
-                )
-            }
-            catch {
-                $fullComplianceFailures++
-                $message = [string]$_.Exception.Message
-                if ($message.IndexOf('required privilege', [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                    $message.IndexOf('access_denied', [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
-                    Write-Warning "Full compliance request was denied by Keeper. Continuing with the preliminary snapshot only."
-                    $stopFullCompliance = $true
-                    break
-                }
-
-                Write-Warning "Full compliance request failed for users=$($userChunk.Count), records=$($recordChunk.Count): $message"
-                continue
-            }
-
-            $anonymousSeed = Update-KeeperComplianceAnonymousUsers -Response $response -AnonymousSeed $anonymousSeed
-            Merge-KeeperComplianceResponse -Snapshot $snapshot -Response $response
-        }
-    }
-
-    if ($snapshot.Diagnostics.RecordDataFailures -gt 0) {
-        Write-Warning "Failed to decrypt or parse compliance metadata for $($snapshot.Diagnostics.RecordDataFailures) record payload(s). Some title/type/url fields may be blank."
-    }
-    if ($fullComplianceFailures -gt 0) {
-        Write-Warning "$fullComplianceFailures full compliance request batch(es) failed. Results may be incomplete."
-    }
-
-    $recordDecryptFails = [int]$snapshot.Diagnostics.RecordDataFailures
-    $incomplete = ($problemUserIds.Count -gt 0) -or ($fullComplianceFailures -gt 0) -or $stopFullCompliance -or ($recordDecryptFails -gt 0)
-    Set-KeeperComplianceLastSnapshotStatus -FromCache $false -Incomplete $incomplete `
-        -PreliminaryUsersSkipped $problemUserIds.Count -FullComplianceFailures $fullComplianceFailures `
-        -PrivilegeDeniedStoppedFullFetch $stopFullCompliance -RecordMetadataDecryptFailures $recordDecryptFails
-
-    $snapshot.PSObject.Properties.Remove('EcPrivateKey')
-    $snapshot.PSObject.Properties.Remove('Diagnostics')
-
-    $script:ComplianceReportCache.Entries[$cacheKey] = @{
-        Snapshot = $snapshot
-        LoadedAt = Get-Date
-    }
-    Write-KeeperComplianceStatus "Compliance snapshot cached under '$cacheKey'. Final records=$($snapshot.Records.Count); shared folders=$($snapshot.SharedFolders.Count); teams=$($snapshot.Teams.Count)."
-    Save-KeeperComplianceSnapshotToSqlite -CacheKey $cacheKey -Snapshot $snapshot -Incomplete $incomplete `
-        -SharedOnly ([bool]$SharedOnly) -Enterprise $enterprise -Auth $auth
-
-    return $snapshot
 }
 
 function Get-KeeperComplianceAuditEventValue {
@@ -1193,39 +837,138 @@ function Get-KeeperComplianceReport {
         [Parameter()][switch]$Aging
     )
 
+    if ($DeletedItems -and $ActiveItems) {
+        Write-Error "-DeletedItems and -ActiveItems cannot be used together." -ErrorAction Stop
+    }
+
     $reportRows = Invoke-KeeperComplianceReportSession -NoCache:$NoCache -ScriptBlock {
-        Write-KeeperComplianceStatus "Starting compliance-report. Format=$Format Rebuild=$Rebuild NoRebuild=$NoRebuild NoCache=$NoCache Aging=$Aging."
-        $fetchOwnerIds = Resolve-KeeperComplianceFetchOwnerIds -Username $Username -Team $Team -Node $Node
+        Write-Host ""
+        Write-Host "================================ COMPLIANCE REPORT ================================" -ForegroundColor White -BackgroundColor DarkBlue
+        Write-Host "Starting compliance-report" -ForegroundColor White
+        Write-Host "  Format: $Format, Rebuild: $Rebuild, NoRebuild: $NoRebuild, NoCache: $NoCache, Aging: $Aging" -ForegroundColor White
+
+        # Use SDK-based approach (eliminates duplicate API calls)
+        Write-Host ""
+        $fetchOwnerIds = Resolve-KeeperComplianceFetchOwnerIds -Username $Username -Team $Team -Node $Node -JobTitle $JobTitle
         if ($null -ne $fetchOwnerIds -and $fetchOwnerIds.Count -eq 0) {
             Write-Warning "No enterprise users matched the provided owner filters."
+            return @()
         }
         elseif ($null -eq $fetchOwnerIds) {
-            Write-KeeperComplianceStatus "Owner pre-filter: all enterprise users."
+            Write-Host "  ✓ No filters applied - will fetch data for ALL enterprise users" -ForegroundColor Green
         }
         else {
-            Write-KeeperComplianceStatus "Owner pre-filter matched $($fetchOwnerIds.Count) user(s)."
+            Write-Host "  ✓ Owner pre-filter matched $($fetchOwnerIds.Count) user(s)" -ForegroundColor Green
         }
 
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $fetchOwnerIds
-        $ownerIdsForAging = if ($null -ne $fetchOwnerIds) { $fetchOwnerIds } else { $null }
-        $reportRows = Get-KeeperComplianceReportRows -Snapshot $snapshot -Username $Username -Team $Team `
-            -JobTitle $JobTitle -Node $Node -Record $Record -Url $Url -Shared:$Shared `
-            -DeletedItems:$DeletedItems -ActiveItems:$ActiveItems -Aging:$Aging `
-            -OwnerUserIdsForAging $ownerIdsForAging
+        Write-Host ""
+        $sdkReport = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild `
+            -OwnerUserIds $fetchOwnerIds -SharedOnly:$Shared
 
-        if ($Pattern -and $Pattern.Count -gt 0) {
-            $reportRows = Invoke-KeeperCompliancePatternFilterRows -Rows $reportRows -Patterns $Pattern `
-                -UseRegex:$Regex -MatchAll:$PatternMatchAll
+        if ($sdkReport -and $sdkReport.Entries) {
+            Write-Host ""
+            Write-Host "  ✓ SDK returned $($sdkReport.Entries.Count) compliance record(s)" -ForegroundColor Green
+
+            # Convert SDK compliance entries to display rows
+            $reportRows = @()
+            foreach ($entry in $sdkReport.Entries) {
+                if ($Shared -and -not $entry.Shared) {
+                    continue
+                }
+                if ($Url) {
+                    $urlMatches = @($Url | Where-Object {
+                        $entry.Url -and $entry.Url.IndexOf($_, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+                    })
+                    if ($urlMatches.Count -eq 0) { continue }
+                }
+                $row = [ordered]@{
+                    record_uid        = $entry.RecordUid
+                    title             = $entry.Title
+                    type              = $entry.RecordType
+                    username          = $entry.Owner
+                    permissions       = if ($entry.Permissions) { $entry.Permissions } elseif ($entry.Shared) { 'Shared' } else { 'Owner' }
+                    permission_bits   = $entry.PermissionBits
+                    url               = $entry.Url
+                    in_trash          = $entry.InTrash
+                    shared_folder_uid = @($entry.SharedFolderUids)
+                }
+                if ($Username -and -not ($Username | Where-Object { [string]::Equals($_, $row.username, [System.StringComparison]::OrdinalIgnoreCase) })) {
+                    continue
+                }
+                $reportRows += [PSCustomObject]$row
+            }
+
+            # Apply post-SDK filters
+            $filterCount = 0
+            if ($Username -or $Team -or $JobTitle -or $Node) { $filterCount++ }
+            if ($Url) { $filterCount++ }
+            if ($Shared) { $filterCount++ }
+            if ($Record -and $Record.Count -gt 0) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $recordFilter = @($Record | ForEach-Object { ([string]$_).ToLowerInvariant() })
+                $reportRows = @($reportRows | Where-Object {
+                    $recordFilter -contains ([string]$_.record_uid).ToLowerInvariant() -or
+                    $recordFilter -contains ([string]$_.title).ToLowerInvariant()
+                })
+                Write-Host "  Filtered by Record: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($DeletedItems) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $true })
+                Write-Host "  Filtered by DeletedItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+            elseif ($ActiveItems) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $false })
+                Write-Host "  Filtered by ActiveItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($Pattern -and $Pattern.Count -gt 0) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = Invoke-KeeperCompliancePatternFilterRows -Rows $reportRows -Patterns $Pattern `
+                    -UseRegex:$Regex -MatchAll:$PatternMatchAll
+                Write-Host "  Filtered by Pattern: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($Aging -and $reportRows.Count -gt 0) {
+                $agingData = Get-KeeperComplianceAgingData -RecordUids @($reportRows | Select-Object -ExpandProperty record_uid -Unique)
+                foreach ($row in $reportRows) {
+                    $aging = $agingData[[string]$row.record_uid]
+                    if ($aging) {
+                        Add-Member -InputObject $row -NotePropertyName created -NotePropertyValue $aging.created -Force
+                        Add-Member -InputObject $row -NotePropertyName last_pw_change -NotePropertyValue $aging.last_pw_change -Force
+                        Add-Member -InputObject $row -NotePropertyName last_modified -NotePropertyValue $aging.last_modified -Force
+                        Add-Member -InputObject $row -NotePropertyName last_rotation -NotePropertyValue $aging.last_rotation -Force
+                    }
+                }
+            }
+
+            if ($filterCount -eq 0) {
+                Write-Host "  No additional filters applied - using all $($reportRows.Count) records" -ForegroundColor Green
+            } else {
+                Write-Host "  ✓ Applied $filterCount filter(s) → Final: $($reportRows.Count) records" -ForegroundColor Green
+            }
+
+            return ,@($reportRows)
         }
-        return ,@($reportRows)
+        else {
+            return @()
+        }
     }
 
     if ($reportRows.Count -eq 0) {
-        Write-KeeperComplianceStatus "No compliance report rows matched the current filters."
-        Write-Host "No compliance report rows found."
+        Write-Host ""
+        Write-Host "No compliance report rows matched the current filters." -ForegroundColor Yellow
+        Write-Host "Compliance Report: 0 rows" -ForegroundColor White
         return
     }
 
+    Write-Host ""
     $displayRows = ConvertTo-KeeperComplianceDisplayRows -Rows $reportRows
     if ($Format -eq 'table' -and -not ($Pattern -and $Pattern.Count -gt 0)) {
         $lastRecUid = ''
@@ -1246,7 +989,12 @@ function Get-KeeperComplianceReport {
             [PSCustomObject]$dr
         })
     }
-    Write-KeeperComplianceStatus "Rendering $($reportRows.Count) row(s) as $Format."
+
+    Write-Host "  ✓ Rendering $($reportRows.Count) row(s) as $Format format" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "================================ END REPORT ================================" -ForegroundColor White -BackgroundColor DarkBlue
+    Write-Host ""
+
     Write-KeeperReportOutput -Rows $reportRows -DisplayRows $displayRows -Format $Format -Output $Output -JsonDepth 6
 }
 New-Alias -Name compliance-report -Value Get-KeeperComplianceReport
