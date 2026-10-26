@@ -469,7 +469,7 @@ function Get-KeeperComplianceRecordAccessReport {
             return
         }
 
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $null
+        $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $null
 
         $rows = [System.Collections.Generic.List[object]]::new()
         $vaultMode = ($ReportType -eq 'vault')
@@ -893,7 +893,7 @@ function Get-KeeperComplianceTeamReport {
         }
 
         $ownerIdsForSnapshot = if (Test-KeeperComplianceHasNodeFilter -Node $Node) { $null } else { $fetchOwnerIds }
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $ownerIdsForSnapshot -SharedOnly
+        $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $ownerIdsForSnapshot -SharedOnly
         $reportRows = Get-KeeperComplianceTeamReportRows -Snapshot $snapshot -Team $Team `
             -Node $Node -ShowTeamUsers:$ShowTeamUsers
         return ,@($reportRows)
@@ -1062,7 +1062,7 @@ function Get-KeeperComplianceSummaryReport {
 
     $reportRows = Invoke-KeeperComplianceReportSession -NoCache:$NoCache -ScriptBlock {
         Write-KeeperComplianceStatus "Starting compliance summary-report. Format=$Format Rebuild=$Rebuild NoRebuild=$NoRebuild NoCache=$NoCache."
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $null
+        $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $null
         $reportRows = Get-KeeperComplianceSummaryReportRows -Snapshot $snapshot -Team $Team -Node $Node
         return ,@($reportRows)
     }
@@ -1297,7 +1297,7 @@ function Get-KeeperComplianceSharedFolderReport {
         }
 
         $ownerIdsForSnapshot = if (Test-KeeperComplianceHasNodeFilter -Node $Node) { $null } else { $fetchOwnerIds }
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $ownerIdsForSnapshot -SharedOnly
+        $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $ownerIdsForSnapshot -SharedOnly
         $reportRows = Get-KeeperComplianceSharedFolderReportRows -Snapshot $snapshot -Team $Team `
             -ShowTeamUsers:$ShowTeamUsers -Node $Node -NodeScopeUserIds $fetchOwnerIds
         return ,@($reportRows)
