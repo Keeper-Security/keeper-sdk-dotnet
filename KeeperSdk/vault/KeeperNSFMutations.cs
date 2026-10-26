@@ -442,6 +442,13 @@ namespace KeeperSecurity.Vault
                         nameof(folders));
                 }
 
+                // Updates can only disable inheritance (same as single UpdateKeeperNSFFolder / nsf-rndir).
+                if (folders[i].InheritPermissions == true)
+                {
+                    throw new ArgumentException(
+                        $"inherit_permissions can only be set to false on update (index {i}); enabling inheritance is not supported.",
+                        nameof(folders));
+                }
             }
 
             const int MaxPerRequest = 100;
@@ -587,8 +594,7 @@ namespace KeeperSecurity.Vault
 
                     results[item.Index].Status = Enum.GetName(typeof(FolderProto.FolderModifyStatus), modifyResult.Status)
                         ?? modifyResult.Status.ToString();
-                    results[item.Index].Message = GetKeeperNSFFolderUpdateMessage(
-                        modifyResult, item.Request.InheritPermissions);
+                    results[item.Index].Message = modifyResult.Message;
                     results[item.Index].Success = modifyResult.Status == FolderProto.FolderModifyStatus.Success;
 
                     if (!results[item.Index].Success)
@@ -687,8 +693,6 @@ namespace KeeperSecurity.Vault
             var modifyResult = response?.FolderUpdateResults?.FirstOrDefault()
                 ?? throw new VaultException("No results from folder update.");
 
-            modifyResult.Message = GetKeeperNSFFolderUpdateMessage(modifyResult, inheritPermissions);
-
             if (modifyResult.Status == FolderProto.FolderModifyStatus.Success)
             {
                 PersistKdFolderData(folder.FolderUid, folder.FolderKey, encryptedData);
@@ -712,18 +716,6 @@ namespace KeeperSecurity.Vault
             }
 
             return modifyResult;
-        }
-
-        private static string GetKeeperNSFFolderUpdateMessage(
-            FolderProto.FolderModifyResult result, bool? inheritPermissions)
-        {
-            if (inheritPermissions == true && result.Status == FolderProto.FolderModifyStatus.BadRequest)
-            {
-                var details = string.IsNullOrWhiteSpace(result.Message) ? "No details provided." : result.Message;
-                return $"Server rejected the folder update with inherit_permissions=true (BadRequest): {details}";
-            }
-
-            return result.Message;
         }
 
         private void PersistKdFolderInheritPermissions(string folderUid, bool inheritPermissions)

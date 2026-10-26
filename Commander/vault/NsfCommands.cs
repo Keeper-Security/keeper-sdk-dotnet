@@ -63,7 +63,7 @@ namespace Commander
                 new ValidatingParseableCommand<NsfRndirOptions>
                 {
                     Order = 46,
-                    Description = "Update a Keeper NSF folder",
+                    Description = "Rename or recolor a Keeper NSF folder",
                     Validate = tokens => ThrowOnValidationError(ValidateOptionValue<NsfRndirOptions>(
                         tokens,
                         "--name",

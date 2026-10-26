@@ -745,17 +745,18 @@ namespace KeeperSecurity.Vault
         /// <param name="uid">Record or folder UID to look up.</param>
         Task<KeeperNSFTrashGetResult> GetKeeperNSFTrashItem(string uid);
 
-        /// <summary>Renames, recolors, or updates permission inheritance for a Keeper NSF folder.</summary>
-        /// <param name="inheritPermissions">When set, controls whether the folder inherits parent folder permissions.</param>
+        /// <summary>Renames, recolors, or disables permission inheritance for a Keeper NSF folder.</summary>
+        /// <param name="inheritPermissions">When set to <c>false</c>, disables inheriting parent folder permissions.
+        /// Setting <c>true</c> is not supported on update (create-time only).</param>
         Task<Folder.FolderModifyResult> UpdateKeeperNSFFolder(
             string folderUidOrName, string newName = null, string color = null, bool? inheritPermissions = null);
 
         /// <summary>
         /// Updates multiple Keeper NSF folders in one or more batch requests (up to 100 folders per request).
         /// Folder name/color are AES-GCM encrypted into <c>FolderData.Data</c>.
-        /// <see cref="KeeperNSFFolderUpdateRequest.InheritPermissions"/> controls whether each folder
-        /// inherits parent permissions. Changing inherit permissions requires share/update-access permission
-        /// on each folder.
+        /// <see cref="KeeperNSFFolderUpdateRequest.InheritPermissions"/> may only be set to <c>false</c>
+        /// (disabling inheritance); enabling requires create-time setting. Changing inherit permissions
+        /// requires share/update-access permission on each folder.
         /// </summary>
         /// <param name="folders">Folder update payloads. Each item requires <see cref="KeeperNSFFolderUpdateRequest.FolderUid"/>.</param>
         /// <returns>Per-folder update results in the same order as <paramref name="folders"/>.</returns>
