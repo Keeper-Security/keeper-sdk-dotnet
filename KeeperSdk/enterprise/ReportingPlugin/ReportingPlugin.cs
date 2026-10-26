@@ -90,23 +90,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
 
                 List<AuditReportEntry> auditEvents = null;
 
-
-                if (!_storage.IsAuditEventStale(config.CacheMaxAgeDays))
-                {
-                    Trace.TraceInformation("Using cached audit events");
-                    auditEvents = _storage.GetAuditEvents(config.RecordUids);
-                }
-                else
-                {
-                    Trace.TraceInformation("Fetching fresh audit events from API");
-                    auditEvents = await FetchAuditEventsAsync(auth, config);
-
-                    if (auditEvents != null && auditEvents.Count > 0)
-                    {
-                        _storage.UpdateAuditRefreshTimestamp(now);
-                        Trace.TraceInformation($"Cached {auditEvents.Count} audit events");
-                    }
-                }
+                Trace.TraceInformation("Fetching fresh audit events from API");
+                auditEvents = await FetchAuditEventsAsync(auth, config);
 
                 Dictionary<string, RecordAgingInfo> agingData = null;
 
@@ -437,7 +422,7 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                 return records;
             }
 
-            const int userBatchSize = 5;
+            const int userBatchSize = 5;  // Balance: larger batches reduce API calls, smaller batches reduce timeout risk
             for (var userOffset = 0; userOffset < userIds.Count; userOffset += userBatchSize)
             {
                 var userBatch = userIds.Skip(userOffset).Take(userBatchSize).ToList();
@@ -662,7 +647,7 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     throw new InvalidOperationException("The requested predefined date filter returned a full API page; use a bounded time range to page results.");
                 if (rows.Count < requestLimit || events.Count >= config.Limit || predefinedCreatedFilter || !nextEndTime.HasValue)
                     break;
-                if (currentEndTime.HasValue && nextEndTime.Value >= currentEndTime.Value)
+                if (nextEndTime.Value >= (currentEndTime ?? long.MaxValue))
                     throw new InvalidOperationException("Audit report pagination did not advance its time cursor.");
                 currentEndTime = nextEndTime;
             }
@@ -750,12 +735,20 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                          .GroupBy(x => x.index / recordBatchSize)
                          .Select(g => g.Select(x => x.uid).ToArray()))
             {
-                var created = await FetchAuditAggregateAsync(auth, batch, "first_created", null);
-                var modified = await FetchAuditAggregateAsync(auth, batch, "last_created", new[] { "record_update" });
-                var passwordChanges = await FetchAuditAggregateAsync(auth, batch, "last_created", new[] { "record_password_change" });
-                var passwordCounts = await FetchAuditAggregateAsync(auth, batch, "occurrences", new[] { "record_password_change" });
-                var rotations = await FetchAuditAggregateAsync(auth, batch,
-                    "last_created", new[] { "record_rotation_scheduled_ok", "record_rotation_on_demand_ok" });
+                var aggregateTasks = new[]
+                {
+                    FetchAuditAggregateAsync(auth, batch, "first_created", null),
+                    FetchAuditAggregateAsync(auth, batch, "last_created", new[] { "record_update" }),
+                    FetchAuditAggregateAsync(auth, batch, "last_created", new[] { "record_password_change" }),
+                    FetchAuditAggregateAsync(auth, batch, "occurrences", new[] { "record_password_change" }),
+                    FetchAuditAggregateAsync(auth, batch, "last_created", new[] { "record_rotation_scheduled_ok", "record_rotation_on_demand_ok" })
+                };
+                await Task.WhenAll(aggregateTasks);
+                var created = aggregateTasks[0].Result;
+                var modified = aggregateTasks[1].Result;
+                var passwordChanges = aggregateTasks[2].Result;
+                var passwordCounts = aggregateTasks[3].Result;
+                var rotations = aggregateTasks[4].Result;
 
                 foreach (var uid in batch)
                 {
@@ -764,8 +757,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     aging.LastModifiedDate = GetAggregateDate(modified, uid, "last_created");
                     aging.LastRotationDate = GetAggregateDate(rotations, uid, "last_created");
                     var passwordCount = GetAggregateLong(passwordCounts, uid, "occurrences");
-                    aging.PasswordChangeCount = (int)Math.Max(0, passwordCount - 1);
-                    if (passwordCount > 1)
+                    aging.PasswordChangeCount = (int)Math.Max(0, passwordCount);
+                    if (passwordCount > 0)
                         aging.LastPasswordChangeDate = GetAggregateDate(passwordChanges, uid, "last_created");
                     if (aging.LastRotationDate.HasValue &&
                         (!aging.LastPasswordChangeDate.HasValue || aging.LastRotationDate > aging.LastPasswordChangeDate))

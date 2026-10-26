@@ -3161,7 +3161,6 @@ namespace Commander
             var cacheRoot = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Keeper", "compliance_cache", safeServer);
-            System.IO.Directory.CreateDirectory(cacheRoot);
             return System.IO.Path.Combine(cacheRoot, $"enterprise_{enterpriseId}_{scopeHash}.sqlite");
         }
 
@@ -3542,6 +3541,8 @@ namespace Commander
                 try
                 {
                     var dbPath = GetReportingCachePath(context);
+                    var dbDirectory = System.IO.Path.GetDirectoryName(dbPath);
+                    System.IO.Directory.CreateDirectory(dbDirectory);
                     var connectionString = $"Data Source={dbPath};Pooling=True;";
 
                     Func<System.Data.IDbConnection> getConnection = () =>
@@ -3655,24 +3656,6 @@ namespace Commander
                     throw new InvalidOperationException(report.ErrorMessage);
 
                 var filteredEntries = report.Entries;
-
-                if (config.EventTypes != null && config.EventTypes.Any())
-                {
-                    var eventTypeSet = new HashSet<string>(config.EventTypes, StringComparer.OrdinalIgnoreCase);
-                    filteredEntries = filteredEntries.Where(e => eventTypeSet.Contains(e.EventType ?? "")).ToList();
-                }
-
-                if (config.Usernames != null && config.Usernames.Any())
-                {
-                    var usernameSet = new HashSet<string>(config.Usernames, StringComparer.OrdinalIgnoreCase);
-                    filteredEntries = filteredEntries.Where(e => usernameSet.Contains(e.Username ?? "")).ToList();
-                }
-
-                if (config.IpAddresses != null && config.IpAddresses.Any())
-                {
-                    var ipSet = new HashSet<string>(config.IpAddresses, StringComparer.OrdinalIgnoreCase);
-                    filteredEntries = filteredEntries.Where(e => ipSet.Contains(e.IpAddress ?? "")).ToList();
-                }
 
                 List<PatternFilter> patternFilters = null;
                 if (options.FilterPatterns != null && options.FilterPatterns.Any())

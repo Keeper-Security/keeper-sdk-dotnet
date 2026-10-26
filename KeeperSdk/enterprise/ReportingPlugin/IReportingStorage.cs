@@ -26,11 +26,6 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
         Dictionary<string, ComplianceContextInfo> GetComplianceData(List<string> recordUids);
 
         /// <summary>
-        /// Get cached audit events for specific records
-        /// </summary>
-        List<AuditReportEntry> GetAuditEvents(List<string> recordUids);
-
-        /// <summary>
         /// Get cached aging data for specific records
         /// </summary>
         Dictionary<string, RecordAgingInfo> GetAgingData(List<string> recordUids);
@@ -41,29 +36,14 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
         bool IsComplianceDataStale(int maxAgeDays = 1);
 
         /// <summary>
-        /// Check if audit events are stale and need refresh
-        /// </summary>
-        bool IsAuditEventStale(int maxAgeDays = 1);
-
-        /// <summary>
         /// Get the last time compliance data was refreshed
         /// </summary>
         long? GetLastComplianceRefresh();
 
         /// <summary>
-        /// Get the last time audit events were refreshed
-        /// </summary>
-        long? GetLastAuditRefresh();
-
-        /// <summary>
         /// Update metadata timestamp for compliance data
         /// </summary>
         void UpdateComplianceRefreshTimestamp(long timestamp);
-
-        /// <summary>
-        /// Update metadata timestamp for audit events
-        /// </summary>
-        void UpdateAuditRefreshTimestamp(long timestamp);
 
         /// <summary>
         /// Clear cached compliance data (but keep aging)
@@ -87,10 +67,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
     public class InMemoryReportingStorage : IReportingStorage
     {
         private Dictionary<string, ComplianceContextInfo> _complianceData = new();
-        private List<AuditReportEntry> _auditEvents = new();
         private Dictionary<string, RecordAgingInfo> _agingData = new();
         private long? _lastComplianceRefresh;
-        private long? _lastAuditRefresh;
 
         public void SaveComplianceData(Dictionary<string, ComplianceContextInfo> data, long timestamp)
         {
@@ -117,15 +95,6 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             return result;
         }
 
-        public List<AuditReportEntry> GetAuditEvents(List<string> recordUids)
-        {
-            if (recordUids == null || recordUids.Count == 0)
-                return _auditEvents;
-
-            var uidsSet = new HashSet<string>(recordUids);
-            return _auditEvents.FindAll(e => uidsSet.Contains(e.RecordUid));
-        }
-
         public Dictionary<string, RecordAgingInfo> GetAgingData(List<string> recordUids)
         {
             if (recordUids == null || recordUids.Count == 0)
@@ -150,27 +119,11 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             return (now - _lastComplianceRefresh.Value) > maxAge;
         }
 
-        public bool IsAuditEventStale(int maxAgeDays = 1)
-        {
-            if (!_lastAuditRefresh.HasValue)
-                return true;
-
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var maxAge = maxAgeDays * 24 * 3600;
-            return (now - _lastAuditRefresh.Value) > maxAge;
-        }
-
         public long? GetLastComplianceRefresh() => _lastComplianceRefresh;
-        public long? GetLastAuditRefresh() => _lastAuditRefresh;
 
         public void UpdateComplianceRefreshTimestamp(long timestamp)
         {
             _lastComplianceRefresh = timestamp;
-        }
-
-        public void UpdateAuditRefreshTimestamp(long timestamp)
-        {
-            _lastAuditRefresh = timestamp;
         }
 
         public void ClearComplianceData() => _complianceData.Clear();
@@ -181,7 +134,6 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             ClearComplianceData();
             ClearAgingData();
             _lastComplianceRefresh = null;
-            _lastAuditRefresh = null;
         }
     }
 }
