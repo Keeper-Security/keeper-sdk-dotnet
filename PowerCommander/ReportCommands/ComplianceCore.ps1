@@ -777,7 +777,8 @@ function Get-KeeperComplianceDiskCacheRoot {
 function Get-KeeperComplianceSqliteDbPath {
     param(
         [Parameter(Mandatory = $true)]$Enterprise,
-        [Parameter(Mandatory = $true)]$Auth
+        [Parameter(Mandatory = $true)]$Auth,
+        [Parameter()][string]$CacheKey
     )
 
     $server = [string]$Auth.Endpoint.Server
@@ -794,21 +795,34 @@ function Get-KeeperComplianceSqliteDbPath {
         $mc = [int]$Script:Context.ManagedCompanyId
     }
     $suffix = if ($mc -gt 0) { "_mc$mc" } else { '' }
+    $scopeSuffix = ''
+    if (-not [string]::IsNullOrWhiteSpace($CacheKey)) {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($CacheKey))
+            $scopeHash = ([System.BitConverter]::ToString($hashBytes)).Replace('-', '').ToLowerInvariant().Substring(0, 16)
+            $scopeSuffix = "_snapshot_$scopeHash"
+        }
+        finally {
+            $sha256.Dispose()
+        }
+    }
     $cacheRoot = Get-KeeperComplianceDiskCacheRoot
     $serverDir = [System.IO.Path]::Combine($cacheRoot, $safeServer)
     if (-not (Test-Path -LiteralPath $serverDir)) {
         [void][System.IO.Directory]::CreateDirectory($serverDir)
     }
-    return [System.IO.Path]::Combine($serverDir, "compliance_${entId}${suffix}.db")
+    return [System.IO.Path]::Combine($serverDir, "compliance_${entId}${suffix}${scopeSuffix}.db")
 }
 
 function Get-KeeperComplianceSqliteStorage {
     param(
         [Parameter(Mandatory = $true)]$Enterprise,
-        [Parameter(Mandatory = $true)]$Auth
+        [Parameter(Mandatory = $true)]$Auth,
+        [Parameter()][string]$CacheKey
     )
 
-    $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $Enterprise -Auth $Auth
+    $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $Enterprise -Auth $Auth -CacheKey $CacheKey
     if ($script:ComplianceSqliteStorage -and $script:ComplianceSqliteDbPath -eq $dbPath) {
         return $script:ComplianceSqliteStorage
     }
@@ -840,7 +854,7 @@ function Save-KeeperComplianceSnapshotToSqlite {
     )
 
     try {
-        $storage = Get-KeeperComplianceSqliteStorage -Enterprise $Enterprise -Auth $Auth
+        $storage = Get-KeeperComplianceSqliteStorage -Enterprise $Enterprise -Auth $Auth -CacheKey $CacheKey
         if (-not $storage) { return }
 
         $storage.ClearNonAgingData()
@@ -878,6 +892,35 @@ function Save-KeeperComplianceSnapshotToSqlite {
         }
         if ($userEntities.Count -gt 0) {
             $storage.Users.PutEntities($userEntities)
+        }
+
+        # Keep user aging-refresh timestamps in the shared database used by the
+        # aging cache, while storing each full snapshot in its own scoped DB.
+        if (-not [string]::IsNullOrWhiteSpace($CacheKey) -and $userEntities.Count -gt 0) {
+            try {
+                $agingStorage = Get-KeeperComplianceSqliteStorage -Enterprise $Enterprise -Auth $Auth
+                if ($agingStorage) {
+                    $agingUsers = [System.Collections.Generic.List[KeeperSecurity.Compliance.ComplianceUser]]::new()
+                    foreach ($cu in $userEntities) {
+                        $existing = $agingStorage.Users.GetEntity([string]$cu.UserUid)
+                        $agingUser = New-Object KeeperSecurity.Compliance.ComplianceUser
+                        $agingUser.UserUid = $cu.UserUid
+                        $agingUser.Email = $cu.Email
+                        $agingUser.Status = $cu.Status
+                        $agingUser.JobTitle = $cu.JobTitle
+                        $agingUser.FullName = $cu.FullName
+                        $agingUser.NodeId = $cu.NodeId
+                        $agingUser.LastRefreshed = if ($existing) { $existing.LastRefreshed } else { $nowEpoch }
+                        $agingUser.LastComplianceRefreshed = if ($existing) { $existing.LastComplianceRefreshed } else { $nowEpoch }
+                        $agingUser.LastAgingRefreshed = if ($existing) { $existing.LastAgingRefreshed } else { 0L }
+                        $agingUsers.Add($agingUser)
+                    }
+                    $agingStorage.Users.PutEntities($agingUsers)
+                }
+            }
+            catch {
+                Write-KeeperComplianceStatus "Could not update shared SQLite user metadata for aging: $($_.Exception.Message)"
+            }
         }
 
         $recordEntities = [System.Collections.Generic.List[KeeperSecurity.Compliance.ComplianceRecord]]::new()
@@ -1003,17 +1046,32 @@ function Import-KeeperComplianceSnapshotFromSqlite {
     )
 
     try {
-        $storage = Get-KeeperComplianceSqliteStorage -Enterprise $Enterprise -Auth $Auth
-        if (-not $storage) { return $null }
+        $storage = Get-KeeperComplianceSqliteStorage -Enterprise $Enterprise -Auth $Auth -CacheKey $CacheKey
+        if (-not $storage) {
+            Write-KeeperComplianceStatus "SQLite snapshot cache unavailable for scope '$CacheKey'."
+            return $null
+        }
 
         $meta = $storage.Metadata.Load()
-        if (-not $meta) { return $null }
-        if ($meta.AccountUid -ne $CacheKey) { return $null }
+        if (-not $meta) {
+            Write-KeeperComplianceStatus "SQLite snapshot cache miss for scope '$CacheKey': no metadata."
+            return $null
+        }
+        if ($meta.AccountUid -ne $CacheKey) {
+            Write-KeeperComplianceStatus "SQLite snapshot cache miss: stored scope '$($meta.AccountUid)' does not match '$CacheKey'."
+            return $null
+        }
 
         $loadedEpoch = $meta.ComplianceDataLastUpdate
-        if ($loadedEpoch -le 0) { return $null }
+        if ($loadedEpoch -le 0) {
+            Write-KeeperComplianceStatus "SQLite snapshot cache miss for scope '$CacheKey': no refresh timestamp."
+            return $null
+        }
         $loadedAt = [DateTimeOffset]::FromUnixTimeSeconds($loadedEpoch).LocalDateTime
-        if (((Get-Date) - $loadedAt) -ge $CacheTtl) { return $null }
+        if (((Get-Date) - $loadedAt) -ge $CacheTtl) {
+            Write-KeeperComplianceStatus "SQLite snapshot cache expired for scope '$CacheKey' (loaded at $($loadedAt.ToString('u')))."
+            return $null
+        }
 
         $snapshot = [PSCustomObject]@{
             Users              = @{}
@@ -1228,26 +1286,36 @@ function Remove-KeeperComplianceSqliteCache {
     $script:ComplianceSqliteStorage = $null
     $script:ComplianceSqliteDbPath = $null
     $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $Enterprise -Auth $Auth
-    if (Test-Path -LiteralPath $dbPath) {
-        try {
-            [Microsoft.Data.Sqlite.SqliteConnection]::ClearAllPools()
-            [System.GC]::Collect()
-            [System.GC]::WaitForPendingFinalizers()
+    $dbPaths = [System.Collections.Generic.List[string]]::new()
+    $dbPaths.Add($dbPath)
+    $dbDirectory = [System.IO.Path]::GetDirectoryName($dbPath)
+    $dbNamePrefix = [System.IO.Path]::GetFileNameWithoutExtension($dbPath)
+    if (Test-Path -LiteralPath $dbDirectory) {
+        foreach ($snapshotDb in Get-ChildItem -LiteralPath $dbDirectory -Filter "${dbNamePrefix}_snapshot_*.db" -File -ErrorAction SilentlyContinue) {
+            $dbPaths.Add($snapshotDb.FullName)
         }
-        catch {
-            Write-Verbose -Message "[compliance] Could not clear SQLite connection pools: $($_.Exception.Message)"
-        }
-        Remove-Item -LiteralPath $dbPath -Force -ErrorAction SilentlyContinue
-        foreach ($sidecar in @("$dbPath-wal", "$dbPath-shm")) {
-            if (Test-Path -LiteralPath $sidecar) {
-                Remove-Item -LiteralPath $sidecar -Force -ErrorAction SilentlyContinue
+    }
+
+    try {
+        [Microsoft.Data.Sqlite.SqliteConnection]::ClearAllPools()
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+    }
+    catch {
+        Write-Verbose -Message "[compliance] Could not clear SQLite connection pools: $($_.Exception.Message)"
+    }
+
+    foreach ($path in $dbPaths) {
+        foreach ($file in @($path, "$path-wal", "$path-shm")) {
+            if (Test-Path -LiteralPath $file) {
+                Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue
             }
         }
-        if (Test-Path -LiteralPath $dbPath) {
-            Write-Warning "[compliance] SQLite cache file could not be deleted (may be locked): $dbPath"
+        if (Test-Path -LiteralPath $path) {
+            Write-Warning "[compliance] SQLite cache file could not be deleted (may be locked): $path"
         }
         else {
-            Write-Verbose -Message "[compliance] Removed SQLite cache: $dbPath"
+            Write-Verbose -Message "[compliance] Removed SQLite cache: $path"
         }
     }
 }

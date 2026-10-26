@@ -77,7 +77,7 @@ function Get-KeeperAgingReport {
             }
         }
 
-        $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $fetchOwnerIds
+        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $fetchOwnerIds
         $ownerIdsForAging = if ($null -ne $fetchOwnerIds) { $fetchOwnerIds } else { $null }
 
         $owners = Get-KeeperComplianceOwners -Snapshot $snapshot -Username $(if ($Username) { @($Username) } else { $null }) -Team $null -Node $null

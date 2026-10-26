@@ -199,7 +199,7 @@ function Get-KeeperExternalSharesReport {
     )
 
     Write-KeeperComplianceStatus "Starting external-shares-report. Format=$Format RefreshData=$RefreshData ShareType=$ShareType Action=$Action."
-    $snapshot = Get-KeeperComplianceReportViaSdk -Rebuild:$RefreshData -NoRebuild:([bool](-not $RefreshData)) -SharedOnly
+    $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$RefreshData -NoRebuild:([bool](-not $RefreshData)) -SharedOnly
     $externalShareData = Get-KeeperExternalSharesData -Snapshot $snapshot -ShareType $ShareType
 
     if ($Action -eq 'remove') {
