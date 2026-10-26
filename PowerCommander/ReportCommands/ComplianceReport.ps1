@@ -872,9 +872,6 @@ function Get-KeeperComplianceReport {
             # Convert SDK compliance entries to display rows
             $reportRows = @()
             foreach ($entry in $sdkReport.Entries) {
-                if ($Shared -and -not $entry.Shared) {
-                    continue
-                }
                 if ($Url) {
                     $urlMatches = @($Url | Where-Object {
                         $entry.Url -and $entry.Url.IndexOf($_, [System.StringComparison]::OrdinalIgnoreCase) -ge 0

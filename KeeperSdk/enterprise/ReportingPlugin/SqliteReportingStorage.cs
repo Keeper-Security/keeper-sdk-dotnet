@@ -198,11 +198,6 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             return int.TryParse(pair.Value?.ToString(), out var value) ? value : 0;
         }
 
-        public List<AuditReportEntry> GetAuditEvents(List<string> recordUids)
-        {
-            return new List<AuditReportEntry>();
-        }
-
         public Dictionary<string, RecordAgingInfo> GetAgingData(List<string> recordUids)
         {
             var result = new Dictionary<string, RecordAgingInfo>();
@@ -275,30 +270,12 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             }
         }
 
-        public bool IsAuditEventStale(int maxAgeDays = 1)
-        {
-            return true;
-        }
-
         public long? GetLastComplianceRefresh()
         {
             try
             {
                 var metadata = _sqlStorage.Metadata.Load();
                 return metadata?.ComplianceDataLastUpdate > 0 ? metadata.ComplianceDataLastUpdate : (long?)null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public long? GetLastAuditRefresh()
-        {
-            try
-            {
-                var metadata = _sqlStorage.Metadata.Load();
-                return metadata?.LastPwAudit > 0 ? metadata.LastPwAudit : (long?)null;
             }
             catch
             {
@@ -318,20 +295,6 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             {
                 Trace.TraceError($"Error updating compliance refresh timestamp: {ex.Message}");
                 throw;
-            }
-        }
-
-        public void UpdateAuditRefreshTimestamp(long timestamp)
-        {
-            try
-            {
-                var metadata = _sqlStorage.Metadata.Load() ?? new ComplianceMetadata();
-                metadata.LastPwAudit = timestamp;
-                _sqlStorage.Metadata.Store(metadata);
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError($"Error updating audit refresh timestamp: {ex.Message}");
             }
         }
 
