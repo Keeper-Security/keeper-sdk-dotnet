@@ -528,14 +528,13 @@ function Set-KeeperSharedFolderRecordPermission {
         true, false, 1, or 0.
 
         .PARAMETER ExpireIn
-        Optional. Record permission expiration period from now.
+        Unsupported for shared-folder records. Set expiration on the user or team access instead.
 
         .PARAMETER ExpireAt
-        Optional. Absolute record permission expiration as an ISO datetime.
+        Unsupported for shared-folder records. Set expiration on the user or team access instead.
 
         .PARAMETER RotateOnExpiration
-        Rotate the password when the record permission expires. Requires an
-        expiration and a pamUser record with rotation configured in the folder.
+        Unsupported for shared-folder records. Use the user or team access command instead.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param (

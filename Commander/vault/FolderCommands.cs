@@ -584,15 +584,14 @@ namespace Commander
         [Option('e', "can-edit", Required = false, Default = null, HelpText = "record permission: can be edited. 'true' or 'false'")]
         public bool? CanEdit { get; set; }
 
-        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at ISO time: YYYY-MM-DD HH:mm:SS")]
+        [Option("expire-at", Required = false, Default = null, HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public string ExpireAt { get; set; }
 
-        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
+        [Option("expire-in", Required = false, Default = null, HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public string ExpireIn { get; set; }
 
         [Option("rotate-on-expiration", Required = false, Default = false,
-            HelpText = "Rotate the password when the share access expires. " +
-                       "Requires a future expiration and a pamUser record with rotation configured in the folder.")]
+            HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public bool RotateOnExpiration { get; set; }
     }
 

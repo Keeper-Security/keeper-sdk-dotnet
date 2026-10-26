@@ -897,6 +897,17 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options)
         {
+            await ShareRecordWithUser(recordUid, username, options, forceAdd: false);
+        }
+
+        /// <summary>
+        /// Grants or updates a direct record share. forceAdd is used for an expired or stale
+        /// permission: the server no longer has that share, so an Add with a newly encrypted
+        /// record key is required instead of an Update.
+        /// </summary>
+        private async Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options,
+            bool forceAdd)
+        {
             this.ValidateRotateOnExpirationForRecordGrant(recordUid, options);
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
@@ -927,7 +938,10 @@ namespace KeeperSecurity.Vault
                 ro.TeamUid = ByteString.CopyFrom(accessPath.TeamUid.Base64UrlDecode());
             }
 
-            if (targetPermission == null)
+            var activeTargetPermission = targetPermission != null &&
+                (!targetPermission.Expiration.HasValue || targetPermission.Expiration.Value > DateTimeOffset.UtcNow);
+            var isAdd = !activeTargetPermission || forceAdd;
+            if (isAdd)
             {
                 await Auth.LoadUsersKeys(Enumerable.Repeat(username, 1));
                 if (Auth.TryGetUserKeys(username, out var keys))
@@ -961,10 +975,17 @@ namespace KeeperSecurity.Vault
             }
 
             var rsuRs = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, RecordShareUpdateResponse>("vault/records_share_update", request);
-            var statuses = targetPermission == null ? rsuRs.AddSharedRecordStatus : rsuRs.UpdateSharedRecordStatus;
+            var statuses = isAdd ? rsuRs.AddSharedRecordStatus : rsuRs.UpdateSharedRecordStatus;
             var status = statuses.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
             if (status != null && status.Status != "success")
             {
+                if (!isAdd && string.Equals(status.Status, "doesnt_exist", StringComparison.OrdinalIgnoreCase))
+                {
+                    // The share disappeared after it was read (usually an expired share in a
+                    // stale local view). Rebuild once as Add, including an encrypted record key.
+                    await ShareRecordWithUser(recordUid, username, options, forceAdd: true);
+                    return;
+                }
                 throw new KeeperApiException(status.Status, status.Message);
             }
         }
