@@ -1,6 +1,99 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
+
+<#
+    .Synopsis
+    Fetch compliance report data using SDK's ReportingPlugin
+    Replaces direct API calls for duplicate elimination
+#>
+function Get-KeeperComplianceReportViaSdk {
+    [CmdletBinding()]
+    param(
+        [Parameter()][switch]$Rebuild,
+        [Parameter()][switch]$NoRebuild,
+        [Parameter()][long[]]$OwnerUserIds,
+        [Parameter()][switch]$SharedOnly
+    )
+
+    if ($Rebuild -and $NoRebuild) {
+        Write-Error "-Rebuild and -NoRebuild cannot be used together." -ErrorAction Stop
+    }
+
+    Assert-KeeperComplianceReportAccess
+
+    try {
+
+        $enterprise = getEnterprise
+        if (-not $enterprise -or -not $enterprise.loader) {
+            Write-Error "Enterprise data is required to build the compliance report." -ErrorAction Stop
+        }
+
+        $auth = $enterprise.loader.Auth
+        if (-not $auth) {
+            Write-Error "Cannot fetch compliance report: enterprise authentication is not available." -ErrorAction Stop
+        }
+
+        # Create ReportingPlugin with SQLite storage
+
+        $storage = $null
+        try {
+            # Use SQLite storage for persistent caching (like existing PowerCommander auth storage)
+            $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $enterprise -Auth $auth
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+
+            $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
+
+            $storage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
+        }
+        catch {
+            $storageType = [KeeperSecurity.Enterprise.ReportingPlugin.InMemoryReportingStorage]
+            $storage = New-Object $storageType
+        }
+
+        $enterpriseEcKey = $null
+        if ($enterprise.loader.EcPrivateKey -and $enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($enterprise.loader.EcPrivateKey)
+        }
+        $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+        $plugin = New-Object $pluginType($enterprise.enterpriseData, $storage, $enterpriseEcKey)
+
+        # Create compliance report config (use ComplianceReportConfig)
+        $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.ComplianceReportConfig
+        $config.NoRebuild = $NoRebuild
+        $config.Rebuild = $Rebuild
+        $config.CacheMaxAgeDays = 1
+        $config.IncludeAging = $false # Aging is fetched by the report's aggregate-query path below.
+        $config.SharedRecordsOnly = $SharedOnly
+        if ($OwnerUserIds -and $OwnerUserIds.Count -gt 0) {
+            $ownerIds = [System.Collections.Generic.List[long]]::new()
+            $ownerIds.AddRange([long[]]$OwnerUserIds)
+            $config.OwnerUserIds = $ownerIds
+        }
+
+        $reportResult = $plugin.GenerateComplianceReportAsync($auth, $config).GetAwaiter().GetResult()
+
+        if ($reportResult.ErrorMessage) {
+            Write-Error "Compliance report error: $($reportResult.ErrorMessage)" -ErrorAction Stop
+        }
+
+
+        # Transform SDK results to match expected output structure
+        $result = @{
+            Entries = $reportResult.Entries
+            TotalCount = $reportResult.TotalCount
+            GeneratedAt = $reportResult.GeneratedAt
+        }
+
+        return $result
+    }
+    catch {
+        Write-Error "Failed to fetch compliance report via SDK: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
 
 function Get-KeeperComplianceSnapshot {
+    # Detail/team/summary/shared-folder reports need the full relationship graph
+    # (users, teams, shared folders, and permissions), which the SDK's flat
+    # ComplianceReportEntry collection does not expose.
     [CmdletBinding()]
     param(
         [Parameter()][switch]$Rebuild,
@@ -49,7 +142,7 @@ function Get-KeeperComplianceSnapshot {
             return $cacheEntry.Snapshot
         }
     }
-    
+
     if ($null -eq $OwnerUserIds -and $SharedOnly -and $allCacheEntry) {
         $allLoadedAt = [datetime]$allCacheEntry.LoadedAt
         $allCacheIsFresh = ((Get-Date) - $allLoadedAt) -lt $cacheTtl
@@ -109,6 +202,7 @@ function Get-KeeperComplianceSnapshot {
         Write-Warning "No local compliance cache is available for this request. Building it now."
     }
 
+    Write-KeeperComplianceStatus "SQLite snapshot cache miss for '$cacheKey'; fetching a fresh compliance snapshot."
     $auth = $enterprise.loader.Auth
     $ecPrivateKey = $null
     if ($enterprise.loader.EcPrivateKey) {
@@ -445,6 +539,7 @@ function Get-KeeperComplianceSnapshot {
 
     return $snapshot
 }
+
 
 function Get-KeeperComplianceAuditEventValue {
     param(
@@ -1193,39 +1288,135 @@ function Get-KeeperComplianceReport {
         [Parameter()][switch]$Aging
     )
 
+    if ($DeletedItems -and $ActiveItems) {
+        Write-Error "-DeletedItems and -ActiveItems cannot be used together." -ErrorAction Stop
+    }
+
     $reportRows = Invoke-KeeperComplianceReportSession -NoCache:$NoCache -ScriptBlock {
-        Write-KeeperComplianceStatus "Starting compliance-report. Format=$Format Rebuild=$Rebuild NoRebuild=$NoRebuild NoCache=$NoCache Aging=$Aging."
-        $fetchOwnerIds = Resolve-KeeperComplianceFetchOwnerIds -Username $Username -Team $Team -Node $Node
+        Write-Host ""
+        Write-Host "================================ COMPLIANCE REPORT ================================" -ForegroundColor White -BackgroundColor DarkBlue
+        Write-Host "Starting compliance-report" -ForegroundColor White
+        Write-Host "  Format: $Format, Rebuild: $Rebuild, NoRebuild: $NoRebuild, NoCache: $NoCache, Aging: $Aging" -ForegroundColor White
+
+        # Use SDK-based approach (eliminates duplicate API calls)
+        Write-Host ""
+        $fetchOwnerIds = Resolve-KeeperComplianceFetchOwnerIds -Username $Username -Team $Team -Node $Node -JobTitle $JobTitle
         if ($null -ne $fetchOwnerIds -and $fetchOwnerIds.Count -eq 0) {
             Write-Warning "No enterprise users matched the provided owner filters."
+            return @()
         }
         elseif ($null -eq $fetchOwnerIds) {
-            Write-KeeperComplianceStatus "Owner pre-filter: all enterprise users."
+            Write-Host "  ✓ No filters applied - will fetch data for ALL enterprise users" -ForegroundColor Green
         }
         else {
-            Write-KeeperComplianceStatus "Owner pre-filter matched $($fetchOwnerIds.Count) user(s)."
+            Write-Host "  ✓ Owner pre-filter matched $($fetchOwnerIds.Count) user(s)" -ForegroundColor Green
         }
 
-        $snapshot = Get-KeeperComplianceSnapshot -Rebuild:$Rebuild -NoRebuild:$NoRebuild -OwnerUserIds $fetchOwnerIds
-        $ownerIdsForAging = if ($null -ne $fetchOwnerIds) { $fetchOwnerIds } else { $null }
-        $reportRows = Get-KeeperComplianceReportRows -Snapshot $snapshot -Username $Username -Team $Team `
-            -JobTitle $JobTitle -Node $Node -Record $Record -Url $Url -Shared:$Shared `
-            -DeletedItems:$DeletedItems -ActiveItems:$ActiveItems -Aging:$Aging `
-            -OwnerUserIdsForAging $ownerIdsForAging
+        Write-Host ""
+        $sdkReport = Get-KeeperComplianceReportViaSdk -Rebuild:$Rebuild -NoRebuild:$NoRebuild `
+            -OwnerUserIds $fetchOwnerIds -SharedOnly:$Shared
 
-        if ($Pattern -and $Pattern.Count -gt 0) {
-            $reportRows = Invoke-KeeperCompliancePatternFilterRows -Rows $reportRows -Patterns $Pattern `
-                -UseRegex:$Regex -MatchAll:$PatternMatchAll
+        if ($sdkReport -and $sdkReport.Entries) {
+            Write-Host ""
+            Write-Host "  ✓ SDK returned $($sdkReport.Entries.Count) compliance record(s)" -ForegroundColor Green
+
+            # Convert SDK compliance entries to display rows
+            $reportRows = @()
+            foreach ($entry in $sdkReport.Entries) {
+                if ($Url) {
+                    $urlMatches = @($Url | Where-Object {
+                        $entry.Url -and $entry.Url.IndexOf($_, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+                    })
+                    if ($urlMatches.Count -eq 0) { continue }
+                }
+                $row = [ordered]@{
+                    record_uid        = $entry.RecordUid
+                    title             = $entry.Title
+                    type              = $entry.RecordType
+                    username          = $entry.Owner
+                    permissions       = if ($entry.Permissions) { $entry.Permissions } elseif ($entry.Shared) { 'Shared' } else { 'Owner' }
+                    permission_bits   = $entry.PermissionBits
+                    url               = $entry.Url
+                    in_trash          = $entry.InTrash
+                    shared_folder_uid = @($entry.SharedFolderUids)
+                }
+                if ($Username -and -not ($Username | Where-Object { [string]::Equals($_, $row.username, [System.StringComparison]::OrdinalIgnoreCase) })) {
+                    continue
+                }
+                $reportRows += [PSCustomObject]$row
+            }
+
+            # Apply post-SDK filters
+            $filterCount = 0
+            if ($Username -or $Team -or $JobTitle -or $Node) { $filterCount++ }
+            if ($Url) { $filterCount++ }
+            if ($Shared) { $filterCount++ }
+            if ($Record -and $Record.Count -gt 0) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $recordFilter = @($Record | ForEach-Object { ([string]$_).ToLowerInvariant() })
+                $reportRows = @($reportRows | Where-Object {
+                    $recordFilter -contains ([string]$_.record_uid).ToLowerInvariant() -or
+                    $recordFilter -contains ([string]$_.title).ToLowerInvariant()
+                })
+                Write-Host "  Filtered by Record: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($DeletedItems) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $true })
+                Write-Host "  Filtered by DeletedItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+            elseif ($ActiveItems) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $false })
+                Write-Host "  Filtered by ActiveItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($Pattern -and $Pattern.Count -gt 0) {
+                $filterCount++
+                $recordsBefore = $reportRows.Count
+                $reportRows = Invoke-KeeperCompliancePatternFilterRows -Rows $reportRows -Patterns $Pattern `
+                    -UseRegex:$Regex -MatchAll:$PatternMatchAll
+                Write-Host "  Filtered by Pattern: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+            }
+
+            if ($Aging -and $reportRows.Count -gt 0) {
+                $agingData = Get-KeeperComplianceAgingData -RecordUids @($reportRows | Select-Object -ExpandProperty record_uid -Unique)
+                foreach ($row in $reportRows) {
+                    $aging = $agingData[[string]$row.record_uid]
+                    if ($aging) {
+                        Add-Member -InputObject $row -NotePropertyName created -NotePropertyValue $aging.created -Force
+                        Add-Member -InputObject $row -NotePropertyName last_pw_change -NotePropertyValue $aging.last_pw_change -Force
+                        Add-Member -InputObject $row -NotePropertyName last_modified -NotePropertyValue $aging.last_modified -Force
+                        Add-Member -InputObject $row -NotePropertyName last_rotation -NotePropertyValue $aging.last_rotation -Force
+                    }
+                }
+            }
+
+            if ($filterCount -eq 0) {
+                Write-Host "  No additional filters applied - using all $($reportRows.Count) records" -ForegroundColor Green
+            } else {
+                Write-Host "  ✓ Applied $filterCount filter(s) → Final: $($reportRows.Count) records" -ForegroundColor Green
+            }
+
+            return ,@($reportRows)
         }
-        return ,@($reportRows)
+        else {
+            return @()
+        }
     }
 
     if ($reportRows.Count -eq 0) {
-        Write-KeeperComplianceStatus "No compliance report rows matched the current filters."
-        Write-Host "No compliance report rows found."
+        Write-Host ""
+        Write-Host "No compliance report rows matched the current filters." -ForegroundColor Yellow
+        Write-Host "Compliance Report: 0 rows" -ForegroundColor White
         return
     }
 
+    Write-Host ""
     $displayRows = ConvertTo-KeeperComplianceDisplayRows -Rows $reportRows
     if ($Format -eq 'table' -and -not ($Pattern -and $Pattern.Count -gt 0)) {
         $lastRecUid = ''
@@ -1246,7 +1437,12 @@ function Get-KeeperComplianceReport {
             [PSCustomObject]$dr
         })
     }
-    Write-KeeperComplianceStatus "Rendering $($reportRows.Count) row(s) as $Format."
+
+    Write-Host "  ✓ Rendering $($reportRows.Count) row(s) as $Format format" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "================================ END REPORT ================================" -ForegroundColor White -BackgroundColor DarkBlue
+    Write-Host ""
+
     Write-KeeperReportOutput -Rows $reportRows -DisplayRows $displayRows -Format $Format -Output $Output -JsonDepth 6
 }
 New-Alias -Name compliance-report -Value Get-KeeperComplianceReport
