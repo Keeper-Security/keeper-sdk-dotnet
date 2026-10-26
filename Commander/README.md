@@ -452,6 +452,10 @@ For complete SDK documentation, see:
 
 ## Support
 
+### Nested Shared Folder permissions
+
+`nsf-get --uid <uid>` shows direct permissions by default. Use `--show-inherited` to show inherited permission rows and `--show-denied` to show denied-access rows; the options can be combined. JSON permission entries include `inherited` and `denied_access` state fields.
+
 ### Get Help
 
 - **Email**: commander@keepersecurity.com

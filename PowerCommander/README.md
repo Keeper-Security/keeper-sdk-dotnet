@@ -26,7 +26,7 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 
 ### Nested Shared Folder (NSF) permissions
 
-`nsf-get -Uid <uid>` and `nsf-get -Uid <uid> -Format json` show only direct permissions; inherited and denied-access rows are omitted to match the Keeper UI. There is no include-inherited switch. Granting, revoking, or denying access does not change the folder's inheritance setting.
+`nsf-get -Uid <uid>` and `nsf-get -Uid <uid> -Format json` show only direct permissions by default. Add `-ShowInherited` to show inherited rows and `-ShowDenied` to show denied-access rows; the switches can be combined. JSON permission entries retain their `inherited` and `denied_access` state fields. Granting, revoking, or denying access does not change the folder's inheritance setting.
 
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description

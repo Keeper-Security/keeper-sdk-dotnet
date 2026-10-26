@@ -1170,6 +1170,7 @@ namespace KeeperSecurity.Vault
                         Inherited = accessor.Inherited,
                         DeniedAccess = accessor.DeniedAccess,
                         AccessRoleType = (int)accessor.AccessRoleType,
+                        // Folder ACL data has no record-style CanEdit capability flag.
                         CanEdit = false,
                         CanView = !accessor.DeniedAccess,
                         CanUpdateAccess = false,
@@ -1301,6 +1302,7 @@ namespace KeeperSecurity.Vault
                     Owner = a.AccessType == (int)FolderProto.AccessType.AtOwner ||
                         (!string.IsNullOrEmpty(ownerUid) && a.AccessTypeUid == ownerUid),
                     Inherited = a.Inherited, DeniedAccess = a.DeniedAccess,
+                    // Folder ACL data has no record-style CanEdit capability flag.
                     AccessRoleType = a.AccessRoleType, CanEdit = false,
                     CanView = !a.DeniedAccess, CanUpdateAccess = false, CanDelete = false
                 }).ToList();

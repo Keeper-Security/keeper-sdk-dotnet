@@ -264,11 +264,13 @@ namespace Commander
                 object jsonObj;
                 if (record != null)
                 {
-                    jsonObj = await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid);
+                    jsonObj = await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid,
+                        options.ShowInherited, options.ShowDenied);
                 }
                 else
                 {
-                    jsonObj = await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid);
+                    jsonObj = await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid,
+                        options.ShowInherited, options.ShowDenied);
                 }
 
                 Console.WriteLine(Json.Serialize(jsonObj));
@@ -277,11 +279,13 @@ namespace Commander
 
             if (record != null)
             {
-                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid);
+                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid,
+                    options.ShowInherited, options.ShowDenied);
             }
             else
             {
-                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid);
+                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid,
+                    options.ShowInherited, options.ShowDenied);
             }
         }
 
@@ -366,7 +370,8 @@ namespace Commander
         internal static string PadLabel(string label, int width) =>
             label.PadLeft(width);
 
-        internal static async Task ShowRecordDetailAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid)
+        internal static async Task ShowRecordDetailAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
             var meta = NsfHelpers.GetRecordTypeAndTitle(record);
             Console.WriteLine();
@@ -444,30 +449,32 @@ namespace Commander
             }
 
             Console.WriteLine();
-            var accesses = await GetRecordAccessesAsync(vault, record);
+            var accesses = await GetRecordAccessesAsync(vault, record, includeInherited, includeDeniedAccess);
             var shareAdmins = await GetShareAdminEmailsAsync(vault, record.RecordUid);
             await ShowPermissionsAsync(vault, accesses, shareAdmins, currentAccountUid, "record");
             Console.WriteLine();
         }
 
-        internal static async Task ShowFolderDetailAsync(VaultOnline vault, FolderNode folder, string currentAccountUid)
+        internal static async Task ShowFolderDetailAsync(VaultOnline vault, FolderNode folder, string currentAccountUid,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
             Console.WriteLine();
             Console.WriteLine($"{PadLabel("Nested Share Folder UID", NsfHelpers.FolderLabelWidth)}: {folder.FolderUid}");
             Console.WriteLine($"{PadLabel("Name", NsfHelpers.FolderLabelWidth)}: {folder.Name}");
             Console.WriteLine();
 
-            var accesses = await GetFolderAccessesAsync(vault, folder);
+            var accesses = await GetFolderAccessesAsync(vault, folder, includeInherited, includeDeniedAccess);
             var storedFolder = vault.Storage.KdFolders.GetEntity(folder.FolderUid);
             var ownerAccountUid = storedFolder?.OwnerAccountUid;
             var ownerUsername = storedFolder?.OwnerUsername;
             await ShowFolderPermissionsAsync(vault, accesses, currentAccountUid, ownerAccountUid, ownerUsername);
         }
 
-        internal static async Task<object> BuildRecordJsonAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid)
+        internal static async Task<object> BuildRecordJsonAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
             var meta = NsfHelpers.GetRecordTypeAndTitle(record);
-            var accesses = await GetRecordAccessesAsync(vault, record);
+            var accesses = await GetRecordAccessesAsync(vault, record, includeInherited, includeDeniedAccess);
             var shareAdmins = await GetShareAdminEmailsAsync(vault, record.RecordUid);
             var userPerms = await BuildUserPermissionsAsync(vault, accesses, currentAccountUid, "record");
             var folderMap = NsfHelpers.GetFolderNodeMap(vault);
@@ -498,9 +505,10 @@ namespace Commander
             };
         }
 
-        internal static async Task<object> BuildFolderJsonAsync(VaultOnline vault, FolderNode folder, string currentAccountUid)
+        internal static async Task<object> BuildFolderJsonAsync(VaultOnline vault, FolderNode folder, string currentAccountUid,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
-            var accesses = await GetFolderAccessesAsync(vault, folder);
+            var accesses = await GetFolderAccessesAsync(vault, folder, includeInherited, includeDeniedAccess);
             var storedFolder = vault.Storage.KdFolders.GetEntity(folder.FolderUid);
             var ownerAccountUid = storedFolder?.OwnerAccountUid;
             var ownerUsername = storedFolder?.OwnerUsername;
@@ -598,7 +606,8 @@ namespace Commander
                     ["accessor"] = accessor,
                     ["access_type"] = accessTypeLabel,
                     ["role"] = roleLabel,
-                    ["inherited"] = access.Inherited
+                    ["inherited"] = access.Inherited,
+                    ["denied_access"] = access.DeniedAccess
                 };
 
                 if (accessTypeLabel == "AT_TEAM")
@@ -610,7 +619,7 @@ namespace Commander
                     result.UserPermissions.Add(entry);
                 }
 
-                if (access.AccessRoleType == 6 && shareAdminSet.Add(accessor))
+                if (!access.DeniedAccess && access.AccessRoleType == 6 && shareAdminSet.Add(accessor))
                 {
                     result.ShareAdmins.Add(accessor);
                 }
@@ -941,12 +950,16 @@ namespace Commander
             public string AccessorEmail { get; set; }
         }
 
-        private static bool IsDirectAccess(NsfAccessView access)
+        private static bool IsDirectAccess(NsfAccessView access, bool includeInherited = false, bool includeDeniedAccess = false)
         {
-            return access != null && (access.Owner || (!access.Inherited && !access.DeniedAccess));
+            return access != null && (access.Owner
+                || (!access.Inherited && !access.DeniedAccess)
+                || (includeInherited && access.Inherited)
+                || (includeDeniedAccess && access.DeniedAccess));
         }
 
-        private static async Task<List<NsfAccessView>> GetRecordAccessesAsync(VaultOnline vault, KeeperNSFRecord record)
+        private static async Task<List<NsfAccessView>> GetRecordAccessesAsync(VaultOnline vault, KeeperNSFRecord record,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
             try
             {
@@ -982,7 +995,7 @@ namespace Commander
                     });
                 }
 
-                return converted.Where(IsDirectAccess).ToList();
+                return converted.Where(a => IsDirectAccess(a, includeInherited, includeDeniedAccess)).ToList();
             }
             catch (Exception ex)
             {
@@ -1002,7 +1015,7 @@ namespace Commander
                         CanApproveAccess = a.CanApproveAccess,
                         CanUpdateAccess = a.CanUpdateAccess
                     })
-                    .Where(IsDirectAccess)
+                    .Where(a => IsDirectAccess(a, includeInherited, includeDeniedAccess))
                     .ToList();
             }
         }
@@ -1030,7 +1043,8 @@ namespace Commander
             }
         }
 
-        private static async Task<List<NsfAccessView>> GetFolderAccessesAsync(VaultOnline vault, FolderNode folder)
+        private static async Task<List<NsfAccessView>> GetFolderAccessesAsync(VaultOnline vault, FolderNode folder,
+            bool includeInherited = false, bool includeDeniedAccess = false)
         {
             try
             {
@@ -1061,7 +1075,7 @@ namespace Commander
                             || (!string.IsNullOrEmpty(ownerUid)
                                 && a.AccessTypeUid.ToByteArray().Base64UrlEncode() == ownerUid)
                     })
-                    .Where(IsDirectAccess)
+                    .Where(a => IsDirectAccess(a, includeInherited, includeDeniedAccess))
                     .ToList();
                 }
             }
@@ -1083,7 +1097,7 @@ namespace Commander
                     Owner = a.AccessType == (int)Folder.AccessType.AtOwner
                         || (!string.IsNullOrEmpty(cachedOwnerUid) && a.AccessTypeUid == cachedOwnerUid)
                 })
-                .Where(IsDirectAccess)
+                .Where(a => IsDirectAccess(a, includeInherited, includeDeniedAccess))
                 .ToList();
         }
 
@@ -1097,6 +1111,8 @@ namespace Commander
             public bool CanDelete { get; set; }
             public bool CanApproveAccess { get; set; }
             public bool CanUpdateAccess { get; set; }
+            public bool Inherited { get; set; }
+            public bool DeniedAccess { get; set; }
         }
 
         private static async Task<List<object>> BuildUserPermissionsAsync(
@@ -1117,7 +1133,9 @@ namespace Commander
                     ["owner"] = perm.Owner,
                     ["shareable"] = perm.CanApproveAccess || perm.CanUpdateAccess,
                     ["editable"] = perm.CanEdit,
-                    ["role"] = perm.Role
+                    ["role"] = perm.Role,
+                    ["inherited"] = perm.Inherited,
+                    ["denied_access"] = perm.DeniedAccess
                 });
             }
 
@@ -1152,7 +1170,9 @@ namespace Commander
                     CanView = access.CanView,
                     CanDelete = access.CanDelete,
                     CanApproveAccess = access.CanApproveAccess,
-                    CanUpdateAccess = access.CanUpdateAccess
+                    CanUpdateAccess = access.CanUpdateAccess,
+                    Inherited = access.Inherited,
+                    DeniedAccess = access.DeniedAccess
                 });
             }
 
@@ -1185,6 +1205,14 @@ namespace Commander
                 var username = accessTypeLabel == "AT_TEAM" ? null : accessor;
                 var isOwner = NsfHelpers.IsFolderOwner(access.AccessTypeUid, username, ownerAccountUid, ownerUsername);
                 var roleLabel = isOwner ? "owner" : NsfHelpers.GetAccessRoleLabel(access.AccessRoleType);
+                if (access.DeniedAccess)
+                {
+                    roleLabel += " (denied)";
+                }
+                else if (access.Inherited)
+                {
+                    roleLabel += " (inherited)";
+                }
 
                 if (accessTypeLabel == "AT_TEAM")
                 {
@@ -1195,7 +1223,7 @@ namespace Commander
                     users.Add((accessor, roleLabel, isOwner));
                 }
 
-                if (access.AccessRoleType == 6)
+                if (!access.DeniedAccess && access.AccessRoleType == 6)
                 {
                     shareAdmins.Add((accessor, isOwner));
                 }
@@ -1264,6 +1292,12 @@ namespace Commander
                             Console.WriteLine($"{PadLabel("Role", NsfHelpers.LabelWidth)}: {perm.Role}");
                         }
 
+                        if (perm.Inherited || perm.DeniedAccess)
+                        {
+                            var state = perm.DeniedAccess ? "denied" : "inherited";
+                            Console.WriteLine($"{PadLabel("Access", NsfHelpers.LabelWidth)}: {state}");
+                        }
+
                         Console.WriteLine($"{PadLabel("Shareable", NsfHelpers.LabelWidth)}: {(perm.CanEdit || perm.Owner ? "Yes" : "No")}");
                         Console.WriteLine($"{PadLabel("Read-Only", NsfHelpers.LabelWidth)}: {(!perm.CanEdit && !perm.Owner ? "Yes" : "No")}");
                         Console.WriteLine();
@@ -1325,6 +1359,12 @@ namespace Commander
 
         [Option('f', "format", Required = false, Default = "detail", HelpText = "Output format: detail, json")]
         public string Format { get; set; }
+
+        [Option("show-inherited", Required = false, HelpText = "Show inherited permissions")]
+        public bool ShowInherited { get; set; }
+
+        [Option("show-denied", Required = false, HelpText = "Show denied-access permissions")]
+        public bool ShowDenied { get; set; }
     }
 
     class NsfRecordDetailsOptions
