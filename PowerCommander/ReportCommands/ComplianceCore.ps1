@@ -642,7 +642,8 @@ function Resolve-KeeperComplianceFetchOwnerIds {
     param(
         [Parameter()][string[]]$Username,
         [Parameter()][string[]]$Team,
-        [Parameter()][string]$Node
+        [Parameter()][string]$Node,
+        [Parameter()][string[]]$JobTitle
     )
 
     $enterprise = getEnterprise
@@ -651,6 +652,7 @@ function Resolve-KeeperComplianceFetchOwnerIds {
     $hasPrefilter = $false
     $hasUsernameFilter = Test-KeeperComplianceHasNonEmptyStringList -Strings $Username
     $hasTeamFilter = Test-KeeperComplianceHasNonEmptyStringList -Strings $Team
+    $hasJobTitleFilter = Test-KeeperComplianceHasNonEmptyStringList -Strings $JobTitle
 
     if ($hasUsernameFilter) {
         $hasPrefilter = $true
@@ -684,6 +686,29 @@ function Resolve-KeeperComplianceFetchOwnerIds {
         }
     }
 
+    if ($hasJobTitleFilter) {
+        $hasPrefilter = $true
+        $jobTitleLookup = @{}
+        $jobTitleUserIds = [System.Collections.Generic.HashSet[long]]::new()
+        foreach ($title in $JobTitle) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$title)) {
+                $jobTitleLookup[$title.ToLowerInvariant()] = $true
+            }
+        }
+        foreach ($enterpriseUser in $enterpriseData.Users) {
+            if ($enterpriseUser.JobTitle -and $jobTitleLookup.ContainsKey(([string]$enterpriseUser.JobTitle).ToLowerInvariant())) {
+                $jobTitleUserIds.Add([long]$enterpriseUser.Id) | Out-Null
+            }
+        }
+        if ($hasUsernameFilter -or $hasTeamFilter) {
+            $candidateUserIds = [System.Collections.Generic.HashSet[long]]::new(
+                @($candidateUserIds | Where-Object { $jobTitleUserIds.Contains([long]$_) }))
+        }
+        else {
+            $candidateUserIds = $jobTitleUserIds
+        }
+    }
+
     if (Test-KeeperComplianceHasNodeFilter -Node $Node) {
         $hasPrefilter = $true
         $nodeInput = $Node.Trim()
@@ -691,7 +716,7 @@ function Resolve-KeeperComplianceFetchOwnerIds {
         $targetNodeId = [long]$resolvedNode.Id
         $rootNodeId = [long]$enterpriseData.RootNode.Id
         if ($targetNodeId -eq $rootNodeId) {
-            if ($candidateUserIds.Count -eq 0 -and -not $hasUsernameFilter -and -not $hasTeamFilter) {
+            if ($candidateUserIds.Count -eq 0 -and -not $hasUsernameFilter -and -not $hasTeamFilter -and -not $hasJobTitleFilter) {
                 foreach ($enterpriseUser in $enterpriseData.Users) {
                     $candidateUserIds.Add([long]$enterpriseUser.Id) | Out-Null
                 }
@@ -709,7 +734,7 @@ function Resolve-KeeperComplianceFetchOwnerIds {
                 }
             }
 
-            if ($candidateUserIds.Count -eq 0 -and -not $hasUsernameFilter -and -not $hasTeamFilter) {
+            if ($candidateUserIds.Count -eq 0 -and -not $hasUsernameFilter -and -not $hasTeamFilter -and -not $hasJobTitleFilter) {
                 foreach ($userUid in $nodeMatchedUserIds) {
                     $candidateUserIds.Add([long]$userUid) | Out-Null
                 }
