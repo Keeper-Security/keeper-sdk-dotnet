@@ -315,8 +315,17 @@ namespace Commander.EPM
                 return false;
             }
 
+            if (policyData == null)
+                return true;
+
+            if (string.IsNullOrWhiteSpace(policyData.PolicyName))
+            {
+                Console.WriteLine("Policy name is required to save a policy.");
+                return false;
+            }
+
             // Disabled policies are permitted without filters, matching the EPM UI and PowerCommander.
-            if (policyData == null || string.Equals(policyData.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(policyData.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             var policyType = (policyData.PolicyType ?? string.Empty)

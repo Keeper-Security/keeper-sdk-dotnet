@@ -541,6 +541,7 @@ function Add-KeeperEpmPolicy {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
         [string] $PolicyName,
         [Parameter(Mandatory = $true)]
         [ValidateSet('PrivilegeElevation', 'FileAccess', 'CommandLine', 'LeastPrivilege')]
