@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,11 +16,326 @@ using KeeperSecurity.Utils;
 using Records;
 using AuthProto = Authentication;
 using Drive.Move;
+using Drive.Convert;
 
 namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline
     {
+        private const int MaxClassicRecordConversions = 100;
+
+        // Server outcomes use the generated ConvertRecordStatus enum; these are SDK-only outcomes.
+        private enum ConversionClientStatus
+        {
+            SkippedInvalidUid,
+            SkippedDuplicate,
+            SkippedAlreadyNsf,
+            SkippedNotFound,
+            SkippedInvalidKey,
+            ResponseUnavailable,
+            ResponseMissing,
+            ResultDuplicate,
+            ResultMissing,
+        }
+
+        private static string GetConversionClientStatusName(ConversionClientStatus status)
+        {
+            switch (status)
+            {
+                case ConversionClientStatus.SkippedInvalidUid: return "SKIPPED_INVALID_UID";
+                case ConversionClientStatus.SkippedDuplicate: return "SKIPPED_DUPLICATE";
+                case ConversionClientStatus.SkippedAlreadyNsf: return "SKIPPED_ALREADY_NSF";
+                case ConversionClientStatus.SkippedNotFound: return "SKIPPED_NOT_FOUND";
+                case ConversionClientStatus.SkippedInvalidKey: return "SKIPPED_INVALID_KEY";
+                case ConversionClientStatus.ResponseUnavailable: return "RESPONSE_UNAVAILABLE";
+                case ConversionClientStatus.ResponseMissing: return "RESPONSE_MISSING";
+                case ConversionClientStatus.ResultDuplicate: return "RESULT_DUPLICATE";
+                case ConversionClientStatus.ResultMissing: return "RESULT_MISSING";
+                default: throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown conversion client status.");
+            }
+        }
+
+        internal async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSFInternal(
+            IReadOnlyList<string> recordUids, string folderUid, HashSet<string> seenUids = null)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new ArgumentException("At least one classic record UID is required.", nameof(recordUids));
+            }
+
+            if (recordUids.Count > MaxClassicRecordConversions)
+            {
+                throw new ArgumentException($"Convert at most {MaxClassicRecordConversions} classic records per request.", nameof(recordUids));
+            }
+
+            var ownerKey = Auth.AuthContext?.DataKey;
+            ValidateConversionKey(ownerKey, "User data key");
+
+            var destinationFolderUid = string.Empty;
+            var destinationFolderKey = ownerKey;
+            if (!string.IsNullOrWhiteSpace(folderUid))
+            {
+                var folderRef = folderUid.Trim();
+                if (IsKeeperDriveRootFolderIdentifier(folderRef))
+                {
+                    // Root uses an empty folder UID and the owner data key.
+                }
+                else
+                {
+                    if (!TryGetKeeperNSFFolder(folderRef, out var folder))
+                    {
+                        throw new ArgumentException($"'{folderRef}' is not a Keeper NSF folder in the local cache.", nameof(folderUid));
+                    }
+
+                    destinationFolderUid = folder.FolderUid;
+                    destinationFolderKey = folder.FolderKey;
+                    ValidateConversionKey(destinationFolderKey, $"Destination folder key for '{destinationFolderUid}'");
+                }
+            }
+
+            var request = new ConvertRecordRequest();
+            var seen = seenUids ?? new HashSet<string>(StringComparer.Ordinal);
+            var outcomes = new KeeperNSFRecordConversionResult[recordUids.Count];
+            var requestedUids = new List<string>();
+            for (var index = 0; index < recordUids.Count; index++)
+            {
+                var recordUid = recordUids[index];
+                string uid;
+                try
+                {
+                    uid = ValidateConversionUid(recordUid, nameof(recordUids));
+                }
+                catch (ArgumentException)
+                {
+                    outcomes[index] = CreateSkippedConversionResult(recordUid, ConversionClientStatus.SkippedInvalidUid, "Invalid record UID; skipped.");
+                    continue;
+                }
+
+                if (!seen.Add(uid))
+                {
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedDuplicate, "Duplicate record UID; skipped.");
+                    continue;
+                }
+
+                if (TryGetKeeperNSFRecord(uid, out _))
+                {
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedAlreadyNsf, "Record is already a Keeper NSF record; skipped.");
+                    continue;
+                }
+
+                if (!TryGetKeeperRecord(uid, out var record))
+                {
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedNotFound, "Classic record was not found in the local cache; skipped.");
+                    continue;
+                }
+
+                if (record.RecordKey == null || record.RecordKey.Length != 32)
+                {
+                    outcomes[index] = CreateSkippedConversionResult(uid, ConversionClientStatus.SkippedInvalidKey, "Classic record key is unavailable or invalid; skipped.");
+                    continue;
+                }
+
+                requestedUids.Add(uid);
+                request.Records.Add(new ConvertRecord
+                {
+                    RecordUid = ByteString.CopyFrom(uid.Base64UrlDecode()),
+                    FolderUid = string.IsNullOrEmpty(destinationFolderUid)
+                        ? ByteString.Empty
+                        : ByteString.CopyFrom(destinationFolderUid.Base64UrlDecode()),
+                    RecordKeyEncryptedByFolderKey = ByteString.CopyFrom(
+                        CryptoUtils.EncryptAesV2(record.RecordKey, destinationFolderKey)),
+                    RecordKeyEncryptedByOwnerKey = ByteString.CopyFrom(
+                        CryptoUtils.EncryptAesV2(record.RecordKey, ownerKey)),
+                });
+            }
+
+            IReadOnlyList<KeeperNSFRecordConversionResult> MergeResults(IReadOnlyList<KeeperNSFRecordConversionResult> requestResults)
+            {
+                var resultIndex = 0;
+                for (var index = 0; index < outcomes.Length; index++)
+                {
+                    if (outcomes[index] == null)
+                    {
+                        outcomes[index] = requestResults[resultIndex++];
+                    }
+                }
+                return outcomes;
+            }
+
+            if (request.Records.Count == 0)
+            {
+                return outcomes;
+            }
+
+            ConvertRecordResponse response;
+            try
+            {
+                response = await Auth.ExecuteAuthRest<ConvertRecordRequest, ConvertRecordResponse>(
+                    "vault/records/v3/convert", request).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is HttpRequestException || ex is System.IO.IOException
+                                       || ex is TimeoutException || ex is TaskCanceledException
+                                       || ex is ArgumentNullException
+                                       || (ex is KeeperApiException apiError
+                                           && string.Equals(apiError.Code, "http_error", StringComparison.OrdinalIgnoreCase)))
+            {
+                Trace.TraceWarning($"KeeperNSF: Conversion response unavailable ({ex.GetType().Name}).");
+                return MergeResults(CreateUncertainConversionResults(requestedUids, ConversionClientStatus.ResponseUnavailable,
+                    "No reliable conversion response was received. Refresh the vault and verify each record before retrying."));
+            }
+
+            if (response == null)
+            {
+                return MergeResults(CreateUncertainConversionResults(requestedUids, ConversionClientStatus.ResponseMissing,
+                    "The conversion service returned no response. Refresh the vault and verify each record before retrying."));
+            }
+
+            var requested = new HashSet<string>(requestedUids, StringComparer.Ordinal);
+            var returned = new Dictionary<string, ConvertRecordResult>(StringComparer.Ordinal);
+            var duplicates = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var item in response.Results)
+            {
+                var uid = item.RecordUid.IsEmpty ? null : item.RecordUid.ToByteArray().Base64UrlEncode();
+                if (uid == null || !requested.Contains(uid))
+                {
+                    Trace.TraceWarning("KeeperNSF: Conversion response contained a missing or unrequested record UID.");
+                    continue;
+                }
+
+                if (returned.ContainsKey(uid))
+                {
+                    duplicates.Add(uid);
+                }
+                else
+                {
+                    returned.Add(uid, item);
+                }
+            }
+
+            return MergeResults(requestedUids.Select(uid =>
+            {
+                if (duplicates.Contains(uid))
+                {
+                    return new KeeperNSFRecordConversionResult
+                    {
+                        RecordUid = uid,
+                        Status = GetConversionClientStatusName(ConversionClientStatus.ResultDuplicate),
+                        Message = "The server returned multiple results for this record. Refresh the vault and verify its current state before retrying.",
+                        ServerOutcomeUncertain = true,
+                    };
+                }
+
+                if (!returned.TryGetValue(uid, out var item))
+                {
+                    return new KeeperNSFRecordConversionResult
+                    {
+                        RecordUid = uid,
+                        Status = GetConversionClientStatusName(ConversionClientStatus.ResultMissing),
+                        Message = "The server did not return a result for this record. Refresh the vault and verify its current state before retrying.",
+                        ServerOutcomeUncertain = true,
+                    };
+                }
+
+                var status = GetConversionStatus(item.Status);
+                return new KeeperNSFRecordConversionResult
+                {
+                    RecordUid = uid,
+                    Status = status.Name,
+                    Message = status.Message,
+                    Success = item.Status == ConvertRecordStatus.Ok,
+                    ServerOutcomeUncertain = item.Status == ConvertRecordStatus.Unspecified
+                        || status.Name.StartsWith("UNKNOWN_STATUS_", StringComparison.Ordinal),
+                };
+            }).ToList());
+        }
+
+        private static KeeperNSFRecordConversionResult CreateSkippedConversionResult(string uid, ConversionClientStatus status, string message)
+        {
+            var statusName = GetConversionClientStatusName(status);
+            Trace.TraceWarning($"KeeperNSF: {statusName}: {message}");
+            return new KeeperNSFRecordConversionResult
+            {
+                RecordUid = uid,
+                Status = statusName,
+                Message = message,
+                Skipped = true,
+            };
+        }
+
+        private static IReadOnlyList<KeeperNSFRecordConversionResult> CreateUncertainConversionResults(
+            IReadOnlyList<string> recordUids, ConversionClientStatus status, string message)
+        {
+            return recordUids.Select(uid => new KeeperNSFRecordConversionResult
+            {
+                RecordUid = uid,
+                Status = GetConversionClientStatusName(status),
+                Message = message,
+                ServerOutcomeUncertain = true,
+            }).ToList();
+        }
+
+        private static void ValidateConversionKey(byte[] key, string keyName)
+        {
+            if (key == null || key.Length != 32)
+            {
+                throw new InvalidOperationException($"{keyName} must be a 32-byte AES key.");
+            }
+        }
+
+        private static (string Name, string Message) GetConversionStatus(ConvertRecordStatus status)
+        {
+            switch (status)
+            {
+                case ConvertRecordStatus.Unspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status. Refresh the vault and verify its current state before retrying.");
+                case ConvertRecordStatus.Ok: return ("OK", "Converted successfully.");
+                case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper Drive enabled.");
+                case ConvertRecordStatus.NotRecordOwner: return ("NOT_RECORD_OWNER", "The record is not owned by the caller.");
+                case ConvertRecordStatus.RecordNotFound: return ("RECORD_NOT_FOUND", "No active owned record was found.");
+                case ConvertRecordStatus.RecordAlreadyConverted: return ("RECORD_ALREADY_CONVERTED", "The record is already an NSF record.");
+                case ConvertRecordStatus.FolderAccessDenied: return ("FOLDER_ACCESS_DENIED", "The caller cannot add records to the destination folder.");
+                case ConvertRecordStatus.InvalidFolderKey: return ("INVALID_FOLDER_KEY", "The destination folder key is invalid.");
+                case ConvertRecordStatus.InvalidOwnerKey: return ("INVALID_OWNER_KEY", "The owner key is invalid.");
+                case ConvertRecordStatus.RecordNotLegacy: return ("RECORD_NOT_LEGACY", "The record is not a classic record.");
+                case ConvertRecordStatus.TargetNotDriveFolder: return ("TARGET_NOT_DRIVE_FOLDER", "The destination is not an NSF folder.");
+                case ConvertRecordStatus.RecordLinkChildNotOwned: return ("RECORD_LINK_CHILD_NOT_OWNED", "A linked child record is not owned by the caller.");
+                case ConvertRecordStatus.RecordLinkParentNotOwned: return ("RECORD_LINK_PARENT_NOT_OWNED", "A linked parent record is not owned by the caller.");
+                case ConvertRecordStatus.RecordLinkRecordInTrash: return ("RECORD_LINK_RECORD_IN_TRASH", "A linked record is in the caller's trash.");
+                case ConvertRecordStatus.InternalError: return ("INTERNAL_ERROR", "The server could not complete the conversion.");
+                case ConvertRecordStatus.RecordLinkChildNotIncluded: return ("RECORD_LINK_CHILD_NOT_INCLUDED", "A linked classic record must also be included.");
+                case ConvertRecordStatus.RecordLinkFilePromotionFailed: return ("RECORD_LINK_FILE_PROMOTION_FAILED", "A linked file attachment could not be promoted.");
+                case ConvertRecordStatus.RecordLinkComponentFailed: return ("RECORD_LINK_COMPONENT_FAILED", "A related record failed and this record was rolled back.");
+                case ConvertRecordStatus.RecordVersionNotConvertible: return ("RECORD_VERSION_NOT_CONVERTIBLE", "The record version cannot be converted.");
+                default:
+                    Trace.TraceWarning($"KeeperNSF: Conversion response contained unknown status {(int)status}.");
+                    return ($"UNKNOWN_STATUS_{(int)status}", $"The server returned unknown conversion status {(int)status}; verify the record state after sync-down.");
+            }
+        }
+
+        private static string ValidateConversionUid(string uid, string parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(uid))
+            {
+                throw new ArgumentException("Record UID cannot be empty.", parameterName);
+            }
+
+            byte[] bytes;
+            try
+            {
+                bytes = uid.Base64UrlDecode();
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"'{uid}' is not a valid Keeper UID.", parameterName, ex);
+            }
+
+            if (bytes.Length != 16 || !string.Equals(bytes.Base64UrlEncode(), uid, StringComparison.Ordinal))
+            {
+                throw new ArgumentException($"'{uid}' is not a canonical 16-byte Keeper UID.", parameterName);
+            }
+
+            return uid;
+        }
+
         /// <inheritdoc/>
         public async Task<KeeperNSFRemoveResult> RemoveKeeperNSFRecords(
             IReadOnlyList<KeeperNSFRecordRemoval> removals, bool dryRun = false)
@@ -981,31 +1297,81 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder)
         {
+            return TryResolveKeeperNSFFolderCore(uidOrName, false, out folder);
+        }
+
+        /// <summary>Resolves an NSF destination by UID, unique name, or path without choosing an ambiguous name.</summary>
+        /// <remarks>The older UID/name resolver keeps its original first-name-match behavior for existing callers.</remarks>
+        public bool TryResolveKeeperNSFFolderReference(string reference, out FolderNode folder)
+        {
+            return TryResolveKeeperNSFFolderCore(reference, true, out folder);
+        }
+
+        private bool TryResolveKeeperNSFFolderCore(string reference, bool requireUniqueMatch, out FolderNode folder)
+        {
             folder = null;
-            if (string.IsNullOrWhiteSpace(uidOrName))
+            if (string.IsNullOrWhiteSpace(reference))
             {
                 return false;
             }
 
-            var trimmed = uidOrName.Trim();
-            if (IsKeeperDriveRootFolderIdentifier(trimmed))
+            var identifier = reference.Trim();
+            if (IsKeeperDriveRootFolderIdentifier(identifier))
             {
                 folder = TryCreateKeeperDriveRootFolderNode();
                 return folder != null;
             }
 
-            if (TryGetKeeperNSFFolder(uidOrName, out folder))
+            if (TryGetKeeperNSFFolder(identifier, out folder))
             {
                 return true;
             }
 
-            folder = KeeperNSFFolderNodes
-                .Where(node => node != null)
-                .FirstOrDefault(node =>
-                    string.Equals(node.FolderUid, trimmed, StringComparison.OrdinalIgnoreCase)
-                    || (!string.IsNullOrEmpty(node.Name)
-                        && string.Equals(node.Name, trimmed, StringComparison.OrdinalIgnoreCase)));
+            if (!requireUniqueMatch)
+            {
+                folder = KeeperNSFFolderNodes
+                    .Where(node => node != null)
+                    .FirstOrDefault(node =>
+                        string.Equals(node.FolderUid, identifier, StringComparison.OrdinalIgnoreCase)
+                        || (!string.IsNullOrEmpty(node.Name)
+                            && string.Equals(node.Name, identifier, StringComparison.OrdinalIgnoreCase)));
+                return folder != null;
+            }
 
+            var nodes = KeeperNSFFolderNodes
+                .Where(node => node != null && !string.IsNullOrEmpty(node.FolderUid))
+                .ToDictionary(node => node.FolderUid, StringComparer.Ordinal);
+            // A path must match its full ancestry; a plain name can match only one folder.
+            // Accept both separator styles because PowerCommander also runs on Windows.
+            var isPath = identifier.IndexOfAny(new[] { '/', '\\' }) >= 0;
+            var path = string.Join("/", identifier.Replace('\\', '/').Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries));
+            var matches = nodes.Values.Where(node =>
+            {
+                if (!isPath && string.Equals(node.Name, path, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var components = new List<string>();
+                var current = node;
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                while (current != null && visited.Add(current.FolderUid))
+                {
+                    if (!string.IsNullOrEmpty(current.Name))
+                    {
+                        components.Add(current.Name);
+                    }
+
+                    current = !string.IsNullOrEmpty(current.ParentUid) && nodes.TryGetValue(current.ParentUid, out var parent)
+                        ? parent
+                        : null;
+                }
+
+                components.Reverse();
+                return string.Equals(string.Join("/", components), path, StringComparison.OrdinalIgnoreCase);
+            }).Take(2).ToList();
+
+            folder = matches.Count == 1 ? matches[0] : null;
             return folder != null;
         }
 
