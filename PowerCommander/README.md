@@ -24,6 +24,10 @@ Default vault database file: **`keeper_db.sqlite`** next to your config (or in t
 
 Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyResolve`; SQLitePCL is initialized; a `Func<IDbConnection>` for `SqlKeeperStorage` is built with **Reflection.Emit** (PowerShell cannot supply that delegate type directly). **KeeperSdk** does not reference `Microsoft.Data.Sqlite`; SQLite stays optional beside the module.
 
+### Nested Shared Folder (NSF) permissions
+
+`nsf-get -Uid <uid>` and `nsf-get -Uid <uid> -Format json` show only direct permissions by default. Add `-ShowInherited` to show inherited rows and `-ShowDenied` to show denied-access rows; the switches can be combined. JSON permission entries retain their `inherited` and `denied_access` state fields. Granting, revoking, or denying access does not change the folder's inheritance setting.
+
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
