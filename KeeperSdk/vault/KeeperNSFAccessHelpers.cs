@@ -92,6 +92,7 @@ namespace KeeperSecurity.Vault
             for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)
             {
                 var batch = foldersList.Skip(i).Take(MaxFoldersPerRequest).ToList();
+                var returnedFolderUids = new HashSet<string>(StringComparer.Ordinal);
                 FolderProto.V3.ContinuationToken continuationToken = null;
 
                 do
@@ -137,6 +138,7 @@ namespace KeeperSecurity.Vault
                             {
                                 resultFolderUid = result.FolderUid;
                                 resultFolderUidB64 = CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+                                returnedFolderUids.Add(resultFolderUidB64);
                             }
 
                             if (result.Error != null)
@@ -181,6 +183,18 @@ namespace KeeperSecurity.Vault
                     continuationToken = rs.HasMore ? rs.ContinuationToken : null;
                 }
                 while (continuationToken != null);
+
+                if (errorsByFolderUid != null)
+                {
+                    foreach (var requestedFolderUid in batch)
+                    {
+                        if (!returnedFolderUids.Contains(requestedFolderUid)
+                            && !errorsByFolderUid.ContainsKey(requestedFolderUid))
+                        {
+                            errorsByFolderUid[requestedFolderUid] = "Server returned no folder access result.";
+                        }
+                    }
+                }
             }
 
             return allAccessors;
