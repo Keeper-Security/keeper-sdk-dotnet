@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Cli;
 using CommandLine;
@@ -301,6 +302,77 @@ namespace Commander.EPM
             return null;
         }
 
+        private static bool ValidatePolicyRequirements(string policyJson)
+        {
+            PolicyDataStructure policyData;
+            try
+            {
+                policyData = JsonUtils.ParseJson<PolicyDataStructure>(Encoding.UTF8.GetBytes(policyJson));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Invalid policy data JSON: {e.Message}");
+                return false;
+            }
+
+            // Disabled policies are permitted without filters, matching the EPM UI and PowerCommander.
+            if (policyData == null || string.Equals(policyData.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            var policyType = (policyData.PolicyType ?? string.Empty)
+                .Replace("_", string.Empty)
+                .Replace("-", string.Empty)
+                .Trim()
+                .ToLowerInvariant();
+
+            var requiresUser = false;
+            var requiresMachine = false;
+            var requiresApplication = false;
+            var requiresControl = false;
+            switch (policyType)
+            {
+                case "elevation":
+                case "privilegeelevation":
+                case "fileaccess":
+                    requiresUser = requiresMachine = requiresApplication = requiresControl = true;
+                    break;
+                case "command":
+                case "commandline":
+                    requiresUser = requiresMachine = requiresControl = true;
+                    break;
+                case "leastprivilege":
+                    requiresMachine = true;
+                    break;
+                default:
+                    return true;
+            }
+
+            var missing = new List<string>();
+            if (requiresUser && policyData.UserCheck?.Any(x => !string.IsNullOrWhiteSpace(x)) != true)
+                missing.Add("user");
+            if (requiresMachine && policyData.MachineCheck?.Any(x => !string.IsNullOrWhiteSpace(x)) != true)
+                missing.Add("machine");
+            if (requiresApplication && policyData.ApplicationCheck?.Any(x => !string.IsNullOrWhiteSpace(x)) != true)
+                missing.Add("application");
+            if (requiresControl && policyData.Actions?.OnSuccess?.Controls?.Any(x => !string.IsNullOrWhiteSpace(x)) != true)
+                missing.Add("control");
+
+            if (missing.Count == 0)
+                return true;
+
+            var missingLabels = missing.Select(x => x switch
+            {
+                "user" => "User Groups",
+                "machine" => "Machine Collections",
+                "application" => "Applications",
+                "control" => "Controls",
+                _ => x,
+            });
+            Console.WriteLine($"Cannot save policy type '{policyData.PolicyType}'. " +
+                              $"Mandatory fields are missing: {string.Join(", ", missingLabels)}.");
+            return false;
+        }
+
         private async Task AddPolicyAsync(EpmPolicyOptions options)
         {
             if (options == null)
@@ -314,6 +386,9 @@ namespace Commander.EPM
                 Console.WriteLine("Both --plain and --data (or --plain-file and --data-file) are required for 'add' command.");
                 return;
             }
+
+            if (!ValidatePolicyRequirements(policyJson))
+                return;
 
             var addStatus = await Plugin.ModifyPolicies(
                 addPolicies: new[]
@@ -376,6 +451,9 @@ namespace Commander.EPM
                 Console.WriteLine("At least one of --plain/--plain-file or --data/--data-file is required for 'update' command.");
                 return;
             }
+
+            if (!string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson))
+                return;
 
             var updateStatus = await Plugin.ModifyPolicies(
                 addPolicies: null,
