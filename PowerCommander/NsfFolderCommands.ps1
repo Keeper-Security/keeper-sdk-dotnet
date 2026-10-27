@@ -52,7 +52,13 @@ function New-KeeperNSFFolder {
         return $folderUid
     }
     catch {
-        Write-Host "Error creating folder: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating folder: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -186,14 +192,25 @@ function New-KeeperNSFFolders {
             }
             else {
                 $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-                Write-Host "  [FAIL] $($result.Name)  status=$($result.Status)  $msg" -ForegroundColor Red
+                if ([string]$result.Status -match '(?i)duplicate' -or $msg -match '(?i)(already exists|duplicat(?:e|ed))') {
+                    Write-Host "Error: $msg"
+                }
+                else {
+                    Write-Host "  [FAIL] $($result.Name)  status=$($result.Status)  $msg" -ForegroundColor Red
+                }
             }
         }
 
         return ,@($results)
     }
     catch {
-        Write-Host "Error creating folders in batch: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating folders in batch: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -268,12 +285,13 @@ function Set-KeeperNSFFolderAccess {
 	.Description
 	Changes the sharing permissions of a Keeper NSF folder using the v3 API.
 	Supports granting access with a specified role, or revoking access entirely.
+	Accepts a folder UID or exact folder name. Ambiguous names require a folder UID.
 	Recipients may be user emails, team names, or team UIDs.
 	For bulk grant/update/revoke from JSON, use Share-KeeperNSFFolderAccesses,
 	Update-KeeperNSFFolderAccesses, or Unshare-KeeperNSFFolderAccesses.
 
 	.Parameter FolderUid
-	UID of the folder to share. 
+	Folder UID or exact folder name to share.
 
 	.Parameter Action
 	Action to perform: 'grant' (default) or 'remove'.
@@ -326,10 +344,18 @@ function Set-KeeperNSFFolderAccess {
     }
 
     [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-    if (-not $vault.TryGetKeeperNSFFolder($FolderUid, [ref]$tmpFolder)) {
-        Write-Host "Error: NSF folder '$FolderUid' not found." -ForegroundColor Red
+    try {
+        $tmpFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
         return
     }
+    if (-not $tmpFolder) {
+        Write-Host "Error: NSF folder '$FolderUid' not found by UID or exact name."
+        return
+    }
+    $FolderUid = [string]$tmpFolder.FolderUid
 
     $shareOptions = $null
     if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
@@ -758,7 +784,12 @@ function Script:Write-KeeperNSFFolderAccessBatchResults {
         }
         else {
             $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-            Write-Host "  [FAIL] $($result.FolderUid) -> $($result.Accessor)$typeHint  status=$($result.Status)  $msg" -ForegroundColor Red
+            if ([string]$result.Status -eq 'duplicate') {
+                Write-Host "Error: $msg"
+            }
+            else {
+                Write-Host "  [FAIL] $($result.FolderUid) -> $($result.Accessor)$typeHint  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
         }
     }
 }
@@ -1731,9 +1762,9 @@ function Remove-KeeperNSFFolder {
     end {
         if ($resolveErrors.Count -gt 0) {
             foreach ($resolveError in $resolveErrors) {
-                Write-Error -Message $resolveError
+                Write-Host "Error: $resolveError"
             }
-            Write-Host "Aborted: $($resolveErrors.Count) of $totalFolderCount folder(s) could not be resolved. No folders were removed." -ForegroundColor Red
+            Write-Host "Aborted: $($resolveErrors.Count) of $totalFolderCount folder(s) could not be resolved. No folders were removed."
             return
         }
 
@@ -1960,7 +1991,7 @@ function Remove-KeeperNSFFolders {
             $folderNode = resolveKeeperNSFFolder -Identifier $spec.FolderUid -Vault $vault
         }
         catch [KeeperSecurity.Vault.AmbiguousFolderException] {
-            $resolveErrors.Add("$($_.Exception.Message) (index $index)")
+            $resolveErrors.Add($_.Exception.Message)
             $index++
             continue
         }
@@ -1996,9 +2027,9 @@ function Remove-KeeperNSFFolders {
 
     if ($resolveErrors.Count -gt 0) {
         foreach ($err in $resolveErrors) {
-            Write-Error -Message $err
+            Write-Host "Error: $err"
         }
-        Write-Error -Message "Aborting folder remove batch: $($resolveErrors.Count) item(s) failed validation. Fix the JSON and retry."
+        Write-Host "Aborted: $($resolveErrors.Count) of $($specs.Count) folder(s) could not be resolved. No folders were removed."
         return
     }
 

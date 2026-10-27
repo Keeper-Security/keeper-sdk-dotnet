@@ -169,24 +169,25 @@ function Resolve-KdNsfObject {
     }
 
     if ($Name) {
-        $folderMatches = [System.Collections.ArrayList]::new()
-        $recordMatches = [System.Collections.ArrayList]::new()
+        $folderMatches = [System.Collections.Generic.List[KeeperSecurity.Vault.FolderNode]]::new()
+        $recordMatches = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecord]]::new()
 
         foreach ($f in $vault.KeeperNSFFolderNodes) {
             if ($f.Name -and $f.Name -ilike "*$Name*") {
-                $folderMatches.Add($f) | Out-Null
+                $folderMatches.Add($f)
             }
         }
 
         foreach ($r in $vault.KeeperNSFRecordEntries) {
             if ($r.Title -and $r.Title -ilike "*$Name*") {
-                $recordMatches.Add($r) | Out-Null
+                $recordMatches.Add($r)
             }
         }
 
         if ($folderMatches.Count -gt 1) {
-            $folderNames = ($folderMatches | ForEach-Object { $_.Name }) -join '", "'
-            Write-Error -Message "Multiple folders matching `"$Name`": `"$folderNames`"." -ErrorAction Stop
+            throw [KeeperSecurity.Vault.AmbiguousFolderException]::new(
+                $Name, $folderMatches, 'Nested Shared Folders'
+            )
         }
 
         if ($folderMatches.Count -eq 1) {
@@ -194,8 +195,7 @@ function Resolve-KdNsfObject {
         }
 
         if ($recordMatches.Count -gt 1) {
-            $recordNames = ($recordMatches | ForEach-Object { $_.Title }) -join '", "'
-            Write-Error -Message "Multiple records matching `"$Name`": `"$recordNames`"." -ErrorAction Stop
+            throw [KeeperSecurity.Vault.AmbiguousNsfRecordException]::new($Name, $recordMatches)
         }
 
         if ($recordMatches.Count -eq 1) {

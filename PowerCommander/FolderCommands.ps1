@@ -52,11 +52,11 @@ function Add-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-
-    $objs = Get-KeeperChildItem -ObjectType Folder | Where-Object Name -eq $Name
-    if ($objs.Length -gt 0 ) {
-        Write-Error -Message "Folder `"$Name`" already exists" -ErrorAction Stop
+    if ([string]::IsNullOrWhiteSpace($Name)) {
+        Write-Host "Error: Folder name cannot be empty."
+        return
     }
+    $Name = $Name.Trim()
 
     $parentUid = $Script:Context.CurrentFolder
     if ($ParentFolderUid) {

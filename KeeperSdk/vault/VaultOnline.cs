@@ -374,15 +374,6 @@ namespace KeeperSecurity.Vault
             }
 
             var parent = this.GetFolder(parentFolderUid);
-            var nameExists = parent.Subfolders
-                .Select(x => this.TryGetFolder(x, out var v) ? v : null)
-                .Any(x => x != null && string.Compare(x.Name, folderName, StringComparison.InvariantCultureIgnoreCase) == 0);
-            if (nameExists)
-            {
-                throw new VaultException($"Folder with name {folderName} already exists in {parent.Name}");
-            }
-
-
             return this.AddFolder(folderName, parentFolderUid, sharedFolderOptions);
         }
 

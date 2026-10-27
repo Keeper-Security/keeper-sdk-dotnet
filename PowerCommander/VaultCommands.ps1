@@ -38,23 +38,34 @@ function getAmbiguousNsfException {
     return $null
 }
 
+function getKeeperInnerExceptionMessage {
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    $exception = $ErrorRecord.Exception
+    while ($exception -and $exception.InnerException) {
+        $exception = $exception.InnerException
+    }
+    if ($exception) {
+        return [string]$exception.Message
+    }
+    return [string]$ErrorRecord
+}
+
 function writeAmbiguousNsfError {
     <#
     .Synopsis
-    Internal helper. Prints the message of a caught AmbiguousFolderException/AmbiguousNsfRecordException
-    via Write-Error, so every cmdlet reports ambiguity the same way instead of re-typing the same line.
+    Internal helper. Prints a caught ambiguity as plain console text with a consistent "Error:" prefix,
+    without writing to PowerShell's red error stream.
     #>
     Param(
         [Parameter(Mandatory = $true)] $ErrorRecord
     )
 
     $ambiguous = getAmbiguousNsfException -ErrorRecord $ErrorRecord
-    if ($ambiguous) {
-        Write-Error -Message $ambiguous.Message
-    }
-    else {
-        Write-Error -Message $ErrorRecord.Exception.Message
-    }
+    $message = if ($ambiguous) { $ambiguous.Message } else { $ErrorRecord.Exception.Message }
+    Write-Host "Error: $message"
 }
 
 function resolveKeeperNSFFolder {
