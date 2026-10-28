@@ -365,7 +365,7 @@ namespace Commander
                 throw new InvalidOperationException("Output format must be table or json");
             }
 
-            if (!context.TryResolvePath(options.Folder, out var node))
+            if (!context.ResolvePath(options.Folder, out var node))
             {
                 Console.WriteLine($"Cannot resolve folder {options.Folder}");
                 return;
@@ -481,7 +481,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordId, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordId, out var node, out var title))
+            else if (context.ResolvePath(options.RecordId, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -534,7 +534,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -641,7 +641,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -674,7 +674,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -805,7 +805,7 @@ namespace Commander
             }
             else
             {
-                if (!context.TryResolvePath(options.RecordName, out var folder, out string recordTitle))
+                if (!context.ResolvePath(options.RecordName, out var folder, out string recordTitle))
                 {
                     Console.WriteLine($"Invalid record path: {options.RecordName}");
                     return;
@@ -1669,7 +1669,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(recordName, out var record))
             {
             }
-            else if (context.TryResolvePath(recordName, out var node, out var title))
+            else if (context.ResolvePath(recordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {

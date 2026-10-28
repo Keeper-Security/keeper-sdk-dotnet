@@ -52,11 +52,11 @@ function Add-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-
-    $objs = Get-KeeperChildItem -ObjectType Folder | Where-Object Name -eq $Name
-    if ($objs.Length -gt 0 ) {
-        Write-Error -Message "Folder `"$Name`" already exists" -ErrorAction Stop
+    if ([string]::IsNullOrWhiteSpace($Name)) {
+        Write-Host "Error: Folder name cannot be empty."
+        return
     }
+    $Name = $Name.Trim()
 
     $parentUid = $Script:Context.CurrentFolder
     if ($ParentFolderUid) {
@@ -122,13 +122,14 @@ function tryResolveKeeperFolder {
         return $folder
     }
 
+    $components = splitKeeperPath $Identifier
+
     if ($SupportPaths.IsPresent) {
         [KeeperSecurity.Vault.FolderNode]$currentDir = $null
         if (-not $Vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentDir)) {
             $currentDir = $Vault.RootFolder
         }
 
-        $components = splitKeeperPath $Identifier
         $rs = parseKeeperPath $components $Vault $currentDir
         if ($rs -is [array] -and -not $rs[1]) {
             return $rs[0]
@@ -140,7 +141,8 @@ function tryResolveKeeperFolder {
         return $null
     }
     if ($objs.Count -gt 1) {
-        Write-Error -Message "There are more than one folders with name `"$Identifier`". Use Folder UID$(if ($SupportPaths.IsPresent) { ' or full path' }) to specify the correct one using UID" -ErrorAction Stop
+        $details = ($objs | ForEach-Object { "  UID: $($_.Uid), Name: $($_.Name)" }) -join "`n"
+        Write-Error -Message "There are $($objs.Count) folders with name `"$Identifier`". Use Folder UID$(if ($SupportPaths.IsPresent) { ' or full path' }) to specify the correct one:`n$details" -ErrorAction Stop
     }
 
     $folderUid = $objs[0].Uid

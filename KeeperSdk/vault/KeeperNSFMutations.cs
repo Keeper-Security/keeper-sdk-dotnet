@@ -1255,53 +1255,93 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// True to the <c>Try*</c> convention, this never throws: if <paramref name="uidOrTitle"/> is a title
+        /// that matches more than one record, it fails safe and returns <c>false</c> rather than silently
+        /// picking one of them (which could operate on the wrong record).
+        ///
+        /// <strong>Important:</strong> This method collapses ambiguity and not-found into the same <c>false</c> result,
+        /// losing the semantic distinction. For batch operations where you need to report different error messages
+        /// (e.g., "record title is ambiguous" vs. "record not found"), use <see cref="ResolveKeeperNSFRecordStrict"/> instead
+        /// and catch <see cref="AmbiguousNsfRecordException"/> separately to provide actionable diagnostics.
+        /// </remarks>
         public bool TryResolveKeeperNSFRecord(string uidOrTitle, out KeeperNSFRecord record)
         {
-            record = null;
+            try
+            {
+                record = ResolveKeeperNSFRecordStrict(uidOrTitle);
+            }
+            catch (AmbiguousNsfRecordException)
+            {
+                record = null;
+            }
+
+            return record != null;
+        }
+
+        /// <summary>
+        /// Resolves a Keeper NSF record by UID or exact title, like <see cref="TryResolveKeeperNSFRecord"/>, but
+        /// throws <see cref="AmbiguousNsfRecordException"/> instead of silently picking the first match
+        /// when the title matches more than one record. Returns <c>null</c> when nothing matches.
+        /// </summary>
+        public KeeperNSFRecord ResolveKeeperNSFRecordStrict(string uidOrTitle)
+        {
             if (string.IsNullOrWhiteSpace(uidOrTitle))
             {
-                return false;
+                return null;
             }
 
-            if (TryGetKeeperNSFRecord(uidOrTitle, out var kdRecord) && kdRecord != null)
+            if (TryGetKeeperNSFRecord(uidOrTitle, out var exact) && exact != null)
             {
-                record = kdRecord;
-                return true;
+                return exact;
             }
 
-            var lower = uidOrTitle.Trim();
-            foreach (var entry in KeeperNSFRecordEntries)
+            var trimmed = uidOrTitle.Trim();
+            var uidMatch = KeeperNSFRecordEntries
+                .FirstOrDefault(entry => entry != null && string.Equals(entry.RecordUid, trimmed, StringComparison.OrdinalIgnoreCase));
+            if (uidMatch != null)
             {
-                if (entry == null)
-                {
-                    continue;
-                }
-
-                if (string.Equals(entry.RecordUid, lower, StringComparison.OrdinalIgnoreCase))
-                {
-                    record = entry;
-                    return true;
-                }
-
-                if (!string.IsNullOrEmpty(entry.Title)
-                    && string.Equals(entry.Title, lower, StringComparison.OrdinalIgnoreCase))
-                {
-                    record = entry;
-                    return true;
-                }
+                return uidMatch;
             }
 
-            return false;
+            var matches = KeeperNSFRecordEntries
+                .Where(entry => entry?.Title != null && string.Equals(entry.Title, trimmed, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousNsfRecordException(trimmed, matches);
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// True to the <c>Try*</c> convention, this never throws: if <paramref name="uidOrName"/> is a name
+        /// that matches more than one folder, it fails safe and returns <c>false</c> rather than silently
+        /// picking one of them.
+        ///
+        /// <strong>Important:</strong> This method collapses ambiguity and not-found into the same <c>false</c> result,
+        /// losing the semantic distinction. For batch operations where you need to report different error messages
+        /// (e.g., "folder exists twice" vs. "folder not found"), use <see cref="ResolveKeeperNSFFolderStrict"/> instead
+        /// and catch <see cref="AmbiguousFolderException"/> separately to provide actionable diagnostics.
+        /// </remarks>
         public bool TryResolveKeeperNSFFolder(string uidOrName, out FolderNode folder)
         {
-            return TryResolveKeeperNSFFolderCore(uidOrName, false, out folder);
+            try
+            {
+                folder = ResolveKeeperNSFFolderStrict(uidOrName);
+            }
+            catch (AmbiguousFolderException)
+            {
+                folder = null;
+            }
+
+            return folder != null;
         }
 
         /// <summary>Resolves an NSF destination by UID, unique name, or path without choosing an ambiguous name.</summary>
-        /// <remarks>The older UID/name resolver keeps its original first-name-match behavior for existing callers.</remarks>
         public bool TryResolveKeeperNSFFolderReference(string reference, out FolderNode folder)
         {
             return TryResolveKeeperNSFFolderCore(reference, true, out folder);
@@ -1431,6 +1471,67 @@ namespace KeeperSecurity.Vault
             return TryResolveKeeperNSFFolder(folderUidOrName, out folder);
         }
 
+        /// <summary>
+        /// Resolves a Keeper NSF folder by UID or name, like <see cref="TryResolveKeeperNSFFolder"/>, but
+        /// throws <see cref="AmbiguousFolderException"/> instead of silently picking the first match
+        /// when the name matches more than one Nested Shared Folder. Returns <c>null</c> when nothing matches.
+        /// </summary>
+        public FolderNode ResolveKeeperNSFFolderStrict(string uidOrName)
+        {
+            if (string.IsNullOrWhiteSpace(uidOrName))
+            {
+                return null;
+            }
+
+            var trimmed = uidOrName.Trim();
+            if (IsKeeperDriveRootFolderIdentifier(trimmed))
+            {
+                return TryCreateKeeperDriveRootFolderNode();
+            }
+
+            if (TryGetKeeperNSFFolder(uidOrName, out var exact))
+            {
+                return exact;
+            }
+
+            var uidMatch = KeeperNSFFolderNodes
+                .FirstOrDefault(node => string.Equals(node?.FolderUid, trimmed, StringComparison.OrdinalIgnoreCase));
+            if (uidMatch != null)
+            {
+                return uidMatch;
+            }
+
+            var matches = KeeperNSFFolderNodes
+                .Where(node => node?.Name != null && string.Equals(node.Name, trimmed, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousFolderException(trimmed, matches, "Nested Shared Folders");
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
+        }
+
+        /// <summary>
+        /// Same as <see cref="ResolveKeeperNSFFolderStrict"/>, but also accepts an empty string, "/" or "root"
+        /// to mean the Keeper Drive root.
+        /// </summary>
+        public FolderNode ResolveKeeperNSFFolderOrRootStrict(string folderUidOrName)
+        {
+            if (folderUidOrName == null)
+            {
+                return null;
+            }
+
+            if (folderUidOrName.Length == 0 || IsKeeperDriveRootFolderIdentifier(folderUidOrName))
+            {
+                return TryCreateKeeperDriveRootFolderNode();
+            }
+
+            return ResolveKeeperNSFFolderStrict(folderUidOrName);
+        }
+
         /// <inheritdoc/>
         public IEnumerable<string> GetKeeperNSFFoldersForRecord(string recordUid)
         {
@@ -1457,7 +1558,8 @@ namespace KeeperSecurity.Vault
             {
                 if (!string.IsNullOrWhiteSpace(folderUidOrName))
                 {
-                    if (!TryResolveKeeperNSFFolder(folderUidOrName, out var ownerTrashFolder))
+                    var ownerTrashFolder = TryResolveKeeperNSFRecordRemovalFolderNode(folderUidOrName);
+                    if (ownerTrashFolder == null)
                     {
                         return false;
                     }
@@ -1474,7 +1576,8 @@ namespace KeeperSecurity.Vault
 
             if (!string.IsNullOrWhiteSpace(folderUidOrName))
             {
-                if (!TryResolveKeeperNSFFolder(folderUidOrName, out var folder))
+                var folder = TryResolveKeeperNSFRecordRemovalFolderNode(folderUidOrName);
+                if (folder == null)
                 {
                     return false;
                 }
@@ -1485,6 +1588,28 @@ namespace KeeperSecurity.Vault
 
             folderUid = GetKeeperNSFFoldersForRecord(recordUid).FirstOrDefault();
             return !string.IsNullOrEmpty(folderUid);
+        }
+
+        /// <summary>
+        /// True to the <c>Try*</c> convention used by <see cref="TryResolveKeeperNSFRecordRemovalFolder"/>,
+        /// this never throws: an ambiguous name fails safe and resolves to <c>null</c> (treated as "not found"
+        /// by the caller) rather than silently picking one of the matches.
+        ///
+        /// <strong>Note:</strong> This method collapses ambiguity and not-found into the same <c>null</c> result,
+        /// which prevents callers from distinguishing between a missing folder and an ambiguous folder name.
+        /// See <see cref="TryResolveKeeperNSFFolder"/> remarks for guidance on using strict resolvers for
+        /// better diagnostics.
+        /// </summary>
+        private FolderNode TryResolveKeeperNSFRecordRemovalFolderNode(string folderUidOrName)
+        {
+            try
+            {
+                return ResolveKeeperNSFFolderStrict(folderUidOrName);
+            }
+            catch (AmbiguousFolderException)
+            {
+                return null;
+            }
         }
 
         /// <summary>
