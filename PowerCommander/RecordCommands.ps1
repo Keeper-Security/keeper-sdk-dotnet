@@ -1162,10 +1162,11 @@ function Add-KeeperRecord {
             }
         }
         else {
-            if (!$Title) {
+            if ([string]::IsNullOrWhiteSpace($Title)) {
                 Write-Error -Message "-Title parameter is required" -ErrorAction Stop
                 return
             }
+            $Title = $Title.Trim()
             if (-not $RecordType -or $RecordType -eq 'legacy') {
                 $record = New-Object KeeperSecurity.Vault.PasswordRecord
             }

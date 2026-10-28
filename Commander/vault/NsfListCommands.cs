@@ -248,7 +248,17 @@ namespace Commander
 
             var vault = context.Vault;
             var currentAccountUid = vault.Auth.AuthContext.AccountUid.Base64UrlEncode();
-            var (record, folder) = NsfHelpers.ResolveNsfObject(vault, options.Uid, options.Name);
+            KeeperNSFRecord record;
+            FolderNode folder;
+            try
+            {
+                (record, folder) = NsfHelpers.ResolveNsfObject(vault, options.Uid, options.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousFolderException || ex is AmbiguousNsfRecordException)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return;
+            }
 
             if (record == null && folder == null)
             {
@@ -294,15 +304,47 @@ namespace Commander
                 return;
             }
 
-            var recordUids = identifiers
-                .Select(uid =>
+            var recordUids = new List<string>();
+            var resolutionErrors = new List<string>();
+            foreach (var uid in identifiers)
+            {
+                var trimmed = uid?.Trim();
+                if (string.IsNullOrEmpty(trimmed))
                 {
-                    var trimmed = uid?.Trim();
-                    var resolved = NsfHelpers.ResolveNsfRecord(vault, trimmed);
-                    return resolved?.RecordUid ?? trimmed;
-                })
-                .Where(uid => !string.IsNullOrEmpty(uid))
-                .ToList();
+                    resolutionErrors.Add("Empty record identifier.");
+                    continue;
+                }
+
+                try
+                {
+                    var resolved = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, trimmed);
+                    if (resolved != null)
+                    {
+                        recordUids.Add(resolved.RecordUid);
+                    }
+                    else
+                    {
+                        resolutionErrors.Add($"Record '{trimmed}' not found.");
+                    }
+                }
+                catch (AmbiguousNsfRecordException ex)
+                {
+                    resolutionErrors.Add(ex.Message);
+                }
+            }
+
+            if (resolutionErrors.Count > 0)
+            {
+                foreach (var error in resolutionErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                if (recordUids.Count == 0)
+                {
+                    Console.WriteLine("No valid records to retrieve. Aborting.");
+                    return;
+                }
+            }
 
             KeeperNSFRecordDetailsResult details;
             try
