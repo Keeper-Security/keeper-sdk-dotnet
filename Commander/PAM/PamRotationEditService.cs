@@ -818,11 +818,24 @@ namespace Commander.PAM
                 {
                     PamVaultHelpers.CollectFolderSubtree(_vault, folderByUidOrName, folderUids);
                 }
-                else if (_pathContext != null
-                         && _pathContext.TryResolvePath(folderName, out var folderByPath, out var title)
-                         && string.IsNullOrEmpty(title))
+                else if (_pathContext != null)
                 {
-                    PamVaultHelpers.CollectFolderSubtree(_vault, folderByPath, folderUids);
+                    try
+                    {
+                        if (_pathContext.ResolvePath(folderName, out var folderByPath, out var title)
+                            && string.IsNullOrEmpty(title))
+                        {
+                            PamVaultHelpers.CollectFolderSubtree(_vault, folderByPath, folderUids);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Folder \"{folderName}\" not found. Skipping.");
+                        }
+                    }
+                    catch (AmbiguousFolderException ex)
+                    {
+                        Console.WriteLine($"Error: {ex.Message}");
+                    }
                 }
                 else
                 {
@@ -1043,18 +1056,25 @@ namespace Commander.PAM
                 return false;
             }
 
-            if (!_pathContext.TryResolvePath(recordName, out folderNode, out title) || string.IsNullOrEmpty(title))
+            try
+            {
+                if (!_pathContext.ResolvePath(recordName, out folderNode, out title) || string.IsNullOrEmpty(title))
+                {
+                    return false;
+                }
+
+                var hasPathDelimiter = recordName.IndexOf('/') >= 0 || recordName.IndexOf('\\') >= 0;
+                if (!hasPathDelimiter && string.Equals(title, recordName, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (AmbiguousFolderException)
             {
                 return false;
             }
-
-            var hasPathDelimiter = recordName.IndexOf('/') >= 0 || recordName.IndexOf('\\') >= 0;
-            if (!hasPathDelimiter && string.Equals(title, recordName, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return true;
         }
     }
 }

@@ -52,7 +52,13 @@ function New-KeeperNSFFolder {
         return $folderUid
     }
     catch {
-        Write-Host "Error creating folder: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating folder: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -186,14 +192,25 @@ function New-KeeperNSFFolders {
             }
             else {
                 $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-                Write-Host "  [FAIL] $($result.Name)  status=$($result.Status)  $msg" -ForegroundColor Red
+                if ([string]$result.Status -match '(?i)duplicate' -or $msg -match '(?i)(already exists|duplicat(?:e|ed))') {
+                    Write-Host "Error: $msg"
+                }
+                else {
+                    Write-Host "  [FAIL] $($result.Name)  status=$($result.Status)  $msg" -ForegroundColor Red
+                }
             }
         }
 
         return ,@($results)
     }
     catch {
-        Write-Host "Error creating folders in batch: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating folders in batch: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -268,12 +285,13 @@ function Set-KeeperNSFFolderAccess {
 	.Description
 	Changes the sharing permissions of a Keeper NSF folder using the v3 API.
 	Supports granting access with a specified role, or revoking access entirely.
+	Accepts a folder UID or exact folder name. Ambiguous names require a folder UID.
 	Recipients may be user emails, team names, or team UIDs.
 	For bulk grant/update/revoke from JSON, use Share-KeeperNSFFolderAccesses,
 	Update-KeeperNSFFolderAccesses, or Unshare-KeeperNSFFolderAccesses.
 
 	.Parameter FolderUid
-	UID of the folder to share. 
+	Folder UID or exact folder name to share.
 
 	.Parameter Action
 	Action to perform: 'grant' (default) or 'remove'.
@@ -326,10 +344,18 @@ function Set-KeeperNSFFolderAccess {
     }
 
     [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-    if (-not $vault.TryGetKeeperNSFFolder($FolderUid, [ref]$tmpFolder)) {
-        Write-Host "Error: NSF folder '$FolderUid' not found." -ForegroundColor Red
+    try {
+        $tmpFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
         return
     }
+    if (-not $tmpFolder) {
+        Write-Host "Error: NSF folder '$FolderUid' not found by UID or exact name."
+        return
+    }
+    $FolderUid = [string]$tmpFolder.FolderUid
 
     $shareOptions = $null
     if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
@@ -758,7 +784,12 @@ function Script:Write-KeeperNSFFolderAccessBatchResults {
         }
         else {
             $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-            Write-Host "  [FAIL] $($result.FolderUid) -> $($result.Accessor)$typeHint  status=$($result.Status)  $msg" -ForegroundColor Red
+            if ([string]$result.Status -eq 'duplicate') {
+                Write-Host "Error: $msg"
+            }
+            else {
+                Write-Host "  [FAIL] $($result.FolderUid) -> $($result.Accessor)$typeHint  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
         }
     }
 }
@@ -1035,8 +1066,14 @@ function Set-KeeperNSFFolder {
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if (-not $folderNode) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
@@ -1335,10 +1372,22 @@ function Move-KeeperNSFItem {
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if ($vault.TryResolveKeeperNSFFolder($Src, [ref]$folderNode)) {
-        [KeeperSecurity.Vault.FolderNode]$targetNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetNode)) {
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Src -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if ($folderNode) {
+        try {
+            $targetNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
+        if (-not $targetNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return
         }
@@ -1366,8 +1415,14 @@ function Move-KeeperNSFItem {
         return
     }
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-    if ($vault.TryResolveKeeperNSFRecord($Src, [ref]$kdRecord)) {
+    try {
+        $kdRecord = resolveKeeperNSFRecord -Identifier $Src -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if ($kdRecord) {
         [KeeperSecurity.Vault.FolderNode]$sourceFolderNode = $null
 
         $folderUids = @($vault.GetKeeperNSFFoldersForRecord($kdRecord.RecordUid))
@@ -1389,8 +1444,14 @@ function Move-KeeperNSFItem {
             return
         }
 
-        [KeeperSecurity.Vault.FolderNode]$targetFolderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolderOrRoot($Dst, [ref]$targetFolderNode)) {
+        try {
+            $targetFolderNode = resolveKeeperNSFFolderOrRoot -Identifier $Dst -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
+        if (-not $targetFolderNode) {
             Write-Error -Message "Target folder `"$Dst`" was not found. Run Sync-Keeper or nsf-list first."
             return
         }
@@ -1665,6 +1726,10 @@ function Remove-KeeperNSFFolder {
     begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFFolderRemoval]'
+        # Resolve every folder before removing anything: a destructive batch either runs in full or not at all,
+        # so one ambiguous/missing name can't result in a half-done delete of the others.
+        $resolveErrors = New-Object 'System.Collections.Generic.List[string]'
+        $totalFolderCount = 0
 
         $op = switch ($Operation) {
             'folder-trash' { [KeeperSecurity.Vault.KeeperNSFFolderRemoveOperation]::FolderTrash }
@@ -1674,9 +1739,16 @@ function Remove-KeeperNSFFolder {
 
     process {
         foreach ($name in $Folder) {
-            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-            if (-not $vault.TryResolveKeeperNSFFolder($name, [ref]$folderNode)) {
-                Write-Error -Message "Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+            $totalFolderCount++
+            try {
+                $folderNode = resolveKeeperNSFFolder -Identifier $name -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                $resolveErrors.Add($_.Exception.Message)
+                continue
+            }
+            if (-not $folderNode) {
+                $resolveErrors.Add("Keeper NSF folder `"$name`" was not found. Run Sync-Keeper or nsf-list first.")
                 continue
             }
 
@@ -1688,6 +1760,14 @@ function Remove-KeeperNSFFolder {
     }
 
     end {
+        if ($resolveErrors.Count -gt 0) {
+            foreach ($resolveError in $resolveErrors) {
+                Write-Host "Error: $resolveError"
+            }
+            Write-Host "Aborted: $($resolveErrors.Count) of $totalFolderCount folder(s) could not be resolved. No folders were removed."
+            return
+        }
+
         if ($removals.Count -eq 0) {
             return
         }
@@ -1902,8 +1982,20 @@ function Remove-KeeperNSFFolders {
     $resolveErrors = New-Object System.Collections.Generic.List[string]
     $index = 0
     foreach ($spec in $specs) {
-        [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolder($spec.FolderUid, [ref]$folderNode)) {
+        if ([string]::IsNullOrWhiteSpace($spec.FolderUid)) {
+            $resolveErrors.Add("Missing folder_uid at index $index")
+            $index++
+            continue
+        }
+        try {
+            $folderNode = resolveKeeperNSFFolder -Identifier $spec.FolderUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            $resolveErrors.Add($_.Exception.Message)
+            $index++
+            continue
+        }
+        if (-not $folderNode) {
             $resolveErrors.Add("Keeper NSF folder `"$($spec.FolderUid)`" was not found (index $index). Run Sync-Keeper or nsf-list first.")
             $index++
             continue
@@ -1935,9 +2027,9 @@ function Remove-KeeperNSFFolders {
 
     if ($resolveErrors.Count -gt 0) {
         foreach ($err in $resolveErrors) {
-            Write-Error -Message $err
+            Write-Host "Error: $err"
         }
-        Write-Error -Message "Aborting folder remove batch: $($resolveErrors.Count) item(s) failed validation. Fix the JSON and retry."
+        Write-Host "Aborted: $($resolveErrors.Count) of $($specs.Count) folder(s) could not be resolved. No folders were removed."
         return
     }
 
