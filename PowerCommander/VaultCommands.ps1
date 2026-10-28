@@ -14,43 +14,122 @@ function getVault {
     $Script:Context.Vault
 }
 
-function resolveKeeperNSFFolder {
+function getAmbiguousNsfException {
+    <#
+    .Synopsis
+    Internal helper. PowerShell sometimes wraps a .NET method call's exception in a
+    MethodInvocationException, which breaks both `catch [ExactType]` reliability and
+    `$_.Exception.Message` (it shows "Exception calling "X" with "N" argument(s): ..."
+    instead of the clean message). Given a caught ErrorRecord, returns the real
+    AmbiguousFolderException/AmbiguousNsfRecordException (unwrapped if necessary),
+    or $null if the error isn't one of those - callers should `throw` in that case.
+    #>
     Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+        [Parameter(Mandatory = $true)] $ErrorRecord
     )
 
-    [KeeperSecurity.Vault.FolderNode]$folder = $null
-    if ($Vault.TryGetKeeperNSFFolder($Identifier, [ref]$folder)) {
-        return $folder
+    $ex = $ErrorRecord.Exception
+    if ($ex -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+        return $ex
     }
-
-    $match = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Identifier })
-    if ($match.Count -eq 1) { return $match[0] }
+    if ($ex.InnerException -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex.InnerException -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+        return $ex.InnerException
+    }
     return $null
 }
 
-function resolveKeeperNSFRecord {
+function getKeeperInnerExceptionMessage {
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    $exception = $ErrorRecord.Exception
+    while ($exception -and $exception.InnerException) {
+        $exception = $exception.InnerException
+    }
+    if ($exception) {
+        return [string]$exception.Message
+    }
+    return [string]$ErrorRecord
+}
+
+function writeAmbiguousNsfError {
+    <#
+    .Synopsis
+    Internal helper. Prints a caught ambiguity as plain console text with a consistent "Error:" prefix,
+    without writing to PowerShell's red error stream.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    $ambiguous = getAmbiguousNsfException -ErrorRecord $ErrorRecord
+    $message = if ($ambiguous) { $ambiguous.Message } else { $ErrorRecord.Exception.Message }
+    Write-Host "Error: $message"
+}
+
+function resolveKeeperNSFFolder {
+    <#
+    .Synopsis
+    Internal helper. Resolves a Keeper NSF folder by UID or name via the SDK's strict resolver.
+    Throws [KeeperSecurity.Vault.AmbiguousFolderException] when the name matches more than one folder;
+    callers processing multiple identifiers in a loop should catch it to continue past a single bad entry.
+    #>
     Param(
         [Parameter(Mandatory = $true)][string] $Identifier,
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
     )
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$record = $null
-    if ($Vault.TryGetKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
+    try {
+        return $Vault.ResolveKeeperNSFFolderStrict($Identifier)
     }
-
-    $titleMatch = @($Vault.KeeperNSFRecordEntries | Where-Object {
-            $_.Title -and $_.Title -ieq $Identifier
-        })
-    if ($titleMatch.Count -eq 1) { return $titleMatch[0] }
-
-    if ($titleMatch.Count -eq 0 -and $Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
     }
+}
 
-    return $null
+function resolveKeeperNSFFolderOrRoot {
+    <#
+    .Synopsis
+    Internal helper. Same as resolveKeeperNSFFolder, but also accepts '', '/' or 'root' to mean the Keeper Drive root.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    try {
+        return $Vault.ResolveKeeperNSFFolderOrRootStrict($Identifier)
+    }
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
+    }
+}
+
+function resolveKeeperNSFRecord {
+    <#
+    .Synopsis
+    Internal helper. Resolves a Keeper NSF record by UID or title via the SDK's strict resolver.
+    Throws [KeeperSecurity.Vault.AmbiguousNsfRecordException] when the title matches more than one record;
+    callers processing multiple identifiers in a loop should catch it to continue past a single bad entry.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    try {
+        return $Vault.ResolveKeeperNSFRecordStrict($Identifier)
+    }
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
+    }
 }
 
 function Get-KeeperLocation {
@@ -959,7 +1038,13 @@ function Get-KeeperObject {
             }
 
             if ($testRecord) {
-                $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
+                try {
+                    $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+                    writeAmbiguousNsfError -ErrorRecord $_
+                    continue
+                }
                 if ($nsfRecord) {
                     if ($PropertyName) {
                         $mp = $nsfRecord | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
@@ -970,7 +1055,13 @@ function Get-KeeperObject {
                 }
             }
             if ($testFolder) {
-                $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
+                try {
+                    $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                    writeAmbiguousNsfError -ErrorRecord $_
+                    continue
+                }
                 if ($nsfFolder) {
                     if ($PropertyName) {
                         $mp = $nsfFolder | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
@@ -1012,15 +1103,32 @@ function parseKeeperPath {
                 $resume = $true
             }
             else {
+                $uidMatch = $null
+                $nameMatches = [System.Collections.Generic.List[object]]::new()
                 foreach ($x in $folder.Subfolders) {
                     [KeeperSecurity.Vault.FolderNode] $subfolder = $null
                     if ($vault.TryGetFolder($x, [ref]$subfolder)) {
-                        if ($subfolder.Name -eq $component) {
-                            $resume = $true
-                            $folder = $subfolder
+                        if ([string]::Equals($subfolder.FolderUid, $component, [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $uidMatch = $subfolder
                             break
                         }
+                        if ($subfolder.Name -and [string]::Equals($subfolder.Name, $component, [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $nameMatches.Add($subfolder)
+                        }
                     }
+                }
+
+                if ($uidMatch) {
+                    $resume = $true
+                    $folder = $uidMatch
+                }
+                elseif ($nameMatches.Count -gt 1) {
+                    $details = ($nameMatches | ForEach-Object { "  UID: $($_.FolderUid), Name: $($_.Name)" }) -join "`n"
+                    Write-Error -Message "There are $($nameMatches.Count) folders with name `"$component`". Use Folder UID or full path to specify the correct one:`n$details" -ErrorAction Stop
+                }
+                elseif ($nameMatches.Count -eq 1) {
+                    $resume = $true
+                    $folder = $nameMatches[0]
                 }
             }
 

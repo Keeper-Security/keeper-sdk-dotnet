@@ -158,39 +158,58 @@ function Resolve-KdNsfObject {
     )
 
     if ($Uid) {
-        [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-        if ($vault.TryGetKeeperNSFFolder($Uid, [ref]$tmpFolder)) {
-            return [PSCustomObject]@{ Record = $null; Folder = $tmpFolder }
+        $resolvedFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
+        if ($resolvedFolder) {
+            return [PSCustomObject]@{ Record = $null; Folder = $resolvedFolder }
         }
-
-        [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-        if ($vault.TryGetKeeperNSFRecord($Uid, [ref]$tmpRecord)) {
-            return [PSCustomObject]@{ Record = $tmpRecord; Folder = $null }
+        $resolvedRecord = resolveKeeperNSFRecord -Identifier $Uid -Vault $vault
+        if ($resolvedRecord) {
+            return [PSCustomObject]@{ Record = $resolvedRecord; Folder = $null }
         }
-
-        return [PSCustomObject]@{ Record = $null; Folder = $null }
     }
 
     if ($Name) {
-        foreach ($f in $vault.KeeperNSFFolderNodes) {
-            if ($f.Name -and $f.Name -ieq $Name) {
-                return [PSCustomObject]@{ Record = $null; Folder = $f }
-            }
+        $exactFolder = resolveKeeperNSFFolder -Identifier $Name -Vault $vault
+        if ($exactFolder) {
+            return [PSCustomObject]@{ Record = $null; Folder = $exactFolder }
         }
-        foreach ($r in $vault.KeeperNSFRecordEntries) {
-            if ($r.Title -and $r.Title -ieq $Name) {
-                return [PSCustomObject]@{ Record = $r; Folder = $null }
-            }
+
+        $exactRecord = resolveKeeperNSFRecord -Identifier $Name -Vault $vault
+        if ($exactRecord) {
+            return [PSCustomObject]@{ Record = $exactRecord; Folder = $null }
         }
+
+        $folderMatches = [System.Collections.Generic.List[KeeperSecurity.Vault.FolderNode]]::new()
+        $recordMatches = [System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecord]]::new()
+
         foreach ($f in $vault.KeeperNSFFolderNodes) {
             if ($f.Name -and $f.Name -ilike "*$Name*") {
-                return [PSCustomObject]@{ Record = $null; Folder = $f }
+                $folderMatches.Add($f)
             }
         }
+
         foreach ($r in $vault.KeeperNSFRecordEntries) {
             if ($r.Title -and $r.Title -ilike "*$Name*") {
-                return [PSCustomObject]@{ Record = $r; Folder = $null }
+                $recordMatches.Add($r)
             }
+        }
+
+        if ($folderMatches.Count -gt 1) {
+            throw [KeeperSecurity.Vault.AmbiguousFolderException]::new(
+                $Name, $folderMatches, 'Nested Shared Folders'
+            )
+        }
+
+        if ($folderMatches.Count -eq 1) {
+            return [PSCustomObject]@{ Record = $null; Folder = $folderMatches[0] }
+        }
+
+        if ($recordMatches.Count -gt 1) {
+            throw [KeeperSecurity.Vault.AmbiguousNsfRecordException]::new($Name, $recordMatches)
+        }
+
+        if ($recordMatches.Count -eq 1) {
+            return [PSCustomObject]@{ Record = $recordMatches[0]; Folder = $null }
         }
     }
 
@@ -203,17 +222,21 @@ function Resolve-KdNsfRecord {
         [string]$Identifier
     )
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-    if ($vault.TryGetKeeperNSFRecord($Identifier, [ref]$tmpRecord)) {
-        return $tmpRecord
+    $record = resolveKeeperNSFRecord -Identifier $Identifier -Vault $vault
+    if ($record) {
+        return $record
     }
 
-    foreach ($r in $vault.KeeperNSFRecordEntries) {
-        if ($r.Title -and $r.Title -ieq $Identifier) { return $r }
+    $matches = @($vault.KeeperNSFRecordEntries | Where-Object {
+        $_.Title -and $_.Title -ilike "*$Identifier*"
+    })
+    if ($matches.Count -gt 1) {
+        throw [KeeperSecurity.Vault.AmbiguousNsfRecordException]::new($Identifier, $matches)
     }
-    foreach ($r in $vault.KeeperNSFRecordEntries) {
-        if ($r.Title -and $r.Title -ilike "*$Identifier*") { return $r }
+    if ($matches.Count -eq 1) {
+        return $matches[0]
     }
+
     return $null
 }
 
@@ -483,7 +506,17 @@ function Get-KeeperNSFRecord {
     $storage = $vault.Storage
     $currentAccountUid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($vault.Auth.AuthContext.AccountUid)
 
-    $resolved = Resolve-KdNsfObject -vault $vault -Uid $Uid -Name $Name
+    try {
+        $resolved = Resolve-KdNsfObject -vault $vault -Uid $Uid -Name $Name
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
     $kdRecord = $resolved.Record
     $kdFolder = $resolved.Folder
 
@@ -1500,7 +1533,13 @@ function Get-KeeperNSFRecordDetails {
     foreach ($uid in $RecordUids) {
         $uid = $uid.Trim()
         if ([string]::IsNullOrEmpty($uid)) { continue }
-        $resolved = Resolve-KdNsfRecord -vault $vault -Identifier $uid
+        try {
+            $resolved = Resolve-KdNsfRecord -vault $vault -Identifier $uid
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
         $resolvedUids.Add($(if ($resolved) { $resolved.RecordUid } else { $uid })) | Out-Null
     }
 
