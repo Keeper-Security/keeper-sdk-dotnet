@@ -349,11 +349,19 @@ namespace Commander.PAM
         return null;
       }
 
-      return _vaultContext.TryResolvePath(path, out var folderNode, out var remainder)
-             && string.IsNullOrEmpty(remainder)
-             && PamVaultHelpers.IsPamConfigurationFolderDestination(_vault, folderNode)
-        ? folderNode
-        : null;
+      try
+      {
+        return _vaultContext.ResolvePath(path, out var folderNode, out var remainder)
+               && string.IsNullOrEmpty(remainder)
+               && PamVaultHelpers.IsPamConfigurationFolderDestination(_vault, folderNode)
+          ? folderNode
+          : null;
+      }
+      catch (AmbiguousFolderException ex)
+      {
+        Console.WriteLine($"Error: {ex.Message}");
+        return null;
+      }
     }
 
     private static void AddTextProperty(List<string> properties, string fieldSpec, string value, bool isEdit)

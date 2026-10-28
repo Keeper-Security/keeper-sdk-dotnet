@@ -253,10 +253,12 @@ namespace KeeperSecurity.Vault
 
         public static async Task<string> AddKeeperNSFFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, string color = null, bool inheritPermissions = true)
         {
-            if (string.IsNullOrEmpty(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
+            folderName = folderName.Trim();
+            parentFolderUid = string.IsNullOrWhiteSpace(parentFolderUid) ? null : parentFolderUid.Trim();
 
             if (!string.IsNullOrEmpty(parentFolderUid))
             {
@@ -267,20 +269,6 @@ namespace KeeperSecurity.Vault
 
                 await KeeperNSFAccessHelpers.RequireKeeperNSFFolderAddPermissionAsync(vault, parentFolderUid)
                     .ConfigureAwait(false);
-            }
-
-            var nameLower = folderName.ToLowerInvariant();
-            foreach (var existing in vault.KeeperNSFFolderNodes)
-            {
-                if (existing.Name != null && existing.Name.ToLowerInvariant() == nameLower)
-                {
-                    var existingParent = existing.ParentUid ?? "";
-                    var expectedParent = parentFolderUid ?? "";
-                    if (existingParent == expectedParent)
-                    {
-                        throw new VaultException($"Keeper NSF folder '{folderName}' already exists");
-                    }
-                }
             }
 
             var folderUid = CryptoUtils.GenerateUid();
@@ -362,6 +350,11 @@ namespace KeeperSecurity.Vault
                 {
                     throw new ArgumentException($"Folder name cannot be empty (index {i}).", nameof(folders));
                 }
+
+                folders[i].Name = folders[i].Name.Trim();
+                folders[i].ParentFolderUid = string.IsNullOrWhiteSpace(folders[i].ParentFolderUid)
+                    ? null
+                    : folders[i].ParentFolderUid.Trim();
             }
 
             var parentUids = folders
@@ -2298,10 +2291,15 @@ namespace KeeperSecurity.Vault
                     throw new ArgumentException($"Record at index {i} is null.", nameof(records));
                 }
 
-                if (string.IsNullOrEmpty(records[i].Title))
+                if (string.IsNullOrWhiteSpace(records[i].Title))
                 {
                     throw new ArgumentException($"Record title cannot be empty (index {i}).", nameof(records));
                 }
+
+                records[i].Title = records[i].Title.Trim();
+                records[i].FolderUid = string.IsNullOrWhiteSpace(records[i].FolderUid)
+                    ? null
+                    : records[i].FolderUid.Trim();
             }
 
             var folderUids = records

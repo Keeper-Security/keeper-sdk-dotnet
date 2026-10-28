@@ -45,7 +45,8 @@ namespace Commander
 
             try
             {
-                if (!context.Vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(context.Vault, options.Folder);
+                if (folderNode == null)
                 {
                     Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
                     return;
@@ -96,7 +97,8 @@ namespace Commander
 
             try
             {
-                if (vault.TryResolveKeeperNSFFolder(options.Src, out var folderNode))
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Src);
+                if (folderNode != null)
                 {
                     if (!TryResolveTargetFolder(vault, options.Dst, out var targetNode))
                     {
@@ -114,7 +116,8 @@ namespace Commander
                     return;
                 }
 
-                if (vault.TryResolveKeeperNSFRecord(options.Src, out var kdRecord))
+                var kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, options.Src);
+                if (kdRecord != null)
                 {
                     var folderUids = vault.GetKeeperNSFFoldersForRecord(kdRecord.RecordUid).ToList();
                     if (folderUids.Count == 0)
@@ -166,7 +169,8 @@ namespace Commander
         // Resolves the destination folder for nsf-move, printing a standard not-found message on failure.
         private static bool TryResolveTargetFolder(VaultOnline vault, string dst, out FolderNode targetNode)
         {
-            if (!vault.TryResolveKeeperNSFFolderOrRoot(dst, out targetNode))
+            targetNode = NsfHelpers.ResolveNsfFolderOrRootByUidOrName(vault, dst);
+            if (targetNode == null)
             {
                 Console.WriteLine($"Target folder \"{dst}\" was not found. Run sync-down or nsf-list first.");
                 return false;
@@ -226,12 +230,26 @@ namespace Commander
                 ? KeeperNSFFolderRemoveOperation.DeletePermanent
                 : KeeperNSFFolderRemoveOperation.FolderTrash;
 
+            // Resolve every folder before removing anything: a destructive batch either runs in full or not at all,
+            // so one ambiguous/missing name can't result in a half-done delete of the others.
             var removals = new List<KeeperNSFFolderRemoval>();
+            var resolveErrors = new List<string>();
             foreach (var name in folders)
             {
-                if (!vault.TryResolveKeeperNSFFolder(name, out var folderNode))
+                FolderNode folderNode;
+                try
                 {
-                    Console.WriteLine($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
+                    folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, name);
+                }
+                catch (AmbiguousFolderException ex)
+                {
+                    resolveErrors.Add(ex.Message);
+                    continue;
+                }
+
+                if (folderNode == null)
+                {
+                    resolveErrors.Add($"Keeper NSF folder \"{name}\" was not found. Run sync-down or nsf-list first.");
                     continue;
                 }
 
@@ -240,6 +258,16 @@ namespace Commander
                     FolderUid = folderNode.FolderUid,
                     Operation = op
                 });
+            }
+
+            if (resolveErrors.Count > 0)
+            {
+                foreach (var error in resolveErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                Console.WriteLine($"Aborted: {resolveErrors.Count} of {folders.Count} folder(s) could not be resolved. No folders were removed.");
+                return;
             }
 
             if (removals.Count == 0)
