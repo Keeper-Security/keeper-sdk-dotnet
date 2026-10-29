@@ -548,6 +548,12 @@ function Set-KeeperSharedFolderRecordPermission {
         [Parameter()][switch]$RotateOnExpiration
     )
 
+    if ($PSBoundParameters.ContainsKey('ExpireIn') -or
+        $PSBoundParameters.ContainsKey('ExpireAt') -or
+        $RotateOnExpiration.IsPresent) {
+        Write-Error -Message 'Expiration is not supported for shared-folder records. Set expiration on the user or team access instead.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
+    }
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     if ($SharedFolder -is [Array]) {
@@ -603,15 +609,6 @@ function Set-KeeperSharedFolderRecordPermission {
         Write-Error -Message "Record '$($recordObject.Title)' is not a part of Shared Folder $($sharedFolderObject.Name)" -ErrorAction Stop
     }
 
-    $hasExpireIn = $PSBoundParameters.ContainsKey('ExpireIn')
-    $hasExpireAt = $PSBoundParameters.ContainsKey('ExpireAt')
-    if ($hasExpireIn -and $hasExpireAt) {
-        Write-Error -Message 'Specify either ExpireIn or ExpireAt, not both.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
-    }
-    if ($RotateOnExpiration.IsPresent -and -not ($hasExpireIn -or $hasExpireAt)) {
-        Write-Error -Message 'RotateOnExpiration requires ExpireIn or ExpireAt.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
-    }
-
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
     try {
         if ($PSBoundParameters.ContainsKey('CanEdit')) {
@@ -630,13 +627,6 @@ function Set-KeeperSharedFolderRecordPermission {
     catch {
         Write-Error -Message $_.Exception.Message -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
     }
-    if ($hasExpireIn -or $hasExpireAt) {
-        $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
-    }
-    if ($RotateOnExpiration.IsPresent) {
-        $options.RotateOnExpiration = $true
-    }
-
     $target = "Record `"$($recordObject.Title)`" in shared folder `"$($sharedFolderObject.Name)`""
     if ($PSCmdlet.ShouldProcess($target, 'Update shared folder record permissions')) {
         $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult() | Out-Null
