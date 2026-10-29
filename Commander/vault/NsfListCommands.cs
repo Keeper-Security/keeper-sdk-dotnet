@@ -373,38 +373,29 @@ namespace Commander
             Console.WriteLine($"{PadLabel("Type", NsfHelpers.LabelWidth)}: {meta.Type}");
             Console.WriteLine($"{PadLabel("Title", NsfHelpers.LabelWidth)}: {meta.Title}");
 
-            if (!string.IsNullOrEmpty(record.Notes))
-            {
-                Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes}");
-            }
+            Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes ?? string.Empty}");
 
             var fields = GetRecordFields(vault, record);
             foreach (var field in fields)
             {
-                if (string.IsNullOrWhiteSpace(field.Type) || field.Value == null || field.Value.Count == 0)
+                if (string.IsNullOrWhiteSpace(field.Type))
                 {
                     continue;
                 }
 
-                if (field.Type == "name")
-                {
-                    var nameValue = FormatFieldDisplayValue(field.Type, field.Value[0]);
-                    if (nameValue == meta.Title)
-                    {
-                        continue;
-                    }
-                }
-
-                var displayValues = field.Value
-                    .Select(v => FormatFieldDisplayValue(field.Type, v))
-                    .Where(v => !string.IsNullOrEmpty(v))
+                var displayValues = (field.Value ?? new List<object>())
+                    .Select(v => FormatFieldDisplayValue(field.Type, v) ?? string.Empty)
                     .ToList();
+
+                var label = string.IsNullOrWhiteSpace(field.Label)
+                    ? NsfHelpers.GetFieldLabel(field.Type)
+                    : field.Label;
                 if (displayValues.Count == 0)
                 {
+                    Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: ");
                     continue;
                 }
 
-                var label = NsfHelpers.GetFieldLabel(field.Type);
                 Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: {displayValues[0]}");
                 for (var i = 1; i < displayValues.Count; i++)
                 {
@@ -444,6 +435,15 @@ namespace Commander
                 Console.WriteLine($"{PadLabel("Thumbnail Size", NsfHelpers.LabelWidth)}: {record.ThumbnailSize:N0}");
             }
 
+            if (record.ClientModifiedTime > 0)
+            {
+                var lastModified = DateTimeOffset
+                    .FromUnixTimeMilliseconds(record.ClientModifiedTime)
+                    .LocalDateTime
+                    .ToString("F");
+                Console.WriteLine($"{PadLabel("Last Modified", NsfHelpers.LabelWidth)}: {lastModified}");
+            }
+
             Console.WriteLine();
             var accesses = await GetRecordAccessesAsync(vault, record);
             var shareAdmins = await GetShareAdminEmailsAsync(vault, record.RecordUid);
@@ -476,7 +476,8 @@ namespace Commander
                 ? NsfHelpers.GetFolderPath(vault, record.FolderUid, folderMap)
                 : "/";
 
-            return new Dictionary<string, object>
+            var recordFields = GetRecordFields(vault, record);
+            var json = new Dictionary<string, object>
             {
                 ["uid"] = record.RecordUid,
                 ["type"] = meta.Type,
@@ -488,7 +489,7 @@ namespace Commander
                     ["name"] = record.FolderName,
                     ["path"] = folderPath
                 },
-                ["fields"] = BuildFieldsJson(GetRecordFields(vault, record)),
+                ["fields"] = BuildFieldsJson(recordFields.Where(f => !f.IsCustom)),
                 ["file_size"] = record.FileSize,
                 ["thumbnail_size"] = record.ThumbnailSize,
                 ["version"] = record.Version,
@@ -497,6 +498,14 @@ namespace Commander
                 ["user_permissions"] = userPerms,
                 ["share_admins"] = shareAdmins
             };
+
+            var customFields = recordFields.Where(f => f.IsCustom).ToList();
+            if (customFields.Count > 0)
+            {
+                json["custom"] = BuildFieldsJson(customFields);
+            }
+
+            return json;
         }
 
         internal static async Task<object> BuildFolderJsonAsync(VaultOnline vault, FolderNode folder, string currentAccountUid)
@@ -623,7 +632,9 @@ namespace Commander
         private class ParsedField
         {
             public string Type { get; set; }
-            public List<string> Value { get; set; }
+            public string Label { get; set; }
+            public List<object> Value { get; set; }
+            public bool IsCustom { get; set; }
         }
 
         private static List<ParsedField> GetRecordFields(VaultOnline vault, KeeperNSFRecord record)
@@ -639,38 +650,54 @@ namespace Commander
                         var decrypted = CryptoUtils.DecryptAesV2(encrypted, record.RecordKey);
                         var jsonText = Encoding.UTF8.GetString(decrypted);
                         var data = Json.Deserialize(jsonText) as IDictionary<string, object>;
-                        if (data != null && data.TryGetValue("fields", out var fieldsObj) && fieldsObj is IList<object> fieldList)
+                        if (data != null)
                         {
                             var fields = new List<ParsedField>();
-                            foreach (var f in fieldList)
+
+                            void ReadFields(string key, bool isCustom)
                             {
-                                if (f is IDictionary<string, object> fd &&
-                                    fd.TryGetValue("type", out var typeObj) &&
-                                    typeObj is string fieldType &&
-                                    !string.IsNullOrWhiteSpace(fieldType))
+                                if (!data.TryGetValue(key, out var fieldsObj) || !(fieldsObj is IList<object> fieldList))
                                 {
-                                    var values = new List<string>();
-                                    if (fd.TryGetValue("value", out var valObj))
+                                    return;
+                                }
+
+                                foreach (var f in fieldList)
+                                {
+                                    if (f is IDictionary<string, object> fd &&
+                                        fd.TryGetValue("type", out var typeObj) &&
+                                        typeObj is string fieldType &&
+                                        !string.IsNullOrWhiteSpace(fieldType))
                                     {
-                                        if (valObj is IList<object> valList)
+                                        var values = new List<object>();
+                                        if (fd.TryGetValue("value", out var valObj))
                                         {
-                                            foreach (var v in valList)
+                                            if (valObj is IList<object> valList)
                                             {
-                                                if (v != null)
+                                                foreach (var v in valList)
                                                 {
-                                                    values.Add(v.ToString());
+                                                    values.Add(v);
                                                 }
                                             }
+                                            else if (valObj != null)
+                                            {
+                                                values.Add(valObj);
+                                            }
                                         }
-                                        else if (valObj != null)
-                                        {
-                                            values.Add(valObj.ToString());
-                                        }
-                                    }
 
-                                    fields.Add(new ParsedField { Type = fieldType, Value = values });
+                                        fd.TryGetValue("label", out var labelObj);
+                                        fields.Add(new ParsedField
+                                        {
+                                            Type = fieldType,
+                                            Label = labelObj as string,
+                                            Value = values,
+                                            IsCustom = isCustom
+                                        });
+                                    }
                                 }
                             }
+
+                            ReadFields("fields", false);
+                            ReadFields("custom", true);
 
                             if (fields.Count > 0)
                             {
@@ -688,7 +715,8 @@ namespace Commander
             return record.Fields?.Select(f => new ParsedField
             {
                 Type = f.Type,
-                Value = f.Value?.ToList() ?? new List<string>()
+                Label = f.Label,
+                Value = f.Value?.Cast<object>().ToList() ?? new List<object>()
             }).ToList() ?? new List<ParsedField>();
         }
 
@@ -731,11 +759,17 @@ namespace Commander
                     }
                 }
 
-                result.Add(new Dictionary<string, object>
+                var item = new Dictionary<string, object>
                 {
                     ["type"] = f.Type,
                     ["value"] = values
-                });
+                };
+                if (!string.IsNullOrWhiteSpace(f.Label))
+                {
+                    item["label"] = f.Label;
+                }
+
+                result.Add(item);
             }
 
             return result;

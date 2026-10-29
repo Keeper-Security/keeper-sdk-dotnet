@@ -27,7 +27,10 @@ $script:AccessTypeLabels = @{
     6 = 'AT_APPLICATION'
 }
 
-$script:KdSecretFieldTypes = @('password', 'secret', 'privateKey', 'passkey', 'otp')
+$script:KdSecretFieldTypes = @(
+    'password', 'secret', 'privateKey', 'passkey', 'otp',
+    'oneTimeCode', 'pinCode', 'pin_code', 'note', 'json'
+)
 
 $script:KdFieldLabels = @{
     name     = 'File Name'
@@ -535,26 +538,39 @@ function Get-KdNsfRecordFields {
     Param($record, $storage)
 
     $data = Get-KdNsfDecryptedRecordData -record $record -storage $storage
-    if ($data -and $data.fields) {
+    if ($data) {
         $fields = [System.Collections.ArrayList]::new()
-        foreach ($f in @($data.fields)) {
-            if (-not $f -or [string]::IsNullOrWhiteSpace($f.type)) { continue }
 
-            $values = [System.Collections.ArrayList]::new()
-            if ($null -ne $f.value) {
-                foreach ($v in @($f.value)) {
-                    if ($null -ne $v) {
+        foreach ($fieldGroup in @(
+            @{ Name = 'fields'; IsCustom = $false },
+            @{ Name = 'custom'; IsCustom = $true }
+        )) {
+            $fieldProperty = $data.PSObject.Properties |
+                Where-Object { $_.Name -ieq $fieldGroup.Name } |
+                Select-Object -First 1
+            if (-not $fieldProperty -or $null -eq $fieldProperty.Value) { continue }
+
+            foreach ($f in @($fieldProperty.Value)) {
+                if (-not $f -or [string]::IsNullOrWhiteSpace($f.type)) { continue }
+
+                $values = [System.Collections.ArrayList]::new()
+                if ($null -ne $f.value) {
+                    foreach ($v in @($f.value)) {
                         $values.Add($v) | Out-Null
                     }
                 }
-            }
 
-            $fields.Add([PSCustomObject]@{
-                Type  = [string]$f.type
-                Value = @($values)
-            }) | Out-Null
+                $fields.Add([PSCustomObject]@{
+                    Type     = [string]$f.type
+                    Label    = [string]$f.label
+                    Value    = @($values)
+                    IsCustom = [bool]$fieldGroup.IsCustom
+                }) | Out-Null
+            }
         }
-        return @($fields)
+        if ($fields.Count -gt 0) {
+            return @($fields)
+        }
     }
 
     if ($record.Fields) {
@@ -788,31 +804,32 @@ function Show-KdRecordDetail {
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $title)
 
-    if ($record.Notes) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
-    }
+    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
 
     $recordFields = Get-KdNsfRecordFields -record $record -storage $storage
     if ($recordFields.Count -gt 0) {
         foreach ($field in $recordFields) {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
-            $rawValues = @($field.Value) | Where-Object { $null -ne $_ }
-            if ($rawValues.Count -eq 0) { continue }
-
-            if ($field.Type -eq 'name') {
-                $nameValue = Format-KdNsfFieldDisplayValue -FieldType 'name' -RawValue $rawValues[0]
-                if ($nameValue -eq $title) { continue }
-            }
+            $rawValues = @($field.Value)
 
             $displayValues = @()
             foreach ($raw in $rawValues) {
                 $formatted = Format-KdNsfFieldDisplayValue -FieldType $field.Type -RawValue $raw
-                if ($formatted) { $displayValues += $formatted }
+                if ($null -eq $formatted) { $displayValues += '' }
+                else { $displayValues += [string]$formatted }
             }
-            if ($displayValues.Count -eq 0) { continue }
 
-            $label = Get-KdNsfFieldLabel -FieldType $field.Type
+            $label = if (-not [string]::IsNullOrWhiteSpace($field.Label)) {
+                $field.Label
+            } else {
+                Get-KdNsfFieldLabel -FieldType $field.Type
+            }
+            if ($displayValues.Count -eq 0) {
+                Write-Host ("{0,$script:KD_LABEL_WIDTH}: " -f $label)
+                continue
+            }
+
             Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $label, $displayValues[0])
             for ($i = 1; $i -lt $displayValues.Count; $i++) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}  {1}" -f "", $displayValues[$i])
@@ -825,6 +842,14 @@ function Show-KdRecordDetail {
     }
     if ($record.ThumbnailSize -gt 0) {
         Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Thumbnail Size", ("{0:N0}" -f $record.ThumbnailSize))
+    }
+    if ($record.ClientModifiedTime -gt 0) {
+        try {
+            $lastModified = [DateTimeOffset]::FromUnixTimeMilliseconds([long]$record.ClientModifiedTime).LocalDateTime.ToString('F')
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Last Modified", $lastModified)
+        } catch {
+            Write-Verbose "Invalid NSF record modification timestamp for $($record.RecordUid): $($_.Exception.Message)"
+        }
     }
 
     Write-Host ""
@@ -1266,11 +1291,11 @@ function Build-KdRecordFieldsJson {
     Param($fields)
 
     $result = [System.Collections.ArrayList]::new()
-    if (-not $fields) { return $result }
+    if (-not $fields) { return ,$result.ToArray() }
 
     foreach ($f in $fields) {
         $values = [System.Collections.ArrayList]::new()
-        if ($f.Value) {
+        if ($null -ne $f.Value) {
             foreach ($v in $f.Value) {
                 if ($null -eq $v) {
                     $values.Add($null) | Out-Null
@@ -1296,12 +1321,16 @@ function Build-KdRecordFieldsJson {
                 }
             }
         }
-        $result.Add([ordered]@{
+        $fieldJson = [ordered]@{
             type  = $f.Type
             value = @($values)
-        }) | Out-Null
+        }
+        if (-not [string]::IsNullOrWhiteSpace($f.Label)) {
+            $fieldJson.label = $f.Label
+        }
+        $result.Add($fieldJson) | Out-Null
     }
-    return $result
+    return ,$result.ToArray()
 }
 
 function Build-KdRecordJson {
@@ -1319,7 +1348,8 @@ function Build-KdRecordJson {
     $folderMap = Get-KdFolderNodeMap $vault
     $folderPath = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid $folderMap } else { '/' }
 
-    return [ordered]@{
+    $recordFields = Get-KdNsfRecordFields $record $storage
+    $json = [ordered]@{
         uid            = $record.RecordUid
         type           = $recordType
         title          = $title
@@ -1329,7 +1359,7 @@ function Build-KdRecordJson {
             name = $record.FolderName
             path = $folderPath
         }
-        fields         = (Build-KdRecordFieldsJson (Get-KdNsfRecordFields $record $storage))
+        fields         = (Build-KdRecordFieldsJson @($recordFields | Where-Object { -not $_.IsCustom }))
         file_size      = $record.FileSize
         thumbnail_size = $record.ThumbnailSize
         version        = $record.Version
@@ -1338,6 +1368,12 @@ function Build-KdRecordJson {
         permissions    = $permissions
         share_admins   = @($shareAdminEmails)
     }
+
+    $customFields = @($recordFields | Where-Object { $_.IsCustom })
+    if ($customFields.Count -gt 0) {
+        $json.custom = Build-KdRecordFieldsJson $customFields
+    }
+    return $json
 }
 
 function Get-KdFolderPath {
