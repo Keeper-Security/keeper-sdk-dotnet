@@ -1798,29 +1798,23 @@ namespace Commander
     }
 
     [Verb("revoke", HelpText = "Revokes a record share")]
-    class ShareRecordRevokeOptions
+    class ShareRecordRevokeOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
         public string RecordName { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
     [Verb("transfer", HelpText = "Transfer a record / change record ownership")]
-    class ShareRecordTransferOptions
+    class ShareRecordTransferOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
         public string RecordName { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
 

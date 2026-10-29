@@ -468,16 +468,13 @@ namespace Commander
     }
 
     // CLI options for nsf-rmdir (supports multiple folders; uses batch preview/confirm APIs).
-    class NsfRmdirOptions
+    class NsfRmdirOptions : VaultForceOptions
     {
         [Value(0, Min = 1, Required = true, HelpText = "Folder UID(s) or name(s)")]
         public IEnumerable<string> Folder { get; set; }
 
         [Option('o', "operation", Required = false, Default = "folder-trash", HelpText = "folder-trash or delete-permanent")]
         public string Operation { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
 
         [Option("dry-run", Required = false, HelpText = "Preview only")]
         public bool DryRun { get; set; }

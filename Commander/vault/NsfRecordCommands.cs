@@ -975,7 +975,7 @@ namespace Commander
         public bool Force { get; set; }
     }
 
-    class NsfShareRecordOptions
+    class NsfShareRecordOptions : VaultForceOptions
     {
         [Value(0, Required = true, HelpText = "Record UID")]
         public string RecordUid { get; set; }
@@ -988,12 +988,9 @@ namespace Commander
 
         [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
         public string Role { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
-    class NsfRecordPermissionOptions
+    class NsfRecordPermissionOptions : VaultForceOptions
     {
         [Value(0, Required = false, HelpText = "Folder UID or name (root if omitted)")]
         public string FolderUid { get; set; }
@@ -1006,9 +1003,6 @@ namespace Commander
 
         [Option('r', "recursive", Required = false, HelpText = "Include subfolders")]
         public bool Recursive { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
 
         [Option("dry-run", Required = false, HelpText = "Preview only")]
         public bool DryRun { get; set; }
@@ -1026,19 +1020,16 @@ namespace Commander
         public string Output { get; set; }
     }
 
-    class NsfShortcutKeepOptions
+    class NsfShortcutKeepOptions : VaultForceOptions
     {
         [Value(0, Required = true, HelpText = "Record UID or title")]
         public string RecordUid { get; set; }
 
         [Value(1, Required = true, HelpText = "Folder UID or name to keep")]
         public string FolderUid { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
-    class NsfRmOptions
+    class NsfRmOptions : VaultForceOptions
     {
         [Value(0, Min = 1, Required = true, HelpText = "Record UID(s) or title(s)")]
         public IEnumerable<string> Record { get; set; }
@@ -1048,9 +1039,6 @@ namespace Commander
 
         [Option('o', "operation", Required = false, Default = "owner-trash", HelpText = "owner-trash, folder-trash, unlink")]
         public string Operation { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
 
         [Option("dry-run", Required = false, HelpText = "Preview only")]
         public bool DryRun { get; set; }
@@ -1065,13 +1053,10 @@ namespace Commander
         public string Folder { get; set; }
     }
 
-    class NsfTransferRecordOptions
+    class NsfTransferRecordOptions : VaultForceOptions
     {
         [Value(0, Min = 2, Required = true, HelpText = "Record UID(s) and new owner email")]
         public IEnumerable<string> Arguments { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
 }
