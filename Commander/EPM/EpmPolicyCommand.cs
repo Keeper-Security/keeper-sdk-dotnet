@@ -316,17 +316,16 @@ namespace Commander.EPM
             }
 
             if (policyData == null)
-                return true;
+            {
+                Console.WriteLine("Policy data must be a JSON object.");
+                return false;
+            }
 
             if (string.IsNullOrWhiteSpace(policyData.PolicyName))
             {
                 Console.WriteLine("Policy name is required to save a policy.");
                 return false;
             }
-
-            // Disabled policies are permitted without filters, matching the EPM UI and PowerCommander.
-            if (string.Equals(policyData.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
-                return true;
 
             var policyType = (policyData.PolicyType ?? string.Empty)
                 .Replace("_", string.Empty)
@@ -353,8 +352,13 @@ namespace Commander.EPM
                     requiresMachine = true;
                     break;
                 default:
-                    return true;
+                    Console.WriteLine($"Unsupported policy type '{policyData.PolicyType}'.");
+                    return false;
             }
+
+            // Disabled policies are permitted without filters, matching the EPM UI and PowerCommander.
+            if (string.Equals(policyData.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
+                return true;
 
             var missing = new List<string>();
             if (requiresUser && policyData.UserCheck?.Any(x => !string.IsNullOrWhiteSpace(x)) != true)
