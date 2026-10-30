@@ -309,9 +309,9 @@ namespace Commander.EPM
             {
                 policyData = JsonUtils.ParseJson<PolicyDataStructure>(Encoding.UTF8.GetBytes(policyJson));
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine($"Invalid policy data JSON: {e.Message}");
+                Console.WriteLine("Invalid policy data JSON. Provide a valid JSON object.");
                 return false;
             }
 
