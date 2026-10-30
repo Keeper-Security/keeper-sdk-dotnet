@@ -460,10 +460,8 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                if (ProcessSingleDeletedRecordFromCommand(record, vault))
-                {
-                    cache[recordUid] = record;
-                }
+                ProcessSingleDeletedRecordFromCommand(record, vault);
+                cache[recordUid] = record;
             }
 
             CleanupRemovedRecords(cache, deletedUids);
@@ -511,23 +509,24 @@ namespace KeeperSecurity.Vault
             }
 
             var folderResponse = await FetchDeletedSharedFoldersAndRecords(vault);
-            if (folderResponse == null)
+            if (folderResponse != null)
             {
-                return;
-            }
+                var users = ExtractUsers(folderResponse);
+                var folderKeys = BuildFolderKeys(vault);
+                if (folderKeys != null)
+                {
+                    var folders = await ProcessSharedFolders(folderResponse, vault, folderKeys);
+                    var recordKeys = await ProcessSharedFolderRecords(folderResponse, folderKeys);
+                    var records = ProcessDeletedRecordData(folderResponse, recordKeys, users);
 
-            var users = ExtractUsers(folderResponse);
-            var folderKeys = BuildFolderKeys(vault);
-            if (folderKeys == null)
+                    UpdateSharedFolderCache(folders, records);
+                }
+            }
+            else
             {
-                return;
+                UpdateSharedFolderCache(new Dictionary<string, DeletedSharedFolder>(),
+                    new Dictionary<string, DeletedRecord>());
             }
-
-            var folders = await ProcessSharedFolders(folderResponse, vault, folderKeys);
-            var recordKeys = await ProcessSharedFolderRecords(folderResponse, folderKeys);
-            var records = ProcessDeletedRecordData(folderResponse, recordKeys, users);
-
-            UpdateSharedFolderCache(folders, records);
 
             await LoadDeletedRecordsFromCommand(vault);
         }

@@ -18,15 +18,29 @@ namespace KeeperSecurity
         {          
             public async Task<RecordHistory[]> GetRecordHistory(string recordUid)
             {
-                if (!TryGetKeeperRecord(recordUid, out var r))
+                byte[] recordKey;
+                if (TryGetKeeperRecord(recordUid, out var record))
+                {
+                    recordKey = record.RecordKey;
+                }
+                else if (TryGetKeeperNSFRecord(recordUid, out var nsfRecord))
+                {
+                    recordKey = nsfRecord.RecordKey;
+                }
+                else
                 {
                     throw new Exception($"Record UID {recordUid} not found");
+                }
+
+                if (recordKey == null || recordKey.Length == 0)
+                {
+                    throw new InvalidOperationException($"Record key for {recordUid} is unavailable");
                 }
 
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = ParseRecordHistory(r.RecordKey, rs.History);
+                var history = ParseRecordHistory(recordKey, rs.History);
                 history.Reverse();
                 return history.ToArray();
             }
@@ -47,13 +61,15 @@ namespace KeeperSecurity
             private static List<RecordHistory> ParseRecordHistory(byte[] recordKey, RecordHistoryStorage[] historyEntries)
             {
                 var history = new List<RecordHistory>();
-                foreach (var rh in historyEntries)
+                foreach (var rh in historyEntries ?? Array.Empty<RecordHistoryStorage>())
                 {
                     try
                     {
+                        var loaded = rh.Load(recordKey);
+                        if (loaded == null) continue;
                         history.Add(new RecordHistory
                         {
-                            KeeperRecord = rh.Load(recordKey),
+                            KeeperRecord = loaded,
                             Username = rh.Username,
                             Revision = rh.Revision,
                         });
