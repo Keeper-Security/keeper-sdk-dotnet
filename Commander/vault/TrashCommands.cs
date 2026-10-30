@@ -832,8 +832,10 @@ namespace Commander
             DisplayRecordInfo(recordData, options.Unmask);
             if (recordData is KeeperRecord keeperRecord)
             {
-                AuditHelpers.LogPasswordRevealed(context.Vault, keeperRecord.Uid,
-                    options.Unmask && RecordSecurity.HasPassword(keeperRecord));
+                if (options.Unmask && RecordSecurity.HasPassword(keeperRecord))
+                {
+                    context.Vault.AuditLogRecordRevealPassword(keeperRecord.Uid);
+                }
             }
 
             if (isShared)
@@ -888,8 +890,10 @@ namespace Commander
                         }
                     }
 
-                    AuditHelpers.LogPasswordRevealed(vault, item.Uid,
-                        unmask && RecordSecurity.HasPassword(item.Record));
+                    if (unmask && RecordSecurity.HasPassword(item.Record))
+                    {
+                        vault.AuditLogRecordRevealPassword(item.Uid);
+                    }
                 }
                 else if (unmask)
                 {
