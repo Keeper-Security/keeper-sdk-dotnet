@@ -24,7 +24,14 @@ function New-KeeperEnterpriseNode {
         $parent = $enterprise.enterpriseData.RootNode
     }
 
-    $n = [KeeperSecurity.Enterprise.EnterpriseExtensions]::CreateNode($enterprise.enterpriseData, $NodeName, $parent).GetAwaiter().GetResult()
+    try {
+        $n = [KeeperSecurity.Enterprise.EnterpriseExtensions]::CreateNode($enterprise.enterpriseData, $NodeName, $parent).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception)
+        return
+    }
+
     Write-Information "Added node `"$($n.DisplayName)`""
 }
 New-Alias -Name kena -Value New-KeeperEnterpriseNode
