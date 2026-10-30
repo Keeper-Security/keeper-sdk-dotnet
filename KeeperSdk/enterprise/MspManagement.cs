@@ -86,6 +86,11 @@ namespace KeeperSecurity.Enterprise
                 options.Name = CryptoUtils.GenerateUid();
             }
 
+            if (ManagedCompanies.Any(x => string.Equals(x.EnterpriseName, options.Name, System.StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new EnterpriseException($"Managed Company '{options.Name}' already exists");
+            }
+
             var treeKey = CryptoUtils.GenerateEncryptionKey();
             var encryptedTreeKey = CryptoUtils.EncryptAesV2(treeKey, Enterprise.TreeKey);
 
