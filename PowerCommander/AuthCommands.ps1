@@ -3,7 +3,7 @@
 # Handles required actions after login, such as changing an expired or recovered Master Password.
 # This lets the user complete these steps interactively instead of having the login fail with
 # an "expired, you are required to change it" message.
-class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, KeeperSecurity.Authentication.IPostLoginTaskUI {
+class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, KeeperSecurity.Authentication.IPostLoginTaskUI, KeeperSecurity.Utils.IMasterPasswordStrengthUI {
     [void] OnNextStep() {
     }
 
@@ -44,6 +44,22 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
             return [System.Threading.Tasks.Task]::FromResult($newPassword)
         }
         throw [System.InvalidOperationException]::new('unreachable')
+    }
+
+    [System.Threading.Tasks.Task] ReportMasterPasswordStrength([int] $score, [string] $category) {
+        if ($category -eq 'UNKNOWN') {
+            Write-Host 'Master password strength could not be determined.' -ForegroundColor Gray
+            return [System.Threading.Tasks.Task]::CompletedTask
+        }
+        $color = switch ($category) {
+            'WEAK' { 'Red' }
+            'FAIR' { 'Yellow' }
+            'MEDIUM' { 'Cyan' }
+            'STRONG' { 'Green' }
+            default { 'Gray' }
+        }
+        Write-Host "Master password strength: $category ($score/100)" -ForegroundColor $color
+        return [System.Threading.Tasks.Task]::CompletedTask
     }
 }
 
