@@ -361,7 +361,13 @@ function New-KeeperManagedCompany {
 
 
     if ($PSCmdlet.ShouldProcess($Name, "Creating Managed Company")) {
-        return $enterprise.mspData.CreateManagedCompany($options).GetAwaiter().GetResult()
+        try {
+            return $enterprise.mspData.CreateManagedCompany($options).GetAwaiter().GetResult()
+        }
+        catch {
+            Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception)
+            return
+        }
     }
 }
 New-Alias -Name kamc -Value New-KeeperManagedCompany
