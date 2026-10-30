@@ -469,7 +469,8 @@ namespace KeeperSecurity.Vault
             {
                 if (record.RecordKeyUnencrypted?.Length > 0)
                 {
-                    var details = await VaultOnlineFunctions.FetchKeeperNSFRecordDetailsDataAsync(this, new[] { record.RecordUid }).ConfigureAwait(false);
+                    var details = await VaultOnlineFunctions.FetchKeeperNSFRecordDetailsDataAsync(
+                        this, new[] { record.RecordUid }).ConfigureAwait(false);
                     var entry = details.Data.FirstOrDefault(d => d.RecordUid.ToByteArray().Base64UrlEncode() == record.RecordUid);
                     if (entry != null && !string.IsNullOrEmpty(entry.EncryptedRecordData) &&
                         CryptoUtils.TryDecryptAesV2(entry.EncryptedRecordData.Base64UrlDecode(), record.RecordKeyUnencrypted, out var json))
@@ -495,7 +496,6 @@ namespace KeeperSecurity.Vault
                         }
                     }
                 }
-
             }
             catch (Exception e)
             {

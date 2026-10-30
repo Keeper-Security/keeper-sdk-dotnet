@@ -46,6 +46,8 @@ namespace Commander
                     tab.SetColumnRightAlign(0, true);
                     tab.LeftPadding = 4;
                     tab.Dump();
+                    AuditHelpers.LogRecordOpened(context.Vault, record.Uid, options.Unmask,
+                        RecordSecurity.HasPassword(record));
                     return;
                 }
 
@@ -227,7 +229,8 @@ namespace Commander
                 {
                     foreach (var c in legacy.Custom)
                     {
-                        tab.AddRow(c.Name + ":", RecordSecurity.IsSensitive(c.Name) ? RecordSecurity.Mask(c.Value, unmask) : c.Value);
+                        tab.AddRow(c.Name + ":", RecordSecurity.IsSensitive(c.Name)
+                            ? RecordSecurity.Mask(c.Value, unmask) : c.Value);
                     }
                 }
             }
@@ -250,7 +253,8 @@ namespace Commander
                         for (var i = 0; i < Math.Max(values.Length, 1); i++)
                         {
                             var v = i < values.Length ? values[i] : "";
-                            tab.AddRow(i == 0 ? $"{label}:" : "", RecordSecurity.IsSensitive(f) ? RecordSecurity.Mask(v, unmask) : v);
+                            tab.AddRow(i == 0 ? $"{label}:" : "", RecordSecurity.IsSensitive(f)
+                                ? RecordSecurity.Mask(v, unmask) : v);
                         }
                     }
                 }
@@ -285,11 +289,6 @@ namespace Commander
             }
 
             tab.AddRow("Last Modified:", record.ClientModified.LocalDateTime.ToString("F"));
-            context.Vault.AuditLogRecordOpen(record.Uid);
-            if (unmask && RecordSecurity.HasPassword(record))
-            {
-                context.Vault.AuditLogRecordRevealPassword(record.Uid);
-            }
             var shareInfo = (await context.Vault.GetSharesForRecords(new[] { record.Uid }))
                 .FirstOrDefault(x => x.RecordUid == record.Uid);
 
@@ -619,7 +618,7 @@ namespace Commander
         [Option("include-dag", Required = false, HelpText = "Include classic shared-folder record graph data")]
         public bool IncludeDag { get; set; }
 
-        [Option("unmask", Required = false, HelpText = "Display sensitive fields and log a password reveal")]
+        [Option("unmask", Required = false, HelpText = "display hidden field content")]
         public bool Unmask { get; set; }
     }
 }
