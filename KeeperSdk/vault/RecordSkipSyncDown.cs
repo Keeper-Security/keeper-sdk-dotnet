@@ -15,13 +15,68 @@ namespace KeeperSecurity.Vault
     public static class RecordSkipSyncDown
     {
         /// <summary>
-        /// Calls <c>vault/get_records_details</c> and decrypts payloads using the record key from each
-        /// <see cref="RecordData"/> (<see cref="RecordData.RecordKey"/> / <see cref="RecordData.RecordKeyType"/>).
+        /// Loads records with keys returned by <c>vault/get_records_details</c> or accessible shared folders.
         /// </summary>
         public static Task<RecordDetailsSkipSyncResult> GetOwnedRecordsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
             RecordDetailsInclude include = RecordDetailsInclude.DataPlusShare)
             => GetRecordsDetailsAsync(auth, recordUids, include, sharedFolderRecordKeys: null);
+
+        /// <summary>
+        /// Checks whether the current user can edit the record. Returns null if the check fails.
+        /// </summary>
+        internal static async Task<bool?> CanEditRecordAsync(IAuthentication auth, string recordUid)
+        {
+            if (auth == null || auth.AuthContext == null)
+                throw new VaultException("An authenticated session is needed.");
+            if (string.IsNullOrWhiteSpace(recordUid))
+                throw new ArgumentException("recordUid is required.", nameof(recordUid));
+
+            var trimmedUid = recordUid.Trim();
+            ByteString uidBytes;
+            try
+            {
+                var decodedUid = trimmedUid.Base64UrlDecode();
+                if (decodedUid == null || decodedUid.Length == 0)
+                    return null;
+                uidBytes = ByteString.CopyFrom(decodedUid);
+            }
+            catch
+            {
+                return null;
+            }
+
+            var request = new GetRecordDataWithAccessInfoRequest
+            {
+                ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                RecordDetailsInclude = RecordDetailsInclude.ShareOnly,
+            };
+            request.RecordUid.Add(uidBytes);
+
+            try
+            {
+                var response = await auth.ExecuteAuthRest<GetRecordDataWithAccessInfoRequest, GetRecordDataWithAccessInfoResponse>(
+                    "vault/get_records_details", request).ConfigureAwait(false);
+                var recordUidBase64 = uidBytes.ToByteArray().Base64UrlEncode();
+                var details = response?.RecordDataWithAccessInfo?.FirstOrDefault(x =>
+                    x.RecordUid != null
+                    && string.Equals(
+                        x.RecordUid.ToByteArray().Base64UrlEncode(),
+                        recordUidBase64,
+                        StringComparison.Ordinal));
+                if (details == null)
+                    return null;
+
+                var directEdit = details.UserPermission.Any(permission =>
+                    string.Equals(permission.Username, auth.Username, StringComparison.OrdinalIgnoreCase)
+                    && (permission.Owner || permission.Editable));
+                return directEdit || details.SharedFolderPermission.Any(permission => permission.Editable);
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         ///<summary>
         /// Calls <c>get_record_history</c> and returns the last modifier and timestamp
@@ -113,32 +168,17 @@ namespace KeeperSecurity.Vault
                     Array.Empty<string>());
             }
 
-            var keys = await SharedFolderSkipSyncDown.GetRecordKeysFromSharedFolderAsync(auth, sharedFolderUid.Trim())
+            // Try this folder first, then the folders returned with the record details.
+            return await GetRecordsDetailsAsync(auth, uidList, include,
+                    sharedFolderRecordKeys: null, sharedFolderUidFallback: sharedFolderUid.Trim())
                 .ConfigureAwait(false);
-
-            var filtered = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
-            foreach (var uid in uidList)
-            {
-                if (keys.TryGetValue(uid, out var k) && k != null && k.Length > 0)
-                    filtered[uid] = k;
-            }
-
-            if (filtered.Count == 0)
-            {
-                return new RecordDetailsSkipSyncResult(
-                    Array.Empty<KeeperRecord>(),
-                    Array.Empty<string>(),
-                    uidList,
-                    Array.Empty<string>());
-            }
-
-            return await GetRecordsDetailsAsync(auth, uidList, include, filtered).ConfigureAwait(false);
         }
 
         private static async Task<RecordDetailsSkipSyncResult> GetRecordsDetailsAsync(IAuthentication auth,
             IEnumerable<string> recordUids,
             RecordDetailsInclude include,
-            IReadOnlyDictionary<string, byte[]> sharedFolderRecordKeys)
+            IReadOnlyDictionary<string, byte[]> sharedFolderRecordKeys,
+            string sharedFolderUidFallback = null)
         {
             if (auth == null || auth.AuthContext == null)
                 throw new VaultException("An authenticated session is needed.");
@@ -196,6 +236,8 @@ namespace KeeperSecurity.Vault
 
             var records = new List<KeeperRecord>();
             var failed = new List<string>();
+            var sharedFolderRecordKeyCache =
+                new Dictionary<string, IReadOnlyDictionary<string, byte[]>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in rs.RecordDataWithAccessInfo ?? Enumerable.Empty<RecordDataWithAccessInfo>())
             {
@@ -210,8 +252,21 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                if (!TryResolveRecordKey(auth.AuthContext, rd, uid, sharedFolderRecordKeys, out var recordKey) ||
-                    recordKey == null || recordKey.Length == 0)
+                var hasRecordKey = TryResolveRecordKey(
+                    auth.AuthContext, rd, uid, sharedFolderRecordKeys, out var recordKey);
+                if (!hasRecordKey && sharedFolderRecordKeys == null)
+                {
+                    recordKey = await TryResolveRecordKeyFromSharedFoldersAsync(
+                            auth,
+                            item,
+                            uid,
+                            sharedFolderUidFallback,
+                            sharedFolderRecordKeyCache)
+                        .ConfigureAwait(false);
+                    hasRecordKey = recordKey != null && recordKey.Length > 0;
+                }
+
+                if (!hasRecordKey || recordKey == null || recordKey.Length == 0)
                 {
                     failed.Add(uid);
                     continue;
@@ -234,30 +289,83 @@ namespace KeeperSecurity.Vault
             IReadOnlyDictionary<string, byte[]> sharedFolderRecordKeys, out byte[] recordKey)
         {
             recordKey = null;
-            if (sharedFolderRecordKeys != null)
+            // Try the key returned with the record before using shared-folder keys.
+            var encryptedRecordKey = rd.RecordKey?.ToByteArray();
+            if (encryptedRecordKey != null && encryptedRecordKey.Length > 0)
             {
-                if (sharedFolderRecordKeys.TryGetValue(uid, out var k) && k != null && k.Length > 0)
+                try
                 {
-                    recordKey = k;
-                    return true;
+                    recordKey = SharedFolderSkipSyncDown.DecryptKeeperKey(
+                        authContext,
+                        encryptedRecordKey,
+                        rd.RecordKeyType);
+                    if (recordKey != null && recordKey.Length > 0)
+                        return true;
+                }
+                catch
+                {
+                    // Try the shared-folder key below.
+                }
+            }
+
+            if (sharedFolderRecordKeys != null
+                && sharedFolderRecordKeys.TryGetValue(uid, out var sharedFolderRecordKey)
+                && sharedFolderRecordKey != null
+                && sharedFolderRecordKey.Length > 0)
+            {
+                recordKey = sharedFolderRecordKey;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static async Task<byte[]> TryResolveRecordKeyFromSharedFoldersAsync(
+            IAuthentication auth,
+            RecordDataWithAccessInfo item,
+            string recordUid,
+            string preferredSharedFolderUid,
+            IDictionary<string, IReadOnlyDictionary<string, byte[]>> sharedFolderRecordKeyCache)
+        {
+            var sharedFolderUids = new List<string>();
+            if (!string.IsNullOrWhiteSpace(preferredSharedFolderUid))
+                sharedFolderUids.Add(preferredSharedFolderUid.Trim());
+
+            foreach (var permission in item.SharedFolderPermission)
+            {
+                if (permission?.SharedFolderUid == null || permission.SharedFolderUid.IsEmpty)
+                    continue;
+                var uid = permission.SharedFolderUid.ToArray().Base64UrlEncode();
+                if (!sharedFolderUids.Contains(uid, StringComparer.OrdinalIgnoreCase))
+                    sharedFolderUids.Add(uid);
+            }
+
+            foreach (var sharedFolderUid in sharedFolderUids)
+            {
+                if (!sharedFolderRecordKeyCache.TryGetValue(sharedFolderUid, out var keys))
+                {
+                    try
+                    {
+                        keys = await SharedFolderSkipSyncDown
+                            .GetRecordKeysFromSharedFolderAsync(auth, sharedFolderUid)
+                            .ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        keys = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+                    }
+
+                    sharedFolderRecordKeyCache[sharedFolderUid] = keys
+                        ?? new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
                 }
 
-                return false;
+                if (keys != null && keys.TryGetValue(recordUid, out var key) && key != null && key.Length > 0)
+                {
+                    return key;
+                }
             }
 
-            try
-            {
-                recordKey = SharedFolderSkipSyncDown.DecryptKeeperKey(
-                    authContext,
-                    rd.RecordKey?.ToByteArray() ?? Array.Empty<byte>(),
-                    rd.RecordKeyType);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return recordKey != null && recordKey.Length > 0;
+            return null;
         }
 
         private static bool TryLoadKeeperRecordFromDetails(RecordDataWithAccessInfo item, byte[] recordKey,
