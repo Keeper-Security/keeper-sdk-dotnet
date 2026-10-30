@@ -528,14 +528,13 @@ function Set-KeeperSharedFolderRecordPermission {
         true, false, 1, or 0.
 
         .PARAMETER ExpireIn
-        Optional. Record permission expiration period from now.
+        Unsupported for shared-folder records. Set expiration on the user or team access instead.
 
         .PARAMETER ExpireAt
-        Optional. Absolute record permission expiration as an ISO datetime.
+        Unsupported for shared-folder records. Set expiration on the user or team access instead.
 
         .PARAMETER RotateOnExpiration
-        Rotate the password when the record permission expires. Requires an
-        expiration and a pamUser record with rotation configured in the folder.
+        Unsupported for shared-folder records. Use the user or team access command instead.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param (
@@ -548,6 +547,12 @@ function Set-KeeperSharedFolderRecordPermission {
         [Alias('roe', 'rotate-on-expiration')]
         [Parameter()][switch]$RotateOnExpiration
     )
+
+    if ($PSBoundParameters.ContainsKey('ExpireIn') -or
+        $PSBoundParameters.ContainsKey('ExpireAt') -or
+        $RotateOnExpiration.IsPresent) {
+        Write-Error -Message 'Expiration is not supported for shared-folder records. Set expiration on the user or team access instead.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
@@ -604,15 +609,6 @@ function Set-KeeperSharedFolderRecordPermission {
         Write-Error -Message "Record '$($recordObject.Title)' is not a part of Shared Folder $($sharedFolderObject.Name)" -ErrorAction Stop
     }
 
-    $hasExpireIn = $PSBoundParameters.ContainsKey('ExpireIn')
-    $hasExpireAt = $PSBoundParameters.ContainsKey('ExpireAt')
-    if ($hasExpireIn -and $hasExpireAt) {
-        Write-Error -Message 'Specify either ExpireIn or ExpireAt, not both.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
-    }
-    if ($RotateOnExpiration.IsPresent -and -not ($hasExpireIn -or $hasExpireAt)) {
-        Write-Error -Message 'RotateOnExpiration requires ExpireIn or ExpireAt.' -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
-    }
-
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
     try {
         if ($PSBoundParameters.ContainsKey('CanEdit')) {
@@ -631,13 +627,6 @@ function Set-KeeperSharedFolderRecordPermission {
     catch {
         Write-Error -Message $_.Exception.Message -Category InvalidArgument -TargetObject $Record -ErrorAction Stop
     }
-    if ($hasExpireIn -or $hasExpireAt) {
-        $options.Expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
-    }
-    if ($RotateOnExpiration.IsPresent) {
-        $options.RotateOnExpiration = $true
-    }
-
     $target = "Record `"$($recordObject.Title)`" in shared folder `"$($sharedFolderObject.Name)`""
     if ($PSCmdlet.ShouldProcess($target, 'Update shared folder record permissions')) {
         $vault.ChangeRecordInSharedFolder($sharedFolderObject.Uid, $recordObject.Uid, $options).GetAwaiter().GetResult() | Out-Null

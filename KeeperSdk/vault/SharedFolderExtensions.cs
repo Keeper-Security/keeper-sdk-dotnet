@@ -17,6 +17,20 @@ namespace KeeperSecurity.Vault
             UserType userType,
             IUserShareOptions options)
         {
+            await PutUserToSharedFolder(sharedFolderUid, userId, userType, options, forceAdd: false);
+        }
+
+        /// <summary>
+        /// Grants or updates shared-folder membership. When an expired membership remains in the
+        /// local cache, forceAdd creates a new membership (and encrypts a new folder key) rather
+        /// than attempting to update the stale server-side membership.
+        /// </summary>
+        private async Task PutUserToSharedFolder(string sharedFolderUid,
+            string userId,
+            UserType userType,
+            IUserShareOptions options,
+            bool forceAdd)
+        {
             this.ValidateRotateOnExpirationForFolderGrant(sharedFolderUid, options);
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
 
@@ -44,7 +58,7 @@ namespace KeeperSecurity.Vault
                     Username = userId,
                 };
                 VaultShareExpirationExtensions.ApplyShareExpiration(options, sfuu);
-                if (existingPermission != null)
+                if (existingPermission != null && !forceAdd)
                 {
                     sfuu.ManageUsers = options?.ManageUsers == null
                         ? SetBooleanValue.BooleanNoChange
@@ -112,7 +126,7 @@ namespace KeeperSecurity.Vault
                 };
                 VaultShareExpirationExtensions.ApplyShareExpiration(options, sfut);
 
-                if (existingPermission != null)
+                if (existingPermission != null && !forceAdd)
                 {
                     sfut.ManageUsers = options?.ManageUsers ?? existingPermission.ManageUsers;
                     sfut.ManageRecords = options?.ManageRecords ?? existingPermission.ManageRecords;
@@ -179,6 +193,15 @@ namespace KeeperSecurity.Vault
                 var failed = arr?.FirstOrDefault(x => x.Status != "success");
                 if (failed != null)
                 {
+                    if (!forceAdd && request.SharedFolderUpdateUser.Count > 0 &&
+                        string.Equals(failed.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // The cache said this was an existing member, but the server has already
+                        // removed it (normally because its time-limited share expired). Rebuild
+                        // the operation as an Add so it includes a freshly encrypted folder key.
+                        await PutUserToSharedFolder(sharedFolderUid, userId, userType, options, forceAdd: true);
+                        return;
+                    }
                     throw new VaultException($"Put \"{failed.Username}\" to Shared Folder \"{sharedFolder.Name}\" error: {failed.Status}");
                 }
             }
@@ -188,6 +211,12 @@ namespace KeeperSecurity.Vault
                 var failed = arr?.FirstOrDefault(x => x.Status != "success");
                 if (failed != null)
                 {
+                    if (!forceAdd && request.SharedFolderUpdateTeam.Count > 0 &&
+                        string.Equals(failed.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await PutUserToSharedFolder(sharedFolderUid, userId, userType, options, forceAdd: true);
+                        return;
+                    }
                     var uid = failed.TeamUid.ToArray().Base64UrlEncode();
                     throw new VaultException($"Put Team Uid \"{uid}\" to Shared Folder \"{sharedFolder.Name}\" error: {failed.Status}");
                 }
@@ -263,7 +292,15 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>>
         public async Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, IRecordShareOptions options)
         {
-            this.ValidateRotateOnExpirationForSharedFolderRecord(sharedFolderUid, options);
+            // Expiration of a shared-folder record entry affects the record's membership in the
+            // folder, not just a particular user's access. In particular it can remove the
+            // owner's record when the timer fires. Time-limit the user/team membership instead.
+            if (options?.Expiration != null || options?.RotateOnExpiration == true)
+            {
+                throw new VaultException(
+                    "Expiration is not supported for a shared-folder record. " +
+                    "Set expiration on the shared-folder user or team access instead.");
+            }
 
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
 
@@ -293,7 +330,6 @@ namespace KeeperSecurity.Vault
                     CanShare = options.CanShare == null ? SetBooleanValue.BooleanNoChange
                     : options.CanShare.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                 };
-                VaultShareExpirationExtensions.ApplyShareExpiration(options, sfur);
                 request.SharedFolderUpdateRecord.Add(sfur);
 
                 var response = await Auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request);
