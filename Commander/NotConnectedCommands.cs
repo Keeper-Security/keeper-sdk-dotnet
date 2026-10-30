@@ -10,7 +10,6 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
-using Commander;
 
 namespace Commander
 {
