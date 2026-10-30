@@ -291,7 +291,11 @@ namespace Commander
 
             if (record != null)
             {
-                AuditHelpers.LogRecordOpened(vault, record.RecordUid, options.Unmask, RecordSecurity.HasPassword(record));
+                vault.AuditLogRecordOpen(record.RecordUid);
+                if (options.Unmask && RecordSecurity.HasPassword(record))
+                {
+                    vault.AuditLogRecordRevealPassword(record.RecordUid);
+                }
             }
         }
 

@@ -298,8 +298,9 @@ function Show-NsfTrashedItemDetails {
                     }
                 }
             }
-            Write-KeeperRecordAudit -Vault $Vault -RecordUid $item.Uid `
-                -Revealed:($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($item.Record))
+            if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($item.Record)) {
+                $Vault.AuditLogRecordRevealPassword($item.Uid)
+            }
         }
         elseif ($Unmask -and -not $item.Record) {
             Write-Host 'Sensitive fields are unavailable for this NSF record in trash.' -ForegroundColor Yellow
@@ -1156,8 +1157,9 @@ function Get-KeeperTrashedRecordDetails {
         }
 
         Show-RecordDetails -RecordData $recordData -Unmask:$Unmask
-        Write-KeeperRecordAudit -Vault $vault -RecordUid $RecordUid `
-            -Revealed:($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($recordData))
+        if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($recordData)) {
+            $vault.AuditLogRecordRevealPassword($RecordUid)
+        }
 
         if ($isShared) {
             Show-RecordShares -Vault $vault -RecordUid $RecordUid

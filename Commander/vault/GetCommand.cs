@@ -46,8 +46,11 @@ namespace Commander
                     tab.SetColumnRightAlign(0, true);
                     tab.LeftPadding = 4;
                     tab.Dump();
-                    AuditHelpers.LogRecordOpened(context.Vault, record.Uid, options.Unmask,
-                        RecordSecurity.HasPassword(record));
+                    context.Vault.AuditLogRecordOpen(record.Uid);
+                    if (options.Unmask && RecordSecurity.HasPassword(record))
+                    {
+                        context.Vault.AuditLogRecordRevealPassword(record.Uid);
+                    }
                     return;
                 }
 

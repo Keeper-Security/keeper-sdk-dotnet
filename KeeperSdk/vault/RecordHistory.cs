@@ -18,7 +18,7 @@ namespace KeeperSecurity
         {          
             public async Task<RecordHistory[]> GetRecordHistory(string recordUid)
             {
-                if (!TryGetKeeperRecord(recordUid, out var record))
+                if (!TryGetKeeperRecord(recordUid, out var r))
                 {
                     throw new Exception($"Record UID {recordUid} not found");
                 }
@@ -26,7 +26,7 @@ namespace KeeperSecurity
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = ParseRecordHistory(record.RecordKey, rs.History);
+                var history = ParseRecordHistory(r.RecordKey, rs.History);
                 history.Reverse();
                 return history.ToArray();
             }
@@ -47,15 +47,13 @@ namespace KeeperSecurity
             private static List<RecordHistory> ParseRecordHistory(byte[] recordKey, RecordHistoryStorage[] historyEntries)
             {
                 var history = new List<RecordHistory>();
-                foreach (var rh in historyEntries ?? Array.Empty<RecordHistoryStorage>())
+                foreach (var rh in historyEntries)
                 {
                     try
                     {
-                        var loaded = rh.Load(recordKey);
-                        if (loaded == null) continue;
                         history.Add(new RecordHistory
                         {
-                            KeeperRecord = loaded,
+                            KeeperRecord = rh.Load(recordKey),
                             Username = rh.Username,
                             Revision = rh.Revision,
                         });
