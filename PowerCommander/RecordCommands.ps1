@@ -138,6 +138,9 @@ function Get-KeeperRecord {
 
 	.Parameter ClassicOnly
 	Exclude nested shared (NSF) records from the interactive list
+
+	.Parameter Unmask
+	Display hidden fields in formatted output. Object output exposes the record password to the pipeline.
 #>
     [CmdletBinding()]
     [OutputType([KeeperSecurity.Vault.KeeperRecord[]])]
@@ -145,22 +148,30 @@ function Get-KeeperRecord {
         [string] $Uid,
         [string] $Filter,
         [Parameter()][switch] $AsObject,
-        [Parameter()][switch] $ClassicOnly
+        [Parameter()][switch] $ClassicOnly,
+        [switch] $Unmask
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
         $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
         if ($null -ne $record) {
-            if ($Script:PasswordVisible) {
-                $record | Format-List
+            $interactive = Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation
+            $reveal = $Unmask.IsPresent -or (Get-KeeperPasswordVisible)
+            if ($interactive) {
+                Show-RecordDetails -RecordData $record -Unmask:$reveal
             }
             else {
                 $record
             }
+            $vault.AuditLogRecordOpen($record.Uid)
+            if (((-not $interactive) -or $reveal) -and `
+                [KeeperSecurity.Vault.RecordSecurity]::HasPassword($record)) {
+                $vault.AuditLogRecordRevealPassword($record.Uid)
+            }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
-            Get-KeeperNSFRecord -Uid $Uid
+            Get-KeeperNSFRecord -Uid $Uid -Unmask:$Unmask
         }
     }
     elseif ($Filter) {
@@ -2202,7 +2213,7 @@ function Get-KeeperRecordHistory {
         $Record,
 
         [Parameter(Position = 1)]
-        [ValidateSet('list', 'show', 'diff', 'restore')]
+        [ValidateSet('list', 'show', 'view', 'diff', 'restore')]
         [Alias('a')]
         [string] $Action = 'list',
 
@@ -2217,7 +2228,9 @@ function Get-KeeperRecordHistory {
 
         [Parameter()]
         [Alias('o')]
-        [string] $Output
+        [string] $Output,
+
+        [switch] $Unmask
     )
 
     Process {
@@ -2245,7 +2258,7 @@ function Get-KeeperRecordHistory {
                     return
                 }
                 elseif ($recordMatches.Count -gt 1) {
-                    Write-Warning "Multiple records found for '$Record'. Please use UID."
+                    Write-Error "Multiple records found for '$Record'. Please use UID."
                     Write-Host ("{0,-30} {1}" -f "Title", "UID") -ForegroundColor Cyan
                     Write-Host ("{0,-30} {1}" -f "-----", "---") -ForegroundColor Gray
                     foreach ($m in $recordMatches) {
@@ -2326,15 +2339,24 @@ function Get-KeeperRecordHistory {
             $isFirst = $null -eq $previousRec
             
             $addDiff = {
-                param($label, $currentVal, $previousVal)
+                param($label, $currentVal, $previousVal, [bool]$sensitive = $false, [bool]$password = $false)
                 $cv = if ($null -eq $currentVal) { "" } else { $currentVal }
                 $pv = if ($null -eq $previousVal) { "" } else { $previousVal }
-                if ($isFirst) {
-                    if (-not [string]::IsNullOrEmpty($cv)) {
-                        $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = "" })
-                    }
-                } elseif ($cv -ne $pv) {
-                    $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = $pv })
+                if (($isFirst -and -not [string]::IsNullOrEmpty($cv)) -or (-not $isFirst -and $cv -ne $pv)) {
+                    $newValue = if ($sensitive) {
+                        [KeeperSecurity.Vault.RecordSecurity]::Mask($cv, $Unmask.IsPresent)
+                    } else { $cv }
+                    $oldValue = if ($sensitive) {
+                        [KeeperSecurity.Vault.RecordSecurity]::Mask($pv, $Unmask.IsPresent)
+                    } else { $pv }
+                    $diffs.Add([PSCustomObject]@{
+                        Version = $versionLabel
+                        Field = $label
+                        NewValue = $newValue
+                        OldValue = $oldValue
+                        Password = $password
+                        HasValue = (-not [string]::IsNullOrEmpty($cv) -or -not [string]::IsNullOrEmpty($pv))
+                    })
                 }
             }
 
@@ -2342,7 +2364,8 @@ function Get-KeeperRecordHistory {
                 foreach ($fn in @('title', 'login', 'password', 'url', 'notes', 'totp')) {
                     $cv = Get-KeeperRecordFieldValue -Record $currentRec -FieldName $fn
                     $pv = if (-not $isFirst) { Get-KeeperRecordFieldValue -Record $previousRec -FieldName $fn } else { $null }
-                    & $addDiff "($fn)" $cv $pv
+                    & $addDiff "($fn)" $cv $pv `
+                        ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($fn)) ($fn -eq 'password')
                 }
                 if ($currentRec.Custom) {
                     foreach ($cf in $currentRec.Custom) {
@@ -2351,7 +2374,15 @@ function Get-KeeperRecordHistory {
                             $prevCf = $previousRec.Custom | Where-Object { $_.Name -eq $cf.Name } | Select-Object -First 1
                             if ($prevCf) { $pv = $prevCf.Value }
                         }
-                        & $addDiff "($($cf.Name))" $cf.Value $pv
+                        & $addDiff "($($cf.Name))" $cf.Value $pv `
+                            ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name)) ($cf.Name -ieq 'password')
+                    }
+                }
+                if ($previousRec -and $previousRec.Custom) {
+                    foreach ($cf in $previousRec.Custom) {
+                        if (@($currentRec.Custom | Where-Object { $_.Name -ieq $cf.Name }).Count -gt 0) { continue }
+                        & $addDiff "($($cf.Name))" '' $cf.Value `
+                            ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name)) ($cf.Name -ieq 'password')
                     }
                 }
             }
@@ -2368,7 +2399,21 @@ function Get-KeeperRecordHistory {
                                 $prevField = $fieldSet.Previous | Where-Object { $_.FieldName -eq $field.FieldName } | Select-Object -First 1
                                 if ($prevField) { $pv = Get-TypedFieldValueString -Field $prevField }
                             }
-                            & $addDiff "($($label.ToLower()))" $cv $pv
+                            & $addDiff "($($label.ToLower()))" $cv $pv `
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) `
+                                ($field.FieldName -ieq 'password')
+                        }
+                    }
+                    if ($fieldSet.Previous) {
+                        foreach ($field in $fieldSet.Previous) {
+                            $sameField = @($fieldSet.Current | Where-Object {
+                                $_.FieldName -eq $field.FieldName -and $_.FieldLabel -eq $field.FieldLabel
+                            }).Count -gt 0
+                            if ($sameField) { continue }
+                            $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
+                            & $addDiff "($($label.ToLower()))" '' (Get-TypedFieldValueString -Field $field) `
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) `
+                                ($field.FieldName -ieq 'password')
                         }
                     }
                 }
@@ -2378,6 +2423,7 @@ function Get-KeeperRecordHistory {
             return $diffs
         }
 
+        if ($Action -eq 'view') { $Action = 'show' }
         switch ($Action) {
             'list' {
                 $listData = for ($i = 0; $i -lt $history.Length; $i++) {
@@ -2404,17 +2450,29 @@ function Get-KeeperRecordHistory {
                 $histRecord = $history[$arrayIndex].KeeperRecord
 
                 $showData = [ordered]@{}
-                $addField = { param($label, $value) if (-not [string]::IsNullOrEmpty($value)) { $showData[$label] = $value } }
+                $addField = {
+                    param($label, $value, [bool]$sensitive = $false)
+                    if (-not [string]::IsNullOrEmpty($value)) {
+                        $showData[$label] = if ($sensitive) {
+                            [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
+                        } else { $value }
+                    }
+                }
 
                 & $addField "title" $histRecord.Title
 
                 if ($histRecord -is [KeeperSecurity.Vault.PasswordRecord]) {
                     & $addField "login" $histRecord.Login
-                    & $addField "password" $histRecord.Password
+                    & $addField "password" $histRecord.Password $true
                     & $addField "url" $histRecord.Link
                     & $addField "notes" $histRecord.Notes
                     & $addField "totp" $histRecord.Totp
-                    if ($histRecord.Custom) { foreach ($cf in $histRecord.Custom) { & $addField $cf.Name $cf.Value } }
+                    if ($histRecord.Custom) {
+                        foreach ($cf in $histRecord.Custom) {
+                            & $addField $cf.Name $cf.Value `
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name))
+                        }
+                    }
                 }
                 elseif ($histRecord -is [KeeperSecurity.Vault.TypedRecord]) {
                     & $addField "type" $histRecord.TypeName
@@ -2422,7 +2480,8 @@ function Get-KeeperRecordHistory {
                         if ($fieldSet) {
                             foreach ($field in $fieldSet) {
                                 $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
-                                & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field)
+                                & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field) `
+                                    ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName))
                             }
                         }
                     }
@@ -2434,6 +2493,9 @@ function Get-KeeperRecordHistory {
                 }
 
                 WriteOutput ([PSCustomObject]$showData) $Format $Output -AsList
+                if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($histRecord)) {
+                    $vault.AuditLogRecordRevealPassword($uid)
+                }
             }
 
             'diff' {
@@ -2455,7 +2517,12 @@ function Get-KeeperRecordHistory {
                     foreach ($d in $versionDiffs) { $allDiffs.Add($d) }
                 }
 
-                WriteOutput $allDiffs $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
+                WriteOutput ($allDiffs | Select-Object Version, Field, NewValue, OldValue) `
+                    $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
+                $passwordShown = @($allDiffs | Where-Object { $_.Password -and $_.HasValue }).Count -gt 0
+                if ($Unmask.IsPresent -and $passwordShown) {
+                    $vault.AuditLogRecordRevealPassword($uid)
+                }
             }
 
             'restore' {

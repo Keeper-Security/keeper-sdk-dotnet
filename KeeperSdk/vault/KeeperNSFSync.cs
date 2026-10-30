@@ -932,17 +932,7 @@ namespace KeeperSecurity.Vault
                         Title = resolvedTitle,
                         Type = data?.Type,
                         Notes = data?.Notes,
-                        Fields = data == null
-                            ? null
-                            : (data.Fields ?? Enumerable.Empty<NsfRecordFieldData>())
-                                .Concat(data.Custom ?? Enumerable.Empty<NsfRecordFieldData>())
-                                .Select(f => new KeeperNSFField
-                                {
-                                    Type = f.Type,
-                                    Label = f.Label,
-                                    Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
-                                })
-                                .ToList(),
+                        Fields = ProjectNsfFields(data),
                         FolderUid = folderUid,
                         FolderName = folderName,
                         Revision = kdRecord.Revision,
@@ -963,6 +953,24 @@ namespace KeeperSecurity.Vault
                     Trace.TraceError($"KeeperNSF: Error rebuilding record {kdRecord.RecordUid}: {e.Message}");
                 }
             }
+        }
+
+        internal static IReadOnlyList<KeeperNSFField> ProjectNsfFields(NsfRecordData data)
+        {
+            if (data == null) return null;
+
+            return (data.Fields ?? Enumerable.Empty<NsfRecordFieldData>())
+                .Select(f => (Field: f, IsCustom: false))
+                .Concat((data.Custom ?? Enumerable.Empty<NsfRecordFieldData>())
+                    .Select(f => (Field: f, IsCustom: true)))
+                .Where(x => x.Field != null)
+                .Select(x => new KeeperNSFField
+                {
+                    Type = x.Field.Type,
+                    Label = x.Field.Label,
+                    Value = x.Field.Value?.Select(CoerceFieldValueToString).ToList(),
+                    IsCustom = x.IsCustom,
+                }).ToList();
         }
 
         private static string CoerceFieldValueToString(object value)
@@ -1027,6 +1035,7 @@ namespace KeeperSecurity.Vault
         public string Type { get; internal set; }
         public string Label { get; internal set; }
         public IReadOnlyList<string> Value { get; internal set; }
+        public bool IsCustom { get; internal set; }
     }
 
     public class KeeperNSFRecord

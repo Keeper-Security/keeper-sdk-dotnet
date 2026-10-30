@@ -165,18 +165,36 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public void AuditLogRecordOpen(string recordUid)
         {
-            _ = Task.Run(async () =>
-            {
-                await Auth.AuditEventLogging("open_record", new AuditEventInput { RecordUid = recordUid });
-            });
+            LogRecordAuditEvent("open_record", recordUid);
         }
 
         /// <inheritdoc/>
         public void AuditLogRecordCopyPassword(string recordUid)
         {
+            LogRecordAuditEvent("copy_password", recordUid);
+        }
+
+        /// <inheritdoc/>
+        public void AuditLogRecordRevealPassword(string recordUid)
+        {
+            LogRecordAuditEvent("revealed_password", recordUid);
+        }
+
+        private void LogRecordAuditEvent(string eventType, string recordUid)
+        {
+            if (string.IsNullOrWhiteSpace(recordUid)) return;
+
+            Auth.ScheduleAuditEventLogging(eventType, new AuditEventInput { RecordUid = recordUid });
             _ = Task.Run(async () =>
             {
-                await Auth.AuditEventLogging("copy_password", new AuditEventInput { RecordUid = recordUid });
+                try
+                {
+                    await Auth.FlushAuditEvents().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceWarning($"Unable to send client audit events: {e.Message}");
+                }
             });
         }
 

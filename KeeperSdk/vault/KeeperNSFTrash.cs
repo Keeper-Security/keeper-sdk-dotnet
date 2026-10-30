@@ -463,16 +463,58 @@ namespace KeeperSecurity.Vault
         {
             string title = null;
             string recordType = null;
+            KeeperNSFRecord decryptedRecord = null;
 
             try
             {
-                var details = await GetKeeperNSFRecordDetails(new[] { record.RecordUid }).ConfigureAwait(false);
-                var entry = details.Data.FirstOrDefault(d => d.RecordUid == record.RecordUid);
-                title = entry?.Title;
-                recordType = entry?.Type;
+                if (record.RecordKeyUnencrypted?.Length > 0)
+                {
+                    var details = await VaultOnlineFunctions.FetchKeeperNSFRecordDetailsDataAsync(
+                        this, new[] { record.RecordUid }).ConfigureAwait(false);
+                    var entry = details.Data.FirstOrDefault(d => d.RecordUid.ToByteArray().Base64UrlEncode() == record.RecordUid);
+                    if (entry != null && !string.IsNullOrEmpty(entry.EncryptedRecordData) &&
+                        CryptoUtils.TryDecryptAesV2(entry.EncryptedRecordData.Base64UrlDecode(), record.RecordKeyUnencrypted, out var json))
+                    {
+                        var data = JsonUtils.ParseJson<NsfRecordData>(json);
+                        if (data != null)
+                        {
+                            title = data.Title ?? data.Name;
+                            recordType = data.Type;
+                            decryptedRecord = new KeeperNSFRecord
+                            {
+                                RecordUid = record.RecordUid,
+                                Title = title,
+                                Type = recordType,
+                                Notes = data.Notes,
+                                Fields = KeeperNSFSync.ProjectNsfFields(data),
+                                RecordKey = record.RecordKeyUnencrypted,
+                                Data = data,
+                                DataJson = json,
+                                Revision = entry.Revision,
+                                Version = entry.Version,
+                            };
+                        }
+                    }
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Trace.TraceWarning($"Unable to load NSF trash record {record.RecordUid}: {e.Message}");
+            }
+
+            if (decryptedRecord == null)
+            {
+                try
+                {
+                    var details = await GetKeeperNSFRecordDetails(new[] { record.RecordUid }).ConfigureAwait(false);
+                    var entry = details.Data.FirstOrDefault(d => d.RecordUid == record.RecordUid);
+                    title = entry?.Title;
+                    recordType = entry?.Type;
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceWarning($"Unable to load NSF trash metadata {record.RecordUid}: {e.Message}");
+                }
             }
 
             return new KeeperNSFTrashGetResult
@@ -483,6 +525,7 @@ namespace KeeperSecurity.Vault
                 RecordType = recordType,
                 Status = "Drive",
                 DateDeleted = record.DateDeleted,
+                Record = decryptedRecord,
             };
         }
 

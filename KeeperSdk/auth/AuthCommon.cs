@@ -267,6 +267,7 @@ namespace KeeperSecurity.Authentication
         TimeSpan LogoutTimeout { get; }
 
         /// <exclude/>
+        [Obsolete("Use ScheduleAuditEventLogging followed by FlushAuditEvents")]
         Task AuditEventLogging(string eventType, AuditEventInput input = null);
 
         /// <exclude/>
@@ -274,6 +275,8 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         Task FlushAuditEvents();
+
+        Task FlushAuditEvents(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -915,64 +918,94 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private const int AuditEventChunkSize = 99;
+        private const int MaxAuditEventSendAttempts = 3;
         private readonly List<AuditEventItem> _auditEventQueue = new();
+        private readonly SemaphoreSlim _auditSendLock = new(1, 1);
+        private int _auditSendFailures;
 
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
         {
-            if (AuthContext.EnterprisePublicEcKey != null)
+            if (AuthContext?.EnterprisePublicEcKey == null) return;
+
+            lock (_auditEventQueue)
             {
-                lock (_auditEventQueue)
+                _auditEventQueue.Add(new AuditEventItem
                 {
-                    _auditEventQueue.Add(new AuditEventItem
-                    {
-                        AuditEventType = eventType,
-                        Inputs = input
-                    });
-                }
+                    AuditEventType = eventType,
+                    Inputs = input
+                });
             }
         }
 
         /// <exclude/>
-        public async Task FlushAuditEvents()
+        public Task FlushAuditEvents() => FlushAuditEvents(CancellationToken.None);
+
+        /// <exclude/>
+        public async Task FlushAuditEvents(CancellationToken cancellationToken)
         {
-            if (AuthContext.EnterprisePublicEcKey != null)
+            if (AuthContext?.EnterprisePublicEcKey == null) return;
+
+            await _auditSendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                List<AuditEventItem> events;
-                lock (_auditEventQueue)
+                while (true)
                 {
-                    events = new List<AuditEventItem>(_auditEventQueue);
-                    _auditEventQueue.Clear();
-                }
-
-                while (events.Count > 0)
-                {
-                    var chunk = events.Take(99).ToArray();
-                    events.RemoveRange(0, chunk.Length);
-
-                    var rq = new AuditEventLoggingCommand
+                    AuditEventItem[] chunk;
+                    lock (_auditEventQueue)
                     {
-                        ItemLogs = chunk
-                    };
-                    _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq);
+                        chunk = _auditEventQueue.Take(AuditEventChunkSize).ToArray();
+                    }
+                    if (chunk.Length == 0) break;
+
+                    var rq = new AuditEventLoggingCommand { ItemLogs = chunk };
+                    try
+                    {
+                        _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq)
+                            .ConfigureAwait(false);
+                        _auditSendFailures = 0;
+                    }
+                    catch
+                    {
+                        if (++_auditSendFailures >= MaxAuditEventSendAttempts)
+                        {
+                            _auditSendFailures = 0;
+                            lock (_auditEventQueue)
+                            {
+                                _auditEventQueue.RemoveRange(0, chunk.Length);
+                            }
+                            Trace.TraceWarning(
+                                $"Client audit events dropped after {MaxAuditEventSendAttempts} failed attempts: {chunk.Length} event(s)");
+                        }
+                        throw;
+                    }
+                    lock (_auditEventQueue)
+                    {
+                        _auditEventQueue.RemoveRange(0, chunk.Length);
+                    }
                 }
+            }
+            finally
+            {
+                _auditSendLock.Release();
             }
         }
 
         /// <exclude/>
+        [Obsolete("Use ScheduleAuditEventLogging followed by FlushAuditEvents")]
         public async Task AuditEventLogging(string eventType, AuditEventInput input = null)
         {
-            if (AuthContext.EnterprisePublicEcKey != null)
-            {
-                ScheduleAuditEventLogging(eventType, input);
-                await FlushAuditEvents();
-            }
+            ScheduleAuditEventLogging(eventType, input);
+            await FlushAuditEvents().ConfigureAwait(false);
         }
 
         private async Task DoLogout()
         {
             try
             {
+                try { await FlushAuditEvents().ConfigureAwait(false); }
+                catch (Exception e) { Trace.TraceWarning($"Unable to send client audit events at logout: {e.Message}"); }
                 _timer?.Dispose();
                 _timer = null;
                 SetPushNotifications(null);
@@ -997,6 +1030,18 @@ namespace KeeperSecurity.Authentication
         /// <inheritdoc/>
         public virtual void Dispose()
         {
+            try
+            {
+                var flush = Task.Run(() => FlushAuditEvents());
+                if (!flush.Wait(TimeSpan.FromSeconds(10)))
+                {
+                    Trace.TraceWarning("Timed out sending client audit events at close");
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceWarning($"Unable to send client audit events at close: {e.Message}");
+            }
             authContext = null;
             PushNotifications?.Dispose();
             _timer?.Dispose();
