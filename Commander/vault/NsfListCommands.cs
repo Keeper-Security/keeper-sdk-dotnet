@@ -272,26 +272,26 @@ namespace Commander
             if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             {
                 var jsonObj = record != null
-                    ? await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid, options.ShowInherited, options.ShowDenied, options.Unmask)
-                    : await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid, options.ShowInherited, options.ShowDenied);
+                    ? await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid,
+                        options.ShowInherited, options.ShowDenied, options.Unmask)
+                    : await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid,
+                        options.ShowInherited, options.ShowDenied);
                 Console.WriteLine(Json.SerializeFormatted(jsonObj));
             }
             else if (record != null)
             {
-                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid, options.ShowInherited, options.ShowDenied, options.Unmask);
+                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid,
+                    options.ShowInherited, options.ShowDenied, options.Unmask);
             }
             else
             {
-                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid, options.ShowInherited, options.ShowDenied);
+                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid,
+                    options.ShowInherited, options.ShowDenied);
             }
 
             if (record != null)
             {
-                vault.AuditLogRecordOpen(record.RecordUid);
-                if (options.Unmask && RecordSecurity.HasPassword(record))
-                {
-                    vault.AuditLogRecordRevealPassword(record.RecordUid);
-                }
+                AuditHelpers.LogRecordOpened(vault, record.RecordUid, options.Unmask, RecordSecurity.HasPassword(record));
             }
         }
 
@@ -716,7 +716,7 @@ namespace Commander
 
                         if (RecordSecurity.IsSensitive(f.Type) && !unmask && !string.IsNullOrEmpty(v))
                         {
-                            values.Add("********");
+                            values.Add(RecordSecurity.MaskedValue);
                             continue;
                         }
 
@@ -762,7 +762,7 @@ namespace Commander
 
             if (RecordSecurity.IsSensitive(fieldType) && !unmask)
             {
-                return "********";
+                return RecordSecurity.MaskedValue;
             }
 
             if (fieldType == "host")

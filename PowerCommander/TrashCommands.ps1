@@ -263,12 +263,12 @@ function Show-NsfTrashedItemDetails {
         $item = $Vault.GetKeeperNSFTrashItem($Uid).GetAwaiter().GetResult()
     }
     catch {
-        Write-Host "Error: $Uid is not a valid deleted record UID" -ForegroundColor Red
+        Write-Error "$Uid is not a valid deleted record UID"
         return
     }
 
     if ($null -eq $item) {
-        Write-Host "Error: $Uid is not a valid deleted record UID" -ForegroundColor Red
+        Write-Error "$Uid is not a valid deleted record UID"
         return
     }
 
@@ -280,21 +280,26 @@ function Show-NsfTrashedItemDetails {
     Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Title", $item.Title)
     if (-not $item.IsFolder) {
         Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", $item.RecordType)
-        $Vault.AuditLogRecordOpen($item.Uid)
         if ($item.Record -and $item.Record.Fields) {
             foreach ($field in $item.Record.Fields) {
                 $name = if ($field.Label) { $field.Label } else { $field.Type }
+                $firstValue = $true
                 foreach ($value in $field.Value) {
                     if ([string]::IsNullOrEmpty($value)) { continue }
                     $display = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.Type)) {
                         [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
                     } else { $value }
-                    Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $display)
+                    if ($firstValue) {
+                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $display)
+                        $firstValue = $false
+                    }
+                    else {
+                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}  {1}" -f '', $display)
+                    }
                 }
             }
-            if ($Unmask -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($item.Record)) {
-                $Vault.AuditLogRecordRevealPassword($item.Uid)
-            }
+            Write-KeeperRecordAudit -Vault $Vault -RecordUid $item.Uid `
+                -Revealed:($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($item.Record))
         }
         elseif ($Unmask -and -not $item.Record) {
             Write-Host 'Sensitive fields are unavailable for this NSF record in trash.' -ForegroundColor Yellow
@@ -1106,7 +1111,7 @@ function Get-KeeperTrashedRecordDetails {
     
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($null -eq $vault) {
-        Write-Host 'Error: Failed to get vault instance' -ForegroundColor Red
+        Write-Error "Failed to get vault instance"
         return
     }
 
@@ -1115,7 +1120,7 @@ function Get-KeeperTrashedRecordDetails {
         Invoke-TaskAndWait -Task $loadTask
     }
     catch {
-        Write-Host "Error: Failed to load deleted records: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Error "Failed to load deleted records: $($_.Exception.Message)"
         return
     }
 
@@ -1139,27 +1144,27 @@ function Get-KeeperTrashedRecordDetails {
     }
 
     if ($null -eq $record.RecordKeyUnencrypted) {
-        Write-Host "Error: Cannot retrieve record $RecordUid`: no decryption key available" -ForegroundColor Red
+        Write-Error "Cannot retrieve record $RecordUid`: no decryption key available"
         return
     }
 
     try {
         $recordData = ConvertTo-ParsedRecord -DeletedRecord $record
         if (-not $recordData) {
-            Write-Host "Error: Cannot parse record $RecordUid" -ForegroundColor Red
+            Write-Error "Cannot parse record $RecordUid"
             return
         }
 
         Show-RecordDetails -RecordData $recordData -Unmask:$Unmask
-        $vault.AuditLogRecordOpen($RecordUid)
-        if ($Unmask -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($recordData)) { $vault.AuditLogRecordRevealPassword($RecordUid) }
+        Write-KeeperRecordAudit -Vault $vault -RecordUid $RecordUid `
+            -Revealed:($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($recordData))
 
         if ($isShared) {
             Show-RecordShares -Vault $vault -RecordUid $RecordUid
         }
     }
     catch {
-        Write-Host "Error: Error displaying record details: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Error "Error displaying record details: $($_.Exception.Message)"
         Write-Verbose $_.Exception.ToString()
     }
 }
@@ -1476,19 +1481,18 @@ function Show-RecordDetails {
                 }
             }
 
-            if (-not [string]::IsNullOrEmpty($RecordData.Notes)) {
-                Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Notes", $RecordData.Notes)
-            }
         }
         elseif ($RecordData -is [KeeperSecurity.Vault.PasswordRecord]) {
             Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Title", $RecordData.Title)
-            Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($RecordData))
+            $recordType = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($RecordData)
+            Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
 
             if (-not [string]::IsNullOrEmpty($RecordData.Login)) {
                 Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Login", $RecordData.Login)
             }
             if (-not [string]::IsNullOrEmpty($RecordData.Password)) {
-                Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Password", ([KeeperSecurity.Vault.RecordSecurity]::Mask($RecordData.Password, $Unmask.IsPresent)))
+                $password = [KeeperSecurity.Vault.RecordSecurity]::Mask($RecordData.Password, $Unmask.IsPresent)
+                Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Password", $password)
             }
             if (-not [string]::IsNullOrEmpty($RecordData.Link)) {
                 Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "URL", $RecordData.Link)
@@ -1500,7 +1504,9 @@ function Show-RecordDetails {
                 foreach ($custom in $RecordData.Custom) {
                     if (-not [string]::IsNullOrEmpty($custom.Value)) {
                         $name = if (-not [string]::IsNullOrEmpty($custom.Name)) { $custom.Name } else { "Custom" }
-                        $value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($name)) { [KeeperSecurity.Vault.RecordSecurity]::Mask($custom.Value, $Unmask.IsPresent) } else { $custom.Value }
+                        $value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($name)) {
+                            [KeeperSecurity.Vault.RecordSecurity]::Mask($custom.Value, $Unmask.IsPresent)
+                        } else { $custom.Value }
                         Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $value)
                     }
                 }
@@ -1508,7 +1514,7 @@ function Show-RecordDetails {
         }
     }
     catch {
-        Write-Host "Error: Error displaying record details: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Error "Error displaying record details: $($_.Exception.Message)"
         Write-Verbose $_.Exception.ToString()
     }
 }
@@ -1567,7 +1573,9 @@ function Show-RecordField {
 
         for ($i = 0; $i -lt [Math]::Max($valueArray.Count, 1); $i++) {
             $value = if ($i -lt $valueArray.Count) { $valueArray[$i] } else { "" }
-            if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($Field.FieldName)) { $value = [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent) }
+            if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($Field.FieldName)) {
+                $value = [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
+            }
             if (-not [string]::IsNullOrEmpty($value)) {
                 if ($i -eq 0) {
                     Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $fieldName, $value)

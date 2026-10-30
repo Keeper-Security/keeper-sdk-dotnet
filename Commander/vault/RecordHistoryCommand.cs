@@ -4,6 +4,7 @@ using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -72,17 +73,13 @@ namespace Commander
 
         private static string FindRecordUid(VaultContext context, string recordName)
         {
-            if (context.Vault.TryGetKeeperRecord(recordName, out _) ||
-                context.Vault.TryGetKeeperNSFRecord(recordName, out _))
+            if (context.Vault.TryGetKeeperRecord(recordName, out _))
             {
                 return recordName;
             }
 
             // Search once, prioritizing exact matches
             var allMatches = context.Vault.KeeperRecords
-                .Select(r => new { Uid = r.Uid, Title = r.Title })
-                .Concat(context.Vault.KeeperNSFRecordEntries
-                    .Select(r => new { Uid = r.RecordUid, Title = r.Title }))
                 .Where(r => r.Title?.IndexOf(recordName, StringComparison.OrdinalIgnoreCase) >= 0)
                 .ToList();
 
@@ -160,7 +157,7 @@ namespace Commander
 
         private static string FormatChanges(RecordChange changes)
         {
-            var parts = new System.Collections.Generic.List<string>();
+            var parts = new List<string>();
             
             if ((changes & RecordChange.RecordType) != 0) parts.Add("Type");
             if ((changes & RecordChange.Title) != 0) parts.Add("Title");
@@ -203,6 +200,7 @@ namespace Commander
             Console.WriteLine();
 
             var record = rev.KeeperRecord;
+            var passwordRevealed = false;
 
             switch (record)
             {
@@ -211,19 +209,23 @@ namespace Commander
                     if (!string.IsNullOrEmpty(pr.Login))
                         WriteField("login", pr.Login);
                     if (!string.IsNullOrEmpty(pr.Password))
+                    {
                         WriteField("password", RecordSecurity.Mask(pr.Password, unmask));
+                        passwordRevealed |= unmask;
+                    }
                     if (!string.IsNullOrEmpty(pr.Link))
                         WriteField("url", pr.Link);
                     if (!string.IsNullOrEmpty(pr.Notes))
                         WriteField("notes", pr.Notes);
                     if (!string.IsNullOrEmpty(pr.Totp))
-                        WriteField("totp", RecordSecurity.Mask(pr.Totp, unmask));
-                    foreach (var custom in pr.Custom)
+                        WriteField("totp", pr.Totp);
+                    foreach (var custom in pr.Custom ?? Enumerable.Empty<CustomField>())
                     {
                         if (!string.IsNullOrEmpty(custom.Value))
                         {
                             WriteField(custom.Name ?? "custom", RecordSecurity.IsSensitive(custom.Name)
                                 ? RecordSecurity.Mask(custom.Value, unmask) : custom.Value);
+                            passwordRevealed |= unmask && string.Equals(custom.Name, "password", StringComparison.OrdinalIgnoreCase);
                         }
                     }
                     break;
@@ -240,6 +242,7 @@ namespace Commander
                         if (!string.IsNullOrEmpty(value))
                         {
                             WriteField(label.ToLower(), RecordSecurity.IsSensitive(field) ? RecordSecurity.Mask(value, unmask) : value);
+                            passwordRevealed |= unmask && string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase);
                         }
                     }
                     
@@ -255,11 +258,7 @@ namespace Commander
             }
             
             Console.WriteLine();
-            context.Vault.AuditLogRecordOpen(recordUid);
-            if (unmask && RecordSecurity.HasPassword(record))
-            {
-                context.Vault.AuditLogRecordRevealPassword(recordUid);
-            }
+            AuditHelpers.LogPasswordRevealed(context.Vault, recordUid, passwordRevealed);
         }
 
         private static void WriteField(string label, string value)
@@ -304,7 +303,8 @@ namespace Commander
                         var version = firstField ? versionLabel : "";
                         var newValue = TruncateValue(diff.Sensitive ? RecordSecurity.Mask(diff.NewValue, unmask) : diff.NewValue, 53);
                         var oldValue = TruncateValue(diff.Sensitive ? RecordSecurity.Mask(diff.OldValue, unmask) : diff.OldValue, 51);
-                        revealedPassword |= unmask && diff.Password && (!string.IsNullOrEmpty(diff.NewValue) || !string.IsNullOrEmpty(diff.OldValue));
+                        revealedPassword |= unmask && diff.Password &&
+                            (!string.IsNullOrEmpty(diff.NewValue) || !string.IsNullOrEmpty(diff.OldValue));
                         
                         Console.WriteLine($"{version,-9}  {diff.Field,-10}  {newValue,-53}  {oldValue}");
                         firstField = false;
@@ -313,16 +313,12 @@ namespace Commander
             }
 
             Console.WriteLine();
-            context.Vault.AuditLogRecordOpen(recordUid);
-            if (revealedPassword)
-            {
-                context.Vault.AuditLogRecordRevealPassword(recordUid);
-            }
+            AuditHelpers.LogPasswordRevealed(context.Vault, recordUid, revealedPassword);
         }
 
-        private static System.Collections.Generic.List<FieldDiff> GetRecordDifferences(KeeperRecord current, KeeperRecord previous)
+        private static List<FieldDiff> GetRecordDifferences(KeeperRecord current, KeeperRecord previous)
         {
-            var diffs = new System.Collections.Generic.List<FieldDiff>();
+            var diffs = new List<FieldDiff>();
 
             if (current is PasswordRecord currentPr)
             {
@@ -336,13 +332,17 @@ namespace Commander
                     if (!string.IsNullOrEmpty(currentPr.Login))
                         diffs.Add(new FieldDiff { Field = "(login)", NewValue = currentPr.Login, OldValue = "" });
                     if (!string.IsNullOrEmpty(currentPr.Password))
-                        diffs.Add(new FieldDiff { Field = "(password)", NewValue = currentPr.Password, OldValue = "", Sensitive = true, Password = true });
+                        diffs.Add(new FieldDiff
+                        {
+                            Field = "(password)", NewValue = currentPr.Password, OldValue = "",
+                            Sensitive = true, Password = true
+                        });
                     if (!string.IsNullOrEmpty(currentPr.Link))
                         diffs.Add(new FieldDiff { Field = "(url)", NewValue = currentPr.Link, OldValue = "" });
                     if (!string.IsNullOrEmpty(currentPr.Notes))
                         diffs.Add(new FieldDiff { Field = "(notes)", NewValue = currentPr.Notes, OldValue = "" });
                     if (!string.IsNullOrEmpty(currentPr.Totp))
-                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp, OldValue = "", Sensitive = true });
+                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp, OldValue = "" });
                 }
                 else
                 {
@@ -352,13 +352,17 @@ namespace Commander
                     if (currentPr.Login != previousPr.Login)
                         diffs.Add(new FieldDiff { Field = "(login)", NewValue = currentPr.Login ?? "", OldValue = previousPr.Login ?? "" });
                     if (currentPr.Password != previousPr.Password)
-                        diffs.Add(new FieldDiff { Field = "(password)", NewValue = currentPr.Password ?? "", OldValue = previousPr.Password ?? "", Sensitive = true, Password = true });
+                        diffs.Add(new FieldDiff
+                        {
+                            Field = "(password)", NewValue = currentPr.Password ?? "",
+                            OldValue = previousPr.Password ?? "", Sensitive = true, Password = true
+                        });
                     if (currentPr.Link != previousPr.Link)
                         diffs.Add(new FieldDiff { Field = "(url)", NewValue = currentPr.Link ?? "", OldValue = previousPr.Link ?? "" });
                     if (currentPr.Notes != previousPr.Notes)
                         diffs.Add(new FieldDiff { Field = "(notes)", NewValue = currentPr.Notes ?? "", OldValue = previousPr.Notes ?? "" });
                     if (currentPr.Totp != previousPr.Totp)
-                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp ?? "", OldValue = previousPr.Totp ?? "", Sensitive = true });
+                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp ?? "", OldValue = previousPr.Totp ?? "" });
                 }
                 var currentCustom = currentPr.Custom ?? Enumerable.Empty<CustomField>();
                 var previousCustom = previousPr?.Custom ?? Enumerable.Empty<CustomField>();
@@ -367,11 +371,17 @@ namespace Commander
                     .Where(x => !string.IsNullOrEmpty(x)).Distinct(StringComparer.OrdinalIgnoreCase);
                 foreach (var name in customNames)
                 {
-                    var value = currentCustom.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))?.Value ?? "";
-                    var oldValue = previousCustom.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))?.Value ?? "";
+                    var value = currentCustom.FirstOrDefault(x =>
+                        string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))?.Value ?? "";
+                    var oldValue = previousCustom.FirstOrDefault(x =>
+                        string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))?.Value ?? "";
                     if (value == oldValue) continue;
-                    diffs.Add(new FieldDiff { Field = $"({name})", NewValue = value, OldValue = oldValue,
-                        Sensitive = RecordSecurity.IsSensitive(name), Password = string.Equals(name, "password", StringComparison.OrdinalIgnoreCase) });
+                    diffs.Add(new FieldDiff
+                    {
+                        Field = $"({name})", NewValue = value, OldValue = oldValue,
+                        Sensitive = RecordSecurity.IsSensitive(name),
+                        Password = string.Equals(name, "password", StringComparison.OrdinalIgnoreCase)
+                    });
                 }
             }
             else if (current is TypedRecord currentTr)
@@ -393,7 +403,12 @@ namespace Commander
                         if (!string.IsNullOrEmpty(value))
                         {
                             var label = !string.IsNullOrEmpty(field.FieldLabel) ? field.FieldLabel : field.FieldName;
-                            diffs.Add(new FieldDiff { Field = $"({label.ToLower()})", NewValue = value, OldValue = "", Sensitive = RecordSecurity.IsSensitive(field), Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase) });
+                            diffs.Add(new FieldDiff
+                            {
+                                Field = $"({label.ToLower()})", NewValue = value, OldValue = "",
+                                Sensitive = RecordSecurity.IsSensitive(field),
+                                Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                            });
                         }
                     }
 
@@ -413,12 +428,18 @@ namespace Commander
                         var currentValue = string.Join(", ", field.GetTypedFieldValues());
                             
                         var previousFields = currentCustomFields.Contains(field) ? previousCustomFields : previousStandardFields;
-                        var previousField = previousFields?.FirstOrDefault(f => f.FieldName == field.FieldName && f.FieldLabel == field.FieldLabel);
+                        var previousField = previousFields.FirstOrDefault(f =>
+                            f.FieldName == field.FieldName && f.FieldLabel == field.FieldLabel);
                         var previousValue = previousField == null ? "" : string.Join(", ", previousField.GetTypedFieldValues());
 
                         if (currentValue != previousValue)
                         {
-                            diffs.Add(new FieldDiff { Field = $"({label.ToLower()})", NewValue = currentValue, OldValue = previousValue, Sensitive = RecordSecurity.IsSensitive(field), Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase) });
+                            diffs.Add(new FieldDiff
+                            {
+                                Field = $"({label.ToLower()})", NewValue = currentValue, OldValue = previousValue,
+                                Sensitive = RecordSecurity.IsSensitive(field),
+                                Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                            });
                         }
                     }
 
@@ -431,8 +452,12 @@ namespace Commander
                         var oldValue = string.Join(", ", field.GetTypedFieldValues());
                         if (string.IsNullOrEmpty(oldValue)) continue;
                         var label = !string.IsNullOrEmpty(field.FieldLabel) ? field.FieldLabel : field.FieldName;
-                        diffs.Add(new FieldDiff { Field = $"({label.ToLowerInvariant()})", NewValue = "", OldValue = oldValue,
-                            Sensitive = RecordSecurity.IsSensitive(field), Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase) });
+                        diffs.Add(new FieldDiff
+                        {
+                            Field = $"({label.ToLowerInvariant()})", NewValue = "", OldValue = oldValue,
+                            Sensitive = RecordSecurity.IsSensitive(field),
+                            Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                        });
                     }
 
                     if (currentTr.Notes != previousTr.Notes)
@@ -544,7 +569,7 @@ namespace Commander
         [Option('r', "revision", Required = false, HelpText = "Revision number for view/diff/restore actions")]
         public int? Revision { get; set; }
 
-        [Option("unmask", Required = false, HelpText = "Display sensitive fields and log a password reveal")]
+        [Option("unmask", Required = false, HelpText = "display hidden field content with 'view' and 'diff' actions")]
         public bool Unmask { get; set; }
     }
 }

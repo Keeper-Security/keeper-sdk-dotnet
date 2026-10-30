@@ -368,7 +368,10 @@ namespace KeeperSecurity.Vault
         /// <param name="recordUid"></param>
         void AuditLogRecordCopyPassword(string recordUid);
 
-        /// <summary>Records a <c>revealed_password</c> audit event for enterprise accounts.</summary>
+        /// <summary>
+        /// Records "revealed_password" audit event for enterprise accounts
+        /// </summary>
+        /// <param name="recordUid"></param>
         void AuditLogRecordRevealPassword(string recordUid);
 
         /// <summary>

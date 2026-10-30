@@ -18,29 +18,15 @@ namespace KeeperSecurity
         {          
             public async Task<RecordHistory[]> GetRecordHistory(string recordUid)
             {
-                byte[] recordKey;
-                if (TryGetKeeperRecord(recordUid, out var record))
-                {
-                    recordKey = record.RecordKey;
-                }
-                else if (TryGetKeeperNSFRecord(recordUid, out var nsfRecord))
-                {
-                    recordKey = nsfRecord.RecordKey;
-                }
-                else
+                if (!TryGetKeeperRecord(recordUid, out var record))
                 {
                     throw new Exception($"Record UID {recordUid} not found");
-                }
-
-                if (recordKey == null || recordKey.Length == 0)
-                {
-                    throw new InvalidOperationException($"Record key for {recordUid} is unavailable");
                 }
 
                 var rs = await FetchRecordHistoryResponseAsync(Auth, recordUid)
                 .ConfigureAwait(false);
 
-                var history = ParseRecordHistory(recordKey, rs.History);
+                var history = ParseRecordHistory(record.RecordKey, rs.History);
                 history.Reverse();
                 return history.ToArray();
             }
