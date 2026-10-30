@@ -465,6 +465,15 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public abstract object AuthCallback { get; }
 
+        /// <summary>
+        /// Optional post-login UI supplied independently of the authentication callback.
+        /// </summary>
+        /// <remarks>
+        /// This allows hosts to provide password-change and confirmation UI without replacing
+        /// the callback used by their login flow.
+        /// </remarks>
+        public IPostLoginTaskUI PostLoginTaskUI { get; set; }
+
         public TimeSpan LogoutTimeout { get; internal set; } = TimeSpan.FromHours(1);
 
         private void ResetKeepAliveTimer()
@@ -818,14 +827,18 @@ namespace KeeperSecurity.Authentication
 
             if (authContext.SessionTokenRestriction != 0)
             {
-                if (AuthCallback is IPostLoginTaskUI postUi)
+                var postUi = AuthCallback as IPostLoginTaskUI ?? PostLoginTaskUI;
+                if (postUi != null)
                 {
                     if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                     {
                         var accountExpiredDescription =
                             "Your Keeper account has expired. Please open the Keeper app to renew " +
                             $"or visit the Web Vault at https://{Endpoint.Server}/vault";
-                        await postUi.Confirmation(accountExpiredDescription);
+                        if (!await postUi.Confirmation(accountExpiredDescription))
+                        {
+                            throw new KeeperCanceled();
+                        }
                     }
                     else
                     {

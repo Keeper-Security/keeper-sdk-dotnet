@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using System;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Utils;
 
 namespace KeeperSecurity
 {
@@ -44,6 +47,79 @@ namespace KeeperSecurity
 
     namespace Utils
     {
+        /// <summary>
+        /// Calculates the Commander master-password strength score using zxcvbn.
+        /// </summary>
+        public static class MasterPasswordStrength
+        {
+            /// <summary>
+            /// Gets the Commander strength score: 25 (weak), 50 (fair), 75 (medium), or 100 (strong).
+            /// Returns 0 if the score cannot be calculated.
+            /// </summary>
+            public static int GetScore(string password)
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    return 0;
+                }
+
+                try
+                {
+                    var result = Zxcvbn.Core.EvaluatePassword(password, null);
+                    switch (result.Score)
+                    {
+                        case 0:
+                        case 1:
+                            return 25;
+                        case 2:
+                            return 50;
+                        case 3:
+                            return 75;
+                        case 4:
+                            return 100;
+                        default:
+                            return 0;
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Keep password-change behavior available if the estimator fails, but don't
+                    // misreport the password as weak.
+                    Trace.TraceWarning("Master password strength evaluation failed: {0}", e.GetType().Name);
+                    return 0;
+                }
+            }
+
+            /// <summary>
+            /// Gets the display category corresponding to a Commander strength score.
+            /// Returns UNKNOWN for scores that cannot be mapped to a known category.
+            /// </summary>
+            public static string GetCategory(int score)
+            {
+                switch (score)
+                {
+                    case 25:
+                        return "WEAK";
+                    case 50:
+                        return "FAIR";
+                    case 75:
+                        return "MEDIUM";
+                    case 100:
+                        return "STRONG";
+                    default:
+                        return "UNKNOWN";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Optional callback for hosts that want to display the estimated master-password strength.
+        /// </summary>
+        public interface IMasterPasswordStrengthUI
+        {
+            Task ReportMasterPasswordStrength(int score, string category);
+        }
+
         /// <summary>
         ///     Represents a password complexity rule matcher.
         /// </summary>
@@ -130,7 +206,9 @@ namespace KeeperSecurity
 
             public static async Task<string> ChangeMasterPassword(this IAuthentication auth)
             {
-                if (auth.AuthCallback is IPostLoginTaskUI postUi)
+                var postUi = auth.AuthCallback as IPostLoginTaskUI
+                    ?? (auth as AuthCommon)?.PostLoginTaskUI;
+                if (postUi != null)
                 {
                     var userParams = await auth.Endpoint.GetNewUserParams(auth.Username);
 
@@ -146,9 +224,21 @@ namespace KeeperSecurity
                     var ruleMatcher = new PasswordRuleMatcher(rules);
 
                     var newPassword = await postUi.GetNewPassword(ruleMatcher);
+                    if (string.IsNullOrEmpty(newPassword))
+                    {
+                        throw new KeeperApiException("invalid_password", "Master Password cannot be empty.");
+                    }
 
                     var failedRules = ruleMatcher.MatchFailedRules(newPassword);
                     if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
+
+                    var strengthScore = MasterPasswordStrength.GetScore(newPassword);
+                    if (postUi is IMasterPasswordStrengthUI strengthUi)
+                    {
+                        await strengthUi.ReportMasterPasswordStrength(
+                            strengthScore,
+                            MasterPasswordStrength.GetCategory(strengthScore));
+                    }
 
                     const int iterations = 1_000_000;
                     var authSalt = CryptoUtils.GetRandomBytes(16);
