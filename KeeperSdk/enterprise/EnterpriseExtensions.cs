@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Linq;
 
 namespace KeeperSecurity.Enterprise
 {
@@ -55,7 +56,20 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Awaitable task returning created node</returns>
         public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterpriseData, string nodeName, EnterpriseNode parentNode = null)
         {
+            if (enterpriseData == null) throw new ArgumentNullException(nameof(enterpriseData));
             parentNode ??= enterpriseData.RootNode;
+            if (parentNode == null)
+            {
+                throw new EnterpriseException("Enterprise root node is not loaded. Sync enterprise data and try again.");
+            }
+
+            bool NodeExists() => enterpriseData.Nodes.Any(x => x.ParentNodeId == parentNode.Id
+                && string.Equals(x.DisplayName, nodeName, StringComparison.OrdinalIgnoreCase));
+            if (NodeExists())
+            {
+                throw new EnterpriseException($"Node '{nodeName}' already exists");
+            }
+
             var encryptedData = new EncryptedData
             {
                 DisplayName = nodeName
@@ -71,7 +85,30 @@ namespace KeeperSecurity.Enterprise
             {
                 rq.ParentId = parentNode.Id;
             }
-            await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+            try
+            {
+                await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+            }
+            catch (KeeperApiException)
+            {
+                var refreshed = false;
+                try
+                {
+                    await enterpriseData.Enterprise.Load();
+                    refreshed = true;
+                }
+                catch
+                {
+                    // Preserve the original API error if refreshing enterprise data fails.
+                }
+
+                if (refreshed && NodeExists())
+                {
+                    throw new EnterpriseException($"Node '{nodeName}' already exists");
+                }
+
+                throw;
+            }
 
             await enterpriseData.Enterprise.Load();
             enterpriseData.TryGetNode(nodeId, out var node);

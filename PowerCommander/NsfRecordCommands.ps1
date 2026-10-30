@@ -1005,6 +1005,9 @@ function Set-KeeperNSFRecordAccess {
 
 	.Parameter ExpireAt
 	Optional. Absolute share expiration as ISO datetime (e.g. 2027-01-01T00:00:00Z).
+
+	.Parameter Force
+	Skip confirmation before revoking access.
 #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
@@ -1029,7 +1032,11 @@ function Set-KeeperNSFRecordAccess {
 
         [Alias('expire-at')]
         [Parameter()]
-        [string] $ExpireAt
+        [string] $ExpireAt,
+
+        [Alias('f')]
+        [Parameter()]
+        [switch] $Force
     )
 
     try {
@@ -1064,6 +1071,14 @@ function Set-KeeperNSFRecordAccess {
         }
         $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
         $shareOptions.Expiration = $expirationDto
+    }
+
+    if ($Action -eq 'revoke' -and -not $Force.IsPresent) {
+        $confirmation = Read-Host "Are you sure you want to revoke access to record '$RecordUid' from $($Email.Count) user(s)? (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Revoke operation cancelled"
+            return
+        }
     }
 
     foreach ($user in $Email) {

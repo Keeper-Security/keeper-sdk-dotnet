@@ -41,17 +41,23 @@ function Add-KeeperEnterpriseUser {
         $inviteOptions.FullName = $FullName
     }
 
-    $user = $enterprise.enterpriseData.InviteUser($Email, $inviteOptions).GetAwaiter().GetResult()
-    if ($user) {
-        Write-Output "User `"$Email`" is invited"
-    }
-
-    $inviteOptions.FullName = $null
-    foreach ($e in $Emails) {
-        $user = $enterprise.enterpriseData.InviteUser($e, $inviteOptions).GetAwaiter().GetResult()
+    try {
+        $user = $enterprise.enterpriseData.InviteUser($Email, $inviteOptions).GetAwaiter().GetResult()
         if ($user) {
-            Write-Output "User `"$e`" is invited"
+            Write-Output "User `"$Email`" is invited"
         }
+
+        $inviteOptions.FullName = $null
+        foreach ($e in $Emails) {
+            $user = $enterprise.enterpriseData.InviteUser($e, $inviteOptions).GetAwaiter().GetResult()
+            if ($user) {
+                Write-Output "User `"$e`" is invited"
+            }
+        }
+    }
+    catch {
+        Write-Error -Message (Get-KeeperExceptionMessage -Exception $_.Exception)
+        return
     }
 }
 New-Alias -Name invite-user -Value Add-KeeperEnterpriseUser
