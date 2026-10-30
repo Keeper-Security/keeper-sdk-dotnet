@@ -891,16 +891,15 @@ function Revoke-KeeperSharedFolderTeamSkipSync {
 function New-KeeperOneTimeShareSkipSync {
     <#
     .SYNOPSIS
-    Create a temporary share link for a record you own - no full sync required
+    Create a temporary share link for a record you own or can access - no full sync required
 
     .DESCRIPTION
-    Quickly generate a secure one-time share link for records you own without syncing your entire vault.
-
-    IMPORTANT: Works ONLY for records you own. If you need to share records from shared folders,
-    use the standard New-KeeperOneTimeShare command instead.
+    Quickly generate a secure one-time share link without syncing your entire vault.
+    Use a classic record UID. Shared-folder access is resolved automatically.
+    Keeper NSF records are not supported.
 
     .PARAMETER RecordUid
-    The record ID (UID) of the record to share. Must be a record you own.
+    The record ID (UID) of the record to share.
 
     .PARAMETER ExpireIn
     Optional. Expiration offset (TimeSpan, string, or integer in minutes)
@@ -912,7 +911,8 @@ function New-KeeperOneTimeShareSkipSync {
     Optional. Custom label for the one-time share.
 
     .PARAMETER Editable
-    Optional. Allows the share recipient to edit the record.
+    Optional. Creates an editable link if edit access is confirmed. Without edit access, the link is view-only.
+    The command fails if edit access cannot be confirmed.
 
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 30
@@ -921,6 +921,7 @@ function New-KeeperOneTimeShareSkipSync {
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 7d -ShareName "Team Access"
     Creates a share link that lasts 7 days with the name "Team Access".
+
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -944,10 +945,14 @@ function New-KeeperOneTimeShareSkipSync {
             throw "Expiration time must be in the future. The time you specified is in the past."
         }
 
-        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareAsync(
+        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareWithStatusAsync(
             $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName, $Editable.IsPresent)
+        $shareResult = __AwaitSkipSyncTask $task
+        if ($Editable.IsPresent -and $shareResult.CanEdit -eq $false) {
+            Write-Warning "You do not have edit permission for record '$($RecordUid.Trim())'. Creating a view-only share."
+        }
 
-        $shareUrl = __AwaitSkipSyncTask $task
+        $shareUrl = $shareResult.ShareUrl
         Write-Host ""
         Write-Host "  Share created successfully!" -ForegroundColor Green
         Write-Host "  Share URL:"
@@ -963,10 +968,10 @@ function New-KeeperOneTimeShareSkipSync {
 function Get-KeeperOneTimeShareSkipSync {
     <#
     .SYNOPSIS
-    View all active share links for a record you own
+    View all active share links for a record you own or can access
 
     .DESCRIPTION
-    Display all temporary share links created for one of your records without needing to sync your vault.
+    Display all temporary share links for a record without needing to sync your vault.
     Shows details like creation date, expiration date, and access history.
 
     .PARAMETER RecordUid
