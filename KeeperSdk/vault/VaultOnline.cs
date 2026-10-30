@@ -940,9 +940,7 @@ namespace KeeperSecurity.Vault
                 ro.TeamUid = ByteString.CopyFrom(accessPath.TeamUid.Base64UrlDecode());
             }
 
-            var activeTargetPermission = targetPermission != null &&
-                (!targetPermission.Expiration.HasValue || targetPermission.Expiration.Value > DateTimeOffset.UtcNow);
-            var isAdd = !activeTargetPermission || forceAdd;
+            var isAdd = targetPermission == null || forceAdd;
             if (isAdd)
             {
                 await Auth.LoadUsersKeys(Enumerable.Repeat(username, 1));

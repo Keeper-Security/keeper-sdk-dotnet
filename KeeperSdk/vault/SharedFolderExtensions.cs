@@ -58,9 +58,7 @@ namespace KeeperSecurity.Vault
                     Username = userId,
                 };
                 VaultShareExpirationExtensions.ApplyShareExpiration(options, sfuu);
-                var activeExistingPermission = existingPermission != null &&
-                    (!existingPermission.Expiration.HasValue || existingPermission.Expiration.Value > DateTimeOffset.UtcNow);
-                if (activeExistingPermission && !forceAdd)
+                if (existingPermission != null && !forceAdd)
                 {
                     sfuu.ManageUsers = options?.ManageUsers == null
                         ? SetBooleanValue.BooleanNoChange
@@ -128,9 +126,7 @@ namespace KeeperSecurity.Vault
                 };
                 VaultShareExpirationExtensions.ApplyShareExpiration(options, sfut);
 
-                var activeExistingPermission = existingPermission != null &&
-                    (!existingPermission.Expiration.HasValue || existingPermission.Expiration.Value > DateTimeOffset.UtcNow);
-                if (activeExistingPermission && !forceAdd)
+                if (existingPermission != null && !forceAdd)
                 {
                     sfut.ManageUsers = options?.ManageUsers ?? existingPermission.ManageUsers;
                     sfut.ManageRecords = options?.ManageRecords ?? existingPermission.ManageRecords;
