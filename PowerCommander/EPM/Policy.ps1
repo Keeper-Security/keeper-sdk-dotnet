@@ -321,12 +321,21 @@ function script:Assert-EpmPolicyRequiredParams {
     $required = $rules[$PolicyType]
     if (-not $required) { return }
 
-    $missing = @($required.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object { "-$($_.Key)" })
+    # Do not enumerate the hashtable directly: Windows PowerShell 5.1 does not
+    # guarantee its order, which makes the validation message inconsistent.
+    $missing = @()
+    foreach ($parameterName in @('AppFilter', 'UserFilter', 'MachineFilter', 'Control')) {
+        if ($required.ContainsKey($parameterName) -and -not $required[$parameterName]) {
+            $missing += "-$parameterName"
+        }
+    }
     if ($missing.Count -gt 0) {
         $msg = "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')"
         if ($ErrorSuffix) { $msg += ". $ErrorSuffix" }
-        Write-Error -Message $msg -ErrorAction Stop
+        return $msg
     }
+
+    return $null
 }
 
 function script:GetPedmPolicyAgentsResponse {
@@ -540,9 +549,9 @@ function Add-KeeperEpmPolicy {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Position = 0)]
         [string] $PolicyName,
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [ValidateSet('PrivilegeElevation', 'FileAccess', 'CommandLine', 'LeastPrivilege')]
         [string] $PolicyType,
         [Parameter()]
@@ -572,15 +581,29 @@ function Add-KeeperEpmPolicy {
         [string[]] $TimeFilter
     )
 
-    $plugin = ensureEpmPlugin
-    if (-not $plugin) {
-        Write-Error -Message 'EPM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
+    if ([string]::IsNullOrWhiteSpace($PolicyName)) {
+        Write-Output 'Policy name is required to save a policy.'
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($PolicyType)) {
+        Write-Output 'Policy type is required to save a policy.'
+        return
     }
 
     if ($Status -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
-        Assert-EpmPolicyRequiredParams -PolicyType $PolicyType `
+        $validationMessage = Assert-EpmPolicyRequiredParams -PolicyType $PolicyType `
             -HasMachine ([bool]$MachineFilter) -HasUser ([bool]$UserFilter) `
             -HasApp ([bool]$AppFilter) -HasControl ([bool]$Control)
+        if ($validationMessage) {
+            Write-Output $validationMessage
+            return
+        }
+    }
+
+    $plugin = ensureEpmPlugin
+    if (-not $plugin) {
+        Write-Error -Message 'EPM plugin is not available. Enterprise admin access is required.' -ErrorAction Stop
     }
 
     $policyUid = [KeeperSecurity.Utils.CryptoUtils]::GenerateUid()
@@ -822,10 +845,14 @@ function Update-KeeperEpmPolicy {
                 $hasControl = $true
             }
         }
-        Assert-EpmPolicyRequiredParams -PolicyType $effectiveType `
+        $validationMessage = Assert-EpmPolicyRequiredParams -PolicyType $effectiveType `
             -HasMachine ([bool]$hasMachine) -HasUser ([bool]$hasUser) `
             -HasApp ([bool]$hasApp) -HasControl ([bool]$hasControl) `
             -ErrorSuffix 'Provide them or set -Status off'
+        if ($validationMessage) {
+            Write-Output $validationMessage
+            return
+        }
     }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress
