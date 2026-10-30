@@ -67,10 +67,15 @@ namespace KeeperSecurity.Vault
                 if (details == null)
                     return null;
 
-                var directEdit = details.UserPermission.Any(permission =>
-                    string.Equals(permission.Username, auth.Username, StringComparison.OrdinalIgnoreCase)
-                    && (permission.Owner || permission.Editable));
-                return directEdit || details.SharedFolderPermission.Any(permission => permission.Editable);
+                var userPermission = string.IsNullOrWhiteSpace(auth.Username)
+                    ? null
+                    : details.UserPermission.FirstOrDefault(permission =>
+                        string.Equals(permission.Username, auth.Username, StringComparison.OrdinalIgnoreCase));
+                if (userPermission == null && details.SharedFolderPermission.Count == 0)
+                    return null;
+
+                return (userPermission != null && (userPermission.Owner || userPermission.Editable))
+                    || details.SharedFolderPermission.Any(permission => permission.Editable);
             }
             catch
             {

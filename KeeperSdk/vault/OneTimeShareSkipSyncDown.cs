@@ -28,7 +28,7 @@ namespace KeeperSecurity.Vault
         /// <summary>Whether the recipient can edit the record.</summary>
         public bool IsEditable { get; }
 
-        /// <summary>Current user's edit permission, or null if it was not checked or could not be checked.</summary>
+        /// <summary>Current user's edit permission, or null if edit mode was not requested.</summary>
         public bool? CanEdit { get; }
     }
 
@@ -42,11 +42,11 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="auth">Authenticated session (IAuthentication, not VaultOnline).</param>
         /// <param name="recordUid">The UID of the record to share.</param>
-        /// <param name="expireIn">Share lifetime; must be at least one second and no longer than 180 days.</param>
-        /// <param name="shareName">Optional label for the one-time share.</param>
+        /// <param name="expireIn">Share lifetime; must be at least five minutes and no longer than 180 days.</param>
+        /// <param name="shareName">Optional label; surrounding whitespace is removed.</param>
         /// <param name="isEditable">Allow editing only if the current user has edit access.</param>
         /// <returns>The one-time share URL (includes embedded client key in fragment).</returns>
-        /// <exception cref="VaultException">If the record is not accessible or its key cannot be decrypted.</exception>
+        /// <exception cref="VaultException">If the record is not accessible, its key cannot be decrypted, or edit access cannot be confirmed.</exception>
         public static async Task<string> CreateExternalRecordShareAsync(
             IAuthentication auth,
             string recordUid,
@@ -64,11 +64,11 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="auth">Authenticated session.</param>
         /// <param name="recordUid">Classic record UID.</param>
-        /// <param name="expireIn">Share lifetime; must be at least one second and no longer than 180 days.</param>
-        /// <param name="shareName">Optional label for the one-time share.</param>
+        /// <param name="expireIn">Share lifetime; must be at least five minutes and no longer than 180 days.</param>
+        /// <param name="shareName">Optional label; surrounding whitespace is removed.</param>
         /// <param name="isEditable">Allow editing only if the current user has edit access.</param>
         /// <returns>The URL and the effective edit settings.</returns>
-        /// <exception cref="VaultException">If the record is not accessible or its key cannot be decrypted.</exception>
+        /// <exception cref="VaultException">If the record is not accessible, its key cannot be decrypted, or edit access cannot be confirmed.</exception>
         public static async Task<ExternalRecordShareCreationResult> CreateExternalRecordShareWithStatusAsync(
             IAuthentication auth,
             string recordUid,
@@ -80,8 +80,8 @@ namespace KeeperSecurity.Vault
                 throw new VaultException("An authenticated session is needed.");
             if (string.IsNullOrWhiteSpace(recordUid))
                 throw new ArgumentException("recordUid is required.", nameof(recordUid));
-            if (expireIn < TimeSpan.FromSeconds(1))
-                throw new ArgumentOutOfRangeException(nameof(expireIn), "Share expiration must be at least one second.");
+            if (expireIn < TimeSpan.FromMinutes(5))
+                throw new ArgumentOutOfRangeException(nameof(expireIn), "Share expiration must be at least five minutes.");
             if (expireIn > TimeSpan.FromDays(180))
                 throw new ArgumentOutOfRangeException(nameof(expireIn), "Share expiration cannot exceed 180 days.");
 
@@ -110,7 +110,14 @@ namespace KeeperSecurity.Vault
                 {
                     bool? canEdit = null;
                     if (isEditable)
+                    {
                         canEdit = await RecordSkipSyncDown.CanEditRecordAsync(auth, typedRecord.Uid).ConfigureAwait(false);
+                        if (canEdit == null)
+                        {
+                            throw new VaultException(
+                                $"Could not confirm edit permission for record \"{typedRecord.Uid}\". No share was created.");
+                        }
+                    }
                     var effectiveEditable = isEditable && canEdit == true;
 
                     var shareUrl = await CreateExternalRecordShareInternalAsync(
@@ -154,6 +161,7 @@ namespace KeeperSecurity.Vault
             if (recordKey == null || recordKey.Length != 32)
                 throw new VaultException("A valid 256-bit record key is required to create an external share.");
 
+            var normalizedShareName = string.IsNullOrWhiteSpace(shareName) ? null : shareName.Trim();
             var clientKey = CryptoUtils.GenerateEncryptionKey();
             byte[] clientId;
             using (var hmac = new HMACSHA512(clientKey))
@@ -170,9 +178,9 @@ namespace KeeperSecurity.Vault
                 IsEditable = isEditable,
             };
 
-            if (!string.IsNullOrEmpty(shareName))
+            if (normalizedShareName != null)
             {
-                request.Id = shareName;
+                request.Id = normalizedShareName;
             }
 
             return await auth.AddExternalShareAndBuildUriAsync(request, clientKey)

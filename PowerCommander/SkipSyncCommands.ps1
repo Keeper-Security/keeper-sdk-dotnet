@@ -911,7 +911,8 @@ function New-KeeperOneTimeShareSkipSync {
     Optional. Custom label for the one-time share.
 
     .PARAMETER Editable
-    Optional. Creates an editable link if you have edit access. Otherwise, the link is view-only and a warning is shown.
+    Optional. Creates an editable link if edit access is confirmed. Without edit access, the link is view-only.
+    The command fails if edit access cannot be confirmed.
 
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 30
@@ -947,13 +948,8 @@ function New-KeeperOneTimeShareSkipSync {
         $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareWithStatusAsync(
             $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName, $Editable.IsPresent)
         $shareResult = __AwaitSkipSyncTask $task
-        if ($Editable.IsPresent -and -not $shareResult.IsEditable) {
-            if ($null -eq $shareResult.CanEdit) {
-                Write-Warning "Could not confirm edit permission for record '$($RecordUid.Trim())'. Creating a view-only share."
-            }
-            else {
-                Write-Warning "You do not have edit permission for record '$($RecordUid.Trim())'. Creating a view-only share."
-            }
+        if ($Editable.IsPresent -and $shareResult.CanEdit -eq $false) {
+            Write-Warning "You do not have edit permission for record '$($RecordUid.Trim())'. Creating a view-only share."
         }
 
         $shareUrl = $shareResult.ShareUrl
