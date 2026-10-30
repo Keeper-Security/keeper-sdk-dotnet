@@ -258,7 +258,10 @@ namespace Commander
             }
             
             Console.WriteLine();
-            AuditHelpers.LogPasswordRevealed(context.Vault, recordUid, passwordRevealed);
+            if (passwordRevealed)
+            {
+                context.Vault.AuditLogRecordRevealPassword(recordUid);
+            }
         }
 
         private static void WriteField(string label, string value)
@@ -313,10 +316,13 @@ namespace Commander
             }
 
             Console.WriteLine();
-            AuditHelpers.LogPasswordRevealed(context.Vault, recordUid, revealedPassword);
+            if (revealedPassword)
+            {
+                context.Vault.AuditLogRecordRevealPassword(recordUid);
+            }
         }
 
-        private static List<FieldDiff> GetRecordDifferences(KeeperRecord current, KeeperRecord previous)
+        internal static List<FieldDiff> GetRecordDifferences(KeeperRecord current, KeeperRecord previous)
         {
             var diffs = new List<FieldDiff>();
 
@@ -479,7 +485,7 @@ namespace Commander
             return value.Substring(0, maxLength - 3) + "...";
         }
 
-        private class FieldDiff
+        internal class FieldDiff
         {
             public string Field { get; set; }
             public string NewValue { get; set; }

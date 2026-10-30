@@ -559,8 +559,10 @@ function Get-KeeperNSFRecord {
     }
 
     if ($kdRecord) {
-        Write-KeeperRecordAudit -Vault $vault -RecordUid $kdRecord.RecordUid -Opened `
-            -Revealed:($reveal -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($kdRecord))
+        $vault.AuditLogRecordOpen($kdRecord.RecordUid)
+        if ($reveal -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($kdRecord)) {
+            $vault.AuditLogRecordRevealPassword($kdRecord.RecordUid)
+        }
     }
 }
 

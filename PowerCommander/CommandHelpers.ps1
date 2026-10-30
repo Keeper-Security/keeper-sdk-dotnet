@@ -40,10 +40,3 @@ function Write-KeeperShareFailure {
     Write-Host $Message -ForegroundColor Red
     return $true
 }
-
-function Write-KeeperRecordAudit {
-    param($Vault, [string]$RecordUid, [switch]$Opened, [switch]$Revealed)
-
-    if ($Opened) { $Vault.AuditLogRecordOpen($RecordUid) }
-    if ($Revealed) { $Vault.AuditLogRecordRevealPassword($RecordUid) }
-}

@@ -164,9 +164,11 @@ function Get-KeeperRecord {
             else {
                 $record
             }
-            Write-KeeperRecordAudit -Vault $vault -RecordUid $record.Uid -Opened `
-                -Revealed:(((-not $interactive) -or $reveal) -and `
-                    [KeeperSecurity.Vault.RecordSecurity]::HasPassword($record))
+            $vault.AuditLogRecordOpen($record.Uid)
+            if (((-not $interactive) -or $reveal) -and `
+                [KeeperSecurity.Vault.RecordSecurity]::HasPassword($record)) {
+                $vault.AuditLogRecordRevealPassword($record.Uid)
+            }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
             Get-KeeperNSFRecord -Uid $Uid -Unmask:$Unmask
@@ -2491,8 +2493,9 @@ function Get-KeeperRecordHistory {
                 }
 
                 WriteOutput ([PSCustomObject]$showData) $Format $Output -AsList
-                Write-KeeperRecordAudit -Vault $vault -RecordUid $uid `
-                    -Revealed:($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($histRecord))
+                if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($histRecord)) {
+                    $vault.AuditLogRecordRevealPassword($uid)
+                }
             }
 
             'diff' {
@@ -2517,7 +2520,9 @@ function Get-KeeperRecordHistory {
                 WriteOutput ($allDiffs | Select-Object Version, Field, NewValue, OldValue) `
                     $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
                 $passwordShown = @($allDiffs | Where-Object { $_.Password -and $_.HasValue }).Count -gt 0
-                Write-KeeperRecordAudit -Vault $vault -RecordUid $uid -Revealed:($Unmask.IsPresent -and $passwordShown)
+                if ($Unmask.IsPresent -and $passwordShown) {
+                    $vault.AuditLogRecordRevealPassword($uid)
+                }
             }
 
             'restore' {
