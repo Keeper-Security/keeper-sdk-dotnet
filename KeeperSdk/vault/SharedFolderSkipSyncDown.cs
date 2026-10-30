@@ -143,7 +143,12 @@ namespace KeeperSecurity.Vault
             if (sf == null)
                 return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
-            if (!TryResolveSharedFolderKey(sf, auth, out var sfKey) || sfKey == null || sfKey.Length == 0)
+            if (!TryResolveSharedFolderKey(sf, auth, out var sfKey) || sfKey == null || sfKey.Length != 32)
+            {
+                sfKey = await TryResolveSharedFolderKeyFromTeamsAsync(sf, auth).ConfigureAwait(false);
+            }
+
+            if (sfKey == null || sfKey.Length != 32)
                 return new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
             var map = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
@@ -155,7 +160,7 @@ namespace KeeperSecurity.Vault
                 {
                     var enc = r.RecordKey.Base64UrlDecode();
                     var plain = UnwrapRecordKeyFromSharedFolderRecord(enc, sfKey);
-                    if (plain != null && plain.Length > 0)
+                    if (plain != null && plain.Length == 32)
                         map[r.RecordUid] = plain;
                 }
                 catch
@@ -166,10 +171,70 @@ namespace KeeperSecurity.Vault
             return map;
         }
 
+        private static async Task<byte[]> TryResolveSharedFolderKeyFromTeamsAsync(
+            SharedFolderObject sharedFolder,
+            IAuthentication auth)
+        {
+            foreach (var team in sharedFolder?.Teams ?? Array.Empty<SharedFolderTeamObject>())
+            {
+                if (string.IsNullOrWhiteSpace(team?.TeamUid)
+                    || string.IsNullOrWhiteSpace(team.TeamSharedFolderKey)
+                    || !team.TeamSharedFolderKeyWrapType.HasValue)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await auth.LoadTeamKeys(new[] { team.TeamUid }).ConfigureAwait(false);
+                    if (!auth.TryGetTeamKeys(team.TeamUid, out var teamKeys)
+                        || teamKeys?.AesKey == null
+                        || teamKeys.AesKey.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var encryptedKey = team.TeamSharedFolderKey.Base64UrlDecode();
+                    var keyType = (RecordKeyType)team.TeamSharedFolderKeyWrapType.Value;
+                    var sharedFolderKey = keyType switch
+                    {
+                        RecordKeyType.EncryptedByDataKey =>
+                            CryptoUtils.DecryptAesV1(encryptedKey, teamKeys.AesKey),
+                        RecordKeyType.EncryptedByDataKeyGcm =>
+                            CryptoUtils.DecryptAesV2(encryptedKey, teamKeys.AesKey),
+                        RecordKeyType.EncryptedByPublicKey
+                            when !string.IsNullOrWhiteSpace(team.TeamPrivateKey) =>
+                            CryptoUtils.DecryptRsa(
+                                encryptedKey,
+                                CryptoUtils.LoadRsaPrivateKey(CryptoUtils.DecryptAesV1(
+                                    team.TeamPrivateKey.Base64UrlDecode(),
+                                    teamKeys.AesKey))),
+                        RecordKeyType.EncryptedByPublicKeyEcc
+                            when !string.IsNullOrWhiteSpace(team.TeamEcPrivateKey) =>
+                            CryptoUtils.DecryptEc(
+                                encryptedKey,
+                                CryptoUtils.LoadEcPrivateKey(CryptoUtils.DecryptAesV2(
+                                    team.TeamEcPrivateKey.Base64UrlDecode(),
+                                    teamKeys.AesKey))),
+                        _ => null,
+                    };
+
+                    if (sharedFolderKey != null && sharedFolderKey.Length == 32)
+                        return sharedFolderKey;
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
         private static byte[] UnwrapRecordKeyFromSharedFolderRecord(byte[] encryptedRecordKey, byte[] sharedFolderAesKey)
         {
             if (encryptedRecordKey == null || encryptedRecordKey.Length == 0 || sharedFolderAesKey == null ||
-                sharedFolderAesKey.Length == 0)
+                sharedFolderAesKey.Length != 32)
                 return null;
 
             var useGcmFirst = encryptedRecordKey.Length == 60;
@@ -410,7 +475,7 @@ namespace KeeperSecurity.Vault
                 try
                 {
                     sharedFolderKey = DecryptKeeperKey(context, sf.SharedFolderKey.Base64UrlDecode(), headerKeyType);
-                    return sharedFolderKey != null && sharedFolderKey.Length > 0;
+                    return sharedFolderKey != null && sharedFolderKey.Length == 32;
                 }
                 catch
                 {
@@ -421,7 +486,7 @@ namespace KeeperSecurity.Vault
                 try
                 {
                     sharedFolderKey = DecryptKeeperKey(context, Array.Empty<byte>(), headerKeyType);
-                    return sharedFolderKey != null && sharedFolderKey.Length > 0;
+                    return sharedFolderKey != null && sharedFolderKey.Length == 32;
                 }
                 catch
                 {
