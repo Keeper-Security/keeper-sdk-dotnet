@@ -1532,6 +1532,12 @@ namespace Commander
         }
     }
     
+    class VaultForceOptions
+    {
+        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
+        public bool Force { get; set; }
+    }
+
     class DownloadMembershipCommandOptions
     {
         [Option("source", Required = false, Default = "keeper",

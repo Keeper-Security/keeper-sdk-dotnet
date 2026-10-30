@@ -123,7 +123,9 @@ function Move-KeeperRecordOwnership {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
-        [Parameter(Mandatory = $true)]$User
+        [Parameter(Mandatory = $true)]$User,
+        [Alias('f')]
+        [switch]$Force
     )
 
 	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -150,6 +152,13 @@ function Move-KeeperRecordOwnership {
             }
         }
         if ($rec) {
+            if (-not $Force.IsPresent) {
+                $confirmation = Read-Host "Are you sure you want to transfer ownership of record '$($rec.Title)' to $User? This action cannot be undone. (yes/No)"
+                if ($confirmation -notmatch '^(y|yes)$') {
+                    Write-Output "Transfer operation cancelled"
+                    return
+                }
+            }
             try {
                 $vault.TransferRecordToUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" was transferred to $($User)`nThe new record owner can edit or remove your access to this record."
@@ -391,7 +400,9 @@ function Revoke-KeeperRecordAccess {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
-        [Parameter(Mandatory = $true)]$User
+        [Parameter(Mandatory = $true)]$User,
+        [Alias('f')]
+        [switch]$Force
     )
 
 	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -421,6 +432,13 @@ function Revoke-KeeperRecordAccess {
         }
         if ($rec) {
             $found = $true
+            if (-not $Force.IsPresent) {
+                $confirmation = Read-Host "Are you sure you want to revoke $User's access to record '$($rec.Title)'? (yes/No)"
+                if ($confirmation -notmatch '^(y|yes)$') {
+                    Write-Output "Revoke operation cancelled"
+                    return
+                }
+            }
             try {
                 $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"

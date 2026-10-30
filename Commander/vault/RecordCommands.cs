@@ -908,11 +908,23 @@ namespace Commander
         public static async Task ShareRecordRevokeCommand(this VaultContext context, ShareRecordRevokeOptions options)
         {
             var record = ResolveKeeperRecord(context, options.RecordName);
+            if (!options.Force && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to revoke {options.Email}'s access to record '{record.Title}'? (yes/No) "))
+            {
+                return;
+            }
+
             await context.Vault.RevokeShareFromUser(record.Uid, options.Email);
         }
         public static async Task ShareRecordTransferCommand(this VaultContext context, ShareRecordTransferOptions options)
         {
             var record = ResolveKeeperRecord(context, options.RecordName);
+            if (!options.Force && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to transfer ownership of record '{record.Title}' to {options.Email}? This action cannot be undone. (yes/No) "))
+            {
+                return;
+            }
+
             await context.Vault.TransferRecordToUser(record.Uid, options.Email);
         }
 
@@ -1786,7 +1798,7 @@ namespace Commander
     }
 
     [Verb("revoke", HelpText = "Revokes a record share")]
-    class ShareRecordRevokeOptions
+    class ShareRecordRevokeOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }
@@ -1796,7 +1808,7 @@ namespace Commander
     }
 
     [Verb("transfer", HelpText = "Transfer a record / change record ownership")]
-    class ShareRecordTransferOptions
+    class ShareRecordTransferOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }
