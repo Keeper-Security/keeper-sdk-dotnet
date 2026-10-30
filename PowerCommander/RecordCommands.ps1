@@ -145,22 +145,33 @@ function Get-KeeperRecord {
         [string] $Uid,
         [string] $Filter,
         [Parameter()][switch] $AsObject,
-        [Parameter()][switch] $ClassicOnly
+        [Parameter()][switch] $ClassicOnly,
+        [Parameter()][switch] $Unmask
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
         $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
         if ($null -ne $record) {
-            if ($Script:PasswordVisible) {
-                $record | Format-List
+            $interactive = Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation
+            $previousPasswordVisibility = $Script:PasswordVisible
+            try {
+                $Script:PasswordVisible = $Unmask.IsPresent
+                if ($interactive) {
+                    Show-RecordDetails -RecordData $record -Unmask:$Unmask
+                }
+                else {
+                    $record
+                }
             }
-            else {
-                $record
+            finally { $Script:PasswordVisible = $previousPasswordVisibility }
+            $vault.AuditLogRecordOpen($record.Uid)
+            if ($interactive -and $Unmask -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($record)) {
+                $vault.AuditLogRecordRevealPassword($record.Uid)
             }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
-            Get-KeeperNSFRecord -Uid $Uid
+            Get-KeeperNSFRecord -Uid $Uid -Unmask:$Unmask
         }
     }
     elseif ($Filter) {
@@ -269,7 +280,7 @@ function Copy-KeeperToClipboard {
     Process {
         if ($Record -is [Array]) {
             if ($Record.Count -ne 1) {
-                Write-Error -Message 'Only one record is expected'
+                Write-Host 'Error: Only one record is expected' -ForegroundColor Red
                 return
             }
             $Record = $Record[0]
@@ -364,13 +375,13 @@ function Copy-KeeperToClipboard {
                         $history = $vault.GetRecordHistory($rec.Uid).GetAwaiter().GetResult()
                         $maxRevision = $history.Length - 1
                         if ($null -eq $history -or $Revision -gt $maxRevision) {
-                            Write-Error "Invalid revision: $Revision (record has $maxRevision historical revisions, valid range: 1-$maxRevision)"
+                            Write-Host "Error: Invalid revision: $Revision (record has $maxRevision historical revisions, valid range: 1-$maxRevision)" -ForegroundColor Red
                             return
                         }
                         $arrayIndex = $history.Length - $Revision
                         $rec = $history[$arrayIndex].KeeperRecord
                     } catch {
-                        Write-Error "Failed to get record history: $_"
+                        Write-Host "Error: Failed to get record history: $($_.Exception.Message)" -ForegroundColor Red
                         return
                     }
                 }
@@ -423,19 +434,40 @@ function Copy-KeeperToClipboard {
                         }
                         'Variable' {
                             if (-not $Name) {
-                                Write-Error "-Name parameter is required when Output is set to 'Variable'"
+                                Write-Host 'Error: -Name parameter is required when Output is set to Variable' -ForegroundColor Red
                                 return
                             }
                             [Environment]::SetEnvironmentVariable($Name, $value)
                             Write-Output "$itemName is set to variable `"$Name`""
                         }
                         default {
-                            if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
-                                $escapedValue = $value -replace "'", "''"
-                                powershell -sta -Command "Set-Clipboard -Value '$escapedValue'"
+                            try {
+                                if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
+                                    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+                                    $startInfo.FileName = 'powershell.exe'
+                                    $startInfo.Arguments = '-NoProfile -Sta -Command "Set-Clipboard -Value ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String([Console]::In.ReadToEnd())))"'
+                                    $startInfo.UseShellExecute = $false
+                                    $startInfo.CreateNoWindow = $true
+                                    $startInfo.RedirectStandardInput = $true
+                                    $clipboardProcess = [System.Diagnostics.Process]::Start($startInfo)
+                                    try {
+                                        if ($null -eq $clipboardProcess) { throw 'Could not start the clipboard process' }
+                                        $clipboardProcess.StandardInput.Write([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($value)))
+                                        $clipboardProcess.StandardInput.Close()
+                                        $clipboardProcess.WaitForExit()
+                                        if ($clipboardProcess.ExitCode -ne 0) { throw 'The clipboard process failed' }
+                                    }
+                                    finally {
+                                        if ($null -ne $clipboardProcess) { $clipboardProcess.Dispose() }
+                                    }
+                                }
+                                else {
+                                    Set-Clipboard -Value $value
+                                }
                             }
-                            else {
-                                Set-Clipboard -Value $value
+                            catch {
+                                Write-Host "Error: Could not copy to clipboard: $($_.Exception.Message)" -ForegroundColor Red
+                                return
                             }
                             Write-Output "Copied to clipboard: $itemName for $($rec.Title)"
                         }
@@ -451,7 +483,7 @@ function Copy-KeeperToClipboard {
             }
         }
         if (-not $found) {
-            Write-Error -Message "Cannot find a Keeper record: $Record"
+            Write-Host "Error: Cannot find a Keeper record: $Record" -ForegroundColor Red
         }
     }
 }
@@ -2202,7 +2234,7 @@ function Get-KeeperRecordHistory {
         $Record,
 
         [Parameter(Position = 1)]
-        [ValidateSet('list', 'show', 'diff', 'restore')]
+        [ValidateSet('list', 'show', 'view', 'diff', 'restore')]
         [Alias('a')]
         [string] $Action = 'list',
 
@@ -2217,7 +2249,9 @@ function Get-KeeperRecordHistory {
 
         [Parameter()]
         [Alias('o')]
-        [string] $Output
+        [string] $Output,
+
+        [Parameter()][switch] $Unmask
     )
 
     Process {
@@ -2225,7 +2259,7 @@ function Get-KeeperRecordHistory {
             [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         }
         catch {
-            Write-Error "Failed to connect to vault"
+            Write-Host 'Error: Failed to connect to vault' -ForegroundColor Red
             return
         }
 
@@ -2234,18 +2268,22 @@ function Get-KeeperRecordHistory {
             $uid = $Record
             
             [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-            if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-                $recordMatches = @($vault.KeeperRecords | Where-Object { $_.Title -ieq $Record })
+            [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRec = $null
+            if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec) -and
+                -not $vault.TryGetKeeperNSFRecord($uid, [ref]$nsfRec)) {
+                $candidates = @($vault.KeeperRecords | Select-Object @{ Name = 'Uid'; Expression = { $_.Uid } }, Title) +
+                    @($vault.KeeperNSFRecordEntries | Select-Object @{ Name = 'Uid'; Expression = { $_.RecordUid } }, Title)
+                $recordMatches = @($candidates | Where-Object { $_.Title -ieq $Record })
                 if ($recordMatches.Count -eq 0) {
-                    $recordMatches = @($vault.KeeperRecords | Where-Object { $_.Title -like "*$Record*" })
+                    $recordMatches = @($candidates | Where-Object { $_.Title -like "*$Record*" })
                 }
                 
                 if ($recordMatches.Count -eq 0) {
-                    Write-Error "Record '$Record' not found"
+                    Write-Host "Error: Record '$Record' not found" -ForegroundColor Red
                     return
                 }
                 elseif ($recordMatches.Count -gt 1) {
-                    Write-Warning "Multiple records found for '$Record'. Please use UID."
+                    Write-Host "Error: Multiple records found for '$Record'. Please use UID." -ForegroundColor Red
                     Write-Host ("{0,-30} {1}" -f "Title", "UID") -ForegroundColor Cyan
                     Write-Host ("{0,-30} {1}" -f "-----", "---") -ForegroundColor Gray
                     foreach ($m in $recordMatches) {
@@ -2259,8 +2297,11 @@ function Get-KeeperRecordHistory {
         elseif ($null -ne $Record.Uid) {
             $uid = $Record.Uid
         }
+        elseif ($null -ne $Record.RecordUid) {
+            $uid = $Record.RecordUid
+        }
         else {
-            Write-Error "Invalid record parameter. Provide a UID, title, or record object."
+            Write-Host 'Error: Invalid record parameter. Provide a UID, title, or record object.' -ForegroundColor Red
             return
         }
 
@@ -2268,7 +2309,7 @@ function Get-KeeperRecordHistory {
             $history = $vault.GetRecordHistory($uid).GetAwaiter().GetResult()
         }
         catch {
-            Write-Error "Failed to get record history: $_"
+            Write-Host "Error: Failed to get record history: $($_.Exception.Message)" -ForegroundColor Red
             return
         }
 
@@ -2326,15 +2367,15 @@ function Get-KeeperRecordHistory {
             $isFirst = $null -eq $previousRec
             
             $addDiff = {
-                param($label, $currentVal, $previousVal)
+                param($label, $currentVal, $previousVal, [bool]$sensitive = $false, [bool]$password = $false)
                 $cv = if ($null -eq $currentVal) { "" } else { $currentVal }
                 $pv = if ($null -eq $previousVal) { "" } else { $previousVal }
                 if ($isFirst) {
                     if (-not [string]::IsNullOrEmpty($cv)) {
-                        $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = "" })
+                        $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $(if ($sensitive) { [KeeperSecurity.Vault.RecordSecurity]::Mask($cv, $Unmask.IsPresent) } else { $cv }); OldValue = ""; Password = $password })
                     }
                 } elseif ($cv -ne $pv) {
-                    $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $cv; OldValue = $pv })
+                    $diffs.Add([PSCustomObject]@{ Version = $versionLabel; Field = $label; NewValue = $(if ($sensitive) { [KeeperSecurity.Vault.RecordSecurity]::Mask($cv, $Unmask.IsPresent) } else { $cv }); OldValue = $(if ($sensitive) { [KeeperSecurity.Vault.RecordSecurity]::Mask($pv, $Unmask.IsPresent) } else { $pv }); Password = $password })
                 }
             }
 
@@ -2342,7 +2383,7 @@ function Get-KeeperRecordHistory {
                 foreach ($fn in @('title', 'login', 'password', 'url', 'notes', 'totp')) {
                     $cv = Get-KeeperRecordFieldValue -Record $currentRec -FieldName $fn
                     $pv = if (-not $isFirst) { Get-KeeperRecordFieldValue -Record $previousRec -FieldName $fn } else { $null }
-                    & $addDiff "($fn)" $cv $pv
+                    & $addDiff "($fn)" $cv $pv ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($fn)) ($fn -eq 'password')
                 }
                 if ($currentRec.Custom) {
                     foreach ($cf in $currentRec.Custom) {
@@ -2351,7 +2392,13 @@ function Get-KeeperRecordHistory {
                             $prevCf = $previousRec.Custom | Where-Object { $_.Name -eq $cf.Name } | Select-Object -First 1
                             if ($prevCf) { $pv = $prevCf.Value }
                         }
-                        & $addDiff "($($cf.Name))" $cf.Value $pv
+                        & $addDiff "($($cf.Name))" $cf.Value $pv ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name)) ($cf.Name -ieq 'password')
+                    }
+                }
+                if ($previousRec -and $previousRec.Custom) {
+                    foreach ($cf in $previousRec.Custom) {
+                        if (@($currentRec.Custom | Where-Object { $_.Name -ieq $cf.Name }).Count -gt 0) { continue }
+                        & $addDiff "($($cf.Name))" '' $cf.Value ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name)) ($cf.Name -ieq 'password')
                     }
                 }
             }
@@ -2368,7 +2415,14 @@ function Get-KeeperRecordHistory {
                                 $prevField = $fieldSet.Previous | Where-Object { $_.FieldName -eq $field.FieldName } | Select-Object -First 1
                                 if ($prevField) { $pv = Get-TypedFieldValueString -Field $prevField }
                             }
-                            & $addDiff "($($label.ToLower()))" $cv $pv
+                            & $addDiff "($($label.ToLower()))" $cv $pv ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) ($field.FieldName -ieq 'password')
+                        }
+                    }
+                    if ($fieldSet.Previous) {
+                        foreach ($field in $fieldSet.Previous) {
+                            if (@($fieldSet.Current | Where-Object { $_.FieldName -eq $field.FieldName -and $_.FieldLabel -eq $field.FieldLabel }).Count -gt 0) { continue }
+                            $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
+                            & $addDiff "($($label.ToLower()))" '' (Get-TypedFieldValueString -Field $field) ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) ($field.FieldName -ieq 'password')
                         }
                     }
                 }
@@ -2378,6 +2432,7 @@ function Get-KeeperRecordHistory {
             return $diffs
         }
 
+        if ($Action -eq 'view') { $Action = 'show' }
         switch ($Action) {
             'list' {
                 $listData = for ($i = 0; $i -lt $history.Length; $i++) {
@@ -2396,7 +2451,7 @@ function Get-KeeperRecordHistory {
 
             'show' {
                 if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
-                    Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
+                    Write-Host "Error: Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)" -ForegroundColor Red
                     return
                 }
 
@@ -2404,17 +2459,17 @@ function Get-KeeperRecordHistory {
                 $histRecord = $history[$arrayIndex].KeeperRecord
 
                 $showData = [ordered]@{}
-                $addField = { param($label, $value) if (-not [string]::IsNullOrEmpty($value)) { $showData[$label] = $value } }
+                $addField = { param($label, $value, [bool]$sensitive = $false) if (-not [string]::IsNullOrEmpty($value)) { $showData[$label] = if ($sensitive) { [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent) } else { $value } } }
 
                 & $addField "title" $histRecord.Title
 
                 if ($histRecord -is [KeeperSecurity.Vault.PasswordRecord]) {
                     & $addField "login" $histRecord.Login
-                    & $addField "password" $histRecord.Password
+                    & $addField "password" $histRecord.Password $true
                     & $addField "url" $histRecord.Link
                     & $addField "notes" $histRecord.Notes
-                    & $addField "totp" $histRecord.Totp
-                    if ($histRecord.Custom) { foreach ($cf in $histRecord.Custom) { & $addField $cf.Name $cf.Value } }
+                    & $addField "totp" $histRecord.Totp $true
+                    if ($histRecord.Custom) { foreach ($cf in $histRecord.Custom) { & $addField $cf.Name $cf.Value ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($cf.Name)) } }
                 }
                 elseif ($histRecord -is [KeeperSecurity.Vault.TypedRecord]) {
                     & $addField "type" $histRecord.TypeName
@@ -2422,7 +2477,7 @@ function Get-KeeperRecordHistory {
                         if ($fieldSet) {
                             foreach ($field in $fieldSet) {
                                 $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
-                                & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field)
+                                & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field) ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName))
                             }
                         }
                     }
@@ -2434,11 +2489,13 @@ function Get-KeeperRecordHistory {
                 }
 
                 WriteOutput ([PSCustomObject]$showData) $Format $Output -AsList
+                $vault.AuditLogRecordOpen($uid)
+                if ($Unmask -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($histRecord)) { $vault.AuditLogRecordRevealPassword($uid) }
             }
 
             'diff' {
                 if ($Revision -lt 0 -or $Revision -gt ($history.Length - 1)) {
-                    Write-Error "Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)"
+                    Write-Host "Error: Invalid revision $Revision. Valid revisions: 0 (current) to $($history.Length - 1)" -ForegroundColor Red
                     return
                 }
 
@@ -2455,13 +2512,15 @@ function Get-KeeperRecordHistory {
                     foreach ($d in $versionDiffs) { $allDiffs.Add($d) }
                 }
 
-                WriteOutput $allDiffs $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
+                WriteOutput ($allDiffs | Select-Object Version, Field, NewValue, OldValue) $Format $Output @('Version', 'Field', 'NewValue', 'OldValue')
+                $vault.AuditLogRecordOpen($uid)
+                if ($Unmask -and @($allDiffs | Where-Object { $_.Password }).Count -gt 0) { $vault.AuditLogRecordRevealPassword($uid) }
             }
 
             'restore' {
                 $maxRev = $history.Length - 1
                 if ($Revision -lt 1 -or $Revision -gt $maxRev) {
-                    Write-Error "Invalid revision. Use -Revision <number> (1 to $maxRev)"
+                    Write-Host "Error: Invalid revision. Use -Revision <number> (1 to $maxRev)" -ForegroundColor Red
                     return
                 }
 
@@ -2486,14 +2545,14 @@ function Get-KeeperRecordHistory {
                                 $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
                                 Write-Host "`nRecord `"$($revToRestore.KeeperRecord.Title)`" revision V.$Revision has been restored`n" -ForegroundColor Green
                             } else {
-                                Write-Error "Failed to restore record: $(if ($result.Message) { $result.Message } else { $result.Status })"
+                                Write-Host "Error: Failed to restore record: $(if ($result.Message) { $result.Message } else { $result.Status })" -ForegroundColor Red
                             }
                         } else {
-                            Write-Error "Failed to restore record: No response from server"
+                            Write-Host 'Error: Failed to restore record: No response from server' -ForegroundColor Red
                         }
                     }
                     catch {
-                        Write-Error "Failed to restore record: $_"
+                        Write-Host "Error: Failed to restore record: $($_.Exception.Message)" -ForegroundColor Red
                     }
                 }
             }

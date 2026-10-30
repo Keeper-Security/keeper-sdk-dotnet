@@ -368,6 +368,9 @@ namespace KeeperSecurity.Vault
         /// <param name="recordUid"></param>
         void AuditLogRecordCopyPassword(string recordUid);
 
+        /// <summary>Records a <c>revealed_password</c> audit event for enterprise accounts.</summary>
+        void AuditLogRecordRevealPassword(string recordUid);
+
         /// <summary>
         /// Creates a password record.
         /// </summary>
@@ -1264,6 +1267,9 @@ namespace KeeperSecurity.Vault
 
         /// <summary>Deletion timestamp (epoch ms).</summary>
         public long DateDeleted { get; set; }
+
+        /// <summary>Decrypted record fields when a trashed record and its key are accessible.</summary>
+        public KeeperNSFRecord Record { get; set; }
     }
 
     /// <summary>

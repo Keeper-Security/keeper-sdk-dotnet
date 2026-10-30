@@ -27,8 +27,6 @@ $script:AccessTypeLabels = @{
     6 = 'AT_APPLICATION'
 }
 
-$script:KdSecretFieldTypes = @('password', 'secret', 'privateKey', 'passkey', 'otp')
-
 $script:KdFieldLabels = @{
     name     = 'File Name'
     url      = 'URL'
@@ -500,7 +498,10 @@ function Get-KeeperNSFRecord {
         [string] $Format = 'detail',
 
         [switch] $ShowInherited,
-        [switch] $ShowDenied
+
+        [switch] $ShowDenied,
+
+        [Parameter()][switch] $Unmask
     )
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -537,74 +538,32 @@ function Get-KeeperNSFRecord {
         return
     }
 
-    if ($Format -eq 'json') {
-        if ($kdRecord) {
-            $jsonObj = Build-KdRecordJson $vault $storage $kdRecord $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
-        } else {
-            $jsonObj = Build-KdFolderJson $vault $storage $kdFolder $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
-        }
-        $jsonObj | ConvertTo-Json -Depth 8
-        return
-    }
-
-    if ($kdRecord) {
-        Show-KdRecordDetail $vault $storage $kdRecord $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
-    }
-    else {
-        Show-KdFolderDetail $vault $storage $kdFolder $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
-    }
-}
-
-function Get-KdNsfDecryptedRecordData {
-    Param($record, $storage)
-
-    if (-not $record -or -not $record.RecordKey) { return $null }
-
-    $storageRecord = $storage.KdRecords.GetEntity($record.RecordUid)
-    if (-not $storageRecord -or [string]::IsNullOrEmpty($storageRecord.Data)) { return $null }
-
+    $previousPasswordVisibility = $script:PasswordVisible
+    $script:PasswordVisible = $Unmask.IsPresent
     try {
-        $encrypted = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode($storageRecord.Data)
-        $decrypted = [KeeperSecurity.Utils.CryptoUtils]::DecryptAesV2($encrypted, $record.RecordKey)
-        $jsonText = [System.Text.Encoding]::UTF8.GetString($decrypted)
-        return ($jsonText | ConvertFrom-Json -ErrorAction Stop)
-    }
-    catch {
-        Write-Verbose "Could not decrypt NSF record data for $($record.RecordUid): $($_.Exception.Message)"
-        return $null
-    }
-}
-
-function Get-KdNsfRecordFields {
-    Param($record, $storage)
-
-    $data = Get-KdNsfDecryptedRecordData -record $record -storage $storage
-    if ($data -and $data.fields) {
-        $fields = [System.Collections.ArrayList]::new()
-        foreach ($f in @($data.fields)) {
-            if (-not $f -or [string]::IsNullOrWhiteSpace($f.type)) { continue }
-
-            $values = [System.Collections.ArrayList]::new()
-            if ($null -ne $f.value) {
-                foreach ($v in @($f.value)) {
-                    if ($null -ne $v) {
-                        $values.Add($v) | Out-Null
-                    }
-                }
+        if ($Format -eq 'json') {
+            $jsonObj = if ($kdRecord) {
+                Build-KdRecordJson $vault $storage $kdRecord $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
+            } else {
+                Build-KdFolderJson $vault $storage $kdFolder $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
             }
-
-            $fields.Add([PSCustomObject]@{
-                Type  = [string]$f.type
-                Value = @($values)
-            }) | Out-Null
+            $jsonObj | ConvertTo-Json -Depth 8
         }
-        return @($fields)
-    }
+        elseif ($kdRecord) {
+            Show-KdRecordDetail $vault $storage $kdRecord $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
+        }
+        else {
+            Show-KdFolderDetail $vault $storage $kdFolder $currentAccountUid $ShowInherited.IsPresent $ShowDenied.IsPresent
+        }
 
-    if ($record.Fields) {
-        return @($record.Fields)
+        if ($kdRecord) {
+            $vault.AuditLogRecordOpen($kdRecord.RecordUid)
+            if ($Unmask -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($kdRecord)) {
+                $vault.AuditLogRecordRevealPassword($kdRecord.RecordUid)
+            }
+        }
     }
-    return @()
+    finally { $script:PasswordVisible = $previousPasswordVisibility }
 }
 
 function ConvertFrom-KdNsfFieldJson {
@@ -681,12 +640,6 @@ function Format-KdNsfHostDisplayValue {
         return ($parts -join ', ')
     }
     return $null
-}
-
-function Test-KdNsfSecretField {
-    Param([string]$FieldType)
-
-    return $script:KdSecretFieldTypes -contains $FieldType
 }
 
 function Format-KdNsfDateFieldValue {
@@ -771,7 +724,7 @@ function Format-KdNsfFieldDisplayValue {
     if ($null -eq $RawValue) { return $null }
     if ($RawValue -is [string] -and [string]::IsNullOrWhiteSpace($RawValue)) { return $null }
 
-    if ((Test-KdNsfSecretField -FieldType $FieldType) -and -not (Get-KeeperPasswordVisible)) {
+    if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($FieldType) -and -not (Get-KeeperPasswordVisible)) {
         return '********'
     }
 
@@ -832,31 +785,27 @@ function Show-KdRecordDetail {
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Title", $title)
 
-    if ($record.Notes) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
-    }
+    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
 
-    $recordFields = Get-KdNsfRecordFields -record $record -storage $storage
+    $recordFields = @($record.Fields | Where-Object { $null -ne $_ })
     if ($recordFields.Count -gt 0) {
         foreach ($field in $recordFields) {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
-            $rawValues = @($field.Value) | Where-Object { $null -ne $_ }
-            if ($rawValues.Count -eq 0) { continue }
-
-            if ($field.Type -eq 'name') {
-                $nameValue = Format-KdNsfFieldDisplayValue -FieldType 'name' -RawValue $rawValues[0]
-                if ($nameValue -eq $title) { continue }
-            }
+            $rawValues = @($field.Value)
 
             $displayValues = @()
             foreach ($raw in $rawValues) {
                 $formatted = Format-KdNsfFieldDisplayValue -FieldType $field.Type -RawValue $raw
-                if ($formatted) { $displayValues += $formatted }
+                if ($null -eq $formatted) { $displayValues += '' }
+                else { $displayValues += [string]$formatted }
             }
-            if ($displayValues.Count -eq 0) { continue }
 
-            $label = Get-KdNsfFieldLabel -FieldType $field.Type
+            $label = if (-not [string]::IsNullOrWhiteSpace($field.Label)) { $field.Label } else { Get-KdNsfFieldLabel -FieldType $field.Type }
+            if ($displayValues.Count -eq 0) {
+                Write-Host ("{0,$script:KD_LABEL_WIDTH}: " -f $label)
+                continue
+            }
             Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $label, $displayValues[0])
             for ($i = 1; $i -lt $displayValues.Count; $i++) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}  {1}" -f "", $displayValues[$i])
@@ -869,6 +818,14 @@ function Show-KdRecordDetail {
     }
     if ($record.ThumbnailSize -gt 0) {
         Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Thumbnail Size", ("{0:N0}" -f $record.ThumbnailSize))
+    }
+    if ($record.ClientModifiedTime -gt 0) {
+        try {
+            $lastModified = [DateTimeOffset]::FromUnixTimeMilliseconds([long]$record.ClientModifiedTime).LocalDateTime.ToString('F')
+            Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Last Modified", $lastModified)
+        } catch {
+            Write-Verbose "Invalid NSF record modification timestamp for $($record.RecordUid): $($_.Exception.Message)"
+        }
     }
 
     Write-Host ""
@@ -1344,18 +1301,18 @@ function Build-KdRecordFieldsJson {
     Param($fields)
 
     $result = [System.Collections.ArrayList]::new()
-    if (-not $fields) { return $result }
+    if (-not $fields) { return ,$result.ToArray() }
 
     foreach ($f in $fields) {
         $values = [System.Collections.ArrayList]::new()
-        if ($f.Value) {
+        if ($null -ne $f.Value) {
             foreach ($v in $f.Value) {
                 if ($null -eq $v) {
                     $values.Add($null) | Out-Null
                     continue
                 }
 
-                if ((Test-KdNsfSecretField -FieldType $f.Type) -and -not (Get-KeeperPasswordVisible)) {
+                if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($f.Type) -and -not (Get-KeeperPasswordVisible) -and -not [string]::IsNullOrEmpty([string]$v)) {
                     $values.Add('********') | Out-Null
                     continue
                 }
@@ -1374,12 +1331,14 @@ function Build-KdRecordFieldsJson {
                 }
             }
         }
-        $result.Add([ordered]@{
+        $fieldJson = [ordered]@{
             type  = $f.Type
             value = @($values)
-        }) | Out-Null
+        }
+        if (-not [string]::IsNullOrWhiteSpace($f.Label)) { $fieldJson.label = $f.Label }
+        $result.Add($fieldJson) | Out-Null
     }
-    return $result
+    return ,$result.ToArray()
 }
 
 function Build-KdRecordJson {
@@ -1397,7 +1356,8 @@ function Build-KdRecordJson {
     $folderMap = Get-KdFolderNodeMap $vault
     $folderPath = if ($record.FolderUid) { Get-KdFolderPath $vault $record.FolderUid $folderMap } else { '/' }
 
-    return [ordered]@{
+    $recordFields = @($record.Fields | Where-Object { $null -ne $_ })
+    $json = [ordered]@{
         uid            = $record.RecordUid
         type           = $recordType
         title          = $title
@@ -1407,7 +1367,7 @@ function Build-KdRecordJson {
             name = $record.FolderName
             path = $folderPath
         }
-        fields         = (Build-KdRecordFieldsJson (Get-KdNsfRecordFields $record $storage))
+        fields         = (Build-KdRecordFieldsJson @($recordFields | Where-Object { -not $_.IsCustom }))
         file_size      = $record.FileSize
         thumbnail_size = $record.ThumbnailSize
         version        = $record.Version
@@ -1416,6 +1376,10 @@ function Build-KdRecordJson {
         permissions    = $permissions
         share_admins   = @($shareAdminEmails)
     }
+
+    $customFields = @($recordFields | Where-Object { $_.IsCustom })
+    if ($customFields.Count -gt 0) { $json.custom = Build-KdRecordFieldsJson $customFields }
+    return $json
 }
 
 function Get-KdFolderPath {

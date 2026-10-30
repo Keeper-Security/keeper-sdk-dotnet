@@ -84,7 +84,13 @@ namespace Commander
                 return;
             }
 
-            switch (options.Output.ToLower())
+            if (string.Equals(options.Output, "variable", StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(options.Name))
+            {
+                Console.WriteLine("Error: --name parameter is required when output is set to 'variable'");
+                return;
+            }
+
+            switch (options.Output?.ToLowerInvariant())
             {
                 case "clipboard":
                     OutputToClipboard(itemName, value);
@@ -104,15 +110,14 @@ namespace Commander
 
                 default:
                     Console.WriteLine($"Unknown output destination: {options.Output}");
-                    break;
+                    return;
             }
 
             if (itemName == "Password" && !string.IsNullOrEmpty(value))
             {
                 try
                 {
-                    context.Vault.Auth.ScheduleAuditEventLogging("copy_password",
-                        new KeeperSecurity.Commands.AuditEventInput { RecordUid = recordUid });
+                    context.Vault.AuditLogRecordCopyPassword(recordUid);
                 }
                 catch
                 {
@@ -379,12 +384,6 @@ namespace Commander
 
         private static void OutputToVariable(string itemName, string value, string variableName)
         {
-            if (string.IsNullOrEmpty(variableName))
-            {
-                Console.WriteLine("Error: --name parameter is required when output is set to 'variable'");
-                return;
-            }
-
             Environment.SetEnvironmentVariable(variableName, value);
             Console.WriteLine($"{itemName} is set to variable \"{variableName}\"");
         }

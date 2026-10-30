@@ -4723,7 +4723,7 @@ namespace KeeperSecurity.Vault
 
         private const int MaxRecordDetailsUidsPerRequest = 100;
 
-        private static async Task<RecordDetailsProto.RecordDataResponse> FetchKeeperNSFRecordDetailsDataAsync(
+        internal static async Task<RecordDetailsProto.RecordDataResponse> FetchKeeperNSFRecordDetailsDataAsync(
             this VaultOnline vault, IReadOnlyList<string> recordUids)
         {
             if (recordUids == null || recordUids.Count == 0)

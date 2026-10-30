@@ -271,31 +271,27 @@ namespace Commander
             var format = options.Format ?? "detail";
             if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             {
-                object jsonObj;
-                if (record != null)
-                {
-                    jsonObj = await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid,
-                        options.ShowInherited, options.ShowDenied);
-                }
-                else
-                {
-                    jsonObj = await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid,
-                        options.ShowInherited, options.ShowDenied);
-                }
-
+                var jsonObj = record != null
+                    ? await NsfDetailHelper.BuildRecordJsonAsync(vault, record, currentAccountUid, options.ShowInherited, options.ShowDenied, options.Unmask)
+                    : await NsfDetailHelper.BuildFolderJsonAsync(vault, folder, currentAccountUid, options.ShowInherited, options.ShowDenied);
                 Console.WriteLine(Json.SerializeFormatted(jsonObj));
-                return;
+            }
+            else if (record != null)
+            {
+                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid, options.ShowInherited, options.ShowDenied, options.Unmask);
+            }
+            else
+            {
+                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid, options.ShowInherited, options.ShowDenied);
             }
 
             if (record != null)
             {
-                await NsfDetailHelper.ShowRecordDetailAsync(vault, record, currentAccountUid,
-                    options.ShowInherited, options.ShowDenied);
-            }
-            else
-            {
-                await NsfDetailHelper.ShowFolderDetailAsync(vault, folder, currentAccountUid,
-                    options.ShowInherited, options.ShowDenied);
+                vault.AuditLogRecordOpen(record.RecordUid);
+                if (options.Unmask && RecordSecurity.HasPassword(record))
+                {
+                    vault.AuditLogRecordRevealPassword(record.RecordUid);
+                }
             }
         }
 
@@ -413,7 +409,7 @@ namespace Commander
             label.PadLeft(width);
 
         internal static async Task ShowRecordDetailAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid,
-            bool includeInherited = false, bool includeDeniedAccess = false)
+            bool includeInherited = false, bool includeDeniedAccess = false, bool unmask = false)
         {
             var meta = NsfHelpers.GetRecordTypeAndTitle(record);
             Console.WriteLine();
@@ -421,38 +417,28 @@ namespace Commander
             Console.WriteLine($"{PadLabel("Type", NsfHelpers.LabelWidth)}: {meta.Type}");
             Console.WriteLine($"{PadLabel("Title", NsfHelpers.LabelWidth)}: {meta.Title}");
 
-            if (!string.IsNullOrEmpty(record.Notes))
-            {
-                Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes}");
-            }
+            Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes ?? string.Empty}");
 
-            var fields = GetRecordFields(vault, record);
+            var fields = GetRecordFields(record);
             foreach (var field in fields)
             {
-                if (string.IsNullOrWhiteSpace(field.Type) || field.Value == null || field.Value.Count == 0)
+                if (string.IsNullOrWhiteSpace(field.Type))
                 {
                     continue;
                 }
 
-                if (field.Type == "name")
-                {
-                    var nameValue = FormatFieldDisplayValue(field.Type, field.Value[0]);
-                    if (nameValue == meta.Title)
-                    {
-                        continue;
-                    }
-                }
-
-                var displayValues = field.Value
-                    .Select(v => FormatFieldDisplayValue(field.Type, v))
-                    .Where(v => !string.IsNullOrEmpty(v))
+                var displayValues = (field.Value ?? new List<string>())
+                    .Select(v => FormatFieldDisplayValue(field.Type, v, unmask) ?? string.Empty)
                     .ToList();
+                var label = string.IsNullOrWhiteSpace(field.Label)
+                    ? NsfHelpers.GetFieldLabel(field.Type)
+                    : field.Label;
                 if (displayValues.Count == 0)
                 {
+                    Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: ");
                     continue;
                 }
 
-                var label = NsfHelpers.GetFieldLabel(field.Type);
                 Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: {displayValues[0]}");
                 for (var i = 1; i < displayValues.Count; i++)
                 {
@@ -492,6 +478,13 @@ namespace Commander
                 Console.WriteLine($"{PadLabel("Thumbnail Size", NsfHelpers.LabelWidth)}: {record.ThumbnailSize:N0}");
             }
 
+            if (record.ClientModifiedTime > 0)
+            {
+                var lastModified = DateTimeOffset.FromUnixTimeMilliseconds(record.ClientModifiedTime)
+                    .LocalDateTime.ToString("F");
+                Console.WriteLine($"{PadLabel("Last Modified", NsfHelpers.LabelWidth)}: {lastModified}");
+            }
+
             Console.WriteLine();
             var accesses = await GetRecordAccessesAsync(vault, record, includeInherited, includeDeniedAccess);
             var shareAdmins = await GetShareAdminEmailsAsync(vault, record.RecordUid);
@@ -515,7 +508,7 @@ namespace Commander
         }
 
         internal static async Task<object> BuildRecordJsonAsync(VaultOnline vault, KeeperNSFRecord record, string currentAccountUid,
-            bool includeInherited = false, bool includeDeniedAccess = false)
+            bool includeInherited = false, bool includeDeniedAccess = false, bool unmask = false)
         {
             var meta = NsfHelpers.GetRecordTypeAndTitle(record);
             var accesses = await GetRecordAccessesAsync(vault, record, includeInherited, includeDeniedAccess);
@@ -526,7 +519,8 @@ namespace Commander
                 ? NsfHelpers.GetFolderPath(vault, record.FolderUid, folderMap)
                 : "/";
 
-            return new Dictionary<string, object>
+            var recordFields = GetRecordFields(record);
+            var json = new Dictionary<string, object>
             {
                 ["uid"] = record.RecordUid,
                 ["type"] = meta.Type,
@@ -538,7 +532,7 @@ namespace Commander
                     ["name"] = record.FolderName,
                     ["path"] = folderPath
                 },
-                ["fields"] = BuildFieldsJson(GetRecordFields(vault, record)),
+                ["fields"] = BuildFieldsJson(recordFields.Where(f => !f.IsCustom), unmask),
                 ["file_size"] = record.FileSize,
                 ["thumbnail_size"] = record.ThumbnailSize,
                 ["version"] = record.Version,
@@ -547,6 +541,14 @@ namespace Commander
                 ["user_permissions"] = userPerms,
                 ["share_admins"] = shareAdmins
             };
+
+            var customFields = recordFields.Where(f => f.IsCustom).ToList();
+            if (customFields.Count > 0)
+            {
+                json["custom"] = BuildFieldsJson(customFields, unmask);
+            }
+
+            return json;
         }
 
         internal static async Task<object> BuildFolderJsonAsync(VaultOnline vault, FolderNode folder, string currentAccountUid,
@@ -675,76 +677,23 @@ namespace Commander
         private class ParsedField
         {
             public string Type { get; set; }
+            public string Label { get; set; }
             public List<string> Value { get; set; }
+            public bool IsCustom { get; set; }
         }
 
-        private static List<ParsedField> GetRecordFields(VaultOnline vault, KeeperNSFRecord record)
+        private static List<ParsedField> GetRecordFields(KeeperNSFRecord record)
         {
-            if (record.RecordKey != null && record.RecordKey.Length > 0)
-            {
-                var storageRecord = vault.Storage.KdRecords.GetEntity(record.RecordUid);
-                if (storageRecord != null && !string.IsNullOrEmpty(storageRecord.Data))
-                {
-                    try
-                    {
-                        var encrypted = storageRecord.Data.Base64UrlDecode();
-                        var decrypted = CryptoUtils.DecryptAesV2(encrypted, record.RecordKey);
-                        var jsonText = Encoding.UTF8.GetString(decrypted);
-                        var data = Json.Deserialize(jsonText) as IDictionary<string, object>;
-                        if (data != null && data.TryGetValue("fields", out var fieldsObj) && fieldsObj is IList<object> fieldList)
-                        {
-                            var fields = new List<ParsedField>();
-                            foreach (var f in fieldList)
-                            {
-                                if (f is IDictionary<string, object> fd &&
-                                    fd.TryGetValue("type", out var typeObj) &&
-                                    typeObj is string fieldType &&
-                                    !string.IsNullOrWhiteSpace(fieldType))
-                                {
-                                    var values = new List<string>();
-                                    if (fd.TryGetValue("value", out var valObj))
-                                    {
-                                        if (valObj is IList<object> valList)
-                                        {
-                                            foreach (var v in valList)
-                                            {
-                                                if (v != null)
-                                                {
-                                                    values.Add(v.ToString());
-                                                }
-                                            }
-                                        }
-                                        else if (valObj != null)
-                                        {
-                                            values.Add(valObj.ToString());
-                                        }
-                                    }
-
-                                    fields.Add(new ParsedField { Type = fieldType, Value = values });
-                                }
-                            }
-
-                            if (fields.Count > 0)
-                            {
-                                return fields;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // fall through to cached fields
-                    }
-                }
-            }
-
             return record.Fields?.Select(f => new ParsedField
             {
                 Type = f.Type,
+                Label = f.Label,
+                IsCustom = f.IsCustom,
                 Value = f.Value?.ToList() ?? new List<string>()
             }).ToList() ?? new List<ParsedField>();
         }
 
-        private static List<object> BuildFieldsJson(IEnumerable<ParsedField> fields)
+        private static List<object> BuildFieldsJson(IEnumerable<ParsedField> fields, bool unmask)
         {
             var result = new List<object>();
             if (fields == null)
@@ -765,7 +714,7 @@ namespace Commander
                             continue;
                         }
 
-                        if (NsfHelpers.IsSecretField(f.Type) && !NsfHelpers.PasswordVisible)
+                        if (RecordSecurity.IsSensitive(f.Type) && !unmask && !string.IsNullOrEmpty(v))
                         {
                             values.Add("********");
                             continue;
@@ -783,17 +732,23 @@ namespace Commander
                     }
                 }
 
-                result.Add(new Dictionary<string, object>
+                var item = new Dictionary<string, object>
                 {
                     ["type"] = f.Type,
                     ["value"] = values
-                });
+                };
+                if (!string.IsNullOrWhiteSpace(f.Label))
+                {
+                    item["label"] = f.Label;
+                }
+
+                result.Add(item);
             }
 
             return result;
         }
 
-        private static string FormatFieldDisplayValue(string fieldType, object rawValue)
+        private static string FormatFieldDisplayValue(string fieldType, object rawValue, bool unmask)
         {
             if (rawValue == null)
             {
@@ -805,7 +760,7 @@ namespace Commander
                 return null;
             }
 
-            if (NsfHelpers.IsSecretField(fieldType) && !NsfHelpers.PasswordVisible)
+            if (RecordSecurity.IsSensitive(fieldType) && !unmask)
             {
                 return "********";
             }
@@ -1409,6 +1364,9 @@ namespace Commander
 
         [Option("show-denied", Required = false, HelpText = "Show denied-access permissions")]
         public bool ShowDenied { get; set; }
+
+        [Option("unmask", Required = false, HelpText = "Display sensitive fields and log a password reveal")]
+        public bool Unmask { get; set; }
     }
 
     class NsfRecordDetailsOptions
