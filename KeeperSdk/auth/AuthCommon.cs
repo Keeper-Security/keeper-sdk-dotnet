@@ -267,6 +267,7 @@ namespace KeeperSecurity.Authentication
         TimeSpan LogoutTimeout { get; }
 
         /// <exclude/>
+        [Obsolete("Use ScheduleAuditEventLogging followed by FlushAuditEvents")]
         Task AuditEventLogging(string eventType, AuditEventInput input = null);
 
         /// <exclude/>
@@ -274,6 +275,8 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         Task FlushAuditEvents();
+
+        Task FlushAuditEvents(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -896,6 +899,8 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private const int AuditEventChunkSize = 99;
+        private const int MaxAuditEventSendAttempts = 3;
         private readonly List<AuditEventItem> _auditEventQueue = new();
         private readonly SemaphoreSlim _auditSendLock = new(1, 1);
         private int _auditSendFailures;
@@ -903,25 +908,27 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
         {
-            if (AuthContext.EnterprisePublicEcKey != null)
+            if (AuthContext?.EnterprisePublicEcKey == null) return;
+
+            lock (_auditEventQueue)
             {
-                lock (_auditEventQueue)
+                _auditEventQueue.Add(new AuditEventItem
                 {
-                    _auditEventQueue.Add(new AuditEventItem
-                    {
-                        AuditEventType = eventType,
-                        Inputs = input
-                    });
-                }
+                    AuditEventType = eventType,
+                    Inputs = input
+                });
             }
         }
 
         /// <exclude/>
-        public async Task FlushAuditEvents()
+        public Task FlushAuditEvents() => FlushAuditEvents(CancellationToken.None);
+
+        /// <exclude/>
+        public async Task FlushAuditEvents(CancellationToken cancellationToken)
         {
             if (AuthContext?.EnterprisePublicEcKey == null) return;
 
-            await _auditSendLock.WaitAsync().ConfigureAwait(false);
+            await _auditSendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 while (true)
@@ -929,7 +936,7 @@ namespace KeeperSecurity.Authentication
                     AuditEventItem[] chunk;
                     lock (_auditEventQueue)
                     {
-                        chunk = _auditEventQueue.Take(99).ToArray();
+                        chunk = _auditEventQueue.Take(AuditEventChunkSize).ToArray();
                     }
                     if (chunk.Length == 0) break;
 
@@ -942,14 +949,15 @@ namespace KeeperSecurity.Authentication
                     }
                     catch
                     {
-                        if (++_auditSendFailures >= 3)
+                        if (++_auditSendFailures >= MaxAuditEventSendAttempts)
                         {
                             _auditSendFailures = 0;
                             lock (_auditEventQueue)
                             {
                                 _auditEventQueue.RemoveRange(0, chunk.Length);
                             }
-                            Trace.TraceWarning($"Client audit events dropped after 3 failed attempts: {chunk.Length} event(s)");
+                            Trace.TraceWarning(
+                                $"Client audit events dropped after {MaxAuditEventSendAttempts} failed attempts: {chunk.Length} event(s)");
                         }
                         throw;
                     }
@@ -959,17 +967,18 @@ namespace KeeperSecurity.Authentication
                     }
                 }
             }
-            finally { _auditSendLock.Release(); }
+            finally
+            {
+                _auditSendLock.Release();
+            }
         }
 
         /// <exclude/>
+        [Obsolete("Use ScheduleAuditEventLogging followed by FlushAuditEvents")]
         public async Task AuditEventLogging(string eventType, AuditEventInput input = null)
         {
-            if (AuthContext.EnterprisePublicEcKey != null)
-            {
-                ScheduleAuditEventLogging(eventType, input);
-                await FlushAuditEvents();
-            }
+            ScheduleAuditEventLogging(eventType, input);
+            await FlushAuditEvents().ConfigureAwait(false);
         }
 
         private async Task DoLogout()
@@ -1004,7 +1013,11 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
-                Task.Run(() => FlushAuditEvents()).GetAwaiter().GetResult();
+                var flush = Task.Run(() => FlushAuditEvents());
+                if (!flush.Wait(TimeSpan.FromSeconds(10)))
+                {
+                    Trace.TraceWarning("Timed out sending client audit events at close");
+                }
             }
             catch (Exception e)
             {

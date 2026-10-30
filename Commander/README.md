@@ -210,6 +210,23 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `record-type-info` | `rti` | Get record type information |
 | `share-record` | | Manage record sharing permissions |
 
+`get` and `kd-get` mask password, secret, OTP, private key, PIN, one-time-code,
+key-pair, and license-number fields as `********` by default. Use `--unmask` to
+display hidden field content. `get` also generates the live TOTP code only with
+`--unmask`. The option applies to `record-history view`, `record-history diff`,
+and `trash get` as well. NSF `kd-get` includes standard `fields[]`, `custom[]`,
+field labels, and Last Modified in detail output.
+
+For enterprise accounts, the commands queue these audit events:
+
+| Event | When it fires |
+|-------|---------------|
+| `open_record` | Every classic `get` or NSF `kd-get`, including masked and JSON output. |
+| `copy_password` | Clipboard-copy of a nonempty Password item to any output target. |
+| `revealed_password` | A nonempty password displayed unmasked by `get`, `kd-get`, `record-history view` or `diff`, or `trash get`. |
+
+History and trash commands do not emit `open_record`.
+
 ### Attachment Management
 
 | Command | Alias | Description |

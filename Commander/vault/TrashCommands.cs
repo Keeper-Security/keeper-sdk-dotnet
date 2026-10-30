@@ -832,11 +832,8 @@ namespace Commander
             DisplayRecordInfo(recordData, options.Unmask);
             if (recordData is KeeperRecord keeperRecord)
             {
-                context.Vault.AuditLogRecordOpen(keeperRecord.Uid);
-                if (options.Unmask && RecordSecurity.HasPassword(keeperRecord))
-                {
-                    context.Vault.AuditLogRecordRevealPassword(keeperRecord.Uid);
-                }
+                AuditHelpers.LogPasswordRevealed(context.Vault, keeperRecord.Uid,
+                    options.Unmask && RecordSecurity.HasPassword(keeperRecord));
             }
 
             if (isShared)
@@ -847,7 +844,6 @@ namespace Commander
 
         private static async Task DisplayNsfTrashedItem(VaultOnline vault, string uid, bool unmask)
         {
-            // NSF trash responses only include metadata, but retrieving a record still opens it.
             KeeperNSFTrashGetResult item;
             try
             {
@@ -875,33 +871,33 @@ namespace Commander
             {
                 Console.WriteLine($"{"Type:",-14}{item.RecordType}");
             }
-            Console.WriteLine($"{"Status:",-14}{item.Status}");
-            Console.WriteLine($"{"Deleted At:",-14}{deletedAt}");
             if (!item.IsFolder)
             {
-                vault.AuditLogRecordOpen(item.Uid);
                 if (item.Record?.Fields != null)
                 {
                     foreach (var field in item.Record.Fields)
                     {
                         var label = string.IsNullOrEmpty(field.Label) ? field.Type : field.Label;
+                        var firstValue = true;
                         foreach (var value in field.Value ?? Array.Empty<string>())
                         {
+                            if (string.IsNullOrEmpty(value)) continue;
                             WriteFormattedField(label, RecordSecurity.IsSensitive(field.Type)
-                                ? RecordSecurity.Mask(value, unmask) : value);
+                                ? RecordSecurity.Mask(value, unmask) : value, indent: !firstValue);
+                            firstValue = false;
                         }
                     }
 
-                    if (unmask && RecordSecurity.HasPassword(item.Record))
-                    {
-                        vault.AuditLogRecordRevealPassword(item.Uid);
-                    }
+                    AuditHelpers.LogPasswordRevealed(vault, item.Uid,
+                        unmask && RecordSecurity.HasPassword(item.Record));
                 }
                 else if (unmask)
                 {
                     Console.WriteLine("Sensitive fields are unavailable for this NSF record in trash.");
                 }
             }
+            Console.WriteLine($"{"Status:",-14}{item.Status}");
+            Console.WriteLine($"{"Deleted At:",-14}{deletedAt}");
         }
 
         private static (DeletedRecord record, bool isShared) GetTrashRecord(string recordUid)
@@ -1035,7 +1031,8 @@ namespace Commander
                 for (var i = 0; i < Math.Max(values.Length, 1); i++)
                 {
                     var value = i < values.Length ? values[i] : "";
-                    WriteFormattedField(fieldName, RecordSecurity.IsSensitive(field) ? RecordSecurity.Mask(value, unmask) : value, indent: i > 0);
+                    WriteFormattedField(fieldName, RecordSecurity.IsSensitive(field)
+                        ? RecordSecurity.Mask(value, unmask) : value, indent: i > 0);
                 }
             }
         }
@@ -1052,7 +1049,8 @@ namespace Commander
                 foreach (var custom in record.Custom)
                 {
                     var name = string.IsNullOrEmpty(custom.Name) ? "Custom" : custom.Name;
-                    WriteFormattedField(name, RecordSecurity.IsSensitive(name) ? RecordSecurity.Mask(custom.Value, unmask) : custom.Value);
+                    WriteFormattedField(name, RecordSecurity.IsSensitive(name)
+                        ? RecordSecurity.Mask(custom.Value, unmask) : custom.Value);
                 }
             }
         }
@@ -1171,7 +1169,7 @@ namespace Commander
         [Value(0, MetaName = "record", Required = true, HelpText = "Deleted record UID")]
         public string Record { get; set; }
 
-        [Option("unmask", Required = false, HelpText = "Display sensitive fields and log a password reveal")]
+        [Option("unmask", Required = false, HelpText = "display hidden field content")]
         public bool Unmask { get; set; }
     }
 

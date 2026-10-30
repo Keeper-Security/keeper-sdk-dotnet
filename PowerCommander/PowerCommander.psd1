@@ -217,6 +217,8 @@
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
             ReleaseNotes = 'Version 1.1.7
+                    Audit events for record open, password copy, and password reveal.
+                    -Unmask for get, NSF get, history, and trash.
                     PAM workflow management:
                     - New-KeeperPamWorkflow, Get-KeeperPamWorkflow, Update-KeeperPamWorkflow, and Remove-KeeperPamWorkflow manage PAM workflows.
                     - Add-KeeperPamWorkflowApprover and Remove-KeeperPamWorkflowApprover manage workflow approvers.
