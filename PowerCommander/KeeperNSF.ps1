@@ -718,6 +718,7 @@ function Format-KdNsfComplexFieldValue {
 function Format-KdNsfFieldDisplayValue {
     Param(
         [string]$FieldType,
+        [string]$FieldLabel,
         $RawValue,
         [bool]$Unmask = $false
     )
@@ -725,7 +726,7 @@ function Format-KdNsfFieldDisplayValue {
     if ($null -eq $RawValue) { return $null }
     if ($RawValue -is [string] -and [string]::IsNullOrWhiteSpace($RawValue)) { return $null }
 
-    if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($FieldType) -and -not $Unmask) {
+    if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($FieldType, $FieldLabel) -and -not $Unmask) {
         return [KeeperSecurity.Vault.RecordSecurity]::MaskedValue
     }
 
@@ -746,7 +747,7 @@ function Format-KdNsfFieldDisplayValue {
     if ($parsed -is [System.Collections.IEnumerable] -and $parsed -isnot [string]) {
         $items = @()
         foreach ($item in @($parsed)) {
-            $formatted = Format-KdNsfFieldDisplayValue -FieldType $FieldType -RawValue $item -Unmask $Unmask
+            $formatted = Format-KdNsfFieldDisplayValue -FieldType $FieldType -FieldLabel $FieldLabel -RawValue $item -Unmask $Unmask
             if ($formatted) { $items += $formatted }
         }
         if ($items.Count -gt 0) {
@@ -798,7 +799,7 @@ function Show-KdRecordDetail {
 
             $displayValues = @()
             foreach ($raw in $rawValues) {
-                $formatted = Format-KdNsfFieldDisplayValue -FieldType $field.Type -RawValue $raw -Unmask $Unmask
+                $formatted = Format-KdNsfFieldDisplayValue -FieldType $field.Type -FieldLabel $field.Label -RawValue $raw -Unmask $Unmask
                 if ($null -eq $formatted) { $displayValues += '' }
                 else { $displayValues += [string]$formatted }
             }
@@ -1317,7 +1318,7 @@ function Build-KdRecordFieldsJson {
                     continue
                 }
 
-                if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($f.Type) -and -not $Unmask -and
+                if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($f.Type, $f.Label) -and -not $Unmask -and
                     -not [string]::IsNullOrEmpty([string]$v)) {
                     $values.Add([KeeperSecurity.Vault.RecordSecurity]::MaskedValue) | Out-Null
                     continue

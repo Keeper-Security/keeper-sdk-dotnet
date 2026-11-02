@@ -242,7 +242,7 @@ namespace Commander
                         if (!string.IsNullOrEmpty(value))
                         {
                             WriteField(label.ToLower(), RecordSecurity.IsSensitive(field) ? RecordSecurity.Mask(value, unmask) : value);
-                            passwordRevealed |= unmask && string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase);
+                            passwordRevealed |= unmask && RecordSecurity.IsPassword(field);
                         }
                     }
                     
@@ -413,7 +413,7 @@ namespace Commander
                             {
                                 Field = $"({label.ToLower()})", NewValue = value, OldValue = "",
                                 Sensitive = RecordSecurity.IsSensitive(field),
-                                Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                                Password = RecordSecurity.IsPassword(field)
                             });
                         }
                     }
@@ -428,12 +428,14 @@ namespace Commander
                         diffs.Add(new FieldDiff { Field = "(title)", NewValue = current.Title ?? "", OldValue = previousTr.Title ?? "" });
 
                     // Compare typed record fields
-                    foreach (var field in currentStandardFields.Concat(currentCustomFields))
+                    var allCurrentFields = currentStandardFields.Select(field => (Field: field, IsCustom: false))
+                        .Concat(currentCustomFields.Select(field => (Field: field, IsCustom: true)));
+                    foreach (var (field, isCustom) in allCurrentFields)
                     {
                         var label = !string.IsNullOrEmpty(field.FieldLabel) ? field.FieldLabel : field.FieldName;
                         var currentValue = string.Join(", ", field.GetTypedFieldValues());
                             
-                        var previousFields = currentCustomFields.Contains(field) ? previousCustomFields : previousStandardFields;
+                        var previousFields = isCustom ? previousCustomFields : previousStandardFields;
                         var previousField = previousFields.FirstOrDefault(f =>
                             f.FieldName == field.FieldName && f.FieldLabel == field.FieldLabel);
                         var previousValue = previousField == null ? "" : string.Join(", ", previousField.GetTypedFieldValues());
@@ -444,16 +446,16 @@ namespace Commander
                             {
                                 Field = $"({label.ToLower()})", NewValue = currentValue, OldValue = previousValue,
                                 Sensitive = RecordSecurity.IsSensitive(field),
-                                Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                                Password = RecordSecurity.IsPassword(field)
                             });
                         }
                     }
 
-                    var previousFieldsAll = previousStandardFields.Concat(previousCustomFields);
-                    foreach (var field in previousFieldsAll)
+                    var previousFieldsAll = previousStandardFields.Select(field => (Field: field, IsCustom: false))
+                        .Concat(previousCustomFields.Select(field => (Field: field, IsCustom: true)));
+                    foreach (var (field, isCustom) in previousFieldsAll)
                     {
-                        var wasCustom = previousCustomFields.Contains(field);
-                        var currentSet = wasCustom ? currentCustomFields : currentStandardFields;
+                        var currentSet = isCustom ? currentCustomFields : currentStandardFields;
                         if (currentSet.Any(f => f.FieldName == field.FieldName && f.FieldLabel == field.FieldLabel)) continue;
                         var oldValue = string.Join(", ", field.GetTypedFieldValues());
                         if (string.IsNullOrEmpty(oldValue)) continue;
@@ -462,7 +464,7 @@ namespace Commander
                         {
                             Field = $"({label.ToLowerInvariant()})", NewValue = "", OldValue = oldValue,
                             Sensitive = RecordSecurity.IsSensitive(field),
-                            Password = string.Equals(field.FieldName, "password", StringComparison.OrdinalIgnoreCase)
+                            Password = RecordSecurity.IsPassword(field)
                         });
                     }
 

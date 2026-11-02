@@ -432,7 +432,7 @@ namespace Commander
                 }
 
                 var displayValues = (field.Value ?? new List<string>())
-                    .Select(v => FormatFieldDisplayValue(field.Type, v, unmask) ?? string.Empty)
+                    .Select(v => FormatFieldDisplayValue(field.Type, field.Label, v, unmask) ?? string.Empty)
                     .ToList();
                 var label = string.IsNullOrWhiteSpace(field.Label)
                     ? NsfHelpers.GetFieldLabel(field.Type)
@@ -718,7 +718,7 @@ namespace Commander
                             continue;
                         }
 
-                        if (RecordSecurity.IsSensitive(f.Type) && !unmask && !string.IsNullOrEmpty(v))
+                        if (RecordSecurity.IsSensitive(f.Type, f.Label) && !unmask && !string.IsNullOrEmpty(v))
                         {
                             values.Add(RecordSecurity.MaskedValue);
                             continue;
@@ -752,7 +752,7 @@ namespace Commander
             return result;
         }
 
-        private static string FormatFieldDisplayValue(string fieldType, object rawValue, bool unmask)
+        private static string FormatFieldDisplayValue(string fieldType, string label, object rawValue, bool unmask)
         {
             if (rawValue == null)
             {
@@ -764,7 +764,7 @@ namespace Commander
                 return null;
             }
 
-            if (RecordSecurity.IsSensitive(fieldType) && !unmask)
+            if (RecordSecurity.IsSensitive(fieldType, label) && !unmask)
             {
                 return RecordSecurity.MaskedValue;
             }
