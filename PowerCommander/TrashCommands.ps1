@@ -286,7 +286,7 @@ function Show-NsfTrashedItemDetails {
                 $firstValue = $true
                 foreach ($value in $field.Value) {
                     if ([string]::IsNullOrEmpty($value)) { continue }
-                    $display = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.Type)) {
+                    $display = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.Type, $field.Label)) {
                         [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
                     } else { $value }
                     if ($firstValue) {
@@ -1575,7 +1575,7 @@ function Show-RecordField {
 
         for ($i = 0; $i -lt [Math]::Max($valueArray.Count, 1); $i++) {
             $value = if ($i -lt $valueArray.Count) { $valueArray[$i] } else { "" }
-            if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($Field.FieldName)) {
+            if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($Field.FieldName, $Field.FieldLabel)) {
                 $value = [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
             }
             if (-not [string]::IsNullOrEmpty($value)) {

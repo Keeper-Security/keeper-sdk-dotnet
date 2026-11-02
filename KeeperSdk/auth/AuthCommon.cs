@@ -903,15 +903,18 @@ namespace KeeperSecurity.Authentication
         private const int MaxAuditEventSendAttempts = 3;
         private readonly List<AuditEventItem> _auditEventQueue = new();
         private readonly SemaphoreSlim _auditSendLock = new(1, 1);
+        private bool _auditDisposing;
+        private bool _auditSendLockDisposed;
+        private int _auditFlushCalls;
+        // Accessed only by a flush holding _auditSendLock.
         private int _auditSendFailures;
 
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
         {
-            if (AuthContext?.EnterprisePublicEcKey == null) return;
-
             lock (_auditEventQueue)
             {
+                if (_auditDisposing || AuthContext?.EnterprisePublicEcKey == null) return;
                 _auditEventQueue.Add(new AuditEventItem
                 {
                     AuditEventType = eventType,
@@ -926,51 +929,74 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public async Task FlushAuditEvents(CancellationToken cancellationToken)
         {
-            if (AuthContext?.EnterprisePublicEcKey == null) return;
+            lock (_auditEventQueue)
+            {
+                if (_auditDisposing || AuthContext?.EnterprisePublicEcKey == null) return;
+                _auditFlushCalls++;
+            }
 
-            await _auditSendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                while (true)
+                await _auditSendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
                 {
-                    AuditEventItem[] chunk;
-                    lock (_auditEventQueue)
+                    while (true)
                     {
-                        chunk = _auditEventQueue.Take(AuditEventChunkSize).ToArray();
-                    }
-                    if (chunk.Length == 0) break;
-
-                    var rq = new AuditEventLoggingCommand { ItemLogs = chunk };
-                    try
-                    {
-                        _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq)
-                            .ConfigureAwait(false);
-                        _auditSendFailures = 0;
-                    }
-                    catch
-                    {
-                        if (++_auditSendFailures >= MaxAuditEventSendAttempts)
+                        AuditEventItem[] chunk;
+                        lock (_auditEventQueue)
                         {
-                            _auditSendFailures = 0;
-                            lock (_auditEventQueue)
-                            {
-                                _auditEventQueue.RemoveRange(0, chunk.Length);
-                            }
-                            Trace.TraceWarning(
-                                $"Client audit events dropped after {MaxAuditEventSendAttempts} failed attempts: {chunk.Length} event(s)");
+                            chunk = _auditEventQueue.Take(AuditEventChunkSize).ToArray();
                         }
-                        throw;
+                        if (chunk.Length == 0) break;
+
+                        var rq = new AuditEventLoggingCommand { ItemLogs = chunk };
+                        try
+                        {
+                            _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq)
+                                .ConfigureAwait(false);
+                            _auditSendFailures = 0;
+                        }
+                        catch
+                        {
+                            if (++_auditSendFailures >= MaxAuditEventSendAttempts)
+                            {
+                                _auditSendFailures = 0;
+                                lock (_auditEventQueue)
+                                {
+                                    _auditEventQueue.RemoveRange(0, chunk.Length);
+                                }
+                                Trace.TraceWarning(
+                                    $"Client audit events dropped after {MaxAuditEventSendAttempts} failed attempts: {chunk.Length} event(s)");
+                            }
+                            throw;
+                        }
+                        lock (_auditEventQueue)
+                        {
+                            _auditEventQueue.RemoveRange(0, chunk.Length);
+                        }
                     }
-                    lock (_auditEventQueue)
-                    {
-                        _auditEventQueue.RemoveRange(0, chunk.Length);
-                    }
+                }
+                finally
+                {
+                    _auditSendLock.Release();
                 }
             }
             finally
             {
-                _auditSendLock.Release();
+                lock (_auditEventQueue)
+                {
+                    _auditFlushCalls--;
+                    DisposeAuditSendLockIfIdle();
+                }
             }
+        }
+
+        // Call only while holding _auditEventQueue, after new flushes are disabled.
+        private void DisposeAuditSendLockIfIdle()
+        {
+            if (!_auditDisposing || _auditFlushCalls != 0 || _auditSendLockDisposed) return;
+            _auditSendLockDisposed = true;
+            _auditSendLock.Dispose();
         }
 
         /// <exclude/>
@@ -1011,9 +1037,15 @@ namespace KeeperSecurity.Authentication
         /// <inheritdoc/>
         public virtual void Dispose()
         {
+            Task flush;
+            lock (_auditEventQueue)
+            {
+                // Register the final flush before disabling new audit calls.
+                flush = FlushAuditEvents();
+                _auditDisposing = true;
+            }
             try
             {
-                var flush = Task.Run(() => FlushAuditEvents());
                 if (!flush.Wait(TimeSpan.FromSeconds(10)))
                 {
                     Trace.TraceWarning("Timed out sending client audit events at close");
@@ -1022,6 +1054,10 @@ namespace KeeperSecurity.Authentication
             catch (Exception e)
             {
                 Trace.TraceWarning($"Unable to send client audit events at close: {e.Message}");
+            }
+            lock (_auditEventQueue)
+            {
+                DisposeAuditSendLockIfIdle();
             }
             authContext = null;
             PushNotifications?.Dispose();

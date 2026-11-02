@@ -884,7 +884,7 @@ namespace Commander
                         foreach (var value in field.Value ?? Array.Empty<string>())
                         {
                             if (string.IsNullOrEmpty(value)) continue;
-                            WriteFormattedField(label, RecordSecurity.IsSensitive(field.Type)
+                            WriteFormattedField(label, RecordSecurity.IsSensitive(field)
                                 ? RecordSecurity.Mask(value, unmask) : value, indent: !firstValue);
                             firstValue = false;
                         }

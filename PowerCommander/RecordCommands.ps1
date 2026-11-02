@@ -2400,8 +2400,8 @@ function Get-KeeperRecordHistory {
                                 if ($prevField) { $pv = Get-TypedFieldValueString -Field $prevField }
                             }
                             & $addDiff "($($label.ToLower()))" $cv $pv `
-                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) `
-                                ($field.FieldName -ieq 'password')
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName, $field.FieldLabel)) `
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsPassword($field.FieldName, $field.FieldLabel))
                         }
                     }
                     if ($fieldSet.Previous) {
@@ -2412,8 +2412,8 @@ function Get-KeeperRecordHistory {
                             if ($sameField) { continue }
                             $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
                             & $addDiff "($($label.ToLower()))" '' (Get-TypedFieldValueString -Field $field) `
-                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName)) `
-                                ($field.FieldName -ieq 'password')
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName, $field.FieldLabel)) `
+                                ([KeeperSecurity.Vault.RecordSecurity]::IsPassword($field.FieldName, $field.FieldLabel))
                         }
                     }
                 }
@@ -2481,7 +2481,7 @@ function Get-KeeperRecordHistory {
                             foreach ($field in $fieldSet) {
                                 $label = if ($field.FieldLabel) { $field.FieldLabel } else { $field.FieldName }
                                 & $addField $label.ToLower() (Get-TypedFieldValueString -Field $field) `
-                                    ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName))
+                                    ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.FieldName, $field.FieldLabel))
                             }
                         }
                     }

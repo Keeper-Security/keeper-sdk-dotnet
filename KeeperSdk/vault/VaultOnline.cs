@@ -189,13 +189,18 @@ namespace KeeperSecurity.Vault
             Auth.ScheduleAuditEventLogging(eventType, new AuditEventInput { RecordUid = recordUid });
             _ = Task.Run(async () =>
             {
-                try
+                for (var attempt = 0; attempt < 3; attempt++)
                 {
-                    await Auth.FlushAuditEvents().ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceWarning($"Unable to send client audit events: {e.Message}");
+                    try
+                    {
+                        await Auth.FlushAuditEvents().ConfigureAwait(false);
+                        return;
+                    }
+                    catch (Exception)
+                    {
+                        // FlushAuditEvents retains failed events and reports the final drop.
+                        if (attempt < 2) await Task.Delay(TimeSpan.FromSeconds(attempt + 1)).ConfigureAwait(false);
+                    }
                 }
             });
         }
