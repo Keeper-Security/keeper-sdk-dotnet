@@ -198,6 +198,10 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
     public class ComplianceContextInfo
     {
         public string RecordUid { get; set; }
+        /// <summary>
+        /// Raw encrypted record metadata returned by the preliminary compliance API.
+        /// </summary>
+        public byte[] EncryptedData { get; set; }
         public string Title { get; set; }
         public string RecordType { get; set; }
         public string Url { get; set; }

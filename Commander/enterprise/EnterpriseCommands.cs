@@ -3063,8 +3063,6 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    // Match Python Commander: fall back to literal substring matching
-                    // when a supplied regular expression is invalid.
                     filter.Type = PatternType.Substring;
                 }
             }
@@ -3083,7 +3081,6 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    // Match Python Commander's fallback for invalid --regex patterns.
                     filter.Type = PatternType.Substring;
                 }
             }
@@ -3587,7 +3584,7 @@ namespace Commander
                     SqliteReportingStorage.VerifyDatabase(connection, dialect);
                 }
 
-                var reportingStorage = new SqliteReportingStorage(sqlStorage);
+                var reportingStorage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
                 var complianceData = reportingStorage.GetComplianceData(recordUids);
                 Trace.TraceInformation(
                     $"Audit record-name lookup: queried {recordUids.Count} UID(s) in compliance cache; found {complianceData?.Count ?? 0} record(s).");
@@ -3627,7 +3624,7 @@ namespace Commander
                     SqliteReportingStorage.VerifyDatabase(connection, dialect);
                 }
 
-                var storage = new SqliteReportingStorage(sqlStorage);
+                var storage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
                 var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(
                     context.EnterpriseData,
                     storage,
@@ -4255,7 +4252,7 @@ namespace Commander
                         SqliteReportingStorage.VerifyDatabase(conn, dialect);
                     }
 
-                    storage = new SqliteReportingStorage(sqlStorage);
+                    storage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
                 }
                 catch (Exception ex)
                 {
