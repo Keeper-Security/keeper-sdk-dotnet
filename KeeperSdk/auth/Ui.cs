@@ -199,8 +199,9 @@ namespace KeeperSecurity.Authentication
         /// Change master password.
         /// </summary>
         /// <param name="matcher">Password complexity rule matcher.</param>
+        /// <param name="currentPassword">Current master password to prevent reuse. Optional.</param>
         /// <returns>A task returning a new password.</returns>
-        Task<string> GetNewPassword(PasswordRuleMatcher matcher);
+        Task<string> GetNewPassword(PasswordRuleMatcher matcher, string currentPassword = null);
     }
 
     /// <summary>

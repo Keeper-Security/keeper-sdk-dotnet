@@ -25,8 +25,20 @@ namespace Commander
                 || string.Equals(response?.Trim(), "yes", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<string> GetNewPassword(PasswordRuleMatcher matcher)
+        public async Task<string> GetNewPassword(PasswordRuleMatcher matcher, string currentPassword = null)
         {
+            string currentPwd = currentPassword;
+
+            if (string.IsNullOrEmpty(currentPwd))
+            {
+                Console.Write("Enter current Master Password: ");
+                currentPwd = await _inputManager.ReadLine(new ReadLineParameters
+                {
+                    IsSecured = true,
+                    IsHistory = false,
+                });
+            }
+
             while (true)
             {
                 Console.Write("Enter new Master Password: ");
@@ -46,6 +58,12 @@ namespace Commander
                 if (string.IsNullOrEmpty(password))
                 {
                     Console.WriteLine("Master Password cannot be empty.");
+                    continue;
+                }
+
+                if (string.Equals(password, currentPwd, StringComparison.Ordinal))
+                {
+                    Console.WriteLine("New Master Password cannot be the same as the current password.");
                     continue;
                 }
 
