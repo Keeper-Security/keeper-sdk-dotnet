@@ -3043,7 +3043,9 @@ namespace Commander
                 return null;
 
             var filter = new PatternFilter();
-            var workingPattern = pattern;
+            var workingPattern = pattern.Trim();
+            if (workingPattern.Length == 0)
+                return null;
 
             if (workingPattern.StartsWith("not:", StringComparison.OrdinalIgnoreCase))
             {
@@ -3061,8 +3063,9 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
-                    return null;
+                    // Match Python Commander: fall back to literal substring matching
+                    // when a supplied regular expression is invalid.
+                    filter.Type = PatternType.Substring;
                 }
             }
             else if (workingPattern.StartsWith("exact:", StringComparison.OrdinalIgnoreCase))
@@ -3080,8 +3083,8 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
-                    return null;
+                    // Match Python Commander's fallback for invalid --regex patterns.
+                    filter.Type = PatternType.Substring;
                 }
             }
             else
@@ -3093,41 +3096,42 @@ namespace Commander
             return filter;
         }
 
+        private static string GetPatternText(object value)
+        {
+            if (value == null)
+                return "";
+            if (value is string text)
+                return text;
+            if (value is System.Collections.IEnumerable items)
+            {
+                var parts = new List<string>();
+                foreach (var item in items)
+                    parts.Add(GetPatternText(item));
+                return string.Join(" ", parts);
+            }
+            return value.ToString() ?? "";
+        }
+
         private static bool MatchesPattern(Dictionary<string, object> eventData, PatternFilter filter)
         {
             if (filter == null) return true;
             if (eventData == null) return false; 
 
-            bool matches = false;
-            foreach (var kvp in eventData)
+            var fieldValues = eventData.Values.Select(GetPatternText).ToArray();
+            var rowText = string.Join(" ", fieldValues);
+            bool matches;
+            switch (filter.Type)
             {
-                var value = kvp.Value?.ToString() ?? "";
-                
-                switch (filter.Type)
-                {
-                    case PatternType.Regex:
-                        if (filter.CompiledRegex != null && filter.CompiledRegex.IsMatch(value))
-                        {
-                            matches = true;
-                        }
-                        break;
-                    
-                    case PatternType.Exact:
-                        if (value.Equals(filter.Pattern, StringComparison.OrdinalIgnoreCase))
-                        {
-                            matches = true;
-                        }
-                        break;
-                    
-                    case PatternType.Substring:
-                        if (value.IndexOf(filter.Pattern, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            matches = true;
-                        }
-                        break;
-                }
-
-                if (matches) break;
+                case PatternType.Regex:
+                    matches = filter.CompiledRegex != null && filter.CompiledRegex.IsMatch(rowText);
+                    break;
+                case PatternType.Exact:
+                    matches = fieldValues.Any(value =>
+                        value.Equals(filter.Pattern, StringComparison.OrdinalIgnoreCase));
+                    break;
+                default:
+                    matches = rowText.IndexOf(filter.Pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+                    break;
             }
 
             return filter.IsNegated ? !matches : matches;
@@ -3148,6 +3152,65 @@ namespace Commander
             }
         }
 
+        private static string FormatAuditEventMessage(
+            IEnterpriseContext context,
+            string eventTypeName,
+            string username,
+            IDictionary<string, object> details)
+        {
+            if (context?.AuditEvents == null ||
+                !context.AuditEvents.TryGetValue(eventTypeName ?? "", out var eventType) ||
+                string.IsNullOrEmpty(eventType?.SyslogMessage))
+            {
+                return "";
+            }
+
+            var message = eventType.SyslogMessage;
+            var match = Regex.Match(message, ParameterPattern);
+            while (match.Success)
+            {
+                var parameter = match.Groups[1].Value;
+                var value = "";
+                if (string.Equals(parameter, "username", StringComparison.OrdinalIgnoreCase))
+                {
+                    value = username ?? "";
+                }
+                else if (details != null && details.TryGetValue(parameter, out var detailValue))
+                {
+                    value = detailValue?.ToString() ?? "";
+                }
+                message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                message = message.Insert(match.Groups[0].Index, value);
+                match = Regex.Match(message, ParameterPattern);
+            }
+            return message;
+        }
+
+        private static Dictionary<string, object> CreateAuditEntryFilterData(
+            IEnterpriseContext context,
+            AuditReportEntry entry)
+        {
+            var eventData = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            if (entry.Details != null)
+            {
+                foreach (var detail in entry.Details)
+                    eventData[detail.Key] = detail.Value;
+            }
+
+            eventData["audit_event_type"] = entry.EventType;
+            eventData["username"] = entry.Username;
+            eventData["ip_address"] = entry.IpAddress;
+            eventData["record_uid"] = entry.RecordUid;
+            eventData["record_title"] = entry.RecordTitle;
+            eventData["client_type"] = entry.ClientType;
+            eventData["geo_location"] = entry.GeoLocation;
+            eventData["created"] = entry.EventTime.ToString("O", CultureInfo.InvariantCulture);
+            eventData["message"] = FormatAuditEventMessage(
+                context, entry.EventType, entry.Username, entry.Details);
+            return eventData;
+        }
+
         private static string GetReportingCachePath(IEnterpriseContext context)
         {
             var auth = context.Enterprise?.Auth;
@@ -3164,8 +3227,545 @@ namespace Commander
             return System.IO.Path.Combine(cacheRoot, $"enterprise_{enterpriseId}_{scopeHash}.sqlite");
         }
 
+        private static bool IsRecordNameColumn(string column)
+        {
+            return string.Equals(column, "record_name", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(column, "record_title", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FormatAuditReportTime(object value, TimeZoneInfo timeZone)
+        {
+            if (value == null)
+                return "";
+
+            DateTimeOffset timestamp;
+            if (long.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var epoch))
+            {
+                timestamp = DateTimeOffset.FromUnixTimeSeconds(epoch);
+            }
+            else if (!DateTimeOffset.TryParse(value.ToString(), CultureInfo.InvariantCulture,
+                         DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp))
+            {
+                return value.ToString();
+            }
+
+            timestamp = timeZone == null
+                ? timestamp.ToLocalTime()
+                : TimeZoneInfo.ConvertTime(timestamp, timeZone);
+            return timestamp.ToString("G", CultureInfo.CurrentCulture);
+        }
+
+        private static CreatedFilter ResolvePredefinedCreatedFilter(string value, TimeZoneInfo timeZone)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            var zone = timeZone ?? TimeZoneInfo.Utc;
+            var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+            var today = DateTime.SpecifyKind(now.Date, DateTimeKind.Unspecified);
+            DateTime start;
+            DateTime end;
+            switch (value.Trim().ToLowerInvariant())
+            {
+                case "today":
+                    start = today;
+                    end = today.AddDays(1);
+                    break;
+                case "yesterday":
+                    start = today.AddDays(-1);
+                    end = today;
+                    break;
+                case "last_7_days":
+                    start = today.AddDays(-6);
+                    end = today.AddDays(1);
+                    break;
+                case "last_30_days":
+                    start = today.AddDays(-29);
+                    end = today.AddDays(1);
+                    break;
+                case "month_to_date":
+                    start = new DateTime(today.Year, today.Month, 1);
+                    end = today.AddDays(1);
+                    break;
+                case "last_month":
+                    end = new DateTime(today.Year, today.Month, 1);
+                    start = end.AddMonths(-1);
+                    break;
+                case "year_to_date":
+                    start = new DateTime(today.Year, 1, 1);
+                    end = today.AddDays(1);
+                    break;
+                case "last_year":
+                    start = new DateTime(today.Year - 1, 1, 1);
+                    end = new DateTime(today.Year, 1, 1);
+                    break;
+                default:
+                    return null;
+            }
+
+            return new CreatedFilter
+            {
+                Min = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(start, zone)).ToUnixTimeSeconds(),
+                Max = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(end, zone)).ToUnixTimeSeconds(),
+                ExcludeMin = false,
+                ExcludeMax = true
+            };
+        }
+
+        private static CreatedFilter CloneCreatedFilter(CreatedFilter source)
+        {
+            return source == null
+                ? null
+                : new CreatedFilter
+                {
+                    Min = source.Min,
+                    Max = source.Max,
+                    ExcludeMin = source.ExcludeMin,
+                    ExcludeMax = source.ExcludeMax
+                };
+        }
+
+        private static ReportFilter CloneReportFilter(ReportFilter source, CreatedFilter created)
+        {
+            if (source == null)
+                return new ReportFilter { Created = created };
+            return new ReportFilter
+            {
+                EventTypes = source.EventTypes,
+                Username = source.Username,
+                ToUsername = source.ToUsername,
+                RecordUid = source.RecordUid,
+                SharedFolderUid = source.SharedFolderUid,
+                NodeId = source.NodeId,
+                IpAddress = source.IpAddress,
+                GeoLocation = source.GeoLocation,
+                DeviceType = source.DeviceType,
+                ParentId = source.ParentId,
+                Created = created
+            };
+        }
+
+        private static async Task<List<Dictionary<string, object>>> FetchAuditReportRowsAsync(
+            IAuthentication auth,
+            GetAuditEventReportsCommand request,
+            int requestedLimit,
+            TimeZoneInfo timeZone)
+        {
+            var isRaw = string.Equals(request.ReportType, "raw", StringComparison.OrdinalIgnoreCase);
+            var pageSize = isRaw ? 1000 : 2000;
+            if (requestedLimit <= pageSize)
+            {
+                request.Limit = requestedLimit;
+                var response = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(request);
+                return response?.Events ?? new List<Dictionary<string, object>>();
+            }
+
+            var originalCreated = request.Filter?.Created;
+            var range = originalCreated as CreatedFilter ??
+                ResolvePredefinedCreatedFilter(originalCreated as string, timeZone);
+            if (range == null)
+            {
+                range = new CreatedFilter
+                {
+                    Min = 0,
+                    Max = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    ExcludeMin = false,
+                    ExcludeMax = false
+                };
+            }
+            else
+            {
+                range = CloneCreatedFilter(range);
+                range.Min ??= 0;
+                range.Max ??= DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            }
+
+            if (isRaw)
+            {
+                var rows = new List<Dictionary<string, object>>();
+                var seenIds = new HashSet<string>(StringComparer.Ordinal);
+                var ascending = string.Equals(request.Order, "ascending", StringComparison.OrdinalIgnoreCase);
+                var cursor = ascending ? range.Min.Value : range.Max.Value;
+                while (rows.Count < requestedLimit)
+                {
+                    var pageCreated = CloneCreatedFilter(range);
+                    if (ascending)
+                    {
+                        pageCreated.Min = cursor;
+                        pageCreated.ExcludeMin = rows.Count > 0 ? false : range.ExcludeMin;
+                    }
+                    else
+                    {
+                        pageCreated.Max = cursor;
+                        pageCreated.ExcludeMax = rows.Count > 0 ? false : range.ExcludeMax;
+                    }
+
+                    var pageRequest = new GetAuditEventReportsCommand
+                    {
+                        ReportType = request.ReportType,
+                        Order = request.Order,
+                        Limit = Math.Min(pageSize, requestedLimit - rows.Count),
+                        Filter = CloneReportFilter(request.Filter, pageCreated),
+                        Columns = request.Columns,
+                        Aggregate = request.Aggregate,
+                        ReportFormat = request.ReportFormat,
+                        Timezone = request.Timezone
+                    };
+                    var page = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(pageRequest);
+                    var pageRows = page?.Events ?? new List<Dictionary<string, object>>();
+                    var added = 0;
+                    foreach (var row in pageRows)
+                    {
+                        var id = row != null && row.TryGetValue("id", out var idValue) && idValue != null
+                            ? idValue.ToString()
+                            : string.Join("|", (row ?? new Dictionary<string, object>())
+                                .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                                .Select(pair => $"{pair.Key}={pair.Value}"));
+                        if (seenIds.Add(id))
+                        {
+                            rows.Add(row);
+                            added++;
+                        }
+                    }
+
+                    if (pageRows.Count < pageRequest.Limit || rows.Count >= requestedLimit)
+                        break;
+                    if (added == 0)
+                        throw new InvalidOperationException("Audit report pagination could not advance past events sharing the same timestamp.");
+
+                    var timestamps = pageRows
+                        .Where(row => row != null && row.TryGetValue("created", out var created) &&
+                                      long.TryParse(created?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                        .Select(row => long.Parse(row["created"].ToString(), CultureInfo.InvariantCulture))
+                        .ToArray();
+                    if (timestamps.Length == 0)
+                        throw new InvalidOperationException("Audit report pagination cannot continue because the response has no event timestamps.");
+                    cursor = ascending ? timestamps.Max() : timestamps.Min();
+                }
+                return rows.Take(requestedLimit).ToList();
+            }
+
+            var reportRows = new List<Dictionary<string, object>>();
+            var min = range.Min.Value;
+            var max = range.Max.Value;
+            async Task FetchRange(long rangeMin, long rangeMax, bool excludeMin, bool excludeMax, int depth)
+            {
+                var pageRequest = new GetAuditEventReportsCommand
+                {
+                    ReportType = request.ReportType,
+                    Order = request.Order,
+                    Limit = pageSize,
+                    Filter = CloneReportFilter(request.Filter, new CreatedFilter
+                    {
+                        Min = rangeMin,
+                        Max = rangeMax,
+                        ExcludeMin = excludeMin,
+                        ExcludeMax = excludeMax
+                    }),
+                    Columns = request.Columns,
+                    Aggregate = request.Aggregate,
+                    ReportFormat = request.ReportFormat,
+                    Timezone = request.Timezone
+                };
+                var page = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(pageRequest);
+                var pageRows = page?.Events ?? new List<Dictionary<string, object>>();
+                if (pageRows.Count < pageSize)
+                {
+                    reportRows.AddRange(pageRows);
+                    return;
+                }
+                if (depth >= 40 || rangeMax - rangeMin <= 1)
+                    throw new InvalidOperationException("Aggregated audit report pagination reached a time interval that is still larger than the API page limit.");
+
+                var midpoint = rangeMin + (rangeMax - rangeMin) / 2;
+                await FetchRange(rangeMin, midpoint, excludeMin, true, depth + 1);
+                await FetchRange(midpoint, rangeMax, false, excludeMax, depth + 1);
+            }
+            await FetchRange(min, max, range.ExcludeMin, range.ExcludeMax, 0);
+
+            var aggregateColumns = new HashSet<string>(
+                (request.Aggregate ?? new[] { "occurrences" }).Concat(new[] { "occurrences" }),
+                StringComparer.OrdinalIgnoreCase);
+            var merged = new Dictionary<string, Dictionary<string, object>>(StringComparer.Ordinal);
+            foreach (var row in reportRows)
+            {
+                var groupingValues = row
+                    .Where(pair => !aggregateColumns.Contains(pair.Key))
+                    .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                var key = string.Join("|", groupingValues.Select(pair => $"{pair.Key}={pair.Value}"));
+                if (!merged.TryGetValue(key, out var existing))
+                {
+                    existing = new Dictionary<string, object>(row, StringComparer.OrdinalIgnoreCase);
+                    merged[key] = existing;
+                    continue;
+                }
+
+                foreach (var aggregate in aggregateColumns)
+                {
+                    if (!row.TryGetValue(aggregate, out var newValue) || newValue == null)
+                        continue;
+                    if (!existing.TryGetValue(aggregate, out var oldValue) || oldValue == null)
+                    {
+                        existing[aggregate] = newValue;
+                        continue;
+                    }
+                    if (!long.TryParse(oldValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oldNumber) ||
+                        !long.TryParse(newValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var newNumber))
+                        continue;
+                    existing[aggregate] = string.Equals(aggregate, "first_created", StringComparison.OrdinalIgnoreCase)
+                        ? Math.Min(oldNumber, newNumber)
+                        : string.Equals(aggregate, "last_created", StringComparison.OrdinalIgnoreCase)
+                            ? Math.Max(oldNumber, newNumber)
+                            : oldNumber + newNumber;
+                }
+            }
+            var mergedRows = merged.Values.ToList();
+            var sortColumn = request.Aggregate?.FirstOrDefault() ?? request.Columns?.FirstOrDefault();
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                var descending = !string.Equals(request.Order, "ascending", StringComparison.OrdinalIgnoreCase);
+                mergedRows.Sort((left, right) =>
+                {
+                    left.TryGetValue(sortColumn, out var leftValue);
+                    right.TryGetValue(sortColumn, out var rightValue);
+                    var comparison = 0;
+                    if (decimal.TryParse(leftValue?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var leftNumber) &&
+                        decimal.TryParse(rightValue?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var rightNumber))
+                    {
+                        comparison = leftNumber.CompareTo(rightNumber);
+                    }
+                    else
+                    {
+                        comparison = string.Compare(
+                            leftValue?.ToString(),
+                            rightValue?.ToString(),
+                            StringComparison.OrdinalIgnoreCase);
+                    }
+                    return descending ? -comparison : comparison;
+                });
+            }
+            return mergedRows.Take(requestedLimit).ToList();
+        }
+
+        private static Dictionary<string, ComplianceContextInfo> GetCachedAuditComplianceContext(
+            IEnterpriseContext context,
+            IEnumerable<Dictionary<string, object>> rows)
+        {
+            var recordUids = rows?
+                .Where(row => row != null &&
+                              row.TryGetValue("record_uid", out var uid) &&
+                              !string.IsNullOrWhiteSpace(uid?.ToString()))
+                .Select(row => row["record_uid"].ToString().Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList() ?? new List<string>();
+            if (recordUids.Count == 0)
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+
+            var dbPath = GetReportingCachePath(context);
+            if (!System.IO.File.Exists(dbPath))
+            {
+                Trace.TraceInformation($"Audit record-name lookup: no compliance cache found at '{dbPath}'.");
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+
+            try
+            {
+                var connectionString = $"Data Source={dbPath};Pooling=True;";
+                Func<IDbConnection> getConnection = () =>
+                {
+                    var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+                    connection.Open();
+                    return connection;
+                };
+
+                var dialect = SqliteDialect.Instance;
+                var sqlStorage = new SqlComplianceStorage(getConnection, dialect);
+                using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteReportingStorage.VerifyDatabase(connection, dialect);
+                }
+
+                var reportingStorage = new SqliteReportingStorage(sqlStorage);
+                var complianceData = reportingStorage.GetComplianceData(recordUids);
+                Trace.TraceInformation(
+                    $"Audit record-name lookup: queried {recordUids.Count} UID(s) in compliance cache; found {complianceData?.Count ?? 0} record(s).");
+                return complianceData ?? new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"Audit record-name lookup: failed to read compliance cache '{dbPath}': {ex.Message}");
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+        }
+
+        private static async Task<Dictionary<string, ComplianceContextInfo>> FetchAuditComplianceDetailsAsync(
+            IEnterpriseContext context,
+            List<string> recordUids)
+        {
+            var result = new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            if (recordUids == null || recordUids.Count == 0)
+                return result;
+
+            try
+            {
+                var dbPath = GetReportingCachePath(context);
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath));
+                var connectionString = $"Data Source={dbPath};Pooling=True;";
+                Func<IDbConnection> getConnection = () =>
+                {
+                    var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+                    connection.Open();
+                    return connection;
+                };
+                var dialect = SqliteDialect.Instance;
+                var sqlStorage = new SqlComplianceStorage(getConnection, dialect);
+                using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteReportingStorage.VerifyDatabase(connection, dialect);
+                }
+
+                var storage = new SqliteReportingStorage(sqlStorage);
+                var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(
+                    context.EnterpriseData,
+                    storage,
+                    context.EnterprisePrivateKey);
+                var report = await reportingPlugin.GenerateComplianceReportAsync(
+                    context.Enterprise.Auth,
+                    new ComplianceReportConfig { Rebuild = true, CacheMaxAgeDays = 0 },
+                    recordUids);
+                if (!string.IsNullOrWhiteSpace(report.ErrorMessage))
+                    throw new InvalidOperationException(report.ErrorMessage);
+
+                foreach (var entry in report.Entries ?? new List<ComplianceReportEntry>())
+                {
+                    if (string.IsNullOrWhiteSpace(entry.RecordUid) || string.IsNullOrWhiteSpace(entry.Title))
+                        continue;
+                    result[entry.RecordUid] = new ComplianceContextInfo
+                    {
+                        RecordUid = entry.RecordUid,
+                        Title = entry.Title
+                    };
+                }
+                Trace.TraceInformation(
+                    $"Audit max-record-details: fetched titles for {result.Count}/{recordUids.Count} missing compliance record(s).");
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"Audit max-record-details: unable to fetch compliance record details: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        private static string ResolveAuditRecordName(
+            IEnterpriseContext context,
+            Dictionary<string, object> row,
+            Dictionary<string, ComplianceContextInfo> complianceContext)
+        {
+            if (row == null)
+                return "";
+
+            foreach (var column in new[] { "record_name", "record_title" })
+            {
+                if (row.TryGetValue(column, out var name) && !string.IsNullOrWhiteSpace(name?.ToString()))
+                    return name.ToString();
+            }
+
+            if (!row.TryGetValue("record_uid", out var uidValue) ||
+                string.IsNullOrWhiteSpace(uidValue?.ToString()))
+                return "";
+
+            var recordUid = uidValue.ToString().Trim();
+            if (complianceContext != null &&
+                complianceContext.TryGetValue(recordUid, out var complianceRecord) &&
+                complianceRecord != null &&
+                !string.IsNullOrWhiteSpace(complianceRecord.Title))
+                return complianceRecord.Title;
+
+            // Keep the local vault as a fallback for records that are not in the compliance cache.
+            try
+            {
+                var vault = context?.GetVault();
+                if (vault != null && vault.TryGetKeeperRecord(recordUid, out var vaultRecord))
+                    return vaultRecord.Title ?? "";
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceInformation($"Audit record-name lookup: vault fallback failed for UID '{recordUid}': {ex.Message}");
+            }
+
+            return "";
+        }
+
         internal static async Task RunAuditEventsReport(this IEnterpriseContext context, AuditReportOptions options)
         {
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+            if (options.Limit <= 0)
+            {
+                Console.WriteLine("Error: --limit must be greater than 0.");
+                return;
+            }
+            TimeZoneInfo reportTimeZone = null;
+            if (!string.IsNullOrWhiteSpace(options.Timezone))
+            {
+                try
+                {
+                    reportTimeZone = TimeZoneInfo.FindSystemTimeZoneById(options.Timezone);
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    Console.WriteLine($"Error: unknown time zone '{options.Timezone}'.");
+                    return;
+                }
+                catch (InvalidTimeZoneException)
+                {
+                    Console.WriteLine($"Error: invalid time zone '{options.Timezone}'.");
+                    return;
+                }
+            }
+            if (string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(options.ReportFormat) &&
+                !string.Equals(options.ReportFormat, "message", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Error: --report-format must be either 'message' or 'fields'.");
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(options.Order) &&
+                !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(options.Order, "desc", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Error: --order must be either 'asc' or 'desc'.");
+                return;
+            }
+            var selectedReportType = (options.ReportType ?? "raw").Trim().ToLowerInvariant();
+            if (selectedReportType != "raw" && selectedReportType != "dim" &&
+                selectedReportType != "hour" && selectedReportType != "day" &&
+                selectedReportType != "week" && selectedReportType != "month" &&
+                selectedReportType != "span")
+            {
+                Console.WriteLine("Error: --report-type must be raw, dim, hour, day, week, month, or span.");
+                return;
+            }
+            if (selectedReportType != "raw" && options.Aggregate != null)
+            {
+                var validAggregates = new HashSet<string>(
+                    new[] { "occurrences", "first_created", "last_created" },
+                    StringComparer.OrdinalIgnoreCase);
+                var invalidAggregates = options.Aggregate
+                    .Where(aggregate => !validAggregates.Contains(aggregate ?? ""))
+                    .ToArray();
+                if (invalidAggregates.Length > 0)
+                {
+                    Console.WriteLine($"Error: unsupported aggregate column(s): {string.Join(", ", invalidAggregates)}.");
+                    return;
+                }
+            }
+
             var hasComplianceAddon = false;
             var hasCompliancePrivilege = false;
 
@@ -3193,16 +3793,14 @@ namespace Commander
                 string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
                 !options.MaxRecordDetails &&
                 !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
+                string.IsNullOrWhiteSpace(options.Timezone) &&
+                !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase) &&
+                (options.GeoLocation == null || !options.GeoLocation.Any()) &&
+                (options.DeviceType == null || !options.DeviceType.Any()) &&
                 (options.Columns == null || !options.Columns.Any()) &&
                 (options.Aggregate == null || !options.Aggregate.Any()))
             {
                 await RunAuditEventsReportWithCompliance(context, options);
-                return;
-            }
-
-            if (options.MaxRecordDetails)
-            {
-                Console.WriteLine("--max-record-details feature is not yet supported.");
                 return;
             }
 
@@ -3223,6 +3821,11 @@ namespace Commander
             if (!string.IsNullOrEmpty(options.Created))
             {
                 filter.Created = ParseDateCreatedFilter(options.Created);
+                if (filter.Created == null)
+                {
+                    Console.WriteLine($"Error: invalid --created value '{options.Created}'.");
+                    return;
+                }
             }
 
             if (options.EventType != null && options.EventType.Any())
@@ -3280,11 +3883,20 @@ namespace Commander
             {
                 filter.IpAddress = options.IpAddress.ToArray();
             }
+            if (options.GeoLocation != null && options.GeoLocation.Any())
+            {
+                filter.GeoLocation = options.GeoLocation.ToArray();
+            }
+            if (options.DeviceType != null && options.DeviceType.Any())
+            {
+                filter.DeviceType = options.DeviceType.ToArray();
+            }
 
             var rq = new GetAuditEventReportsCommand
             {
                 Filter = filter,
                 Limit = options.Limit,
+                Timezone = options.Timezone,
             };
 
             if (!string.IsNullOrEmpty(options.Order)) 
@@ -3297,21 +3909,48 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.ReportType))
             {
-                rq.ReportType = options.ReportType;
+                rq.ReportType = options.ReportType.Trim().ToLowerInvariant();
             }
-            if (options.Aggregate != null && options.Aggregate.Any())
+            var reportType = options.ReportType ?? "raw";
+            var isRawReport = string.Equals(reportType, "raw", StringComparison.OrdinalIgnoreCase);
+            if (!isRawReport && options.Aggregate != null && options.Aggregate.Any())
             {
                 rq.Aggregate = options.Aggregate.ToArray();
             }
-            if (options.Columns != null && options.Columns.Any())
+            else if (!isRawReport)
             {
-                rq.Columns = options.Columns.ToArray();
+                rq.Aggregate = new[] { "occurrences" };
+            }
+            if (isRawReport)
+            {
+                var reportFormat = string.IsNullOrWhiteSpace(options.ReportFormat)
+                    ? "message"
+                    : options.ReportFormat.Trim().ToLowerInvariant();
+                if (reportFormat != "message" && reportFormat != "fields")
+                    throw new ArgumentException("--report-format must be either 'message' or 'fields'.");
+                rq.ReportFormat = reportFormat;
             }
 
-            if (options.ReportType == "dim")
+            var requestedColumns = isRawReport
+                ? Array.Empty<string>()
+                : options.Columns?.ToArray() ?? Array.Empty<string>();
+            // Resolve names locally from compliance data; the audit API groups on record_uid.
+            var apiColumns = requestedColumns
+                .Select(column => IsRecordNameColumn(column)
+                    ? "record_uid"
+                    : column)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (apiColumns.Length > 0)
             {
-                var dimColumns = (options.Columns != null && options.Columns.Any()) 
-                    ? options.Columns.ToArray() 
+                rq.Columns = apiColumns;
+            }
+
+            if (string.Equals(rq.ReportType, "dim", StringComparison.OrdinalIgnoreCase))
+            {
+                var dimColumns = (apiColumns.Length > 0)
+                    ? apiColumns
                     : new[] { "audit_event_type" };
                 var dimRq = new GetAuditEventDimensionsCommand
                 {
@@ -3320,7 +3959,16 @@ namespace Commander
                 var dimRs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventDimensionsCommand, GetAuditEventDimensionsResponse>(dimRq);
 
                 bool hasData = false;
-                int limit = options.Limit > 0 ? options.Limit : int.MaxValue;
+                int limit = options.Limit;
+                var requestedRecordNames = requestedColumns.Any(IsRecordNameColumn);
+                var dimComplianceContext = requestedRecordNames
+                    ? GetCachedAuditComplianceContext(
+                        context,
+                        dimRs.Dimensions?.RecordUid?.Select(uid => new Dictionary<string, object>
+                        {
+                            ["record_uid"] = uid
+                        }))
+                    : new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
 
                 void DisplayDimension<T>(T[] data, string title, string[] headers, Func<T, object[]> rowSelector)
                 {
@@ -3367,7 +4015,21 @@ namespace Commander
                 DisplayDimension(dimRs.Dimensions?.ToUsername, "ToUsernames", new[] { "To Username" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.FromUsername, "FromUsernames", new[] { "From Username" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.Channel, "Channels", new[] { "channel" }, item => new object[] { item });
-                DisplayDimension(dimRs.Dimensions?.RecordUid, "Record IDs", new[] { "Record ID" }, item => new object[] { item });
+                if (requestedRecordNames)
+                {
+                    DisplayDimension(
+                        dimRs.Dimensions?.RecordUid,
+                        "Record Names",
+                        new[] { "Record Name" },
+                        uid => new object[]
+                        {
+                            dimComplianceContext.TryGetValue(uid, out var record) ? record.Title : ""
+                        });
+                }
+                else
+                {
+                    DisplayDimension(dimRs.Dimensions?.RecordUid, "Record IDs", new[] { "Record ID" }, item => new object[] { item });
+                }
                 DisplayDimension(dimRs.Dimensions?.SharedFolderUid, "Shared Folder IDs", new[] { "Shared Folder ID" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.TeamUid, "Team IDs", new[] { "Team Id" }, item => new object[] { item });
 
@@ -3378,7 +4040,11 @@ namespace Commander
                 return;
             }
 
-            var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
+            var reportRows = await FetchAuditReportRowsAsync(
+                context.Enterprise.Auth,
+                rq,
+                options.Limit,
+                reportTimeZone);
 
             List<PatternFilter> patternFilters = null;
             if (options.FilterPatterns != null && options.FilterPatterns.Any())
@@ -3394,10 +4060,30 @@ namespace Commander
                 }
             }
 
-            var filteredEvents = rs.Events;
+            var filteredEvents = reportRows;
             if (patternFilters != null && patternFilters.Any())
             {
-                filteredEvents = rs.Events.Where(evt => ApplyFilters(evt, patternFilters, options.MatchAll)).ToList();
+                filteredEvents = reportRows.Where(evt => ApplyFilters(evt, patternFilters, options.MatchAll)).ToList();
+            }
+
+            var requestedRecordName = requestedColumns.Any(IsRecordNameColumn);
+            var cachedAuditComplianceContext = requestedRecordName && rq.ReportType != "raw"
+                ? GetCachedAuditComplianceContext(context, filteredEvents)
+                : new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            if (options.MaxRecordDetails && requestedRecordName && rq.ReportType != "raw")
+            {
+                var missingRecordUids = filteredEvents
+                    .Where(evt => evt != null &&
+                                  evt.TryGetValue("record_uid", out var uid) &&
+                                  !string.IsNullOrWhiteSpace(uid?.ToString()) &&
+                                  (!cachedAuditComplianceContext.TryGetValue(uid.ToString().Trim(), out var cached) ||
+                                   string.IsNullOrWhiteSpace(cached?.Title)))
+                    .Select(evt => evt["record_uid"].ToString().Trim())
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+                var fetchedDetails = await FetchAuditComplianceDetailsAsync(context, missingRecordUids);
+                foreach (var detail in fetchedDetails)
+                    cachedAuditComplianceContext[detail.Key] = detail.Value;
             }
 
             var headers = new List<string>();
@@ -3405,64 +4091,72 @@ namespace Commander
 
             if (rq.ReportType == "raw")
             {
-                headers.AddRange(new[] { "Created", "Username", "Event", "Message" });
+                var fieldsFormat = string.Equals(rq.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase);
+                headers.AddRange(fieldsFormat
+                    ? new[] { "Created", "Audit Event Type", "Username", "IP Address", "Keeper Version", "Geo Location", "Record UID" }
+                    : new[] { "Created", "Audit Event Type", "Username", "IP Address", "Keeper Version", "Geo Location", "Message" });
                 foreach (var evt in filteredEvents)
                 {
                     if (!evt.TryGetValue("audit_event_type", out var v)) continue;
                     var eventName = v.ToString();
-                    if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+                    var created = evt.TryGetValue("created", out var createdValue)
+                        ? FormatAuditReportTime(createdValue, reportTimeZone)
+                        : "";
+                    var username = evt.TryGetValue("username", out var usernameValue) ? usernameValue?.ToString() ?? "" : "";
+                    var ipAddress = evt.TryGetValue("ip_address", out var ipAddressValue) ? ipAddressValue?.ToString() ?? "" : "";
+                    var keeperVersion = evt.TryGetValue("keeper_version", out var versionValue) ? versionValue?.ToString() ?? "" : "";
+                    var geoLocation = evt.TryGetValue("geo_location", out var geoValue) ? geoValue?.ToString() ?? "" : "";
 
-                    var message = eventType.SyslogMessage;
-                    do
+                    if (fieldsFormat)
                     {
-                        var match = Regex.Match(message, ParameterPattern);
-                        if (!match.Success) break;
-                        if (match.Groups.Count != 2) break;
-                        var parameter = match.Groups[1].Value;
-                        var value = "";
-                        if (evt.TryGetValue(parameter, out v))
-                        {
-                            value = v.ToString();
-                        }
-
-                        message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
-                        message = message.Insert(match.Groups[0].Index, value);
-                    } while (true);
-                    var created = "";
-                    if (evt.TryGetValue("created", out v))
-                    {
-                        created = v.ToString();
-                        if (long.TryParse(created, out var epoch))
-                        {
-                            created = DateTimeOffset.FromUnixTimeSeconds(epoch).ToString("G");
-                        }
+                        var recordUid = evt.TryGetValue("record_uid", out var uidValue) ? uidValue?.ToString() ?? "" : "";
+                        rows.Add(new object[] { created, eventName, username, ipAddress, keeperVersion, geoLocation, recordUid });
                     }
-                    var username = "";
-                    if (evt.TryGetValue("username", out v))
+                    else
                     {
-                        username = v.ToString();
+                        if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+                        var message = eventType.SyslogMessage;
+                        do
+                        {
+                            var match = Regex.Match(message, ParameterPattern);
+                            if (!match.Success || match.Groups.Count != 2) break;
+                            var parameter = match.Groups[1].Value;
+                            var value = evt.TryGetValue(parameter, out var parameterValue)
+                                ? parameterValue?.ToString() ?? ""
+                                : "";
+                            message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                            message = message.Insert(match.Groups[0].Index, value);
+                        } while (true);
+                        rows.Add(new object[] { created, eventName, username, ipAddress, keeperVersion, geoLocation, message });
                     }
-                    rows.Add(new object[] { created, username, eventName, message });
                 }
             }
             else
             {
-                var columns = options.Aggregate.Concat(options.Columns).ToArray();
+                var aggregateColumns = options.Aggregate != null && options.Aggregate.Any()
+                    ? options.Aggregate
+                    : rq.Aggregate;
+                var columns = aggregateColumns.Concat(requestedColumns).ToArray();
 
                 headers.AddRange(columns);
                 foreach (var evt in filteredEvents)
                 {
                     var values = columns.Select(x => {
                         object value = null;
-                        evt.TryGetValue(x, out value);
-                        if (value != null && (x == "last_created" || x == "first_created")) 
+                        if (IsRecordNameColumn(x))
                         {
-                            if (value is IConvertible c) 
-                            {
-                                var ts = c.ToInt64(CultureInfo.InvariantCulture);
-                                var dt = DateTimeOffset.FromUnixTimeSeconds(ts);
-                                value = dt.ToString("g");
-                            }
+                            value = ResolveAuditRecordName(context, evt, cachedAuditComplianceContext);
+                        }
+                        else
+                        {
+                            evt.TryGetValue(x, out value);
+                        }
+                        if (value != null &&
+                            (string.Equals(x, "last_created", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(x, "first_created", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(x, "created", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            value = FormatAuditReportTime(value, reportTimeZone);
                         }
                         return value;
                     }).ToArray();
@@ -3569,14 +4263,17 @@ namespace Commander
                     storage = new InMemoryReportingStorage();
                 }
 
-                var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(context.EnterpriseData, storage);
+                var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(
+                    context.EnterpriseData,
+                    storage,
+                    context.EnterprisePrivateKey);
 
                 var config = new AuditReportConfig
                 {
                     IncludeComplianceContext = true,
                     IncludeAging = true,
                     CacheMaxAgeDays = 1,
-                    Limit = options.Limit > 0 ? options.Limit : 2000,
+                    Limit = options.Limit,
                     Format = options.Format ?? "table",
                     ReportType = options.ReportType ?? "raw",
                     Order = options.Order,
@@ -3676,14 +4373,7 @@ namespace Commander
                     var patternFilteredEntries = new List<AuditReportEntry>();
                     foreach (var evt in filteredEntries)
                     {
-                        var eventData = new Dictionary<string, object>
-                        {
-                            { "audit_event_type", evt.EventType },
-                            { "username", evt.Username },
-                            { "ip_address", evt.IpAddress },
-                            { "record_uid", evt.RecordUid },
-                            { "client_type", evt.ClientType }
-                        };
+                        var eventData = CreateAuditEntryFilterData(context, evt);
                         if (ApplyFilters(eventData, patternFilters, options.MatchAll))
                         {
                             patternFilteredEntries.Add(evt);
@@ -3698,8 +4388,6 @@ namespace Commander
                     "Event Type",
                     "Username",
                     "IP Address",
-                    "Record ID",
-                    "Record Title",
                     "Keeper Version",
                     "Geo Location",
                     "Message"
@@ -3711,28 +4399,7 @@ namespace Commander
 
                 foreach (var evt in filteredEntries)
                 {
-                    string message = "";
-                    if (context.AuditEvents != null && context.AuditEvents.TryGetValue(evt.EventType ?? "", out var eventType))
-                    {
-                        message = eventType.SyslogMessage;
-                        var match = Regex.Match(message, @"\$\{(\w+)\}");
-                        while (match.Success)
-                        {
-                            var parameter = match.Groups[1].Value;
-                            var value = "";
-                            if (parameter == "username")
-                            {
-                                value = evt.Username ?? "";
-                            }
-                            else if (evt.Details != null && evt.Details.TryGetValue(parameter, out var paramValue))
-                            {
-                                value = paramValue?.ToString() ?? "";
-                            }
-                            message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
-                            message = message.Insert(match.Groups[0].Index, value);
-                            match = Regex.Match(message, @"\$\{(\w+)\}");
-                        }
-                    }
+                    var message = FormatAuditEventMessage(context, evt.EventType, evt.Username, evt.Details);
 
                     // Extract keeper_version from Details if available
                     string keeperVersion = "";
@@ -3741,34 +4408,12 @@ namespace Commander
                         keeperVersion = evt.Details["keeper_version"]?.ToString() ?? "";
                     }
 
-                    string recordTitle = evt.RecordTitle ?? "";
-                    if (!string.IsNullOrEmpty(evt.RecordUid))
-                    {
-                        try
-                        {
-                            var vault = context.GetVault();
-                            if (vault != null && vault.TryGetKeeperRecord(evt.RecordUid, out var vaultRecord))
-                            {
-                                recordTitle = vaultRecord.Title ?? recordTitle;
-                            }
-                        }
-                        catch { }
-
-                        if (string.IsNullOrEmpty(recordTitle) && report.ComplianceContext != null &&
-                            report.ComplianceContext.ContainsKey(evt.RecordUid))
-                        {
-                            recordTitle = report.ComplianceContext[evt.RecordUid].Title ?? recordTitle;
-                        }
-                    }
-
                     var row = new object[]
                     {
                         evt.EventTime.ToString("O"),
                         evt.EventType,
                         evt.Username,
                         evt.IpAddress,
-                        evt.RecordUid,
-                        recordTitle,
                         keeperVersion,
                         evt.GeoLocation,
                         message
@@ -5077,7 +5722,7 @@ namespace Commander
         [Value(0, Required = false, HelpText = "Filter patterns. Supports: regex:<pattern>, exact:<text>, not:<pattern>, not:regex:<pattern>, not:exact:<text>")]
         public IEnumerable<string> FilterPatterns { get; set; }
         
-        [Option("limit", Required = false, Default = 100, HelpText = "maximum number of returned events")]
+        [Option("limit", Required = false, Default = 50, HelpText = "maximum number of returned events; must be greater than 0")]
         public int Limit { get; set; }
 
         [Option("order", Required = false, Default = null, HelpText = "sort order: asc, desc")]
@@ -5107,13 +5752,25 @@ namespace Commander
         [Option("ip-address", Required = false, Default = null, HelpText = "filter by IP address")]
         public IEnumerable<string> IpAddress { get; set; }
 
+        [Option("geo-location", Required = false, Default = null, HelpText = "Geo location (city, region, and/or country)")]
+        public IEnumerable<string> GeoLocation { get; set; }
+
+        [Option("device-type", Required = false, Default = null, HelpText = "Keeper device/application and optional version")]
+        public IEnumerable<string> DeviceType { get; set; }
+
         [Option("report-type", Required = false, Default = "raw", HelpText = "report type")]
         public string ReportType { get; set; }
+
+        [Option("report-format", Required = false, Default = "message", HelpText = "raw report format: message or fields")]
+        public string ReportFormat { get; set; }
+
+        [Option("timezone", Required = false, Default = null, HelpText = "time zone for report periods and displayed timestamps")]
+        public string Timezone { get; set; }
 
         [Option("aggregate", Required = false, HelpText = "aggregate columns")]
         public IEnumerable<string> Aggregate { get; set; }
 
-        [Option("columns", Required = false, HelpText = "report columns")]
+        [Option("columns", Required = false, HelpText = "summary/dimension columns; includes audit_event_type, username, ip_address, keeper_version, geo_location, message, created, record_uid, record_name (or record_title)")]
         public IEnumerable<string> Columns { get; set; }
 
         [Option("match-all", Required = false, Default = false, HelpText = "Use AND logic (all patterns must match). Default is OR logic.")]

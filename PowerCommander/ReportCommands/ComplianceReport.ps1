@@ -45,8 +45,7 @@ function Get-KeeperComplianceReportViaSdk {
             $storage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
         }
         catch {
-            $storageType = [KeeperSecurity.Enterprise.ReportingPlugin.InMemoryReportingStorage]
-            $storage = New-Object $storageType
+            throw "Failed to initialize SQLite compliance storage: $($_.Exception.Message)"
         }
 
         $enterpriseEcKey = $null

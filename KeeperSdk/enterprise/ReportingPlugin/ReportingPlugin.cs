@@ -65,6 +65,11 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
 
                 if (config.IncludeComplianceContext)
                 {
+                    if (_enterpriseEcPrivateKey == null)
+                    {
+                        Trace.TraceWarning("Compliance metadata titles cannot be decrypted because the enterprise EC private key was not supplied to ReportingPlugin.");
+                    }
+
                     var isStale = _storage.IsComplianceDataStale(config.CacheMaxAgeDays);
 
                     if (!isStale)
@@ -105,6 +110,18 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     agingData = await FetchAgingDataAsync(auth, recordUids);
                     _storage.SaveAgingData(agingData, now);
                     Trace.TraceInformation($"Extracted aging data for {agingData?.Count ?? 0} records");
+                }
+
+                if (soxData != null)
+                {
+                    foreach (var auditEvent in auditEvents ?? Enumerable.Empty<AuditReportEntry>())
+                    {
+                        if (string.IsNullOrWhiteSpace(auditEvent.RecordUid) ||
+                            !soxData.TryGetValue(auditEvent.RecordUid, out var complianceRecord))
+                            continue;
+
+                        auditEvent.RecordTitle = complianceRecord.Title ?? auditEvent.RecordTitle;
+                    }
                 }
 
                 result.Entries = auditEvents ?? new List<AuditReportEntry>();
@@ -477,6 +494,7 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                                     info.Title ??= GetMetadataString(fields, "title");
                                     info.RecordType ??= GetMetadataString(fields, "record_type");
                                     info.Url ??= GetMetadataString(fields, "url");
+                                    Trace.TraceInformation($"Decrypted compliance metadata for record {uid}; title present={!string.IsNullOrWhiteSpace(info.Title)}.");
                                 }
                                 catch (Exception ex)
                                 {
