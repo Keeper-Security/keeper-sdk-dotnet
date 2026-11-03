@@ -4268,17 +4268,26 @@ namespace Commander
                     storage,
                     context.EnterprisePrivateKey);
 
+                // Handle rebuild flag
+                var cacheMaxAgeDays = 1;
+                if (options.RebuildCompliance)
+                {
+                    cacheMaxAgeDays = 0;  // Force fresh fetch
+                    Console.WriteLine("[AUDIT_REPORT] Compliance cache rebuild requested - fetching fresh data from API");
+                }
+
                 var config = new AuditReportConfig
                 {
-                    IncludeComplianceContext = true,
-                    IncludeAging = true,
-                    CacheMaxAgeDays = 1,
+                    IncludeComplianceContext = options.IncludeCompliance,  // Now opt-in
+                    IncludeAging = options.IncludeAging,                    // Now opt-in
+                    CacheMaxAgeDays = cacheMaxAgeDays,
                     Limit = options.Limit,
                     Format = options.Format ?? "table",
                     ReportType = options.ReportType ?? "raw",
                     Order = options.Order,
                     CreatedFilter = string.IsNullOrWhiteSpace(options.Created) ? null : ParseDateCreatedFilter(options.Created)
                 };
+
                 if (!string.IsNullOrWhiteSpace(options.Created) && config.CreatedFilter == null)
                     throw new ArgumentException($"Invalid created filter: {options.Created}");
 
@@ -4289,6 +4298,59 @@ namespace Commander
                 if (options.Username != null && options.Username.Any())
                 {
                     config.Usernames = options.Username.ToList();
+                }
+
+                // Add user filtering for compliance data
+                if (options.IncludeCompliance)
+                {
+                    var complianceUserIds = new List<long>();
+
+                    if (options.ComplianceUsernames != null && options.ComplianceUsernames.Any())
+                    {
+                        Console.WriteLine($"[AUDIT_REPORT] Filtering compliance data by usernames: {string.Join(", ", options.ComplianceUsernames)}");
+                        foreach (var username in options.ComplianceUsernames)
+                        {
+                            if (context.EnterpriseData.TryGetUserByEmail(username, out var user))
+                            {
+                                complianceUserIds.Add(user.Id);
+                                Console.WriteLine($"[AUDIT_REPORT] Added user {username} (ID: {user.Id}) to compliance filter");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[AUDIT_REPORT] WARNING: User not found: {username}");
+                            }
+                        }
+                    }
+
+                    if (options.ComplianceTeams != null && options.ComplianceTeams.Any())
+                    {
+                        Console.WriteLine($"[AUDIT_REPORT] Filtering compliance data by teams: {string.Join(", ", options.ComplianceTeams)}");
+                        foreach (var teamName in options.ComplianceTeams)
+                        {
+                            var team = context.EnterpriseData.Teams.FirstOrDefault(t =>
+                                t.Name == teamName || t.Uid == teamName);
+                            if (team != null)
+                            {
+                                var teamUserIds = context.EnterpriseData.GetUsersForTeam(team.Uid);
+                                foreach (var userId in teamUserIds)
+                                {
+                                    if (!complianceUserIds.Contains(userId))
+                                        complianceUserIds.Add(userId);
+                                }
+                                Console.WriteLine($"[AUDIT_REPORT] Added {teamUserIds.Length} users from team '{teamName}' to compliance filter");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[AUDIT_REPORT] WARNING: Team not found: {teamName}");
+                            }
+                        }
+                    }
+
+                    if (complianceUserIds.Count > 0)
+                    {
+                        config.OwnerUserIds = complianceUserIds;
+                        Console.WriteLine($"[AUDIT_REPORT] Compliance data filter: {complianceUserIds.Count} user(s)");
+                    }
                 }
                 if (!string.IsNullOrEmpty(options.ToUsername))
                 {
@@ -5784,6 +5846,21 @@ namespace Commander
 
         [Option("max-record-details", Required = false, Default = false, HelpText = "allow retrieval of additional record-detail data if not found in local cache")]
         public bool MaxRecordDetails { get; set; }
+
+        [Option("include-compliance", Required = false, Default = false, HelpText = "Include compliance context data for record titles (optional)")]
+        public bool IncludeCompliance { get; set; }
+
+        [Option("include-aging", Required = false, Default = false, HelpText = "Include record aging data - created, modified, password change dates (optional)")]
+        public bool IncludeAging { get; set; }
+
+        [Option("filter-username", Required = false, Separator = ',', HelpText = "Filter compliance data to specific username(s)")]
+        public IEnumerable<string> ComplianceUsernames { get; set; }
+
+        [Option("filter-team", Required = false, Separator = ',', HelpText = "Filter compliance data to specific team(s)")]
+        public IEnumerable<string> ComplianceTeams { get; set; }
+
+        [Option("rebuild-compliance", Required = false, Default = false, HelpText = "Rebuild compliance data from source instead of using cache")]
+        public bool RebuildCompliance { get; set; }
     }
 
     class EnterpriseUsersOptions : EnterpriseGenericOptions
