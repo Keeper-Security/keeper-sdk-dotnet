@@ -31,6 +31,21 @@ namespace Commander
             [Option("password", Required = false, HelpText = "proxy password")]
             public string Password { get; set; }
         }
+
+        private class ServerOptions
+        {
+            [Option("ignore-certificate-errors", Required = false,
+                HelpText = "accept any TLS certificate presented by this server. The server is not authenticated")]
+            public bool IgnoreCertificateErrors { get; set; }
+
+            [Option("verify-certificate", Required = false, HelpText = "verify TLS certificate presented by this server")]
+            public bool VerifyCertificate { get; set; }
+
+            [Value(0, Required = false, MetaName = "server",
+                HelpText = "Keeper region: US, EU, AU, CA, JP, GOV with optional _DEV or _QA suffix. Self hosted instance: host name")]
+            public string Server { get; set; }
+        }
+
         private class LoginOptions
         {
             [Option("password", Required = false, HelpText = "master password")]
@@ -89,42 +104,11 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
-            Commands.Add("server", new SimpleCommand
+            Commands.Add("server", new ParseableCommand<ServerOptions>
             {
                 Order = 20,
                 Description = "Display or change Keeper Server",
-                Action = (args) =>
-                {
-                    var server = args?.Trim() ?? "";
-
-                    if (server == "-h" || server == "--help")
-                    {
-                        Console.WriteLine("Usage: server [REGION]");
-                        Console.WriteLine();
-                        Console.WriteLine("Set or display the current Keeper region.");
-                        Console.WriteLine();
-                        Console.WriteLine("Valid regions:");
-                        Console.WriteLine("  Production: US, EU, AU, CA, JP, GOV");
-                        Console.WriteLine("  Dev:        US_DEV, EU_DEV, AU_DEV, CA_DEV, JP_DEV, GOV_DEV");
-                        Console.WriteLine("  QA:         US_QA, EU_QA, AU_QA, CA_QA, JP_QA, GOV_QA");
-                        return Task.FromResult(true);
-                    }
-
-                    if (!string.IsNullOrEmpty(server))
-                    {
-                        var resolved = KeeperRegions.ResolveServer(server);
-                        if (resolved == null)
-                        {
-                            Console.WriteLine($"Invalid region: {server}");
-                            Console.WriteLine($"Valid regions: {string.Join(", ", KeeperRegions.Servers.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}");
-                            return Task.FromResult(true);
-                        }
-                        _auth.Endpoint.Server = resolved;
-                    }
-
-                    Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
-                    return Task.FromResult(true);
-                }
+                Action = DoServer
             });
 
             Commands.Add("version", new SimpleCommand
@@ -256,6 +240,51 @@ namespace Commander
                 Username = username,
                 Password = password
             });
+        }
+
+        private Task DoServer(ServerOptions options)
+        {
+            var server = _auth.Endpoint.Server;
+            if (!string.IsNullOrEmpty(options.Server))
+            {
+                server = KeeperRegions.ResolveServer(options.Server);
+                if (server == null)
+                {
+                    if (!options.Server.Contains("."))
+                    {
+                        Console.WriteLine($"Invalid region: {options.Server}");
+                        Console.WriteLine($"Valid regions: {string.Join(", ", KeeperRegions.Servers.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}");
+                        Console.WriteLine("Self hosted instances are set by their host name.");
+                        return Task.CompletedTask;
+                    }
+
+                    server = options.Server.Trim().ToLowerInvariant();
+                }
+            }
+
+            if (options.IgnoreCertificateErrors && options.VerifyCertificate)
+            {
+                Console.WriteLine("\"--ignore-certificate-errors\" and \"--verify-certificate\" cannot be used together.");
+                return Task.CompletedTask;
+            }
+
+            if (options.IgnoreCertificateErrors || options.VerifyCertificate)
+            {
+                var configuration = _auth.Storage.Get();
+                var sc = configuration.Servers.Get(server);
+                var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(server);
+                serverConfiguration.IgnoreCertificateErrors = options.IgnoreCertificateErrors;
+                configuration.Servers.Put(serverConfiguration);
+                _auth.Storage.Put(configuration);
+            }
+
+            // Reloads the server key and TLS settings.
+            _auth.Endpoint.Server = server;
+
+            Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
+            Console.WriteLine($"Server Key ID: {_auth.Endpoint.ServerKeyId}");
+            Console.WriteLine($"TLS Verification: {(_auth.Endpoint.IgnoreCertificateErrors ? "OFF. The server is not authenticated" : "ON")}");
+            return Task.CompletedTask;
         }
 
         private async Task DoProxy(ProxyOptions options)

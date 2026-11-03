@@ -585,7 +585,7 @@ namespace KeeperSecurity.Authentication
             UsePushNotifications = true;
             messageSessionUid ??= CryptoUtils.GetRandomBytes(16);
 
-            var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
+            var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy, Endpoint.IgnoreCertificateErrors);
             var sessionToken = authContext.SessionToken;
             var deviceToken = DeviceToken;
 
@@ -630,7 +630,7 @@ namespace KeeperSecurity.Authentication
             string authHeader;
             try
             {
-                await PingKeeperServer(keeperUri, Endpoint.WebProxy);
+                await PingKeeperServer(keeperUri, Endpoint.WebProxy, Endpoint.IgnoreCertificateErrors);
                 return true;
             }
             catch (ProxyAuthenticationRequired e)
@@ -647,7 +647,7 @@ namespace KeeperSecurity.Authentication
             {
                 try
                 {
-                    await PingKeeperServer(keeperUri, proxy);
+                    await PingKeeperServer(keeperUri, proxy, Endpoint.IgnoreCertificateErrors);
                     Endpoint.WebProxy = proxy;
                     return true;
                 }
@@ -660,12 +660,17 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy)
+        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy, bool ignoreCertificateErrors)
         {
             var handler = new HttpClientHandler();
             if (proxy != null)
             {
                 handler.Proxy = proxy;
+            }
+
+            if (ignoreCertificateErrors)
+            {
+                handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
             }
 
             using var client = new HttpClient(handler);

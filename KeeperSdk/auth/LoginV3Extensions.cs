@@ -37,7 +37,7 @@ namespace KeeperSecurity.Authentication
             if (!auth.UsePushNotifications) return;
             if (auth.PushNotifications != null) return;
 
-            var pushNotifications = new KeeperPushNotifications(auth.Endpoint.WebProxy);
+            var pushNotifications = new KeeperPushNotifications(auth.Endpoint.WebProxy, auth.Endpoint.IgnoreCertificateErrors);
             var urlReturned = false;
             pushNotifications.ConnectToPushServer(PrepareWssUrlOnce);
             auth.SetPushNotifications(pushNotifications);

@@ -89,6 +89,26 @@ namespace KeeperSecurity.Configuration
     }
 
     /// <summary>
+    /// Defines server public key entity.
+    /// </summary>
+    /// <remarks>
+    /// Self hosted Keeper instances use their own transmission keys.
+    /// These keys are not known to the library and are configured per server.
+    /// </remarks>
+    public interface IServerPublicKeyConfiguration : IConfigurationId
+    {
+        /// <summary>
+        /// Server Key ID.
+        /// </summary>
+        int KeyId { get; }
+
+        /// <summary>
+        /// Base64 URL encoded EC public key.
+        /// </summary>
+        string PublicKey { get; }
+    }
+
+    /// <summary>
     /// Defines Keeper server entity.
     /// </summary>
     public interface IServerConfiguration : IConfigurationId
@@ -102,6 +122,24 @@ namespace KeeperSecurity.Configuration
         /// Server Key ID.
         /// </summary>
         int ServerKeyId { get; }
+
+        /// <summary>
+        /// Server public key collection.
+        /// </summary>
+        /// <remarks>
+        /// Ad-hoc keys of self hosted Keeper instances. They take precedence over the keys built into the library.
+        /// </remarks>
+        IConfigCollection<IServerPublicKeyConfiguration> PublicKeys { get; }
+
+        /// <summary>
+        /// Accept any TLS certificate presented by this server.
+        /// </summary>
+        /// <remarks>
+        /// Intended for self hosted Keeper instances with self signed certificates.
+        /// The connection is encrypted but the server is not authenticated,
+        /// so an attacker on the network path can impersonate the server.
+        /// </remarks>
+        bool IgnoreCertificateErrors { get; }
     }
 
     /// <summary>
@@ -290,10 +328,46 @@ namespace KeeperSecurity.Configuration
     }
 
     /// <summary>
+    /// Server public key entity.
+    /// </summary>
+    public class ServerPublicKeyConfiguration : IServerPublicKeyConfiguration
+    {
+        /// <summary>
+        /// Creates instance for server key ID.
+        /// </summary>
+        /// <param name="keyId">Server Key ID.</param>
+        public ServerPublicKeyConfiguration(int keyId)
+        {
+            KeyId = keyId;
+        }
+
+        /// <summary>
+        /// Creates instance from another server public key entity.
+        /// </summary>
+        /// <param name="other">Server public key entity.</param>
+        public ServerPublicKeyConfiguration(IServerPublicKeyConfiguration other) : this(other.KeyId)
+        {
+            PublicKey = other.PublicKey;
+        }
+
+        /// <inheritdoc/>>
+        public int KeyId { get; }
+
+        /// <inheritdoc/>>
+        public string PublicKey { get; set; }
+
+        /// <exclude/>
+        string IConfigurationId.Id => KeyId.ToString();
+    }
+
+    /// <summary>
     /// Server entity.
     /// </summary>
     public class ServerConfiguration : IServerConfiguration
     {
+        private readonly IConfigCollection<IServerPublicKeyConfiguration> _publicKeys =
+            new InMemoryConfigCollection<IServerPublicKeyConfiguration>();
+
         /// <summary>
         /// Creates instance for Keeper server.
         /// </summary>
@@ -310,13 +384,25 @@ namespace KeeperSecurity.Configuration
         public ServerConfiguration(IServerConfiguration other) : this(other.Server)
         {
             ServerKeyId = other.ServerKeyId;
+            IgnoreCertificateErrors = other.IgnoreCertificateErrors;
+            if (other.PublicKeys == null) return;
+            foreach (var publicKey in other.PublicKeys.List)
+            {
+                _publicKeys.Put(new ServerPublicKeyConfiguration(publicKey));
+            }
         }
 
         /// <inheritdoc/>>
         public string Server { get; }
 
         /// <inheritdoc/>>
-        public int ServerKeyId { get; set; } = 1;
+        public int ServerKeyId { get; set; } = 7;
+
+        /// <inheritdoc/>>
+        public IConfigCollection<IServerPublicKeyConfiguration> PublicKeys => _publicKeys;
+
+        /// <inheritdoc/>>
+        public bool IgnoreCertificateErrors { get; set; }
 
         /// <exclude/>
         string IConfigurationId.Id => Server;
