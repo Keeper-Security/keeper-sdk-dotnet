@@ -625,7 +625,11 @@ function Get-KeeperAuditRecordTitleMap {
         }
         $connectionString = "Data Source=$dbPath;Pooling=True;"
         $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
-        $reportingStorage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
+        $enterpriseEcKey = $null
+        if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
+        }
+        $reportingStorage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage, $enterpriseEcKey)
         $cacheRefreshed = Ensure-KeeperAuditComplianceCache -Enterprise $Enterprise -Auth $Auth -ReportingStorage $reportingStorage
         $uidList = [System.Collections.Generic.List[string]]::new()
         foreach ($uid in $uniqueUids) { $uidList.Add([string]$uid) }
@@ -650,10 +654,6 @@ function Get-KeeperAuditRecordTitleMap {
         if ($missingUidList.Count -gt 0 -and $cacheRefreshed) {
             Write-Verbose "Audit compliance cache is missing $($missingUidList.Count) requested record(s); fetching their details through the SDK."
             Assert-KeeperAuditComplianceAccess -Enterprise $Enterprise
-            $enterpriseEcKey = $null
-            if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
-                $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
-            }
             $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
             $plugin = New-Object $pluginType($Enterprise.enterpriseData, $reportingStorage, $enterpriseEcKey)
             $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.ComplianceReportConfig

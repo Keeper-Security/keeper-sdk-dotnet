@@ -34,6 +34,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             _enterpriseData = enterpriseData ?? throw new ArgumentNullException(nameof(enterpriseData));
             _storage = storage ?? new InMemoryReportingStorage();
             _enterpriseEcPrivateKey = enterpriseEcPrivateKey;
+            if (_storage is SqliteReportingStorage sqliteStorage)
+                sqliteStorage.SetEnterpriseEcPrivateKey(enterpriseEcPrivateKey);
         }
 
         /// <summary>
@@ -92,6 +94,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                         }
                     }
                 }
+
+                DecryptComplianceMetadata(soxData);
 
                 List<AuditReportEntry> auditEvents = null;
 
@@ -191,6 +195,8 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                         _storage.UpdateComplianceRefreshTimestamp(now);
                     }
                 }
+
+                DecryptComplianceMetadata(soxData);
 
                 // Build compliance entries from SOX data
                 result.Entries = soxData.Values
@@ -485,22 +491,9 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                                 info.Owner ??= owner;
                             }
 
-                            if (record.EncryptedData != null && !record.EncryptedData.IsEmpty && _enterpriseEcPrivateKey != null)
-                            {
-                                try
-                                {
-                                    var json = CryptoUtils.DecryptEc(record.EncryptedData.ToByteArray(), _enterpriseEcPrivateKey);
-                                    var fields = JsonUtils.ParseJson<Dictionary<string, object>>(json);
-                                    info.Title ??= GetMetadataString(fields, "title");
-                                    info.RecordType ??= GetMetadataString(fields, "record_type");
-                                    info.Url ??= GetMetadataString(fields, "url");
-                                    Trace.TraceInformation($"Decrypted compliance metadata for record {uid}; title present={!string.IsNullOrWhiteSpace(info.Title)}.");
-                                }
-                                catch (Exception ex)
-                                {
-                                    Trace.TraceWarning($"Could not decrypt compliance metadata for record {uid}: {ex.Message}");
-                                }
-                            }
+                            if (record.EncryptedData != null && !record.EncryptedData.IsEmpty &&
+                                (info.EncryptedData == null || info.EncryptedData.Length == 0))
+                                info.EncryptedData = record.EncryptedData.ToByteArray();
                         }
                     }
 
@@ -524,6 +517,38 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             if (fields == null) return null;
             var pair = fields.FirstOrDefault(x => string.Equals(x.Key, name, StringComparison.OrdinalIgnoreCase));
             return pair.Value?.ToString();
+        }
+
+        private void DecryptComplianceMetadata(Dictionary<string, ComplianceContextInfo> records)
+        {
+            if (_enterpriseEcPrivateKey == null || records == null)
+                return;
+
+            foreach (var pair in records)
+            {
+                var info = pair.Value;
+                if (info == null || info.EncryptedData == null || info.EncryptedData.Length == 0 ||
+                    (!string.IsNullOrWhiteSpace(info.Title) &&
+                     !string.IsNullOrWhiteSpace(info.RecordType) &&
+                     !string.IsNullOrWhiteSpace(info.Url)))
+                    continue;
+
+                try
+                {
+                    var plaintext = CryptoUtils.DecryptEc(info.EncryptedData, _enterpriseEcPrivateKey);
+                    var fields = JsonUtils.ParseJson<Dictionary<string, object>>(plaintext);
+                    info.Title ??= GetMetadataString(fields, "title");
+                    info.RecordType ??= GetMetadataString(fields, "record_type") ?? GetMetadataString(fields, "type");
+                    info.Url ??= GetMetadataString(fields, "url");
+                    Trace.TraceInformation(
+                        $"Decrypted compliance metadata for record {info.RecordUid ?? pair.Key}; title present={!string.IsNullOrWhiteSpace(info.Title)}.");
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning(
+                        $"Could not decrypt compliance metadata for record {info.RecordUid ?? pair.Key}: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>

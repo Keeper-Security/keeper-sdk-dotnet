@@ -924,13 +924,28 @@ function Save-KeeperComplianceSnapshotToSqlite {
         }
 
         $recordEntities = [System.Collections.Generic.List[KeeperSecurity.Compliance.ComplianceRecord]]::new()
+        $enterpriseEcKey = $null
+        if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
+        }
+        $enterpriseEcPublicKey = if ($enterpriseEcKey) {
+            [KeeperSecurity.Utils.CryptoUtils]::GetEcPublicKey($enterpriseEcKey)
+        } else {
+            $null
+        }
         foreach ($recUid in $Snapshot.Records.Keys) {
             $r = $Snapshot.Records[$recUid]
             $cr = New-Object KeeperSecurity.Compliance.ComplianceRecord
             $cr.RecordUid = [string]$recUid
             $cr.RecordUidBytes = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlDecode([string]$recUid)
             $titleJson = @{ title = [string]$r.Title; type = [string]$r.RecordType; url = [string]$r.Url } | ConvertTo-Json -Compress
-            $cr.EncryptedData = [System.Text.Encoding]::UTF8.GetBytes($titleJson)
+            if ($enterpriseEcPublicKey) {
+                $cr.EncryptedData = [KeeperSecurity.Utils.CryptoUtils]::EncryptEc(
+                    [System.Text.Encoding]::UTF8.GetBytes($titleJson), $enterpriseEcPublicKey)
+            } else {
+                # Never write decrypted title metadata when the enterprise EC key is unavailable.
+                $cr.EncryptedData = [byte[]]@()
+            }
             $cr.Shared = [bool]$r.Shared
             $cr.InTrash = [bool]$r.InTrash
             $cr.HasAttachments = $false
@@ -1080,6 +1095,10 @@ function Import-KeeperComplianceSnapshotFromSqlite {
             Teams              = @{}
             OwnedRecordsByUser = @{}
         }
+        $enterpriseEcKey = $null
+        if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
+        }
 
         foreach ($cu in $storage.Users.GetAll()) {
             $email = if ($cu.Email) { [System.Text.Encoding]::UTF8.GetString($cu.Email) } else { '' }
@@ -1094,16 +1113,41 @@ function Import-KeeperComplianceSnapshotFromSqlite {
             }
         }
 
+        $recordDataUpdates = [System.Collections.Generic.List[KeeperSecurity.Compliance.ComplianceRecord]]::new()
         foreach ($cr in $storage.Records.GetAll()) {
             $recData = @{ Title = ''; RecordType = ''; Url = '' }
             if ($cr.EncryptedData -and $cr.EncryptedData.Length -gt 0) {
                 try {
-                    $json = [System.Text.Encoding]::UTF8.GetString($cr.EncryptedData) | ConvertFrom-Json
+                    $jsonBytes = [KeeperSecurity.Utils.CryptoUtils]::DecryptEc($cr.EncryptedData, $enterpriseEcKey)
+                    $json = [System.Text.Encoding]::UTF8.GetString($jsonBytes) | ConvertFrom-Json
                     $recData.Title = [string]$json.title
-                    $recData.RecordType = [string]$json.type
+                    $recData.RecordType = if ($json.record_type) { [string]$json.record_type } else { [string]$json.type }
                     $recData.Url = [string]$json.url
                 } catch {
-                    Write-Verbose -Message "[compliance] Could not parse record data for $($cr.RecordUid): $($_.Exception.Message)"
+                    # Earlier builds stored this JSON directly in EncryptedData.
+                    # Migrate recognized legacy metadata to EC ciphertext.
+                    try {
+                        $legacyText = [System.Text.Encoding]::UTF8.GetString($cr.EncryptedData)
+                        if (-not $legacyText.TrimStart().StartsWith('{')) { throw "Not legacy JSON metadata." }
+                        $legacyJson = $legacyText | ConvertFrom-Json -ErrorAction Stop
+                        if (-not ($legacyJson.PSObject.Properties['title'] -or
+                                  $legacyJson.PSObject.Properties['type'] -or
+                                  $legacyJson.PSObject.Properties['record_type'])) {
+                            throw "JSON does not contain recognized record metadata."
+                        }
+                        if ($enterpriseEcKey) {
+                            $publicKey = [KeeperSecurity.Utils.CryptoUtils]::GetEcPublicKey($enterpriseEcKey)
+                            $cr.EncryptedData = [KeeperSecurity.Utils.CryptoUtils]::EncryptEc($cr.EncryptedData, $publicKey)
+                        } else {
+                            $cr.EncryptedData = [byte[]]@()
+                        }
+                        $recordDataUpdates.Add($cr)
+                        $recData.Title = [string]$legacyJson.title
+                        $recData.RecordType = if ($legacyJson.record_type) { [string]$legacyJson.record_type } else { [string]$legacyJson.type }
+                        $recData.Url = [string]$legacyJson.url
+                    } catch {
+                        Write-Verbose -Message "[compliance] Could not decrypt record data for $($cr.RecordUid): $($_.Exception.Message)"
+                    }
                 }
             }
             $snapshot.Records[[string]$cr.RecordUid] = [PSCustomObject]@{
@@ -1116,6 +1160,10 @@ function Import-KeeperComplianceSnapshotFromSqlite {
                 UserPermissions  = @{}
                 SharedFolderUids = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
             }
+        }
+        if ($recordDataUpdates.Count -gt 0) {
+            $storage.Records.PutEntities($recordDataUpdates)
+            Write-KeeperComplianceStatus "Encrypted $($recordDataUpdates.Count) legacy plaintext record metadata row(s) in SQLite."
         }
 
         foreach ($rp in $storage.RecordPermissions.GetAllLinks()) {

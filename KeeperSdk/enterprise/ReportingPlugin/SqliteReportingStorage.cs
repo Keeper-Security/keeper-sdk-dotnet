@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Compliance;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
@@ -16,10 +17,21 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
     public class SqliteReportingStorage : IReportingStorage
     {
         private readonly SqlComplianceStorage _sqlStorage;
+        private EcPrivateKey _enterpriseEcPrivateKey;
 
-        public SqliteReportingStorage(SqlComplianceStorage sqlStorage)
+        public SqliteReportingStorage(SqlComplianceStorage sqlStorage, EcPrivateKey enterpriseEcPrivateKey = null)
         {
             _sqlStorage = sqlStorage ?? throw new ArgumentNullException(nameof(sqlStorage));
+            _enterpriseEcPrivateKey = enterpriseEcPrivateKey;
+        }
+
+        /// <summary>
+        /// Supplies the enterprise EC key used to decrypt record metadata on retrieval.
+        /// </summary>
+        public void SetEnterpriseEcPrivateKey(EcPrivateKey enterpriseEcPrivateKey)
+        {
+            if (enterpriseEcPrivateKey != null)
+                _enterpriseEcPrivateKey = enterpriseEcPrivateKey;
         }
 
         public static void VerifyDatabase(DbConnection connection, ISqlDialect dialect)
@@ -45,21 +57,13 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     .Select(sox =>
                     {
                         existingRecords.TryGetValue(sox.RecordUid, out var existing);
-                        var metadata = new Dictionary<string, object>
-                        {
-                            ["title"] = sox.Title ?? string.Empty,
-                            ["record_type"] = sox.RecordType ?? string.Empty,
-                            ["url"] = sox.Url ?? string.Empty,
-                            ["owners"] = sox.Owners ?? new List<string>(),
-                            ["shared_folder_uids"] = sox.SharedFolderUids ?? new List<string>(),
-                            ["permissions"] = sox.Permissions ?? string.Empty,
-                            ["permission_bits"] = sox.PermissionBits
-                        };
                         return new ComplianceRecord
                         {
                             RecordUid = sox.RecordUid,
                             RecordUidBytes = CryptoUtils.Base64UrlDecode(sox.RecordUid),
-                            EncryptedData = JsonUtils.DumpJson(metadata, true),
+                            EncryptedData = sox.EncryptedData != null && sox.EncryptedData.Length > 0
+                                ? sox.EncryptedData.ToArray()
+                                : existing?.EncryptedData?.ToArray() ?? Array.Empty<byte>(),
                             Shared = sox.Shared,
                             InTrash = sox.InTrash,
                             HasAttachments = existing?.HasAttachments ?? false,
@@ -138,39 +142,98 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     : null;
 
                 var records = _sqlStorage.Records.GetAll().ToList();
+                var migratedRecords = new List<ComplianceRecord>();
                 foreach (var record in records)
                 {
                     if (uidsSet != null && !uidsSet.Contains(record.RecordUid))
                         continue;
 
-                    result[record.RecordUid] = new ComplianceContextInfo
+                    var encryptedData = record.EncryptedData;
+                    if (IsLegacyPlaintextMetadata(encryptedData))
+                    {
+                        if (_enterpriseEcPrivateKey != null)
+                        {
+                            // Older versions stored the decrypted JSON in this column.
+                            // Encrypt it in place the first time it is encountered.
+                            encryptedData = CryptoUtils.EncryptEc(
+                                encryptedData,
+                                CryptoUtils.GetEcPublicKey(_enterpriseEcPrivateKey));
+                            var migrated = new ComplianceRecord
+                            {
+                                RecordUid = record.RecordUid,
+                                RecordUidBytes = record.RecordUidBytes,
+                                EncryptedData = encryptedData,
+                                Shared = record.Shared,
+                                InTrash = record.InTrash,
+                                HasAttachments = record.HasAttachments,
+                                LastComplianceRefreshed = record.LastComplianceRefreshed
+                            };
+                            migratedRecords.Add(migrated);
+                        }
+                        else
+                        {
+                            // No key is available to migrate this old cache row. Remove the
+                            // plaintext instead of returning or retaining it.
+                            encryptedData = Array.Empty<byte>();
+                            migratedRecords.Add(new ComplianceRecord
+                            {
+                                RecordUid = record.RecordUid,
+                                RecordUidBytes = record.RecordUidBytes,
+                                EncryptedData = encryptedData,
+                                Shared = record.Shared,
+                                InTrash = record.InTrash,
+                                HasAttachments = record.HasAttachments,
+                                LastComplianceRefreshed = record.LastComplianceRefreshed
+                            });
+                        }
+                    }
+
+                    var info = new ComplianceContextInfo
                     {
                         RecordUid = record.RecordUid,
                         Shared = record.Shared,
-                        InTrash = record.InTrash
+                        InTrash = record.InTrash,
+                        EncryptedData = encryptedData?.ToArray() ?? Array.Empty<byte>()
                     };
-                    if (record.EncryptedData != null && record.EncryptedData.Length > 0)
+                    result[record.RecordUid] = info;
+
+                    if (info.EncryptedData.Length > 0 && _enterpriseEcPrivateKey != null &&
+                        !IsLegacyPlaintextMetadata(info.EncryptedData))
                     {
-                        var metadata = JsonUtils.ParseJson<Dictionary<string, object>>(record.EncryptedData);
-                        result[record.RecordUid].Title = GetMetadataString(metadata, "title");
-                        result[record.RecordUid].RecordType =
-                            GetMetadataString(metadata, "record_type") ?? GetMetadataString(metadata, "type");
-                        result[record.RecordUid].Url = GetMetadataString(metadata, "url");
-                        result[record.RecordUid].Owner = GetMetadataString(metadata, "owner");
-                        result[record.RecordUid].Permissions = GetMetadataString(metadata, "permissions");
-                        result[record.RecordUid].PermissionBits = GetMetadataInt(metadata, "permission_bits");
-                        var owners = metadata?.FirstOrDefault(x =>
-                            string.Equals(x.Key, "owners", StringComparison.OrdinalIgnoreCase)).Value as IEnumerable<object>;
-                        if (owners != null)
-                            result[record.RecordUid].Owners = owners.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-                        else if (!string.IsNullOrWhiteSpace(result[record.RecordUid].Owner))
-                            result[record.RecordUid].Owners.Add(result[record.RecordUid].Owner);
-                        var sharedFolders = metadata?.FirstOrDefault(x =>
-                            string.Equals(x.Key, "shared_folder_uids", StringComparison.OrdinalIgnoreCase)).Value as IEnumerable<object>;
-                        if (sharedFolders != null)
-                            result[record.RecordUid].SharedFolderUids = sharedFolders.Select(x => x?.ToString())
-                                .Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                        try
+                        {
+                            var plaintext = CryptoUtils.DecryptEc(info.EncryptedData, _enterpriseEcPrivateKey);
+                            var metadata = JsonUtils.ParseJson<Dictionary<string, object>>(plaintext);
+                            info.Title = GetMetadataString(metadata, "title");
+                            info.RecordType =
+                                GetMetadataString(metadata, "record_type") ?? GetMetadataString(metadata, "type");
+                            info.Url = GetMetadataString(metadata, "url");
+                            info.Owner = GetMetadataString(metadata, "owner");
+                            info.Permissions = GetMetadataString(metadata, "permissions");
+                            info.PermissionBits = GetMetadataInt(metadata, "permission_bits");
+                            var owners = metadata?.FirstOrDefault(x =>
+                                string.Equals(x.Key, "owners", StringComparison.OrdinalIgnoreCase)).Value as IEnumerable<object>;
+                            if (owners != null)
+                                info.Owners = owners.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                            else if (!string.IsNullOrWhiteSpace(info.Owner))
+                                info.Owners.Add(info.Owner);
+                            var sharedFolders = metadata?.FirstOrDefault(x =>
+                                string.Equals(x.Key, "shared_folder_uids", StringComparison.OrdinalIgnoreCase)).Value as IEnumerable<object>;
+                            if (sharedFolders != null)
+                                info.SharedFolderUids = sharedFolders.Select(x => x?.ToString())
+                                    .Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.TraceWarning($"Could not decrypt compliance metadata for record {record.RecordUid}: {ex.Message}");
+                        }
                     }
+                }
+
+                if (migratedRecords.Count > 0)
+                {
+                    _sqlStorage.Records.PutEntities(migratedRecords);
+                    Trace.TraceInformation($"Encrypted {migratedRecords.Count} legacy plaintext compliance metadata record(s) in SQLite");
                 }
 
                 Trace.TraceInformation($"Retrieved {result.Count} compliance records from SQLite");
@@ -189,6 +252,29 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
             if (metadata == null) return null;
             var pair = metadata.FirstOrDefault(x => string.Equals(x.Key, name, StringComparison.OrdinalIgnoreCase));
             return pair.Value?.ToString();
+        }
+
+        private static bool IsLegacyPlaintextMetadata(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                return false;
+
+            var json = System.Text.Encoding.UTF8.GetString(data).TrimStart();
+            if (!json.StartsWith("{", StringComparison.Ordinal))
+                return false;
+
+            try
+            {
+                var metadata = JsonUtils.ParseJson<Dictionary<string, object>>(data);
+                return metadata != null &&
+                    (metadata.Keys.Any(x => string.Equals(x, "title", StringComparison.OrdinalIgnoreCase)) ||
+                     metadata.Keys.Any(x => string.Equals(x, "record_type", StringComparison.OrdinalIgnoreCase)) ||
+                     metadata.Keys.Any(x => string.Equals(x, "type", StringComparison.OrdinalIgnoreCase)));
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static int GetMetadataInt(Dictionary<string, object> metadata, string name)
