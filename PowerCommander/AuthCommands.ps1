@@ -576,6 +576,7 @@ function Resolve-KeeperServer {
     .Synopsis
     Resolves a Keeper region code or hostname to a valid Keeper server hostname.
     Returns $null for empty input and throws an error for unknown values.
+    Host names of self hosted Keeper instances are passed through.
     Uses KeeperRegions from the SDK as the single source of truth for region mappings.
     #>
     param(
@@ -591,8 +592,13 @@ function Resolve-KeeperServer {
         return $resolved
     }
 
+    # Not a known region: a self hosted Keeper instance.
+    if ($Server.Contains('.')) {
+        return $Server.Trim().ToLowerInvariant()
+    }
+
     $validRegions = ([KeeperSecurity.Authentication.KeeperRegions]::Servers.Keys | Sort-Object) -join ', '
-    Write-Error "Invalid region: $Server`nValid regions: $validRegions" -ErrorAction Stop
+    Write-Error "Invalid region: $Server`nValid regions: $validRegions`nSelf hosted instances are set by their host name." -ErrorAction Stop
 }
 
 function getConfigurationForDevice {
@@ -675,6 +681,10 @@ function Connect-Keeper {
 
     .Parameter PushNotifications
     Enable push notifications during login.
+
+    .Parameter IgnoreCertificateErrors
+    Accept any TLS certificate presented by the Keeper server. The server is not authenticated.
+    Self hosted Keeper instances with self signed certificates only.
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -690,7 +700,8 @@ function Connect-Keeper {
         [Parameter()][string] $VaultDatabasePath,
         [Parameter()][switch] $SkipSync,
         [Parameter()][switch] $KeepAlive,
-        [Parameter()][switch] $PushNotifications
+        [Parameter()][switch] $PushNotifications,
+        [Parameter()][switch] $IgnoreCertificateErrors
     )
 
     if ($Server) {
@@ -715,6 +726,10 @@ function Connect-Keeper {
     $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($storage, $Server)
     $endpoint.DeviceName = 'PowerShell Commander'
     $endpoint.ClientVersion = 'c18.0.0'
+    if ($IgnoreCertificateErrors.IsPresent) {
+        $endpoint.IgnoreCertificateErrors = $true
+        Write-Warning "TLS certificate verification is disabled for Keeper server `"$($endpoint.Server)`". The server is not authenticated."
+    }
 
     Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n" -InformationAction Continue
 
