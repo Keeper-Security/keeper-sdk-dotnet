@@ -303,7 +303,7 @@ function script:Confirm-EpmPolicyFilterParams {
 
 function script:Resolve-KeeperEpmPolicyCollectionFilter {
     <#
-    Resolve EPM policy filter values the same way as Python Commander:
+    Resolve EPM policy filter values consistently:
     collection UIDs are retained, custom collection names are resolved
     case-insensitively, ambiguous names fail, and unknown values are sent as-is.
     #>
@@ -321,7 +321,7 @@ function script:Resolve-KeeperEpmPolicyCollectionFilter {
         if ([string]::IsNullOrEmpty($collection.CollectionUid)) { continue }
         $lookup[$collection.CollectionUid] = $collection.CollectionUid
 
-        # Python Commander resolves names only for custom collection types.
+        # Resolve names only for custom collection types.
         if ($collection.CollectionType -lt 100 -or $CollectionTypes -notcontains $collection.CollectionType) { continue }
         $name = Get-KeeperEpmCollectionName -Collection $collection
         if ([string]::IsNullOrWhiteSpace($name)) { continue }
@@ -659,7 +659,7 @@ function Add-KeeperEpmPolicy {
 
     $validated = Confirm-EpmPolicyFilterParams -DayFilter $DayFilter -DateFilter $DateFilter -TimeFilter $TimeFilter
 
-    # Match Python Commander defaults.  A policy is immediately useful without
+    # A policy is immediately useful without
     # explicit collection filters, while the applicable filters vary by type.
     $collectionDefaults = @{
         'PrivilegeElevation' = @{ UserCheck = @('*'); MachineCheck = @('*'); ApplicationCheck = @('*') }

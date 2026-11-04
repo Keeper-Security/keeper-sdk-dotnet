@@ -443,7 +443,7 @@ namespace Commander.EPM
                     if (!lookup.TryGetValue(name, out var matches)) lookup[name] = new List<string> { collection.CollectionUid };
                     else matches.Add(collection.CollectionUid);
                 }
-                catch { /* Ignore malformed collection data, matching Python Commander. */ }
+                catch { /* Ignore malformed collection data. */ }
             }
 
             var result = new List<string>();
@@ -464,7 +464,7 @@ namespace Commander.EPM
                 || options.Controls?.Count > 0 || !string.IsNullOrWhiteSpace(options.Status);
         }
 
-        private static bool TryApplyDirectPolicyOptions(EpmPolicyOptions options, PolicyDataStructure data,
+        private bool TryApplyDirectPolicyOptions(EpmPolicyOptions options, PolicyDataStructure data,
             bool isNew, out bool? disabled)
         {
             disabled = null;
@@ -507,6 +507,14 @@ namespace Commander.EPM
                 data.Status = options.Status;
             }
             else if (string.IsNullOrWhiteSpace(data.Status)) data.Status = EpmPolicyStatus.Enforce;
+
+            // The server's disabled flag is independent from the encrypted policy data.
+            // Keep it in sync when status is supplied directly; --enable below takes
+            // precedence when both options are present.
+            if (!string.IsNullOrWhiteSpace(options.Status))
+            {
+                disabled = string.Equals(options.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase);
+            }
             if (!string.IsNullOrWhiteSpace(options.Enable))
             {
                 var enable = options.Enable.Trim().ToLowerInvariant();
