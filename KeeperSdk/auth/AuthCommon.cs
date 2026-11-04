@@ -906,8 +906,6 @@ namespace KeeperSecurity.Authentication
         private bool _auditDisposing;
         private bool _auditSendLockDisposed;
         private int _auditFlushCalls;
-        // Accessed only by a flush holding _auditSendLock.
-        private int _auditSendFailures;
 
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
@@ -950,25 +948,20 @@ namespace KeeperSecurity.Authentication
                         if (chunk.Length == 0) break;
 
                         var rq = new AuditEventLoggingCommand { ItemLogs = chunk };
-                        try
+                        for (var attempt = 0; attempt < MaxAuditEventSendAttempts; attempt++)
                         {
-                            _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq)
-                                .ConfigureAwait(false);
-                            _auditSendFailures = 0;
-                        }
-                        catch
-                        {
-                            if (++_auditSendFailures >= MaxAuditEventSendAttempts)
+                            try
                             {
-                                _auditSendFailures = 0;
-                                lock (_auditEventQueue)
-                                {
-                                    _auditEventQueue.RemoveRange(0, chunk.Length);
-                                }
-                                Trace.TraceWarning(
-                                    $"Client audit events dropped after {MaxAuditEventSendAttempts} failed attempts: {chunk.Length} event(s)");
+                                _ = await Task.Run(() =>
+                                        this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq))
+                                    .ConfigureAwait(false);
+                                break;
                             }
-                            throw;
+                            catch when (attempt < MaxAuditEventSendAttempts - 1)
+                            {
+                                await Task.Delay(TimeSpan.FromSeconds(1 << attempt), cancellationToken)
+                                    .ConfigureAwait(false);
+                            }
                         }
                         lock (_auditEventQueue)
                         {

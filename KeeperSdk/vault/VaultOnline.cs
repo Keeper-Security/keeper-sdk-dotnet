@@ -187,22 +187,16 @@ namespace KeeperSecurity.Vault
             if (string.IsNullOrWhiteSpace(recordUid)) return;
 
             Auth.ScheduleAuditEventLogging(eventType, new AuditEventInput { RecordUid = recordUid });
-            _ = Task.Run(async () =>
+            // Wait for delivery without running async continuations on a caller's synchronization context.
+            try
             {
-                for (var attempt = 0; attempt < 3; attempt++)
-                {
-                    try
-                    {
-                        await Auth.FlushAuditEvents().ConfigureAwait(false);
-                        return;
-                    }
-                    catch (Exception)
-                    {
-                        // FlushAuditEvents retains failed events and reports the final drop.
-                        if (attempt < 2) await Task.Delay(TimeSpan.FromSeconds(attempt + 1)).ConfigureAwait(false);
-                    }
-                }
-            });
+                Task.Run(() => Auth.FlushAuditEvents()).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                // The failed batch stays queued for the next audit call or the final flush.
+                Trace.TraceWarning($"Unable to send client audit event: {e.Message}");
+            }
         }
 
 

@@ -453,7 +453,7 @@ function Copy-KeeperToClipboard {
                     }
                     
                     if ($itemName -eq 'Password') {
-                        try { $vault.AuditLogRecordCopyPassword($originalUid) } catch { }
+                        $vault.AuditLogRecordCopyPassword($originalUid)
                     }
                 }
                 else {
@@ -2466,7 +2466,7 @@ function Get-KeeperRecordHistory {
                     & $addField "password" $histRecord.Password $true
                     & $addField "url" $histRecord.Link
                     & $addField "notes" $histRecord.Notes
-                    & $addField "totp" $histRecord.Totp
+                    & $addField "totp" $histRecord.Totp $true
                     if ($histRecord.Custom) {
                         foreach ($cf in $histRecord.Custom) {
                             & $addField $cf.Name $cf.Value `

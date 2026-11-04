@@ -218,7 +218,7 @@ namespace Commander
                     if (!string.IsNullOrEmpty(pr.Notes))
                         WriteField("notes", pr.Notes);
                     if (!string.IsNullOrEmpty(pr.Totp))
-                        WriteField("totp", pr.Totp);
+                        WriteField("totp", RecordSecurity.Mask(pr.Totp, unmask));
                     foreach (var custom in pr.Custom ?? Enumerable.Empty<CustomField>())
                     {
                         if (!string.IsNullOrEmpty(custom.Value))
@@ -348,7 +348,7 @@ namespace Commander
                     if (!string.IsNullOrEmpty(currentPr.Notes))
                         diffs.Add(new FieldDiff { Field = "(notes)", NewValue = currentPr.Notes, OldValue = "" });
                     if (!string.IsNullOrEmpty(currentPr.Totp))
-                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp, OldValue = "" });
+                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp, OldValue = "", Sensitive = true });
                 }
                 else
                 {
@@ -368,7 +368,7 @@ namespace Commander
                     if (currentPr.Notes != previousPr.Notes)
                         diffs.Add(new FieldDiff { Field = "(notes)", NewValue = currentPr.Notes ?? "", OldValue = previousPr.Notes ?? "" });
                     if (currentPr.Totp != previousPr.Totp)
-                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp ?? "", OldValue = previousPr.Totp ?? "" });
+                        diffs.Add(new FieldDiff { Field = "(totp)", NewValue = currentPr.Totp ?? "", OldValue = previousPr.Totp ?? "", Sensitive = true });
                 }
                 var currentCustom = currentPr.Custom ?? Enumerable.Empty<CustomField>();
                 var previousCustom = previousPr?.Custom ?? Enumerable.Empty<CustomField>();
