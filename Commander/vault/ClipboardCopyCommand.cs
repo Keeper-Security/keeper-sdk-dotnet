@@ -119,9 +119,9 @@ namespace Commander
                 {
                     context.Vault.AuditLogRecordCopyPassword(recordUid);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Ignore audit log errors
+                    Trace.TraceWarning($"Unable to send copy_password audit event: {e.Message}");
                 }
             }
         }
