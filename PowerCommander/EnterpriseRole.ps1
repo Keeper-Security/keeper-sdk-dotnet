@@ -652,7 +652,7 @@ function New-KeeperEnterpriseRole {
         Create new enterprise role in the Keeper Enterprise.
 
         .DESCRIPTION
-        Creates new enterprise role with optional settings for parent node, new user inheritance, visibility, and enforcements.
+        Creates new enterprise role with optional settings for parent node, new user inheritance, visibility, enforcements, and managed nodes.
 
         .PARAMETER Role
         Role Name of the new role.
@@ -668,6 +668,12 @@ function New-KeeperEnterpriseRole {
 
         .PARAMETER Enforcement
         Sets role enforcement in KEY:VALUE format. Can be repeated multiple times.
+
+        .PARAMETER AddAdmin
+        Node name or ID to add as a managed node to each newly created role. Can be repeated.
+
+        .PARAMETER Cascade
+        Apply managed-node access to the node's children. Applies to AddAdmin.
 
         .PARAMETER Force
         Do not prompt for confirmation when a role with the same name already exists.
@@ -685,6 +691,10 @@ function New-KeeperEnterpriseRole {
         Creates an "Admin" role in node 123456789, visible to subnodes, with a logout timer enforcement.
 
         .EXAMPLE
+        New-KeeperEnterpriseRole -Role "Node Admin" -ParentNode "Sales" -AddAdmin "Sales" -Cascade
+        Creates a role in Sales and grants it management access to Sales and its child nodes.
+
+        .EXAMPLE
         New-KeeperEnterpriseRole -Role "TestRole" -Force
         Creates a role even if one with the same name already exists, without prompting.
     #>
@@ -700,6 +710,10 @@ function New-KeeperEnterpriseRole {
         [Parameter()][ValidateSet('ON', 'OFF')][string]$VisibleBelow = 'OFF',
         
         [Parameter()][string[]]$Enforcement,
+
+        [Parameter()][string[]]$AddAdmin,
+
+        [Parameter()][switch]$Cascade,
         
         [Parameter()][switch]$Force
     )
@@ -794,6 +808,7 @@ function New-KeeperEnterpriseRole {
                 }
 
                 Write-Output "Role `"$roleName`" created successfully (ID: $($createdRole.Id))"
+                $managedNodeIds = [System.Collections.Generic.HashSet[long]]::new()
 
                 if ($visibleBelowBool) {
                     try {
@@ -839,6 +854,37 @@ function New-KeeperEnterpriseRole {
                         catch {
                             Write-Warning "Failed to add enforcement `"$enf`" to role `"$roleName`": $($_.Exception.Message)"
                         }
+                    }
+                }
+
+                foreach ($adminNodeInput in @($AddAdmin)) {
+                    if ([string]::IsNullOrWhiteSpace($adminNodeInput)) {
+                        continue
+                    }
+
+                    $adminNodeInput = $adminNodeInput.Trim()
+                    $managedNodes = @($enterpriseData.Nodes | Where-Object {
+                        $_.Id.ToString() -eq $adminNodeInput -or $_.DisplayName -ieq $adminNodeInput
+                    })
+                    if ($managedNodes.Count -eq 0) {
+                        Write-Warning "Node `"$adminNodeInput`" could not be resolved. Role `"$roleName`" was created without this managed node."
+                        continue
+                    }
+                    if ($managedNodes.Count -gt 1) {
+                        Write-Warning "Node name `"$adminNodeInput`" is not unique. Use Node ID. Role `"$roleName`" was created without this managed node."
+                        continue
+                    }
+                    if (-not $managedNodeIds.Add([long]$managedNodes[0].Id)) {
+                        Write-Verbose "Managed node `"$($managedNodes[0].DisplayName)`" was specified more than once. Skipping duplicate."
+                        continue
+                    }
+
+                    try {
+                        $roleData.RoleManagedNodeAdd($createdRole, $managedNodes[0], $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+                        Write-Verbose "Managed node `"$($managedNodes[0].DisplayName)`" added to role `"$roleName`""
+                    }
+                    catch {
+                        Write-Warning "Failed to add managed node `"$adminNodeInput`" to role `"$roleName`": $($_.Exception.Message)"
                     }
                 }
 

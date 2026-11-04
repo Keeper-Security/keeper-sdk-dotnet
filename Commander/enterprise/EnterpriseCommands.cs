@@ -1589,6 +1589,18 @@ namespace Commander
 
         public static async Task EnterpriseRoleCommand(this RoleData roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
         {
+            if (!string.IsNullOrWhiteSpace(arguments.AddRole))
+            {
+                if (!string.IsNullOrWhiteSpace(arguments.Command) || !string.IsNullOrWhiteSpace(arguments.Role))
+                {
+                    Console.WriteLine("Use either --add <role name> or the positional add command, not both.");
+                    return;
+                }
+
+                arguments.Command = "add";
+                arguments.Role = arguments.AddRole;
+            }
+
             if (arguments.Force)
             {
                 await roleData.Enterprise.Load();
@@ -1754,8 +1766,46 @@ namespace Commander
                     nodeId = enterpriseData.RootNode.Id;
                 }
 
-                await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser ?? false);
+                var createdRole = await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser ?? false);
+                if (createdRole == null)
+                {
+                    Console.WriteLine($"Role \"{arguments.Role}\" was created but could not be loaded. Managed nodes were not added.");
+                    return;
+                }
+
+                var managedNodeFailures = false;
+                var managedNodeIds = new HashSet<long>();
+                foreach (var managedNodeInput in arguments.AddAdmin ?? Enumerable.Empty<string>())
+                {
+                    if (!TryResolveNode(enterpriseData, managedNodeInput, out var managedNode, out var errorMessage))
+                    {
+                        Console.WriteLine(errorMessage);
+                        managedNodeFailures = true;
+                        continue;
+                    }
+
+                    if (!managedNodeIds.Add(managedNode.Id))
+                    {
+                        Console.WriteLine($"Managed node \"{GetNodeDisplayName(managedNode)}\" was specified more than once. Skipping duplicate.");
+                        continue;
+                    }
+
+                    try
+                    {
+                        await roleData.RoleManagedNodeAdd(createdRole, managedNode, arguments.Cascade);
+                        Console.WriteLine($"Managed node \"{GetNodeDisplayName(managedNode)}\" added to role \"{createdRole.DisplayName}\" successfully.");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Failed to add managed node \"{GetNodeDisplayName(managedNode)}\": {e.Message}");
+                        managedNodeFailures = true;
+                    }
+                }
                 Console.WriteLine($"Role \"{arguments.Role}\" successfully added.");
+                if (managedNodeFailures)
+                {
+                    Console.WriteLine("Role was created, but one or more managed nodes were not added.");
+                }
                 return;
             }
 
@@ -4662,6 +4712,9 @@ namespace Commander
 
     class EnterpriseRoleOptions : EnterpriseGenericOptions
     {
+        [Option("add", Required = false, HelpText = "Create role.")]
+        public string AddRole { get; set; }
+
         [Option("node", Required = false, HelpText = "Node Name or ID. \"add\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\"")]
         public string Node { get; set; }
 
@@ -4674,8 +4727,11 @@ namespace Commander
         [Option("new-role-name", Required = false, HelpText = "New role display name. \"update\"")]
         public string NewRoleName { get; set; }
 
-        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"managed-node-add\", \"managed-node-update\"")]
+        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"add\", \"managed-node-add\", \"managed-node-update\"")]
         public bool Cascade { get; set; }
+
+        [Option("add-admin", Required = false, Separator = ',', HelpText = "Managed node name or ID to add to a new role. Can be specified multiple times. \"add\"")]
+        public IEnumerable<string> AddAdmin { get; set; }
 
         [Option("privileges", Required = false, Separator = ',', HelpText = "Comma-separated list of privileges. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS")]
         public IEnumerable<string> Privileges { get; set; }
