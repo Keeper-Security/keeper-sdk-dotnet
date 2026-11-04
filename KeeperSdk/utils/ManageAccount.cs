@@ -121,6 +121,19 @@ namespace KeeperSecurity
         }
 
         /// <summary>
+        /// Optional UI capability for asking the user to re-enter the current Master Password.
+        /// </summary>
+        public interface IMasterPasswordReentryUI
+        {
+            /// <summary>
+            /// Prompts for the current Master Password until it passes the supplied validator.
+            /// </summary>
+            /// <param name="validatePassword">Validates the entered password against the active authentication context.</param>
+            /// <returns>The validated current Master Password.</returns>
+            Task<string> GetCurrentPassword(Func<string, bool> validatePassword);
+        }
+
+        /// <summary>
         ///     Represents a password complexity rule matcher.
         /// </summary>
         public class PasswordRuleMatcher
@@ -210,6 +223,43 @@ namespace KeeperSecurity
                     ?? (auth as AuthCommon)?.PostLoginTaskUI;
                 if (postUi != null)
                 {
+                    var currentAuthContext = auth.AuthContext;
+                    if (currentAuthContext == null)
+                    {
+                        throw new KeeperApiException(
+                            "not_authenticated",
+                            "A connected authentication session is required to change the Master Password.");
+                    }
+
+                    string currentPassword = null;
+                    var hasPasswordValidator =
+                        currentAuthContext is AuthContext authContext &&
+                        authContext.PasswordValidator != null;
+
+                    if (hasPasswordValidator)
+                    {
+                        if (!(postUi is IMasterPasswordReentryUI reentryUi))
+                        {
+                            throw new KeeperApiException(
+                                "password_reentry_not_supported",
+                                "This UI cannot prompt for the current Master Password.");
+                        }
+
+                        var validateCurrentPassword = new Func<string, bool>(currentAuthContext.CheckPasswordValid);
+                        currentPassword = await reentryUi.GetCurrentPassword(validateCurrentPassword);
+                        if (string.IsNullOrEmpty(currentPassword) ||
+                            !currentAuthContext.CheckPasswordValid(currentPassword))
+                        {
+                            throw new KeeperAuthFailed("Current Master Password is incorrect.");
+                        }
+                    }
+                    else if (!currentAuthContext.IsAccountRecoverySession)
+                    {
+                        throw new KeeperApiException(
+                            "password_verification_unavailable",
+                            "The current Master Password cannot be verified for this session. Sign in with the Master Password and try again.");
+                    }
+
                     var userParams = await auth.Endpoint.GetNewUserParams(auth.Username);
 
                     var rules = userParams.PasswordMatchDescription
@@ -220,8 +270,18 @@ namespace KeeperSecurity
                                 match = true,
                                 pattern = pattern
                             })
-                        .ToArray();
-                    var ruleMatcher = new PasswordRuleMatcher(rules);
+                        .ToList();
+                    if (currentPassword != null)
+                    {
+                        rules.Add(new PasswordRule
+                        {
+                            description = "New Master Password must be different from the current Master Password.",
+                            match = true,
+                            pattern = @"\A(?!" + Regex.Escape(currentPassword) + @"\z)[\s\S]*\z",
+                        });
+                    }
+
+                    var ruleMatcher = new PasswordRuleMatcher(rules.ToArray());
 
                     var newPassword = await postUi.GetNewPassword(ruleMatcher);
                     if (string.IsNullOrEmpty(newPassword))
@@ -246,13 +306,39 @@ namespace KeeperSecurity
                     var keySalt = CryptoUtils.GetRandomBytes(16);
                     var encryptionParameters = CryptoUtils.CreateEncryptionParams(newPassword, keySalt, iterations, auth.AuthContext.DataKey);
 
-                    var command = new ChangeMasterPasswordCommand
+                    var request = new ChangeMasterPasswordRequest
                     {
-                        AuthVerifier = authVerifier.Base64UrlEncode(),
-                        EncryptionParams = encryptionParameters.Base64UrlEncode()
+                        AuthVerifier = ByteString.CopyFrom(authVerifier),
+                        EncryptionParams = ByteString.CopyFrom(encryptionParameters),
                     };
 
-                    await auth.ExecuteAuthCommand(command);
+                    var response = (ChangeMasterPasswordResponse) await auth.ExecuteAuthRest(
+                        "authentication/change_master_password",
+                        request,
+                        typeof(ChangeMasterPasswordResponse));
+                    if (response == null || response.EncryptedSessionToken.IsEmpty)
+                    {
+                        throw new KeeperApiException(
+                            "invalid_response",
+                            "Changing the Master Password did not return an updated session token. Please sign in again with the new Master Password.");
+                    }
+
+                    if (!(currentAuthContext is AuthContext updatedAuthContext))
+                    {
+                        throw new KeeperApiException(
+                            "session_update_unavailable",
+                            "The Master Password was changed, but this authentication session cannot be updated. Please sign in again with the new Master Password.");
+                    }
+
+                    updatedAuthContext.SessionToken = response.EncryptedSessionToken.ToByteArray();
+
+                    var validatorSalt = CryptoUtils.GetRandomBytes(16);
+                    updatedAuthContext.PasswordValidator = CryptoUtils.CreateEncryptionParams(
+                        newPassword,
+                        validatorSalt,
+                        100000,
+                        CryptoUtils.GetRandomBytes(32));
+
                     return newPassword;
                 }
 
