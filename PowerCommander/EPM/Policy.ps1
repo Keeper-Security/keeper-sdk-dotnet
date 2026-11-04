@@ -301,41 +301,58 @@ function script:Confirm-EpmPolicyFilterParams {
     return $result
 }
 
-function script:Assert-EpmPolicyRequiredParams {
+function script:Resolve-KeeperEpmPolicyCollectionFilter {
+    <#
+    Resolve EPM policy filter values the same way as Python Commander:
+    collection UIDs are retained, custom collection names are resolved
+    case-insensitively, ambiguous names fail, and unknown values are sent as-is.
+    #>
     Param (
-        [string] $PolicyType,
-        [bool] $HasMachine,
-        [bool] $HasUser,
-        [bool] $HasApp,
-        [bool] $HasControl,
-        [string] $ErrorSuffix
+        [Parameter(Mandatory = $true)][object] $Plugin,
+        [Parameter()][string[]] $Values,
+        [Parameter(Mandatory = $true)][int[]] $CollectionTypes
     )
 
-    $rules = @{
-        'PrivilegeElevation' = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
-        'FileAccess'         = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; AppFilter = $HasApp; Control = $HasControl }
-        'CommandLine'        = @{ MachineFilter = $HasMachine; UserFilter = $HasUser; Control = $HasControl }
-        'LeastPrivilege'     = @{ MachineFilter = $HasMachine }
-    }
+    if (-not $Values) { return @() }
+    if ($Values -contains '*') { return @('*') }
 
-    $required = $rules[$PolicyType]
-    if (-not $required) { return }
+    $lookup = @{}
+    foreach ($collection in @($Plugin.Collections.GetAll() | Where-Object { $null -ne $_ })) {
+        if ([string]::IsNullOrEmpty($collection.CollectionUid)) { continue }
+        $lookup[$collection.CollectionUid] = $collection.CollectionUid
 
-    # Do not enumerate the hashtable directly: Windows PowerShell 5.1 does not
-    # guarantee its order, which makes the validation message inconsistent.
-    $missing = @()
-    foreach ($parameterName in @('AppFilter', 'UserFilter', 'MachineFilter', 'Control')) {
-        if ($required.ContainsKey($parameterName) -and -not $required[$parameterName]) {
-            $missing += "-$parameterName"
+        # Python Commander resolves names only for custom collection types.
+        if ($collection.CollectionType -lt 100 -or $CollectionTypes -notcontains $collection.CollectionType) { continue }
+        $name = Get-KeeperEpmCollectionName -Collection $collection
+        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+
+        $key = $name.ToLowerInvariant()
+        if (-not $lookup.ContainsKey($key)) {
+            $lookup[$key] = $collection.CollectionUid
+        }
+        elseif ($lookup[$key] -is [string]) {
+            $lookup[$key] = @($lookup[$key], $collection.CollectionUid)
+        }
+        else {
+            $lookup[$key] += $collection.CollectionUid
         }
     }
-    if ($missing.Count -gt 0) {
-        $msg = "Policy type '$PolicyType' requires the following parameters: $($missing -join ', ')"
-        if ($ErrorSuffix) { $msg += ". $ErrorSuffix" }
-        return $msg
-    }
 
-    return $null
+    $result = [System.Collections.Generic.List[string]]::new()
+    foreach ($value in $Values) {
+        if ([string]::IsNullOrWhiteSpace($value)) { continue }
+        $resolved = if ($lookup.ContainsKey($value)) { $lookup[$value] } else { $lookup[$value.ToLowerInvariant()] }
+        if ($null -eq $resolved) {
+            [void]$result.Add($value)
+        }
+        elseif ($resolved -is [string]) {
+            [void]$result.Add($resolved)
+        }
+        else {
+            throw "Collection value '$value' is not unique. Use collection UID."
+        }
+    }
+    return @($result)
 }
 
 function script:GetPedmPolicyAgentsResponse {
@@ -558,6 +575,9 @@ function Add-KeeperEpmPolicy {
         [ValidateSet('enforce', 'monitor', 'monitor_and_notify', 'off')]
         [string] $Status = [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce,
         [Parameter()]
+        [ValidateSet('on', 'off')]
+        [string] $Enable,
+        [Parameter()]
         [ValidateSet('APPROVAL', 'JUSTIFY', 'MFA')]
         [string[]] $Control,
         [Parameter()]
@@ -591,13 +611,12 @@ function Add-KeeperEpmPolicy {
         return
     }
 
-    if ($Status -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
-        $validationMessage = Assert-EpmPolicyRequiredParams -PolicyType $PolicyType `
-            -HasMachine ([bool]$MachineFilter) -HasUser ([bool]$UserFilter) `
-            -HasApp ([bool]$AppFilter) -HasControl ([bool]$Control)
-        if ($validationMessage) {
-            Write-Output $validationMessage
-            return
+    if ($PSBoundParameters.ContainsKey('Enable')) {
+        if ($Enable -eq 'off') {
+            $Status = [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off
+        }
+        elseif ($Status -eq [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off) {
+            $Status = [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Enforce
         }
     }
 
@@ -640,9 +659,23 @@ function Add-KeeperEpmPolicy {
 
     $validated = Confirm-EpmPolicyFilterParams -DayFilter $DayFilter -DateFilter $DateFilter -TimeFilter $TimeFilter
 
-    if ($UserFilter)    { $policyData['UserCheck'] = @($UserFilter) }
-    if ($MachineFilter) { $policyData['MachineCheck'] = @($MachineFilter) }
-    if ($AppFilter)     { $policyData['ApplicationCheck'] = @($AppFilter) }
+    # Match Python Commander defaults.  A policy is immediately useful without
+    # explicit collection filters, while the applicable filters vary by type.
+    $collectionDefaults = @{
+        'PrivilegeElevation' = @{ UserCheck = @('*'); MachineCheck = @('*'); ApplicationCheck = @('*') }
+        'FileAccess'         = @{ UserCheck = @('*'); MachineCheck = @('*'); ApplicationCheck = @('*') }
+        'CommandLine'        = @{ UserCheck = @('*'); MachineCheck = @('*'); ApplicationCheck = @() }
+        'LeastPrivilege'     = @{ UserCheck = @();    MachineCheck = @('*'); ApplicationCheck = @() }
+    }
+
+    if ($UserFilter)    { $policyData['UserCheck'] = @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $UserFilter -CollectionTypes @(3, 6, 103)) }
+    if ($MachineFilter) { $policyData['MachineCheck'] = @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $MachineFilter -CollectionTypes @(1, 101, 201)) }
+    if ($AppFilter)     { $policyData['ApplicationCheck'] = @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $AppFilter -CollectionTypes @(2, 102)) }
+    foreach ($filterName in @('UserCheck', 'MachineCheck', 'ApplicationCheck')) {
+        if (-not $policyData.Contains($filterName)) {
+            $policyData[$filterName] = @($collectionDefaults[$PolicyType][$filterName])
+        }
+    }
 
     if ($null -ne $validated.DayCheck)  { $policyData['DayCheck'] = $validated.DayCheck }
     if ($null -ne $validated.DateCheck) { $policyData['DateCheck'] = $validated.DateCheck }
@@ -791,15 +824,15 @@ function Update-KeeperEpmPolicy {
     $validated = Confirm-EpmPolicyFilterParams -DayFilter $DayFilter -DateFilter $DateFilter -TimeFilter $TimeFilter
 
     if ($null -ne $UserFilter) {
-        $policyData | Add-Member -MemberType NoteProperty -Name 'UserCheck' -Value @($UserFilter) -Force
+        $policyData | Add-Member -MemberType NoteProperty -Name 'UserCheck' -Value @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $UserFilter -CollectionTypes @(3, 6, 103)) -Force
         $hasChanges = $true
     }
     if ($null -ne $MachineFilter) {
-        $policyData | Add-Member -MemberType NoteProperty -Name 'MachineCheck' -Value @($MachineFilter) -Force
+        $policyData | Add-Member -MemberType NoteProperty -Name 'MachineCheck' -Value @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $MachineFilter -CollectionTypes @(1, 101, 201)) -Force
         $hasChanges = $true
     }
     if ($null -ne $AppFilter) {
-        $policyData | Add-Member -MemberType NoteProperty -Name 'ApplicationCheck' -Value @($AppFilter) -Force
+        $policyData | Add-Member -MemberType NoteProperty -Name 'ApplicationCheck' -Value @(Resolve-KeeperEpmPolicyCollectionFilter -Plugin $plugin -Values $AppFilter -CollectionTypes @(2, 102)) -Force
         $hasChanges = $true
     }
     if ($null -ne $RiskLevel) {
@@ -829,30 +862,6 @@ function Update-KeeperEpmPolicy {
 
     if (-not $hasChanges) {
         Write-Error -Message 'No changes specified. Provide at least one parameter to update.' -ErrorAction Stop
-    }
-
-    $effectiveStatus = if (-not [string]::IsNullOrEmpty($Status)) { $Status } elseif ($policyData.PSObject.Properties['Status'] -and $policyData.Status) { $policyData.Status } else { '' }
-    $effectiveType = if ($policyData.PSObject.Properties['PolicyType']) { [string]$policyData.PolicyType } else { '' }
-
-    if ($effectiveStatus -ne [KeeperSecurity.Plugins.EPM.EpmPolicyStatus]::Off -and -not [string]::IsNullOrEmpty($effectiveType)) {
-        $hasMachine = $policyData.PSObject.Properties['MachineCheck'] -and $policyData.MachineCheck -and $policyData.MachineCheck.Count -gt 0
-        $hasUser = $policyData.PSObject.Properties['UserCheck'] -and $policyData.UserCheck -and $policyData.UserCheck.Count -gt 0
-        $hasApp = $policyData.PSObject.Properties['ApplicationCheck'] -and $policyData.ApplicationCheck -and $policyData.ApplicationCheck.Count -gt 0
-        $hasControl = $false
-        if ($policyData.PSObject.Properties['Actions'] -and $policyData.Actions) {
-            $act = $policyData.Actions
-            if ($act.PSObject.Properties['OnSuccess'] -and $act.OnSuccess -and $act.OnSuccess.PSObject.Properties['Controls'] -and $act.OnSuccess.Controls -and $act.OnSuccess.Controls.Count -gt 0) {
-                $hasControl = $true
-            }
-        }
-        $validationMessage = Assert-EpmPolicyRequiredParams -PolicyType $effectiveType `
-            -HasMachine ([bool]$hasMachine) -HasUser ([bool]$hasUser) `
-            -HasApp ([bool]$hasApp) -HasControl ([bool]$hasControl) `
-            -ErrorSuffix 'Provide them or set -Status off'
-        if ($validationMessage) {
-            Write-Output $validationMessage
-            return
-        }
     }
 
     $policyJson = $policyData | ConvertTo-Json -Depth 10 -Compress

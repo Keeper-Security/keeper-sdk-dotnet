@@ -386,6 +386,142 @@ namespace Commander.EPM
             return false;
         }
 
+        private static string NormalizePolicyType(string value)
+        {
+            switch ((value ?? "").Replace("_", "").Replace("-", "").Trim().ToLowerInvariant())
+            {
+                case "elevation": case "privilegeelevation": return "PrivilegeElevation";
+                case "fileaccess": return "FileAccess";
+                case "command": case "commandline": return "CommandLine";
+                case "leastprivilege": return "LeastPrivilege";
+                default: return null;
+            }
+        }
+
+        private static List<string> DefaultFilter(string policyType, string filter)
+        {
+            var all = new List<string> { "*" };
+            switch (policyType)
+            {
+                case "PrivilegeElevation":
+                case "FileAccess": return all;
+                case "CommandLine": return filter == "Application" ? new List<string>() : all;
+                case "LeastPrivilege": return filter == "Machine" ? all : new List<string>();
+                default: return new List<string>();
+            }
+        }
+
+        private static List<PolicyRule> CreateDefaultRules()
+        {
+            return new List<PolicyRule>
+            {
+                new PolicyRule { RuleName = "UserCheck", ErrorMessage = "This user is not included in this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckUser()" },
+                new PolicyRule { RuleName = "MachineCheck", ErrorMessage = "This Machine is not included in this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckMachine()" },
+                new PolicyRule { RuleName = "ApplicationCheck", ErrorMessage = "This application is not included in this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckFile(false)" },
+                new PolicyRule { RuleName = "DateCheck", ErrorMessage = "Current date is not covered by this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckDate()" },
+                new PolicyRule { RuleName = "TimeCheck", ErrorMessage = "Current time is not covered by this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckTime()" },
+                new PolicyRule { RuleName = "DayCheck", ErrorMessage = "Today is not included in this policy", RuleExpressionType = "BuiltInAction", Expression = "CheckDay()" },
+            };
+        }
+
+        private List<string> ResolvePolicyCollectionFilters(IList<string> values, params int[] collectionTypes)
+        {
+            if (values == null || values.Count == 0) return new List<string>();
+            if (values.Any(x => string.Equals(x, "*", StringComparison.Ordinal))) return new List<string> { "*" };
+
+            var lookup = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var collection in Plugin.Collections.GetAll())
+            {
+                if (string.IsNullOrEmpty(collection.CollectionUid)) continue;
+                lookup[collection.CollectionUid] = new List<string> { collection.CollectionUid };
+                if (collection.CollectionType < 100 || !collectionTypes.Contains(collection.CollectionType) || collection.CollectionData == null) continue;
+                try
+                {
+                    var data = JsonUtils.ParseJson<Dictionary<string, object>>(collection.CollectionData);
+                    if (data == null || !data.TryGetValue("Name", out var value) || string.IsNullOrWhiteSpace(value?.ToString())) continue;
+                    var name = value.ToString();
+                    if (!lookup.TryGetValue(name, out var matches)) lookup[name] = new List<string> { collection.CollectionUid };
+                    else matches.Add(collection.CollectionUid);
+                }
+                catch { /* Ignore malformed collection data, matching Python Commander. */ }
+            }
+
+            var result = new List<string>();
+            foreach (var value in values.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                if (!lookup.TryGetValue(value, out var matches)) result.Add(value);
+                else if (matches.Count == 1) result.Add(matches[0]);
+                else throw new InvalidOperationException($"Collection value '{value}' is not unique. Use collection UID.");
+            }
+            return result;
+        }
+
+        private static bool HasDirectPolicyOptions(EpmPolicyOptions options)
+        {
+            return !string.IsNullOrWhiteSpace(options.PolicyName) || !string.IsNullOrWhiteSpace(options.PolicyType)
+                || !string.IsNullOrWhiteSpace(options.Enable) || options.UserFilters?.Count > 0
+                || options.MachineFilters?.Count > 0 || options.ApplicationFilters?.Count > 0
+                || options.Controls?.Count > 0 || !string.IsNullOrWhiteSpace(options.Status);
+        }
+
+        private static bool TryApplyDirectPolicyOptions(EpmPolicyOptions options, PolicyDataStructure data,
+            bool isNew, out bool? disabled)
+        {
+            disabled = null;
+            var policyType = NormalizePolicyType(!string.IsNullOrWhiteSpace(options.PolicyType) ? options.PolicyType : data.PolicyType);
+            if (string.IsNullOrEmpty(policyType))
+            {
+                Console.WriteLine("A supported --policy-type is required.");
+                return false;
+            }
+
+            data.PolicyType = policyType;
+            if (!string.IsNullOrWhiteSpace(options.PolicyName)) data.PolicyName = options.PolicyName;
+            if (isNew && string.IsNullOrWhiteSpace(data.PolicyName))
+            {
+                Console.WriteLine("--policy-name is required.");
+                return false;
+            }
+            if (isNew && string.IsNullOrWhiteSpace(data.PolicyId)) data.PolicyId = CryptoUtils.GenerateUid();
+            if (isNew && (data.Rules == null || data.Rules.Count == 0)) data.Rules = CreateDefaultRules();
+            if (data.Actions == null) data.Actions = new PolicyActions();
+            if (data.Actions.OnSuccess == null) data.Actions.OnSuccess = new PolicyOnSuccess();
+            if (data.Actions.OnFailure == null) data.Actions.OnFailure = new PolicyOnFailure();
+            if (options.Controls?.Count > 0) data.Actions.OnSuccess.Controls = options.Controls.Select(x => x.ToUpperInvariant()).ToList();
+
+            if (options.UserFilters?.Count > 0) data.UserCheck = ResolvePolicyCollectionFilters(options.UserFilters, 3, 6, 103);
+            else if (isNew) data.UserCheck = DefaultFilter(policyType, "User");
+            if (options.MachineFilters?.Count > 0) data.MachineCheck = ResolvePolicyCollectionFilters(options.MachineFilters, 1, 101, 201);
+            else if (isNew) data.MachineCheck = DefaultFilter(policyType, "Machine");
+            if (options.ApplicationFilters?.Count > 0) data.ApplicationCheck = ResolvePolicyCollectionFilters(options.ApplicationFilters, 2, 102);
+            else if (isNew) data.ApplicationCheck = DefaultFilter(policyType, "Application");
+
+            if (!string.IsNullOrWhiteSpace(options.Status))
+            {
+                var validStatuses = new[] { EpmPolicyStatus.Enforce, EpmPolicyStatus.Monitor, EpmPolicyStatus.MonitorAndNotify, EpmPolicyStatus.Off };
+                if (!validStatuses.Contains(options.Status, StringComparer.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("\"status\" must be enforce, monitor, monitor_and_notify, or off");
+                    return false;
+                }
+                data.Status = options.Status;
+            }
+            else if (string.IsNullOrWhiteSpace(data.Status)) data.Status = EpmPolicyStatus.Enforce;
+            if (!string.IsNullOrWhiteSpace(options.Enable))
+            {
+                var enable = options.Enable.Trim().ToLowerInvariant();
+                if (enable != "on" && enable != "off")
+                {
+                    Console.WriteLine("\"enable\" argument must be \"on\" or \"off\"");
+                    return false;
+                }
+                disabled = enable == "off";
+                if (disabled == true) data.Status = EpmPolicyStatus.Off;
+                else if (string.Equals(data.Status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase)) data.Status = EpmPolicyStatus.Enforce;
+            }
+            return true;
+        }
+
         private async Task AddPolicyAsync(EpmPolicyOptions options)
         {
             if (options == null)
@@ -394,13 +530,22 @@ namespace Commander.EPM
             var plainJson = ReadJsonText(options.PlainDataJson, options.PlainDataFile);
             var policyJson = ReadJsonText(options.PolicyDataJson, options.PolicyDataFile);
 
+            bool? disabled = null;
+            if (HasDirectPolicyOptions(options))
+            {
+                var data = string.IsNullOrWhiteSpace(policyJson) ? new PolicyDataStructure() : JsonUtils.ParseJson<PolicyDataStructure>(Encoding.UTF8.GetBytes(policyJson));
+                if (data == null || !TryApplyDirectPolicyOptions(options, data, true, out disabled)) return;
+                policyJson = Encoding.UTF8.GetString(JsonUtils.DumpJson(data));
+                if (string.IsNullOrWhiteSpace(plainJson)) plainJson = "{}";
+            }
+
             if (string.IsNullOrEmpty(plainJson) || string.IsNullOrEmpty(policyJson))
             {
                 Console.WriteLine("Both --plain and --data (or --plain-file and --data-file) are required for 'add' command.");
                 return;
             }
 
-            if (!ValidatePolicyRequirements(policyJson))
+            if (!HasDirectPolicyOptions(options) && !ValidatePolicyRequirements(policyJson))
                 return;
 
             var addStatus = await Plugin.ModifyPolicies(
@@ -410,7 +555,8 @@ namespace Commander.EPM
                     {
                         PolicyUid = options.NewPolicyUid,
                         PlainDataJson = plainJson,
-                        PolicyDataJson = policyJson
+                        PolicyDataJson = policyJson,
+                        Disabled = disabled
                     }
                 },
                 updatePolicies: null,
@@ -459,13 +605,23 @@ namespace Commander.EPM
             var plainJson = ReadJsonText(options.PlainDataJson, options.PlainDataFile);
             var policyJson = ReadJsonText(options.PolicyDataJson, options.PolicyDataFile);
 
+            bool? disabled = null;
+            if (HasDirectPolicyOptions(options))
+            {
+                var data = string.IsNullOrWhiteSpace(policyJson)
+                    ? JsonUtils.ParseJson<PolicyDataStructure>(JsonUtils.DumpJson(policy.Data))
+                    : JsonUtils.ParseJson<PolicyDataStructure>(Encoding.UTF8.GetBytes(policyJson));
+                if (data == null || !TryApplyDirectPolicyOptions(options, data, false, out disabled)) return;
+                policyJson = Encoding.UTF8.GetString(JsonUtils.DumpJson(data));
+            }
+
             if (string.IsNullOrEmpty(plainJson) && string.IsNullOrEmpty(policyJson))
             {
                 Console.WriteLine("At least one of --plain/--plain-file or --data/--data-file is required for 'update' command.");
                 return;
             }
 
-            if (!string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson))
+            if (!HasDirectPolicyOptions(options) && !string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson))
                 return;
 
             var updateStatus = await Plugin.ModifyPolicies(
@@ -476,7 +632,8 @@ namespace Commander.EPM
                     {
                         PolicyUid = policy.PolicyUid,
                         PlainDataJson = plainJson,
-                        PolicyDataJson = policyJson
+                        PolicyDataJson = policyJson,
+                        Disabled = disabled
                     }
                 },
                 removePolicies: null);
@@ -785,6 +942,30 @@ namespace Commander.EPM
 
         [Option("data-file", Required = false, HelpText = "Path to file containing policy JSON data to encrypt")]
         public string PolicyDataFile { get; set; }
+
+        [Option("policy-name", Required = false, HelpText = "Policy name (high-level add/update mode)")]
+        public string PolicyName { get; set; }
+
+        [Option("policy-type", Required = false, HelpText = "Policy type: elevation, file_access, command, or least_privilege")]
+        public string PolicyType { get; set; }
+
+        [Option("status", Required = false, HelpText = "Policy status: enforce, monitor, monitor_and_notify, or off")]
+        public string Status { get; set; }
+
+        [Option("enable", Required = false, HelpText = "Enable or disable the policy: on or off")]
+        public string Enable { get; set; }
+
+        [Option("control", Required = false, Separator = ',', HelpText = "Policy controls")]
+        public IList<string> Controls { get; set; }
+
+        [Option("user-filter", Required = false, Separator = ',', HelpText = "User collection UID(s) or *")]
+        public IList<string> UserFilters { get; set; }
+
+        [Option("machine-filter", Required = false, Separator = ',', HelpText = "Machine collection UID(s) or *")]
+        public IList<string> MachineFilters { get; set; }
+
+        [Option("app-filter", Required = false, Separator = ',', HelpText = "Application collection UID(s) or *")]
+        public IList<string> ApplicationFilters { get; set; }
 
         [Option("collection", Required = false, HelpText = "Collection UID(s) to assign to policy (for assign command). Use '*' or 'all' for all agents.")]
         public IList<string> CollectionUids { get; set; }
