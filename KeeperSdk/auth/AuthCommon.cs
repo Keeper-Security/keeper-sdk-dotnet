@@ -404,6 +404,7 @@ namespace KeeperSecurity.Authentication
         public AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; internal set; }
         internal byte[] PasswordValidator { get; set; }
+        internal bool IsAccountRecoveryFlow { get; set; }
 
         public bool IsAccountRecoverySession =>
             (SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0;
@@ -703,6 +704,15 @@ namespace KeeperSecurity.Authentication
             var keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
 
             authContext.AccountUid = accountSummaryResponse.License.AccountUid.ToByteArray();
+            if (authContext.PasswordValidator == null &&
+                !authContext.IsAccountRecoveryFlow &&
+                !string.IsNullOrEmpty(keys.EncryptionParams))
+            {
+                // A trusted-device login can reach the restricted password-expired session
+                // without running validate_auth_hash. The account summary contains the
+                // password-wrapped data key, which can verify a re-entered password.
+                authContext.PasswordValidator = keys.EncryptionParams.Base64UrlDecode();
+            }
 
             if (accountSummaryResponse.ClientKey?.Length > 0)
             {
@@ -835,10 +845,7 @@ namespace KeeperSecurity.Authentication
                         var accountExpiredDescription =
                             "Your Keeper account has expired. Please open the Keeper app to renew " +
                             $"or visit the Web Vault at https://{Endpoint.Server}/vault";
-                        if (!await postUi.Confirmation(accountExpiredDescription))
-                        {
-                            throw new KeeperCanceled();
-                        }
+                        await postUi.Confirmation(accountExpiredDescription);
                     }
                     else
                     {

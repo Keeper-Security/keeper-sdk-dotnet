@@ -7,7 +7,7 @@ using KeeperSecurity.Utils;
 
 namespace Commander
 {
-    internal sealed class CommanderPostLoginTaskUI : IPostLoginTaskUI, IMasterPasswordStrengthUI
+    internal sealed class CommanderPostLoginTaskUI : IPostLoginTaskUI, IMasterPasswordStrengthUI, IMasterPasswordReentryUI
     {
         private readonly IInputManager _inputManager;
 
@@ -25,20 +25,8 @@ namespace Commander
                 || string.Equals(response?.Trim(), "yes", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<string> GetNewPassword(PasswordRuleMatcher matcher, string currentPassword = null)
+        public async Task<string> GetNewPassword(PasswordRuleMatcher matcher)
         {
-            string currentPwd = currentPassword;
-
-            if (string.IsNullOrEmpty(currentPwd))
-            {
-                Console.Write("Enter current Master Password: ");
-                currentPwd = await _inputManager.ReadLine(new ReadLineParameters
-                {
-                    IsSecured = true,
-                    IsHistory = false,
-                });
-            }
-
             while (true)
             {
                 Console.Write("Enter new Master Password: ");
@@ -48,6 +36,17 @@ namespace Commander
                     IsHistory = false,
                 });
 
+                if (password == null)
+                {
+                    throw new KeeperCanceled();
+                }
+
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    Console.WriteLine("Master Password cannot be empty.");
+                    continue;
+                }
+
                 Console.Write("Re-enter new Master Password: ");
                 var confirmation = await _inputManager.ReadLine(new ReadLineParameters
                 {
@@ -55,16 +54,9 @@ namespace Commander
                     IsHistory = false,
                 });
 
-                if (string.IsNullOrEmpty(password))
+                if (confirmation == null)
                 {
-                    Console.WriteLine("Master Password cannot be empty.");
-                    continue;
-                }
-
-                if (string.Equals(password, currentPwd, StringComparison.Ordinal))
-                {
-                    Console.WriteLine("New Master Password cannot be the same as the current password.");
-                    continue;
+                    throw new KeeperCanceled();
                 }
 
                 if (!string.Equals(password, confirmation, StringComparison.Ordinal))
@@ -86,6 +78,33 @@ namespace Commander
                 }
 
                 return password;
+            }
+        }
+
+        public async Task<string> GetCurrentPassword(Func<string, bool> validatePassword)
+        {
+            if (validatePassword == null) throw new ArgumentNullException(nameof(validatePassword));
+
+            while (true)
+            {
+                Console.Write("Enter current Master Password: ");
+                var password = await _inputManager.ReadLine(new ReadLineParameters
+                {
+                    IsSecured = true,
+                    IsHistory = false,
+                });
+
+                if (password == null)
+                {
+                    throw new KeeperCanceled();
+                }
+
+                if (validatePassword(password))
+                {
+                    return password;
+                }
+
+                Console.WriteLine("Current Master Password is incorrect. Please try again.");
             }
         }
 
