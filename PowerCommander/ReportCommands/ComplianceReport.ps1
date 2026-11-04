@@ -1498,7 +1498,7 @@ function Resolve-KeeperAgingCutoffDateTime {
     if ([string]::IsNullOrWhiteSpace($duration)) {
         Write-Host ""
         Write-Host "The default password aging period is 3 months."
-        Write-Host "To change this value pass -Period (e.g. 10d for 10 days; 3m for 3 months; 1y for 1 year)."
+        Write-Host 'To change this value pass -Period (e.g. 10d for 10 days; 3m for 3 months; 1y for 1 year).'
         Write-Host ""
         $duration = '3m'
     }
@@ -1520,7 +1520,7 @@ function Resolve-KeeperAgingCutoffDateTime {
         $days = $va * 365
     }
     else {
-        Write-Error "Invalid -Period suffix: use d, m, or y (e.g. 3m)." -ErrorAction Stop
+        Write-Error   'Invalid -Period suffix: use d, m, or y (e.g. 3m).' -ErrorAction Stop
     }
 
     return (Get-Date).AddDays(-$days)
