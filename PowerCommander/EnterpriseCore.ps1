@@ -416,6 +416,287 @@ function Get-KeeperEnterpriseNode {
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode
 
+function ConvertTo-KeeperAuditCreatedFilter {
+    param([Parameter(Mandatory = $true)][string]$Value)
+
+    $text = $Value.Trim()
+    $predefined = @('today', 'yesterday', 'last_7_days', 'last_30_days', 'month_to_date', 'last_month', 'year_to_date', 'last_year')
+    if ($predefined -contains $text.ToLowerInvariant()) {
+        return $text.ToLowerInvariant()
+    }
+
+    $parseEpoch = {
+        param([string]$InputValue)
+        $parsed = 0L
+        if ([long]::TryParse($InputValue, [ref]$parsed)) {
+            $nowCentis = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() / 10
+            if ($parsed -gt $nowCentis) { return [long]($parsed / 1000) }
+            return $parsed
+        }
+        $dto = [DateTimeOffset]::MinValue
+        $style = [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal
+        if ([DateTimeOffset]::TryParse($InputValue, [System.Globalization.CultureInfo]::InvariantCulture, $style, [ref]$dto)) {
+            return $dto.ToUnixTimeSeconds()
+        }
+        return $null
+    }
+
+    $filter = New-Object KeeperSecurity.Enterprise.AuditLogCommands.CreatedFilter
+    if ($text -match '^(>=|>|<=|<)\s*(.+)$') {
+        $epoch = & $parseEpoch $Matches[2]
+        if ($null -eq $epoch) { throw "Could not parse date: $($Matches[2])" }
+        if ($Matches[1].StartsWith('>')) {
+            $filter.Min = [long]$epoch
+            $filter.ExcludeMin = $Matches[1] -eq '>'
+        }
+        else {
+            $filter.Max = [long]$epoch
+            $filter.ExcludeMax = $Matches[1] -eq '<'
+        }
+        return $filter
+    }
+    if ($text -match '(?i)^between\s+(\S+)\s+and\s+(.+)$') {
+        $from = & $parseEpoch $Matches[1]
+        $to = & $parseEpoch $Matches[2].Trim()
+        if ($null -eq $from -or $null -eq $to -or $to -lt $from) { throw "Could not parse date range: $text" }
+        $filter.Min = [long]$from
+        $filter.Max = [long]$to
+        $filter.ExcludeMin = $false
+        $filter.ExcludeMax = $true
+        return $filter
+    }
+
+    if ($text -match '^\d{4}-\d{2}-\d{2}$') {
+        $date = [DateTimeOffset]::MinValue
+        $style = [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal
+        if (-not [DateTimeOffset]::TryParseExact($text, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, $style, [ref]$date)) {
+            throw "Could not parse date: $text"
+        }
+        $dayStart = [DateTimeOffset]::new($date.Year, $date.Month, $date.Day, 0, 0, 0, [TimeSpan]::Zero)
+        $filter.Min = $dayStart.ToUnixTimeSeconds()
+        $filter.Max = $dayStart.AddDays(1).ToUnixTimeSeconds()
+        $filter.ExcludeMin = $false
+        $filter.ExcludeMax = $true
+        return $filter
+    }
+
+    $exact = & $parseEpoch $text
+    if ($null -eq $exact) { throw "Could not parse date: $text" }
+    $filter.Min = [long]$exact
+    $filter.Max = [long]$exact + 1
+    $filter.ExcludeMin = $false
+    $filter.ExcludeMax = $true
+    return $filter
+}
+
+function Assert-KeeperAuditComplianceAccess {
+    param([Parameter(Mandatory = $true)]$Enterprise)
+
+    $enterpriseData = $Enterprise.enterpriseData
+    $roleData = $Enterprise.roleData
+    if (-not $enterpriseData -or -not $roleData) {
+        throw "Enterprise data and role data are required to validate compliance-report access."
+    }
+
+    $license = $enterpriseData.EnterpriseLicense
+    $addons = if ($license -and $license.AddOns) { @($license.AddOns) } else { @() }
+    $hasComplianceAddon = @($addons | Where-Object {
+        [string]::Equals($_.Name, 'compliance_report', [System.StringComparison]::OrdinalIgnoreCase) -and
+        ($_.Enabled -or $_.IncludedInProduct)
+    }).Count -gt 0
+    if (-not $hasComplianceAddon) {
+        throw "The compliance_report add-on is not enabled or included in the enterprise license."
+    }
+
+    $username = [string]$Enterprise.loader.Auth.Username
+    if ([string]::IsNullOrWhiteSpace($username)) {
+        throw "Could not determine the current username to validate compliance-report access."
+    }
+    $currentUser = $null
+    if (-not $enterpriseData.TryGetUserByEmail($username, [ref]$currentUser) -or -not $currentUser) {
+        foreach ($user in $enterpriseData.Users) {
+            if ($user.Email -and [string]::Equals([string]$user.Email, $username, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $currentUser = $user
+                break
+            }
+        }
+    }
+    if (-not $currentUser) {
+        throw "Could not find the current user '$username' in enterprise data to validate compliance-report access."
+    }
+
+    $userRoleIds = [System.Collections.Generic.HashSet[long]]::new()
+    foreach ($roleId in $roleData.GetRolesForUser([long]$currentUser.Id)) {
+        [void]$userRoleIds.Add([long]$roleId)
+    }
+    $hasCompliancePrivilege = $false
+    foreach ($managedNode in @($roleData.GetManagedNodes())) {
+        if (-not $userRoleIds.Contains([long]$managedNode.RoleId)) {
+            continue
+        }
+        foreach ($privilege in @($roleData.GetPrivilegesForRoleAndNode($managedNode.RoleId, $managedNode.ManagedNodeId))) {
+            if ([string]::Equals($privilege.PrivilegeType, 'run_compliance_reports', [System.StringComparison]::OrdinalIgnoreCase)) {
+                $hasCompliancePrivilege = $true
+                break
+            }
+        }
+        if ($hasCompliancePrivilege) {
+            break
+        }
+    }
+    if (-not $hasCompliancePrivilege) {
+        throw "The current user does not have the RUN_COMPLIANCE_REPORTS privilege."
+    }
+}
+
+function Ensure-KeeperAuditComplianceCache {
+    param(
+        [Parameter(Mandatory = $true)]$Enterprise,
+        [Parameter(Mandatory = $true)]$Auth,
+        [Parameter(Mandatory = $true)]$ReportingStorage
+    )
+
+    try {
+        $cachedData = $ReportingStorage.GetComplianceData($null)
+        $cacheEmpty = -not $cachedData -or $cachedData.Count -eq 0
+        $cacheStale = $ReportingStorage.IsComplianceDataStale(1)
+        if (-not $cacheEmpty -and -not $cacheStale) {
+            Write-Verbose "Audit compliance cache is fresh ($($cachedData.Count) record(s)); using cached data."
+            return $false
+        }
+
+        $reason = if ($cacheEmpty) { 'empty' } else { 'stale' }
+        Write-Verbose "Audit compliance cache is $reason; refreshing it using the SDK compliance report."
+
+        $enterpriseEcKey = $null
+        if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
+        }
+        $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+        $plugin = New-Object $pluginType($Enterprise.enterpriseData, $ReportingStorage, $enterpriseEcKey)
+        $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.ComplianceReportConfig
+        $config.CacheMaxAgeDays = 1
+        $config.IncludeAging = $false
+
+        $complianceResult = $plugin.GenerateComplianceReportAsync($Auth, $config).GetAwaiter().GetResult()
+        if ($complianceResult.ErrorMessage) {
+            throw "Compliance report failed: $($complianceResult.ErrorMessage)"
+        }
+        $persistedData = $ReportingStorage.GetComplianceData($null)
+        $persistedCount = if ($persistedData) { $persistedData.Count } else { 0 }
+        Write-Verbose "Audit compliance cache refresh completed with $($complianceResult.TotalCount) report entry/entries; SQLite now contains $persistedCount compliance record(s)."
+        if ($persistedCount -eq 0) {
+            Write-Warning "The SDK compliance report completed but did not persist any compliance records to SQLite."
+        }
+        return $true
+    }
+    catch {
+        Write-Verbose "Audit compliance cache check/refresh failed: $($_.Exception.Message)"
+        throw
+    }
+}
+
+function Get-KeeperAuditRecordTitleMap {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]] $RecordUids,
+        [Parameter(Mandatory = $true)]$Enterprise,
+        [Parameter(Mandatory = $true)]$Auth
+    )
+
+    $titles = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::Ordinal)
+    $seenUids = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $uniqueUidList = [System.Collections.Generic.List[string]]::new()
+    foreach ($uid in $RecordUids) {
+        if (-not [string]::IsNullOrWhiteSpace($uid) -and $seenUids.Add([string]$uid)) {
+            $uniqueUidList.Add([string]$uid)
+        }
+    }
+    $uniqueUids = $uniqueUidList.ToArray()
+    if ($uniqueUids.Count -eq 0) {
+        return ,$titles
+    }
+
+    try {
+        Assert-KeeperAuditComplianceAccess -Enterprise $Enterprise
+        $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $Enterprise -Auth $Auth
+        Write-Verbose "Audit record-title lookup using compliance SQLite database '$dbPath'."
+        if (-not (Test-Path -LiteralPath $dbPath -PathType Leaf)) {
+            Write-Verbose "Audit record-title lookup: no compliance SQLite cache found at '$dbPath'."
+        }
+        $connectionString = "Data Source=$dbPath;Pooling=True;"
+        $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
+        $enterpriseEcKey = $null
+        if ($Enterprise.loader.EcPrivateKey -and $Enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($Enterprise.loader.EcPrivateKey)
+        }
+        $reportingStorage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage, $enterpriseEcKey)
+        $cacheRefreshed = Ensure-KeeperAuditComplianceCache -Enterprise $Enterprise -Auth $Auth -ReportingStorage $reportingStorage
+        $uidList = [System.Collections.Generic.List[string]]::new()
+        foreach ($uid in $uniqueUids) { $uidList.Add([string]$uid) }
+        $complianceData = $reportingStorage.GetComplianceData($uidList)
+
+        foreach ($uid in $uniqueUids) {
+            if ($complianceData -and $complianceData.ContainsKey([string]$uid)) {
+                $title = [string]$complianceData[[string]$uid].Title
+                if (-not [string]::IsNullOrWhiteSpace($title)) {
+                    $titles[[string]$uid] = $title
+                }
+            }
+        }
+        Write-Verbose "Audit record-title lookup: found titles for $($titles.Count) of $($uniqueUids.Count) record UID(s) in compliance cache."
+
+        $missingUidList = [System.Collections.Generic.List[string]]::new()
+        foreach ($uid in $uniqueUids) {
+            if (-not $titles.ContainsKey([string]$uid)) {
+                $missingUidList.Add([string]$uid)
+            }
+        }
+        if ($missingUidList.Count -gt 0 -and $cacheRefreshed) {
+            Write-Verbose "Audit compliance cache is missing $($missingUidList.Count) requested record(s); fetching their details through the SDK."
+            Assert-KeeperAuditComplianceAccess -Enterprise $Enterprise
+            $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+            $plugin = New-Object $pluginType($Enterprise.enterpriseData, $reportingStorage, $enterpriseEcKey)
+            $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.ComplianceReportConfig
+            $config.CacheMaxAgeDays = 1
+            $config.IncludeAging = $false
+            $missingResult = $plugin.GenerateComplianceReportAsync($Auth, $config, $missingUidList).GetAwaiter().GetResult()
+            if ($missingResult.ErrorMessage) {
+                throw "Targeted compliance lookup failed: $($missingResult.ErrorMessage)"
+            }
+            foreach ($entry in $missingResult.Entries) {
+                if ($entry.RecordUid -and -not [string]::IsNullOrWhiteSpace($entry.Title)) {
+                    $titles[[string]$entry.RecordUid] = [string]$entry.Title
+                }
+            }
+        }
+        elseif ($missingUidList.Count -gt 0) {
+            Write-Verbose "Audit compliance cache is fresh; skipping targeted fetch for $($missingUidList.Count) record(s) not present in the cache."
+        }
+    }
+    catch {
+        Write-Verbose "Audit record-title lookup: unable to read compliance cache: $($_.Exception.Message)"
+    }
+
+    try {
+        $vault = $Script:Context.Vault
+        if ($vault) {
+            foreach ($uid in $uniqueUids) {
+                if ($titles.ContainsKey([string]$uid)) { continue }
+                $record = $null
+                if ($vault.TryGetKeeperRecord([string]$uid, [ref]$record) -and $record -and
+                    -not [string]::IsNullOrWhiteSpace($record.Title)) {
+                    $titles[[string]$uid] = [string]$record.Title
+                }
+            }
+        }
+    }
+    catch {
+        Write-Verbose "Audit record-title lookup: local vault fallback failed: $($_.Exception.Message)"
+    }
+
+    return ,$titles
+}
+
 function Get-KeeperAuditReport {
     <#
     .SYNOPSIS
@@ -426,6 +707,8 @@ function Get-KeeperAuditReport {
     Supports raw events, consolidated reports (span/day/week/month/hour),
     and dimension lookups. Results can be filtered by event type, username,
     date range, record UID, shared folder UID, node, or IP address.
+    Raw reports display Created, Audit Event Type, Username, IP Address,
+    Keeper Version, Geo Location, and Message by default.
 
     .PARAMETER ReportType
     Report type: raw (default), span, day, week, month, hour, dim.
@@ -467,8 +750,10 @@ function Get-KeeperAuditReport {
     Aggregate columns for consolidated reports: occurrences, first_created, last_created.
 
     .PARAMETER Columns
-    Group-by columns: audit_event_type, username, ip_address, keeper_version,
-    to_username, record_uid, shared_folder_uid, team_uid.
+    Summary group-by columns: audit_event_type, username, ip_address, keeper_version,
+    to_username, record_uid, record_title (or record_name), shared_folder_uid, team_uid.
+    For raw reports, record_uid and record_title/record_name can be appended to output.
+    Record titles/names are resolved locally from the compliance SQLite cache.
 
     .PARAMETER Format
     Output format: table (default), csv, json.
@@ -484,6 +769,10 @@ function Get-KeeperAuditReport {
     .EXAMPLE
     Get-KeeperAuditReport -ReportType span -Columns username,audit_event_type -Aggregate occurrences -Created last_30_days
     Returns a consolidated report of event counts per user per event type over 30 days.
+
+    .EXAMPLE
+    Get-KeeperAuditReport -ReportType span -Columns record_title -Created last_30_days
+    Groups recent events by record title using the local compliance cache.
 
     .EXAMPLE
     Get-KeeperAuditReport -ReportType dim
@@ -575,6 +864,219 @@ function Get-KeeperAuditReport {
 
     if ($Limit -le 0) {
         Write-Error "Limit must be greater than 0." -ErrorAction Stop
+    }
+
+    # Use ReportingPlugin from SDK (consolidates all API calls to one place)
+    try {
+        if ($ReportType -ne 'raw' -or $Order -eq 'asc' -or
+            ($Columns -and $Columns.Count -gt 0) -or ($Aggregate -and $Aggregate.Count -gt 0)) {
+            throw "Using the legacy audit reporter for non-default report shape."
+        }
+
+        Write-Host ""
+        Write-Host "Starting audit-report with compliance context" -ForegroundColor White
+        Write-Host "  Format: $Format, Limit: $Limit, ReportType: $ReportType" -ForegroundColor White
+
+        Write-Host ""
+
+        # Initialize audit event types locally for message template generation.
+        $auditEventTypes = @{}
+        Write-Host "  Loading audit event types..." -ForegroundColor Gray
+        $auditEvents = [KeeperSecurity.Enterprise.AuditLogExtensions]::GetAvailableEvents($auth).GetAwaiter().GetResult()
+        foreach ($evt in $auditEvents) {
+            $auditEventTypes[$evt.Name] = $evt
+        }
+
+        # Create ReportingPlugin with SQLite storage
+        $storage = $null
+        try {
+            # Use SQLite storage for persistent caching (matching existing PowerCommander auth storage pattern)
+            $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $enterprise -Auth $auth
+            Write-Verbose "Audit report using compliance SQLite database '$dbPath'."
+            $connectionString = "Data Source=$dbPath;Pooling=True;"
+
+            $sqlComplianceStorage = Get-SqliteComplianceStorageFromHelper -ConnectionString $connectionString
+
+            $storage = New-Object KeeperSecurity.Enterprise.ReportingPlugin.SqliteReportingStorage($sqlComplianceStorage)
+        }
+        catch {
+            $message = "Could not initialize SQLite compliance storage for audit report: $($_.Exception.Message)"
+            Write-Warning "$message. Falling back to the direct audit API; compliance titles may be unavailable."
+            throw $message
+        }
+
+        $enterpriseEcKey = $null
+        if ($enterprise.loader.EcPrivateKey -and $enterprise.loader.EcPrivateKey.Length -gt 0) {
+            $enterpriseEcKey = [KeeperSecurity.Utils.CryptoUtils]::LoadEcPrivateKey($enterprise.loader.EcPrivateKey)
+        }
+        $pluginType = [KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin]
+        $plugin = New-Object $pluginType($enterprise.enterpriseData, $storage, $enterpriseEcKey)
+        Assert-KeeperAuditComplianceAccess -Enterprise $enterprise
+        $null = Ensure-KeeperAuditComplianceCache -Enterprise $enterprise -Auth $auth -ReportingStorage $storage
+
+        # Create audit report config
+        Write-Host ""
+        $config = New-Object KeeperSecurity.Enterprise.ReportingPlugin.AuditReportConfig
+        $config.IncludeAging = $true
+        $config.IncludeComplianceContext = $true
+        $config.CacheMaxAgeDays = 1
+        $config.Format = $Format
+        $config.Limit = $Limit
+        $config.ReportType = $ReportType
+        if ($Created) {
+            $config.CreatedFilter = ConvertTo-KeeperAuditCreatedFilter -Value $Created
+        }
+
+
+        # Apply filters from parameters
+        Write-Host ""
+
+        if ($EventType -and $EventType.Count -gt 0)       {
+            $config.EventTypes = @($EventType)
+        }
+        if ($Username -and $Username.Count -gt 0)         {
+            $config.Usernames = @($Username)
+        }
+        if ($ToUsername)                                   {
+            $config.ToUsername = $ToUsername
+        }
+        if ($IpAddress -and $IpAddress.Count -gt 0)       {
+            $config.IpAddresses = @($IpAddress)
+        }
+        if ($RecordUid -and $RecordUid.Count -gt 0)       {
+            $config.RecordUids = @($RecordUid)
+        }
+        if ($SharedFolderUid -and $SharedFolderUid.Count -gt 0) {
+            $config.SharedFolderUids = @($SharedFolderUid)
+        }
+        if ($NodeId -and $NodeId.Count -gt 0)             {
+            $nodeIds = New-Object System.Collections.Generic.List[long]
+            foreach ($nodeIdOrName in $NodeId) {
+                try {
+                    if ([long]::TryParse($nodeIdOrName, [ref]$null)) {
+                        $nodeIds.Add([long]$nodeIdOrName)
+                    } else {
+                        $node = $enterprise.enterpriseData.ResolveNodeName($nodeIdOrName)
+                        $nodeIds.Add($node.Id)
+                    }
+                } catch {
+                    Write-Verbose "Could not resolve node: $nodeIdOrName"
+                }
+            }
+            if ($nodeIds.Count -gt 0) { $config.NodeIds = $nodeIds }
+        }
+        if ($Columns -and $Columns.Count -gt 0)           { $config.Columns = @($Columns) }
+        if ($Aggregate -and $Aggregate.Count -gt 0)       { $config.Aggregate = @($Aggregate) }
+        if ($Order)                                       { $config.Order = $Order }
+
+        # Handle dimensional reports
+        if ($ReportType -eq 'dim') {
+            $dimRq = New-Object KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventDimensionsCommand
+            if ($config.Columns -and $config.Columns.Count -gt 0) {
+                $dimRq.Columns = $config.Columns
+            }
+            $dimRs = $auth.ExecuteAuthCommand($dimRq, [KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventDimensionsResponse], $true).GetAwaiter().GetResult()
+
+            # Display dimensions
+            if ($dimRs.Dimensions) {
+                $results = @()
+                $dimensionLimit = if ($Limit -gt 0) { $Limit } else { [int]::MaxValue }
+
+                $dimensionSections = @(
+                    @{ Property = 'AuditEventTypes';  Title = 'Audit Event Types' },
+                    @{ Property = 'KeeperVersions';   Title = 'Keeper Versions' },
+                    @{ Property = 'IpAddresses';      Title = 'IP Addresses' },
+                    @{ Property = 'GeoLocation';      Title = 'Geo Locations' },
+                    @{ Property = 'Usernames';        Title = 'Usernames' },
+                    @{ Property = 'NodeIds';          Title = 'Node IDs' },
+                    @{ Property = 'ToUsername';       Title = 'To Usernames' },
+                    @{ Property = 'FromUsername';     Title = 'From Usernames' },
+                    @{ Property = 'Channel';          Title = 'Channels' },
+                    @{ Property = 'RecordUid';        Title = 'Record UIDs' },
+                    @{ Property = 'SharedFolderUid';  Title = 'Shared Folder UIDs' },
+                    @{ Property = 'TeamUid';          Title = 'Team UIDs' }
+                )
+
+                foreach ($section in $dimensionSections) {
+                    $data = $dimRs.Dimensions.($section.Property)
+                    if ($data -and @($data).Count -gt 0) {
+                        $items = @($data | Select-Object -First $dimensionLimit)
+                        Write-Host "`n=== $($section.Title) ($($items.Count) of $(@($data).Count)) ===" -ForegroundColor Cyan
+                        $items | Format-Table -AutoSize
+                    }
+                }
+            }
+            return
+        }
+
+        # Generate audit report with compliance context via SDK
+        Write-Host ""
+        Write-Host "  (This fetches audit events AND compliance context for each record)" -ForegroundColor Cyan
+        $auditResult = $plugin.GenerateAuditReportAsync($auth, $config).GetAwaiter().GetResult()
+        if ($auditResult.ErrorMessage) {
+            throw "ReportingPlugin failed: $($auditResult.ErrorMessage)"
+        }
+
+        Write-Host ""
+
+        if ($auditResult.Entries -and $auditResult.Entries.Count -gt 0) {
+
+            # Format and display results
+            Write-Host ""
+
+            $displayRows = @()
+            foreach ($entry in $auditResult.Entries) {
+                # Generate message using syslog templates (same as C# Commander)
+                $message = ''
+                if ($entry.EventType -and $auditEventTypes.ContainsKey($entry.EventType)) {
+                    $eventType = $auditEventTypes[$entry.EventType]
+                    $message = $eventType.SyslogMessage
+                    # Replace parameters in message template
+                    $pattern = '\$\{(\w+)\}'
+                    while ($message -match $pattern) {
+                        $parameter = $matches[1]
+                        $value = ''
+                        if ($parameter -eq 'username') {
+                            $value = $entry.Username
+                        } elseif ($entry.Details -and $entry.Details.ContainsKey($parameter)) {
+                            $value = $entry.Details[$parameter]
+                        }
+                        $message = $message -replace "\`\$\{$parameter\`\}", $value
+                    }
+                }
+
+                $displayRows += [PSCustomObject]@{
+                    Created = $entry.EventTime.ToString('O')
+                    'Audit Event Type' = $entry.EventType
+                    Username = $entry.Username
+                    'IP Address' = $entry.IpAddress
+                    'Keeper Version' = if ($entry.Details -and $entry.Details.ContainsKey('keeper_version')) { $entry.Details['keeper_version'] } else { '' }
+                    'Geo Location' = $entry.GeoLocation
+                    Message = $message
+                }
+            }
+
+            Write-Host ""
+            Write-Host ""
+
+            switch ($Format) {
+                'json' { $displayRows | ConvertTo-Json -Depth 5 }
+                'csv'  { $displayRows | ConvertTo-Csv -NoTypeInformation }
+                default { $displayRows | Format-Table -AutoSize }
+            }
+        }
+        else {
+            Write-Host ""
+        }
+        return
+    }
+    catch {
+        if ($_.Exception.Message -like 'Using the legacy audit reporter for non-default report shape*') {
+            Write-Verbose "Using the direct audit API for the requested report shape."
+        }
+        else {
+            Write-Warning "Compliance-enabled audit reporting could not be used: $($_.Exception.Message). Falling back to direct audit API calls."
+        }
     }
 
     function TryParseUtcDate([string] $text, [ref] $epochInSec) {
@@ -838,6 +1340,18 @@ function Get-KeeperAuditReport {
         }
     }
 
+    $titleColumnNames = @('record_title', 'record_name')
+    $titleColumnsRequested = @($Columns | Where-Object { $_ -and $_.ToString().ToLowerInvariant() -in $titleColumnNames })
+    if ($ReportType -eq 'raw') {
+        $apiColumns = @($Columns)
+    }
+    else {
+        $apiColumns = @($Columns | ForEach-Object {
+            if ($_ -and $_.ToString().ToLowerInvariant() -in $titleColumnNames) { 'record_uid' }
+            else { $_ }
+        } | Select-Object -Unique)
+    }
+
     if ($ReportType -eq 'dim') {
         $results = [System.Collections.Generic.List[PSCustomObject]]::new()
         if (-not $Columns -or $Columns.Count -eq 0) {
@@ -849,7 +1363,7 @@ function Get-KeeperAuditReport {
         if ($null -eq $columnsProp) {
             Write-Error "Loaded KeeperSdk version does not support audit dimension column selection." -ErrorAction Stop
         }
-        $columnsProp.SetValue($dimRq, [string[]]$Columns)
+        $columnsProp.SetValue($dimRq, [string[]]$apiColumns)
 
         try {
             $dimResponse = $auth.ExecuteAuthCommand($dimRq, [KeeperSecurity.Commands.GetAuditEventDimensionsResponse], $true).GetAwaiter().GetResult()
@@ -866,6 +1380,12 @@ function Get-KeeperAuditReport {
 
         $hasData = $false
         $dimensionLimit = $Limit
+        $dimensionRecordTitleMap = $null
+        if ($titleColumnsRequested.Count -gt 0 -and $dims.RecordUid) {
+            $dimensionRecordTitleMap = Get-KeeperAuditRecordTitleMap `
+                -RecordUids @($dims.RecordUid | ForEach-Object { [string]$_ }) `
+                -Enterprise $enterprise -Auth $auth
+        }
         $dimensionSections = @(
             @{ Property = 'AuditEventTypes'; Title = 'Audit Event Types';   Selector = { param($d) $d | Select-Object @{N='ID';E={$_.Id}}, @{N='Name';E={$_.Name}}, @{N='Category';E={$_.Category}}, @{N='Critical';E={if($_.Critical){'Yes'}else{''}}} } },
             @{ Property = 'KeeperVersions';  Title = 'Keeper Versions';     Selector = { param($d) $d | Select-Object @{N='VersionID';E={$_.VersionId}}, @{N='TypeID';E={$_.TypeId}}, @{N='TypeName';E={$_.TypeName}}, @{N='Category';E={$_.TypeCategory}} } },
@@ -885,7 +1405,20 @@ function Get-KeeperAuditReport {
             $data = $dims.($section.Property)
             if ($data -and $data.Count -gt 0) {
                 $hasData = $true
-                $items = @(& $section.Selector $data | Select-Object -First $dimensionLimit)
+                if ($section.Property -eq 'RecordUid' -and $titleColumnsRequested.Count -gt 0) {
+                    $items = @($data | Select-Object -First $dimensionLimit | ForEach-Object {
+                        $uid = [string]$_
+                        $title = if ($dimensionRecordTitleMap -and $dimensionRecordTitleMap.ContainsKey($uid)) {
+                            $dimensionRecordTitleMap[$uid]
+                        } else {
+                            ''
+                        }
+                        [PSCustomObject]@{ RecordTitle = $title }
+                    })
+                }
+                else {
+                    $items = @(& $section.Selector $data | Select-Object -First $dimensionLimit)
+                }
                 foreach ($item in $items) {
                     $row = [ordered]@{ Section = $section.Title }
                     foreach ($prop in $item.PSObject.Properties) {
@@ -917,7 +1450,10 @@ function Get-KeeperAuditReport {
         $rq.Order = 'ascending'
     }
     if ($Aggregate -and $Aggregate.Count -gt 0) { $rq.Aggregate = $Aggregate }
-    if ($Columns -and $Columns.Count -gt 0)     { $rq.Columns   = $Columns }
+    if ($Columns -and $Columns.Count -gt 0 -and
+        ($ReportType -ne 'raw' -or $titleColumnsRequested.Count -eq 0)) {
+        $rq.Columns = [string[]]$apiColumns
+    }
 
     try {
         $response = $auth.ExecuteAuthCommand($rq, [KeeperSecurity.Enterprise.AuditLogCommands.GetAuditEventReportsResponse], $true).GetAwaiter().GetResult()
@@ -989,6 +1525,15 @@ function Get-KeeperAuditReport {
         }
     }
 
+    $recordTitleMap = $null
+    if ($titleColumnsRequested.Count -gt 0) {
+        $titleRecordUids = @($filteredEvents | ForEach-Object {
+            getEventValue $_ 'record_uid'
+        } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $recordTitleMap = Get-KeeperAuditRecordTitleMap `
+            -RecordUids $titleRecordUids -Enterprise $enterprise -Auth $auth
+    }
+
     $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     if ($ReportType -eq 'raw') {
@@ -1000,12 +1545,29 @@ function Get-KeeperAuditReport {
             $createdRaw = getEventValue $evt 'created'
             $createdStr = if ($createdRaw) { FormatEpochValue $createdRaw 'G' } else { '' }
 
-            $results.Add([PSCustomObject]@{
-                Created  = $createdStr
+            $row = [ordered]@{
+                Created = $createdStr
+                'Audit Event Type' = $eventName
                 Username = getEventValue $evt 'username'
-                Event    = $eventName
-                Message  = $message
-            })
+                'IP Address' = getEventValue $evt 'ip_address'
+                'Keeper Version' = getEventValue $evt 'keeper_version'
+                'Geo Location' = getEventValue $evt 'geo_location'
+                Message = $message
+            }
+            foreach ($col in $Columns) {
+                if ($col -and $col.ToString().ToLowerInvariant() -eq 'record_uid') {
+                    $row[$col] = getEventValue $evt 'record_uid'
+                }
+                elseif ($col -and $col.ToString().ToLowerInvariant() -in $titleColumnNames) {
+                    $recordUid = getEventValue $evt 'record_uid'
+                    $row[$col] = if ($recordUid -and $recordTitleMap -and $recordTitleMap.ContainsKey($recordUid)) {
+                        $recordTitleMap[$recordUid]
+                    } else {
+                        ''
+                    }
+                }
+            }
+            $results.Add([PSCustomObject]$row)
         }
     } else {
         $reportColumns = @()
@@ -1021,7 +1583,16 @@ function Get-KeeperAuditReport {
             $row = [ordered]@{}
             foreach ($col in $reportColumns) {
                 $val = $null
-                if ($evt.ContainsKey($col)) {
+                if ($col -and $col.ToString().ToLowerInvariant() -in $titleColumnNames) {
+                    $recordUid = getEventValue $evt 'record_uid'
+                    if ($recordUid -and $recordTitleMap -and $recordTitleMap.ContainsKey($recordUid)) {
+                        $val = $recordTitleMap[$recordUid]
+                    }
+                    else {
+                        $val = ''
+                    }
+                }
+                elseif ($evt.ContainsKey($col)) {
                     $val = $evt[$col]
                     if ($col -in $dateColumns -and $null -ne $val) {
                         $val = FormatEpochValue $val 'g'
