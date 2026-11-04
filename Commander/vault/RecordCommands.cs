@@ -70,6 +70,10 @@ namespace Commander
                         case "notes":
                             password.Notes = field.Value;
                             break;
+                        case "totp":
+                        case "onetimecode":
+                            password.Totp = field.Value;
+                            break;
                         default:
                             password.SetCustomField(field.FieldName, field.Value);
                             break;
