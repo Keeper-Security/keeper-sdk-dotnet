@@ -8,11 +8,13 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
     }
 
     [System.Threading.Tasks.Task[bool]] Confirmation([string] $information) {
+        Write-Host ''
+        Write-Host $information -ForegroundColor Yellow
+
         if ($information -like 'Your Master Password has expired*') {
             return [System.Threading.Tasks.Task]::FromResult($true)
         }
-        Write-Host ''
-        Write-Host $information -ForegroundColor Yellow
+
         $answer = Read-Host 'Do you want to continue? (y/n)'
         return [System.Threading.Tasks.Task]::FromResult([bool]($answer -match '^y(es)?$'))
     }
@@ -33,12 +35,6 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
                 continue
             }
 
-            $failedRules = $matcher.MatchFailedRules($newPassword)
-            if ($failedRules -and $failedRules.Count -gt 0) {
-                $failedRules | ForEach-Object { Write-Warning $_ }
-                continue
-            }
-
             $confirmSecured = Read-Host -Prompt 'Confirm New Master Password' -AsSecureString
             $confirmPassword = [Net.NetworkCredential]::new('', $confirmSecured).Password
 
@@ -48,6 +44,12 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
 
             if ($newPassword -ne $confirmPassword) {
                 Write-Warning 'Passwords do not match.'
+                continue
+            }
+
+            $failedRules = $matcher.MatchFailedRules($newPassword)
+            if ($failedRules -and $failedRules.Count -gt 0) {
+                $failedRules | ForEach-Object { Write-Warning $_ }
                 continue
             }
 
