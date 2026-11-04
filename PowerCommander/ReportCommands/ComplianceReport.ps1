@@ -1305,10 +1305,10 @@ function Get-KeeperComplianceReport {
             return @()
         }
         elseif ($null -eq $fetchOwnerIds) {
-            Write-Host "  ✓ No filters applied - will fetch data for ALL enterprise users" -ForegroundColor Green
+            Write-Host "  [OK] No filters applied - will fetch data for ALL enterprise users" -ForegroundColor Green
         }
         else {
-            Write-Host "  ✓ Owner pre-filter matched $($fetchOwnerIds.Count) user(s)" -ForegroundColor Green
+            Write-Host "  [OK] Owner pre-filter matched $($fetchOwnerIds.Count) user(s)" -ForegroundColor Green
         }
 
         Write-Host ""
@@ -1317,7 +1317,7 @@ function Get-KeeperComplianceReport {
 
         if ($sdkReport -and $sdkReport.Entries) {
             Write-Host ""
-            Write-Host "  ✓ SDK returned $($sdkReport.Entries.Count) compliance record(s)" -ForegroundColor Green
+            Write-Host "  [OK] SDK returned $($sdkReport.Entries.Count) compliance record(s)" -ForegroundColor Green
 
             # Convert SDK compliance entries to display rows
             $reportRows = @()
@@ -1358,20 +1358,20 @@ function Get-KeeperComplianceReport {
                     $recordFilter -contains ([string]$_.record_uid).ToLowerInvariant() -or
                     $recordFilter -contains ([string]$_.title).ToLowerInvariant()
                 })
-                Write-Host "  Filtered by Record: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+                Write-Host "  Filtered by Record: $recordsBefore -> $($reportRows.Count) records" -ForegroundColor Yellow
             }
 
             if ($DeletedItems) {
                 $filterCount++
                 $recordsBefore = $reportRows.Count
                 $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $true })
-                Write-Host "  Filtered by DeletedItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+                Write-Host "  Filtered by DeletedItems: $recordsBefore -> $($reportRows.Count) records" -ForegroundColor Yellow
             }
             elseif ($ActiveItems) {
                 $filterCount++
                 $recordsBefore = $reportRows.Count
                 $reportRows = @($reportRows | Where-Object { $_.in_trash -eq $false })
-                Write-Host "  Filtered by ActiveItems: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+                Write-Host "  Filtered by ActiveItems: $recordsBefore -> $($reportRows.Count) records" -ForegroundColor Yellow
             }
 
             if ($Pattern -and $Pattern.Count -gt 0) {
@@ -1379,7 +1379,7 @@ function Get-KeeperComplianceReport {
                 $recordsBefore = $reportRows.Count
                 $reportRows = Invoke-KeeperCompliancePatternFilterRows -Rows $reportRows -Patterns $Pattern `
                     -UseRegex:$Regex -MatchAll:$PatternMatchAll
-                Write-Host "  Filtered by Pattern: $recordsBefore → $($reportRows.Count) records" -ForegroundColor Yellow
+                Write-Host "  Filtered by Pattern: $recordsBefore -> $($reportRows.Count) records" -ForegroundColor Yellow
             }
 
             if ($Aging -and $reportRows.Count -gt 0) {
@@ -1398,7 +1398,7 @@ function Get-KeeperComplianceReport {
             if ($filterCount -eq 0) {
                 Write-Host "  No additional filters applied - using all $($reportRows.Count) records" -ForegroundColor Green
             } else {
-                Write-Host "  ✓ Applied $filterCount filter(s) → Final: $($reportRows.Count) records" -ForegroundColor Green
+                Write-Host "  [OK] Applied $filterCount filter(s) -> Final: $($reportRows.Count) records" -ForegroundColor Green
             }
 
             return ,@($reportRows)
@@ -1437,7 +1437,7 @@ function Get-KeeperComplianceReport {
         })
     }
 
-    Write-Host "  ✓ Rendering $($reportRows.Count) row(s) as $Format format" -ForegroundColor Green
+    Write-Host "  [OK] Rendering $($reportRows.Count) row(s) as $Format format" -ForegroundColor Green
     Write-Host ""
     Write-Host "================================ END REPORT ================================" -ForegroundColor White -BackgroundColor DarkBlue
     Write-Host ""
