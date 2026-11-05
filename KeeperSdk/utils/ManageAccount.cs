@@ -271,19 +271,12 @@ namespace KeeperSecurity
                                 pattern = pattern
                             })
                         .ToList();
-                    if (currentPassword != null)
-                    {
-                        rules.Add(new PasswordRule
-                        {
-                            description = "New Master Password must be different from the current Master Password.",
-                            match = true,
-                            pattern = @"\A(?!" + Regex.Escape(currentPassword) + @"\z)[\s\S]*\z",
-                        });
-                    }
 
                     var ruleMatcher = new PasswordRuleMatcher(rules.ToArray());
 
-                    var newPassword = await postUi.GetNewPassword(ruleMatcher);
+                    while (true)
+                    {
+                        var newPassword = await postUi.GetNewPassword(ruleMatcher);
                     if (string.IsNullOrEmpty(newPassword))
                     {
                         throw new KeeperApiException("invalid_password", "Master Password cannot be empty.");
@@ -291,6 +284,22 @@ namespace KeeperSecurity
 
                     var failedRules = ruleMatcher.MatchFailedRules(newPassword);
                     if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
+
+                    if (currentPassword != null && newPassword == currentPassword)
+                    {
+                        if (postUi is IPostLoginTaskUI postLoginUi)
+                        {
+                            var confirmed = await postLoginUi.Confirmation("New Master Password must be different from the current Master Password. Please try again.");
+                            if (!confirmed)
+                            {
+                                throw new KeeperCanceled();
+                            }
+                            continue;
+                        }
+                        throw new KeeperApiException(
+                            "password_rule_failed",
+                            "New Master Password must be different from the current Master Password.");
+                    }
 
                     var strengthScore = MasterPasswordStrength.GetScore(newPassword);
                     if (postUi is IMasterPasswordStrengthUI strengthUi)
@@ -339,7 +348,8 @@ namespace KeeperSecurity
                         100000,
                         CryptoUtils.GetRandomBytes(32));
 
-                    return newPassword;
+                        return newPassword;
+                    }
                 }
 
                 return null;
