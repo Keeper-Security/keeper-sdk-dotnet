@@ -302,9 +302,9 @@ namespace Commander.EPM
             return null;
         }
 
-        private static bool ValidatePolicyRequirements(string policyJson)
+        private static bool ValidatePolicyRequirements(string policyJson, out PolicyDataStructure policyData)
         {
-            PolicyDataStructure policyData;
+            policyData = null;
             try
             {
                 policyData = JsonUtils.ParseJson<PolicyDataStructure>(Encoding.UTF8.GetBytes(policyJson));
@@ -386,6 +386,15 @@ namespace Commander.EPM
             return false;
         }
 
+        private static bool? GetPolicyDisabledState(string status)
+        {
+            if (string.Equals(status, EpmPolicyStatus.Off, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return new[] { EpmPolicyStatus.Enforce, EpmPolicyStatus.Monitor, EpmPolicyStatus.MonitorAndNotify }
+                .Contains(status, StringComparer.OrdinalIgnoreCase) ? false : null;
+        }
+
         private async Task AddPolicyAsync(EpmPolicyOptions options)
         {
             if (options == null)
@@ -400,7 +409,7 @@ namespace Commander.EPM
                 return;
             }
 
-            if (!ValidatePolicyRequirements(policyJson))
+            if (!ValidatePolicyRequirements(policyJson, out var policyData))
                 return;
 
             var addStatus = await Plugin.ModifyPolicies(
@@ -410,7 +419,8 @@ namespace Commander.EPM
                     {
                         PolicyUid = options.NewPolicyUid,
                         PlainDataJson = plainJson,
-                        PolicyDataJson = policyJson
+                        PolicyDataJson = policyJson,
+                        Disabled = GetPolicyDisabledState(policyData.Status)
                     }
                 },
                 updatePolicies: null,
@@ -465,7 +475,8 @@ namespace Commander.EPM
                 return;
             }
 
-            if (!string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson))
+            PolicyDataStructure policyData = null;
+            if (!string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson, out policyData))
                 return;
 
             var updateStatus = await Plugin.ModifyPolicies(
@@ -476,7 +487,8 @@ namespace Commander.EPM
                     {
                         PolicyUid = policy.PolicyUid,
                         PlainDataJson = plainJson,
-                        PolicyDataJson = policyJson
+                        PolicyDataJson = policyJson,
+                        Disabled = GetPolicyDisabledState(policyData?.Status)
                     }
                 },
                 removePolicies: null);
