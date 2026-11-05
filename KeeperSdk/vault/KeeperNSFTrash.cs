@@ -461,7 +461,7 @@ namespace KeeperSecurity.Vault
         // Drive trashcan records don't carry a title in the sync stream, so we fetch it separately.
         private async Task<KeeperNSFTrashGetResult> BuildDriveTrashRecordResult(NsfTrashcanRecord record)
         {
-            string title = null;
+            string title = string.Empty;
             string recordType = null;
             KeeperNSFRecord decryptedRecord = null;
 
@@ -478,7 +478,7 @@ namespace KeeperSecurity.Vault
                         var data = JsonUtils.ParseJson<NsfRecordData>(json);
                         if (data != null)
                         {
-                            title = data.Title ?? data.Name;
+                            title = !string.IsNullOrEmpty(data.Title) ? data.Title : data.Name ?? string.Empty;
                             recordType = data.Type;
                             decryptedRecord = new KeeperNSFRecord
                             {
@@ -508,7 +508,7 @@ namespace KeeperSecurity.Vault
                 {
                     var details = await GetKeeperNSFRecordDetails(new[] { record.RecordUid }).ConfigureAwait(false);
                     var entry = details.Data.FirstOrDefault(d => d.RecordUid == record.RecordUid);
-                    title = entry?.Title;
+                    title = entry?.Title ?? string.Empty;
                     recordType = entry?.Type;
                 }
                 catch (Exception e)
