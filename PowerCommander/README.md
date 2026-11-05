@@ -8,9 +8,13 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
+### SDK runtime dependencies
+
+Keep `zxcvbn-core.dll` alongside `KeeperSdk.dll` in the PowerCommander module folder. The SDK uses zxcvbn internally to estimate master-password strength; PowerCommander calls the SDK API and does not need to reference zxcvbn itself. `PowerCommander.psd1` loads the dependency before `KeeperSdk.dll`.
+
 ### Optional: SQLite vault storage (-UseOfflineStorage)
 
-To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll` and `KeeperBiometrics.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
+To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll`, `KeeperBiometrics.dll`, and `zxcvbn-core.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
 
 - `Microsoft.Data.Sqlite.dll`
 - `SQLitePCLRaw.batteries_v2.dll`, `SQLitePCLRaw.core.dll`, `SQLitePCLRaw.provider.e_sqlite3.dll`

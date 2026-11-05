@@ -3,16 +3,18 @@
 # Handles required actions after login, such as changing an expired or recovered Master Password.
 # This lets the user complete these steps interactively instead of having the login fail with
 # an "expired, you are required to change it" message.
-class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, KeeperSecurity.Authentication.IPostLoginTaskUI {
+class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, KeeperSecurity.Authentication.IPostLoginTaskUI, KeeperSecurity.Utils.IMasterPasswordStrengthUI, KeeperSecurity.Utils.IMasterPasswordReentryUI {
     [void] OnNextStep() {
     }
 
     [System.Threading.Tasks.Task[bool]] Confirmation([string] $information) {
+        Write-Host ''
+        Write-Host $information -ForegroundColor Yellow
+
         if ($information -like 'Your Master Password has expired*') {
             return [System.Threading.Tasks.Task]::FromResult($true)
         }
-        Write-Host ''
-        Write-Host $information -ForegroundColor Yellow
+
         $answer = Read-Host 'Do you want to continue? (y/n)'
         return [System.Threading.Tasks.Task]::FromResult([bool]($answer -match '^y(es)?$'))
     }
@@ -23,8 +25,25 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
         while ($true) {
             $secured = Read-Host -Prompt 'New Master Password' -AsSecureString
             $newPassword = [Net.NetworkCredential]::new('', $secured).Password
+
+            if ($null -eq $newPassword) {
+                throw [System.OperationCanceledException]::new('Input cancelled.')
+            }
+
             if ([string]::IsNullOrEmpty($newPassword)) {
                 Write-Warning 'Password cannot be empty.'
+                continue
+            }
+
+            $confirmSecured = Read-Host -Prompt 'Confirm New Master Password' -AsSecureString
+            $confirmPassword = [Net.NetworkCredential]::new('', $confirmSecured).Password
+
+            if ($null -eq $confirmPassword) {
+                throw [System.OperationCanceledException]::new('Input cancelled.')
+            }
+
+            if ($newPassword -ne $confirmPassword) {
+                Write-Warning 'Passwords do not match.'
                 continue
             }
 
@@ -34,16 +53,47 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
                 continue
             }
 
-            $confirmSecured = Read-Host -Prompt 'Confirm New Master Password' -AsSecureString
-            $confirmPassword = [Net.NetworkCredential]::new('', $confirmSecured).Password
-            if ($newPassword -ne $confirmPassword) {
-                Write-Warning 'Passwords do not match.'
-                continue
-            }
-
             return [System.Threading.Tasks.Task]::FromResult($newPassword)
         }
         throw [System.InvalidOperationException]::new('unreachable')
+    }
+
+    [System.Threading.Tasks.Task[string]] GetCurrentPassword([System.Func[string, bool]] $validatePassword) {
+        if ($null -eq $validatePassword) {
+            throw [System.ArgumentNullException]::new('validatePassword')
+        }
+
+        while ($true) {
+            $secured = Read-Host -Prompt 'Current Master Password' -AsSecureString
+            $currentPassword = [Net.NetworkCredential]::new('', $secured).Password
+
+            if ($null -eq $currentPassword) {
+                throw [System.OperationCanceledException]::new('Input cancelled.')
+            }
+
+            if ($validatePassword.Invoke($currentPassword)) {
+                return [System.Threading.Tasks.Task]::FromResult($currentPassword)
+            }
+
+            Write-Warning 'Current Master Password is incorrect. Please try again.'
+        }
+        throw [System.InvalidOperationException]::new('unreachable')
+    }
+
+    [System.Threading.Tasks.Task] ReportMasterPasswordStrength([int] $score, [string] $category) {
+        if ($category -eq 'UNKNOWN') {
+            Write-Host 'Master password strength could not be determined.' -ForegroundColor Gray
+            return [System.Threading.Tasks.Task]::CompletedTask
+        }
+        $color = switch ($category) {
+            'WEAK' { 'Red' }
+            'FAIR' { 'Yellow' }
+            'MEDIUM' { 'Cyan' }
+            'STRONG' { 'Green' }
+            default { 'Gray' }
+        }
+        Write-Host "Master password strength: $category ($score/100)" -ForegroundColor $color
+        return [System.Threading.Tasks.Task]::CompletedTask
     }
 }
 

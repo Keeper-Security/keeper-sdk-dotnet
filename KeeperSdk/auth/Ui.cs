@@ -175,9 +175,13 @@ namespace KeeperSecurity.Authentication
     /// <remarks>
     /// Enterprise users may require to complete some post login tasks to complete login to Keeper.
     /// <list type="bullet">
+    /// <item><description>Acknowledge an expired-account notice.</description></item>
     /// <item><description>Change expired master password.</description></item>
     /// <item><description>Accept Account Transfer Consent.</description></item>
     /// </list>
+    /// When this UI is asked to confirm an expired-account notice, declining the confirmation cancels login
+    /// by raising <see cref="KeeperCanceled"/>. Accepting acknowledges the notice; the resulting session
+    /// remains subject to the account's restricted-session policy.
     /// </remarks>
     public interface IPostLoginTaskUI 
     {
