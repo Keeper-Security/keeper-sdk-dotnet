@@ -1252,8 +1252,8 @@ function Add-KeeperRecord {
                     'password' { $record.Password = $fieldValue }
                     'url' { $record.Link = $fieldValue }
                     # A legacy record carries TOTP in its dedicated Totp property.
-                    # Treat the typed-record field names as aliases so callers can
-                    # use the same input for legacy and typed records.
+                    # oneTimeCode is the typed-record field name; otp is its field
+                    # type, not a legacy-record alias, so custom field otp is preserved.
                     'totp' { $record.Totp = $fieldValue }
                     'oneTimeCode' { $record.Totp = $fieldValue }
                     Default {

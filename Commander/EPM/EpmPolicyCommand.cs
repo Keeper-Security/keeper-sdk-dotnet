@@ -302,7 +302,7 @@ namespace Commander.EPM
             return null;
         }
 
-        private static bool ValidatePolicyRequirements(string policyJson)
+        private static bool ValidatePolicyRequirements(string policyJson, bool requireControl = true)
         {
             PolicyDataStructure policyData;
             try
@@ -342,11 +342,13 @@ namespace Commander.EPM
                 case "elevation":
                 case "privilegeelevation":
                 case "fileaccess":
-                    requiresUser = requiresMachine = requiresApplication = requiresControl = true;
+                    requiresUser = requiresMachine = requiresApplication = true;
+                    requiresControl = requireControl;
                     break;
                 case "command":
                 case "commandline":
-                    requiresUser = requiresMachine = requiresControl = true;
+                    requiresUser = requiresMachine = true;
+                    requiresControl = requireControl;
                     break;
                 case "leastprivilege":
                     requiresMachine = true;
@@ -441,7 +443,7 @@ namespace Commander.EPM
                     if (data == null || !data.TryGetValue("Name", out var value) || string.IsNullOrWhiteSpace(value?.ToString())) continue;
                     var name = value.ToString();
                     if (!lookup.TryGetValue(name, out var matches)) lookup[name] = new List<string> { collection.CollectionUid };
-                    else matches.Add(collection.CollectionUid);
+                    else if (!matches.Contains(collection.CollectionUid)) matches.Add(collection.CollectionUid);
                 }
                 catch { /* Ignore malformed collection data. */ }
             }
@@ -553,7 +555,7 @@ namespace Commander.EPM
                 return;
             }
 
-            if (!HasDirectPolicyOptions(options) && !ValidatePolicyRequirements(policyJson))
+            if (!ValidatePolicyRequirements(policyJson, !HasDirectPolicyOptions(options)))
                 return;
 
             var addStatus = await Plugin.ModifyPolicies(
@@ -629,7 +631,7 @@ namespace Commander.EPM
                 return;
             }
 
-            if (!HasDirectPolicyOptions(options) && !string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson))
+            if (!string.IsNullOrEmpty(policyJson) && !ValidatePolicyRequirements(policyJson, !HasDirectPolicyOptions(options)))
                 return;
 
             var updateStatus = await Plugin.ModifyPolicies(
@@ -960,7 +962,7 @@ namespace Commander.EPM
         [Option("status", Required = false, HelpText = "Policy status: enforce, monitor, monitor_and_notify, or off")]
         public string Status { get; set; }
 
-        [Option("enable", Required = false, HelpText = "Enable or disable the policy: on or off")]
+        [Option("enable", Required = false, HelpText = "Enable or disable the policy: on or off. Overrides --status when both are supplied")]
         public string Enable { get; set; }
 
         [Option("control", Required = false, Separator = ',', HelpText = "Policy controls")]
