@@ -152,6 +152,35 @@ Requires enterprise admin access for list/info/edit. Script examples need vault 
 * **EditRotationScriptExample.cs** - Update script command and/or linked credentials
 * **RemoveRotationScriptExample.cs** - Remove a post-rotation script
 
+#### PAMExamples/ConfigExamples/
+Requires enterprise admin access. Uses `ConfigUtils`, `PamVaultHelpers`, `PamConfigurationFacade`:
+
+* **ListConfigsExample.cs** - List PAM configurations, or show detail for a single configuration
+* **CreateConfigExample.cs** - Create a PAM configuration record in a shared/NSF folder (environment-specific fields are left for the caller to set afterward)
+* **EditConfigExample.cs** - Update a configuration's title, gateway, and/or tunneling permissions
+* **RemoveConfigExample.cs** - Remove a PAM configuration record
+
+#### PAMExamples/ActionExamples/
+Uses `ActionUtils`:
+
+* **RotateExample.cs** - Schedule an on-demand credential rotation for a record or a folder of pamUser records
+* **JobInfoExample.cs** - Check the status of a previously scheduled gateway job
+
+#### PAMExamples/ConnectionExamples/
+Uses `ConnectionUtils`:
+
+* **EditConnectionExample.cs** - Configure connection settings (protocol, recording, key events, launch/admin credentials) on a PAM resource or configuration
+
+#### PAMExamples/RbiExamples/
+Uses `RbiUtils`:
+
+* **EditRbiExample.cs** - Configure Remote Browser Isolation settings on a pamRemoteBrowser record
+
+#### PAMExamples/LaunchExamples/
+Requires enterprise admin access. Uses `LaunchUtils`:
+
+* **LaunchPreflightExample.cs** - Resolve record, protocol, config, credential, host, and gateway for a PAM launch (preflight only; does not start a session)
+
 ### BreachWatch Examples
 
 #### BreachWatchExamples/
