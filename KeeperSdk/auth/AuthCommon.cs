@@ -346,9 +346,6 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         SsoLoginInfo SsoLoginInfo { get; }
 
-        /// <exclude/>
-        bool CheckPasswordValid(string password);
-
         /// <exclude />
         bool ForbidKeyType2 { get; }
 
@@ -403,24 +400,9 @@ namespace KeeperSecurity.Authentication
         public bool IsEnterpriseAdmin { get; internal set; }
         public AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; internal set; }
-        internal byte[] PasswordValidator { get; set; }
 
         public bool IsAccountRecoverySession =>
             (SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0;
-
-        public bool CheckPasswordValid(string password)
-        {
-            if (PasswordValidator == null) return false;
-            try
-            {
-                var rnd = CryptoUtils.DecryptEncryptionParams(password, PasswordValidator);
-                return rnd?.Length == 32;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         public bool ForbidKeyType2 { get; internal set; }
     }
@@ -630,7 +612,7 @@ namespace KeeperSecurity.Authentication
             string authHeader;
             try
             {
-                await PingKeeperServer(keeperUri, Endpoint.WebProxy);
+                await PingKeeperServer(keeperUri, Endpoint.WebProxy, Endpoint.IgnoreCertificateErrors);
                 return true;
             }
             catch (ProxyAuthenticationRequired e)
@@ -647,7 +629,7 @@ namespace KeeperSecurity.Authentication
             {
                 try
                 {
-                    await PingKeeperServer(keeperUri, proxy);
+                    await PingKeeperServer(keeperUri, proxy, Endpoint.IgnoreCertificateErrors);
                     Endpoint.WebProxy = proxy;
                     return true;
                 }
@@ -660,12 +642,17 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy)
+        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy, bool ignoreCertificateErrors)
         {
             var handler = new HttpClientHandler();
             if (proxy != null)
             {
                 handler.Proxy = proxy;
+            }
+
+            if (ignoreCertificateErrors)
+            {
+                handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
             }
 
             using var client = new HttpClient(handler);
@@ -835,13 +822,7 @@ namespace KeeperSecurity.Authentication
                                 "Your Master Password has expired, you are required to change it before you can login.";
                             if (await postUi.Confirmation(passwordExpiredDescription))
                             {
-                                var newPassword = await this.ChangeMasterPassword();
-
-                                var validatorSalt = CryptoUtils.GetRandomBytes(16);
-                                authContext.PasswordValidator =
-                                    CryptoUtils.CreateEncryptionParams(newPassword, validatorSalt, 100000,
-                                        CryptoUtils.GetRandomBytes(32));
-
+                                await this.ChangeMasterPassword();
                                 authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
                             }
                         }

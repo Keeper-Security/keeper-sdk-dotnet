@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using KeeperSecurity.Authentication;
-using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Configuration
 {
@@ -397,7 +396,7 @@ namespace KeeperSecurity.Configuration
         public string Server { get; }
 
         /// <inheritdoc/>>
-        public int ServerKeyId { get; set; } = 1;
+        public int ServerKeyId { get; set; } = 7;
 
         /// <inheritdoc/>>
         public IConfigCollection<IServerPublicKeyConfiguration> PublicKeys => _publicKeys;
@@ -551,85 +550,6 @@ namespace KeeperSecurity.Configuration
         public void Put(IKeeperConfiguration configuration)
         {
             _configuration = new KeeperConfiguration(configuration);
-        }
-    }
-
-    /// <summary>
-    /// Keeper server configuration extensions.
-    /// </summary>
-    public static class ServerConfigurationExtensions
-    {
-        /// <summary>
-        /// Stores an ad-hoc server public key and makes it the active server key.
-        /// </summary>
-        /// <param name="storage">Configuration storage.</param>
-        /// <param name="server">Keeper server host.</param>
-        /// <param name="keyId">Server Key ID.</param>
-        /// <param name="publicKey">Base64 URL encoded EC public key.</param>
-        /// <remarks>
-        /// Self hosted Keeper instances use their own transmission keys.
-        /// </remarks>
-        /// <exception cref="Authentication.KeeperInvalidParameter">Public key is not a valid EC public key.</exception>
-        public static void SetServerPublicKey(this IConfigurationStorage storage, string server, int keyId, string publicKey)
-        {
-            try
-            {
-                CryptoUtils.LoadEcPublicKey(publicKey.Base64UrlDecode());
-            }
-            catch (Exception e)
-            {
-                throw new KeeperInvalidParameter("SetServerPublicKey", "publicKey", publicKey ?? "",
-                    $"EC public key expected: {e.Message}");
-            }
-
-            storage.UpdateServerConfiguration(server, serverConfiguration =>
-            {
-                serverConfiguration.PublicKeys.Put(new ServerPublicKeyConfiguration(keyId)
-                {
-                    PublicKey = publicKey
-                });
-                serverConfiguration.ServerKeyId = keyId;
-            });
-        }
-
-        /// <summary>
-        /// Makes an already stored server key the active one.
-        /// </summary>
-        /// <param name="storage">Configuration storage.</param>
-        /// <param name="server">Keeper server host.</param>
-        /// <param name="keyId">Server Key ID.</param>
-        public static void SetServerKeyId(this IConfigurationStorage storage, string server, int keyId)
-        {
-            storage.UpdateServerConfiguration(server, serverConfiguration => serverConfiguration.ServerKeyId = keyId);
-        }
-
-        /// <summary>
-        /// Accepts any TLS certificate presented by the server.
-        /// </summary>
-        /// <param name="storage">Configuration storage.</param>
-        /// <param name="server">Keeper server host.</param>
-        /// <param name="ignore">Ignore certificate errors.</param>
-        /// <remarks>
-        /// Intended for self hosted Keeper instances with self signed certificates.
-        /// The connection is encrypted but the server is not authenticated,
-        /// so an attacker on the network path can impersonate the server.
-        /// </remarks>
-        public static void SetIgnoreCertificateErrors(this IConfigurationStorage storage, string server, bool ignore)
-        {
-            storage.UpdateServerConfiguration(server,
-                serverConfiguration => serverConfiguration.IgnoreCertificateErrors = ignore);
-        }
-
-        private static void UpdateServerConfiguration(this IConfigurationStorage storage, string server,
-            Action<ServerConfiguration> action)
-        {
-            var serverName = server.AdjustServerName();
-            var configuration = storage.Get();
-            var sc = configuration.Servers.Get(serverName);
-            var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(serverName);
-            action(serverConfiguration);
-            configuration.Servers.Put(serverConfiguration);
-            storage.Put(configuration);
         }
     }
 

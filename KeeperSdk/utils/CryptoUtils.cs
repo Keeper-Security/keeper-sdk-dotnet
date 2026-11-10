@@ -38,6 +38,7 @@ namespace KeeperSecurity.Utils
         private const string CorruptedEncryptionParametersMessage = "Corrupted encryption parameters";
         private const int AesGcmNonceSize = 12;
         private const int AesGcmTagSize = 16;
+        private const int MinimalIterations = 100_000;
 
 #if NET8_0_OR_GREATER
         private static readonly RandomNumberGenerator SecureRandom = RandomNumberGenerator.Create();
@@ -514,6 +515,15 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV1(string password, byte[] salt, int iterations)
         {
+            if (salt.Length != 16)
+            {
+                throw new ArgumentException("Salt must be 16 bytes", nameof(salt));
+            }
+
+            if (iterations < MinimalIterations)
+            {
+                throw new ArgumentException($"Iteration count must be at least {MinimalIterations}", nameof(iterations));
+            }
 #if NET8_0_OR_GREATER
             using var pdb = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             return pdb.GetBytes(256 / 8);
@@ -642,6 +652,16 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV2(string domain, string password, byte[] salt, int iterations)
         {
+            if (salt.Length != 16)
+            {
+                throw new ArgumentException("Salt must be 16 bytes", nameof(salt));
+            }
+
+            if (iterations < MinimalIterations)
+            {
+                throw new ArgumentException($"Iteration count must be at least {MinimalIterations}", nameof(iterations));
+            }
+
 #if NET8_0_OR_GREATER
             using var pdb = new Rfc2898DeriveBytes(domain + password, salt, iterations, HashAlgorithmName.SHA512);
             var key = pdb.GetBytes(512 / 8);
