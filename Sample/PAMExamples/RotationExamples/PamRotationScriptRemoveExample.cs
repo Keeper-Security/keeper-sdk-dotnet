@@ -9,7 +9,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// Removes a post-rotation script from a pamUser / pamDirectory record.
     /// Only the record owner can remove scripts.
     /// </summary>
-    public static class RemoveRotationScriptExample
+    public static class PamRotationScriptRemoveExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="recordId">pamUser / pamDirectory UID or title.</param>
