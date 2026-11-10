@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -950,52 +950,6 @@ namespace KeeperSecurity.Authentication
                    KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId);
         }
 
-        /// <summary>
-        /// Fetches the public key published by a self hosted Keeper instance and makes it the active server key.
-        /// </summary>
-        /// <returns><c>true</c> if a new key is stored.</returns>
-        public async Task<bool> DiscoverServerPublicKey()
-        {
-            var builder = new UriBuilder
-            {
-                Scheme = "https",
-                Host = Server,
-                Path = "/api/rest/server_public_key",
-                Port = 443
-            };
-
-            ServerPublicKeyResponse rs;
-            try
-            {
-                using var response = await _httpClient.GetAsync(builder.Uri);
-                if (!response.IsSuccessStatusCode) return false;
-                rs = JsonUtils.ParseJson<ServerPublicKeyResponse>(await response.Content.ReadAsByteArrayAsync());
-            }
-            catch (Exception e) when (!(e is TaskCanceledException))
-            {
-                Trace.TraceError($"Keeper server \"{Server}\": public key discovery failed: {e.Message}");
-                return false;
-            }
-
-            if (rs == null || rs.ServerPublicKeyId <= 0 || string.IsNullOrEmpty(rs.ServerPublicKey)) return false;
-            var config = _storage.Get();
-            var sc = config.Servers.Get(Server);
-            if (sc?.PublicKeys?.Get(rs.ServerPublicKeyId.ToString())?.PublicKey == rs.ServerPublicKey) return false;
-
-            var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Server);
-            serverConfiguration.PublicKeys.Put(new ServerPublicKeyConfiguration(rs.ServerPublicKeyId)
-            {
-                PublicKey = rs.ServerPublicKey
-            });
-            serverConfiguration.ServerKeyId = rs.ServerPublicKeyId;
-            config.Servers.Put(serverConfiguration);
-            _storage.Put(config);
-
-            _serverPublicKeys = LoadServerPublicKeys(serverConfiguration);
-            ServerKeyId = rs.ServerPublicKeyId;
-            return true;
-        }
-
 #if NET10_0_OR_GREATER
         private static readonly string[] QrcCryptoErrorIndicators =
             { "qrc", "quantum", "ml-kem", "encryption", "decryption", "key" };
@@ -1047,6 +1001,52 @@ namespace KeeperSecurity.Authentication
             _lastReportedEncryptionMode = mode;
             LastEncryptionMode = mode;
             Trace.TraceInformation(mode);
+        }
+
+        /// <summary>
+        /// Fetches the public key published by a self hosted Keeper instance and makes it the active server key.
+        /// </summary>
+        /// <returns><c>true</c> if a new key is stored.</returns>
+        public async Task<bool> DiscoverServerPublicKey()
+        {
+            var builder = new UriBuilder
+            {
+                Scheme = "https",
+                Host = Server,
+                Path = "/api/rest/server_public_key",
+                Port = 443
+            };
+
+            ServerPublicKeyResponse rs;
+            try
+            {
+                using var response = await _httpClient.GetAsync(builder.Uri);
+                if (!response.IsSuccessStatusCode) return false;
+                rs = JsonUtils.ParseJson<ServerPublicKeyResponse>(await response.Content.ReadAsByteArrayAsync());
+            }
+            catch (Exception e) when (!(e is TaskCanceledException))
+            {
+                Trace.TraceError($"Keeper server \"{Server}\": public key discovery failed: {e.Message}");
+                return false;
+            }
+
+            if (rs == null || rs.ServerPublicKeyId <= 0 || string.IsNullOrEmpty(rs.ServerPublicKey)) return false;
+            var config = _storage.Get();
+            var sc = config.Servers.Get(Server);
+            if (sc?.PublicKeys?.Get(rs.ServerPublicKeyId.ToString())?.PublicKey == rs.ServerPublicKey) return false;
+
+            var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Server);
+            serverConfiguration.PublicKeys.Put(new ServerPublicKeyConfiguration(rs.ServerPublicKeyId)
+            {
+                PublicKey = rs.ServerPublicKey
+            });
+            serverConfiguration.ServerKeyId = rs.ServerPublicKeyId;
+            config.Servers.Put(serverConfiguration);
+            _storage.Put(config);
+
+            _serverPublicKeys = LoadServerPublicKeys(serverConfiguration);
+            ServerKeyId = rs.ServerPublicKeyId;
+            return true;
         }
 
         /// <summary>
