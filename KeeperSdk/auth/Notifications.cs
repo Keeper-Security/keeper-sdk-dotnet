@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -158,12 +159,14 @@ namespace KeeperSecurity.Authentication
 
                     var ws = new ClientWebSocket();
                     ws.Options.Proxy = _webProxy;
-#if NET8_0_OR_GREATER
                     if (_ignoreCertificateErrors)
                     {
+#if NET8_0_OR_GREATER
                         ws.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
-                    }
+#else
+                        PushCertificateValidation.IgnoreErrors(ws.Options, uri.Host);
 #endif
+                    }
                     var delayTask = Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
                     var connectTask = ws.ConnectAsync(uri, _cancellationTokenSource.Token);
                     var t = await Task.WhenAny(delayTask, connectTask);
@@ -244,4 +247,37 @@ namespace KeeperSecurity.Authentication
             _cancellationTokenSource = null;
         }
     }
+
+#if !NET8_0_OR_GREATER
+    /// <summary>
+    /// Push connection TLS certificate validation for the netstandard2.0 build.
+    /// </summary>
+    internal static class PushCertificateValidation
+    {
+        private static readonly ConcurrentDictionary<string, bool> IgnoredHosts = new(StringComparer.OrdinalIgnoreCase);
+        private static int _installed;
+
+        public static void IgnoreErrors(ClientWebSocketOptions options, string host)
+        {
+            // .NET Core 2.1 - .NET 7: the option exists at runtime but is not part of netstandard2.0.
+            var property = options.GetType().GetProperty("RemoteCertificateValidationCallback");
+            if (property != null)
+            {
+                property.SetValue(options, new RemoteCertificateValidationCallback((_, _, _, _) => true));
+                return;
+            }
+
+            // .NET Framework: ClientWebSocket validates certificates through ServicePointManager only.
+            // The callback is process wide: accept errors for the push hosts only, otherwise keep the previous behavior.
+            IgnoredHosts[host] = true;
+            if (Interlocked.Exchange(ref _installed, 1) == 1) return;
+            var previous = ServicePointManager.ServerCertificateValidationCallback;
+            ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) =>
+            {
+                if (sender is HttpWebRequest rq && IgnoredHosts.ContainsKey(rq.RequestUri.Host)) return true;
+                return previous?.Invoke(sender, certificate, chain, errors) ?? errors == SslPolicyErrors.None;
+            };
+        }
+    }
+#endif
 }
