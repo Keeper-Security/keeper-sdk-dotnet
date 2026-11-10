@@ -13,7 +13,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// Configures rotation for a pamUser record using SDK APIs
     /// (<see cref="PamRotationGraphEdit"/> + <see cref="RouterUtils.SetRecordRotationAsync"/>).
     /// </summary>
-    public static class EditRotationExample
+    public static class PamRotationEditExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="recordId">pamUser record UID or title.</param>
