@@ -8,6 +8,12 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
+### QRC support
+
+Power Commander uses normal module assembly loading from `RequiredAssemblies`. Each Power Commander package supplies its matching `KeeperSdk.dll` in the module directory: the 5.1 package uses the .NET Standard 2.0 SDK build (EC), while the 7.1 package uses the .NET 10 SDK build (QRC) and therefore requires a .NET 10 PowerShell host. The SDK determines the encryption behavior; it attempts QRC where supported and falls back to EC when QRC is unavailable or fails. The package must also include the SDK's matching dependencies.
+
+Run `Connect-Keeper -Verbose` to see which encryption mode the SDK used.
+
 ### Optional: SQLite vault storage (-UseOfflineStorage)
 
 To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll` and `KeeperBiometrics.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):

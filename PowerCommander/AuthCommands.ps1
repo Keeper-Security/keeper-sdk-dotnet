@@ -1015,6 +1015,11 @@ function Connect-Keeper {
         [KeeperSecurity.Vault.VaultData]$vaultData = $vault
         Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)" -InformationAction Continue
         Set-KeeperLocation -Path '\' | Out-Null
+        
+        $encryptionModeProperty = $endpoint.PSObject.Properties['LastEncryptionMode']
+        if ($null -ne $encryptionModeProperty -and $endpoint.LastEncryptionMode) {
+            Write-Verbose $endpoint.LastEncryptionMode
+        }
     }
 }
 
