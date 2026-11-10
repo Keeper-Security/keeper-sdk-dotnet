@@ -82,16 +82,8 @@ namespace KeeperSecurity.Authentication
             var configuration = auth.Storage.Get();
             if (auth.NoNewDevice)
             {
-                var lastToken = configuration.Users.Get(auth.Username)?.LastDevice?.DeviceToken;
-                var token = lastToken != null && IsRegisteredOnServer(configuration.Devices.Get(lastToken), auth.Endpoint.Server)
-                    ? lastToken
-                    : configuration.Devices.List
-                        .FirstOrDefault(x => IsRegisteredOnServer(x, auth.Endpoint.Server))?.DeviceToken;
-                if (token == null)
-                {
-                    throw new KeeperInvalidDeviceToken($"No device is registered with {auth.Endpoint.Server}");
-                }
-
+                var token = configuration.Users.Get(auth.Username)?.LastDevice?.DeviceToken
+                    ?? configuration.Devices.List.FirstOrDefault()?.DeviceToken;
                 auth.DeviceToken = token.Base64UrlDecode();
                 return;
             }
@@ -101,10 +93,8 @@ namespace KeeperSecurity.Authentication
             {
                 var token = auth.DeviceToken.Base64UrlEncode();
                 deviceConf = configuration.Devices.Get(token);
-                if (!IsRegisteredOnServer(deviceConf, auth.Endpoint.Server))
+                if (deviceConf == null)
                 {
-                    // the device is unknown or was registered with another Keeper server
-                    deviceConf = null;
                     auth.DeviceToken = null;
                     v3.DeviceKey = null;
                     v3.CloneCode = null;
@@ -131,19 +121,13 @@ namespace KeeperSecurity.Authentication
                     {
                         v3.CloneCode = serverInfo.CloneCode.Base64UrlDecode();
                     }
-                    else
-                    {
-                        // the user's last device was registered with another Keeper server
-                        deviceConf = null;
-                    }
 
                     lastDevice = null;
                 }
 
                 if (deviceConf == null)
                 {
-                    deviceConf = configuration.Devices.List
-                        .FirstOrDefault(x => IsRegisteredOnServer(x, auth.Endpoint.Server));
+                    deviceConf = configuration.Devices.List.FirstOrDefault();
                 }
 
                 if (deviceConf == null)
@@ -170,9 +154,10 @@ namespace KeeperSecurity.Authentication
             {
                 var token = auth.DeviceToken.Base64UrlEncode();
                 deviceConf = configuration.Devices.Get(token);
-                if (!IsRegisteredOnServer(deviceConf, auth.Endpoint.Server))
+                if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
+                if (deviceConf.ServerInfo?.Get(auth.Endpoint.Server) == null)
                 {
-                    throw new KeeperInvalidDeviceToken("invalid configuration");
+                    await auth.RegisterDeviceInRegion(deviceConf);
                 }
             }
 
@@ -191,19 +176,6 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        /// <summary>
-        /// Checks if the device has been registered with the Keeper server.
-        /// </summary>
-        /// <remarks>
-        /// A device is bound to the server that issued its token. Keeper servers that are not
-        /// regions of each other do not share devices, so a device is only ever offered to the
-        /// server it was registered with.
-        /// </remarks>
-        private static bool IsRegisteredOnServer(IDeviceConfiguration deviceConf, string server)
-        {
-            return deviceConf?.ServerInfo?.Get(server) != null;
-        }
-
         internal static void RedirectToRegionV3(this IAuth auth, string newRegion)
         {
             auth.SetPushNotifications(null);
@@ -212,6 +184,46 @@ namespace KeeperSecurity.Authentication
             {
                 infoUi.RegionChanged(auth.Endpoint.Server);
             }
+        }
+
+        private static async Task RegisterDeviceInRegion(this IAuth auth, IDeviceConfiguration device)
+        {
+            var privateKey = CryptoUtils.LoadEcPrivateKey(device.DeviceKey);
+            var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
+            var request = new RegisterDeviceInRegionRequest
+            {
+                EncryptedDeviceToken = ByteString.CopyFrom(device.DeviceToken.Base64UrlDecode()),
+                ClientVersion = auth.Endpoint.ClientVersion,
+                DeviceName = auth.Endpoint.DeviceName,
+                DevicePublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(publicKey)),
+            };
+#if DEBUG
+            Debug.WriteLine($"REST Request: endpoint \"register_device_in_region\": {request}");
+#endif
+            try
+            {
+                await auth.Endpoint.ExecuteRest("authentication/register_device_in_region", new ApiRequestPayload { Payload = request.ToByteString() });
+            }
+            catch (KeeperApiException kae)
+            {
+                if (kae.Code != "exists")
+                {
+                    throw;
+                }
+            }
+            catch (KeeperInvalidDeviceToken idt)
+            {
+                Trace.TraceError($"Device register error: {idt.Message}");
+                if (idt.Message != "public key already exists")
+                {
+                    throw;
+                }
+            }
+            var configuration = auth.Storage.Get();
+            var dc = new DeviceConfiguration(device);
+            dc.ServerInfo.Put(new DeviceServerConfiguration(auth.Endpoint.Server));
+            configuration.Devices.Put(dc);
+            auth.Storage.Put(configuration);
         }
 
         private static async Task<IDeviceConfiguration> RegisterDevice(this IAuth auth)
@@ -445,9 +457,7 @@ namespace KeeperSecurity.Authentication
                     }
                     throw new KeeperCanceled("not_supported", "Master Password Login: Method is not suppoprted");
                 });
-            var validatorSalt = CryptoUtils.GetRandomBytes(16);
-            context.PasswordValidator =
-                CryptoUtils.CreateEncryptionParams(password, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
+
             return context;
         }
 

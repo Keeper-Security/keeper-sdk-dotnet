@@ -31,19 +31,18 @@ namespace Commander
             [Option("password", Required = false, HelpText = "proxy password")]
             public string Password { get; set; }
         }
+
         private class ServerOptions
         {
-            [Option("key-id", Required = false, HelpText = "self hosted server key ID")]
-            public int? KeyId { get; set; }
-
-            [Option("public-key", Required = false, HelpText = "self hosted server EC public key. Base64 URL encoded")]
-            public string PublicKey { get; set; }
-
             [Option("ignore-certificate-errors", Required = false,
-                HelpText = "true | false. Accept any TLS certificate presented by this server. The server is not authenticated")]
-            public bool? IgnoreCertificateErrors { get; set; }
+                HelpText = "accept any TLS certificate presented by this server. The server is not authenticated")]
+            public bool IgnoreCertificateErrors { get; set; }
 
-            [Value(0, Required = false, MetaName = "server", HelpText = "Keeper region or self hosted host name")]
+            [Option("verify-certificate", Required = false, HelpText = "verify TLS certificate presented by this server")]
+            public bool VerifyCertificate { get; set; }
+
+            [Value(0, Required = false, MetaName = "server",
+                HelpText = "Keeper region: US, EU, AU, CA, JP, GOV with optional _DEV or _QA suffix. Self hosted instance: host name")]
             public string Server { get; set; }
         }
 
@@ -78,7 +77,7 @@ namespace Commander
 
             _auth = new AuthSync(storage)
             {
-                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c18.0.0" }
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c18.0.0" } 
             };
 
 #if NET472_OR_GREATER
@@ -105,85 +104,11 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
-            Commands.Add("server", new ValidatingParseableCommand<ServerOptions>
+            Commands.Add("server", new ParseableCommand<ServerOptions>
             {
                 Order = 20,
                 Description = "Display or change Keeper Server",
-                // "--ignore-certificate-errors" without a value parses as "no change". Ask for the value.
-                Validate = tokens =>
-                {
-                    for (var i = 0; i < tokens.Count; i++)
-                    {
-                        if (!string.Equals(tokens[i], "--ignore-certificate-errors",
-                                StringComparison.OrdinalIgnoreCase)) continue;
-                        if (i == tokens.Count - 1 || tokens[i + 1].StartsWith("-"))
-                        {
-                            return "\"--ignore-certificate-errors\" option requires a value: true or false.";
-                        }
-                    }
-
-                    return null;
-                },
-                Action = options =>
-                {
-                    var server = options.Server?.Trim() ?? "";
-                    if (string.IsNullOrEmpty(server))
-                    {
-                        server = _auth.Endpoint.Server;
-                    }
-                    else
-                    {
-                        var resolved = KeeperRegions.ResolveServer(server);
-                        if (resolved == null && !server.Contains("."))
-                        {
-                            Console.WriteLine($"Invalid region: {server}");
-                            Console.WriteLine($"Valid regions: {string.Join(", ", KeeperRegions.Servers.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}");
-                            Console.WriteLine("Self hosted instances are set by their host name.");
-                            return Task.CompletedTask;
-                        }
-
-                        // Not a known region: a self hosted Keeper instance.
-                        server = (resolved ?? server).ToLowerInvariant();
-                    }
-
-                    try
-                    {
-                        if (options.IgnoreCertificateErrors.HasValue)
-                        {
-                            _auth.Storage.SetIgnoreCertificateErrors(server, options.IgnoreCertificateErrors.Value);
-                        }
-
-                        if (!string.IsNullOrEmpty(options.PublicKey))
-                        {
-                            if (!options.KeyId.HasValue)
-                            {
-                                Console.WriteLine("\"--key-id\" option is required with \"--public-key\".");
-                                return Task.CompletedTask;
-                            }
-
-                            _auth.Storage.SetServerPublicKey(server, options.KeyId.Value, options.PublicKey);
-                        }
-                        else if (options.KeyId.HasValue)
-                        {
-                            _auth.Storage.SetServerKeyId(server, options.KeyId.Value);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        return Task.CompletedTask;
-                    }
-
-                    // Reloads the server key and TLS configuration.
-                    _auth.Endpoint.Server = server;
-
-                    var sc = _auth.Storage.Get().Servers.Get(_auth.Endpoint.Server);
-                    Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
-                    Console.WriteLine($"Server Key ID: {_auth.Endpoint.ServerKeyId}");
-                    Console.WriteLine(
-                        $"TLS Verification: {(sc?.IgnoreCertificateErrors == true ? "OFF. The server is not authenticated" : "ON")}");
-                    return Task.CompletedTask;
-                }
+                Action = DoServer
             });
 
             Commands.Add("version", new SimpleCommand
@@ -315,6 +240,51 @@ namespace Commander
                 Username = username,
                 Password = password
             });
+        }
+
+        private Task DoServer(ServerOptions options)
+        {
+            var server = _auth.Endpoint.Server;
+            if (!string.IsNullOrEmpty(options.Server))
+            {
+                server = KeeperRegions.ResolveServer(options.Server);
+                if (server == null)
+                {
+                    if (!options.Server.Contains("."))
+                    {
+                        Console.WriteLine($"Invalid region: {options.Server}");
+                        Console.WriteLine($"Valid regions: {string.Join(", ", KeeperRegions.Servers.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}");
+                        Console.WriteLine("Self hosted instances are set by their host name.");
+                        return Task.CompletedTask;
+                    }
+
+                    server = options.Server.Trim().ToLowerInvariant();
+                }
+            }
+
+            if (options.IgnoreCertificateErrors && options.VerifyCertificate)
+            {
+                Console.WriteLine("\"--ignore-certificate-errors\" and \"--verify-certificate\" cannot be used together.");
+                return Task.CompletedTask;
+            }
+
+            if (options.IgnoreCertificateErrors || options.VerifyCertificate)
+            {
+                var configuration = _auth.Storage.Get();
+                var sc = configuration.Servers.Get(server);
+                var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(server);
+                serverConfiguration.IgnoreCertificateErrors = options.IgnoreCertificateErrors;
+                configuration.Servers.Put(serverConfiguration);
+                _auth.Storage.Put(configuration);
+            }
+
+            // Reloads the server key and TLS settings.
+            _auth.Endpoint.Server = server;
+
+            Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
+            Console.WriteLine($"Server Key ID: {_auth.Endpoint.ServerKeyId}");
+            Console.WriteLine($"TLS Verification: {(_auth.Endpoint.IgnoreCertificateErrors ? "OFF. The server is not authenticated" : "ON")}");
+            return Task.CompletedTask;
         }
 
         private async Task DoProxy(ProxyOptions options)

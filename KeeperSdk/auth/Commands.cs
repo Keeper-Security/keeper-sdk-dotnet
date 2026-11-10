@@ -78,12 +78,6 @@ namespace KeeperSecurity.Commands
         /// </summary>
         [DataMember(Name = "serverPublicKey")]
         public string ServerPublicKey { get; set; }
-
-        /// <summary>
-        /// "SHA256:" followed by unpadded Base64 encoded SHA-256 hash of the public key.
-        /// </summary>
-        [DataMember(Name = "fingerprint")]
-        public string Fingerprint { get; set; }
     }
 
     public interface IPasswordRules
