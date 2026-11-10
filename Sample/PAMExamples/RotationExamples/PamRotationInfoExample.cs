@@ -11,7 +11,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// <summary>
     /// Shows rotation readiness and settings for a PAM record.
     /// </summary>
-    public static class RotationInfoExample
+    public static class PamRotationInfoExample
     {
         public static async Task ShowRotationInfo(VaultOnline vault, string recordId)
         {

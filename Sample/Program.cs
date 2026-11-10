@@ -749,19 +749,19 @@ namespace Sample
                 // );
 
                 // // List PAM Rotations Example
-                // await PAMExamples.RotationExamples.ListRotationsExample.ListRotations(
+                // await PAMExamples.RotationExamples.PamRotationListExample.ListRotations(
                 //     vault,
                 //     verbose: false
                 // );
 
                 // // PAM Rotation Info Example
-                // await PAMExamples.RotationExamples.RotationInfoExample.ShowRotationInfo(
+                // await PAMExamples.RotationExamples.PamRotationInfoExample.ShowRotationInfo(
                 //     vault,
                 //     recordId: "<pamUserUid_or_title_here>"
                 // );
 
                 // // Edit PAM Rotation Example (general pamUser)
-                // await PAMExamples.RotationExamples.EditRotationExample.EditRotation(
+                // await PAMExamples.RotationExamples.PamRotationEditExample.EditRotation(
                 //     vault,
                 //     recordId: "<pamUserUid_or_title_here>",
                 //     configId: "<pamConfigUid_or_title_here>",
@@ -773,13 +773,13 @@ namespace Sample
                 // );
 
                 // // List PAM Rotation Scripts Example
-                // await PAMExamples.RotationExamples.ListRotationScriptsExample.ListScripts(
+                // await PAMExamples.RotationExamples.PamRotationScriptListExample.ListScripts(
                 //     vault,
                 //     pattern: null   // optional: record UID or title filter
                 // );
 
                 // // Add PAM Rotation Script Example
-                // await PAMExamples.RotationExamples.AddRotationScriptExample.AddScript(
+                // await PAMExamples.RotationExamples.PamRotationScriptAddExample.AddScript(
                 //     vault,
                 //     recordId: "<pamUserUid_or_title_here>",
                 //     scriptFilePath: @"C:\path\to\rotate.ps1",
@@ -788,7 +788,7 @@ namespace Sample
                 // );
 
                 // // Edit PAM Rotation Script Example
-                // await PAMExamples.RotationExamples.EditRotationScriptExample.EditScript(
+                // await PAMExamples.RotationExamples.PamRotationScriptEditExample.EditScript(
                 //     vault,
                 //     recordId: "<pamUserUid_or_title_here>",
                 //     scriptId: "<scriptUid_or_name_here>",
@@ -798,11 +798,149 @@ namespace Sample
                 // );
 
                 // // Remove PAM Rotation Script Example
-                // await PAMExamples.RotationExamples.RemoveRotationScriptExample.RemoveScript(
+                // await PAMExamples.RotationExamples.PamRotationScriptRemoveExample.RemoveScript(
                 //     vault,
                 //     recordId: "<pamUserUid_or_title_here>",
                 //     scriptId: "<scriptUid_or_name_here>"
                 // );
+
+                // // List PAM Configurations Example
+                // await PAMExamples.ConfigExamples.PamConfigListExample.ListConfigs(
+                //     vault,
+                //     configId: null,   // optional: UID or title for a single configuration
+                //     verbose: false
+                // );
+
+                // // Create PAM Configuration Example
+                // await PAMExamples.ConfigExamples.PamConfigCreateExample.CreateConfig(
+                //     vault,
+                //     environment: "local",   // local, network, aws, azure, gcp, domain, oci, github
+                //     title: "<configTitle_here>",
+                //     sharedFolder: "<sharedFolderUid_or_path_here>",
+                //     gatewayId: null,   // optional: gateway UID or name
+                //     connections: null,   // optional: tri-state: on, off, or default
+                //     tunneling: null,   // optional: tri-state: on, off, or default
+                //     rotation: null,   // optional: tri-state: on, off, or default
+                //     connectionsRecording: null,   // optional: tri-state: on, off, or default
+                //     typescriptRecording: null,   // optional: tri-state: on, off, or default
+                //     remoteBrowserIsolation: null,   // optional: tri-state: on, off, or default
+                //     aiThreatDetection: null,   // optional: tri-state: on, off, or default
+                //     aiTerminateSessionOnDetection: null   // optional: tri-state: on, off, or default
+                // );
+
+                // // Edit PAM Configuration Example
+                // await PAMExamples.ConfigExamples.PamConfigEditExample.EditConfig(
+                //     vault,
+                //     configId: "<pamConfigUid_or_title_here>",
+                //     newTitle: null,
+                //     gatewayId: null,
+                //     connections: "on",   // optional: tri-state: on, off, or default
+                //     tunneling: null,   // optional: tri-state: on, off, or default
+                //     rotation: "on",   // optional: tri-state: on, off, or default
+                //     connectionsRecording: null,   // optional: tri-state: on, off, or default
+                //     typescriptRecording: null,   // optional: tri-state: on, off, or default
+                //     remoteBrowserIsolation: null,   // optional: tri-state: on, off, or default
+                //     aiThreatDetection: null,   // optional: tri-state: on, off, or default
+                //     aiTerminateSessionOnDetection: null   // optional: tri-state: on, off, or default
+                // );
+
+                // // Remove PAM Configuration Example
+                // await PAMExamples.ConfigExamples.PamConfigRemoveExample.RemoveConfig(
+                //     vault,
+                //     configId: "<pamConfigUid_or_title_here>"
+                // );
+
+                // // PAM Action Rotate Example
+                // await PAMExamples.ActionExamples.PamActionRotateExample.Rotate(
+                //     vault,
+                //     recordUid: "<pamUserUid_here>",
+                //     folder: null,   // or a shared folder UID/title pattern to rotate in bulk
+                //     dryRun: false
+                // );
+
+                // // PAM Action Job Info Example
+                // await PAMExamples.ActionExamples.PamActionJobInfoExample.GetJobInfo(
+                //     vault,
+                //     jobId: "<jobId_here>",
+                //     gatewayUid: null   // required only when multiple gateways are online
+                // );
+
+                // // Edit PAM Connection Example
+                // await PAMExamples.ConnectionExamples.PamConnectionEditExample.EditConnection(
+                //     vault,
+                //     record: "<pamResourceOrConfigUid_or_title_here>",
+                //     configuration: "<pamConfigUid_or_title_here>",
+                //     connections: "on",
+                //     protocol: "ssh"
+                // );
+
+                // // Edit PAM RBI Example
+                // await PAMExamples.RbiExamples.PamRbiEditExample.EditRbi(
+                //     vault,
+                //     record: "<pamRemoteBrowserUid_or_title_here>",
+                //     configuration: "<pamConfigUid_or_title_here>",
+                //     remoteBrowserIsolation: "on",
+                //     connectionsRecording: "on"
+                // );
+
+                // // PAM Launch Preflight Example
+                // await PAMExamples.LaunchExamples.PamLaunchPreflightExample.Preflight(
+                //     vault,
+                //     record: "<pamMachineUid_or_title_here>",
+                //     credential: null,
+                //     gateway: null,
+                //     debug: true
+                // );
+
+                // // PAM Workflow: create workflow configuration
+                // await PAMExamples.WorkflowExamples.PamWorkflowCreateExample.CreateWorkflow(
+                //     vault,
+                //     recordUid: "<pamResourceUid_or_title_here>",
+                //     approvalsNeeded: 1,
+                //     approverEmails: new[] { "<approverEmail_here>" },
+                //     checkout: true,
+                //     duration: "1h"
+                // );
+
+                // // PAM Workflow: read, update, and delete configuration
+                // await PAMExamples.WorkflowExamples.PamWorkflowReadExample.ReadWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowUpdateExample.UpdateWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>", 2, true, false,
+                //     true, false, false, "2h");
+                // await PAMExamples.WorkflowExamples.PamWorkflowDeleteExample.DeleteWorkflow(
+                //     vault, "<pamResourceUid_or_title_here>");
+
+                // // PAM Workflow: add and remove approvers
+                // await PAMExamples.WorkflowExamples.PamWorkflowAddApproverExample.AddApprovers(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     userEmails: new[] { "<approverEmail_here>" });
+                // await PAMExamples.WorkflowExamples.PamWorkflowRemoveApproverExample.RemoveApprovers(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     userEmails: new[] { "<approverEmail_here>" });
+
+                // // PAM Workflow: pending, approve, and deny
+                // await PAMExamples.WorkflowExamples.PamWorkflowPendingExample.ListPending(vault);
+                // await PAMExamples.WorkflowExamples.PamWorkflowApproveExample.Approve(
+                //     vault, "<flowUid_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowDenyExample.Deny(
+                //     vault, "<flowUid_here>", "Access is not approved");
+
+                // // PAM Workflow: request, escalate, cancel, start, and end
+                // await PAMExamples.WorkflowExamples.PamWorkflowRequestExample.RequestAccess(
+                //     vault, "<pamResourceUid_or_title_here>",
+                //     reason: "Maintenance window", ticket: "<ticketNumber_here>",
+                //     escalate: false, cancel: false);
+                // // Use escalate: true or cancel: true for the request variants.
+                // await PAMExamples.WorkflowExamples.PamWorkflowStartExample.Start(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowEndExample.End(
+                //     vault, "<pamResourceUid_or_title_here>", force: false);
+
+                // // PAM Workflow: state and current-user access
+                // await PAMExamples.WorkflowExamples.PamWorkflowStateExample.GetState(
+                //     vault, "<pamResourceUid_or_title_here>");
+                // await PAMExamples.WorkflowExamples.PamWorkflowMyAccessExample.GetMyAccess(vault);
 
                 // // Remove Client Example
                 // await SecretManagerExamples.RemoveClientExample.RemoveClient(
