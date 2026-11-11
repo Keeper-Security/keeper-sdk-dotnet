@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -4336,6 +4337,8 @@ namespace Commander
                                     Description = "Remove managed company",
                                     Action = RemoveManagedCompany,
                                 });
+                            Commands.Add("msp-legacy-report", new ParseableCommand<MspLegacyReportOptions> { Order = 77, Description = "Generate MSP legacy billing report", Action = MspLegacyReport });
+                            Commands.Add("msp-convert-node", new ParseableCommand<MspConvertNodeOptions> { Order = 78, Description = "Convert an MSP node subtree to a managed company", Action = MspConvertNode });
                             Commands.Add("switch-to-mc",
                                 new ParseableCommand<ManagedCompanyLoginOptions>
                                 {
@@ -4348,6 +4351,7 @@ namespace Commander
                             Aliases["ma"] = "msp-add";
                             Aliases["mrm"] = "msp-remove";
                             Aliases["mu"] = "msp-update";
+                            Aliases["mlr"] = "msp-legacy-report";
                             Aliases["mc-list"] = "msp-info";
                             Aliases["mc-create"] = "msp-add";
                             Aliases["mc-update"] = "msp-update";
@@ -4604,6 +4608,69 @@ namespace Commander
                 Console.WriteLine($"Managed company {options.Company} not found.");
             }
         }
+
+        private async Task MspLegacyReport(MspLegacyReportOptions options)
+        {
+            var now = DateTimeOffset.Now;
+            var to = options.To ?? now;
+            var from = options.From ?? options.Range switch
+            {
+                "today" => new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, to.Offset),
+                "yesterday" => new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, to.Offset).AddDays(-1),
+                "last_7_days" => to.AddDays(-7),
+                "month_to_date" => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset),
+                "last_month" => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset).AddMonths(-1),
+                "year_to_date" => new DateTimeOffset(to.Year, 1, 1, 0, 0, 0, to.Offset),
+                "last_year" => new DateTimeOffset(to.Year - 1, 1, 1, 0, 0, 0, to.Offset),
+                _ => to.AddDays(-30),
+            };
+            if (!options.To.HasValue && options.Range == "last_month") to = from.AddMonths(1).AddTicks(-1);
+            if (!options.To.HasValue && options.Range == "last_year") to = from.AddYears(1).AddTicks(-1);
+            if (from > to) throw new Exception("The report start date must not be after the end date.");
+            var entries = await _managedCompanies.GetMspLegacyReport(from.ToUnixTimeMilliseconds(), to.ToUnixTimeMilliseconds());
+            var format = (options.Format ?? "table").ToLowerInvariant();
+            if (format != "table" && format != "csv" && format != "json")
+                throw new Exception("Invalid report format. Supported formats are table, csv, json.");
+            if (format == "json")
+            {
+                var json = System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(entries.Select(entry => new Dictionary<string, object>
+                {
+                    ["id"] = entry.Id, ["time"] = entry.Date, ["company_id"] = entry.EnterpriseId,
+                    ["company_name"] = entry.EnterpriseName, ["status"] = entry.Status,
+                    ["number_of_allocations"] = entry.NewNumberOfSeats, ["plan"] = entry.NewProductType,
+                    ["transaction_notes"] = entry.Note, ["price_estimate"] = entry.Price,
+                }).ToArray(), true));
+                if (!string.IsNullOrWhiteSpace(options.Output)) File.WriteAllText(options.Output, json, System.Text.Encoding.UTF8);
+                else Console.WriteLine(json);
+                return;
+            }
+            string EscapeCsv(object value)
+            {
+                var text = value?.ToString() ?? string.Empty;
+                return text.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0 ? $"\"{text.Replace("\"", "\"\"")}\"" : text;
+            }
+            var headers = new[] { "ID", "Time", "Company ID", "Company Name", "Status", "Number Of Allocations", "Plan", "Transaction Notes", "Price Estimate" };
+            if (format == "csv")
+            {
+                var lines = new List<string> { string.Join(",", headers.Select(EscapeCsv)) };
+                lines.AddRange(entries.Select(entry => string.Join(",", new object[] { entry.Id, entry.Date, entry.EnterpriseId, entry.EnterpriseName, entry.Status, entry.NewNumberOfSeats, entry.NewProductType, entry.Note, entry.Price }.Select(EscapeCsv))));
+                var csv = string.Join(Environment.NewLine, lines);
+                if (!string.IsNullOrWhiteSpace(options.Output)) File.WriteAllText(options.Output, csv, System.Text.Encoding.UTF8);
+                else Console.WriteLine(csv);
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(options.Output)) throw new Exception("--output is supported only with csv or json format.");
+            var table = new Tabulate(9); table.AddHeader("ID", "Time", "Company ID", "Company Name", "Status", "Number Of Allocations", "Plan", "Transaction Notes", "Price Estimate");
+            foreach (var entry in entries) table.AddRow(entry.Id, entry.Date, entry.EnterpriseId, entry.EnterpriseName, entry.Status, entry.NewNumberOfSeats, entry.NewProductType, entry.Note, entry.Price);
+            table.Dump();
+        }
+
+        private async Task MspConvertNode(MspConvertNodeOptions options)
+        {
+            var node = EnterpriseData.ResolveNodeName(options.Node);
+            var company = await _managedCompanies.ConvertNodeToManagedCompany(EnterpriseData, RoleManagement, QueuedTeamManagement, node.Id, options.Seats, options.Plan);
+            Console.WriteLine($"Node \"{node.DisplayName}\" was converted to managed company id={company.EnterpriseId}");
+        }
     }
 
     class EnterpriseGenericOptions
@@ -4852,6 +4919,22 @@ namespace Commander
     {
         [Value(0, Required = true, HelpText = "mc-login <mc-company-id>")]
         public int CompanyId { get; set; }
+    }
+
+    class MspLegacyReportOptions : EnterpriseGenericOptions
+    {
+        [Option("range", Default = "last_30_days", HelpText = "today, yesterday, last_7_days, last_30_days, month_to_date, last_month, year_to_date, last_year")] public string Range { get; set; }
+        [Option("from", HelpText = "Start date in ISO 8601 format")] public DateTimeOffset? From { get; set; }
+        [Option("to", HelpText = "End date in ISO 8601 format")] public DateTimeOffset? To { get; set; }
+        [Option("format", Default = "table", HelpText = "Output format: table, csv, json")] public string Format { get; set; }
+        [Option("output", HelpText = "Output file for csv or json format")] public string Output { get; set; }
+    }
+
+    class MspConvertNodeOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = true, HelpText = "Subtree root node name or ID")] public string Node { get; set; }
+        [Option('s', "seats", HelpText = "Seat count; defaults to the subtree user count")] public int? Seats { get; set; }
+        [Option('p', "plan", Default = "business", HelpText = "Product plan")] public string Plan { get; set; }
     }
 
     class ManagedCompanyRemoveOptions : EnterpriseGenericOptions

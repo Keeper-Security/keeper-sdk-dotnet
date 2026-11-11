@@ -4,6 +4,10 @@ using KeeperSecurity.Utils;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using System.Linq;
+using System;
+using System.Collections.Generic;
+using Authentication;
+using Google.Protobuf;
 
 namespace KeeperSecurity.Enterprise
 {
@@ -55,6 +59,9 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public interface IMspManagement
     {
+        Task<IList<LicenseAdjustmentLogEntry>> GetMspLegacyReport(long from, long to);
+        Task<EnterpriseManagedCompany> ConvertNodeToManagedCompany(EnterpriseData enterpriseData, IRoleData roleData,
+            IQueuedTeamData queuedTeamData, long nodeId, int? seats = null, string productId = "business");
         /// <summary>
         /// Creates Managed Company
         /// </summary>
@@ -78,6 +85,102 @@ namespace KeeperSecurity.Enterprise
 
     public partial class ManagedCompanyData : IMspManagement
     {
+        public async Task<IList<LicenseAdjustmentLogEntry>> GetMspLegacyReport(long from, long to)
+        {
+            if (from > to) throw new EnterpriseException("The report start date must not be after the end date.");
+            var response = await Enterprise.Auth.ExecuteAuthCommand<GetMcLicenseAdjustmentLogCommand, GetMcLicenseAdjustmentLogResponse>(
+                new GetMcLicenseAdjustmentLogCommand { From = from, To = to });
+            return response.Log ?? new List<LicenseAdjustmentLogEntry>();
+        }
+
+        public async Task<EnterpriseManagedCompany> ConvertNodeToManagedCompany(EnterpriseData enterpriseData,
+            IRoleData roleData, IQueuedTeamData queuedTeamData, long nodeId, int? seats = null, string productId = "business")
+        {
+            if (!enterpriseData.TryGetNode(nodeId, out var root) || nodeId == enterpriseData.RootNode.Id)
+                throw new EnterpriseException("The node must exist and must not be the enterprise root node.");
+            if (seats.HasValue && seats.Value < 0) throw new EnterpriseException("Seat count cannot be negative.");
+            if (string.IsNullOrWhiteSpace(productId)) throw new EnterpriseException("Product plan is required.");
+            var product = ManagedCompanyConstants.MspProducts.FirstOrDefault(x =>
+                string.Equals(x.ProductCode, productId, StringComparison.OrdinalIgnoreCase));
+            if (product == null)
+                throw new EnterpriseException($"Invalid license plan: {productId}. Supported plans are {string.Join(", ", ManagedCompanyConstants.MspProducts.Select(x => x.ProductCode))}");
+
+            var nodeIds = new HashSet<long> { nodeId };
+            var pending = new Queue<long>(); pending.Enqueue(nodeId);
+            while (pending.Count > 0)
+            {
+                var id = pending.Dequeue();
+                if (!enterpriseData.TryGetNode(id, out var node)) continue;
+                foreach (var child in node.Subnodes) if (nodeIds.Add(child)) pending.Enqueue(child);
+            }
+            var roleIds = new HashSet<long>(roleData.Roles.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Id));
+            var teamUids = new HashSet<string>(enterpriseData.Teams.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Uid));
+            var userIds = new HashSet<long>(enterpriseData.Users.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Id));
+            var errors = new List<string>();
+            foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id)))
+            {
+                if (node.BridgeId != 0 || node.ScimId != 0 || node.SsoServiceProviderIds?.Length > 0)
+                    errors.Add($"Remove provisioning from node '{node.DisplayName}' before conversion.");
+            }
+            if (ManagedCompanies.Any(x => nodeIds.Contains(x.ParentNodeId)))
+                errors.Add("Move managed companies out of the subtree before conversion.");
+            if (queuedTeamData != null && queuedTeamData.QueuedTeams.Any(x => nodeIds.Contains(x.ParentNodeId))) errors.Add("Remove queued teams from the subtree before conversion.");
+            if (enterpriseData.Users.Any(x => userIds.Contains(x.Id) && x.UserStatus == UserStatus.Inactive)) errors.Add("Remove pending users from the subtree before conversion.");
+            foreach (var role in roleData.Roles)
+            {
+                var moveRole = roleIds.Contains(role.Id);
+                if (roleData.GetUsersForRole(role.Id).Any(id => moveRole != userIds.Contains(id)) || roleData.GetTeamsForRole(role.Id).Any(id => moveRole != teamUids.Contains(id)))
+                    errors.Add($"Role '{role.DisplayName}' has memberships outside the subtree.");
+            }
+            foreach (var team in enterpriseData.Teams)
+            {
+                var moveTeam = teamUids.Contains(team.Uid);
+                if (enterpriseData.GetUsersForTeam(team.Uid).Any(id => moveTeam != userIds.Contains(id))) errors.Add($"Team '{team.Name}' has memberships outside the subtree.");
+            }
+            foreach (var permission in roleData.GetAdminPermissions()) if (roleIds.Contains(permission.RoleId) != nodeIds.Contains(permission.NodeId)) errors.Add("An admin role manages a node outside the subtree.");
+            if (errors.Count > 0) throw new EnterpriseException(string.Join(" ", errors.Distinct()));
+
+            var company = ManagedCompanies.FirstOrDefault(x => string.Equals(x.EnterpriseName, root.DisplayName, StringComparison.Ordinal));
+            if (company == null) company = await CreateManagedCompany(new ManagedCompanyOptions { Name = root.DisplayName, NodeId = enterpriseData.RootNode.Id, ProductId = product.ProductCode, NumberOfSeats = Math.Max(seats ?? 0, Math.Max(userIds.Count, 1)) });
+            var mcAuth = new ManagedCompanyAuth(); await mcAuth.LoginToManagedCompany(Enterprise, company.EnterpriseId);
+            var mcEnterprise = new EnterpriseLoader(mcAuth, Array.Empty<EnterpriseDataPlugin>()); await mcEnterprise.Load();
+            string ReEncrypt(string data) => CryptoUtils.EncryptAesV1(CryptoUtils.DecryptAesV1(data.Base64UrlDecode(), Enterprise.TreeKey), mcEnterprise.TreeKey).Base64UrlEncode();
+            var request = new NodeToManagedCompanyRequest { CompanyId = company.EnterpriseId };
+            foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id))) request.Nodes.Add(new ReEncryptedData { Id = node.Id, Data = ReEncrypt(node.EncryptedData) });
+            foreach (var role in roleData.Roles.Where(x => roleIds.Contains(x.Id))) { request.Roles.Add(new ReEncryptedData { Id = role.Id, Data = ReEncrypt(role.EncryptedData) }); var key = await roleData.GetRoleKey(role.Id); if (key != null) request.RoleKeys.Add(new ReEncryptedRoleKey { RoleId = role.Id, EncryptedRoleKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(key, mcEnterprise.TreeKey)) }); }
+            foreach (var user in enterpriseData.Users.Where(x => userIds.Contains(x.Id))) request.Users.Add(new ReEncryptedData { Id = user.Id, Data = user.KeyType == "no_key" ? user.DisplayName : ReEncrypt(user.EncryptedData) });
+            foreach (var team in enterpriseData.Teams.Where(x => teamUids.Contains(x.Uid)))
+            {
+                var teamKey = new EncryptedTeamKeyRequest { TeamUid = ByteString.CopyFrom(team.Uid.Base64UrlDecode()) };
+                if (team.TeamKey?.Length > 0)
+                    teamKey.EncryptedTeamKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(team.TeamKey, mcEnterprise.TreeKey));
+                else
+                    teamKey.Force = true;
+                request.TeamKeys.Add(teamKey);
+            }
+            if (Enterprise is EnterpriseLoader sourceEnterprise && sourceEnterprise.EcPrivateKey?.Length > 0 && mcEnterprise.EcPrivateKey?.Length > 0)
+            {
+                var dataKeyRequest = new UserDataKeyByNodeRequest();
+                dataKeyRequest.NodeIds.Add(nodeIds);
+                var dataKeys = await Enterprise.Auth.ExecuteAuthRest<UserDataKeyByNodeRequest, EnterpriseUserDataKeysByNodeResponse>(
+                    "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
+                var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
+                var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
+                foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == 4 && userIds.Contains(x.EnterpriseUserId)))
+                {
+                    var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
+                    request.UsersDataKeys.Add(new ReEncryptedUserDataKey
+                    {
+                        EnterpriseUserId = key.EnterpriseUserId,
+                        UserEncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(plainKey, targetPublicKey))
+                    });
+                }
+            }
+            await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
+            await Enterprise.Load();
+            return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == company.EnterpriseId) ?? company;
+        }
+
         /// <inheritdoc/>
         public async Task<EnterpriseManagedCompany> CreateManagedCompany(ManagedCompanyOptions options)
         {

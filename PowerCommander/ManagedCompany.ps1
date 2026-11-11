@@ -373,6 +373,27 @@ function New-KeeperManagedCompany {
 New-Alias -Name kamc -Value New-KeeperManagedCompany
 Register-ArgumentCompleter -CommandName New-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
 
+function Convert-KeeperMspNode {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)][string]$Node,
+        [Parameter()][ValidateRange(0, [int]::MaxValue)][int]$Seats,
+        [Parameter()][ValidateSet('business', 'businessPlus', 'enterprise', 'enterprisePlus')][string]$Plan = 'business'
+    )
+    [Enterprise]$enterprise = getMspEnterprise
+    $nodeObject = findEnterpriseNode $Node
+    if (-not $nodeObject) { Write-Error "Node '$Node' not found" -ErrorAction Stop }
+    if ($PSCmdlet.ShouldProcess($nodeObject.DisplayName, 'Convert node subtree to managed company')) {
+        try {
+            if ($PSBoundParameters.ContainsKey('Seats')) {
+                return $enterprise.mspData.ConvertNodeToManagedCompany($enterprise.enterpriseData, $enterprise.roleData, $enterprise.queuedTeamData, $nodeObject.Id, [Nullable[int]]$Seats, $Plan).GetAwaiter().GetResult()
+            }
+            return $enterprise.mspData.ConvertNodeToManagedCompany($enterprise.enterpriseData, $enterprise.roleData, $enterprise.queuedTeamData, $nodeObject.Id, $null, $Plan).GetAwaiter().GetResult()
+        } catch { Write-Error (Get-KeeperExceptionMessage -Exception $_.Exception) -ErrorAction Stop }
+    }
+}
+New-Alias -Name msp-convert-node -Value Convert-KeeperMspNode
+
 function Remove-KeeperManagedCompany {
     <#
         .Synopsis
@@ -1154,8 +1175,6 @@ function Get-KeeperMspLegacyReport {
     catch {
         Write-Error "Failed to load MSP enterprise context: $($_.Exception.Message)" -ErrorAction Stop
     }
-    $auth = $enterprise.loader.Auth
-
     $fromDate = $null
     $toDate = $null
 
@@ -1249,23 +1268,19 @@ function Get-KeeperMspLegacyReport {
     $fromTimestampMs = [long]([DateTimeOffset]::new($fromDate).ToUnixTimeMilliseconds())
     $toTimestampMs = [long]([DateTimeOffset]::new($toDate).ToUnixTimeMilliseconds())
 
-    $rq = New-Object KeeperSecurity.Commands.GetMcLicenseAdjustmentLogCommand
-    $rq.From = $fromTimestampMs
-    $rq.To = $toTimestampMs
-
     try {
-        $rs = [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse]$auth.ExecuteAuthCommand($rq, [KeeperSecurity.Commands.GetMcLicenseAdjustmentLogResponse], $true).GetAwaiter().GetResult()
+        $logEntries = $enterprise.mspData.GetMspLegacyReport($fromTimestampMs, $toTimestampMs).GetAwaiter().GetResult()
     } catch {
         Write-Error "Failed to retrieve MSP legacy report: $($_.Exception.Message)" -ErrorAction Stop
     }
 
-    if (-not $rs.Log -or $rs.Log.Count -eq 0) {
+    if (-not $logEntries -or $logEntries.Count -eq 0) {
         Write-Warning 'No legacy billing log entries found.'
         return
     }
 
     $table = [System.Collections.Generic.List[PSCustomObject]]::new()
-    foreach ($log in $rs.Log) {
+    foreach ($log in $logEntries) {
         $table.Add([PSCustomObject]@{
             'ID'                    = $log.Id
             'Time'                  = $log.Date
