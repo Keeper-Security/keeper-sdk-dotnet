@@ -839,7 +839,7 @@ namespace Commander.PAM
       if (!string.IsNullOrEmpty(reason))
       {
         denialReasonEncrypted = await WorkflowUtils.TryEncryptDenialReasonAsync(
-          Context.Enterprise.Auth, flowUidBytes, reason);
+          Context.Enterprise.Auth, RequireVault(), flowUidBytes, reason);
         if (denialReasonEncrypted == null)
         {
           if (!options.IsFormatOutputJson)

@@ -9,6 +9,7 @@ using Google.Protobuf;
 using GraphSync;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 using Workflow;
 using DayOfWeek = Workflow.DayOfWeek;
 
@@ -783,10 +784,11 @@ namespace KeeperSecurity.Plugins.PAM
     /// <summary>Tries to encrypt a denial reason for the person who requested access.</summary>
     public static async Task<ByteString> TryEncryptDenialReasonAsync(
       IAuthentication auth,
+      VaultOnline vault,
       byte[] flowUidBytes,
       string reason)
     {
-      if (auth == null || flowUidBytes == null || string.IsNullOrEmpty(reason))
+      if (auth == null || vault == null || flowUidBytes == null || string.IsNullOrEmpty(reason))
       {
         return null;
       }
@@ -799,7 +801,7 @@ namespace KeeperSecurity.Plugins.PAM
           return null;
         }
 
-        string requesterEmail = null;
+        string recordUid = null;
         foreach (var wf in response.Workflows)
         {
           if (!FlowUidEquals(wf.FlowUid, flowUidBytes))
@@ -807,41 +809,31 @@ namespace KeeperSecurity.Plugins.PAM
             continue;
           }
 
-          requesterEmail = !string.IsNullOrEmpty(wf.User) ? wf.User : null;
+          if (wf.Resource?.Type == RefType.RftRec && wf.Resource.Value != null && !wf.Resource.Value.IsEmpty)
+          {
+            recordUid = CryptoUtils.Base64UrlEncode(wf.Resource.Value.ToByteArray());
+          }
           break;
         }
 
-        if (string.IsNullOrEmpty(requesterEmail) || requesterEmail.StartsWith("User ID ", StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(recordUid))
         {
           return null;
         }
 
-        await auth.LoadUsersKeys(new[] { requesterEmail });
-        if (!auth.TryGetUserKeys(requesterEmail, out var keys) || keys == null)
+        if (!PamVaultHelpers.TryGetRecordKey(vault, recordUid, out var recordKey) || recordKey == null)
         {
           return null;
         }
 
         var reasonBytes = System.Text.Encoding.UTF8.GetBytes(reason);
-        if (keys.EcPublicKey != null && keys.EcPublicKey.Length > 0)
-        {
-          var ecPk = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
-          return ByteString.CopyFrom(CryptoUtils.EncryptEc(reasonBytes, ecPk));
-        }
-
-        if (keys.RsaPublicKey != null && keys.RsaPublicKey.Length > 0)
-        {
-          var rsaPk = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
-          return ByteString.CopyFrom(CryptoUtils.EncryptRsa(reasonBytes, rsaPk));
-        }
+        return ByteString.CopyFrom(CryptoUtils.EncryptAesV2(reasonBytes, recordKey));
       }
       catch (Exception ex)
       {
         Trace.TraceWarning($"TryEncryptDenialReasonAsync failed: {ex}");
         return null;
       }
-
-      return null;
     }
 
     /// <summary>Returns true when a user can access a record without a workflow request.</summary>
