@@ -177,7 +177,7 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <exclude/>
-    public class KeeperEndpoint : IKeeperEndpoint
+    public class KeeperEndpoint : IKeeperEndpoint, IDisposable
     {
         private const string DefaultDeviceName = ".NET Keeper API";
         private const string DefaultKeeperServer = "keepersecurity.com";
@@ -188,6 +188,7 @@ namespace KeeperSecurity.Authentication
         private readonly HttpClientHandler _httpMessageHandler;
         private string _clientVersion;
         private string _lastReportedEncryptionMode;
+        private bool _disposed;
 
         /// <summary>
         /// Gets the encryption mode used for the most recent API request.
@@ -238,6 +239,20 @@ namespace KeeperSecurity.Authentication
             }
 
             Server = keeperServer ?? DefaultKeeperServer;
+        }
+
+        /// <summary>
+        /// Releases the HTTP client and any QRC cryptographic key material held by this endpoint.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+#if NET10_0_OR_GREATER
+            _clientEcPrivateKey?.Dispose();
+            _clientEcPrivateKey = null;
+#endif
+            _httpClient.Dispose();
         }
 
         public string PushServer()
@@ -416,6 +431,12 @@ namespace KeeperSecurity.Authentication
                             {
                                 keyId = errorRs.QrcEcKeyId;
                                 ServerKeyId = keyId;
+                            }
+                            else
+                            {
+                                // The server rejected the current EC key ID. Retrying QRC with
+                                // the same ID cannot make progress, so disable QRC and retry with EC.
+                                DisableQrc();
                             }
 
                             continue;
