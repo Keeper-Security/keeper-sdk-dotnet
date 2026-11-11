@@ -70,6 +70,13 @@ namespace Commander
                         case "notes":
                             password.Notes = field.Value;
                             break;
+                        case "totp":
+                        case "onetimecode":
+                            // "oneTimeCode" is the typed-record field name. "otp" is its
+                            // field type, not a legacy-record alias, so custom field "otp"
+                            // continues to be handled by the default branch.
+                            password.Totp = field.Value;
+                            break;
                         default:
                             password.SetCustomField(field.FieldName, field.Value);
                             break;
