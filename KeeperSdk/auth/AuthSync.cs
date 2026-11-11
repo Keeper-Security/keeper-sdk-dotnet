@@ -43,7 +43,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// Constructor.
         /// </summary>
         /// <param name="storage">Configuration storage.</param>
-        /// <param name="endpoint">Keeper Endpoint.</param>
+        /// <param name="endpoint">Keeper Endpoint. If disposable, it is disposed with this authentication instance.</param>
         public AuthSync(IConfigurationStorage storage, IKeeperEndpoint endpoint = null) 
         {
             Storage = storage ?? new InMemoryConfigurationStorage();
