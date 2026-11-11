@@ -41,11 +41,16 @@ namespace Commander
 
                 if (record != null)
                 {
-                    await DisplayRecordInfo(context, record, tab);
+                    await DisplayRecordInfo(context, record, tab, options.Unmask);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
                     tab.LeftPadding = 4;
                     tab.Dump();
+                    context.Vault.AuditLogRecordOpen(record.Uid);
+                    if (options.Unmask && RecordSecurity.HasPassword(record))
+                    {
+                        context.Vault.AuditLogRecordRevealPassword(record.Uid);
+                    }
                     return;
                 }
 
@@ -204,7 +209,7 @@ namespace Commander
             return matches.Count == 1 ? matches[0] : null;
         }
 
-        private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab)
+        private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab, bool unmask)
         {
             var totps = new List<string>();
 
@@ -216,19 +221,19 @@ namespace Commander
             {
                 tab.AddRow("Notes:", legacy.Notes);
                 tab.AddRow("$login:", legacy.Login);
-                tab.AddRow("$password:", legacy.Password);
+                tab.AddRow("$password:", RecordSecurity.Mask(legacy.Password, unmask));
                 tab.AddRow("$url:", legacy.Link);
                 if (!string.IsNullOrEmpty(legacy.Totp))
                 {
                     totps.Add(legacy.Totp);
-                    tab.AddRow("$oneTimeCode:", legacy.Totp);
                 }
 
                 if (legacy.Custom != null && legacy.Custom.Count > 0)
                 {
                     foreach (var c in legacy.Custom)
                     {
-                        tab.AddRow(c.Name + ":", c.Value);
+                        tab.AddRow(c.Name + ":", RecordSecurity.IsSensitive(c.Name)
+                            ? RecordSecurity.Mask(c.Value, unmask) : c.Value);
                     }
                 }
             }
@@ -251,7 +256,8 @@ namespace Commander
                         for (var i = 0; i < Math.Max(values.Length, 1); i++)
                         {
                             var v = i < values.Length ? values[i] : "";
-                            tab.AddRow(i == 0 ? $"{label}:" : "", v);
+                            tab.AddRow(i == 0 ? $"{label}:" : "", RecordSecurity.IsSensitive(f)
+                                ? RecordSecurity.Mask(v, unmask) : v);
                         }
                     }
                 }
@@ -269,7 +275,8 @@ namespace Commander
 
             foreach (var url in totps)
             {
-                tab.AddRow("$oneTimeCode:", url);
+                tab.AddRow("$oneTimeCode:", RecordSecurity.Mask(url, unmask));
+                if (!unmask) continue;
                 try
                 {
                     var tup = CryptoUtils.GetTotpCode(url);
@@ -314,7 +321,6 @@ namespace Commander
                 }
             }
 
-            context.Vault.AuditLogRecordOpen(record.Uid);
         }
 
         private static string FormatUserRecordShareStatus(UserRecordPermissions permission)
@@ -614,5 +620,8 @@ namespace Commander
 
         [Option("include-dag", Required = false, HelpText = "Include classic shared-folder record graph data")]
         public bool IncludeDag { get; set; }
+
+        [Option("unmask", Required = false, HelpText = "display hidden field content")]
+        public bool Unmask { get; set; }
     }
 }
