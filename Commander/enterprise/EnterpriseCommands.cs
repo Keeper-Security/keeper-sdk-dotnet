@@ -4616,6 +4616,14 @@ namespace Commander
                 throw new ArgumentException("--output is supported only with csv or json format.", nameof(options.Output));
 
             var range = (options.Range ?? "last_30_days").ToLowerInvariant();
+            var validRanges = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year"
+            };
+            if (!validRanges.Contains(range))
+                throw new ArgumentException($"Invalid report range: {options.Range}.", nameof(options.Range));
+            if ((options.From.HasValue || options.To.HasValue) && range != "last_30_days")
+                throw new ArgumentException("Custom --from or --to dates cannot be combined with a named --range.");
             var now = DateTimeOffset.Now;
             var to = options.To ?? now;
             var from = options.From ?? range switch
@@ -4651,6 +4659,8 @@ namespace Commander
             string EscapeCsv(object value)
             {
                 var text = value?.ToString() ?? string.Empty;
+                if (value is string && text.Length > 0 && "=+-@\t\r".IndexOf(text[0]) >= 0)
+                    text = "'" + text;
                 return text.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0 ? $"\"{text.Replace("\"", "\"\"")}\"" : text;
             }
             var headers = new[] { "ID", "Time", "Company ID", "Company Name", "Status", "Number Of Allocations", "Plan", "Transaction Notes", "Price Estimate" };

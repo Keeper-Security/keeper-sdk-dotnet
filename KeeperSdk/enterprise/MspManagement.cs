@@ -168,7 +168,14 @@ namespace KeeperSecurity.Enterprise
             string ReEncrypt(string data) => CryptoUtils.EncryptAesV1(CryptoUtils.DecryptAesV1(data.Base64UrlDecode(), Enterprise.TreeKey), mcEnterprise.TreeKey).Base64UrlEncode();
             var request = new NodeToManagedCompanyRequest { CompanyId = company.EnterpriseId };
             foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id))) request.Nodes.Add(new ReEncryptedData { Id = node.Id, Data = ReEncrypt(node.EncryptedData) });
-            foreach (var role in roleData.Roles.Where(x => roleIds.Contains(x.Id))) { request.Roles.Add(new ReEncryptedData { Id = role.Id, Data = ReEncrypt(role.EncryptedData) }); var key = await roleData.GetRoleKey(role.Id); if (key != null) request.RoleKeys.Add(new ReEncryptedRoleKey { RoleId = role.Id, EncryptedRoleKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(key, mcEnterprise.TreeKey)) }); }
+            foreach (var role in roleData.Roles.Where(x => roleIds.Contains(x.Id)))
+            {
+                var key = await roleData.GetRoleKey(role.Id);
+                if (key == null || key.Length == 0)
+                    throw new EnterpriseException($"Role key for '{role.DisplayName}' is unavailable; conversion cannot continue safely.");
+                request.Roles.Add(new ReEncryptedData { Id = role.Id, Data = ReEncrypt(role.EncryptedData) });
+                request.RoleKeys.Add(new ReEncryptedRoleKey { RoleId = role.Id, EncryptedRoleKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(key, mcEnterprise.TreeKey)) });
+            }
             foreach (var user in enterpriseData.Users.Where(x => userIds.Contains(x.Id))) request.Users.Add(new ReEncryptedData { Id = user.Id, Data = user.KeyType == "no_key" ? user.DisplayName : ReEncrypt(user.EncryptedData) });
             foreach (var team in enterpriseData.Teams.Where(x => teamUids.Contains(x.Uid)))
             {
