@@ -59,9 +59,6 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public interface IMspManagement
     {
-        Task<IList<LicenseAdjustmentLogEntry>> GetMspLegacyReport(long from, long to);
-        Task<EnterpriseManagedCompany> ConvertNodeToManagedCompany(EnterpriseData enterpriseData, IRoleData roleData,
-            IQueuedTeamData queuedTeamData, long nodeId, int? seats = null, string productId = "business");
         /// <summary>
         /// Creates Managed Company
         /// </summary>
@@ -85,6 +82,10 @@ namespace KeeperSecurity.Enterprise
 
     public partial class ManagedCompanyData : IMspManagement
     {
+        private const int EnterpriseUserDataKeyTypeEcc = 4;
+        /// <summary>
+        /// Retrieves MSP legacy license adjustment entries for the supplied Unix-millisecond interval.
+        /// </summary>
         public async Task<IList<LicenseAdjustmentLogEntry>> GetMspLegacyReport(long from, long to)
         {
             if (from > to) throw new EnterpriseException("The report start date must not be after the end date.");
@@ -93,6 +94,9 @@ namespace KeeperSecurity.Enterprise
             return response.Log ?? new List<LicenseAdjustmentLogEntry>();
         }
 
+        /// <summary>
+        /// Converts a validated enterprise subtree into a newly created managed company.
+        /// </summary>
         public async Task<EnterpriseManagedCompany> ConvertNodeToManagedCompany(EnterpriseData enterpriseData,
             IRoleData roleData, IQueuedTeamData queuedTeamData, long nodeId, int? seats = null, string productId = "business")
         {
@@ -116,6 +120,18 @@ namespace KeeperSecurity.Enterprise
             var roleIds = new HashSet<long>(roleData.Roles.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Id));
             var teamUids = new HashSet<string>(enterpriseData.Teams.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Uid));
             var userIds = new HashSet<long>(enterpriseData.Users.Where(x => nodeIds.Contains(x.ParentNodeId)).Select(x => x.Id));
+            if (seats.HasValue && seats.Value < userIds.Count)
+                throw new EnterpriseException($"Seat count ({seats.Value}) cannot be lower than the subtree user count ({userIds.Count}).");
+            if (ManagedCompanies.Any(x => string.Equals(x.EnterpriseName, root.DisplayName, StringComparison.Ordinal)))
+                throw new EnterpriseException($"A managed company named '{root.DisplayName}' already exists. Conversion requires a newly created managed company.");
+            if (!(Enterprise is EnterpriseLoader sourceEnterprise) || sourceEnterprise.EcPrivateKey?.Length == 0)
+                throw new EnterpriseException("The MSP enterprise ECC private key is required to preserve user recoverable data keys.");
+            if (enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id)).Any(x => string.IsNullOrWhiteSpace(x.EncryptedData)) ||
+                roleData.Roles.Where(x => roleIds.Contains(x.Id)).Any(x => string.IsNullOrWhiteSpace(x.EncryptedData)) ||
+                enterpriseData.Users.Where(x => userIds.Contains(x.Id) && x.KeyType != "no_key").Any(x => string.IsNullOrWhiteSpace(x.EncryptedData)))
+                throw new EnterpriseException("The subtree contains an entity with missing encrypted data and cannot be converted safely.");
+            if (enterpriseData.TryGetUserByEmail(Enterprise.Auth.Username, out var currentUser) && userIds.Contains(currentUser.Id))
+                throw new EnterpriseException("The subtree contains the signed-in MSP administrator and cannot be converted.");
             var errors = new List<string>();
             foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id)))
             {
@@ -140,9 +156,14 @@ namespace KeeperSecurity.Enterprise
             foreach (var permission in roleData.GetAdminPermissions()) if (roleIds.Contains(permission.RoleId) != nodeIds.Contains(permission.NodeId)) errors.Add("An admin role manages a node outside the subtree.");
             if (errors.Count > 0) throw new EnterpriseException(string.Join(" ", errors.Distinct()));
 
-            var company = ManagedCompanies.FirstOrDefault(x => string.Equals(x.EnterpriseName, root.DisplayName, StringComparison.Ordinal));
-            if (company == null) company = await CreateManagedCompany(new ManagedCompanyOptions { Name = root.DisplayName, NodeId = enterpriseData.RootNode.Id, ProductId = product.ProductCode, NumberOfSeats = Math.Max(seats ?? 0, Math.Max(userIds.Count, 1)) });
-            var mcAuth = new ManagedCompanyAuth(); await mcAuth.LoginToManagedCompany(Enterprise, company.EnterpriseId);
+            EnterpriseManagedCompany company = null;
+            ManagedCompanyAuth mcAuth = null;
+            var createdCompany = false;
+            try
+            {
+            company = await CreateManagedCompany(new ManagedCompanyOptions { Name = root.DisplayName, NodeId = enterpriseData.RootNode.Id, ProductId = product.ProductCode, NumberOfSeats = Math.Max(seats ?? 0, Math.Max(userIds.Count, 1)) });
+            createdCompany = true;
+            mcAuth = new ManagedCompanyAuth(); await mcAuth.LoginToManagedCompany(Enterprise, company.EnterpriseId);
             var mcEnterprise = new EnterpriseLoader(mcAuth, Array.Empty<EnterpriseDataPlugin>()); await mcEnterprise.Load();
             string ReEncrypt(string data) => CryptoUtils.EncryptAesV1(CryptoUtils.DecryptAesV1(data.Base64UrlDecode(), Enterprise.TreeKey), mcEnterprise.TreeKey).Base64UrlEncode();
             var request = new NodeToManagedCompanyRequest { CompanyId = company.EnterpriseId };
@@ -158,7 +179,9 @@ namespace KeeperSecurity.Enterprise
                     teamKey.Force = true;
                 request.TeamKeys.Add(teamKey);
             }
-            if (Enterprise is EnterpriseLoader sourceEnterprise && sourceEnterprise.EcPrivateKey?.Length > 0 && mcEnterprise.EcPrivateKey?.Length > 0)
+            if (mcEnterprise.EcPrivateKey?.Length == 0)
+                throw new EnterpriseException("The managed company ECC private key is required to preserve user recoverable data keys.");
+            if (sourceEnterprise.EcPrivateKey?.Length > 0)
             {
                 var dataKeyRequest = new UserDataKeyByNodeRequest();
                 dataKeyRequest.NodeIds.Add(nodeIds);
@@ -166,7 +189,7 @@ namespace KeeperSecurity.Enterprise
                     "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
                 var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
                 var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
-                foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == 4 && userIds.Contains(x.EnterpriseUserId)))
+                foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == EnterpriseUserDataKeyTypeEcc && userIds.Contains(x.EnterpriseUserId)))
                 {
                     var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
                     request.UsersDataKeys.Add(new ReEncryptedUserDataKey
@@ -178,7 +201,29 @@ namespace KeeperSecurity.Enterprise
             }
             await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
             await Enterprise.Load();
+            createdCompany = false;
             return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == company.EnterpriseId) ?? company;
+            }
+            catch (Exception e)
+            {
+                if (createdCompany && company != null)
+                {
+                    try
+                    {
+                        await RemoveManagedCompany(company.EnterpriseId);
+                    }
+                    catch (Exception cleanupException)
+                    {
+                        throw new EnterpriseException($"Conversion failed and managed company {company.EnterpriseId} could not be removed: {cleanupException.Message}. Original error: {e.Message}");
+                    }
+                }
+                throw;
+            }
+            finally
+            {
+                if (mcAuth != null)
+                    await mcAuth.Logout();
+            }
         }
 
         /// <inheritdoc/>

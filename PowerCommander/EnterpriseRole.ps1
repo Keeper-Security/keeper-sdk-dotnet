@@ -771,6 +771,18 @@ function New-KeeperEnterpriseRole {
         }
     }
 
+    $managedNodesToAdd = @()
+    $managedNodeIds = [System.Collections.Generic.HashSet[long]]::new()
+    foreach ($adminNodeInput in @($AddAdmin)) {
+        if ([string]::IsNullOrWhiteSpace($adminNodeInput)) { continue }
+        $inputValue = $adminNodeInput.Trim()
+        $matches = @($enterpriseData.Nodes | Where-Object { $_.Id.ToString() -eq $inputValue -or $_.DisplayName -ieq $inputValue })
+        if ($matches.Count -eq 0) { Write-Error "Node `"$inputValue`" could not be resolved." -ErrorAction Stop }
+        if ($matches.Count -ne 1) { Write-Error "Node name `"$inputValue`" is not unique. Use Node ID." -ErrorAction Stop }
+        if (-not $managedNodeIds.Add([long]$matches[0].Id)) { Write-Error "Managed node `"$inputValue`" was specified more than once." -ErrorAction Stop }
+        $managedNodesToAdd += $matches[0]
+    }
+
     $createdRoles = @()
     foreach ($roleName in $Role) {
         if ([string]::IsNullOrWhiteSpace($roleName)) {
@@ -808,8 +820,6 @@ function New-KeeperEnterpriseRole {
                 }
 
                 Write-Output "Role `"$roleName`" created successfully (ID: $($createdRole.Id))"
-                $managedNodeIds = [System.Collections.Generic.HashSet[long]]::new()
-
                 if ($visibleBelowBool) {
                     try {
                         $updatedRole = $roleData.UpdateRole($createdRole, $null, $true, $null).GetAwaiter().GetResult()
@@ -857,34 +867,12 @@ function New-KeeperEnterpriseRole {
                     }
                 }
 
-                foreach ($adminNodeInput in @($AddAdmin)) {
-                    if ([string]::IsNullOrWhiteSpace($adminNodeInput)) {
-                        continue
-                    }
-
-                    $adminNodeInput = $adminNodeInput.Trim()
-                    $managedNodes = @($enterpriseData.Nodes | Where-Object {
-                        $_.Id.ToString() -eq $adminNodeInput -or $_.DisplayName -ieq $adminNodeInput
-                    })
-                    if ($managedNodes.Count -eq 0) {
-                        Write-Warning "Node `"$adminNodeInput`" could not be resolved. Role `"$roleName`" was created without this managed node."
-                        continue
-                    }
-                    if ($managedNodes.Count -gt 1) {
-                        Write-Warning "Node name `"$adminNodeInput`" is not unique. Use Node ID. Role `"$roleName`" was created without this managed node."
-                        continue
-                    }
-                    if (-not $managedNodeIds.Add([long]$managedNodes[0].Id)) {
-                        Write-Verbose "Managed node `"$($managedNodes[0].DisplayName)`" was specified more than once. Skipping duplicate."
-                        continue
-                    }
-
+                foreach ($managedNode in $managedNodesToAdd) {
                     try {
-                        $roleData.RoleManagedNodeAdd($createdRole, $managedNodes[0], $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
-                        Write-Verbose "Managed node `"$($managedNodes[0].DisplayName)`" added to role `"$roleName`""
+                        $roleData.RoleManagedNodeAdd($createdRole, $managedNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
                     }
                     catch {
-                        Write-Warning "Failed to add managed node `"$adminNodeInput`" to role `"$roleName`": $($_.Exception.Message)"
+                        throw "Role `"$roleName`" was created, but managed node `"$($managedNode.DisplayName)`" could not be added: $($_.Exception.Message)"
                     }
                 }
 

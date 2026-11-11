@@ -481,7 +481,7 @@ namespace KeeperSecurity.Vault
                 IsFolder = false,
                 Title = title,
                 RecordType = recordType,
-                Status = "NSF Record",
+                Status = "Drive",
                 DateDeleted = record.DateDeleted,
             };
         }
@@ -495,7 +495,7 @@ namespace KeeperSecurity.Vault
                 Uid = folder.FolderUid,
                 IsFolder = true,
                 Title = folder.Name ?? folder.FolderUid,
-                Status = "NSF Folder",
+                Status = "Drive Folder",
                 DateDeleted = folder.DateDeleted,
             };
         }

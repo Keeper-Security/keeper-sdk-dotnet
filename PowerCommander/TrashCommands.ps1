@@ -176,19 +176,7 @@ function Get-KeeperTrashList {
     $results = @($recordResults) + @($folderResults) + @($nsfResults)
 
     if ($results.Count -gt 0) {
-        $numberedResults = for ($index = 0; $index -lt $results.Count; $index++) {
-            $row = $results[$index]
-            [PSCustomObject]@{
-                '#' = $index + 1
-                'Folder UID' = $row.'Folder UID'
-                'Record UID' = $row.'Record UID'
-                'Name' = $row.Name
-                'Record Type' = $row.'Record Type'
-                'Deleted At' = $row.'Deleted At'
-                'Status' = $row.Status
-            }
-        }
-        $numberedResults | Format-Table -Property '#', 'Folder UID', 'Record UID', Name, 'Record Type', 'Deleted At', Status -AutoSize -Wrap
+        $results | Format-Table -Property 'Folder UID', 'Record UID', Name, 'Record Type', 'Deleted At', Status -AutoSize -Wrap
     }
     elseif ($classicTrashIsEmpty) {
         Write-Host "Trash is empty"
@@ -238,7 +226,7 @@ function Get-NsfTrashTableData {
                 'Folder UID' = $item.Uid
                 'Record UID' = ""
                 'Name' = $item.Title
-                'Record Type' = "Drive Folder"
+                'Record Type' = "NSF Folder"
                 'Deleted At' = $deletedAt
                 'Status' = "NSF Folder"
             }
