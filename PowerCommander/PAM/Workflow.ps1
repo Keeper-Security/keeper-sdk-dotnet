@@ -333,9 +333,13 @@ function Deny-KeeperPamWorkflowAccess {
     $trimmedReason = if ($null -ne $Reason) { $Reason.Trim() } else { '' }
     $denialReasonEncrypted = $null
     if (-not [string]::IsNullOrEmpty($trimmedReason)) {
+        $vault = getVault
         $denialReasonEncrypted = invokePamSdkCall {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::TryEncryptDenialReasonAsync(
-                $auth, $flowUidBytes, $trimmedReason).GetAwaiter().GetResult()
+            $encryptedReason = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::TryEncryptDenialReasonAsync(
+                $auth, $vault, $flowUidBytes, $trimmedReason).GetAwaiter().GetResult()
+            if ($null -ne $encryptedReason) {
+                Write-Output -NoEnumerate $encryptedReason
+            }
         }
         if ($null -eq $denialReasonEncrypted) {
             Write-Warning 'Could not encrypt denial reason for the requester -- reason will not be attached. The denial itself will still be sent.'
