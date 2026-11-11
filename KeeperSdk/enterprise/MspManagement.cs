@@ -124,7 +124,7 @@ namespace KeeperSecurity.Enterprise
                 throw new EnterpriseException($"Seat count ({seats.Value}) cannot be lower than the subtree user count ({userIds.Count}).");
             if (ManagedCompanies.Any(x => string.Equals(x.EnterpriseName, root.DisplayName, StringComparison.Ordinal)))
                 throw new EnterpriseException($"A managed company named '{root.DisplayName}' already exists. Conversion requires a newly created managed company.");
-            if (!(Enterprise is EnterpriseLoader sourceEnterprise) || sourceEnterprise.EcPrivateKey?.Length == 0)
+            if (!(Enterprise is EnterpriseLoader sourceEnterprise) || sourceEnterprise.EcPrivateKey is not { Length: > 0 })
                 throw new EnterpriseException("The MSP enterprise ECC private key is required to preserve user recoverable data keys.");
             if (enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id)).Any(x => string.IsNullOrWhiteSpace(x.EncryptedData)) ||
                 roleData.Roles.Where(x => roleIds.Contains(x.Id)).Any(x => string.IsNullOrWhiteSpace(x.EncryptedData)) ||
@@ -179,9 +179,8 @@ namespace KeeperSecurity.Enterprise
                     teamKey.Force = true;
                 request.TeamKeys.Add(teamKey);
             }
-            if (mcEnterprise.EcPrivateKey?.Length == 0)
+            if (mcEnterprise.EcPrivateKey is not { Length: > 0 })
                 throw new EnterpriseException("The managed company ECC private key is required to preserve user recoverable data keys.");
-            if (sourceEnterprise.EcPrivateKey?.Length > 0)
             {
                 var dataKeyRequest = new UserDataKeyByNodeRequest();
                 dataKeyRequest.NodeIds.Add(nodeIds);
@@ -199,9 +198,9 @@ namespace KeeperSecurity.Enterprise
                     });
                 }
             }
+            createdCompany = false;
             await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
             await Enterprise.Load();
-            createdCompany = false;
             return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == company.EnterpriseId) ?? company;
             }
             catch (Exception e)
@@ -217,6 +216,8 @@ namespace KeeperSecurity.Enterprise
                         throw new EnterpriseException($"Conversion failed and managed company {company.EnterpriseId} could not be removed: {cleanupException.Message}. Original error: {e.Message}");
                     }
                 }
+                if (company != null)
+                    throw new EnterpriseException($"Conversion outcome is unknown for managed company {company.EnterpriseId}. It was not removed. Original error: {e.Message}");
                 throw;
             }
             finally

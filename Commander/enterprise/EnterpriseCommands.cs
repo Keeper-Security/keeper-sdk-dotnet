@@ -4674,7 +4674,7 @@ namespace Commander
             if (!options.Force)
             {
                 Console.Write($"Convert node subtree \"{node.DisplayName}\" to a new managed company? This operation cannot be undone. (yes/No) ");
-                var answer = Console.ReadLine()?.Trim();
+                var answer = (await Program.GetInputManager().ReadLine())?.Trim();
                 if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase) && !string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Conversion cancelled.");
