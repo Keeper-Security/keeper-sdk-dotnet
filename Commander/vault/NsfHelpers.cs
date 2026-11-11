@@ -25,8 +25,6 @@ namespace Commander
         internal const int FolderLabelWidth = 25;
         internal const string KdRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
 
-        private static readonly string[] SecretFieldTypes = { "password", "secret", "privateKey", "passkey", "otp" };
-
         private static readonly Dictionary<int, string> AccessRoleLabels = new Dictionary<int, string>
         {
             { 0, "contributor" },
@@ -66,8 +64,6 @@ namespace Commander
         private static Dictionary<string, string> _shareObjectsCache;
         private static Dictionary<string, string> _shareObjectsTeamCache;
         private static string _shareObjectsCacheAccountUid;
-
-        internal static bool PasswordVisible { get; set; }
 
         internal static string GetAccessRoleLabel(int roleType)
         {
@@ -286,11 +282,6 @@ namespace Commander
             return string.IsNullOrWhiteSpace(fieldType)
                 ? fieldType
                 : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(fieldType.ToLower());
-        }
-
-        internal static bool IsSecretField(string fieldType)
-        {
-            return SecretFieldTypes.Contains(fieldType);
         }
 
         internal static Dictionary<string, object> ParseFieldSpecs(IEnumerable<string> fieldSpecs, bool generatePassword, out int parsedCount)
