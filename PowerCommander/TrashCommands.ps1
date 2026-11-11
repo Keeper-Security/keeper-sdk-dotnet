@@ -176,7 +176,19 @@ function Get-KeeperTrashList {
     $results = @($recordResults) + @($folderResults) + @($nsfResults)
 
     if ($results.Count -gt 0) {
-        $results | Format-Table -AutoSize -Wrap
+        $numberedResults = for ($index = 0; $index -lt $results.Count; $index++) {
+            $row = $results[$index]
+            [PSCustomObject]@{
+                '#' = $index + 1
+                'Folder UID' = $row.'Folder UID'
+                'Record UID' = $row.'Record UID'
+                'Name' = $row.Name
+                'Record Type' = $row.'Record Type'
+                'Deleted At' = $row.'Deleted At'
+                'Status' = $row.Status
+            }
+        }
+        $numberedResults | Format-Table -Property '#', 'Folder UID', 'Record UID', Name, 'Record Type', 'Deleted At', Status -AutoSize -Wrap
     }
     elseif ($classicTrashIsEmpty) {
         Write-Host "Trash is empty"
@@ -228,7 +240,7 @@ function Get-NsfTrashTableData {
                 'Name' = $item.Title
                 'Record Type' = "Drive Folder"
                 'Deleted At' = $deletedAt
-                'Status' = "Drive Folder"
+                'Status' = "NSF Folder"
             }
         }
         else {
@@ -238,7 +250,7 @@ function Get-NsfTrashTableData {
                 'Name' = $item.Title
                 'Record Type' = $item.RecordType
                 'Deleted At' = $deletedAt
-                'Status' = "Drive"
+                'Status' = "NSF Record"
             }
         }
     }
@@ -374,7 +386,7 @@ function Get-FolderTableData {
                             'Name' = $metadata.Title
                             'Record Type' = $metadata.Type
                             'Deleted At' = Get-DeletedDate -Timestamp $record.DateDeleted
-                            'Status' = "Share"
+                            'Status' = "Folder"
                         }
                     }
                 }

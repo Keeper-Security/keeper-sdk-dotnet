@@ -126,8 +126,8 @@ namespace Commander
                     : (DateTime?) null;
 
                 nsfTable.Add(item.IsFolder
-                    ? new object[] { item.Uid, "", item.Title, "Drive Folder", dateDeleted, "Drive Folder" }
-                    : new object[] { "", item.Uid, item.Title, item.RecordType, dateDeleted, "Drive" });
+                    ? new object[] { item.Uid, "", item.Title, "Drive Folder", dateDeleted, "NSF Folder" }
+                    : new object[] { "", item.Uid, item.Title, item.RecordType, dateDeleted, "NSF Record" });
             }
 
             return nsfTable;
