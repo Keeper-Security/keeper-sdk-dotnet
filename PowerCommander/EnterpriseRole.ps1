@@ -776,11 +776,11 @@ function New-KeeperEnterpriseRole {
     foreach ($adminNodeInput in @($AddAdmin)) {
         if ([string]::IsNullOrWhiteSpace($adminNodeInput)) { continue }
         $inputValue = $adminNodeInput.Trim()
-        $matches = @($enterpriseData.Nodes | Where-Object { $_.Id.ToString() -eq $inputValue -or $_.DisplayName -ieq $inputValue })
-        if ($matches.Count -eq 0) { Write-Error "Node `"$inputValue`" could not be resolved." -ErrorAction Stop }
-        if ($matches.Count -ne 1) { Write-Error "Node name `"$inputValue`" is not unique. Use Node ID." -ErrorAction Stop }
-        if (-not $managedNodeIds.Add([long]$matches[0].Id)) { Write-Error "Managed node `"$inputValue`" was specified more than once." -ErrorAction Stop }
-        $managedNodesToAdd += $matches[0]
+        $nodeMatches = @($enterpriseData.Nodes | Where-Object { $_.Id.ToString() -eq $inputValue -or $_.DisplayName -ieq $inputValue })
+        if ($nodeMatches.Count -eq 0) { Write-Error "Node `"$inputValue`" could not be resolved." -ErrorAction Stop }
+        if ($nodeMatches.Count -ne 1) { Write-Error "Node name `"$inputValue`" is not unique. Use Node ID." -ErrorAction Stop }
+        if (-not $managedNodeIds.Add([long]$nodeMatches[0].Id)) { Write-Error "Managed node `"$inputValue`" was specified more than once." -ErrorAction Stop }
+        $managedNodesToAdd += $nodeMatches[0]
     }
 
     $createdRoles = @()
@@ -811,6 +811,7 @@ function New-KeeperEnterpriseRole {
         }
 
         if ($PSCmdlet.ShouldProcess($roleName, "Create Enterprise Role")) {
+            $createdRole = $null
             try {
                 $createdRole = $roleData.CreateRole($roleName, $nodeId, $newUserInherit).GetAwaiter().GetResult()
                 
@@ -893,7 +894,9 @@ function New-KeeperEnterpriseRole {
                 }
             }
             catch {
-                Write-Error "Failed to create role `"$roleName`": $($_.Exception.Message)" `
+                $errorPrefix = if ($createdRole) { "Role `"$roleName`" was created (ID: $($createdRole.Id)), but configuration failed" } else { "Failed to create role `"$roleName`"" }
+                if ($createdRole) { $createdRoles += $createdRole }
+                Write-Error "${errorPrefix}: $($_.Exception.Message)" `
                     -ErrorAction Continue `
                     -ErrorId "RoleCreationFailed" `
                     -Category InvalidOperation

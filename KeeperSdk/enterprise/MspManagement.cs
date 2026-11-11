@@ -181,22 +181,20 @@ namespace KeeperSecurity.Enterprise
             }
             if (mcEnterprise.EcPrivateKey is not { Length: > 0 })
                 throw new EnterpriseException("The managed company ECC private key is required to preserve user recoverable data keys.");
+            var dataKeyRequest = new UserDataKeyByNodeRequest();
+            dataKeyRequest.NodeIds.Add(nodeIds);
+            var dataKeys = await Enterprise.Auth.ExecuteAuthRest<UserDataKeyByNodeRequest, EnterpriseUserDataKeysByNodeResponse>(
+                "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
+            var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
+            var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
+            foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == EnterpriseUserDataKeyTypeEcc && userIds.Contains(x.EnterpriseUserId)))
             {
-                var dataKeyRequest = new UserDataKeyByNodeRequest();
-                dataKeyRequest.NodeIds.Add(nodeIds);
-                var dataKeys = await Enterprise.Auth.ExecuteAuthRest<UserDataKeyByNodeRequest, EnterpriseUserDataKeysByNodeResponse>(
-                    "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
-                var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
-                var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
-                foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == EnterpriseUserDataKeyTypeEcc && userIds.Contains(x.EnterpriseUserId)))
+                var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
+                request.UsersDataKeys.Add(new ReEncryptedUserDataKey
                 {
-                    var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
-                    request.UsersDataKeys.Add(new ReEncryptedUserDataKey
-                    {
-                        EnterpriseUserId = key.EnterpriseUserId,
-                        UserEncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(plainKey, targetPublicKey))
-                    });
-                }
+                    EnterpriseUserId = key.EnterpriseUserId,
+                    UserEncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(plainKey, targetPublicKey))
+                });
             }
             createdCompany = false;
             await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
@@ -215,15 +213,25 @@ namespace KeeperSecurity.Enterprise
                     {
                         throw new EnterpriseException($"Conversion failed and managed company {company.EnterpriseId} could not be removed: {cleanupException.Message}. Original error: {e.Message}");
                     }
+                    throw new EnterpriseException($"Conversion failed; managed company {company.EnterpriseId} was removed. Original error: {e.Message}");
                 }
-                if (company != null)
+                else if (company != null)
                     throw new EnterpriseException($"Conversion outcome is unknown for managed company {company.EnterpriseId}. It was not removed. Original error: {e.Message}");
                 throw;
             }
             finally
             {
                 if (mcAuth != null)
-                    await mcAuth.Logout();
+                {
+                    try
+                    {
+                        await mcAuth.Logout();
+                    }
+                    catch (Exception logoutException)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Managed company logout failed: {logoutException.Message}");
+                    }
+                }
             }
         }
 
