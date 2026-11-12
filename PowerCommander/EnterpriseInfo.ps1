@@ -482,16 +482,44 @@ function Get-KeeperEnterpriseInfoTeam {
     }
 }
 
+function ConvertTo-EnterpriseInfoFilterText {
+    param([object]$Value)
+
+    if ($null -eq $Value) { return '' }
+    if ($Value -is [string] -or $Value.GetType().IsValueType) { return [string]$Value }
+
+    $parts = [System.Collections.Generic.List[string]]::new()
+    if ($Value -is [System.Collections.IDictionary]) {
+        foreach ($key in $Value.Keys) {
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText $key))
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText $Value[$key]))
+        }
+    } elseif ($Value -is [System.Collections.IEnumerable]) {
+        foreach ($item in $Value) {
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText $item))
+        }
+    } elseif ($Value -is [System.Management.Automation.PSCustomObject]) {
+        foreach ($property in $Value.PSObject.Properties) {
+            $parts.Add($property.Name)
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText $property.Value))
+        }
+    } else {
+        return [string]$Value
+    }
+
+    return ($parts -join ' ')
+}
+
 function Get-KeeperEnterpriseInfoRole {
     <#
     .SYNOPSIS
     Display role information as a table.
     .DESCRIPTION
-    Outputs roles with node, user/team counts, admin flag, and optional user/team lists.
+    Outputs roles with node, user/team counts, admin flag, enforcement policies, managed-node permissions and cascade settings, and optional user/team lists.
     .PARAMETER Pattern
     Optional search pattern to filter roles.
     .PARAMETER Columns
-    Comma-separated columns: visible_below, default_role, admin, node, user_count, users, team_count, teams. Default: default_role, admin, node, user_count.
+    Comma-separated columns: visible_below, default_role, admin, node, user_count, users, team_count, teams, enforcements, managed_nodes, managed_nodes_permissions. Default: default_role, admin, node, user_count.
     .PARAMETER Node
     Filter by node name or ID: only roles in this node or its descendants.
     .PARAMETER Format
@@ -543,15 +571,59 @@ function Get-KeeperEnterpriseInfoRole {
             $nodeFilterIds = Get-EnterpriseNodeAndDescendantIds $ed $resolved.Id
         }
     }
+    $colSet = @('visible_below', 'default_role', 'admin', 'node', 'user_count')
+    if ($Columns) {
+        $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(visible_below|default_role|admin|node|user_count|users|team_count|teams|enforcements|managed_nodes|managed_nodes_permissions)$' })
+        if ($colSet.Count -eq 0) { $colSet = @('default_role', 'admin', 'node', 'user_count') }
+    }
+    $needsEnforcements = $colSet -contains 'enforcements'
+    $needsManagedNodes = $colSet -contains 'managed_nodes'
+    $needsManagedNodePermissions = $colSet -contains 'managed_nodes_permissions'
+
     $managedNodes = @($rd.GetManagedNodes())
     $adminRoleIds = [System.Collections.Generic.HashSet[long]]::new()
     foreach ($mn in $managedNodes) { [void]$adminRoleIds.Add($mn.RoleId) }
-    $colSet = @('visible_below', 'default_role', 'admin', 'node', 'user_count')
-    if ($Columns) {
-        $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(visible_below|default_role|admin|node|user_count|users|team_count|teams)$' })
-        if ($colSet.Count -eq 0) { $colSet = @('default_role', 'admin', 'node', 'user_count') }
+    $roleEnforcements = @{}
+    if ($needsEnforcements) {
+        foreach ($r in $rd.Roles) {
+            $roleEnforcements[$r.Id] = @(
+                $rd.GetEnforcementsForRole($r.Id) |
+                    ForEach-Object { [string]$_.EnforcementType } |
+                    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                    Sort-Object -Unique
+            )
+        }
     }
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
+    $roleManagedNodes = @{}
+    if ($needsManagedNodes -or $needsManagedNodePermissions) {
+        foreach ($mn in $managedNodes) {
+            $managedNode = $null
+            $nodeName = if ($ed.TryGetNode($mn.ManagedNodeId, [ref]$managedNode) -and -not [string]::IsNullOrWhiteSpace($managedNode.DisplayName)) {
+                $managedNode.DisplayName
+            } else {
+                $mn.ManagedNodeId.ToString()
+            }
+            $permissions = @()
+            if ($needsManagedNodePermissions) {
+                $permissions = @(
+                    $rd.GetPrivilegesForRoleAndNode($mn.RoleId, $mn.ManagedNodeId) |
+                        ForEach-Object { ([string]$_.PrivilegeType).ToLowerInvariant() } |
+                        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                        Sort-Object -Unique
+                )
+            }
+            $managedNodeInfo = [PSCustomObject]@{
+                node = $nodeName
+                permissions = $permissions
+                cascade = [bool]$mn.CascadeNodeManagement
+            }
+            if (-not $roleManagedNodes.ContainsKey($mn.RoleId)) {
+                $roleManagedNodes[$mn.RoleId] = [System.Collections.Generic.List[object]]::new()
+            }
+            $roleManagedNodes[$mn.RoleId].Add($managedNodeInfo)
+        }
+    }
+    $patternLower = if ($Pattern) { $Pattern.Trim().ToLowerInvariant() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($r in ($rd.Roles | Sort-Object { $_.DisplayName })) {
         $nid = if ($r.ParentNodeId -le 0) { $ed.RootNode.Id } else { $r.ParentNodeId }
@@ -567,11 +639,36 @@ function Get-KeeperEnterpriseInfoRole {
                 'users'         { $row['Users'] = ($userList[$r.Id] -join ', ') }
                 'team_count'    { $arr = $teamList[$r.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'         { $row['Teams'] = (($teamList[$r.Id] | Sort-Object) -join ', ') }
+                'enforcements'  {
+                    $items = @($roleEnforcements[$r.Id])
+                    if ($Format -eq 'json') { $row['Enforcements'] = $items }
+                    else { $row['Enforcements'] = $items -join ', ' }
+                }
+                'managed_nodes' {
+                    $items = @()
+                    if ($roleManagedNodes.ContainsKey($r.Id)) {
+                        $items = @($roleManagedNodes[$r.Id] | ForEach-Object { $_.node })
+                    }
+                    if ($Format -eq 'json') { $row['ManagedNodes'] = $items }
+                    else { $row['ManagedNodes'] = $items -join ', ' }
+                }
+                'managed_nodes_permissions' {
+                    $items = [object[]]@()
+                    if ($roleManagedNodes.ContainsKey($r.Id)) {
+                        $items = [object[]]$roleManagedNodes[$r.Id].ToArray()
+                    }
+                    if ($Format -eq 'json') { $row['ManagedNodesPermissions'] = $items }
+                    else {
+                        $row['ManagedNodesPermissions'] = @($items | ForEach-Object {
+                            "$($_.node) [$($_.permissions -join ', ')] (cascade: $($_.cascade))"
+                        }) -join '; '
+                    }
+                }
             }
         }
         if ($patternLower) {
-            $text = ($row.Values | ForEach-Object { $_ }) -join ' '
-            if ($text -notmatch [regex]::Escape($patternLower)) { continue }
+            $text = ($row.Values | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
+            if ($text.IndexOf($patternLower, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
