@@ -14,7 +14,7 @@
     ModuleVersion        = '1.1.7'
 
     # Supported PSEditions
-    CompatiblePSEditions = @('Desktop', 'Core')
+    CompatiblePSEditions = @('Core')
 
     # ID used to uniquely identify this module
     GUID                 = 'aa8a313b-fdb6-41ea-9eed-b7441d7392a1'
@@ -31,8 +31,8 @@
     # Description of the functionality provided by this module
     Description          = 'PowerShell Commander'
 
-    # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion    = '5.1'
+    # Minimum supported PowerShell Core version. Requires the .NET 10 KeeperSdk.dll.
+    PowerShellVersion    = '7.6'
 
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''
