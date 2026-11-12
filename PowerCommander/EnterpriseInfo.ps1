@@ -153,7 +153,7 @@ function Get-KeeperEnterpriseInfoNode {
     .DESCRIPTION
     Outputs nodes with parent path, user/team/role counts, and optionally user/team/role lists and provisioning.
     .PARAMETER Pattern
-    Optional search pattern to filter nodes.
+    Optional literal, case-insensitive substring used to filter nodes (regular expressions are not supported).
     .PARAMETER Columns
     Comma-separated columns: parent_node, user_count, users, team_count, teams, role_count, roles, provisioning. Default: parent_node, user_count, team_count, role_count.
     .PARAMETER Node
@@ -212,7 +212,7 @@ function Get-KeeperEnterpriseInfoNode {
         $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(parent_node|user_count|users|team_count|teams|role_count|roles|provisioning)$' })
         if ($colSet.Count -eq 0) { $colSet = @('parent_node', 'user_count', 'team_count', 'role_count') }
     }
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
+    $patternText = if ($Pattern) { $Pattern.Trim() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($n in ($ed.Nodes | Sort-Object { $_.DisplayName })) {
         if ($nodeFilterIds -and -not $nodeFilterIds.Contains($n.Id)) { continue }
@@ -229,9 +229,9 @@ function Get-KeeperEnterpriseInfoNode {
                 'provisioning'  { $parts = @(); if ($n.BridgeId -gt 0) { $parts += 'Bridge' }; if ($n.ScimId -gt 0) { $parts += 'SCIM' }; if ($n.SsoServiceProviderIds -and $n.SsoServiceProviderIds.Length -gt 0) { $parts += 'SSO' }; $row['Provisioning'] = ($parts -join ', ') }
             }
         }
-        if ($patternLower) {
-            $text = ($row.Values | ForEach-Object { $_ }) -join ' '
-            if ($text -notmatch [regex]::Escape($patternLower)) { continue }
+        if ($patternText) {
+            $text = ($row.Values | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
+            if ($text.IndexOf($patternText, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
@@ -256,7 +256,7 @@ function Get-KeeperEnterpriseInfoUser {
     Outputs users with status, node, roles, teams, and optional columns.
     With -Verbose, node, role, and team values are returned as IDs instead of names.
     .PARAMETER Pattern
-    Optional search pattern to filter users.
+    Optional literal, case-insensitive substring used to filter users (regular expressions are not supported).
     .PARAMETER Columns
     Comma-separated columns: name, status, transfer_status, node, role_count, roles, team_count, teams, queued_team_count, queued_teams, alias, 2fa_enabled. Default: name, status, transfer_status, node.
     .PARAMETER Node
@@ -322,7 +322,7 @@ function Get-KeeperEnterpriseInfoUser {
     }
     $statusText = $Script:UserStatusText
     $transferText = $Script:TransferStatusText
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
+    $patternText = if ($Pattern) { $Pattern.Trim() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($u in ($ed.Users | Sort-Object { $_.Email })) {
         $nid = if ($u.ParentNodeId -le 0) { $ed.RootNode.Id } else { $u.ParentNodeId }
@@ -357,9 +357,9 @@ function Get-KeeperEnterpriseInfoUser {
                 '2fa_enabled'      { $row['2FAEnabled'] = $u.TwoFactorEnabled }
             }
         }
-        if ($patternLower) {
-            $text = ($row.Values | ForEach-Object { $_ }) -join ' '
-            if ($text -notmatch [regex]::Escape($patternLower)) { continue }
+        if ($patternText) {
+            $text = ($row.Values | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
+            if ($text.IndexOf($patternText, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
@@ -382,7 +382,7 @@ function Get-KeeperEnterpriseInfoTeam {
     .DESCRIPTION
     Outputs teams with restricts (Read/Write/Share), node, user/role counts, and optional user/role lists.
     .PARAMETER Pattern
-    Optional search pattern to filter teams.
+    Optional literal, case-insensitive substring used to filter teams (regular expressions are not supported).
     .PARAMETER Columns
     Comma-separated columns: restricts, node, user_count, users, queued_user_count, queued_users, role_count, roles. Default: restricts, node, user_count.
     .PARAMETER Node
@@ -441,7 +441,7 @@ function Get-KeeperEnterpriseInfoTeam {
         $colSet = @($Columns -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^(restricts|node|user_count|users|queued_user_count|queued_users|role_count|roles)$' })
         if ($colSet.Count -eq 0) { $colSet = @('restricts', 'node', 'user_count') }
     }
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
+    $patternText = if ($Pattern) { $Pattern.Trim() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($t in ($ed.Teams | Sort-Object { $_.Name })) {
         $nid = if ($t.ParentNodeId -eq 0) { $ed.RootNode.Id } else { $t.ParentNodeId }
@@ -464,9 +464,9 @@ function Get-KeeperEnterpriseInfoTeam {
                 'roles'            { $row['Roles'] = (($roleList[$t.Uid] | Sort-Object) -join ', ') }
             }
         }
-        if ($patternLower) {
-            $text = ($row.Values | ForEach-Object { $_ }) -join ' '
-            if ($text -notmatch [regex]::Escape($patternLower)) { continue }
+        if ($patternText) {
+            $text = ($row.Values | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
+            if ($text.IndexOf($patternText, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
@@ -483,25 +483,28 @@ function Get-KeeperEnterpriseInfoTeam {
 }
 
 function ConvertTo-EnterpriseInfoFilterText {
-    param([object]$Value)
+    param(
+        [object]$Value,
+        [int]$Depth = 0
+    )
 
-    if ($null -eq $Value) { return '' }
+    if ($null -eq $Value -or $Depth -gt 10) { return '' }
     if ($Value -is [string] -or $Value.GetType().IsValueType) { return [string]$Value }
 
     $parts = [System.Collections.Generic.List[string]]::new()
     if ($Value -is [System.Collections.IDictionary]) {
         foreach ($key in $Value.Keys) {
-            $parts.Add((ConvertTo-EnterpriseInfoFilterText $key))
-            $parts.Add((ConvertTo-EnterpriseInfoFilterText $Value[$key]))
-        }
-    } elseif ($Value -is [System.Collections.IEnumerable]) {
-        foreach ($item in $Value) {
-            $parts.Add((ConvertTo-EnterpriseInfoFilterText $item))
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText -Value $key -Depth ($Depth + 1)))
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText -Value $Value[$key] -Depth ($Depth + 1)))
         }
     } elseif ($Value -is [System.Management.Automation.PSCustomObject]) {
         foreach ($property in $Value.PSObject.Properties) {
             $parts.Add($property.Name)
-            $parts.Add((ConvertTo-EnterpriseInfoFilterText $property.Value))
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText -Value $property.Value -Depth ($Depth + 1)))
+        }
+    } elseif ($Value -is [System.Collections.IEnumerable]) {
+        foreach ($item in $Value) {
+            $parts.Add((ConvertTo-EnterpriseInfoFilterText -Value $item -Depth ($Depth + 1)))
         }
     } else {
         return [string]$Value
@@ -517,9 +520,10 @@ function Get-KeeperEnterpriseInfoRole {
     .DESCRIPTION
     Outputs roles with node, user/team counts, admin flag, enforcement policies, managed-node permissions and cascade settings, and optional user/team lists.
     .PARAMETER Pattern
-    Optional search pattern to filter roles.
+    Optional literal, case-insensitive substring used to filter roles (regular expressions are not supported).
     .PARAMETER Columns
     Comma-separated columns: visible_below, default_role, admin, node, user_count, users, team_count, teams, enforcements, managed_nodes, managed_nodes_permissions. Default: default_role, admin, node, user_count.
+    In JSON format, enforcements is an object mapping policy names to configured values; table output lists policy names.
     .PARAMETER Node
     Filter by node name or ID: only roles in this node or its descendants.
     .PARAMETER Format
@@ -586,12 +590,14 @@ function Get-KeeperEnterpriseInfoRole {
     $roleEnforcements = @{}
     if ($needsEnforcements) {
         foreach ($r in $rd.Roles) {
-            $roleEnforcements[$r.Id] = @(
-                $rd.GetEnforcementsForRole($r.Id) |
-                    ForEach-Object { [string]$_.EnforcementType } |
-                    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-                    Sort-Object -Unique
-            )
+            $enforcementMap = @{}
+            foreach ($enforcement in $rd.GetEnforcementsForRole($r.Id)) {
+                $type = [string]$enforcement.EnforcementType
+                if (-not [string]::IsNullOrWhiteSpace($type)) {
+                    $enforcementMap[$type] = $enforcement.Value
+                }
+            }
+            $roleEnforcements[$r.Id] = $enforcementMap
         }
     }
     $roleManagedNodes = @{}
@@ -623,7 +629,7 @@ function Get-KeeperEnterpriseInfoRole {
             $roleManagedNodes[$mn.RoleId].Add($managedNodeInfo)
         }
     }
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLowerInvariant() } else { '' }
+    $patternText = if ($Pattern) { $Pattern.Trim() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($r in ($rd.Roles | Sort-Object { $_.DisplayName })) {
         $nid = if ($r.ParentNodeId -le 0) { $ed.RootNode.Id } else { $r.ParentNodeId }
@@ -640,8 +646,10 @@ function Get-KeeperEnterpriseInfoRole {
                 'team_count'    { $arr = $teamList[$r.Id]; if ($null -ne $arr) { $row['TeamCount'] = $arr.Count } else { $row['TeamCount'] = 0 } }
                 'teams'         { $row['Teams'] = (($teamList[$r.Id] | Sort-Object) -join ', ') }
                 'enforcements'  {
-                    $items = @($roleEnforcements[$r.Id])
-                    if ($Format -eq 'json') { $row['Enforcements'] = $items }
+                    $enforcementMap = $roleEnforcements[$r.Id]
+                    if ($null -eq $enforcementMap) { $enforcementMap = @{} }
+                    $items = @($enforcementMap.Keys | Sort-Object)
+                    if ($Format -eq 'json') { $row['Enforcements'] = $enforcementMap }
                     else { $row['Enforcements'] = $items -join ', ' }
                 }
                 'managed_nodes' {
@@ -660,15 +668,16 @@ function Get-KeeperEnterpriseInfoRole {
                     if ($Format -eq 'json') { $row['ManagedNodesPermissions'] = $items }
                     else {
                         $row['ManagedNodesPermissions'] = @($items | ForEach-Object {
-                            "$($_.node) [$($_.permissions -join ', ')] (cascade: $($_.cascade))"
+                            $permissions = @($_.permissions)
+                            "$($_.node) [$($permissions -join ', ')] (cascade: $($_.cascade))"
                         }) -join '; '
                     }
                 }
             }
         }
-        if ($patternLower) {
+        if ($patternText) {
             $text = ($row.Values | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
-            if ($text.IndexOf($patternLower, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
+            if ($text.IndexOf($patternText, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add([PSCustomObject]$row) | Out-Null
     }
@@ -691,7 +700,7 @@ function Get-KeeperEnterpriseInfoManagedCompany {
     .DESCRIPTION
     Outputs managed company information. Available when logged in as MSP.
     .PARAMETER Pattern
-    Optional search pattern to filter companies.
+    Optional literal, case-insensitive substring used to filter companies (regular expressions are not supported).
     .PARAMETER Node
     Filter by node name or ID: only managed companies in this node or its descendants.
     .PARAMETER ExactNode
@@ -733,7 +742,7 @@ function Get-KeeperEnterpriseInfoManagedCompany {
         }
     }
     $planName = { param($planId) switch ($planId) { 'enterprise' { 'Enterprise' } 'enterprise_plus' { 'Enterprise Plus' } 'business' { 'Business' } 'businessPlus' { 'Business Plus' } default { $planId } } }
-    $patternLower = if ($Pattern) { $Pattern.Trim().ToLower() } else { '' }
+    $patternText = if ($Pattern) { $Pattern.Trim() } else { '' }
     $out = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($mc in ($mcs | Sort-Object { $_.EnterpriseName })) {
         $nid = if ($mc.ParentNodeId -le 0) { $ed.RootNode.Id } else { $mc.ParentNodeId }
@@ -752,9 +761,9 @@ function Get-KeeperEnterpriseInfoManagedCompany {
             Allocated   = $allocated
             Active      = $mc.NumberOfUsers
         }
-        if ($patternLower) {
-            $text = ($row.PSObject.Properties.Value | ForEach-Object { $_ }) -join ' '
-            if ($text -notmatch [regex]::Escape($patternLower)) { continue }
+        if ($patternText) {
+            $text = ($row.PSObject.Properties.Value | ForEach-Object { ConvertTo-EnterpriseInfoFilterText $_ }) -join ' '
+            if ($text.IndexOf($patternText, [StringComparison]::OrdinalIgnoreCase) -lt 0) { continue }
         }
         $out.Add($row) | Out-Null
     }

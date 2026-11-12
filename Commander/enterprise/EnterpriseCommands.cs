@@ -3547,10 +3547,15 @@ namespace Commander
 
         public static async Task EnterpriseInfoCommand(this IEnterpriseContext context, EnterpriseInfoOptions options)
         {
-            if (!string.IsNullOrWhiteSpace(options.PatternOption))
+            var hasPositionalPattern = !string.IsNullOrWhiteSpace(options.Pattern);
+            var hasNamedPattern = !string.IsNullOrWhiteSpace(options.PatternOption);
+            if (hasPositionalPattern && hasNamedPattern)
             {
-                options.Pattern = options.PatternOption;
+                Console.Error.WriteLine("Error: specify either the positional search pattern or --pattern, not both.");
+                return;
             }
+            var effectivePattern = hasNamedPattern ? options.PatternOption : options.Pattern;
+            WarnIfRegexLikeEnterpriseInfoPattern(effectivePattern);
 
             if (options.Force)
             {
@@ -3584,19 +3589,19 @@ namespace Commander
 
             if (options.Nodes)
             {
-                DisplayNodesTable(context, options, nodeIds);
+                DisplayNodesTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Users)
             {
-                DisplayUsersTable(context, options, nodeIds);
+                DisplayUsersTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Teams)
             {
-                DisplayTeamsTable(context, options, nodeIds);
+                DisplayTeamsTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Roles)
             {
-                DisplayRolesTable(context, options, nodeIds);
+                DisplayRolesTable(context, options, nodeIds, effectivePattern);
             }
             else
             {
@@ -3699,7 +3704,11 @@ namespace Commander
             }
         }
 
-        private static void DisplayNodesTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
+        private static void DisplayNodesTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
         {
             var nodes = context.EnterpriseData.Nodes
                 .Where(n => nodeIds.Contains(n.Id))
@@ -3724,7 +3733,7 @@ namespace Commander
             var defaultColumns = new[] { "node_id", "name", "parent_node", "parent_node_id", "user_count", "team_count", "role_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
             nodes = nodes
-                .Where(n => MatchesPatternValues(options.Pattern, selectedColumns, allColumns, n, n.Id, n.DisplayName))
+                .Where(n => MatchesPatternValues(pattern, selectedColumns, allColumns, n, n.Id, n.DisplayName))
                 .ToList();
 
             if (options.Limit.HasValue)
@@ -3740,7 +3749,11 @@ namespace Commander
             OutputData<KeeperSecurity.Enterprise.EnterpriseNode>(options, nodes, selectedColumns, allColumns, NodeHeaders);
         }
 
-        private static void DisplayUsersTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
+        private static void DisplayUsersTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
         {
             var users = context.EnterpriseData.Users
                 .Where(u => nodeIds.Contains(u.ParentNodeId))
@@ -3770,7 +3783,7 @@ namespace Commander
             var defaultColumns = new[] { "user_id","email", "name", "status", "transfer_status", "node" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
             users = users
-                .Where(u => MatchesPatternValues(options.Pattern, selectedColumns, allColumns, u, u.Id, u.Email))
+                .Where(u => MatchesPatternValues(pattern, selectedColumns, allColumns, u, u.Id, u.Email))
                 .ToList();
 
             if (options.Limit.HasValue)
@@ -3786,7 +3799,11 @@ namespace Commander
             OutputData<KeeperSecurity.Enterprise.EnterpriseUser>(options, users, selectedColumns, allColumns, UserHeaders);
         }
 
-        private static void DisplayTeamsTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
+        private static void DisplayTeamsTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
         {
             var teams = context.EnterpriseData.Teams
                 .Where(t => nodeIds.Contains(t.ParentNodeId))
@@ -3810,7 +3827,7 @@ namespace Commander
             var defaultColumns = new[] { "team_uid", "name", "restricts", "node", "user_count", "queued_user_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
             teams = teams
-                .Where(t => MatchesPatternValues(options.Pattern, selectedColumns, allColumns, t, t.Uid, t.Name))
+                .Where(t => MatchesPatternValues(pattern, selectedColumns, allColumns, t, t.Uid, t.Name))
                 .ToList();
 
             if (options.Limit.HasValue)
@@ -3826,12 +3843,18 @@ namespace Commander
             OutputData<KeeperSecurity.Enterprise.EnterpriseTeam>(options, teams, selectedColumns, allColumns, TeamHeaders);
         }
 
-        private static void DisplayRolesTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
+        private static void DisplayRolesTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
         {
             var roles = context.RoleManagement.Roles
                 .Where(r => nodeIds.Contains(r.ParentNodeId))
                 .OrderBy(r => r.DisplayName ?? "")
                 .ToList();
+            var managedNodeInfoByRole = new Lazy<Dictionary<long, RoleManagedNodeInfo[]>>(
+                () => BuildRoleManagedNodeInfoByRole(context));
 
             var allColumns = new Dictionary<string, Func<EnterpriseRole, object>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -3846,14 +3869,14 @@ namespace Commander
                 { "team_count", r => context.RoleManagement.GetTeamsForRole(r.Id)?.Count() ?? 0 },
                 { "teams", r => GetRoleTeamNames(context, r.Id) },
                 { "enforcements", r => FormatRoleEnforcements(context, r.Id, options.Format) },
-                { "managed_nodes", r => FormatRoleManagedNodeNames(context, r.Id, options.Format) },
-                { "managed_nodes_permissions", r => FormatRoleManagedNodePermissions(context, r.Id, options.Format) },
+                { "managed_nodes", r => FormatRoleManagedNodeNames(managedNodeInfoByRole.Value, r.Id, options.Format) },
+                { "managed_nodes_permissions", r => FormatRoleManagedNodePermissions(managedNodeInfoByRole.Value, r.Id, options.Format) },
             };
 
             var defaultColumns = new[] { "role_id", "name", "default_role", "admin", "node", "user_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
             roles = roles
-                .Where(r => MatchesPatternValues(options.Pattern, selectedColumns, allColumns, r, r.Id, r.DisplayName))
+                .Where(r => MatchesPatternValues(pattern, selectedColumns, allColumns, r, r.Id, r.DisplayName))
                 .ToList();
 
             if (options.Limit.HasValue)
@@ -3969,6 +3992,20 @@ namespace Commander
             return s;
         }
 
+        private static int _enterpriseInfoRegexWarningReported;
+
+        private static void WarnIfRegexLikeEnterpriseInfoPattern(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern)
+                || pattern.IndexOfAny(new[] { '\\', '.', '^', '$', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|' }) < 0
+                || System.Threading.Interlocked.Exchange(ref _enterpriseInfoRegexWarningReported, 1) != 0)
+            {
+                return;
+            }
+
+            Console.Error.WriteLine("Warning: enterprise-info patterns are literal, case-insensitive substrings; regular expressions are not supported.");
+        }
+
         private static bool MatchesPattern(string value, string pattern)
         {
             if (string.IsNullOrEmpty(pattern)) return true;
@@ -4002,9 +4039,11 @@ namespace Commander
             return false;
         }
 
-        private static bool ValueMatchesPattern(object value, string pattern)
+        private const int MaxEnterpriseInfoPatternDepth = 10;
+
+        private static bool ValueMatchesPattern(object value, string pattern, int depth = 0)
         {
-            if (value == null) return false;
+            if (value == null || depth > MaxEnterpriseInfoPatternDepth) return false;
 
             if (value is string text)
             {
@@ -4015,7 +4054,8 @@ namespace Commander
             {
                 foreach (DictionaryEntry entry in dictionary)
                 {
-                    if (ValueMatchesPattern(entry.Key, pattern) || ValueMatchesPattern(entry.Value, pattern))
+                    if (ValueMatchesPattern(entry.Key, pattern, depth + 1)
+                        || ValueMatchesPattern(entry.Value, pattern, depth + 1))
                     {
                         return true;
                     }
@@ -4028,7 +4068,7 @@ namespace Commander
             {
                 foreach (var item in values)
                 {
-                    if (ValueMatchesPattern(item, pattern))
+                    if (ValueMatchesPattern(item, pattern, depth + 1))
                     {
                         return true;
                     }
@@ -4180,73 +4220,119 @@ namespace Commander
 
         private static object FormatRoleEnforcements(IEnterpriseContext context, long roleId, string format)
         {
-            var enforcements = context.RoleManagement.GetEnforcementsForRole(roleId)
-                .Select(x => x.EnforcementType)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .OrderBy(x => x, StringComparer.Ordinal)
+            var enforcementItems = (context.RoleManagement.GetEnforcementsForRole(roleId)
+                    ?? Enumerable.Empty<RoleEnforcement>())
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.EnforcementType))
+                .OrderBy(x => x.EnforcementType, StringComparer.Ordinal)
                 .ToArray();
 
-            return string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)
-                ? enforcements
-                : string.Join(", ", enforcements);
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                return enforcementItems.ToDictionary(
+                    x => x.EnforcementType,
+                    x => (object)(x.Value ?? string.Empty),
+                    StringComparer.Ordinal);
+            }
+
+            return string.Join(", ", enforcementItems.Select(x => x.EnforcementType));
         }
 
-        private static object FormatRoleManagedNodeNames(IEnterpriseContext context, long roleId, string format)
+        private sealed class RoleManagedNodeInfo
         {
-            var managedNodeNames = context.RoleManagement.GetManagedNodes()
-                .Where(x => x.RoleId == roleId)
-                .OrderBy(x => x.ManagedNodeId)
-                .Select(x =>
+            public long NodeId { get; }
+            public string NodeName { get; }
+            public string[] Permissions { get; }
+            public bool Cascade { get; }
+
+            public RoleManagedNodeInfo(long nodeId, string nodeName, string[] permissions, bool cascade)
+            {
+                NodeId = nodeId;
+                NodeName = nodeName;
+                Permissions = permissions ?? Array.Empty<string>();
+                Cascade = cascade;
+            }
+        }
+
+        private static Dictionary<long, RoleManagedNodeInfo[]> BuildRoleManagedNodeInfoByRole(IEnterpriseContext context)
+        {
+            var result = new Dictionary<long, List<RoleManagedNodeInfo>>();
+            var managedNodes = context.RoleManagement.GetManagedNodes();
+            if (managedNodes == null)
+            {
+                return new Dictionary<long, RoleManagedNodeInfo[]>();
+            }
+
+            foreach (var managedNode in managedNodes)
+            {
+                if (managedNode == null) continue;
+
+                var nodeName = context.EnterpriseData.TryGetNode(managedNode.ManagedNodeId, out var node)
+                    ? node.DisplayName
+                    : null;
+                if (string.IsNullOrWhiteSpace(nodeName))
                 {
-                    var nodeName = context.EnterpriseData.TryGetNode(x.ManagedNodeId, out var node)
-                        ? node.DisplayName
-                        : null;
-                    return string.IsNullOrWhiteSpace(nodeName)
-                        ? x.ManagedNodeId.ToString(CultureInfo.InvariantCulture)
-                        : nodeName;
-                })
-                .ToArray();
+                    nodeName = managedNode.ManagedNodeId.ToString(CultureInfo.InvariantCulture);
+                }
+
+                var permissions = (context.RoleManagement.GetPrivilegesForRoleAndNode(
+                        managedNode.RoleId, managedNode.ManagedNodeId) ?? Enumerable.Empty<RolePrivilege>())
+                    .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PrivilegeType))
+                    .Select(x => x.PrivilegeType.ToLowerInvariant())
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(x => x, StringComparer.Ordinal)
+                    .ToArray();
+
+                if (!result.TryGetValue(managedNode.RoleId, out var roleManagedNodes))
+                {
+                    roleManagedNodes = new List<RoleManagedNodeInfo>();
+                    result.Add(managedNode.RoleId, roleManagedNodes);
+                }
+
+                roleManagedNodes.Add(new RoleManagedNodeInfo(
+                    managedNode.ManagedNodeId, nodeName, permissions, managedNode.CascadeNodeManagement));
+            }
+
+            return result.ToDictionary(
+                x => x.Key,
+                x => x.Value.OrderBy(y => y.NodeId).ToArray());
+        }
+
+        private static object FormatRoleManagedNodeNames(
+            Dictionary<long, RoleManagedNodeInfo[]> managedNodeInfoByRole,
+            long roleId,
+            string format)
+        {
+            var managedNodeNames = managedNodeInfoByRole.TryGetValue(roleId, out var infos)
+                ? infos.Select(x => x.NodeName).ToArray()
+                : Array.Empty<string>();
 
             return string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)
                 ? managedNodeNames
                 : string.Join(", ", managedNodeNames);
         }
 
-        private static object FormatRoleManagedNodePermissions(IEnterpriseContext context, long roleId, string format)
+        private static object FormatRoleManagedNodePermissions(
+            Dictionary<long, RoleManagedNodeInfo[]> managedNodeInfoByRole,
+            long roleId,
+            string format)
         {
-            var managedNodes = context.RoleManagement.GetManagedNodes()
-                .Where(x => x.RoleId == roleId)
-                .OrderBy(x => x.ManagedNodeId)
-                .Select(x =>
+            var managedNodes = managedNodeInfoByRole.TryGetValue(roleId, out var infos)
+                ? infos.Select(x => new Dictionary<string, object>
                 {
-                    var nodeName = context.EnterpriseData.TryGetNode(x.ManagedNodeId, out var node)
-                        ? node.DisplayName
-                        : null;
-                    var permissions = context.RoleManagement
-                        .GetPrivilegesForRoleAndNode(roleId, x.ManagedNodeId)
-                        .Select(p => p.PrivilegeType)
-                        .Where(p => !string.IsNullOrWhiteSpace(p))
-                        .Select(p => p.ToLowerInvariant())
-                        .Distinct(StringComparer.Ordinal)
-                        .OrderBy(p => p, StringComparer.Ordinal)
-                        .ToArray();
-
-                    return new Dictionary<string, object>
-                    {
-                        { "node", string.IsNullOrWhiteSpace(nodeName) ? x.ManagedNodeId.ToString(CultureInfo.InvariantCulture) : nodeName },
-                        { "permissions", permissions },
-                        { "cascade", x.CascadeNodeManagement },
-                    };
-                })
-                .ToArray();
+                    { "node", x.NodeName },
+                    { "permissions", x.Permissions ?? Array.Empty<string>() },
+                    { "cascade", x.Cascade },
+                }).ToArray()
+                : Array.Empty<Dictionary<string, object>>();
 
             if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
             {
                 return managedNodes;
             }
 
-            return string.Join("; ", managedNodes.Select(x =>
-                $"{x["node"]} [{string.Join(", ", (string[])x["permissions"])}] (cascade: {x["cascade"]})"));
+            return string.Join("; ", infos?.Select(x =>
+                $"{x.NodeName} [{string.Join(", ", x.Permissions ?? Array.Empty<string>())}] (cascade: {x.Cascade})")
+                ?? Enumerable.Empty<string>());
         }
 
         private static readonly Dictionary<string, string> NodeHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -5005,10 +5091,10 @@ namespace Commander
         [Option("node", Required = false, HelpText = "Filter by node name or ID")]
         public string Node { get; set; }
 
-        [Value(0, Required = false, HelpText = "Optional search substring (name, email, or ID)")]
+        [Value(0, Required = false, HelpText = "Optional literal, case-insensitive search substring (regex is not supported)")]
         public string Pattern { get; set; }
 
-        [Option("pattern", Required = false, HelpText = "Search substring (name, email, or ID)")]
+        [Option("pattern", Required = false, HelpText = "Literal, case-insensitive search substring (regex is not supported)")]
         public string PatternOption { get; set; }
 
         [Option("columns", Required = false, HelpText = "Comma-separated list of columns to display")]
