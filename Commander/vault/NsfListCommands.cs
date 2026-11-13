@@ -432,7 +432,8 @@ namespace Commander
                     continue;
                 }
 
-                if (string.Equals(field.Type, "oneTimeCode", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(field.Type, "oneTimeCode", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(field.Type, "otp", StringComparison.OrdinalIgnoreCase))
                 {
                     totps.AddRange((field.Value ?? new List<string>())
                         .Where(x => !string.IsNullOrEmpty(x))

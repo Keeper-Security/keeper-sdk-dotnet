@@ -797,7 +797,7 @@ function Show-KdRecordDetail {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
             $rawValues = @($field.Value)
-            if ($field.Type -ieq 'oneTimeCode') {
+            if ($field.Type -ieq 'oneTimeCode' -or $field.Type -ieq 'otp') {
                 foreach ($url in @($rawValues | Where-Object { -not [string]::IsNullOrEmpty($_) })) {
                     $totps += [PSCustomObject]@{ Field = $field; Url = [string]$url }
                 }
