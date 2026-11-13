@@ -775,6 +775,19 @@ function Get-KdNsfFieldLabel {
     return (Get-Culture).TextInfo.ToTitleCase($FieldType.ToLower())
 }
 
+function Get-KdNsfRecordFieldDisplayName {
+    Param($Field)
+
+    $type = [string]$Field.Type
+    $name = if ($type -ieq 'text') { '' } else { $type }
+    $label = [string]$Field.Label
+    if ([string]::IsNullOrEmpty($label)) {
+        return '$' + $(if ([string]::IsNullOrEmpty($name)) { 'text' } else { $name })
+    }
+
+    return $(if ([string]::IsNullOrEmpty($name)) { $label } else { "`$$name`:$label" })
+}
+
 function Show-KdRecordDetail {
     Param($vault, $storage, $record, $currentAccountUid, $includeInherited = $false,
         $includeDeniedAccess = $false, [bool]$Unmask = $false)
@@ -791,11 +804,16 @@ function Show-KdRecordDetail {
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
 
     $recordFields = @($record.Fields | Where-Object { $null -ne $_ })
+    $totps = @()
     if ($recordFields.Count -gt 0) {
         foreach ($field in $recordFields) {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
             $rawValues = @($field.Value)
+            if ($field.Type -eq 'oneTimeCode') {
+                $totps += @($rawValues | Where-Object { -not [string]::IsNullOrEmpty($_) })
+                continue
+            }
 
             $displayValues = @()
             foreach ($raw in $rawValues) {
@@ -804,9 +822,7 @@ function Show-KdRecordDetail {
                 else { $displayValues += [string]$formatted }
             }
 
-            $label = if (-not [string]::IsNullOrWhiteSpace($field.Label)) {
-                $field.Label
-            } else { Get-KdNsfFieldLabel -FieldType $field.Type }
+            $label = Get-KdNsfRecordFieldDisplayName -Field $field
             if ($displayValues.Count -eq 0) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: " -f $label)
                 continue
@@ -815,6 +831,19 @@ function Show-KdRecordDetail {
             for ($i = 1; $i -lt $displayValues.Count; $i++) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}  {1}" -f "", $displayValues[$i])
             }
+        }
+    }
+
+    foreach ($url in $totps) {
+        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f '$oneTimeCode', $url)
+        try {
+            $code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($url)
+            if ($code) {
+                Write-Host ("{0,$script:KD_LABEL_WIDTH}: expires in {1} sec." -f $code.Item1, ($code.Item3 - $code.Item2))
+            }
+        }
+        catch {
+            Write-Host "Error: $($_.Exception.Message)"
         }
     }
 

@@ -312,7 +312,7 @@ namespace Commander
                         continue;
                     }
 
-                    fieldDict[key] = ResolveFieldValue(val);
+                    fieldDict[key] = ResolveFieldValue(key, val);
                     parsedCount++;
                 }
             }
@@ -325,11 +325,28 @@ namespace Commander
             return fieldDict.Count > 0 ? fieldDict : null;
         }
 
-        private static object ResolveFieldValue(string rawValue)
+        private static object ResolveFieldValue(string fieldKey, string rawValue)
         {
             if (string.IsNullOrEmpty(rawValue))
             {
                 return rawValue;
+            }
+
+            // Match Commander: $GEN is an indirection token on password fields,
+            // not a literal value. Other field types retain it verbatim.
+            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
+            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            var token = rawValue;
+            if (token.Length >= 2
+                && ((token[0] == '\'' && token[token.Length - 1] == '\'')
+                    || (token[0] == '"' && token[token.Length - 1] == '"')))
+            {
+                token = token.Substring(1, token.Length - 2);
+            }
+            if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(token, "$GEN", StringComparison.Ordinal))
+            {
+                return CryptoUtils.GeneratePassword(null);
             }
 
             if (rawValue.StartsWith("$JSON:", StringComparison.Ordinal))

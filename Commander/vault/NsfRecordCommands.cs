@@ -938,7 +938,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
@@ -959,7 +959,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
