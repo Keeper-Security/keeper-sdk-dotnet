@@ -145,13 +145,16 @@ namespace KeeperSecurity.Enterprise
             foreach (var role in roleData.Roles)
             {
                 var moveRole = roleIds.Contains(role.Id);
-                if (roleData.GetUsersForRole(role.Id).Any(id => moveRole != userIds.Contains(id)) || roleData.GetTeamsForRole(role.Id).Any(id => moveRole != teamUids.Contains(id)))
-                    errors.Add($"Role '{role.DisplayName}' has memberships outside the subtree.");
+                if (roleData.GetUsersForRole(role.Id).Any(userId => moveRole != userIds.Contains(userId)))
+                    errors.Add($"Role '{role.DisplayName}' has user memberships outside the subtree.");
+                if (roleData.GetTeamsForRole(role.Id).Any(teamUid => moveRole != teamUids.Contains(teamUid)))
+                    errors.Add($"Role '{role.DisplayName}' has team memberships outside the subtree.");
             }
             foreach (var team in enterpriseData.Teams)
             {
                 var moveTeam = teamUids.Contains(team.Uid);
-                if (enterpriseData.GetUsersForTeam(team.Uid).Any(id => moveTeam != userIds.Contains(id))) errors.Add($"Team '{team.Name}' has memberships outside the subtree.");
+                if (enterpriseData.GetUsersForTeam(team.Uid).Any(userId => moveTeam != userIds.Contains(userId)))
+                    errors.Add($"Team '{team.Name}' has user memberships outside the subtree.");
             }
             foreach (var permission in roleData.GetAdminPermissions()) if (roleIds.Contains(permission.RoleId) != nodeIds.Contains(permission.NodeId)) errors.Add("An admin role manages a node outside the subtree.");
             if (errors.Count > 0) throw new EnterpriseException(string.Join(" ", errors.Distinct()));
