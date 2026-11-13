@@ -424,7 +424,7 @@ namespace Commander
             Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes ?? string.Empty}");
 
             var fields = GetRecordFields(record);
-            var totps = new List<string>();
+            var totps = new List<(ParsedField Field, string Url)>();
             foreach (var field in fields)
             {
                 if (string.IsNullOrWhiteSpace(field.Type))
@@ -432,16 +432,20 @@ namespace Commander
                     continue;
                 }
 
-                if (field.Type == "oneTimeCode")
+                if (string.Equals(field.Type, "oneTimeCode", StringComparison.OrdinalIgnoreCase))
                 {
-                    totps.AddRange((field.Value ?? new List<string>()).Where(x => !string.IsNullOrEmpty(x)));
+                    totps.AddRange((field.Value ?? new List<string>())
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .Select(x => (field, x)));
                     continue;
                 }
 
                 var displayValues = (field.Value ?? new List<string>())
                     .Select(v => FormatFieldDisplayValue(field.Type, field.Label, v, unmask) ?? string.Empty)
                     .ToList();
-                var label = GetRecordFieldDisplayName(field);
+                var label = string.IsNullOrWhiteSpace(field.Label)
+                    ? NsfHelpers.GetFieldLabel(field.Type)
+                    : field.Label;
                 if (displayValues.Count == 0)
                 {
                     Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: ");
@@ -455,12 +459,16 @@ namespace Commander
                 }
             }
 
-            foreach (var url in totps)
+            foreach (var totp in totps)
             {
-                Console.WriteLine($"{PadLabel("$oneTimeCode", NsfHelpers.LabelWidth)}: {url}");
+                var label = string.IsNullOrWhiteSpace(totp.Field.Label)
+                    ? NsfHelpers.GetFieldLabel(totp.Field.Type)
+                    : totp.Field.Label;
+                var displayUrl = unmask ? totp.Url : RecordSecurity.MaskedValue;
+                Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: {displayUrl}");
                 try
                 {
-                    var code = CryptoUtils.GetTotpCode(url);
+                    var code = CryptoUtils.GetTotpCode(totp.Url);
                     if (code != null)
                     {
                         Console.WriteLine($"{PadLabel(code.Item1, NsfHelpers.LabelWidth)}: expires in {code.Item3 - code.Item2} sec.");
@@ -468,7 +476,7 @@ namespace Commander
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    Console.Error.WriteLine($"Error generating one-time code: {ex.Message}");
                 }
             }
 
@@ -717,18 +725,6 @@ namespace Commander
                 IsCustom = f.IsCustom,
                 Value = f.Value?.ToList() ?? new List<string>()
             }).ToList() ?? new List<ParsedField>();
-        }
-
-        private static string GetRecordFieldDisplayName(ParsedField field)
-        {
-            var type = field.Type ?? string.Empty;
-            var name = string.Equals(type, "text", StringComparison.Ordinal) ? string.Empty : type;
-            if (string.IsNullOrEmpty(field.Label))
-            {
-                return "$" + (string.IsNullOrEmpty(name) ? "text" : name);
-            }
-
-            return string.IsNullOrEmpty(name) ? field.Label : "$" + name + ":" + field.Label;
         }
 
         private static List<object> BuildFieldsJson(IEnumerable<ParsedField> fields, bool unmask)
