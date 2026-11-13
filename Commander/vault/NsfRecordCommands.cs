@@ -172,7 +172,15 @@ namespace Commander
             Dictionary<string, object> fieldDict = null;
             if ((options.Fields != null && options.Fields.Any()) || options.GeneratePassword)
             {
-                fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out _);
+                try
+                {
+                    fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out _);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
             }
 
             try
@@ -214,7 +222,16 @@ namespace Commander
             Dictionary<string, object> fieldDict = null;
             if (hasFields || options.GeneratePassword)
             {
-                fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out var parsedCount);
+                int parsedCount;
+                try
+                {
+                    fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out parsedCount);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
                 if (parsedCount == 0 && !options.GeneratePassword)
                 {
                     Console.WriteLine("Error: No valid field values were parsed. Use key=value (e.g. login=a12).");
@@ -938,7 +955,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
@@ -959,7 +976,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 

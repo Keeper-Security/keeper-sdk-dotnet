@@ -424,10 +424,20 @@ namespace Commander
             Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes ?? string.Empty}");
 
             var fields = GetRecordFields(record);
+            var totps = new List<(ParsedField Field, string Url)>();
             foreach (var field in fields)
             {
                 if (string.IsNullOrWhiteSpace(field.Type))
                 {
+                    continue;
+                }
+
+                if (string.Equals(field.Type, "oneTimeCode", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(field.Type, "otp", StringComparison.OrdinalIgnoreCase))
+                {
+                    totps.AddRange((field.Value ?? new List<string>())
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .Select(x => (field, x)));
                     continue;
                 }
 
@@ -447,6 +457,27 @@ namespace Commander
                 for (var i = 1; i < displayValues.Count; i++)
                 {
                     Console.WriteLine($"{PadLabel("", NsfHelpers.LabelWidth)}  {displayValues[i]}");
+                }
+            }
+
+            foreach (var totp in totps)
+            {
+                var label = string.IsNullOrWhiteSpace(totp.Field.Label)
+                    ? NsfHelpers.GetFieldLabel(totp.Field.Type)
+                    : totp.Field.Label;
+                var displayUrl = unmask ? totp.Url : RecordSecurity.MaskedValue;
+                Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: {displayUrl}");
+                try
+                {
+                    var code = CryptoUtils.GetTotpCode(totp.Url);
+                    if (code != null)
+                    {
+                        Console.WriteLine($"{PadLabel(code.Item1, NsfHelpers.LabelWidth)}: expires in {code.Item3 - code.Item2} sec.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Error generating one-time code: {ex.Message}");
                 }
             }
 

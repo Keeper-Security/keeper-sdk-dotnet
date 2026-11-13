@@ -2,6 +2,8 @@
 
 . "$PSScriptRoot/NsfBatchSampleData.ps1"
 
+$script:KdNsfGenerateFieldValueToken = '$GEN'
+
 function ConvertTo-KeeperNSFRecord {
     <#
     .SYNOPSIS
@@ -204,10 +206,22 @@ function Script:ConvertTo-NSFJsonValue {
 
 function Script:Resolve-KeeperNSFFieldValue {
     Param(
+        [Parameter(Mandatory = $true)][string] $FieldKey,
         [Parameter(Mandatory = $true)][AllowEmptyString()][string] $RawValue
     )
 
     if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
+
+    # Match Commander field-value indirection: $GEN applies to the password
+    # field and is resolved before being sent to the server.
+    $fieldType = $FieldKey.Split(':', 2)[0]
+    if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
+        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
+            return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        }
+
+        throw "Unsupported password generation token '$RawValue'. Use $script:KdNsfGenerateFieldValueToken or -GeneratePassword."
+    }
 
     if ($RawValue -clike '$JSON:*') {
         $jsonStr = $RawValue.Substring(6)
@@ -236,6 +250,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
 
     $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
     $skipped = New-Object 'System.Collections.Generic.List[string]'
+    $hasGenerateToken = $false
 
     foreach ($f in $FieldSpecs) {
         if ([string]::IsNullOrWhiteSpace($f)) { continue }
@@ -265,7 +280,15 @@ function Script:Parse-KeeperNSFFieldSpecs {
             continue
         }
 
-        $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+        $fieldType = $key.Split(':', 2)[0]
+        if ($fieldType -ieq 'password' -and [string]::IsNullOrEmpty($val)) {
+            throw "Password value cannot be empty. Use -GeneratePassword or '$($script:KdNsfGenerateFieldValueToken)' in single quotes."
+        }
+        if ($fieldType -ieq 'password' -and $val -ceq $script:KdNsfGenerateFieldValueToken) {
+            $hasGenerateToken = $true
+        }
+
+        $resolved = Resolve-KeeperNSFFieldValue -FieldKey $key -RawValue $val
         if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
             $resolved = $resolved.PSObject.BaseObject
         }
@@ -276,6 +299,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
         Dictionary = $fieldDict
         Skipped    = $skipped
         ParsedCount = $fieldDict.Count
+        HasGenerateToken = $hasGenerateToken
     }
 }
 
@@ -302,6 +326,7 @@ function Add-KeeperNSFRecord {
 
 	.Parameter Fields
 	Optional field values as key=value pairs (e.g. login=admin password=secret url=https://example.com).
+	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. for a `databaseCredentials` record's `host` field:
@@ -390,6 +415,10 @@ function Add-KeeperNSFRecord {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($Fields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
+                Write-Host "Error: Do not combine -GeneratePassword with password=$script:KdNsfGenerateFieldValueToken." -ForegroundColor Red
+                return
+            }
             foreach ($key in $parsed.Dictionary.Keys) {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
@@ -690,6 +719,7 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. updating a `databaseCredentials` record's `host` field:
@@ -810,6 +840,10 @@ function Edit-KeeperNSFRecord {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($hasFields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
+                Write-Host "Error: Do not combine -GeneratePassword with password=$script:KdNsfGenerateFieldValueToken." -ForegroundColor Red
+                return
+            }
             foreach ($key in $parsed.Dictionary.Keys) {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
