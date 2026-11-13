@@ -652,7 +652,7 @@ function New-KeeperEnterpriseRole {
         Create new enterprise role in the Keeper Enterprise.
 
         .DESCRIPTION
-        Creates new enterprise role with optional settings for parent node, new user inheritance, visibility, and enforcements.
+        Creates new enterprise role with optional settings for parent node, new user inheritance, visibility, enforcements, and managed nodes.
 
         .PARAMETER Role
         Role Name of the new role.
@@ -668,6 +668,12 @@ function New-KeeperEnterpriseRole {
 
         .PARAMETER Enforcement
         Sets role enforcement in KEY:VALUE format. Can be repeated multiple times.
+
+        .PARAMETER AddAdmin
+        Node name or ID to add as a managed node to each newly created role. Can be repeated.
+
+        .PARAMETER Cascade
+        Apply managed-node access to the node's children. Applies to AddAdmin.
 
         .PARAMETER Force
         Do not prompt for confirmation when a role with the same name already exists.
@@ -685,6 +691,10 @@ function New-KeeperEnterpriseRole {
         Creates an "Admin" role in node 123456789, visible to subnodes, with a logout timer enforcement.
 
         .EXAMPLE
+        New-KeeperEnterpriseRole -Role "Node Admin" -ParentNode "Sales" -AddAdmin "Sales" -Cascade
+        Creates a role in Sales and grants it management access to Sales and its child nodes.
+
+        .EXAMPLE
         New-KeeperEnterpriseRole -Role "TestRole" -Force
         Creates a role even if one with the same name already exists, without prompting.
     #>
@@ -700,6 +710,10 @@ function New-KeeperEnterpriseRole {
         [Parameter()][ValidateSet('ON', 'OFF')][string]$VisibleBelow = 'OFF',
         
         [Parameter()][string[]]$Enforcement,
+
+        [Parameter()][string[]]$AddAdmin,
+
+        [Parameter()][switch]$Cascade,
         
         [Parameter()][switch]$Force
     )
@@ -757,6 +771,18 @@ function New-KeeperEnterpriseRole {
         }
     }
 
+    $managedNodesToAdd = @()
+    $managedNodeIds = [System.Collections.Generic.HashSet[long]]::new()
+    foreach ($adminNodeInput in @($AddAdmin)) {
+        if ([string]::IsNullOrWhiteSpace($adminNodeInput)) { continue }
+        $inputValue = $adminNodeInput.Trim()
+        $nodeMatches = @($enterpriseData.Nodes | Where-Object { $_.Id.ToString() -eq $inputValue -or $_.DisplayName -ieq $inputValue })
+        if ($nodeMatches.Count -eq 0) { Write-Error "Node `"$inputValue`" could not be resolved." -ErrorAction Stop }
+        if ($nodeMatches.Count -ne 1) { Write-Error "Node name `"$inputValue`" is not unique. Use Node ID." -ErrorAction Stop }
+        if (-not $managedNodeIds.Add([long]$nodeMatches[0].Id)) { Write-Error "Managed node `"$inputValue`" was specified more than once." -ErrorAction Stop }
+        $managedNodesToAdd += $nodeMatches[0]
+    }
+
     $createdRoles = @()
     foreach ($roleName in $Role) {
         if ([string]::IsNullOrWhiteSpace($roleName)) {
@@ -785,6 +811,7 @@ function New-KeeperEnterpriseRole {
         }
 
         if ($PSCmdlet.ShouldProcess($roleName, "Create Enterprise Role")) {
+            $createdRole = $null
             try {
                 $createdRole = $roleData.CreateRole($roleName, $nodeId, $newUserInherit).GetAwaiter().GetResult()
                 
@@ -794,7 +821,6 @@ function New-KeeperEnterpriseRole {
                 }
 
                 Write-Output "Role `"$roleName`" created successfully (ID: $($createdRole.Id))"
-
                 if ($visibleBelowBool) {
                     try {
                         $updatedRole = $roleData.UpdateRole($createdRole, $null, $true, $null).GetAwaiter().GetResult()
@@ -842,6 +868,15 @@ function New-KeeperEnterpriseRole {
                     }
                 }
 
+                foreach ($managedNode in $managedNodesToAdd) {
+                    try {
+                        $roleData.RoleManagedNodeAdd($createdRole, $managedNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
+                    }
+                    catch {
+                        throw "Role `"$roleName`" was created, but managed node `"$($managedNode.DisplayName)`" could not be added: $($_.Exception.Message)"
+                    }
+                }
+
                 try {
                     $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
                 }
@@ -859,7 +894,9 @@ function New-KeeperEnterpriseRole {
                 }
             }
             catch {
-                Write-Error "Failed to create role `"$roleName`": $($_.Exception.Message)" `
+                $errorPrefix = if ($createdRole) { "Role `"$roleName`" was created (ID: $($createdRole.Id)), but configuration failed" } else { "Failed to create role `"$roleName`"" }
+                if ($createdRole) { $createdRoles += $createdRole }
+                Write-Error "${errorPrefix}: $($_.Exception.Message)" `
                     -ErrorAction Continue `
                     -ErrorId "RoleCreationFailed" `
                     -Category InvalidOperation
