@@ -775,19 +775,6 @@ function Get-KdNsfFieldLabel {
     return (Get-Culture).TextInfo.ToTitleCase($FieldType.ToLower())
 }
 
-function Get-KdNsfRecordFieldDisplayName {
-    Param($Field)
-
-    $type = [string]$Field.Type
-    $name = if ($type -ieq 'text') { '' } else { $type }
-    $label = [string]$Field.Label
-    if ([string]::IsNullOrEmpty($label)) {
-        return '$' + $(if ([string]::IsNullOrEmpty($name)) { 'text' } else { $name })
-    }
-
-    return $(if ([string]::IsNullOrEmpty($name)) { $label } else { "`$$name`:$label" })
-}
-
 function Show-KdRecordDetail {
     Param($vault, $storage, $record, $currentAccountUid, $includeInherited = $false,
         $includeDeniedAccess = $false, [bool]$Unmask = $false)
@@ -810,8 +797,10 @@ function Show-KdRecordDetail {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
             $rawValues = @($field.Value)
-            if ($field.Type -eq 'oneTimeCode') {
-                $totps += @($rawValues | Where-Object { -not [string]::IsNullOrEmpty($_) })
+            if ($field.Type -ieq 'oneTimeCode') {
+                foreach ($url in @($rawValues | Where-Object { -not [string]::IsNullOrEmpty($_) })) {
+                    $totps += [PSCustomObject]@{ Field = $field; Url = [string]$url }
+                }
                 continue
             }
 
@@ -822,7 +811,9 @@ function Show-KdRecordDetail {
                 else { $displayValues += [string]$formatted }
             }
 
-            $label = Get-KdNsfRecordFieldDisplayName -Field $field
+            $label = if (-not [string]::IsNullOrWhiteSpace($field.Label)) {
+                $field.Label
+            } else { Get-KdNsfFieldLabel -FieldType $field.Type }
             if ($displayValues.Count -eq 0) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: " -f $label)
                 continue
@@ -834,16 +825,20 @@ function Show-KdRecordDetail {
         }
     }
 
-    foreach ($url in $totps) {
-        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f '$oneTimeCode', $url)
+    foreach ($totp in $totps) {
+        $label = if (-not [string]::IsNullOrWhiteSpace($totp.Field.Label)) {
+            $totp.Field.Label
+        } else { Get-KdNsfFieldLabel -FieldType $totp.Field.Type }
+        $displayUrl = if ($Unmask) { $totp.Url } else { [KeeperSecurity.Vault.RecordSecurity]::MaskedValue }
+        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $label, $displayUrl)
         try {
-            $code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($url)
+            $code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totp.Url)
             if ($code) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: expires in {1} sec." -f $code.Item1, ($code.Item3 - $code.Item2))
             }
         }
         catch {
-            Write-Host "Error: $($_.Exception.Message)"
+            Write-Warning "Error generating one-time code: $($_.Exception.Message)"
         }
     }
 

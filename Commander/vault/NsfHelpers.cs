@@ -24,6 +24,7 @@ namespace Commander
         internal const int LabelWidth = 21;
         internal const int FolderLabelWidth = 25;
         internal const string KdRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
+        internal const string GenerateFieldValueToken = "$GEN";
 
         private static readonly Dictionary<int, string> AccessRoleLabels = new Dictionary<int, string>
         {
@@ -312,6 +313,10 @@ namespace Commander
                         continue;
                     }
 
+                    if (generatePassword && IsPasswordGenerationToken(key, val))
+                    {
+                        throw new ArgumentException($"Do not combine --generate with password={GenerateFieldValueToken}.");
+                    }
                     fieldDict[key] = ResolveFieldValue(key, val);
                     parsedCount++;
                 }
@@ -336,17 +341,16 @@ namespace Commander
             // not a literal value. Other field types retain it verbatim.
             var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
             var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
-            var token = rawValue;
-            if (token.Length >= 2
-                && ((token[0] == '\'' && token[token.Length - 1] == '\'')
-                    || (token[0] == '"' && token[token.Length - 1] == '"')))
-            {
-                token = token.Substring(1, token.Length - 2);
-            }
             if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(token, "$GEN", StringComparison.Ordinal))
+                && rawValue.StartsWith(GenerateFieldValueToken, StringComparison.Ordinal))
             {
-                return CryptoUtils.GeneratePassword(null);
+                if (string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal))
+                {
+                    return CryptoUtils.GeneratePassword(null);
+                }
+
+                throw new ArgumentException(
+                    $"Unsupported password generation token '{rawValue}'. Use {GenerateFieldValueToken} or --generate.");
             }
 
             if (rawValue.StartsWith("$JSON:", StringComparison.Ordinal))
@@ -370,6 +374,14 @@ namespace Commander
             }
 
             return rawValue;
+        }
+
+        private static bool IsPasswordGenerationToken(string fieldKey, string rawValue)
+        {
+            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
+            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            return string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal);
         }
 
         internal static void WriteRemoveImpact(RemoveResponse response, string itemLabel = "Record")
