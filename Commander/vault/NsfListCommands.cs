@@ -424,6 +424,7 @@ namespace Commander
             Console.WriteLine($"{PadLabel("Notes", NsfHelpers.LabelWidth)}: {record.Notes ?? string.Empty}");
 
             var fields = GetRecordFields(record);
+            var totps = new List<string>();
             foreach (var field in fields)
             {
                 if (string.IsNullOrWhiteSpace(field.Type))
@@ -431,12 +432,16 @@ namespace Commander
                     continue;
                 }
 
+                if (field.Type == "oneTimeCode")
+                {
+                    totps.AddRange((field.Value ?? new List<string>()).Where(x => !string.IsNullOrEmpty(x)));
+                    continue;
+                }
+
                 var displayValues = (field.Value ?? new List<string>())
                     .Select(v => FormatFieldDisplayValue(field.Type, field.Label, v, unmask) ?? string.Empty)
                     .ToList();
-                var label = string.IsNullOrWhiteSpace(field.Label)
-                    ? NsfHelpers.GetFieldLabel(field.Type)
-                    : field.Label;
+                var label = GetRecordFieldDisplayName(field);
                 if (displayValues.Count == 0)
                 {
                     Console.WriteLine($"{PadLabel(label, NsfHelpers.LabelWidth)}: ");
@@ -447,6 +452,23 @@ namespace Commander
                 for (var i = 1; i < displayValues.Count; i++)
                 {
                     Console.WriteLine($"{PadLabel("", NsfHelpers.LabelWidth)}  {displayValues[i]}");
+                }
+            }
+
+            foreach (var url in totps)
+            {
+                Console.WriteLine($"{PadLabel("$oneTimeCode", NsfHelpers.LabelWidth)}: {url}");
+                try
+                {
+                    var code = CryptoUtils.GetTotpCode(url);
+                    if (code != null)
+                    {
+                        Console.WriteLine($"{PadLabel(code.Item1, NsfHelpers.LabelWidth)}: expires in {code.Item3 - code.Item2} sec.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
 
@@ -695,6 +717,18 @@ namespace Commander
                 IsCustom = f.IsCustom,
                 Value = f.Value?.ToList() ?? new List<string>()
             }).ToList() ?? new List<ParsedField>();
+        }
+
+        private static string GetRecordFieldDisplayName(ParsedField field)
+        {
+            var type = field.Type ?? string.Empty;
+            var name = string.Equals(type, "text", StringComparison.Ordinal) ? string.Empty : type;
+            if (string.IsNullOrEmpty(field.Label))
+            {
+                return "$" + (string.IsNullOrEmpty(name) ? "text" : name);
+            }
+
+            return string.IsNullOrEmpty(name) ? field.Label : "$" + name + ":" + field.Label;
         }
 
         private static List<object> BuildFieldsJson(IEnumerable<ParsedField> fields, bool unmask)

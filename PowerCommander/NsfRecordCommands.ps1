@@ -204,10 +204,18 @@ function Script:ConvertTo-NSFJsonValue {
 
 function Script:Resolve-KeeperNSFFieldValue {
     Param(
+        [Parameter(Mandatory = $true)][string] $FieldKey,
         [Parameter(Mandatory = $true)][AllowEmptyString()][string] $RawValue
     )
 
     if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
+
+    # Match Commander field-value indirection: $GEN applies to the password
+    # field and is resolved before being sent to the server.
+    $fieldType = $FieldKey.Split(':', 2)[0]
+    if ($fieldType -ieq 'password' -and $RawValue -ceq '$GEN') {
+        return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+    }
 
     if ($RawValue -clike '$JSON:*') {
         $jsonStr = $RawValue.Substring(6)
@@ -265,7 +273,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
             continue
         }
 
-        $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+        $resolved = Resolve-KeeperNSFFieldValue -FieldKey $key -RawValue $val
         if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
             $resolved = $resolved.PSObject.BaseObject
         }
@@ -302,6 +310,7 @@ function Add-KeeperNSFRecord {
 
 	.Parameter Fields
 	Optional field values as key=value pairs (e.g. login=admin password=secret url=https://example.com).
+	Use password=`$GEN to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. for a `databaseCredentials` record's `host` field:
@@ -690,6 +699,7 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+	Use password=`$GEN to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. updating a `databaseCredentials` record's `host` field:
