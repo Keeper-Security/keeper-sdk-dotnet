@@ -91,7 +91,7 @@ namespace KeeperSecurity
             }
 
             /// <summary>
-            /// Gets the display category corresponding to a Commander strength score.
+            /// Gets the display category corresponding to a strength score.
             /// Returns UNKNOWN for scores that cannot be mapped to a known category.
             /// </summary>
             public static string GetCategory(int score)
@@ -299,6 +299,29 @@ namespace KeeperSecurity
                         throw new KeeperApiException(
                             "password_rule_failed",
                             "New Master Password must be different from the current Master Password.");
+                    }
+                    else if (currentPassword == null && currentAuthContext.IsAccountRecoverySession)
+                    {
+                        if (postUi is IMasterPasswordReentryUI reentryUiForRecovery)
+                        {
+                            var validateRecoveryPassword = new Func<string, bool>(p => currentAuthContext.CheckPasswordValid(p));
+                            var recoveryPassword = await reentryUiForRecovery.GetCurrentPassword(validateRecoveryPassword);
+                            if (!string.IsNullOrEmpty(recoveryPassword) && newPassword == recoveryPassword)
+                            {
+                                if (postUi is IPostLoginTaskUI postLoginUi)
+                                {
+                                    var confirmed = await postLoginUi.Confirmation("New Master Password must be different from the current Master Password. Please try again.");
+                                    if (!confirmed)
+                                    {
+                                        throw new KeeperCanceled();
+                                    }
+                                    continue;
+                                }
+                                throw new KeeperApiException(
+                                    "password_rule_failed",
+                                    "New Master Password must be different from the current Master Password.");
+                            }
+                        }
                     }
 
                     var strengthScore = MasterPasswordStrength.GetScore(newPassword);
