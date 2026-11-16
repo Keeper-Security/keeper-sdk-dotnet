@@ -172,8 +172,9 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                         }
                         else
                         {
-                            // No key is available to migrate this old cache row. Remove the
-                            // plaintext instead of returning or retaining it.
+                            // No key is available to migrate this old cache row. Clear the stale
+                            // timestamp to force re-fetch from server on next refresh.
+                            Trace.TraceWarning($"Compliance cache contains legacy plaintext metadata for record {record.RecordUid} but enterprise EC key is unavailable. Cache entry will be invalidated for re-fetch.");
                             encryptedData = Array.Empty<byte>();
                             migratedRecords.Add(new ComplianceRecord
                             {
@@ -183,7 +184,7 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                                 Shared = record.Shared,
                                 InTrash = record.InTrash,
                                 HasAttachments = record.HasAttachments,
-                                LastComplianceRefreshed = record.LastComplianceRefreshed
+                                LastComplianceRefreshed = 0  // Force re-fetch on next cache refresh
                             });
                         }
                     }
