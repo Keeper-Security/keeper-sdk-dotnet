@@ -873,7 +873,7 @@ function New-KeeperEnterpriseRole {
                         $roleData.RoleManagedNodeAdd($createdRole, $managedNode, $Cascade.IsPresent).GetAwaiter().GetResult() | Out-Null
                     }
                     catch {
-                        throw "Role `"$roleName`" was created, but managed node `"$($managedNode.DisplayName)`" could not be added: $($_.Exception.Message)"
+                        throw "Role `"$roleName`" (ID: $($createdRole.Id)) was created, but managed node `"$($managedNode.DisplayName)`" could not be added: $($_.Exception.Message) Add it with: Add-KeeperEnterpriseRoleManagedNode -Role $($createdRole.Id) -Node $($managedNode.Id)."
                     }
                 }
 

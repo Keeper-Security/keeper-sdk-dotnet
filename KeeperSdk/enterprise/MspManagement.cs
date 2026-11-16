@@ -161,73 +161,86 @@ namespace KeeperSecurity.Enterprise
 
             EnterpriseManagedCompany company = null;
             ManagedCompanyAuth mcAuth = null;
-            var createdCompany = false;
+            var shouldCleanupOnFailure = false;
             try
             {
-            company = await CreateManagedCompany(new ManagedCompanyOptions { Name = root.DisplayName, NodeId = enterpriseData.RootNode.Id, ProductId = product.ProductCode, NumberOfSeats = Math.Max(seats ?? 0, Math.Max(userIds.Count, 1)) });
-            createdCompany = true;
-            mcAuth = new ManagedCompanyAuth(); await mcAuth.LoginToManagedCompany(Enterprise, company.EnterpriseId);
-            var mcEnterprise = new EnterpriseLoader(mcAuth, Array.Empty<EnterpriseDataPlugin>()); await mcEnterprise.Load();
-            string ReEncrypt(string data) => CryptoUtils.EncryptAesV1(CryptoUtils.DecryptAesV1(data.Base64UrlDecode(), Enterprise.TreeKey), mcEnterprise.TreeKey).Base64UrlEncode();
-            var request = new NodeToManagedCompanyRequest { CompanyId = company.EnterpriseId };
-            foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id))) request.Nodes.Add(new ReEncryptedData { Id = node.Id, Data = ReEncrypt(node.EncryptedData) });
-            foreach (var role in roleData.Roles.Where(x => roleIds.Contains(x.Id)))
-            {
-                var key = await roleData.GetRoleKey(role.Id);
-                if (key == null || key.Length == 0)
-                    throw new EnterpriseException($"Role key for '{role.DisplayName}' is unavailable; conversion cannot continue safely.");
-                request.Roles.Add(new ReEncryptedData { Id = role.Id, Data = ReEncrypt(role.EncryptedData) });
-                request.RoleKeys.Add(new ReEncryptedRoleKey { RoleId = role.Id, EncryptedRoleKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(key, mcEnterprise.TreeKey)) });
-            }
-            foreach (var user in enterpriseData.Users.Where(x => userIds.Contains(x.Id))) request.Users.Add(new ReEncryptedData { Id = user.Id, Data = user.KeyType == "no_key" ? user.DisplayName : ReEncrypt(user.EncryptedData) });
-            foreach (var team in enterpriseData.Teams.Where(x => teamUids.Contains(x.Uid)))
-            {
-                var teamKey = new EncryptedTeamKeyRequest { TeamUid = ByteString.CopyFrom(team.Uid.Base64UrlDecode()) };
-                if (team.TeamKey?.Length > 0)
-                    teamKey.EncryptedTeamKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(team.TeamKey, mcEnterprise.TreeKey));
-                else
-                    teamKey.Force = true;
-                request.TeamKeys.Add(teamKey);
-            }
-            if (mcEnterprise.EcPrivateKey is not { Length: > 0 })
-                throw new EnterpriseException("The managed company ECC private key is required to preserve user recoverable data keys.");
-            var dataKeyRequest = new UserDataKeyByNodeRequest();
-            dataKeyRequest.NodeIds.Add(nodeIds);
-            var dataKeys = await Enterprise.Auth.ExecuteAuthRest<UserDataKeyByNodeRequest, EnterpriseUserDataKeysByNodeResponse>(
-                "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
-            var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
-            var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
-            foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == EnterpriseUserDataKeyTypeEcc && userIds.Contains(x.EnterpriseUserId)))
-            {
-                var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
-                request.UsersDataKeys.Add(new ReEncryptedUserDataKey
+                try
                 {
-                    EnterpriseUserId = key.EnterpriseUserId,
-                    UserEncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(plainKey, targetPublicKey))
-                });
-            }
-            createdCompany = false;
-            await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
-            await Enterprise.Load();
-            return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == company.EnterpriseId) ?? company;
-            }
-            catch (Exception e)
-            {
-                if (createdCompany && company != null)
-                {
-                    try
+                    company = await CreateManagedCompany(new ManagedCompanyOptions { Name = root.DisplayName, NodeId = enterpriseData.RootNode.Id, ProductId = product.ProductCode, NumberOfSeats = Math.Max(seats ?? 0, Math.Max(userIds.Count, 1)) });
+                    shouldCleanupOnFailure = true;
+                    mcAuth = new ManagedCompanyAuth(); await mcAuth.LoginToManagedCompany(Enterprise, company.EnterpriseId);
+                    var mcEnterprise = new EnterpriseLoader(mcAuth, Array.Empty<EnterpriseDataPlugin>()); await mcEnterprise.Load();
+                    string ReEncrypt(string data) => CryptoUtils.EncryptAesV1(CryptoUtils.DecryptAesV1(data.Base64UrlDecode(), Enterprise.TreeKey), mcEnterprise.TreeKey).Base64UrlEncode();
+                    var request = new NodeToManagedCompanyRequest { CompanyId = company.EnterpriseId };
+                    foreach (var node in enterpriseData.Nodes.Where(x => nodeIds.Contains(x.Id))) request.Nodes.Add(new ReEncryptedData { Id = node.Id, Data = ReEncrypt(node.EncryptedData) });
+                    foreach (var role in roleData.Roles.Where(x => roleIds.Contains(x.Id)))
                     {
-                        await RemoveManagedCompany(company.EnterpriseId);
+                        var key = await roleData.GetRoleKey(role.Id);
+                        if (key == null || key.Length == 0)
+                            throw new EnterpriseException($"Role key for '{role.DisplayName}' is unavailable; conversion cannot continue safely.");
+                        request.Roles.Add(new ReEncryptedData { Id = role.Id, Data = ReEncrypt(role.EncryptedData) });
+                        request.RoleKeys.Add(new ReEncryptedRoleKey { RoleId = role.Id, EncryptedRoleKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(key, mcEnterprise.TreeKey)) });
                     }
-                    catch (Exception cleanupException)
+                    foreach (var user in enterpriseData.Users.Where(x => userIds.Contains(x.Id)))
                     {
-                        throw new EnterpriseException($"Conversion failed and managed company {company.EnterpriseId} could not be removed: {cleanupException.Message}. Original error: {e.Message}");
+                        // no_key users store their display name unencrypted in the source data field.
+                        var userData = user.KeyType == "no_key" ? user.DisplayName : ReEncrypt(user.EncryptedData);
+                        request.Users.Add(new ReEncryptedData { Id = user.Id, Data = userData });
                     }
-                    throw new EnterpriseException($"Conversion failed; managed company {company.EnterpriseId} was removed. Original error: {e.Message}");
+                    foreach (var team in enterpriseData.Teams.Where(x => teamUids.Contains(x.Uid)))
+                    {
+                        var teamKey = new EncryptedTeamKeyRequest { TeamUid = ByteString.CopyFrom(team.Uid.Base64UrlDecode()) };
+                        if (team.TeamKey?.Length > 0)
+                            teamKey.EncryptedTeamKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(team.TeamKey, mcEnterprise.TreeKey));
+                        else
+                            teamKey.Force = true;
+                        request.TeamKeys.Add(teamKey);
+                    }
+                    if (mcEnterprise.EcPrivateKey is not { Length: > 0 })
+                        throw new EnterpriseException("The managed company ECC private key is required to preserve user recoverable data keys.");
+                    var dataKeyRequest = new UserDataKeyByNodeRequest();
+                    dataKeyRequest.NodeIds.Add(nodeIds);
+                    var dataKeys = await Enterprise.Auth.ExecuteAuthRest<UserDataKeyByNodeRequest, EnterpriseUserDataKeysByNodeResponse>(
+                        "enterprise/get_enterprise_user_data_key_by_node", dataKeyRequest);
+                    var sourcePrivateKey = CryptoUtils.LoadEcPrivateKey(sourceEnterprise.EcPrivateKey);
+                    var targetPublicKey = CryptoUtils.GetEcPublicKey(CryptoUtils.LoadEcPrivateKey(mcEnterprise.EcPrivateKey));
+                    foreach (var key in dataKeys.Keys.SelectMany(x => x.Keys).Where(x => x.KeyTypeId == EnterpriseUserDataKeyTypeEcc && userIds.Contains(x.EnterpriseUserId)))
+                    {
+                        var plainKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), sourcePrivateKey);
+                        request.UsersDataKeys.Add(new ReEncryptedUserDataKey
+                        {
+                            EnterpriseUserId = key.EnterpriseUserId,
+                            UserEncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(plainKey, targetPublicKey))
+                        });
+                    }
+                    await Enterprise.Auth.ExecuteAuthRest("enterprise/node_to_managed_company", request);
+                    shouldCleanupOnFailure = false;
                 }
-                else if (company != null)
-                    throw new EnterpriseException($"Conversion outcome is unknown for managed company {company.EnterpriseId}. It was not removed. Original error: {e.Message}");
-                throw;
+                catch (Exception e)
+                {
+                    if (shouldCleanupOnFailure && company != null)
+                    {
+                        try
+                        {
+                            await RemoveManagedCompany(company.EnterpriseId);
+                        }
+                        catch (Exception cleanupException)
+                        {
+                            throw new EnterpriseException($"Conversion failed and managed company {company.EnterpriseId} could not be removed: {cleanupException.Message}. Original error: {e.Message}");
+                        }
+                        throw new EnterpriseException($"Conversion failed; managed company {company.EnterpriseId} was removed. Original error: {e.Message}");
+                    }
+                    throw;
+                }
+                try
+                {
+                    await Enterprise.Load();
+                }
+                catch (Exception e)
+                {
+                    throw new EnterpriseException($"Conversion succeeded for managed company {company.EnterpriseId}, but the enterprise data could not be refreshed: {e.Message}");
+                }
+                return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == company.EnterpriseId) ?? company;
             }
             finally
             {

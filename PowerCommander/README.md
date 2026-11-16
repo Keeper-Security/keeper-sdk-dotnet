@@ -71,6 +71,9 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Set-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Sets whether password fields should be visible or not
 
 ### Trash Management Cmdlets
+
+Trash status values are `Record`, `Share` (an orphaned shared record), `Folder` (a deleted shared folder or its records), `NSF Record`, and `NSF Folder`.
+
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
 | [Get-KeeperTrashList](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/trash-commands#power-commander)                                    | ktrash           | List deleted records in trash

@@ -1801,7 +1801,7 @@ namespace Commander
                     }
                     catch (Exception e)
                     {
-                        throw new EnterpriseException($"Role \"{createdRole.DisplayName}\" was created, but managed node \"{GetNodeDisplayName(managedNode)}\" could not be added: {e.Message}");
+                        throw new EnterpriseException($"Role \"{createdRole.DisplayName}\" (ID: {createdRole.Id}) was created, but managed node \"{GetNodeDisplayName(managedNode)}\" could not be added: {e.Message} Add it with: enterprise-role managed-node-add {createdRole.Id} --node {managedNode.Id}.");
                     }
                 }
                 Console.WriteLine($"Role \"{arguments.Role}\" successfully added.");
