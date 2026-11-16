@@ -616,8 +616,9 @@ function Get-KeeperAuditRecordTitleMap {
         return ,$titles
     }
 
+    Assert-KeeperAuditComplianceAccess -Enterprise $Enterprise
+
     try {
-        Assert-KeeperAuditComplianceAccess -Enterprise $Enterprise
         $dbPath = Get-KeeperComplianceSqliteDbPath -Enterprise $Enterprise -Auth $Auth
         Write-Verbose "Audit record-title lookup using compliance SQLite database '$dbPath'."
         if (-not (Test-Path -LiteralPath $dbPath -PathType Leaf)) {
@@ -675,23 +676,7 @@ function Get-KeeperAuditRecordTitleMap {
     }
     catch {
         Write-Verbose "Audit record-title lookup: unable to read compliance cache: $($_.Exception.Message)"
-    }
-
-    try {
-        $vault = $Script:Context.Vault
-        if ($vault) {
-            foreach ($uid in $uniqueUids) {
-                if ($titles.ContainsKey([string]$uid)) { continue }
-                $record = $null
-                if ($vault.TryGetKeeperRecord([string]$uid, [ref]$record) -and $record -and
-                    -not [string]::IsNullOrWhiteSpace($record.Title)) {
-                    $titles[[string]$uid] = [string]$record.Title
-                }
-            }
-        }
-    }
-    catch {
-        Write-Verbose "Audit record-title lookup: local vault fallback failed: $($_.Exception.Message)"
+        throw
     }
 
     return ,$titles

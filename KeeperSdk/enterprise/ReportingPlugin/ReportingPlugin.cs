@@ -662,7 +662,11 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                             throw new InvalidOperationException("Audit report pagination cannot continue because the entire page has the same event timestamp.");
 
                         rowsToProcess = rows.Take(boundaryIndex).ToList();
-                        nextEndTime = oldest.Value + 1;
+                        var lastProcessedTime = TryGetUnixTime(rows[boundaryIndex - 1], "created");
+                        if (lastProcessedTime.HasValue && lastProcessedTime.Value >= oldest.Value)
+                            nextEndTime = lastProcessedTime.Value;
+                        else
+                            nextEndTime = oldest.Value;
                     }
                 }
 
@@ -690,8 +694,15 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                     throw new InvalidOperationException("The requested predefined date filter returned a full API page; use a bounded time range to page results.");
                 if (rows.Count < requestLimit || events.Count >= config.Limit || predefinedCreatedFilter || !nextEndTime.HasValue)
                     break;
-                if (nextEndTime.Value >= (currentEndTime ?? long.MaxValue))
+                if (nextEndTime.Value > (currentEndTime ?? long.MaxValue))
                     throw new InvalidOperationException("Audit report pagination did not advance its time cursor.");
+                if (nextEndTime.Value == currentEndTime)
+                {
+                    if (initialCreatedFilter == null)
+                        initialCreatedFilter = new CreatedFilter { ExcludeMax = true };
+                    else
+                        initialCreatedFilter.ExcludeMax = true;
+                }
                 currentEndTime = nextEndTime;
             }
 
