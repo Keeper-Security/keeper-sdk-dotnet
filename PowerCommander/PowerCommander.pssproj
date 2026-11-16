@@ -54,6 +54,9 @@
     <Content Include="PowerCommander.format.ps1xml" />
     <Content Include="PowerCommander.types.ps1xml" />
     <Content Include="README.md" />
+    <Content Include="..\KeeperSdk\auth\WindowsWebAuthnSecurityKeyUI.cs">
+      <Link>WindowsWebAuthnSecurityKeyUI.cs</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="KeeperSdk, Version=0.9.7.14, Culture=neutral, PublicKeyToken=null">

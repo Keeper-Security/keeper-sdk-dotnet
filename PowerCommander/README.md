@@ -384,6 +384,9 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
          Keeper Username: email_address@company.com
             ... Password:
     ```
+    When Keeper offers a WebAuthn/FIDO2 security-key 2FA option, choose `key` at the prompt.
+    Windows displays the touch/PIN dialog; the PIN is not collected by PowerCommander. This
+    supports login with an enrolled key and does not enroll keys or set up PINs.
 2. List the content of Keeper folder
     ```
     PS > kdir

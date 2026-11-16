@@ -80,6 +80,11 @@ namespace Commander
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c18.0.0" } 
             };
 
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                _auth.SecurityKeyUI = new WindowsSecurityKeyUI(_auth.Endpoint.Server);
+            }
+
 #if NET472_OR_GREATER
             _auth.BiometricLoginProvider = new KeeperBiometrics.BiometricLoginProviderAdapter();
 #endif
