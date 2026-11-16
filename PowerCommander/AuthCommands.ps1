@@ -11,10 +11,6 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback, 
         Write-Host ''
         Write-Host $information -ForegroundColor Yellow
 
-        if ($information -like 'Your Master Password has expired*') {
-            return [System.Threading.Tasks.Task]::FromResult($true)
-        }
-
         $answer = Read-Host 'Do you want to continue? (y/n)'
         return [System.Threading.Tasks.Task]::FromResult([bool]($answer -match '^y(es)?$'))
     }
