@@ -260,6 +260,20 @@ namespace KeeperSecurity.Enterprise
         IEnumerable<RoleEnforcement> GetEnforcementsForRole(long roleId);
 
         /// <summary>
+        /// Gets the managed nodes assigned to roles in the enterprise.
+        /// </summary>
+        /// <returns>All managed-node assignments.</returns>
+        IList<ManagedNode> GetManagedNodes();
+
+        /// <summary>
+        /// Gets the privileges granted to a role for a managed node.
+        /// </summary>
+        /// <param name="roleId">Enterprise role ID.</param>
+        /// <param name="nodeId">Managed node ID.</param>
+        /// <returns>The privileges granted for the role and managed node.</returns>
+        IEnumerable<RolePrivilege> GetPrivilegesForRoleAndNode(long roleId, long nodeId);
+
+        /// <summary>
         /// Gets a list of all administrative permissions
         /// </summary>
         /// <returns></returns>
