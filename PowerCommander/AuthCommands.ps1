@@ -15,23 +15,6 @@ class KeeperPostLoginUI : KeeperSecurity.Authentication.Sync.IAuthSyncCallback,
     [void] OnNextStep() {
     }
 
-    [System.Threading.Tasks.Task[string]] AuthenticatePublicKeyRequest(
-        [KeeperSecurity.Authentication.PublicKeyCredentialRequestOptions] $request) {
-        $typeName = 'KeeperSecurity.Authentication.WindowsWebAuthnSecurityKeyUI'
-        $handlerType = [AppDomain]::CurrentDomain.GetAssemblies() |
-            ForEach-Object { $_.GetType($typeName, $false) } |
-            Where-Object { $null -ne $_ } |
-            Select-Object -First 1
-        if ($null -eq $handlerType) {
-            throw [System.InvalidOperationException]::new('Windows WebAuthn support was not initialized.')
-        }
-        $arguments = [object[]]::new(2)
-        $arguments[0] = $request
-        $arguments[1] = $this.WebAuthnOrigin
-        $task = $handlerType.GetMethod('AuthenticatePublicKeyRequest').Invoke($null, $arguments)
-        return [System.Threading.Tasks.Task[string]]$task
-    }
-
     [System.Threading.Tasks.Task[bool]] Confirmation([string] $information) {
         Write-Host ''
         Write-Host $information -ForegroundColor Yellow
@@ -280,9 +263,6 @@ function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel
     if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA) {
         return 'dna'
     }
-    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::SecurityKey) {
-        return 'security key'
-    }
     return ''
 }
 
@@ -499,9 +479,6 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         elseif ($text -eq 'dna') {
             $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA
         }
-        elseif ($text -eq 'security key' -or $text -eq 'key') {
-            $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::SecurityKey
-        }
         else {
             Write-Output 'Unsupported 2FA channel:', $text
             $result = $false
@@ -549,30 +526,22 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             }
         }
         else {
-            $selectedPush = $null
             foreach ($cha in $auth.step.Channels) {
                 $pushes = $auth.step.GetChannelPushActions($cha)
                 if ($null -ne $pushes) {
                     foreach ($push in $pushes) {
                         if ($action -eq [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)) {
-                            $selectedPush = $push
-                            break
+                            $auth.step.SendPush($push).GetAwaiter().GetResult() | Out-Null
+                            return
                         }
                     }
                 }
-                if ($null -ne $selectedPush) {
-                    break
+                Try {
+                    $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
                 }
-            }
-            if ($null -ne $selectedPush) {
-                $auth.step.SendPush($selectedPush).GetAwaiter().GetResult() | Out-Null
-                return
-            }
-            try {
-                $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
-            }
-            catch {
-                Write-Error $_
+                Catch {
+                    Write-Error $_
+                }
             }
         }
     }
@@ -819,7 +788,7 @@ function Connect-Keeper {
     Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n" -InformationAction Continue
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
-    $authFlow.UiCallback = [KeeperPostLoginUI]::new($endpoint.Server)
+    $authFlow.UiCallback = [KeeperPostLoginUI]::new()
     $authFlow.SupportRestrictedSession = $true
 
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
