@@ -329,6 +329,9 @@ namespace Commander
 
         private async Task DoLogin(LoginOptions options)
         {
+            var inputManager = Program.GetInputManager();
+            _auth.PostLoginTaskUI = new CommanderPostLoginTaskUI(inputManager);
+
             var username = options.Username;
             var isSsoProvider = options.IsSsoProvider;
             if (isSsoProvider)
@@ -336,7 +339,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter SSO Provider: ");
-                    username = await Program.GetInputManager().ReadLine();
+                    username = await inputManager.ReadLine();
                 }
             }
             else
@@ -344,7 +347,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter Username: ");
-                    username = await Program.GetInputManager().ReadLine();
+                    username = await inputManager.ReadLine();
                 }
             }
 
@@ -357,7 +360,7 @@ namespace Commander
             {
                 if (isSsoProvider)
                 {
-                    await KeeperLoginFlow.LoginToSsoProvider(_auth, Program.GetInputManager(), username);
+                    await KeeperLoginFlow.LoginToSsoProvider(_auth, inputManager, username);
                 }
                 else
                 {
@@ -380,7 +383,7 @@ namespace Commander
                         passwords.Add(uc.Password);
                     }
 
-                    await KeeperLoginFlow.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
+                    await KeeperLoginFlow.LoginToKeeper(_auth, inputManager, username, passwords.ToArray());
                 }
 
                 if (_auth.IsAuthenticated())
