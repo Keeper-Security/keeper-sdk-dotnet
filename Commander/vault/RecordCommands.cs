@@ -238,6 +238,127 @@ namespace Commander
                 }
             }
         }
+
+        internal bool IsRecordTypeRestricted(string recordTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(recordTypeName)
+                || string.Equals(recordTypeName, "general", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(recordTypeName, "legacy", StringComparison.OrdinalIgnoreCase)
+                || !Vault.TryGetRecordTypeByName(recordTypeName, out var recordType))
+            {
+                return false;
+            }
+
+            if (!TryGetEnforcement("restrict_record_types", out var enforcement)) return false;
+            try
+            {
+                var policy = JsonUtils.ParseJson<RestrictedRecordTypesPolicy>(Encoding.UTF8.GetBytes(enforcement));
+                var restrictedIds = recordType.Scope == RecordTypeScope.Standard
+                    ? policy.Standard
+                    : recordType.Scope == RecordTypeScope.Enterprise ? policy.Enterprise : null;
+                return restrictedIds?.Contains(recordType.Id) == true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        internal PasswordGenerationOptions GetGeneratedPasswordPolicy()
+        {
+            if (!TryGetEnforcement("generated_password_complexity", out var enforcement)) return null;
+            var policy = ParseGeneratedPasswordPolicy(enforcement);
+            if (policy != null)
+            {
+                return new PasswordGenerationOptions
+                {
+                    Length = policy.Length,
+                    Lower = policy.LowerUse ? Math.Max(policy.LowerMin, 1) : -1,
+                    Upper = policy.UpperUse ? Math.Max(policy.UpperMin, 1) : -1,
+                    Digit = policy.DigitUse ? Math.Max(policy.DigitMin, 1) : -1,
+                    Special = policy.SpecialUse ? Math.Max(policy.SpecialMin, 1) : -1,
+                    SpecialCharacters = policy.Special,
+                };
+            }
+            return null;
+        }
+
+        internal IEnumerable<string> ValidatePasswordPolicy(IEnumerable<string> passwords)
+        {
+            if (!TryGetEnforcement("generated_password_complexity", out var enforcement)) yield break;
+
+            var policy = ParseGeneratedPasswordPolicy(enforcement);
+            if (policy == null) yield break;
+            foreach (var password in passwords?.Where(x => !string.IsNullOrEmpty(x)) ?? Enumerable.Empty<string>())
+            {
+                if (policy.Length > 0 && password.Length < policy.Length)
+                    yield return $"Password must be at least {policy.Length} characters (got {password.Length}).";
+                if (policy.LowerUse && password.Count(char.IsLower) < Math.Max(policy.LowerMin, 1))
+                    yield return $"Password must contain at least {Math.Max(policy.LowerMin, 1)} lowercase character(s).";
+                if (policy.UpperUse && password.Count(char.IsUpper) < Math.Max(policy.UpperMin, 1))
+                    yield return $"Password must contain at least {Math.Max(policy.UpperMin, 1)} uppercase character(s).";
+                if (policy.DigitUse && password.Count(char.IsDigit) < Math.Max(policy.DigitMin, 1))
+                    yield return $"Password must contain at least {Math.Max(policy.DigitMin, 1)} digit character(s).";
+                if (policy.SpecialUse)
+                {
+                    var specialCount = string.IsNullOrEmpty(policy.Special)
+                        ? password.Count(x => !char.IsLetterOrDigit(x))
+                        : password.Count(x => policy.Special.Contains(x));
+                    if (specialCount < Math.Max(policy.SpecialMin, 1))
+                        yield return $"Password must contain at least {Math.Max(policy.SpecialMin, 1)} special character(s).";
+                }
+            }
+        }
+
+        private bool TryGetEnforcement(string name, out string enforcement)
+        {
+            enforcement = null;
+            return Vault.Auth.AuthContext.Enforcements != null
+                && Vault.Auth.AuthContext.Enforcements.TryGetValue(name, out var value)
+                && (enforcement = value as string) != null;
+        }
+
+        private static GeneratedPasswordComplexityPolicy ParseGeneratedPasswordPolicy(string enforcement)
+        {
+            try
+            {
+                return JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy>(Encoding.UTF8.GetBytes(enforcement));
+            }
+            catch
+            {
+                try
+                {
+                    return JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy[]>(Encoding.UTF8.GetBytes(enforcement))
+                        ?.FirstOrDefault();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
+    }
+
+    [DataContract]
+    internal class GeneratedPasswordComplexityPolicy
+    {
+        [DataMember(Name = "length")] public int Length { get; set; }
+        [DataMember(Name = "lower-use")] public bool LowerUse { get; set; }
+        [DataMember(Name = "lower-min")] public int LowerMin { get; set; }
+        [DataMember(Name = "upper-use")] public bool UpperUse { get; set; }
+        [DataMember(Name = "upper-min")] public int UpperMin { get; set; }
+        [DataMember(Name = "digit-use")] public bool DigitUse { get; set; }
+        [DataMember(Name = "digit-min")] public int DigitMin { get; set; }
+        [DataMember(Name = "special-use")] public bool SpecialUse { get; set; }
+        [DataMember(Name = "special-min")] public int SpecialMin { get; set; }
+        [DataMember(Name = "special")] public string Special { get; set; }
+    }
+
+    [DataContract]
+    internal class RestrictedRecordTypesPolicy
+    {
+        [DataMember(Name = "std")] public int[] Standard { get; set; }
+        [DataMember(Name = "ent")] public int[] Enterprise { get; set; }
     }
 
     internal static class RecordCommandExtensions
@@ -382,6 +503,11 @@ namespace Commander
                 Console.WriteLine($"\"Title\" parameter is missing.");
                 return;
             }
+            if (context.IsRecordTypeRestricted(options.RecordType))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be created.");
+                return;
+            }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
 
             KeeperRecord record;
@@ -417,10 +543,11 @@ namespace Commander
             }
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record);
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy());
             }
 
             context.AssignRecordFields(record, fields);
+            if (!ValidatePasswordPolicy(context, fields, record, options.Generate, options.Force)) return;
             var createdRecord = await context.Vault.CreateRecord(record, node.FolderUid);
 
             if (!string.IsNullOrEmpty(options.SelfDestruct))
@@ -507,6 +634,11 @@ namespace Commander
             }
             if (!string.IsNullOrEmpty(options.RecordType))
             {
+                if (context.IsRecordTypeRestricted(options.RecordType))
+                {
+                    Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be used.");
+                    return;
+                }
                 if (record is TypedRecord typed)
                 {
                     if (context.Vault.TryGetRecordTypeByName(options.RecordType, out var rt))
@@ -528,12 +660,56 @@ namespace Commander
 
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record);
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy());
             }
 
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
             context.AssignRecordFields(record, fields);
+            if (!ValidatePasswordPolicy(context, fields, record, options.Generate, options.Force)) return;
             await context.Vault.UpdateRecord(record);
+        }
+
+        private static bool ValidatePasswordPolicy(VaultContext context, IEnumerable<CmdLineRecordField> fields,
+            KeeperRecord record, bool generatedPassword, bool force)
+        {
+            var passwords = fields
+                .Where(x => string.Equals(x.FieldName, "password", StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Value)
+                .Where(x => !string.IsNullOrEmpty(x));
+            if (generatedPassword)
+            {
+                passwords = passwords.Concat(GetRecordPasswords(record));
+            }
+
+            var violations = context.ValidatePasswordPolicy(passwords).Distinct().ToArray();
+            if (violations.Length == 0) return true;
+            foreach (var violation in violations)
+            {
+                Console.WriteLine($"Warning: {violation}");
+            }
+            if (force) return true;
+
+            Console.WriteLine("Password policy validation failed. Use --force to continue.");
+            return false;
+        }
+
+        private static IEnumerable<string> GetRecordPasswords(KeeperRecord record)
+        {
+            if (record is PasswordRecord password && !string.IsNullOrEmpty(password.Password))
+            {
+                yield return password.Password;
+            }
+            else if (record is TypedRecord typed)
+            {
+                foreach (var field in typed.Fields.Concat(typed.Custom)
+                    .Where(x => string.Equals(x.FieldName, "password", StringComparison.OrdinalIgnoreCase)))
+                {
+                    for (var i = 0; i < field.Count; i++)
+                    {
+                        if (field.GetValueAt(i) is string value && !string.IsNullOrEmpty(value)) yield return value;
+                    }
+                }
+            }
         }
 
         public static async Task DownloadAttachmentCommand(this VaultContext context, DownloadAttachmentOptions options)
@@ -1731,6 +1907,9 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
+        [Option("force", Required = false, Default = false, HelpText = "continue when password policy validation reports warnings")]
+        public bool Force { get; set; }
+
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
         public string SelfDestruct { get; set; }
 
@@ -1751,6 +1930,9 @@ namespace Commander
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
+
+        [Option("force", Required = false, Default = false, HelpText = "continue when password policy validation reports warnings")]
+        public bool Force { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
         public string RecordId { get; set; }

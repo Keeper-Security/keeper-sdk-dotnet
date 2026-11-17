@@ -815,6 +815,14 @@ function Edit-KeeperNSFRecord {
         return
     }
 
+    if ($hasType) {
+        [KeeperSecurity.Vault.RecordType]$recordTypeInfo = $null
+        if (-not $vault.TryGetRecordTypeByName($RecordType, [ref]$recordTypeInfo)) {
+            Write-Host "Error: Record type '$RecordType' not found." -ForegroundColor Red
+            return
+        }
+    }
+
     [KeeperSecurity.Vault.KeeperNSFRecord]$resolvedRecord = $null
     try {
         $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault

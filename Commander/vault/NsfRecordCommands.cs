@@ -219,6 +219,12 @@ namespace Commander
                 return;
             }
 
+            if (hasType && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' not found.");
+                return;
+            }
+
             Dictionary<string, object> fieldDict = null;
             if (hasFields || options.GeneratePassword)
             {

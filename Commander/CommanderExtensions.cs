@@ -86,7 +86,8 @@ namespace Commander
             return options;
         }
 
-        public static bool RotateRecordPassword(this IVault vault, KeeperRecord record)
+        public static bool RotateRecordPassword(this IVault vault, KeeperRecord record,
+            PasswordGenerationOptions defaultOptions = null)
         {
             if (record == null)
             {
@@ -95,7 +96,7 @@ namespace Commander
             PasswordGenerationOptions options = null;
             if (record is PasswordRecord password)
             {
-                options = RestoreRules(password.Password);
+                options = defaultOptions ?? RestoreRules(password.Password);
                 password.Password = CryptoUtils.GeneratePassword(options);
                 return true;
             }
@@ -116,7 +117,7 @@ namespace Commander
                             }
                             if (passwordFieldType is RecordTypePasswordField rtpf)
                             {
-                                options = rtpf.PasswordOptions;
+                                options = defaultOptions ?? rtpf.PasswordOptions;
                             }
                         }
                     }
@@ -131,9 +132,10 @@ namespace Commander
                     {
                         if (passwordField.ObjectValue is string pwd)
                         {
-                            options = RestoreRules(pwd);
+                            options = defaultOptions ?? RestoreRules(pwd);
                         }
                     }
+                    options ??= defaultOptions;
                     passwordField.ObjectValue = CryptoUtils.GeneratePassword(options);
                     return true;
                 }

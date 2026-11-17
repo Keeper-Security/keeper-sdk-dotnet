@@ -11,6 +11,70 @@ class KeeperRecordListItem {
     [bool]$Shared
 }
 
+function script:Get-KeeperRecordPolicyValue {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $Name)
+
+    $enforcements = $Vault.Auth.AuthContext.Enforcements
+    if ($enforcements -and $enforcements.ContainsKey($Name)) {
+        return $enforcements[$Name] -as [string]
+    }
+    return $null
+}
+
+function script:Get-KeeperGeneratedPasswordPolicy {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault)
+
+    $raw = Get-KeeperRecordPolicyValue -Vault $Vault -Name 'generated_password_complexity'
+    if (-not $raw) { return $null }
+    try {
+        $policy = $raw | ConvertFrom-Json -ErrorAction Stop
+        if ($policy -is [System.Array]) { return $policy | Select-Object -First 1 }
+        return $policy
+    } catch { return $null }
+}
+
+function script:Test-KeeperPasswordPolicy {
+    param([string] $Password, $Policy)
+
+    if (-not $Password -or -not $Policy) { return }
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $minimum = { param($value) if ($null -eq $value -or [int]$value -lt 1) { 1 } else { [int]$value } }
+    if ($Policy.length -and $Password.Length -lt [int]$Policy.length) {
+        $errors.Add("Password must be at least $($Policy.length) characters (got $($Password.Length)).")
+    }
+    $checks = @(
+        @('lower', 'lowercase', { param($c) [char]::IsLower($c) }),
+        @('upper', 'uppercase', { param($c) [char]::IsUpper($c) }),
+        @('digit', 'digit', { param($c) [char]::IsDigit($c) })
+    )
+    foreach ($check in $checks) {
+        if ($Policy.($check[0] + '-use')) {
+            $required = & $minimum $Policy.($check[0] + '-min')
+            $count = @($Password.ToCharArray() | Where-Object { & $check[2] $_ }).Count
+            if ($count -lt $required) { $errors.Add("Password must contain at least $required $($check[1]) character(s).") }
+        }
+    }
+    if ($Policy.'special-use') {
+        $required = & $minimum $Policy.'special-min'
+        $count = if ($Policy.special) { @($Password.ToCharArray() | Where-Object { $Policy.special.Contains($_) }).Count } else { @($Password.ToCharArray() | Where-Object { -not [char]::IsLetterOrDigit($_) }).Count }
+        if ($count -lt $required) { $errors.Add("Password must contain at least $required special character(s).") }
+    }
+    return $errors
+}
+
+function script:Test-KeeperRestrictedRecordType {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $RecordType)
+
+    if (-not $RecordType -or $RecordType -in @('legacy', 'general')) { return $false }
+    [KeeperSecurity.Vault.RecordType] $type = $null
+    if (-not $Vault.TryGetRecordTypeByName($RecordType, [ref]$type)) { return $false }
+    $raw = Get-KeeperRecordPolicyValue -Vault $Vault -Name 'restrict_record_types'
+    if (-not $raw) { return $false }
+    try { $policy = $raw | ConvertFrom-Json -ErrorAction Stop } catch { return $false }
+    $ids = if ($type.Scope -eq [KeeperSecurity.Vault.RecordTypeScope]::Standard) { $policy.std } elseif ($type.Scope -eq [KeeperSecurity.Vault.RecordTypeScope]::Enterprise) { $policy.ent } else { $null }
+    return $ids -and ($ids | Where-Object { [int]$_ -eq $type.Id })
+}
+
 function Get-KeeperRecordListItems {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
@@ -1119,6 +1183,7 @@ function Add-KeeperRecord {
         [Parameter()] [string] $Title,
         [Parameter()] [string] $Notes,
         [Parameter()] [string] $SelfDestruct,
+        [Parameter()] [switch] $Force,
         [Parameter()] [ValidateSet('table', 'json')] [string] $Format = 'table',
         [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
@@ -1178,6 +1243,10 @@ function Add-KeeperRecord {
                 return
             }
             $Title = $Title.Trim()
+            if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+                Write-Error -Message "Record type '$RecordType' is restricted by your enterprise role policy and cannot be created." -ErrorAction Stop
+                return
+            }
             if (-not $RecordType -or $RecordType -eq 'legacy') {
                 $record = New-Object KeeperSecurity.Vault.PasswordRecord
             }
@@ -1201,12 +1270,22 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
+            $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
             $genOptions = $null
             $minLength = 12
             $maxLength = 200
 
-            if ($PasswordRules -or $SpecialChars) {
+            if ($policy -or $PasswordRules -or $SpecialChars) {
                 $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+
+                if ($policy) {
+                    $genOptions.Length = [int]$policy.length
+                    $genOptions.Lower = if ($policy.'lower-use') { [Math]::Max([int]$policy.'lower-min', 1) } else { -1 }
+                    $genOptions.Upper = if ($policy.'upper-use') { [Math]::Max([int]$policy.'upper-min', 1) } else { -1 }
+                    $genOptions.Digit = if ($policy.'digit-use') { [Math]::Max([int]$policy.'digit-min', 1) } else { -1 }
+                    $genOptions.Special = if ($policy.'special-use') { [Math]::Max([int]$policy.'special-min', 1) } else { -1 }
+                    $genOptions.SpecialCharacters = $policy.special
+                }
 
                 if ($PasswordRules) {
                     if ($PasswordRules.Length -ne 5) {
@@ -1312,6 +1391,27 @@ function Add-KeeperRecord {
                     else {
                         $typedField.DeleteValueAt(0)
                     }
+                }
+            }
+        }
+
+        $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+        $passwordValues = @(
+            foreach ($fieldKey in $fields.Keys) {
+                if ($fieldKey -match '^\$?password(?:\.|$)' -and $fields[$fieldKey]) {
+                    [string]$fields[$fieldKey]
+                }
+            }
+        )
+        if ($passwordPolicy -and $passwordValues.Count -gt 0) {
+            $violations = @($passwordValues | ForEach-Object {
+                Test-KeeperPasswordPolicy -Password $_ -Policy $passwordPolicy
+            })
+            if ($violations.Count -gt 0) {
+                $violations | ForEach-Object { Write-Warning $_ }
+                if (-not $Force.IsPresent) {
+                    Write-Error -Message 'Password policy validation failed. Use -Force to continue.' -ErrorAction Stop
+                    return
                 }
             }
         }
