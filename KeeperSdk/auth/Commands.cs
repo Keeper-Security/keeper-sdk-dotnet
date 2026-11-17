@@ -60,6 +60,9 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "key_id")]
         public int KeyId { get; set; }
 
+        [DataMember(Name = "qrc_ec_key_id")]
+        public int QrcEcKeyId { get; set; }
+
         [DataMember(Name = "region_host")]
         public string RegionHost { get; set; }
     }
