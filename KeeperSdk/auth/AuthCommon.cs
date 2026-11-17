@@ -768,6 +768,11 @@ namespace KeeperSecurity.Authentication
                                 var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
                                 enforcements[kvp.Key] = mpr;
                                 break;
+                            default:
+                                // Preserve policy payloads that have no SDK-specific model so
+                                // command clients can enforce them locally.
+                                enforcements[kvp.Key] = kvp.Value;
+                                break;
                         }
                     }
                     catch (Exception e)
