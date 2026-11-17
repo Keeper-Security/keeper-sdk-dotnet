@@ -566,6 +566,7 @@ namespace KeeperSecurity.Authentication.Sync
                 SessionToken = rs.EncryptedSessionToken.ToByteArray(),
                 SessionTokenRestriction = SessionTokenRestriction.AccountRecovery,
                 DataKey = dataKey,
+                IsAccountRecoveryFlow = true,
             };
         }
 
