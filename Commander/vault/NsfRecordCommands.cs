@@ -170,7 +170,8 @@ namespace Commander
 
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
         {
-            if (options.RecordType != "general" && options.RecordType != "legacy"
+            if (!string.Equals(options.RecordType, "general", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(options.RecordType, "legacy", StringComparison.OrdinalIgnoreCase)
                 && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
             {
                 Console.WriteLine($"Record type '{options.RecordType}' cannot be found.");
@@ -181,10 +182,9 @@ namespace Commander
             {
                 try
                 {
-                    if (!context.Vault.TryResolveKeeperNSFFolderReference(options.FolderUid, out var folder))
+                    var folder = NsfHelpers.ResolveNsfFolderReference(context.Vault, options.FolderUid);
+                    if (folder == null)
                     {
-                        if (options.FolderUid.IndexOfAny(new[] { '/', '\\' }) < 0)
-                            context.Vault.ResolveKeeperNSFFolderStrict(options.FolderUid);
                         Console.WriteLine($"Cannot resolve folder {options.FolderUid}");
                         return;
                     }
@@ -241,7 +241,7 @@ namespace Commander
 
             if (hasType && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
             {
-                Console.WriteLine($"Error: Record type '{options.RecordType}' not found.");
+                Console.WriteLine($"Record type '{options.RecordType}' cannot be found.");
                 return;
             }
 
@@ -289,25 +289,14 @@ namespace Commander
             {
                 if (options.Recursive)
                 {
-                    if (string.IsNullOrWhiteSpace(options.RecordUid)
-                        || !vault.TryResolveKeeperNSFFolderReference(options.RecordUid, out var folder))
+                    var folder = string.IsNullOrWhiteSpace(options.RecordUid)
+                        ? null : NsfHelpers.ResolveNsfFolderReference(vault, options.RecordUid);
+                    if (folder == null)
                     {
-                        if (!string.IsNullOrWhiteSpace(options.RecordUid)
-                            && options.RecordUid.IndexOfAny(new[] { '/', '\\' }) < 0)
-                            vault.ResolveKeeperNSFFolderStrict(options.RecordUid);
                         Console.WriteLine("Error: -R requires a Keeper NSF folder path or UID.");
                         return;
                     }
-                    var folders = new HashSet<string>(StringComparer.Ordinal) { folder.FolderUid };
-                    bool changed;
-                    do
-                    {
-                        changed = false;
-                        foreach (var child in vault.KeeperNSFFolderNodes)
-                            if (folders.Contains(child.ParentUid)) changed |= folders.Add(child.FolderUid);
-                    } while (changed);
-                    recordUids.AddRange(vault.Storage.KdFolderRecords.GetAllLinks()
-                        .Where(link => folders.Contains(link.FolderUid)).Select(link => link.RecordUid).Distinct());
+                    recordUids.AddRange(NsfHelpers.GetNsfRecordUidsInFolder(vault, folder.FolderUid, true));
                 }
                 else
                 {
@@ -318,8 +307,9 @@ namespace Commander
                     }
                     KeeperNSFRecord record = null;
                     var separator = options.RecordUid.LastIndexOfAny(new[] { '/', '\\' });
-                    if (separator > 0 && vault.TryResolveKeeperNSFFolderReference(
-                        options.RecordUid.Substring(0, separator), out var recordFolder))
+                    var recordFolder = separator > 0
+                        ? NsfHelpers.ResolveNsfFolderReference(vault, options.RecordUid.Substring(0, separator)) : null;
+                    if (recordFolder != null)
                     {
                         var title = options.RecordUid.Substring(separator + 1);
                         var matches = vault.Storage.KdFolderRecords.GetAllLinks()
@@ -348,6 +338,11 @@ namespace Commander
                 Console.WriteLine($"Error: {ex.Message} Pass the UID.");
                 return;
             }
+            if (recordUids.Count == 0)
+            {
+                Console.WriteLine("No records found in the specified folder.");
+                return;
+            }
 
             var action = options.Action ?? "grant";
             var isGrant = string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase)
@@ -355,7 +350,7 @@ namespace Commander
             var isRevoke = string.Equals(action, "revoke", StringComparison.OrdinalIgnoreCase);
             if (!isGrant && !isRevoke)
             {
-                Console.WriteLine("--action must be grant or revoke.");
+                Console.WriteLine("--action must be grant or revoke (update is an alias for grant).");
                 return;
             }
             if (!string.IsNullOrWhiteSpace(options.ExpireAt) && !string.IsNullOrWhiteSpace(options.ExpireIn))
@@ -369,30 +364,6 @@ namespace Commander
             {
                 Console.WriteLine("Error: Recipient email is required (use -e or --email).");
                 return;
-            }
-            if (options.ContactsOnly)
-            {
-                try
-                {
-                    var targets = (global::Records.GetShareObjectsResponse)await vault.Auth.ExecuteAuthRest(
-                        "vault/get_share_objects", new global::Records.GetShareObjectsRequest(),
-                        typeof(global::Records.GetShareObjectsResponse));
-                    var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var list in new[] { targets.ShareRelationships, targets.ShareFamilyUsers,
-                        targets.ShareEnterpriseUsers, targets.ShareMCEnterpriseUsers })
-                        foreach (var target in list) known.Add(target.Username);
-                    var unknown = users.Where(user => !known.Contains(user)).ToArray();
-                    if (unknown.Length > 0)
-                    {
-                        Console.WriteLine($"Error: Unknown share contact(s): {string.Join(", ", unknown)}");
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error checking known share contacts: {ex.Message}");
-                    return;
-                }
             }
 
             var role = NormalizeNsfShareRole(options.Role);
@@ -430,7 +401,26 @@ namespace Commander
                 Console.WriteLine("Error: --rotate-on-expiration requires a pamUser record with rotation configured.");
                 return;
             }
-            if (shareOptions != null) shareOptions.RotateOnExpiration = options.RotateOnExpiration;
+            if (options.RotateOnExpiration) shareOptions.RotateOnExpiration = true;
+
+            if (isGrant && options.ContactsOnly)
+            {
+                try
+                {
+                    var known = await NsfHelpers.GetKnownShareContactsAsync(vault);
+                    var unknown = users.Where(user => !known.Contains(user)).ToArray();
+                    if (unknown.Length > 0)
+                    {
+                        Console.WriteLine($"Error: Unknown share contact(s): {string.Join(", ", unknown)}");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error checking known share contacts: {ex.Message}");
+                    return;
+                }
+            }
 
             if (options.DryRun)
             {
@@ -501,12 +491,6 @@ namespace Commander
         {
             shareOptions = new SharedFolderRecordOptions();
             error = null;
-            if (!string.IsNullOrWhiteSpace(options.ExpireAt) && !string.IsNullOrWhiteSpace(options.ExpireIn))
-            {
-                error = "--expire-at and --expire-in cannot be used together.";
-                return false;
-            }
-
             if (string.Equals(options.ExpireAt, "never", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(options.ExpireIn, "never", StringComparison.OrdinalIgnoreCase))
             {
@@ -524,6 +508,11 @@ namespace Commander
                 else if (!string.IsNullOrWhiteSpace(options.ExpireIn))
                 {
                     shareOptions.Expiration = DateTimeOffset.UtcNow + ParseUtils.ParseTimePeriod(options.ExpireIn);
+                }
+                if (shareOptions.Expiration.HasValue && shareOptions.Expiration <= DateTimeOffset.UtcNow)
+                {
+                    error = "Share expiration must be in the future.";
+                    return false;
                 }
                 return true;
             }
@@ -1233,7 +1222,7 @@ namespace Commander
         [Option("contacts-only", Required = false, HelpText = "Share only to known targets")]
         public bool ContactsOnly { get; set; }
 
-        [Option('a', "action", Required = false, Default = "grant", HelpText = "sharing action. 'grant' if omitted (also updates existing shares)")]
+        [Option('a', "action", Required = false, Default = "grant", HelpText = "sharing action: grant or revoke; update is a compatibility alias for grant")]
         public string Action { get; set; }
 
         [Option('r', "role", Required = false, HelpText = "permission role. Required for grant/update actions: viewer, share-manager, content-manager, content-share-manager, full-manager")]
@@ -1251,7 +1240,7 @@ namespace Commander
         [Option("expire-in", Required = false, HelpText = "share expiration: never or period (e.g. 30d, 6mo, 1y)")]
         public string ExpireIn { get; set; }
 
-        [Option("rotate-on-expiration", Required = false, HelpText = "rotate the password when the share access expires. Only valid on grant; requires a future expiration and a pamUser record with rotation configured")]
+        [Option("rotate-on-expiration", Required = false, HelpText = "rotate the password when the share access expires (-roe alias). Only valid on grant; requires a future expiration and a pamUser record with rotation configured")]
         public bool RotateOnExpiration { get; set; }
     }
 

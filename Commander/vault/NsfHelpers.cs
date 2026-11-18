@@ -112,6 +112,31 @@ namespace Commander
             return vault.ResolveKeeperNSFFolderOrRootStrict(uidOrName);
         }
 
+        internal static FolderNode ResolveNsfFolderReference(VaultOnline vault, string reference)
+        {
+            if (vault.TryResolveKeeperNSFFolderReference(reference, out var folder)) return folder;
+            if (!string.IsNullOrWhiteSpace(reference) && reference.IndexOfAny(new[] { '/', '\\' }) < 0)
+                return vault.ResolveKeeperNSFFolderStrict(reference);
+            return null;
+        }
+
+        internal static IReadOnlyList<string> GetNsfRecordUidsInFolder(VaultOnline vault, string folderUid, bool recursive)
+        {
+            var folders = new HashSet<string>(StringComparer.Ordinal) { folderUid };
+            if (recursive)
+            {
+                bool changed;
+                do
+                {
+                    changed = false;
+                    foreach (var child in vault.KeeperNSFFolderNodes)
+                        if (folders.Contains(child.ParentUid)) changed |= folders.Add(child.FolderUid);
+                } while (changed);
+            }
+            return vault.Storage.KdFolderRecords.GetAllLinks()
+                .Where(link => folders.Contains(link.FolderUid)).Select(link => link.RecordUid).Distinct().ToList();
+        }
+
         /// <summary>
         /// Resolves an NSF record by UID or exact title. Throws <see cref="AmbiguousNsfRecordException"/>
         /// when the title matches more than one record. Thin wrapper over the SDK's strict resolver.
@@ -508,6 +533,21 @@ namespace Commander
                 return username;
             }
 
+            try
+            {
+                await EnsureShareObjectsCacheAsync(vault);
+            }
+            catch
+            {
+                return accessTypeUid;
+            }
+
+            return _shareObjectsCache.TryGetValue(accessTypeUid, out var cached) ? cached : accessTypeUid;
+        }
+
+        private static async Task EnsureShareObjectsCacheAsync(VaultOnline vault)
+        {
+            var currentAccountUid = vault.Auth.AuthContext.AccountUid.Base64UrlEncode();
             if (_shareObjectsCacheAccountUid != null && _shareObjectsCacheAccountUid != currentAccountUid)
             {
                 ResetShareObjectsCache();
@@ -515,55 +555,52 @@ namespace Commander
 
             if (_shareObjectsCache == null)
             {
-                try
+                var rs = await vault.Auth.ExecuteAuthRest<GetShareObjectsRequest, GetShareObjectsResponse>(
+                    "vault/get_share_objects", new GetShareObjectsRequest());
+                _shareObjectsCache = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var userList in new[]
+                         {
+                             rs.ShareRelationships, rs.ShareFamilyUsers, rs.ShareEnterpriseUsers,
+                             rs.ShareMCEnterpriseUsers
+                         })
                 {
-                    var rs = await vault.Auth.ExecuteAuthRest<GetShareObjectsRequest, GetShareObjectsResponse>(
-                        "vault/get_share_objects", new GetShareObjectsRequest());
-                    _shareObjectsCache = new Dictionary<string, string>(StringComparer.Ordinal);
-                    foreach (var userList in new[]
-                             {
-                                 rs.ShareRelationships, rs.ShareFamilyUsers, rs.ShareEnterpriseUsers,
-                                 rs.ShareMCEnterpriseUsers
-                             })
+                    foreach (var su in userList)
                     {
-                        foreach (var su in userList)
+                        if (su.UserAccountUid != null && !su.UserAccountUid.IsEmpty)
                         {
-                            if (su.UserAccountUid != null && !su.UserAccountUid.IsEmpty)
+                            var suUid = su.UserAccountUid.ToByteArray().Base64UrlEncode();
+                            if (!string.IsNullOrEmpty(su.Username) && !_shareObjectsCache.ContainsKey(suUid))
                             {
-                                var suUid = su.UserAccountUid.ToByteArray().Base64UrlEncode();
-                                if (!string.IsNullOrEmpty(su.Username) && !_shareObjectsCache.ContainsKey(suUid))
-                                {
-                                    _shareObjectsCache[suUid] = su.Username;
-                                }
+                                _shareObjectsCache[suUid] = su.Username;
                             }
                         }
                     }
+                }
 
-                    _shareObjectsTeamCache = new Dictionary<string, string>(StringComparer.Ordinal);
-                    foreach (var teamList in new[] { rs.ShareTeams, rs.ShareMCTeams })
+                _shareObjectsTeamCache = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var teamList in new[] { rs.ShareTeams, rs.ShareMCTeams })
+                {
+                    foreach (var st in teamList)
                     {
-                        foreach (var st in teamList)
+                        if (st.TeamUid != null && !st.TeamUid.IsEmpty)
                         {
-                            if (st.TeamUid != null && !st.TeamUid.IsEmpty)
+                            var teamUid = st.TeamUid.ToByteArray().Base64UrlEncode();
+                            if (!string.IsNullOrEmpty(st.Teamname) && !_shareObjectsTeamCache.ContainsKey(teamUid))
                             {
-                                var teamUid = st.TeamUid.ToByteArray().Base64UrlEncode();
-                                if (!string.IsNullOrEmpty(st.Teamname) && !_shareObjectsTeamCache.ContainsKey(teamUid))
-                                {
-                                    _shareObjectsTeamCache[teamUid] = st.Teamname;
-                                }
+                                _shareObjectsTeamCache[teamUid] = st.Teamname;
                             }
                         }
                     }
+                }
 
-                    _shareObjectsCacheAccountUid = currentAccountUid;
-                }
-                catch
-                {
-                    return accessTypeUid;
-                }
+                _shareObjectsCacheAccountUid = currentAccountUid;
             }
+        }
 
-            return _shareObjectsCache.TryGetValue(accessTypeUid, out var cached) ? cached : accessTypeUid;
+        internal static async Task<ISet<string>> GetKnownShareContactsAsync(VaultOnline vault)
+        {
+            await EnsureShareObjectsCacheAsync(vault);
+            return new HashSet<string>(_shareObjectsCache.Values, StringComparer.OrdinalIgnoreCase);
         }
 
         internal static async Task<string> ResolveAccessorNameAsync(

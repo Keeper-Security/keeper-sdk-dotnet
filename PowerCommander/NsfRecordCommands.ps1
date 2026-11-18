@@ -436,15 +436,12 @@ function Add-KeeperNSFRecord {
     }
     $folderUid = $null
     if ($Folder) {
-        [KeeperSecurity.Vault.FolderNode]$resolvedFolder = $null
-        if (-not $vault.TryResolveKeeperNSFFolderReference($Folder, [ref]$resolvedFolder)) {
-            if ($Folder -notmatch '[\\/]') {
-                try { $null = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault }
-                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
-                    Write-Host "Folder '$Folder' is ambiguous. Pass the folder UID." -ForegroundColor Red
-                    return
-                }
-            }
+        try { $resolvedFolder = Resolve-KeeperNSFFolderReference -Identifier $Folder -Vault $vault }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            Write-Host "Folder '$Folder' is ambiguous. Pass the folder UID." -ForegroundColor Red
+            return
+        }
+        if (-not $resolvedFolder) {
             Write-Host "Cannot resolve folder $Folder" -ForegroundColor Red
             return
         }
@@ -469,6 +466,9 @@ function Add-KeeperNSFRecord {
             }
         }
         if ($GeneratePassword.IsPresent) {
+            foreach ($key in @($fieldDict.Keys)) {
+                if ($key.TrimStart('$') -ieq 'password') { [void]$fieldDict.Remove($key) }
+            }
             $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
             $generatedPassword = New-KeeperGeneratedPassword -Policy $policy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
             if (-not $generatedPassword) { return }
@@ -1165,7 +1165,7 @@ function Set-KeeperNSFRecordAccess {
         Write-Host 'Error: -Role is required for grant.' -ForegroundColor Red
         return
     }
-    if ($ExpireAt -and $ExpireIn) {
+    if ($PSBoundParameters.ContainsKey('ExpireAt') -and $PSBoundParameters.ContainsKey('ExpireIn')) {
         Write-Host 'Error: -ExpireAt and -ExpireIn cannot be used together.' -ForegroundColor Red
         return
     }
@@ -1173,64 +1173,51 @@ function Set-KeeperNSFRecordAccess {
     [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
     $recordUids = @()
     if ($Recursive.IsPresent) {
-        [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-        if (-not $vault.TryResolveKeeperNSFFolderReference($RecordUid, [ref]$folderNode)) {
-            if ($RecordUid -notmatch '[\\/]') {
-                try { $null = resolveKeeperNSFFolder -Identifier $RecordUid -Vault $vault }
-                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
-                    Write-Host "Folder '$RecordUid' is ambiguous. Pass the folder UID." -ForegroundColor Red
-                    return
-                }
-            }
+        try { $folderNode = Resolve-KeeperNSFFolderReference -Identifier $RecordUid -Vault $vault }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            Write-Host "Folder '$RecordUid' is ambiguous. Pass the folder UID." -ForegroundColor Red
+            return
+        }
+        if (-not $folderNode) {
             Write-Host 'Error: -Recursive requires an NSF folder path or UID.' -ForegroundColor Red
             return
         }
-        $folderUids = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
-        [void]$folderUids.Add($folderNode.FolderUid)
-        do {
-            $changed = $false
-            foreach ($child in $vault.KeeperNSFFolderNodes) {
-                if ($folderUids.Contains($child.ParentUid)) { $changed = $folderUids.Add($child.FolderUid) -or $changed }
-            }
-        } while ($changed)
-        $recordUids = @($vault.Storage.KdFolderRecords.GetAllLinks() | Where-Object { $folderUids.Contains($_.FolderUid) } | ForEach-Object { $_.RecordUid } | Select-Object -Unique)
+        $recordUids = @(Get-KeeperNSFRecordUidsInFolder -FolderUid $folderNode.FolderUid -Vault $vault -Recursive)
     }
     else {
-    try {
-        $tmpRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+        try {
+            $tmpRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
+        if (-not $tmpRecord) {
+            Write-Host "Error: NSF record '$RecordUid' not found by UID or exact title."
+            return
+        }
+        $recordUids = @([string]$tmpRecord.RecordUid)
     }
-    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
-        writeAmbiguousNsfError -ErrorRecord $_
+    if ($recordUids.Count -eq 0) {
+        Write-Host 'No records found in the specified folder.'
         return
-    }
-    if (-not $tmpRecord) {
-        Write-Host "Error: NSF record '$RecordUid' not found by UID or exact title."
-        return
-    }
-    $RecordUid = [string]$tmpRecord.RecordUid
-    $recordUids = @($RecordUid)
     }
 
-    if ($ContactsOnly.IsPresent) {
-        try {
-            $shareTargets = $vault.Auth.ExecuteAuthRest('vault/get_share_objects', (New-Object Records.GetShareObjectsRequest), [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
-            $knownEmails = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-            foreach ($targetList in @($shareTargets.ShareRelationships, $shareTargets.ShareFamilyUsers, $shareTargets.ShareEnterpriseUsers, $shareTargets.ShareMCEnterpriseUsers)) {
-                foreach ($target in $targetList) { if ($target.Username) { [void]$knownEmails.Add($target.Username) } }
-            }
-            foreach ($user in $Email) {
-                if (-not $knownEmails.Contains($user)) { Write-Host "Error: '$user' is not a known share contact." -ForegroundColor Red; return }
-            }
-        } catch { Write-Host "Error checking contacts: $($_.Exception.Message)" -ForegroundColor Red; return }
-    }
 
     $shareOptions = $null
-    if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
+    $expirationIsNever = ($ExpireAt -is [string] -and $ExpireAt -eq 'never') -or
+        ($ExpireIn -is [string] -and $ExpireIn -eq 'never')
+    if ($Action -eq 'grant' -and -not $expirationIsNever -and
+        ($PSBoundParameters.ContainsKey('ExpireIn') -or $PSBoundParameters.ContainsKey('ExpireAt'))) {
         try {
             $expirationDto = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
         }
         catch {
             Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+            return
+        }
+        if (-not $expirationDto -or $expirationDto -le [DateTimeOffset]::UtcNow) {
+            Write-Host 'Error: Share expiration must be in the future.' -ForegroundColor Red
             return
         }
         $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
@@ -1253,37 +1240,51 @@ function Set-KeeperNSFRecordAccess {
         $shareOptions.RotateOnExpiration = $true
     }
 
+    if ($ContactsOnly.IsPresent -and $Action -eq 'grant') {
+        try {
+            $shareTargets = $vault.Auth.ExecuteAuthRest('vault/get_share_objects', (New-Object Records.GetShareObjectsRequest), [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
+            $knownEmails = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+            foreach ($targetList in @($shareTargets.ShareRelationships, $shareTargets.ShareFamilyUsers, $shareTargets.ShareEnterpriseUsers, $shareTargets.ShareMCEnterpriseUsers)) {
+                foreach ($target in $targetList) { if ($target.Username) { [void]$knownEmails.Add($target.Username) } }
+            }
+            foreach ($user in $Email) {
+                if (-not $knownEmails.Contains($user)) { Write-Host "Error: '$user' is not a known share contact." -ForegroundColor Red; return }
+            }
+        } catch { Write-Host "Error checking contacts: $($_.Exception.Message)" -ForegroundColor Red; return }
+    }
+
     if ($DryRun.IsPresent) {
         foreach ($uid in $recordUids) { foreach ($user in $Email) { Write-Host "[dry-run] $Action record $uid for $user" } }
         return
     }
 
     if ($Action -eq 'revoke' -and -not $Force.IsPresent) {
-        $confirmation = Read-Host "Are you sure you want to revoke access to record '$RecordUid' from $($Email.Count) user(s)? (yes/No)"
+        $confirmation = Read-Host "Are you sure you want to revoke access to $($recordUids.Count) record(s) from $($Email.Count) user(s)? (yes/No)"
         if ($confirmation -notmatch '^(y|yes)$') {
             Write-Host "Revoke operation cancelled"
             return
         }
     }
 
-    foreach ($RecordUid in $recordUids) { foreach ($user in $Email) {
-        try {
-            if ($Action -eq 'grant') {
-                [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role, $shareOptions).GetAwaiter().GetResult()
-                $expireMsg = if ($shareOptions -and $shareOptions.Expiration) {
-                    " (expires $($shareOptions.Expiration.LocalDateTime.ToString('g')))"
-                } else { '' }
-                Write-Host "Granted '$Role' access to '$user' on record '$RecordUid'$expireMsg." -ForegroundColor Green
+    foreach ($uid in $recordUids) {
+        foreach ($user in $Email) {
+            try {
+                if ($Action -eq 'grant') {
+                    [void]$vault.ShareKeeperNSFRecord($uid, $user, $Role, $shareOptions).GetAwaiter().GetResult()
+                    $expireMsg = if ($shareOptions -and $shareOptions.Expiration) {
+                        " (expires $($shareOptions.Expiration.LocalDateTime.ToString('g')))"
+                    } else { '' }
+                    Write-Host "Granted '$Role' access to '$user' on record '$uid'$expireMsg." -ForegroundColor Green
+                }
+                else {
+                    [void]$vault.UnshareKeeperNSFRecord($uid, $user).GetAwaiter().GetResult()
+                    Write-Host "Revoked access for '$user' from record '$uid'." -ForegroundColor Green
+                }
             }
-            else {
-                [void]$vault.UnshareKeeperNSFRecord($RecordUid, $user).GetAwaiter().GetResult()
-                Write-Host "Revoked access for '$user' from record '$RecordUid'." -ForegroundColor Green
+            catch {
+                [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
             }
         }
-        catch {
-            [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
-        }
-    }
     }
 }
 

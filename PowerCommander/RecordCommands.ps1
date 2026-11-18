@@ -97,36 +97,6 @@ function script:New-KeeperGeneratedPassword {
     return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($options)
 }
 
-function script:Test-KeeperPasswordPolicy {
-    param([string] $Password, $Policy)
-
-    if (-not $Password -or -not $Policy) { return }
-    $errors = [System.Collections.Generic.List[string]]::new()
-    $minimum = { param($value) if ($null -eq $value -or [int]$value -lt 1) { 1 } else { [int]$value } }
-    $length = Get-KeeperPolicyProperty -Policy $Policy -Name 'length'
-    if ($length -and $Password.Length -lt [int]$length) {
-        $errors.Add("Password must be at least $length characters (got $($Password.Length)).")
-    }
-    $checks = @(
-        @('lower', 'lowercase', { param($c) [char]::IsLower($c) }),
-        @('upper', 'uppercase', { param($c) [char]::IsUpper($c) }),
-        @('digit', 'digit', { param($c) [char]::IsDigit($c) })
-    )
-    foreach ($check in $checks) {
-        if (Get-KeeperPolicyProperty -Policy $Policy -Name ($check[0] + '-use')) {
-            $required = & $minimum (Get-KeeperPolicyProperty -Policy $Policy -Name ($check[0] + '-min'))
-            $count = @($Password.ToCharArray() | Where-Object { & $check[2] $_ }).Count
-            if ($count -lt $required) { $errors.Add("Password must contain at least $required $($check[1]) character(s).") }
-        }
-    }
-    if (Get-KeeperPolicyProperty -Policy $Policy -Name 'special-use') {
-        $required = & $minimum (Get-KeeperPolicyProperty -Policy $Policy -Name 'special-min')
-        $specialCharacters = Get-KeeperPolicyProperty -Policy $Policy -Name 'special'
-        $count = if ($specialCharacters) { @($Password.ToCharArray() | Where-Object { $specialCharacters.Contains($_) }).Count } else { @($Password.ToCharArray() | Where-Object { -not [char]::IsLetterOrDigit($_) }).Count }
-        if ($count -lt $required) { $errors.Add("Password must contain at least $required special character(s).") }
-    }
-    return $errors
-}
 
 function script:Test-KeeperRestrictedRecordType {
     param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $RecordType)
