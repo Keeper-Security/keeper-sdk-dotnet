@@ -240,6 +240,8 @@ Work/Production> share-record "API Server" --email user@company.com --write
 |---------|-------|-------------|
 | `trash` | | Manage deleted records in trash |
 
+Trash status values are `Record`, `Share` (an orphaned shared record), `Folder` (a deleted shared folder or its records), `NSF Record`, and `NSF Folder`.
+
 ### Device Management
 
 | Command | Alias | Description |
