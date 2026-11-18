@@ -100,7 +100,7 @@ namespace Commander
                 new ParseableCommand<NsfRecordAddOptions>
                 {
                     Order = 47,
-                    Description = "Create a Keeper NSF record",
+                    Description = "Add a record to folder.",
                     Action = context.NsfRecordAddCommand
                 });
 
@@ -126,10 +126,17 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-share-record",
-                new ParseableCommand<NsfShareRecordOptions>
+                new ValidatingParseableCommand<NsfShareRecordOptions>
                 {
                     Order = 47,
-                    Description = "Grant or revoke Keeper NSF record access",
+                    Description = "Change the sharing permissions of an individual record",
+                    Validate = tokens =>
+                    {
+                        if (tokens is IList<string> mutable)
+                            for (var i = 0; i < mutable.Count; i++)
+                                if (mutable[i] == "-roe") mutable[i] = "--rotate-on-expiration";
+                        return null;
+                    },
                     Action = context.NsfShareRecordCommand
                 });
 

@@ -209,6 +209,8 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `record-history` | | Display record version history |
 | `record-type-info` | `rti` | Get record type information |
 | `share-record` | | Manage record sharing permissions |
+| `nsf-record-add` | | Add a Keeper Drive record (`--folder`, `-t/--type`, `--title`, optional fields) |
+| `nsf-share-record` | | Grant or revoke Keeper Drive record access (`-e`, `-a`, `-r`, `-R`, `--dry-run`, expiration options) |
 
 ### Attachment Management
 

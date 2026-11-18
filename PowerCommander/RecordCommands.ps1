@@ -11,6 +11,147 @@ class KeeperRecordListItem {
     [bool]$Shared
 }
 
+function script:Get-KeeperRecordPolicyValue {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $Name)
+
+    $enforcements = $Vault.Auth.AuthContext.Enforcements
+    if ($enforcements -and $enforcements.ContainsKey($Name)) {
+        return $enforcements[$Name] -as [string]
+    }
+    return $null
+}
+
+function script:Get-KeeperGeneratedPasswordPolicy {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault)
+
+    $raw = Get-KeeperRecordPolicyValue -Vault $Vault -Name 'generated_password_complexity'
+    if (-not $raw) { return $null }
+    try {
+        $policy = $raw | ConvertFrom-Json -ErrorAction Stop
+        if ($policy -is [System.Array]) { return $policy | Select-Object -First 1 }
+        return $policy
+    } catch {
+        Write-Warning "Unable to parse generated_password_complexity enterprise policy."
+        return $null
+    }
+}
+
+function script:Get-KeeperPolicyProperty {
+    param($Policy, [string] $Name)
+
+    $property = $Policy.PSObject.Properties[$Name]
+    if ($property) { return $property.Value }
+    return $null
+}
+
+function script:New-KeeperPolicyPasswordOptions {
+    param($Policy)
+
+    if (-not $Policy) { return $null }
+    $options = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+    $options.Lower = if (Get-KeeperPolicyProperty $Policy 'lower-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'lower-min'), 1) } else { -1 }
+    $options.Upper = if (Get-KeeperPolicyProperty $Policy 'upper-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'upper-min'), 1) } else { -1 }
+    $options.Digit = if (Get-KeeperPolicyProperty $Policy 'digit-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'digit-min'), 1) } else { -1 }
+    $options.Special = if (Get-KeeperPolicyProperty $Policy 'special-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'special-min'), 1) } else { -1 }
+    $minimumLength = 0
+    foreach ($required in @($options.Lower, $options.Upper, $options.Digit, $options.Special)) {
+        if ($required -gt 0) { $minimumLength += $required }
+    }
+    $options.Length = [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'length'), [int]$minimumLength)
+    $options.SpecialCharacters = Get-KeeperPolicyProperty $Policy 'special'
+    return $options
+}
+
+function script:New-KeeperGeneratedPassword {
+    param($Policy, [int[]]$PasswordRules, [string]$SpecialChars)
+
+    $options = New-KeeperPolicyPasswordOptions -Policy $Policy
+    if ($PasswordRules -and $PasswordRules.Length -ne 5) {
+        Write-Error "PasswordRules requires exactly 5 values: Length,Upper,Lower,Digit,Special. Got $($PasswordRules.Length)."
+        return $null
+    }
+    if ($PasswordRules -or $SpecialChars) {
+        if (-not $options) { $options = New-Object KeeperSecurity.Utils.PasswordGenerationOptions }
+        if ($PasswordRules) {
+            $options.Length, $options.Upper, $options.Lower, $options.Digit, $options.Special = $PasswordRules
+            if ($Policy) {
+                $options.Length = [Math]::Max($options.Length, [int](Get-KeeperPolicyProperty $Policy 'length'))
+                foreach ($entry in @(@('Upper','upper'), @('Lower','lower'), @('Digit','digit'), @('Special','special'))) {
+                    if (Get-KeeperPolicyProperty $Policy ($entry[1] + '-use')) {
+                        $options.($entry[0]) = [Math]::Max($options.($entry[0]), [Math]::Max([int](Get-KeeperPolicyProperty $Policy ($entry[1] + '-min')), 1))
+                    }
+                }
+                $required = 0
+                foreach ($count in @($options.Upper,$options.Lower,$options.Digit,$options.Special)) { if ($count -gt 0) { $required += $count } }
+                $options.Length = [Math]::Max($options.Length, $required)
+            }
+            if ($options.Length -lt 12) { Write-Warning "Length $($options.Length) is below minimum (12). Adjusting to 12."; $options.Length = 12 }
+            elseif ($options.Length -gt 200) { Write-Warning "Length $($options.Length) exceeds maximum (200). Adjusting to 200."; $options.Length = 200 }
+        }
+        if ($SpecialChars) {
+            if ($Policy) { Write-Warning '-SpecialChars is ignored because enterprise password policy defines the allowed special characters.' }
+            else { $options.SpecialCharacters = $SpecialChars }
+            if ($options.Special -le 0) { $options.Special = 2 }
+        }
+    }
+    return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($options)
+}
+
+function script:Test-KeeperPasswordPolicy {
+    param([string] $Password, $Policy)
+
+    if (-not $Password -or -not $Policy) { return }
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $minimum = { param($value) if ($null -eq $value -or [int]$value -lt 1) { 1 } else { [int]$value } }
+    $length = Get-KeeperPolicyProperty -Policy $Policy -Name 'length'
+    if ($length -and $Password.Length -lt [int]$length) {
+        $errors.Add("Password must be at least $length characters (got $($Password.Length)).")
+    }
+    $checks = @(
+        @('lower', 'lowercase', { param($c) [char]::IsLower($c) }),
+        @('upper', 'uppercase', { param($c) [char]::IsUpper($c) }),
+        @('digit', 'digit', { param($c) [char]::IsDigit($c) })
+    )
+    foreach ($check in $checks) {
+        if (Get-KeeperPolicyProperty -Policy $Policy -Name ($check[0] + '-use')) {
+            $required = & $minimum (Get-KeeperPolicyProperty -Policy $Policy -Name ($check[0] + '-min'))
+            $count = @($Password.ToCharArray() | Where-Object { & $check[2] $_ }).Count
+            if ($count -lt $required) { $errors.Add("Password must contain at least $required $($check[1]) character(s).") }
+        }
+    }
+    if (Get-KeeperPolicyProperty -Policy $Policy -Name 'special-use') {
+        $required = & $minimum (Get-KeeperPolicyProperty -Policy $Policy -Name 'special-min')
+        $specialCharacters = Get-KeeperPolicyProperty -Policy $Policy -Name 'special'
+        $count = if ($specialCharacters) { @($Password.ToCharArray() | Where-Object { $specialCharacters.Contains($_) }).Count } else { @($Password.ToCharArray() | Where-Object { -not [char]::IsLetterOrDigit($_) }).Count }
+        if ($count -lt $required) { $errors.Add("Password must contain at least $required special character(s).") }
+    }
+    return $errors
+}
+
+function script:Test-KeeperRestrictedRecordType {
+    param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $RecordType)
+
+    if (-not $RecordType -or $RecordType -in @('legacy', 'general')) { return $false }
+    [KeeperSecurity.Vault.RecordType] $type = $null
+    if (-not $Vault.TryGetRecordTypeByName($RecordType, [ref]$type)) { return $false }
+    $raw = Get-KeeperRecordPolicyValue -Vault $Vault -Name 'restrict_record_types'
+    if (-not $raw) { return $false }
+    try { $policy = $raw | ConvertFrom-Json -ErrorAction Stop } catch {
+        Write-Warning "Unable to parse restrict_record_types enterprise policy."
+        return $true
+    }
+    if ($type.Scope -eq [KeeperSecurity.Vault.RecordTypeScope]::Standard) {
+        $ids = $policy.std
+    }
+    elseif ($type.Scope -eq [KeeperSecurity.Vault.RecordTypeScope]::Enterprise) {
+        $ids = $policy.ent
+    }
+    else {
+        $ids = $null
+    }
+    return [bool]($ids | Where-Object { [int]$_ -eq $type.Id })
+}
+
 function Get-KeeperRecordListItems {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
@@ -1201,39 +1342,8 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $genOptions = $null
-            $minLength = 12
-            $maxLength = 200
-
-            if ($PasswordRules -or $SpecialChars) {
-                $genOptions = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
-
-                if ($PasswordRules) {
-                    if ($PasswordRules.Length -ne 5) {
-                        Write-Error "PasswordRules requires exactly 5 values: Length,Upper,Lower,Digit,Special. Got $($PasswordRules.Length)."
-                        return
-                    }
-
-                    $genOptions.Length, $genOptions.Upper, $genOptions.Lower, $genOptions.Digit, $genOptions.Special = $PasswordRules
-
-                    if ($genOptions.Length -lt $minLength) {
-                        Write-Warning "Length $($genOptions.Length) is below minimum ($minLength). Adjusting to $minLength."
-                        $genOptions.Length = $minLength
-                    }
-                    elseif ($genOptions.Length -gt $maxLength) {
-                        Write-Warning "Length $($genOptions.Length) exceeds maximum ($maxLength). Adjusting to $maxLength."
-                        $genOptions.Length = $maxLength
-                    }
-                }
-
-                if ($SpecialChars) {
-                    $genOptions.SpecialCharacters = $SpecialChars
-                    if ($genOptions.Special -le 0) { $genOptions.Special = 2 }
-                }
-            }
-
-            $generatedPassword = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($genOptions)
-
+            $generatedPassword = New-KeeperGeneratedPassword -Policy $passwordPolicy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
+            if (-not $generatedPassword) { return }
             $fields['password'] = $generatedPassword
         }
         elseif ($generatePassphrase) {
