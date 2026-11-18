@@ -595,8 +595,10 @@ namespace KeeperSecurity.Authentication
 
         private static IntPtr GetSecurityKeyPromptOwnerWindow()
         {
-            // Only own the prompt with a window that belongs to this process. The foreground
-            // window may be an unrelated application.
+            // webauthn.dll requires a valid owner window handle; a null handle fails with
+            // NTE_INVALID_PARAMETER (0x80090027). Prefer windows of this process, then the
+            // foreground window (the terminal the user is typing in, e.g. Windows Terminal,
+            // whose console window is hidden), and finally the desktop window.
             var consoleWindow = NativeMethods.GetConsoleWindow();
             if (consoleWindow != IntPtr.Zero && NativeMethods.IsWindowVisible(consoleWindow))
             {
@@ -616,7 +618,12 @@ namespace KeeperSecurity.Authentication
             catch (InvalidOperationException)
             {
             }
-            return IntPtr.Zero;
+            var foregroundWindow = NativeMethods.GetForegroundWindow();
+            if (foregroundWindow != IntPtr.Zero && NativeMethods.IsWindowVisible(foregroundWindow))
+            {
+                return foregroundWindow;
+            }
+            return NativeMethods.GetDesktopWindow();
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -701,6 +708,12 @@ namespace KeeperSecurity.Authentication
         {
             [DllImport("kernel32.dll")]
             internal static extern IntPtr GetConsoleWindow();
+
+            [DllImport("user32.dll")]
+            internal static extern IntPtr GetForegroundWindow();
+
+            [DllImport("user32.dll")]
+            internal static extern IntPtr GetDesktopWindow();
 
             [DllImport("user32.dll")]
             [return: MarshalAs(UnmanagedType.Bool)]
