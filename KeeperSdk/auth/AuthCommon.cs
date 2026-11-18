@@ -349,6 +349,9 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         SsoLoginInfo SsoLoginInfo { get; }
 
+        /// <exclude/>
+        bool CheckPasswordValid(string password);
+
         /// <exclude />
         bool ForbidKeyType2 { get; }
 
@@ -408,6 +411,20 @@ namespace KeeperSecurity.Authentication
 
         public bool IsAccountRecoverySession =>
             (SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0;
+
+        public bool CheckPasswordValid(string password)
+        {
+            if (PasswordValidator == null) return false;
+            try
+            {
+                var rnd = CryptoUtils.DecryptEncryptionParams(password, PasswordValidator);
+                return rnd?.Length == 32;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public bool ForbidKeyType2 { get; internal set; }
     }
