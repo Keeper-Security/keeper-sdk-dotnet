@@ -11,6 +11,12 @@ AfterAll {
 }
 
 Describe 'Enterprise team/user/role exports' {
+    It 'Exposes managed-node parameters when creating an enterprise role' {
+        $command = Get-Command New-KeeperEnterpriseRole -Module PowerCommander
+        $command.Parameters.ContainsKey('AddAdmin') | Should -Be $true
+        $command.Parameters.ContainsKey('Cascade') | Should -Be $true
+    }
+
     It 'Exports new read cmdlets and aliases' {
         'Get-KeeperEnterpriseUserTeam', 'Get-KeeperEnterpriseTeamRole' | ForEach-Object {
             Get-Command $_ -Module PowerCommander | Should -Not -BeNullOrEmpty
