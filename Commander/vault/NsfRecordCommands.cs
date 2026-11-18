@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cli;
 using CommandLine;
 using KeeperSecurity.Vault;
+using KeeperSecurity.Utils;
 using ZeroDep;
 
 namespace Commander
@@ -182,6 +183,15 @@ namespace Commander
                     return;
                 }
             }
+            if (context.IsRecordTypeRestricted(options.RecordType ?? "login"))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType ?? "login"}' is restricted by your enterprise role policy and cannot be created.");
+                return;
+            }
+            if (options.GeneratePassword && fieldDict != null)
+            {
+                fieldDict["password"] = CryptoUtils.GeneratePassword(context.GetGeneratedPasswordPolicy());
+            }
 
             try
             {
@@ -224,6 +234,11 @@ namespace Commander
                 Console.WriteLine($"Error: Record type '{options.RecordType}' not found.");
                 return;
             }
+            if (hasType && context.IsRecordTypeRestricted(options.RecordType))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be used.");
+                return;
+            }
 
             Dictionary<string, object> fieldDict = null;
             if (hasFields || options.GeneratePassword)
@@ -243,6 +258,10 @@ namespace Commander
                     Console.WriteLine("Error: No valid field values were parsed. Use key=value (e.g. login=a12).");
                     return;
                 }
+            }
+            if (options.GeneratePassword && fieldDict != null)
+            {
+                fieldDict["password"] = CryptoUtils.GeneratePassword(context.GetGeneratedPasswordPolicy());
             }
 
             try

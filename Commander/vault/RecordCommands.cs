@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
 using Tokens;
 using KeeperSecurity.BreachWatch;
 using Authentication;
@@ -258,8 +259,9 @@ namespace Commander
                     : recordType.Scope == RecordTypeScope.Enterprise ? policy.Enterprise : null;
                 return restrictedIds?.Contains(recordType.Id) == true;
             }
-            catch
+            catch (SerializationException ex)
             {
+                Debug.WriteLine($"Unable to parse restrict_record_types enforcement: {ex.Message}");
                 return false;
             }
         }
@@ -270,13 +272,18 @@ namespace Commander
             var policy = ParseGeneratedPasswordPolicy(enforcement);
             if (policy != null)
             {
+                var lower = policy.LowerUse ? Math.Max(policy.LowerMin, 1) : -1;
+                var upper = policy.UpperUse ? Math.Max(policy.UpperMin, 1) : -1;
+                var digit = policy.DigitUse ? Math.Max(policy.DigitMin, 1) : -1;
+                var special = policy.SpecialUse ? Math.Max(policy.SpecialMin, 1) : -1;
+                var minimumLength = new[] { lower, upper, digit, special }.Where(x => x > 0).Sum();
                 return new PasswordGenerationOptions
                 {
-                    Length = policy.Length,
-                    Lower = policy.LowerUse ? Math.Max(policy.LowerMin, 1) : -1,
-                    Upper = policy.UpperUse ? Math.Max(policy.UpperMin, 1) : -1,
-                    Digit = policy.DigitUse ? Math.Max(policy.DigitMin, 1) : -1,
-                    Special = policy.SpecialUse ? Math.Max(policy.SpecialMin, 1) : -1,
+                    Length = Math.Max(policy.Length, minimumLength),
+                    Lower = lower,
+                    Upper = upper,
+                    Digit = digit,
+                    Special = special,
                     SpecialCharacters = policy.Special,
                 };
             }
@@ -324,15 +331,17 @@ namespace Commander
             {
                 return JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy>(Encoding.UTF8.GetBytes(enforcement));
             }
-            catch
+            catch (SerializationException ex)
             {
+                Debug.WriteLine($"Unable to parse generated_password_complexity enforcement: {ex.Message}");
                 try
                 {
                     return JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy[]>(Encoding.UTF8.GetBytes(enforcement))
                         ?.FirstOrDefault();
                 }
-                catch
+                catch (SerializationException arrayEx)
                 {
+                    Debug.WriteLine($"Unable to parse generated_password_complexity enforcement array: {arrayEx.Message}");
                     return null;
                 }
             }
@@ -509,6 +518,7 @@ namespace Commander
                 return;
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
+            if (!EnforcePasswordPolicy(context, fields, options.Force)) return;
 
             KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
@@ -547,7 +557,6 @@ namespace Commander
             }
 
             context.AssignRecordFields(record, fields);
-            if (!ValidatePasswordPolicy(context, fields, record, options.Generate, options.Force)) return;
             var createdRecord = await context.Vault.CreateRecord(record, node.FolderUid);
 
             if (!string.IsNullOrEmpty(options.SelfDestruct))
@@ -632,8 +641,15 @@ namespace Commander
                 Console.WriteLine($"Cannot resolve record {options.RecordId}");
                 return;
             }
+            var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
+            if (!EnforcePasswordPolicy(context, fields, options.Force)) return;
             if (!string.IsNullOrEmpty(options.RecordType))
             {
+                if (record is TypedRecord currentTyped
+                    && string.Equals(currentTyped.TypeName, options.RecordType, StringComparison.OrdinalIgnoreCase))
+                {
+                    options.RecordType = null;
+                }
                 if (context.IsRecordTypeRestricted(options.RecordType))
                 {
                     Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be used.");
@@ -663,53 +679,28 @@ namespace Commander
                 context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy());
             }
 
-            var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
             context.AssignRecordFields(record, fields);
-            if (!ValidatePasswordPolicy(context, fields, record, options.Generate, options.Force)) return;
             await context.Vault.UpdateRecord(record);
         }
 
-        private static bool ValidatePasswordPolicy(VaultContext context, IEnumerable<CmdLineRecordField> fields,
-            KeeperRecord record, bool generatedPassword, bool force)
+        private static bool EnforcePasswordPolicy(VaultContext context, IEnumerable<CmdLineRecordField> fields,
+            bool force)
         {
             var passwords = fields
-                .Where(x => string.Equals(x.FieldName, "password", StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Value)
                 .Where(x => !string.IsNullOrEmpty(x));
-            if (generatedPassword)
-            {
-                passwords = passwords.Concat(GetRecordPasswords(record));
-            }
 
             var violations = context.ValidatePasswordPolicy(passwords).Distinct().ToArray();
             if (violations.Length == 0) return true;
             foreach (var violation in violations)
             {
-                Console.WriteLine($"Warning: {violation}");
+                Console.WriteLine($"Error: {violation}");
             }
             if (force) return true;
 
-            Console.WriteLine("Password policy validation failed. Use --force to continue.");
+            Console.WriteLine("Password policy validation failed. Use --force to override the enterprise password policy.");
             return false;
-        }
-
-        private static IEnumerable<string> GetRecordPasswords(KeeperRecord record)
-        {
-            if (record is PasswordRecord password && !string.IsNullOrEmpty(password.Password))
-            {
-                yield return password.Password;
-            }
-            else if (record is TypedRecord typed)
-            {
-                foreach (var field in typed.Fields.Concat(typed.Custom)
-                    .Where(x => string.Equals(x.FieldName, "password", StringComparison.OrdinalIgnoreCase)))
-                {
-                    for (var i = 0; i < field.Count; i++)
-                    {
-                        if (field.GetValueAt(i) is string value && !string.IsNullOrEmpty(value)) yield return value;
-                    }
-                }
-            }
         }
 
         public static async Task DownloadAttachmentCommand(this VaultContext context, DownloadAttachmentOptions options)
@@ -1907,7 +1898,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Option("force", Required = false, Default = false, HelpText = "continue when password policy validation reports warnings")]
+        [Option("force", Required = false, Default = false, HelpText = "override enterprise password policy validation errors")]
         public bool Force { get; set; }
 
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
@@ -1931,7 +1922,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Option("force", Required = false, Default = false, HelpText = "continue when password policy validation reports warnings")]
+        [Option("force", Required = false, Default = false, HelpText = "override enterprise password policy validation errors")]
         public bool Force { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
