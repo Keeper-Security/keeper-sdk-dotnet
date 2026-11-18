@@ -1402,6 +1402,7 @@ function Get-KeeperDeviceSettings {
         IpAutoApprove = -not $accountSummary.Settings.IpDisableAutoApprove
         IsSsoUser = $accountSummary.Settings.SsoUser
         DeviceLogoutTimeout = $logoutTimerText
+        NoYubiKeyPin = [bool]$accountSummary.Settings.SecurityKeysNoUserVerify
     }
 
     if ($accountSummary.Enforcements.Longs) {
@@ -1440,8 +1441,20 @@ function Set-KeeperDeviceSettings {
         Enables or disables Automatic Approval by IP address for account
         ON | OFF
 
+    .PARAMETER NoYubiKeyPin
+        ON  - security-key (YubiKey) authentication no longer requires a PIN.
+        OFF - security-key authentication requires a PIN.
+        This is an account setting: it applies to ALL devices of the account.
+        Turning it ON lowers the strength of the security-key factor, so it asks for confirmation unless -Force is specified.
+
+    .PARAMETER Force
+        Do not ask for confirmation (used with -NoYubiKeyPin ON)
+
     .EXAMPLE
         C:\PS> Set-KeeperDeviceSettings -NewName 'Azure' -Timeout 30d -PersistentLogin ON -Register
+
+    .EXAMPLE
+        C:\PS> Set-KeeperDeviceSettings -NoYubiKeyPin OFF
     #>
 
     [CmdletBinding()]
@@ -1450,7 +1463,9 @@ function Set-KeeperDeviceSettings {
         [Parameter(HelpMessage='NUMBER[h|d]')][String] $Timeout,
         [Parameter()][Switch] $Register,
         [Parameter()][ValidateSet('ON', 'OFF')][String] $PersistentLogin,
-        [Parameter()][ValidateSet('ON', 'OFF')][String] $IpAutoApprove
+        [Parameter()][ValidateSet('ON', 'OFF')][String] $IpAutoApprove,
+        [Parameter()][ValidateSet('ON', 'OFF')][String] $NoYubiKeyPin,
+        [Parameter()][Switch] $Force
     )
 
     $vault = getVault
@@ -1463,6 +1478,26 @@ function Set-KeeperDeviceSettings {
     }
 
     $changed = $false
+
+    if ($NoYubiKeyPin) {
+        $noPin = ($NoYubiKeyPin -eq 'ON')
+        if ($noPin -and -not $Force.IsPresent) {
+            Write-Warning "This turns off the YubiKey PIN requirement for security-key authentication on your whole account, on ALL devices. A stolen security key could then be used without a PIN."
+            $answer = Read-Host "Do you want to proceed? (y/N)"
+            if ($answer -notin @('y', 'yes')) {
+                Write-Host "Canceled."
+                return
+            }
+        }
+        [KeeperSecurity.Authentication.AuthExtensions]::SetSecurityKeysNoUserVerify($auth, $noPin).GetAwaiter().GetResult() | Out-Null
+        if ($noPin) {
+            Write-Information "Security-key authentication no longer requires a YubiKey PIN (applies to all devices on this account)."
+        }
+        else {
+            Write-Information "Security-key authentication requires a YubiKey PIN (applies to all devices on this account)."
+        }
+        $changed = $true
+    }
 
     if ($NewName) {
         $request = New-Object Authentication.DeviceUpdateRequest

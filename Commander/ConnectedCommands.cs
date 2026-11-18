@@ -303,12 +303,9 @@ namespace Commander
                     {
                         Console.WriteLine("WARNING: This turns off the YubiKey PIN requirement for security-key authentication");
                         Console.WriteLine("on your whole account, on ALL devices. A stolen security key could then be used without a PIN.");
-                        Console.Write("Do you want to proceed? (y/N): ");
-                        var answer = (Console.ReadLine() ?? "").Trim();
-                        if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase) &&
-                            !string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase))
+                        if (!await NsfHelpers.ConfirmAsync("Do you want to proceed? (y/N): "))
                         {
-                            Console.WriteLine("Canceled.");
+                            Console.WriteLine("Cancelled.");
                             return;
                         }
                     }
