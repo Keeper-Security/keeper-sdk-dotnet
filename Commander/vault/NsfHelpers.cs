@@ -545,10 +545,10 @@ namespace Commander
             return _shareObjectsCache.TryGetValue(accessTypeUid, out var cached) ? cached : accessTypeUid;
         }
 
-        private static async Task EnsureShareObjectsCacheAsync(VaultOnline vault)
+        private static async Task EnsureShareObjectsCacheAsync(VaultOnline vault, bool refresh = false)
         {
             var currentAccountUid = vault.Auth.AuthContext.AccountUid.Base64UrlEncode();
-            if (_shareObjectsCacheAccountUid != null && _shareObjectsCacheAccountUid != currentAccountUid)
+            if (refresh || (_shareObjectsCacheAccountUid != null && _shareObjectsCacheAccountUid != currentAccountUid))
             {
                 ResetShareObjectsCache();
             }
@@ -599,7 +599,7 @@ namespace Commander
 
         internal static async Task<ISet<string>> GetKnownShareContactsAsync(VaultOnline vault)
         {
-            await EnsureShareObjectsCacheAsync(vault);
+            await EnsureShareObjectsCacheAsync(vault, refresh: true);
             return new HashSet<string>(_shareObjectsCache.Values, StringComparer.OrdinalIgnoreCase);
         }
 
