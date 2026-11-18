@@ -421,31 +421,31 @@ namespace KeeperSecurity.Authentication
                         }
 
 #if NET10_0_OR_GREATER
-                        if (!_qrcDisabled && _qrcKeyId.HasValue && errorRs.QrcEcKeyId > 0)
+                        if (!_qrcDisabled && _qrcKeyId.HasValue)
                         {
-                            if (errorRs.QrcEcKeyId < 7 || errorRs.QrcEcKeyId > 18)
+                            if (errorRs.QrcEcKeyId > 0)
                             {
-                                DisableQrc();
-                            }
-                            else if (keyId != errorRs.QrcEcKeyId)
-                            {
-                                keyId = errorRs.QrcEcKeyId;
-                                ServerKeyId = keyId;
-                            }
-                            else
-                            {
-                                // The server rejected the current EC key ID. Retrying QRC with
-                                // the same ID cannot make progress, so disable QRC and retry with EC.
-                                DisableQrc();
+                                if (IsKnownEcKeyId(errorRs.QrcEcKeyId) && keyId != errorRs.QrcEcKeyId)
+                                {
+                                    keyId = errorRs.QrcEcKeyId;
+                                    ServerKeyId = keyId;
+                                }
+                                else
+                                {
+                                    // Unknown EC key ID, or the server rejected the current EC key ID again.
+                                    // Retrying QRC cannot make progress, so disable QRC and retry with EC.
+                                    DisableQrc();
+                                }
+
+                                continue;
                             }
 
-                            continue;
-                        }
-                        else if (!_qrcDisabled && _qrcKeyId.HasValue && (errorRs.KeyId < 7 || errorRs.KeyId > 18))
-                        {
-                            DisableQrc();
-                            // The response key ID may be the QRC key ID, not an EC key.
-                            continue;
+                            if (!IsKnownEcKeyId(errorRs.KeyId))
+                            {
+                                // The response key ID may be the QRC key ID, not an EC key.
+                                DisableQrc();
+                                continue;
+                            }
                         }
 #endif
                         if (errorRs.KeyId > 0 && IsServerKeyKnown(errorRs.KeyId))
@@ -964,6 +964,11 @@ namespace KeeperSecurity.Authentication
             }
 
             return KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out publicKey);
+        }
+
+        private static bool IsKnownEcKeyId(int keyId)
+        {
+            return keyId >= 7 && keyId <= 18;
         }
 
         private void DisableQrc()

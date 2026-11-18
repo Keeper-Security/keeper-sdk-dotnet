@@ -146,7 +146,6 @@ namespace KeeperSecurity.Authentication
             Buffer.BlockCopy(ecSecret, 0, inputKeyMaterial, 0, ecSecret.Length);
             Buffer.BlockCopy(mlKemSecret, 0, inputKeyMaterial, ecSecret.Length, mlKemSecret.Length);
 
-            // Commander uses a 32-byte zero salt and a 32-byte HKDF-SHA256 output.
             var salt = new byte[32];
             byte[] pseudoRandomKey = null;
             try
