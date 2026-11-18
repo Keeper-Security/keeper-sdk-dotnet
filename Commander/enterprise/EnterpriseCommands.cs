@@ -3549,6 +3549,10 @@ namespace Commander
             IEnterpriseContext context,
             IEnumerable<Dictionary<string, object>> rows)
         {
+            // Compliance data is only available to users with the privilege and the add-on.
+            if (!context.IsComplianceReportingEnabled())
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+
             var recordUids = rows?
                 .Where(row => row != null &&
                               row.TryGetValue("record_uid", out var uid) &&
@@ -3657,6 +3661,26 @@ namespace Commander
             return result;
         }
 
+        private static bool TryGetVaultRecordTitle(IEnterpriseContext context, string recordUid, out string title)
+        {
+            title = null;
+            try
+            {
+                var vault = context?.GetVault();
+                if (vault != null && vault.TryGetKeeperRecord(recordUid, out var vaultRecord))
+                {
+                    title = vaultRecord.Title ?? "";
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceInformation($"Audit record-name lookup: vault lookup failed for UID '{recordUid}': {ex.Message}");
+            }
+
+            return false;
+        }
+
         private static string ResolveAuditRecordName(
             IEnterpriseContext context,
             Dictionary<string, object> row,
@@ -3676,25 +3700,45 @@ namespace Commander
                 return "";
 
             var recordUid = uidValue.ToString().Trim();
+
+            // Prefer the local vault (always current); use compliance data only for records
+            // that are not in the vault.
+            if (TryGetVaultRecordTitle(context, recordUid, out var vaultTitle))
+                return vaultTitle;
+
             if (complianceContext != null &&
                 complianceContext.TryGetValue(recordUid, out var complianceRecord) &&
                 complianceRecord != null &&
                 !string.IsNullOrWhiteSpace(complianceRecord.Title))
                 return complianceRecord.Title;
 
-            // Keep the local vault as a fallback for records that are not in the compliance cache.
-            try
-            {
-                var vault = context?.GetVault();
-                if (vault != null && vault.TryGetKeeperRecord(recordUid, out var vaultRecord))
-                    return vaultRecord.Title ?? "";
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceInformation($"Audit record-name lookup: vault fallback failed for UID '{recordUid}': {ex.Message}");
-            }
-
             return "";
+        }
+
+        /// <summary>
+        /// True when the user has the "run_compliance_reports" privilege and the "compliance_report" add-on is enabled.
+        /// </summary>
+        private static bool IsComplianceReportingEnabled(this IEnterpriseContext context)
+        {
+            if (context?.EnterpriseData == null || context.RoleManagement == null)
+                return false;
+
+            var username = context.Enterprise?.Auth?.Username;
+            if (string.IsNullOrEmpty(username) || !context.EnterpriseData.TryGetUserByEmail(username, out var currentUser))
+                return false;
+
+            var userRoleIds = context.RoleManagement.GetRolesForUser(currentUser.Id).ToHashSet();
+            var hasPrivilege = context.RoleManagement.GetManagedNodes()
+                .Where(mn => userRoleIds.Contains(mn.RoleId))
+                .SelectMany(mn => context.RoleManagement.GetPrivilegesForRoleAndNode(mn.RoleId, mn.ManagedNodeId))
+                .Any(rp => string.Equals(rp.PrivilegeType, "run_compliance_reports", StringComparison.OrdinalIgnoreCase));
+            if (!hasPrivilege)
+                return false;
+
+            var license = context.EnterpriseData.EnterpriseLicense;
+            return license?.AddOns?.Any(a =>
+                string.Equals(a.Name, "compliance_report", StringComparison.OrdinalIgnoreCase) &&
+                (a.Enabled || a.IncludedInProduct)) == true;
         }
 
         internal static async Task RunAuditEventsReport(this IEnterpriseContext context, AuditReportOptions options)
@@ -3763,42 +3807,36 @@ namespace Commander
                 }
             }
 
-            var hasComplianceAddon = false;
-            var hasCompliancePrivilege = false;
-
-            if (context.EnterpriseData != null && context.RoleManagement != null)
+            // Compliance data is optional enrichment (as in Python Commander, where it is only used to
+            // resolve record details that are not in the local cache). The compliance report pipeline
+            // is used only when the user explicitly asks for compliance output.
+            var complianceRequested = options.IncludeCompliance || options.IncludeAging || options.RebuildCompliance;
+            if (complianceRequested)
             {
-                // Check addon
-                var license = context.EnterpriseData.EnterpriseLicense;
-                hasComplianceAddon = license?.AddOns?.Any(a =>
-                    string.Equals(a.Name, "compliance_report", StringComparison.OrdinalIgnoreCase) &&
-                    (a.Enabled || a.IncludedInProduct)) == true;
-
-                // Check privilege
-                var username = context.Enterprise?.Auth?.Username;
-                if (!string.IsNullOrEmpty(username) && context.EnterpriseData.TryGetUserByEmail(username, out var currentUser))
+                if (!context.IsComplianceReportingEnabled())
                 {
-                    var userRoleIds = context.RoleManagement.GetRolesForUser(currentUser.Id).ToHashSet();
-                    hasCompliancePrivilege = context.RoleManagement.GetManagedNodes()
-                        .Where(mn => userRoleIds.Contains(mn.RoleId))
-                        .SelectMany(mn => context.RoleManagement.GetPrivilegesForRoleAndNode(mn.RoleId, mn.ManagedNodeId))
-                        .Any(rp => string.Equals(rp.PrivilegeType, "run_compliance_reports", StringComparison.OrdinalIgnoreCase));
+                    Console.WriteLine(
+                        "Error: --include-compliance, --include-aging and --rebuild-compliance require the " +
+                        "'compliance_report' add-on and the 'run_compliance_reports' privilege.");
+                    return;
                 }
-            }
 
-            if (hasComplianceAddon && hasCompliancePrivilege &&
-                string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
-                !options.MaxRecordDetails &&
-                !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
-                string.IsNullOrWhiteSpace(options.Timezone) &&
-                !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase) &&
-                (options.GeoLocation == null || !options.GeoLocation.Any()) &&
-                (options.DeviceType == null || !options.DeviceType.Any()) &&
-                (options.Columns == null || !options.Columns.Any()) &&
-                (options.Aggregate == null || !options.Aggregate.Any()))
-            {
-                await RunAuditEventsReportWithCompliance(context, options);
-                return;
+                if (string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
+                    string.IsNullOrWhiteSpace(options.Timezone) &&
+                    !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase) &&
+                    (options.GeoLocation == null || !options.GeoLocation.Any()) &&
+                    (options.DeviceType == null || !options.DeviceType.Any()) &&
+                    (options.Columns == null || !options.Columns.Any()) &&
+                    (options.Aggregate == null || !options.Aggregate.Any()))
+                {
+                    await RunAuditEventsReportWithCompliance(context, options);
+                    return;
+                }
+
+                Console.WriteLine(
+                    "Warning: compliance options are supported only for the raw report type with the default " +
+                    "order, time zone, report format and columns. They are ignored for this report.");
             }
 
             if (context.AuditEvents == null)
@@ -4067,12 +4105,14 @@ namespace Commander
             var cachedAuditComplianceContext = requestedRecordName && rq.ReportType != "raw"
                 ? GetCachedAuditComplianceContext(context, filteredEvents)
                 : new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
-            if (options.MaxRecordDetails && requestedRecordName && rq.ReportType != "raw")
+            if (options.MaxRecordDetails && requestedRecordName && rq.ReportType != "raw" &&
+                context.IsComplianceReportingEnabled())
             {
                 var missingRecordUids = filteredEvents
                     .Where(evt => evt != null &&
                                   evt.TryGetValue("record_uid", out var uid) &&
                                   !string.IsNullOrWhiteSpace(uid?.ToString()) &&
+                                  !TryGetVaultRecordTitle(context, uid.ToString().Trim(), out _) &&
                                   (!cachedAuditComplianceContext.TryGetValue(uid.ToString().Trim(), out var cached) ||
                                    string.IsNullOrWhiteSpace(cached?.Title)))
                     .Select(evt => evt["record_uid"].ToString().Trim())
