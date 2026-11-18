@@ -316,8 +316,14 @@ function Add-KeeperNSFRecord {
 	.Parameter RecordType
 	Record type (e.g. login, general). Defaults to 'login'.
 
-	.Parameter FolderUid
-	Optional folder UID to place the record in.
+	.Parameter Folder
+	Optional folder UID, name, or path to place the record in. FolderUid remains an alias.
+
+	.Parameter PasswordRules
+	Five password generation values: Length,Upper,Lower,Digit,Special. Use with -GeneratePassword.
+
+	.Parameter SpecialChars
+	Allowed special characters for generated passwords when enterprise policy does not override them.
  
 	.Parameter Notes
 	Optional notes for the record.
@@ -364,23 +370,21 @@ function Add-KeeperNSFRecord {
 	.EXAMPLE
 	PS> Add-KeeperNSFRecord "Test NSF Record" -PassphraseRuleValues "5, ,true,false" login=admin
 	Creates a record with a 5-word space-separated passphrase (no caps, no digits).
+
+	.EXAMPLE
+	PS> Add-KeeperNSFRecord -Title 'Service Login' -RecordType login -Folder 'Team/Services' -GeneratePassword -PasswordRules 20,5,5,5,3
+	Creates a record in an existing NSF folder with a password generated using the same rules as Add-KeeperRecord.
 #>
     [CmdletBinding()]
     Param (
-        [Parameter(Position = 0, Mandatory = $true)]
-        [string] $Title,
-
-        [Parameter()]
-        [string] $RecordType = 'login',
-
-        [Parameter()]
-        [string] $FolderUid,
-
-        [Parameter()]
-        [string] $Notes,
-
         [Parameter()]
         [switch] $GeneratePassword,
+
+        [Parameter()]
+        [int[]] $PasswordRules,
+
+        [Parameter()]
+        [string] $SpecialChars,
 
         [Parameter()]
         [Alias('PassphraseRules')]
@@ -389,6 +393,22 @@ function Add-KeeperNSFRecord {
         [Parameter()]
         [AllowEmptyCollection()]
         [string[]] $PassphraseRuleValues,
+
+        [Parameter()]
+        [string] $RecordType = 'login',
+
+        [Parameter()]
+        [Alias('FolderUid')]
+        [string] $Folder,
+
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string] $Title,
+
+        [Parameter()]
+        [string] $Notes,
+
+        [Parameter()]
+        [switch] $Force,
 
         [Parameter(ValueFromRemainingArguments = $true)]
         [string[]] $Fields
@@ -407,6 +427,33 @@ function Add-KeeperNSFRecord {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
+    if ($RecordType -notin @('general', 'legacy')) {
+        [KeeperSecurity.Vault.RecordType]$recordTypeInfo = $null
+        if (-not $vault.TryGetRecordTypeByName($RecordType, [ref]$recordTypeInfo)) {
+            Write-Host "Record type '$RecordType' cannot be found." -ForegroundColor Red
+            return
+        }
+    }
+    $folderUid = $null
+    if ($Folder) {
+        [KeeperSecurity.Vault.FolderNode]$resolvedFolder = $null
+        if (-not $vault.TryResolveKeeperNSFFolderReference($Folder, [ref]$resolvedFolder)) {
+            if ($Folder -notmatch '[\\/]') {
+                try { $null = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault }
+                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                    Write-Host "Folder '$Folder' is ambiguous. Pass the folder UID." -ForegroundColor Red
+                    return
+                }
+            }
+            Write-Host "Cannot resolve folder $Folder" -ForegroundColor Red
+            return
+        }
+        $folderUid = $resolvedFolder.FolderUid
+    }
+    if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+        Write-Host "Error: Record type '$RecordType' is restricted by your enterprise role policy and cannot be created." -ForegroundColor Red
+        return
+    }
 
     $fieldDict = $null
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
@@ -422,7 +469,10 @@ function Add-KeeperNSFRecord {
             }
         }
         if ($GeneratePassword.IsPresent) {
-            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+            $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+            $generatedPassword = New-KeeperGeneratedPassword -Policy $policy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
+            if (-not $generatedPassword) { return }
+            $fieldDict['password'] = $generatedPassword
         }
         elseif ($generatePassphrase) {
             if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
@@ -432,7 +482,7 @@ function Add-KeeperNSFRecord {
     }
 
     try {
-        $recordUid = $vault.CreateKeeperNSFRecord($Title, $RecordType, $FolderUid, $Notes, $fieldDict).GetAwaiter().GetResult()
+        $recordUid = $vault.CreateKeeperNSFRecord($Title, $RecordType, $folderUid, $Notes, $fieldDict).GetAwaiter().GetResult()
         Write-Host "Record '$Title' created successfully (UID: $recordUid)." -ForegroundColor Green
         return $recordUid
     }
@@ -1028,7 +1078,7 @@ function Set-KeeperNSFRecordAccess {
 	One or more user email addresses to grant/revoke access.
 
 	.Parameter Role
-	Access role for grant action: viewer (default), share-manager, content-manager,
+	Access role required for grant: viewer, share-manager, content-manager,
 	content-share-manager, full-manager.
 
 	.Parameter ExpireIn
@@ -1040,10 +1090,29 @@ function Set-KeeperNSFRecordAccess {
 
 	.Parameter Force
 	Skip confirmation before revoking access.
+
+	.Parameter DryRun
+	Preview each record and recipient without changing access.
+
+	.Parameter Recursive
+	Use a folder path or UID and include records in its subfolders.
+
+	.Parameter ContactsOnly
+	Reject recipients that are not known share contacts.
+
+	.Parameter RotateOnExpiration
+	Rotate an eligible pamUser password when its future grant expires.
+
+	.EXAMPLE
+	PS> Set-KeeperNSFRecordAccess -Record <record UID> -User user@example.com -Role viewer -DryRun
+
+	.EXAMPLE
+	PS> Set-KeeperNSFRecordAccess -Record 'Parent/Child' -User user@example.com -Role content-manager -Recursive -ExpireIn 30d
 #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     Param (
+        [Alias('Record')]
         [Parameter(Position = 0, Mandatory = $true)]
         [string] $RecordUid,
 
@@ -1051,12 +1120,27 @@ function Set-KeeperNSFRecordAccess {
         [ValidateSet('grant', 'revoke')]
         [string] $Action = 'grant',
 
+        [Alias('User')]
         [Parameter(Mandatory = $true)]
         [string[]] $Email,
 
         [Parameter()]
         [ValidateSet('viewer', 'share-manager', 'content-manager', 'content-share-manager', 'full-manager')]
-        [string] $Role = 'viewer',
+        [string] $Role,
+
+        [Parameter()]
+        [switch] $DryRun,
+
+        [Alias('R')]
+        [Parameter()]
+        [switch] $Recursive,
+
+        [Parameter()]
+        [switch] $ContactsOnly,
+
+        [Alias('roe', 'rotate-on-expiration')]
+        [Parameter()]
+        [switch] $RotateOnExpiration,
 
         [Alias('expire-in')]
         [Parameter()]
@@ -1077,8 +1161,41 @@ function Set-KeeperNSFRecordAccess {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
+    if ($Action -eq 'grant' -and -not $Role) {
+        Write-Host 'Error: -Role is required for grant.' -ForegroundColor Red
+        return
+    }
+    if ($ExpireAt -and $ExpireIn) {
+        Write-Host 'Error: -ExpireAt and -ExpireIn cannot be used together.' -ForegroundColor Red
+        return
+    }
 
     [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
+    $recordUids = @()
+    if ($Recursive.IsPresent) {
+        [KeeperSecurity.Vault.FolderNode]$folderNode = $null
+        if (-not $vault.TryResolveKeeperNSFFolderReference($RecordUid, [ref]$folderNode)) {
+            if ($RecordUid -notmatch '[\\/]') {
+                try { $null = resolveKeeperNSFFolder -Identifier $RecordUid -Vault $vault }
+                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                    Write-Host "Folder '$RecordUid' is ambiguous. Pass the folder UID." -ForegroundColor Red
+                    return
+                }
+            }
+            Write-Host 'Error: -Recursive requires an NSF folder path or UID.' -ForegroundColor Red
+            return
+        }
+        $folderUids = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        [void]$folderUids.Add($folderNode.FolderUid)
+        do {
+            $changed = $false
+            foreach ($child in $vault.KeeperNSFFolderNodes) {
+                if ($folderUids.Contains($child.ParentUid)) { $changed = $folderUids.Add($child.FolderUid) -or $changed }
+            }
+        } while ($changed)
+        $recordUids = @($vault.Storage.KdFolderRecords.GetAllLinks() | Where-Object { $folderUids.Contains($_.FolderUid) } | ForEach-Object { $_.RecordUid } | Select-Object -Unique)
+    }
+    else {
     try {
         $tmpRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
     }
@@ -1091,6 +1208,21 @@ function Set-KeeperNSFRecordAccess {
         return
     }
     $RecordUid = [string]$tmpRecord.RecordUid
+    $recordUids = @($RecordUid)
+    }
+
+    if ($ContactsOnly.IsPresent) {
+        try {
+            $shareTargets = $vault.Auth.ExecuteAuthRest('vault/get_share_objects', (New-Object Records.GetShareObjectsRequest), [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
+            $knownEmails = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+            foreach ($targetList in @($shareTargets.ShareRelationships, $shareTargets.ShareFamilyUsers, $shareTargets.ShareEnterpriseUsers, $shareTargets.ShareMCEnterpriseUsers)) {
+                foreach ($target in $targetList) { if ($target.Username) { [void]$knownEmails.Add($target.Username) } }
+            }
+            foreach ($user in $Email) {
+                if (-not $knownEmails.Contains($user)) { Write-Host "Error: '$user' is not a known share contact." -ForegroundColor Red; return }
+            }
+        } catch { Write-Host "Error checking contacts: $($_.Exception.Message)" -ForegroundColor Red; return }
+    }
 
     $shareOptions = $null
     if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
@@ -1104,6 +1236,27 @@ function Set-KeeperNSFRecordAccess {
         $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
         $shareOptions.Expiration = $expirationDto
     }
+    if ($RotateOnExpiration.IsPresent) {
+        if ($Action -ne 'grant' -or -not $shareOptions -or $shareOptions.Expiration -le [DateTimeOffset]::UtcNow) {
+            Write-Host 'Error: -RotateOnExpiration requires grant and a future expiration.' -ForegroundColor Red
+            return
+        }
+        foreach ($uid in $recordUids) {
+            [KeeperSecurity.Vault.KeeperNSFRecord]$rotationRecord = $null
+            if (-not $vault.TryGetKeeperNSFRecord($uid, [ref]$rotationRecord) -or
+                $rotationRecord.Type -ne 'pamUser' -or
+                -not [KeeperSecurity.Vault.VaultShareExpirationExtensions]::RecordHasRotationConfigured($vault, $uid)) {
+                Write-Host "Error: -RotateOnExpiration requires a pamUser record with rotation configured: $uid" -ForegroundColor Red
+                return
+            }
+        }
+        $shareOptions.RotateOnExpiration = $true
+    }
+
+    if ($DryRun.IsPresent) {
+        foreach ($uid in $recordUids) { foreach ($user in $Email) { Write-Host "[dry-run] $Action record $uid for $user" } }
+        return
+    }
 
     if ($Action -eq 'revoke' -and -not $Force.IsPresent) {
         $confirmation = Read-Host "Are you sure you want to revoke access to record '$RecordUid' from $($Email.Count) user(s)? (yes/No)"
@@ -1113,7 +1266,7 @@ function Set-KeeperNSFRecordAccess {
         }
     }
 
-    foreach ($user in $Email) {
+    foreach ($RecordUid in $recordUids) { foreach ($user in $Email) {
         try {
             if ($Action -eq 'grant') {
                 [void]$vault.ShareKeeperNSFRecord($RecordUid, $user, $Role, $shareOptions).GetAwaiter().GetResult()
@@ -1130,6 +1283,7 @@ function Set-KeeperNSFRecordAccess {
         catch {
             [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
         }
+    }
     }
 }
 

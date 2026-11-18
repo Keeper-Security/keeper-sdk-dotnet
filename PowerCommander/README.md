@@ -108,6 +108,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | Remove-KeeperNSFRecord                                  | nsf-rm           | Remove Keeper NSF record(s) by UID/title
 | Remove-KeeperNSFRecords                                 | nsf-records-rm   | Batch remove NSF records from JSON (`-DownloadSampleRemovals`; preview then confirm)
 | Set-KeeperNSFRecordAccess                               | nsf-share-record | Grant or revoke user access to an NSF record
+
 | Share-KeeperNSFRecords                                  | nsf-share-records | Batch grant NSF record access from JSON (`-DownloadSampleShares`)
 | Unshare-KeeperNSFRecords                                | nsf-unshare-records | Batch revoke NSF record access from JSON (`-DownloadSampleUnshares`)
 | Set-KeeperNSFRecordPermission                           | nsf-record-permission | Bulk grant or revoke record permissions in an NSF folder
@@ -138,6 +139,10 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 
 
 ### Sharing Cmdlets
+`Add-KeeperNSFRecord -Title 'Example' -RecordType login -Folder 'Parent/Child' -GeneratePassword` creates a record in an existing NSF folder. `-FolderUid` remains an alias for `-Folder`; `-PasswordRules` and `-SpecialChars` customize generated passwords.
+
+`Set-KeeperNSFRecordAccess RECORD_UID -Email user@example.com -Role viewer` grants access. Use `-Action revoke` to remove access, `-Recursive` with a folder to include descendants, `-DryRun` to preview, and `-ExpireAt` or `-ExpireIn` with `-RotateOnExpiration` for eligible PAM user records.
+
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
 | [Show-KeeperRecordShare](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-12)                                  | kshrsh           | Show a record sharing information

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cli;
 using CommandLine;
 using KeeperSecurity.Vault;
+using KeeperSecurity.Utils;
 using ZeroDep;
 
 namespace Commander
@@ -169,6 +170,32 @@ namespace Commander
 
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
         {
+            if (options.RecordType != "general" && options.RecordType != "legacy"
+                && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
+            {
+                Console.WriteLine($"Record type '{options.RecordType}' cannot be found.");
+                return;
+            }
+            string folderUid = null;
+            if (!string.IsNullOrWhiteSpace(options.FolderUid))
+            {
+                try
+                {
+                    if (!context.Vault.TryResolveKeeperNSFFolderReference(options.FolderUid, out var folder))
+                    {
+                        if (options.FolderUid.IndexOfAny(new[] { '/', '\\' }) < 0)
+                            context.Vault.ResolveKeeperNSFFolderStrict(options.FolderUid);
+                        Console.WriteLine($"Cannot resolve folder {options.FolderUid}");
+                        return;
+                    }
+                    folderUid = folder.FolderUid;
+                }
+                catch (AmbiguousFolderException)
+                {
+                    Console.WriteLine($"Folder '{options.FolderUid}' is ambiguous. Pass the folder UID.");
+                    return;
+                }
+            }
             Dictionary<string, object> fieldDict = null;
             if ((options.Fields != null && options.Fields.Any()) || options.GeneratePassword)
             {
@@ -185,16 +212,9 @@ namespace Commander
 
             try
             {
-                string folderUid = options.FolderUid;
-                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(context.Vault, folderUid);
-                if (folderNode != null)
-                {
-                    folderUid = folderNode.FolderUid;
-                }
-
                 var recordUid = await context.Vault.CreateKeeperNSFRecord(
                     options.Title,
-                    options.RecordType ?? "login",
+                    options.RecordType,
                     folderUid,
                     options.Notes,
                     fieldDict);
@@ -216,6 +236,12 @@ namespace Commander
             if (!hasTitle && !hasType && !hasNotes && !hasFields && !options.GeneratePassword)
             {
                 Console.WriteLine("Error: At least one of --title, --type, --notes, --generate, or field values must be specified.");
+                return;
+            }
+
+            if (hasType && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' not found.");
                 return;
             }
 
@@ -258,49 +284,253 @@ namespace Commander
         public static async Task NsfShareRecordCommand(this VaultContext context, NsfShareRecordOptions options)
         {
             var vault = context.Vault;
-            if (!vault.TryGetKeeperNSFRecord(options.RecordUid, out _))
+            var recordUids = new List<string>();
+            try
             {
-                Console.WriteLine($"Error: NSF record '{options.RecordUid}' not found.");
+                if (options.Recursive)
+                {
+                    if (string.IsNullOrWhiteSpace(options.RecordUid)
+                        || !vault.TryResolveKeeperNSFFolderReference(options.RecordUid, out var folder))
+                    {
+                        if (!string.IsNullOrWhiteSpace(options.RecordUid)
+                            && options.RecordUid.IndexOfAny(new[] { '/', '\\' }) < 0)
+                            vault.ResolveKeeperNSFFolderStrict(options.RecordUid);
+                        Console.WriteLine("Error: -R requires a Keeper NSF folder path or UID.");
+                        return;
+                    }
+                    var folders = new HashSet<string>(StringComparer.Ordinal) { folder.FolderUid };
+                    bool changed;
+                    do
+                    {
+                        changed = false;
+                        foreach (var child in vault.KeeperNSFFolderNodes)
+                            if (folders.Contains(child.ParentUid)) changed |= folders.Add(child.FolderUid);
+                    } while (changed);
+                    recordUids.AddRange(vault.Storage.KdFolderRecords.GetAllLinks()
+                        .Where(link => folders.Contains(link.FolderUid)).Select(link => link.RecordUid).Distinct());
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(options.RecordUid))
+                    {
+                        Console.WriteLine("Error: Record path or UID is required.");
+                        return;
+                    }
+                    KeeperNSFRecord record = null;
+                    var separator = options.RecordUid.LastIndexOfAny(new[] { '/', '\\' });
+                    if (separator > 0 && vault.TryResolveKeeperNSFFolderReference(
+                        options.RecordUid.Substring(0, separator), out var recordFolder))
+                    {
+                        var title = options.RecordUid.Substring(separator + 1);
+                        var matches = vault.Storage.KdFolderRecords.GetAllLinks()
+                            .Where(link => link.FolderUid == recordFolder.FolderUid)
+                            .Select(link => vault.TryGetKeeperNSFRecord(link.RecordUid, out var candidate) ? candidate : null)
+                            .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.Ordinal))
+                            .Take(2).ToList();
+                        if (matches.Count > 1)
+                        {
+                            Console.WriteLine("Error: Record path is ambiguous. Pass the record UID.");
+                            return;
+                        }
+                        record = matches.FirstOrDefault();
+                    }
+                    if (record == null) record = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, options.RecordUid);
+                    if (record == null)
+                    {
+                        Console.WriteLine($"Error: NSF record '{options.RecordUid}' not found.");
+                        return;
+                    }
+                    recordUids.Add(record.RecordUid);
+                }
+            }
+            catch (Exception ex) when (ex is AmbiguousFolderException || ex is AmbiguousNsfRecordException)
+            {
+                Console.WriteLine($"Error: {ex.Message} Pass the UID.");
                 return;
             }
 
             var action = options.Action ?? "grant";
-            var isGrant = string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase);
+            var isGrant = string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "update", StringComparison.OrdinalIgnoreCase);
             var isRevoke = string.Equals(action, "revoke", StringComparison.OrdinalIgnoreCase);
             if (!isGrant && !isRevoke)
             {
-                Console.WriteLine("--action must be either grant or revoke.");
+                Console.WriteLine("--action must be grant or revoke.");
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(options.ExpireAt) && !string.IsNullOrWhiteSpace(options.ExpireIn))
+            {
+                Console.WriteLine("Error: --expire-at and --expire-in cannot be used together.");
                 return;
             }
 
             var users = (options.Email ?? Array.Empty<string>()).ToArray();
+            if (users.Length == 0)
+            {
+                Console.WriteLine("Error: Recipient email is required (use -e or --email).");
+                return;
+            }
+            if (options.ContactsOnly)
+            {
+                try
+                {
+                    var targets = (global::Records.GetShareObjectsResponse)await vault.Auth.ExecuteAuthRest(
+                        "vault/get_share_objects", new global::Records.GetShareObjectsRequest(),
+                        typeof(global::Records.GetShareObjectsResponse));
+                    var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var list in new[] { targets.ShareRelationships, targets.ShareFamilyUsers,
+                        targets.ShareEnterpriseUsers, targets.ShareMCEnterpriseUsers })
+                        foreach (var target in list) known.Add(target.Username);
+                    var unknown = users.Where(user => !known.Contains(user)).ToArray();
+                    if (unknown.Length > 0)
+                    {
+                        Console.WriteLine($"Error: Unknown share contact(s): {string.Join(", ", unknown)}");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error checking known share contacts: {ex.Message}");
+                    return;
+                }
+            }
+
+            var role = NormalizeNsfShareRole(options.Role);
+            if (!string.IsNullOrWhiteSpace(options.Role) && string.IsNullOrEmpty(role))
+            {
+                Console.WriteLine($"Error: Unknown role '{options.Role}'. Valid roles: viewer, share-manager, content-manager, content-share-manager, full-manager.");
+                return;
+            }
+            if (isGrant && string.IsNullOrEmpty(role))
+            {
+                Console.WriteLine("Error: --role is required for grant or update actions.");
+                return;
+            }
+
+            SharedFolderRecordOptions shareOptions = null;
+            if (isGrant)
+            {
+                if (!TryCreateNsfShareOptions(options, out shareOptions, out var expirationError))
+                {
+                    Console.WriteLine($"Error: {expirationError}");
+                    return;
+                }
+            }
+
+            if (options.RotateOnExpiration && (!isGrant || shareOptions?.Expiration == null || shareOptions.Expiration <= DateTimeOffset.UtcNow))
+            {
+                Console.WriteLine("Error: --rotate-on-expiration requires grant and a future --expire-at or --expire-in.");
+                return;
+            }
+            if (options.RotateOnExpiration && recordUids.Any(uid =>
+                !vault.TryGetKeeperNSFRecord(uid, out var candidate)
+                || !string.Equals(candidate.Type, "pamUser", StringComparison.Ordinal)
+                || !vault.RecordHasRotationConfigured(uid)))
+            {
+                Console.WriteLine("Error: --rotate-on-expiration requires a pamUser record with rotation configured.");
+                return;
+            }
+            if (shareOptions != null) shareOptions.RotateOnExpiration = options.RotateOnExpiration;
+
+            if (options.DryRun)
+            {
+                Console.WriteLine($"[dry-run] Action: {action}");
+                foreach (var uid in recordUids)
+                    foreach (var user in users) Console.WriteLine($"[dry-run] Record: {uid}, Recipient: {user}");
+                if (isGrant)
+                {
+                    Console.WriteLine($"[dry-run] Role: {options.Role}");
+                    if (shareOptions?.Expiration != null)
+                    {
+                        Console.WriteLine($"[dry-run] Expires: {shareOptions.Expiration.Value.ToUniversalTime():O}");
+                    }
+                }
+                return;
+            }
+
             if (isRevoke
                 && !options.Force
                 && !await NsfHelpers.ConfirmAsync(
-                    $"Are you sure you want to revoke access to record '{options.RecordUid}' from {users.Length} user(s)? (yes/No) "))
+                    $"Are you sure you want to revoke access to {recordUids.Count} record(s) from {users.Length} user(s)? (yes/No) "))
             {
                 return;
             }
 
+            foreach (var recordUid in recordUids)
             foreach (var user in users)
             {
                 try
                 {
                     if (isGrant)
                     {
-                        await vault.ShareKeeperNSFRecord(options.RecordUid, user, options.Role ?? "viewer");
-                        Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{user}' on record '{options.RecordUid}'.");
+                        // ShareKeeperNSFRecord promotes an already-existing direct share to an update,
+                        // so both grant and update retain the same idempotent CLI behavior.
+                        await vault.ShareKeeperNSFRecord(recordUid, user, role, shareOptions);
+                        Console.WriteLine($"{(string.Equals(action, "update", StringComparison.OrdinalIgnoreCase) ? "Updated" : "Granted")} '{options.Role}' access to '{user}' on record '{recordUid}'.");
                     }
                     else
                     {
-                        await vault.UnshareKeeperNSFRecord(options.RecordUid, user);
-                        Console.WriteLine($"Revoked access for '{user}' from record '{options.RecordUid}'.");
+                        await vault.UnshareKeeperNSFRecord(recordUid, user);
+                        Console.WriteLine($"Revoked access for '{user}' from record '{recordUid}'.");
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error {action}ing access for '{user}': {ex.Message}");
                 }
+            }
+        }
+
+        private static string NormalizeNsfShareRole(string role)
+        {
+            switch (role?.Trim().ToLowerInvariant())
+            {
+                case "viewer": return "viewer";
+                case "content-manager": return "content-manager";
+                case "shared-manager":
+                case "share-manager": return "share-manager";
+                case "content-share-manager": return "content-share-manager";
+                case "manager":
+                case "full-manager": return "full-manager";
+                default: return null;
+            }
+        }
+
+        private static bool TryCreateNsfShareOptions(NsfShareRecordOptions options,
+            out SharedFolderRecordOptions shareOptions, out string error)
+        {
+            shareOptions = new SharedFolderRecordOptions();
+            error = null;
+            if (!string.IsNullOrWhiteSpace(options.ExpireAt) && !string.IsNullOrWhiteSpace(options.ExpireIn))
+            {
+                error = "--expire-at and --expire-in cannot be used together.";
+                return false;
+            }
+
+            if (string.Equals(options.ExpireAt, "never", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(options.ExpireIn, "never", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(options.ExpireAt))
+                {
+                    shareOptions.Expiration = DateTimeOffset.Parse(
+                        options.ExpireAt, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal);
+                }
+                else if (!string.IsNullOrWhiteSpace(options.ExpireIn))
+                {
+                    shareOptions.Expiration = DateTimeOffset.UtcNow + ParseUtils.ParseTimePeriod(options.ExpireIn);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = $"Invalid share expiration: {ex.Message}";
+                return false;
             }
         }
 
@@ -940,22 +1170,22 @@ namespace Commander
 
     class NsfRecordAddOptions
     {
-        [Value(0, Required = true, HelpText = "Record title")]
-        public string Title { get; set; }
-
-        [Option('t', "type", Required = false, Default = "login", HelpText = "Record type")]
-        public string RecordType { get; set; }
-
-        [Option("folder", Required = false, HelpText = "Folder UID or name")]
+        [Option("folder", Required = false, HelpText = "folder name or UID to store record")]
         public string FolderUid { get; set; }
 
-        [Option("notes", Required = false, HelpText = "Record notes")]
+        [Option('t', "type", Required = true, HelpText = "record type.")]
+        public string RecordType { get; set; }
+
+        [Option("title", Required = true, HelpText = "record title.")]
+        public string Title { get; set; }
+
+        [Option("notes", Required = false, HelpText = "record notes")]
         public string Notes { get; set; }
 
-        [Option('g', "generate", Required = false, HelpText = "Generate random password")]
+        [Option('g', "generate", Required = false, HelpText = "generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
+        [Value(0, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
@@ -994,17 +1224,35 @@ namespace Commander
 
     class NsfShareRecordOptions : VaultForceOptions
     {
-        [Value(0, Required = true, HelpText = "Record UID")]
+        [Value(0, Required = false, MetaName = "record", HelpText = "record path or UID")]
         public string RecordUid { get; set; }
 
-        [Option("action", Required = false, Default = "grant", HelpText = "grant or revoke")]
-        public string Action { get; set; }
-
-        [Option("email", Required = true, HelpText = "User email(s)")]
+        [Option('e', "email", Required = true, HelpText = "account email. Repeatable: -e user1@example.com -e user2@example.com")]
         public IEnumerable<string> Email { get; set; }
 
-        [Option("role", Required = false, Default = "viewer", HelpText = "viewer, share-manager, content-manager, content-share-manager, full-manager")]
+        [Option("contacts-only", Required = false, HelpText = "Share only to known targets")]
+        public bool ContactsOnly { get; set; }
+
+        [Option('a', "action", Required = false, Default = "grant", HelpText = "sharing action. 'grant' if omitted (also updates existing shares)")]
+        public string Action { get; set; }
+
+        [Option('r', "role", Required = false, HelpText = "permission role. Required for grant/update actions: viewer, share-manager, content-manager, content-share-manager, full-manager")]
         public string Role { get; set; }
+
+        [Option('R', "recursive", Required = false, HelpText = "apply command to all records within a folder and its sub-folders")]
+        public bool Recursive { get; set; }
+
+        [Option("dry-run", Required = false, HelpText = "display permission changes without committing them")]
+        public bool DryRun { get; set; }
+
+        [Option("expire-at", Required = false, HelpText = "share expiration: never or UTC datetime (e.g. 2027-01-01T00:00:00Z)")]
+        public string ExpireAt { get; set; }
+
+        [Option("expire-in", Required = false, HelpText = "share expiration: never or period (e.g. 30d, 6mo, 1y)")]
+        public string ExpireIn { get; set; }
+
+        [Option("rotate-on-expiration", Required = false, HelpText = "rotate the password when the share access expires. Only valid on grant; requires a future expiration and a pamUser record with rotation configured")]
+        public bool RotateOnExpiration { get; set; }
     }
 
     class NsfRecordPermissionOptions : VaultForceOptions
