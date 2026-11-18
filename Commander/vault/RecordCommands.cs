@@ -262,7 +262,7 @@ namespace Commander
             catch (SerializationException ex)
             {
                 Debug.WriteLine($"Unable to parse restrict_record_types enforcement: {ex.Message}");
-                return true;
+                return false;
             }
         }
 

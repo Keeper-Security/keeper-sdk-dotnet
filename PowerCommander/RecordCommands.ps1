@@ -44,6 +44,20 @@ function script:Get-KeeperPolicyProperty {
     return $null
 }
 
+function script:Get-KeeperPasswordFieldValues {
+    param($Fields)
+
+    if (-not $Fields) { return @() }
+    return @(
+        foreach ($fieldKey in $Fields.Keys) {
+            $fieldType = ([string]$fieldKey).Trim().TrimStart('$').Split('.')[0]
+            if ($fieldType -ieq 'password' -and $Fields[$fieldKey]) {
+                [string]$Fields[$fieldKey]
+            }
+        }
+    )
+}
+
 function script:New-KeeperPolicyPasswordOptions {
     param($Policy)
 
@@ -93,6 +107,44 @@ function script:Test-KeeperPasswordPolicy {
     return $errors
 }
 
+function script:Test-KeeperPassphrasePolicy {
+    param([string] $Passphrase, $Policy)
+
+    if (-not $Passphrase -or -not $Policy) { return @() }
+    if ((Get-KeeperPolicyProperty $Policy 'passphrase-allow') -eq $false) {
+        return @('Passphrase generation is disabled by enterprise policy.')
+    }
+
+    $separators = Get-KeeperPolicyProperty $Policy 'passphrase-separator'
+    if (-not $separators) { $separators = '-._?! ' }
+    $separator = $Passphrase.ToCharArray() | Where-Object { $separators.Contains($_) } | Select-Object -First 1
+    if (-not $separator) { return @('Passphrase must contain an allowed separator character.') }
+    $words = $Passphrase.Split([char]$separator)
+    $minimumWords = Get-KeeperPolicyProperty $Policy 'passphrase-length'
+    if (-not $minimumWords) { $minimumWords = 5 }
+    if ($words.Count -lt [int]$minimumWords) {
+        return @("Passphrase must contain at least $minimumWords words (got $($words.Count)).")
+    }
+    if ((Get-KeeperPolicyProperty $Policy 'passphrase-capitalize') -eq $true -and
+        ($words | Where-Object { $_ -notmatch '^[A-Z][a-z]{2,}$' }).Count -gt 0) {
+        return @('Each passphrase word must start with a capital letter and contain at least 3 letters.')
+    }
+    if ((Get-KeeperPolicyProperty $Policy 'passphrase-number') -eq $true -and $words[0] -notmatch '[0-9]$') {
+        return @('First passphrase word must end with a digit (0-9).')
+    }
+    return @()
+}
+
+function script:Test-KeeperPasswordOrPassphrasePolicy {
+    param([string] $Password, $Policy)
+
+    $passwordFailures = @(Test-KeeperPasswordPolicy -Password $Password -Policy $Policy)
+    if ($passwordFailures.Count -eq 0) { return @() }
+    $passphraseFailures = @(Test-KeeperPassphrasePolicy -Passphrase $Password -Policy $Policy)
+    if ($passphraseFailures.Count -eq 0) { return @() }
+    return $passphraseFailures
+}
+
 function script:Test-KeeperRestrictedRecordType {
     param([KeeperSecurity.Vault.VaultOnline] $Vault, [string] $RecordType)
 
@@ -103,7 +155,7 @@ function script:Test-KeeperRestrictedRecordType {
     if (-not $raw) { return $false }
     try { $policy = $raw | ConvertFrom-Json -ErrorAction Stop } catch {
         Write-Warning "Unable to parse restrict_record_types enterprise policy."
-        return $true
+        return $false
     }
     if ($type.Scope -eq [KeeperSecurity.Vault.RecordTypeScope]::Standard) {
         $ids = $policy.std
@@ -1302,16 +1354,10 @@ function Add-KeeperRecord {
         # Generated passwords use the policy as generator input, and passphrases
         # have their own policy semantics, so neither belongs in this check.
         $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
-        $passwordValues = @(
-            foreach ($fieldKey in $fields.Keys) {
-                if ($fieldKey -match '^\$?password(?:\.|$)' -and $fields[$fieldKey]) {
-                    [string]$fields[$fieldKey]
-                }
-            }
-        )
-        if ($passwordPolicy -and -not $generatePassphrase -and $passwordValues.Count -gt 0) {
+        $passwordValues = Get-KeeperPasswordFieldValues -Fields $fields
+        if ($passwordPolicy -and $passwordValues.Count -gt 0) {
             $violations = @($passwordValues | ForEach-Object {
-                Test-KeeperPasswordPolicy -Password $_ -Policy $passwordPolicy
+                Test-KeeperPasswordOrPassphrasePolicy -Password $_ -Policy $passwordPolicy
             })
             if ($violations.Count -gt 0) {
                 if ($Force.IsPresent) {

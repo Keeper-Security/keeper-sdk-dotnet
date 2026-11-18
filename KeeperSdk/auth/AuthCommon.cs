@@ -770,7 +770,6 @@ namespace KeeperSecurity.Authentication
                                 break;
                             case "generated_password_complexity":
                             case "restrict_record_types":
-                                // These policies are interpreted by Commander clients.
                                 enforcements[kvp.Key] = kvp.Value;
                                 break;
                         }

@@ -441,8 +441,11 @@ function Add-KeeperNSFRecord {
     }
 
     $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
-    if ($passwordPolicy -and -not $generatePassphrase -and $fieldDict -and $fieldDict.ContainsKey('password')) {
-        $violations = @(Test-KeeperPasswordPolicy -Password ([string]$fieldDict['password']) -Policy $passwordPolicy)
+    $passwordValues = Get-KeeperPasswordFieldValues -Fields $fieldDict
+    if ($passwordPolicy -and $passwordValues.Count -gt 0) {
+        $violations = @($passwordValues | ForEach-Object {
+            Test-KeeperPasswordOrPassphrasePolicy -Password $_ -Policy $passwordPolicy
+        })
         if ($violations.Count -gt 0) {
             $violations | ForEach-Object { Write-Host "$(if ($Force.IsPresent) { 'Warning' } else { 'Error' }): $_" -ForegroundColor $(if ($Force.IsPresent) { 'Yellow' } else { 'Red' }) }
             if (-not $Force.IsPresent) {
@@ -898,8 +901,11 @@ function Edit-KeeperNSFRecord {
     }
 
     $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
-    if ($passwordPolicy -and -not $generatePassphrase -and $fieldDict -and $fieldDict.ContainsKey('password')) {
-        $violations = @(Test-KeeperPasswordPolicy -Password ([string]$fieldDict['password']) -Policy $passwordPolicy)
+    $passwordValues = Get-KeeperPasswordFieldValues -Fields $fieldDict
+    if ($passwordPolicy -and $passwordValues.Count -gt 0) {
+        $violations = @($passwordValues | ForEach-Object {
+            Test-KeeperPasswordOrPassphrasePolicy -Password $_ -Policy $passwordPolicy
+        })
         if ($violations.Count -gt 0) {
             $violations | ForEach-Object { Write-Host "$(if ($Force.IsPresent) { 'Warning' } else { 'Error' }): $_" -ForegroundColor $(if ($Force.IsPresent) { 'Yellow' } else { 'Red' }) }
             if (-not $Force.IsPresent) {
