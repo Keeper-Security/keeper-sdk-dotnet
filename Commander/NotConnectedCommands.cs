@@ -82,7 +82,7 @@ namespace Commander
 
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                _auth.SecurityKeyUI = new WindowsSecurityKeyUI(_auth.Endpoint.Server);
+                _auth.SecurityKeyUI = new WindowsSecurityKeyUI(() => _auth.Endpoint.Server);
             }
 
 #if NET472_OR_GREATER

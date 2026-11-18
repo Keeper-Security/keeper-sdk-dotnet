@@ -299,11 +299,25 @@ namespace Commander
                         return;
                     }
 
+                    if (noYubiKeyPin)
+                    {
+                        Console.WriteLine("WARNING: This turns off the YubiKey PIN requirement for security-key authentication");
+                        Console.WriteLine("on your whole account, on ALL devices. A stolen security key could then be used without a PIN.");
+                        Console.Write("Do you want to proceed? (y/N): ");
+                        var answer = (Console.ReadLine() ?? "").Trim();
+                        if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Canceled.");
+                            return;
+                        }
+                    }
+
                     await _auth.SetSecurityKeysNoUserVerify(noYubiKeyPin);
                     _accountSummary = null;
                     Console.WriteLine(noYubiKeyPin
-                        ? "Security-key authentication no longer requires a YubiKey PIN."
-                        : "Security-key authentication requires a YubiKey PIN.");
+                        ? "Security-key authentication no longer requires a YubiKey PIN (applies to all devices on this account)."
+                        : "Security-key authentication requires a YubiKey PIN (applies to all devices on this account).");
                 }
                 break;
 

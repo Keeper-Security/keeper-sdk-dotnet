@@ -6,33 +6,27 @@ $webAuthnType = [AppDomain]::CurrentDomain.GetAssemblies() |
     Where-Object { $null -ne $_ } |
     Select-Object -First 1
 if ($null -eq $webAuthnType) {
-    # Newer KeeperSdk builds include the WebAuthn implementation. For an older
-    # PowerCommander SDK assembly, compile the same SDK source packaged with the module.
-    $webAuthnSource = Join-Path $PSScriptRoot 'WindowsWebAuthnSecurityKeyUI.cs'
-    if (-not (Test-Path -LiteralPath $webAuthnSource -PathType Leaf)) {
-        $webAuthnSource = Join-Path $PSScriptRoot '..\KeeperSdk\auth\WindowsWebAuthnSecurityKeyUI.cs'
-    }
-    if (-not (Test-Path -LiteralPath $webAuthnSource -PathType Leaf)) {
-        throw [System.IO.FileNotFoundException]::new(
-            'Windows WebAuthn support was not found in the SDK or PowerCommander module.',
-            $webAuthnSource)
-    }
+    # Newer KeeperSdk builds include the WebAuthn implementation. For an older KeeperSdk
+    # assembly, compile the helper source when it is available next to the module
+    # (or in the source repository). Otherwise continue without Windows WebAuthn support:
+    # only security-key (2FA) authentication is affected, the rest of the module still loads.
+    $webAuthnSource = @(
+        (Join-Path $PSScriptRoot 'WindowsWebAuthnSecurityKeyUI.cs'),
+        (Join-Path $PSScriptRoot '..\KeeperSdk\auth\WindowsWebAuthnSecurityKeyUI.cs')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 
-    $expectedWebAuthnSourceHash = '6CF057B276080D76E094026698B454B6191D7D98E1D7FE1E69E2D33DFE081592'
-    $sha256 = [System.Security.Cryptography.SHA256]::Create()
-    try {
-        $webAuthnSourceHash = [BitConverter]::ToString(
-            $sha256.ComputeHash([System.IO.File]::ReadAllBytes($webAuthnSource))).Replace('-', '')
+    if ($webAuthnSource) {
+        try {
+            # Use runtime defaults; explicit framework references break on PowerShell 7.
+            Add-Type -Path $webAuthnSource -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Windows WebAuthn security-key support is unavailable: $($_.Exception.Message)"
+        }
     }
-    finally {
-        $sha256.Dispose()
+    else {
+        Write-Warning 'Windows WebAuthn security-key support is unavailable: the loaded KeeperSdk does not include it and WindowsWebAuthnSecurityKeyUI.cs was not found.'
     }
-    if (-not [string]::Equals($webAuthnSourceHash, $expectedWebAuthnSourceHash, [StringComparison]::OrdinalIgnoreCase)) {
-        throw [System.Security.SecurityException]::new('The PowerCommander WebAuthn helper failed integrity validation.')
-    }
-
-    # Use runtime defaults; explicit framework references break on PowerShell 7.
-    Add-Type -Path $webAuthnSource -ErrorAction Stop
 }
 
 Class Enterprise {

@@ -595,15 +595,28 @@ namespace KeeperSecurity.Authentication
 
         private static IntPtr GetSecurityKeyPromptOwnerWindow()
         {
+            // Only own the prompt with a window that belongs to this process. The foreground
+            // window may be an unrelated application.
             var consoleWindow = NativeMethods.GetConsoleWindow();
             if (consoleWindow != IntPtr.Zero && NativeMethods.IsWindowVisible(consoleWindow))
             {
                 return consoleWindow;
             }
-            var foregroundWindow = NativeMethods.GetForegroundWindow();
-            return foregroundWindow != IntPtr.Zero && NativeMethods.IsWindowVisible(foregroundWindow)
-                ? foregroundWindow
-                : IntPtr.Zero;
+            try
+            {
+                using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                {
+                    var mainWindow = process.MainWindowHandle;
+                    if (mainWindow != IntPtr.Zero && NativeMethods.IsWindowVisible(mainWindow))
+                    {
+                        return mainWindow;
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            return IntPtr.Zero;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -688,9 +701,6 @@ namespace KeeperSecurity.Authentication
         {
             [DllImport("kernel32.dll")]
             internal static extern IntPtr GetConsoleWindow();
-
-            [DllImport("user32.dll")]
-            internal static extern IntPtr GetForegroundWindow();
 
             [DllImport("user32.dll")]
             [return: MarshalAs(UnmanagedType.Bool)]

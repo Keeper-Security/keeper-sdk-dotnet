@@ -243,32 +243,47 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private const int MaxPinLength = 256;
+
+        // Returns an exact-length array holding the PIN (the caller clears it), or null if canceled.
+        // The PIN is kept in a fixed char[] that is always zeroed, never in a List<char>/string.
         private static char[] ReadSecretCharacters()
         {
-            var characters = new List<char>();
-            while (true)
+            var buffer = new char[MaxPinLength];
+            var length = 0;
+            try
             {
-                var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
+                while (true)
                 {
-                    return characters.ToArray();
-                }
-                if (key.Key == ConsoleKey.C && (key.Modifiers & ConsoleModifiers.Control) != 0)
-                {
-                    return null;
-                }
-                if (key.Key == ConsoleKey.Backspace)
-                {
-                    if (characters.Count > 0)
+                    var key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
                     {
-                        characters.RemoveAt(characters.Count - 1);
+                        var result = new char[length];
+                        Array.Copy(buffer, result, length);
+                        return result;
                     }
-                    continue;
+                    if (key.Key == ConsoleKey.C && (key.Modifiers & ConsoleModifiers.Control) != 0)
+                    {
+                        return null;
+                    }
+                    if (key.Key == ConsoleKey.Backspace)
+                    {
+                        if (length > 0)
+                        {
+                            length--;
+                            buffer[length] = ' ';
+                        }
+                        continue;
+                    }
+                    if (!char.IsControl(key.KeyChar) && length < buffer.Length)
+                    {
+                        buffer[length++] = key.KeyChar;
+                    }
                 }
-                if (!char.IsControl(key.KeyChar))
-                {
-                    characters.Add(key.KeyChar);
-                }
+            }
+            finally
+            {
+                Array.Clear(buffer, 0, buffer.Length);
             }
         }
 
