@@ -44,6 +44,24 @@ function script:Get-KeeperPolicyProperty {
     return $null
 }
 
+function script:New-KeeperPolicyPasswordOptions {
+    param($Policy)
+
+    if (-not $Policy) { return $null }
+    $options = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+    $options.Lower = if (Get-KeeperPolicyProperty $Policy 'lower-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'lower-min'), 1) } else { -1 }
+    $options.Upper = if (Get-KeeperPolicyProperty $Policy 'upper-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'upper-min'), 1) } else { -1 }
+    $options.Digit = if (Get-KeeperPolicyProperty $Policy 'digit-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'digit-min'), 1) } else { -1 }
+    $options.Special = if (Get-KeeperPolicyProperty $Policy 'special-use') { [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'special-min'), 1) } else { -1 }
+    $minimumLength = 0
+    foreach ($required in @($options.Lower, $options.Upper, $options.Digit, $options.Special)) {
+        if ($required -gt 0) { $minimumLength += $required }
+    }
+    $options.Length = [Math]::Max([int](Get-KeeperPolicyProperty $Policy 'length'), [int]$minimumLength)
+    $options.SpecialCharacters = Get-KeeperPolicyProperty $Policy 'special'
+    return $options
+}
+
 function script:Test-KeeperPasswordPolicy {
     param([string] $Password, $Policy)
 
@@ -1296,7 +1314,12 @@ function Add-KeeperRecord {
                 Test-KeeperPasswordPolicy -Password $_ -Policy $passwordPolicy
             })
             if ($violations.Count -gt 0) {
-                $violations | ForEach-Object { Write-Error $_ }
+                if ($Force.IsPresent) {
+                    $violations | ForEach-Object { Write-Warning $_ }
+                }
+                else {
+                    $violations | ForEach-Object { Write-Error $_ }
+                }
                 if (-not $Force.IsPresent) {
                     Write-Error -Message 'Password policy validation failed. Use -Force to override the enterprise password policy.' -ErrorAction Stop
                 }
@@ -1348,10 +1371,15 @@ function Add-KeeperRecord {
 
                     if ($policy) {
                         $genOptions.Length = [Math]::Max($genOptions.Length, [int](Get-KeeperPolicyProperty $policy 'length'))
-                        if (Get-KeeperPolicyProperty $policy 'upper-use') { $genOptions.Upper = [Math]::Max($genOptions.Upper, [int](Get-KeeperPolicyProperty $policy 'upper-min')) }
-                        if (Get-KeeperPolicyProperty $policy 'lower-use') { $genOptions.Lower = [Math]::Max($genOptions.Lower, [int](Get-KeeperPolicyProperty $policy 'lower-min')) }
-                        if (Get-KeeperPolicyProperty $policy 'digit-use') { $genOptions.Digit = [Math]::Max($genOptions.Digit, [int](Get-KeeperPolicyProperty $policy 'digit-min')) }
-                        if (Get-KeeperPolicyProperty $policy 'special-use') { $genOptions.Special = [Math]::Max($genOptions.Special, [int](Get-KeeperPolicyProperty $policy 'special-min')) }
+                        if (Get-KeeperPolicyProperty $policy 'upper-use') { $genOptions.Upper = [Math]::Max($genOptions.Upper, [Math]::Max([int](Get-KeeperPolicyProperty $policy 'upper-min'), 1)) }
+                        if (Get-KeeperPolicyProperty $policy 'lower-use') { $genOptions.Lower = [Math]::Max($genOptions.Lower, [Math]::Max([int](Get-KeeperPolicyProperty $policy 'lower-min'), 1)) }
+                        if (Get-KeeperPolicyProperty $policy 'digit-use') { $genOptions.Digit = [Math]::Max($genOptions.Digit, [Math]::Max([int](Get-KeeperPolicyProperty $policy 'digit-min'), 1)) }
+                        if (Get-KeeperPolicyProperty $policy 'special-use') { $genOptions.Special = [Math]::Max($genOptions.Special, [Math]::Max([int](Get-KeeperPolicyProperty $policy 'special-min'), 1)) }
+                        $requiredLength = 0
+                        foreach ($required in @($genOptions.Lower, $genOptions.Upper, $genOptions.Digit, $genOptions.Special)) {
+                            if ($required -gt 0) { $requiredLength += $required }
+                        }
+                        $genOptions.Length = [Math]::Max($genOptions.Length, [int]$requiredLength)
                     }
 
                     if ($genOptions.Length -lt $minLength) {
@@ -1366,6 +1394,7 @@ function Add-KeeperRecord {
 
                 if ($SpecialChars) {
                     if (-not $policy) { $genOptions.SpecialCharacters = $SpecialChars }
+                    else { Write-Warning '-SpecialChars is ignored because enterprise password policy defines the allowed special characters.' }
                     if ($genOptions.Special -le 0) { $genOptions.Special = 2 }
                 }
             }

@@ -262,7 +262,7 @@ namespace Commander
             catch (SerializationException ex)
             {
                 Debug.WriteLine($"Unable to parse restrict_record_types enforcement: {ex.Message}");
-                return false;
+                return true;
             }
         }
 
@@ -518,7 +518,7 @@ namespace Commander
                 return;
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
-            if (!EnforcePasswordPolicy(context, fields, options.Force)) return;
+            if (!EnforcePasswordPolicy(context, options.Generate ? fields.Where(x => !string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase)) : fields, options.Force)) return;
 
             KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
@@ -642,27 +642,28 @@ namespace Commander
                 return;
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
-            if (!EnforcePasswordPolicy(context, fields, options.Force)) return;
+            if (!EnforcePasswordPolicy(context, options.Generate ? fields.Where(x => !string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase)) : fields, options.Force)) return;
             if (!string.IsNullOrEmpty(options.RecordType))
             {
+                var newType = options.RecordType;
                 if (record is TypedRecord currentTyped
-                    && string.Equals(currentTyped.TypeName, options.RecordType, StringComparison.OrdinalIgnoreCase))
+                    && string.Equals(currentTyped.TypeName, newType, StringComparison.OrdinalIgnoreCase))
                 {
-                    options.RecordType = null;
+                    newType = null;
                 }
-                if (context.IsRecordTypeRestricted(options.RecordType))
+                if (!string.IsNullOrEmpty(newType) && context.IsRecordTypeRestricted(newType))
                 {
-                    Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be used.");
+                    Console.WriteLine($"Error: Record type '{newType}' is restricted by your enterprise role policy and cannot be used.");
                     return;
                 }
-                if (record is TypedRecord typed)
+                if (!string.IsNullOrEmpty(newType) && record is TypedRecord typed)
                 {
-                    if (context.Vault.TryGetRecordTypeByName(options.RecordType, out var rt))
+                    if (context.Vault.TryGetRecordTypeByName(newType, out var rt))
                     {
                         typed.TypeName = rt.Name;
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(newType))
                 {
                     Console.WriteLine($"{options.RecordId} is a legacy record. Record type is not supported.");
                     return;
