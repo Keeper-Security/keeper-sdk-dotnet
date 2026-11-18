@@ -313,6 +313,14 @@ namespace Commander
                         continue;
                     }
 
+                    var fieldTypeEnd = key.IndexOf(':');
+                    var fieldType = fieldTypeEnd > 0 ? key.Substring(0, fieldTypeEnd) : key;
+                    if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                        && string.IsNullOrEmpty(val))
+                    {
+                        throw new ArgumentException($"Password value cannot be empty. Use --generate or password={GenerateFieldValueToken}.");
+                    }
+
                     if (generatePassword && IsPasswordGenerationToken(key, val))
                     {
                         throw new ArgumentException($"Do not combine --generate with password={GenerateFieldValueToken}.");
@@ -337,8 +345,6 @@ namespace Commander
                 return rawValue;
             }
 
-            // Match Commander: $GEN is an indirection token on password fields,
-            // not a literal value. Other field types retain it verbatim.
             var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
             var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
             if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)

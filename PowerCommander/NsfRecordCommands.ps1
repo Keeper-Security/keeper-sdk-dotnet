@@ -212,8 +212,6 @@ function Script:Resolve-KeeperNSFFieldValue {
 
     if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
 
-    # Match Commander field-value indirection: $GEN applies to the password
-    # field and is resolved before being sent to the server.
     $fieldType = $FieldKey.Split(':', 2)[0]
     if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
         if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
