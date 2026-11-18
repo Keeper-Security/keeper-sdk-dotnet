@@ -212,6 +212,8 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `nsf-record-add` | | Add a Keeper Drive record (`--folder`, `-t/--type`, `--title`, optional fields) |
 | `nsf-share-record` | | Grant or revoke Keeper Drive record access (`-e`, `-a`, `-r`, `-R`, `--dry-run`, expiration options) |
 
+Keeper Drive CLI compatibility: `nsf-record-add` now requires `--title` and `-t/--type` instead of a positional title and an implicit `login` type. `nsf-share-record` requires `-r/--role` for grants instead of defaulting to `viewer`; existing scripts should add `-r viewer` where appropriate. Sharing also accepts `--contacts-only` and `-roe` (`--rotate-on-expiration`).
+
 ### Attachment Management
 
 | Command | Alias | Description |
