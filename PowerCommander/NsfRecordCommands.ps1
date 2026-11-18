@@ -430,11 +430,7 @@ function Add-KeeperNSFRecord {
         }
         if ($GeneratePassword.IsPresent) {
             $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
-            $options = $null
-            if ($policy) {
-                $options = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
-                $options.Length = [int](Get-KeeperPolicyProperty $policy 'length')
-            }
+            $options = New-KeeperPolicyPasswordOptions -Policy $policy
             $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($options)
         }
         elseif ($generatePassphrase) {
@@ -447,10 +443,12 @@ function Add-KeeperNSFRecord {
     $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
     if ($passwordPolicy -and -not $generatePassphrase -and $fieldDict -and $fieldDict.ContainsKey('password')) {
         $violations = @(Test-KeeperPasswordPolicy -Password ([string]$fieldDict['password']) -Policy $passwordPolicy)
-        if ($violations.Count -gt 0 -and -not $Force.IsPresent) {
-            $violations | ForEach-Object { Write-Host "Error: $_" -ForegroundColor Red }
-            Write-Host 'Password policy validation failed. Use -Force to override the enterprise password policy.' -ForegroundColor Red
-            return
+        if ($violations.Count -gt 0) {
+            $violations | ForEach-Object { Write-Host "$(if ($Force.IsPresent) { 'Warning' } else { 'Error' }): $_" -ForegroundColor $(if ($Force.IsPresent) { 'Yellow' } else { 'Red' }) }
+            if (-not $Force.IsPresent) {
+                Write-Host 'Password policy validation failed. Use -Force to override the enterprise password policy.' -ForegroundColor Red
+                return
+            }
         }
     }
 
@@ -889,10 +887,23 @@ function Edit-KeeperNSFRecord {
             }
         }
         if ($GeneratePassword.IsPresent) {
-            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+            $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword((New-KeeperPolicyPasswordOptions -Policy $passwordPolicy))
         }
         elseif ($generatePassphrase) {
             if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
+                return
+            }
+        }
+    }
+
+    $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+    if ($passwordPolicy -and -not $generatePassphrase -and $fieldDict -and $fieldDict.ContainsKey('password')) {
+        $violations = @(Test-KeeperPasswordPolicy -Password ([string]$fieldDict['password']) -Policy $passwordPolicy)
+        if ($violations.Count -gt 0) {
+            $violations | ForEach-Object { Write-Host "$(if ($Force.IsPresent) { 'Warning' } else { 'Error' }): $_" -ForegroundColor $(if ($Force.IsPresent) { 'Yellow' } else { 'Red' }) }
+            if (-not $Force.IsPresent) {
+                Write-Host 'Password policy validation failed. Use -Force to override the enterprise password policy.' -ForegroundColor Red
                 return
             }
         }
