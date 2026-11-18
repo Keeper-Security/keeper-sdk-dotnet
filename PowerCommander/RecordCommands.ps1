@@ -1312,7 +1312,8 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $generatedPassword = New-KeeperGeneratedPassword -Policy $passwordPolicy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
+            # Keep the legacy cmdlet's password generation rules; NSF passes its policy explicitly.
+            $generatedPassword = New-KeeperGeneratedPassword -Policy $null -PasswordRules $PasswordRules -SpecialChars $SpecialChars
             if (-not $generatedPassword) { return }
             $fields['password'] = $generatedPassword
         }

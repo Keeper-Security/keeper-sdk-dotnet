@@ -239,7 +239,10 @@ namespace Commander
                 return;
             }
 
-            if (hasType && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
+            if (hasType
+                && !string.Equals(options.RecordType, "general", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(options.RecordType, "legacy", StringComparison.OrdinalIgnoreCase)
+                && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
             {
                 Console.WriteLine($"Record type '{options.RecordType}' cannot be found.");
                 return;
