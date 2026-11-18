@@ -93,10 +93,10 @@ namespace Commander
             {
                 return false;
             }
-            PasswordGenerationOptions options = null;
+            PasswordGenerationOptions options = defaultOptions;
             if (record is PasswordRecord password)
             {
-                options = defaultOptions ?? RestoreRules(password.Password);
+                options ??= RestoreRules(password.Password);
                 password.Password = CryptoUtils.GeneratePassword(options);
                 return true;
             }
@@ -117,7 +117,7 @@ namespace Commander
                             }
                             if (passwordFieldType is RecordTypePasswordField rtpf)
                             {
-                                options = defaultOptions ?? rtpf.PasswordOptions;
+                                options ??= rtpf.PasswordOptions;
                             }
                         }
                     }
@@ -132,10 +132,9 @@ namespace Commander
                     {
                         if (passwordField.ObjectValue is string pwd)
                         {
-                            options = defaultOptions ?? RestoreRules(pwd);
+                            options = RestoreRules(pwd);
                         }
                     }
-                    options ??= defaultOptions;
                     passwordField.ObjectValue = CryptoUtils.GeneratePassword(options);
                     return true;
                 }

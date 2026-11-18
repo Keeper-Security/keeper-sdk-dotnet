@@ -383,6 +383,9 @@ function Add-KeeperNSFRecord {
         [switch] $GeneratePassword,
 
         [Parameter()]
+        [switch] $Force,
+
+        [Parameter()]
         [Alias('PassphraseRules')]
         [switch] $GeneratePassphrase,
 
@@ -407,6 +410,10 @@ function Add-KeeperNSFRecord {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
+    if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+        Write-Host "Error: Record type '$RecordType' is restricted by your enterprise role policy and cannot be created." -ForegroundColor Red
+        return
+    }
 
     $fieldDict = $null
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
@@ -422,12 +429,28 @@ function Add-KeeperNSFRecord {
             }
         }
         if ($GeneratePassword.IsPresent) {
-            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+            $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+            $options = $null
+            if ($policy) {
+                $options = New-Object KeeperSecurity.Utils.PasswordGenerationOptions
+                $options.Length = [int](Get-KeeperPolicyProperty $policy 'length')
+            }
+            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($options)
         }
         elseif ($generatePassphrase) {
             if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
                 return
             }
+        }
+    }
+
+    $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+    if ($passwordPolicy -and -not $generatePassphrase -and $fieldDict -and $fieldDict.ContainsKey('password')) {
+        $violations = @(Test-KeeperPasswordPolicy -Password ([string]$fieldDict['password']) -Policy $passwordPolicy)
+        if ($violations.Count -gt 0 -and -not $Force.IsPresent) {
+            $violations | ForEach-Object { Write-Host "Error: $_" -ForegroundColor Red }
+            Write-Host 'Password policy validation failed. Use -Force to override the enterprise password policy.' -ForegroundColor Red
+            return
         }
     }
 
@@ -776,6 +799,9 @@ function Edit-KeeperNSFRecord {
         [switch] $GeneratePassword,
 
         [Parameter()]
+        [switch] $Force,
+
+        [Parameter()]
         [Alias('PassphraseRules')]
         [switch] $GeneratePassphrase,
 
@@ -819,6 +845,10 @@ function Edit-KeeperNSFRecord {
         [KeeperSecurity.Vault.RecordType]$recordTypeInfo = $null
         if (-not $vault.TryGetRecordTypeByName($RecordType, [ref]$recordTypeInfo)) {
             Write-Host "Error: Record type '$RecordType' not found." -ForegroundColor Red
+            return
+        }
+        if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+            Write-Host "Error: Record type '$RecordType' is restricted by your enterprise role policy and cannot be used." -ForegroundColor Red
             return
         }
     }
