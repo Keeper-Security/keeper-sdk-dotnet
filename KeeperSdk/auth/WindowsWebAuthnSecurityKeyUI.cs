@@ -14,7 +14,11 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public static class WindowsWebAuthnSecurityKeyUI
     {
+        // Version of WEBAUTHN_AUTHENTICATOR_GET_ASSERTION_OPTIONS used by this code (the pAllowCredentialList layout).
         private const uint GetAssertionOptionsVersion = 4;
+        // WEBAUTHN_API_VERSION_1 is the baseline API and already includes GET_ASSERTION_OPTIONS version 4
+        // (webauthn.h). This is an API version, not a structure version, so do not compare it with the constant above.
+        private const uint MinimumWebAuthnApiVersion = 1;
         private const uint CredentialVersion = 1;
         private const uint ClientDataVersion = 1;
         private const uint UserVerificationRequired = 1;
@@ -80,7 +84,7 @@ namespace KeeperSecurity.Authentication
                 {
                     throw new PlatformNotSupportedException("The Windows WebAuthn API is unavailable.", e);
                 }
-                if (apiVersion < GetAssertionOptionsVersion)
+                if (apiVersion < MinimumWebAuthnApiVersion)
                 {
                     throw new PlatformNotSupportedException(
                         "The installed Windows WebAuthn API does not support the required security-key operation.");

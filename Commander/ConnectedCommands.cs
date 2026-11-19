@@ -281,11 +281,7 @@ namespace Commander
                 case "no-yubikey-pin":
                 {
                     bool noYubiKeyPin;
-                    if (string.IsNullOrEmpty(arguments.Parameter))
-                    {
-                        noYubiKeyPin = true;
-                    }
-                    else if (string.Compare(arguments.Parameter, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    if (string.Compare(arguments.Parameter, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
                     {
                         noYubiKeyPin = true;
                     }
