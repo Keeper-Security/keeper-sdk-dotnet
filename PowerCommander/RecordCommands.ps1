@@ -1379,14 +1379,37 @@ function Remove-KeeperRecord {
 	.Synopsis
 	Removes Keeper record.
 
+	.Description
+	By default the record is removed only from your vault. Other users the record is shared with keep access to it.
+	Use -Purge to permanently delete the record for ALL users. Only the record owner can purge a record.
+	If the record is owned by you and shared, and neither -Purge nor -Force is specified,
+	you are asked to choose between "Remove from my vault" and "Delete for all shared users".
+
 	.Parameter Name
-	Folder name or Folder UID
+	Record title or Record UID
+
+	.Parameter Purge
+	Permanently delete the record for all users (default: remove only from your vault).
+
+	.Parameter Force
+	Do not prompt. Without -Purge the record is only removed from your vault.
+
+    .EXAMPLE
+    PS> Remove-KeeperRecord -Name "My Record" -Purge
+    Permanently deletes the record "My Record" for all users.
+
+    .EXAMPLE
+    PS> Remove-KeeperRecord -Name "My Record"
+    Removes the record "My Record" from your vault. If the record is shared, other users keep access to it.
+
 #>
 
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
-        [Parameter(Position = 0, Mandatory = $true)][string] $Name
+        [Parameter(Position = 0, Mandatory = $true)][string] $Name,
+        [Parameter()][switch] $Purge,
+        [Parameter()][switch] $Force
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -1419,10 +1442,46 @@ function Remove-KeeperRecord {
         $folderUid = $Script:Context.CurrentFolder
     }
 
+    if (-not $Purge -and -not $Force) {
+        [KeeperSecurity.Vault.KeeperRecord] $target = $null
+        if ($vault.TryGetKeeperRecord($recordUid, [ref]$target) -and $target.Owner -and $target.Shared) {
+            Write-Host "Record `"$($target.Title)`" is shared with other users."
+            Write-Host "  1. Remove from my vault"
+            Write-Host "  2. Delete for all shared users"
+            Write-Host "  3. Cancel"
+            $answer = Read-Host "Select an option (default 3)"
+            if ($answer -eq '2') {
+                $Purge = [switch]::new($true)
+            }
+            elseif ($answer -ne '1') {
+                Write-Host "Cancelled."
+                return
+            }
+        }
+    }
+
+    if ($Purge) {
+        if (-not $Force) {
+            $answer = Read-Host "This will permanently delete the record for ALL users. Do you want to proceed? (y/N)"
+            if ($answer -notin @('y', 'yes')) {
+                Write-Host "Cancelled."
+                return
+            }
+        }
+        $statuses = $vault.PurgeRecords([string[]]@($recordUid)).GetAwaiter().GetResult()
+        foreach ($status in $statuses) {
+            if ($status.Status -ne 'success') {
+                $message = if ($status.Message) { $status.Message } else { "Record $($status.RecordUid): $($status.Status)" }
+                Write-Error -Message $message
+            }
+        }
+        return
+    }
+
     $recordPath = New-Object KeeperSecurity.Vault.RecordPath
     $recordPath.RecordUid = $recordUid
     $recordPath.FolderUid = $folderUid
-    $task = $vault.DeleteRecords(@($recordPath))
+    $task = $vault.DeleteRecords(@($recordPath), [bool]$Force)
     $task.GetAwaiter().GetResult() | Out-Null
 }
 New-Alias -Name kdel -Value Remove-KeeperRecord

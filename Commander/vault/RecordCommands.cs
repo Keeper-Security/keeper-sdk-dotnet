@@ -790,6 +790,7 @@ namespace Commander
                 return;
             }
 
+            var targets = new List<RecordPath>();
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
                 var folders = Enumerable.Repeat(context.Vault.RootFolder, 1).Concat(context.Vault.Folders)
@@ -807,8 +808,7 @@ namespace Commander
                       ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
                       ?? folders[0];
 
-                await context.Vault.DeleteRecords(new[]
-                    {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid,}});
+                targets.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = record.Uid });
             }
             else
             {
@@ -827,7 +827,6 @@ namespace Commander
                 sb.Append("$");
                 var pattern = sb.ToString();
 
-                var records = new List<RecordPath>();
                 foreach (var recordUid in folder.Records)
                 {
                     if (!context.Vault.TryGetKeeperRecord(recordUid, out record)) continue;
@@ -835,12 +834,94 @@ namespace Commander
                     var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
                     if (m.Success)
                     {
-                        records.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = recordUid });
+                        targets.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = recordUid });
                     }
                 }
-
-                await context.Vault.DeleteRecords(records.ToArray());
             }
+
+            if (targets.Count == 0)
+            {
+                return;
+            }
+
+            var purge = options.Purge;
+            // UIDs to purge when the user picked "Delete for all shared users" at the prompt.
+            // Only the shared records are purged; the other matches are just removed from the vault.
+            HashSet<string> chosenPurgeUids = null;
+            if (!purge && !options.Force)
+            {
+                var sharedOwned = targets
+                    .Select(x => context.Vault.TryGetKeeperRecord(x.RecordUid, out var r) ? r : null)
+                    .Where(x => x != null && x.Owner && x.Shared)
+                    .ToArray();
+                if (sharedOwned.Length > 0)
+                {
+                    Console.WriteLine(sharedOwned.Length == 1
+                        ? $"Record \"{sharedOwned[0].Title}\" is shared with other users."
+                        : $"{sharedOwned.Length} of the records are shared with other users:");
+                    if (sharedOwned.Length > 1)
+                    {
+                        foreach (var r in sharedOwned)
+                        {
+                            Console.WriteLine($"  {r.Title} ({r.Uid})");
+                        }
+                    }
+
+                    Console.WriteLine("  1. Remove from my vault");
+                    Console.WriteLine("  2. Delete for all shared users");
+                    Console.WriteLine("  3. Cancel");
+                    Console.Write("Select an option (default 3): ");
+                    var answer = ((await Program.GetInputManager().ReadLine()) ?? "").Trim();
+                    if (answer == "2")
+                    {
+                        purge = true;
+                        chosenPurgeUids = new HashSet<string>(sharedOwned.Select(x => x.Uid), StringComparer.Ordinal);
+                    }
+                    else if (answer != "1")
+                    {
+                        Console.WriteLine("Cancelled.");
+                        return;
+                    }
+                }
+            }
+
+            if (purge)
+            {
+                var uids = targets.Select(x => x.RecordUid)
+                    .Where(x => chosenPurgeUids == null || chosenPurgeUids.Contains(x))
+                    .Distinct().ToArray();
+                // The prompt choice already was the confirmation.
+                if (!options.Force && chosenPurgeUids == null &&
+                    !await NsfHelpers.ConfirmAsync(
+                        $"This will permanently delete {uids.Length} record(s) for ALL users. Do you want to proceed? (y/N): "))
+                {
+                    Console.WriteLine("Cancelled.");
+                    return;
+                }
+
+                var results = await context.Vault.PurgeRecords(uids);
+                var deleted = results.Count(x => x.Status == "success");
+                foreach (var status in results.Where(x => x.Status != "success"))
+                {
+                    Console.WriteLine(string.IsNullOrEmpty(status.Message)
+                        ? $"Record {status.RecordUid}: {status.Status}"
+                        : status.Message);
+                }
+
+                Console.WriteLine($"{deleted} record(s) permanently deleted for all users.");
+
+                var remaining = chosenPurgeUids == null
+                    ? new List<RecordPath>()
+                    : targets.Where(x => !chosenPurgeUids.Contains(x.RecordUid)).ToList();
+                if (remaining.Count > 0)
+                {
+                    await context.Vault.DeleteRecords(remaining.ToArray(), options.Force);
+                }
+
+                return;
+            }
+
+            await context.Vault.DeleteRecords(targets.ToArray(), options.Force);
         }
 
         public static async Task ShareRecordShareCommand(this VaultContext context, ShareRecordShareOptions options)
@@ -1791,10 +1872,13 @@ namespace Commander
         public IEnumerable<string> FileNames { get; set; }
     }
     
-    class RemoveRecordOptions
+    class RemoveRecordOptions : VaultForceOptions
     {
         [Value(0, Required = true, MetaName = "record title, uid, or pattern", HelpText = "remove records")]
         public string RecordName { get; set; }
+
+        [Option("purge", Required = false, HelpText = "permanently delete the record for ALL users (default: remove only from your vault)")]
+        public bool Purge { get; set; }
     }
 
     [Verb("cancel", HelpText = "Cancels all shares with a user")]

@@ -588,11 +588,24 @@ namespace KeeperSecurity.Enterprise
                     continue;
                 }
 
+                var members = GetUsersForTeam(team.Uid);
+                var queued = new HashSet<long>();
                 foreach (var email in emails)
                 {
                     if (!TryGetUserByEmail(email, out var user))
                     {
                         warnings?.Invoke($"User \'{email}\' not found");
+                        continue;
+                    }
+
+                    if (members == null || !members.Contains(user.Id))
+                    {
+                        warnings?.Invoke($"User \"{user.Email}\" is not a member of \"{team.Name}\" team. Skipped");
+                        continue;
+                    }
+
+                    if (!queued.Add(user.Id))
+                    {
                         continue;
                     }
 

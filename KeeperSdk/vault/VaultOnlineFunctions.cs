@@ -856,5 +856,78 @@ namespace KeeperSecurity.Vault
 
             await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
+
+        /// <summary>
+        /// Permanently deletes records for all users they are shared with.
+        /// </summary>
+        /// <remarks>
+        /// Only the record owner can delete a record for all users.
+        /// Non-owned records are skipped and reported as <c>not_owner</c>.
+        /// </remarks>
+        /// <param name="vault">Vault.</param>
+        /// <param name="recordUids">Record UIDs.</param>
+        /// <returns>Deletion status for each record.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        public static async Task<IList<RecordUpdateStatus>> PurgeRecords(this VaultOnline vault, IEnumerable<string> recordUids)
+        {
+            if (recordUids == null)
+            {
+                throw new ArgumentNullException(nameof(recordUids));
+            }
+
+            var results = new List<RecordUpdateStatus>();
+            var toDelete = new List<string>();
+            foreach (var recordUid in recordUids.Where(x => !string.IsNullOrEmpty(x)).Distinct())
+            {
+                if (!vault.TryGetKeeperRecord(recordUid, out var record))
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = recordUid,
+                        Status = "not_found",
+                        Message = $"Record \"{recordUid}\" not found.",
+                    });
+                }
+                else if (!record.Owner)
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = recordUid,
+                        Status = "not_owner",
+                        Message = $"Cannot permanently delete \"{record.Title}\" ({recordUid}): you are not the record owner.",
+                    });
+                }
+                else
+                {
+                    toDelete.Add(recordUid);
+                }
+            }
+
+            const int chunkSize = 999;
+            for (var i = 0; i < toDelete.Count; i += chunkSize)
+            {
+                var command = new RecordUpdateCommand
+                {
+                    deviceId = vault.Auth.Endpoint.DeviceName,
+                    DeleteRecords = toDelete.Skip(i).Take(chunkSize).ToArray(),
+                };
+                var rs = await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+                if (rs.DeleteRecords != null)
+                {
+                    results.AddRange(rs.DeleteRecords);
+                    foreach (var status in rs.DeleteRecords.Where(x => x.Status == "success"))
+                    {
+                        vault.ScheduleForAudit(status.RecordUid);
+                    }
+                }
+            }
+
+            if (toDelete.Count > 0)
+            {
+                await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            }
+
+            return results;
+        }
     }
 }
