@@ -791,11 +791,18 @@ function Show-KdRecordDetail {
     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Notes", $record.Notes)
 
     $recordFields = @($record.Fields | Where-Object { $null -ne $_ })
+    $totps = @()
     if ($recordFields.Count -gt 0) {
         foreach ($field in $recordFields) {
             if (-not $field -or [string]::IsNullOrWhiteSpace($field.Type)) { continue }
 
             $rawValues = @($field.Value)
+            if ($field.Type -ieq 'oneTimeCode' -or $field.Type -ieq 'otp') {
+                foreach ($url in @($rawValues | Where-Object { -not [string]::IsNullOrEmpty($_) })) {
+                    $totps += [PSCustomObject]@{ Field = $field; Url = [string]$url }
+                }
+                continue
+            }
 
             $displayValues = @()
             foreach ($raw in $rawValues) {
@@ -815,6 +822,23 @@ function Show-KdRecordDetail {
             for ($i = 1; $i -lt $displayValues.Count; $i++) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}  {1}" -f "", $displayValues[$i])
             }
+        }
+    }
+
+    foreach ($totp in $totps) {
+        $label = if (-not [string]::IsNullOrWhiteSpace($totp.Field.Label)) {
+            $totp.Field.Label
+        } else { Get-KdNsfFieldLabel -FieldType $totp.Field.Type }
+        $displayUrl = if ($Unmask) { $totp.Url } else { [KeeperSecurity.Vault.RecordSecurity]::MaskedValue }
+        Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f $label, $displayUrl)
+        try {
+            $code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totp.Url)
+            if ($code) {
+                Write-Host ("{0,$script:KD_LABEL_WIDTH}: expires in {1} sec." -f $code.Item1, ($code.Item3 - $code.Item2))
+            }
+        }
+        catch {
+            Write-Warning "Error generating one-time code: $($_.Exception.Message)"
         }
     }
 
