@@ -588,7 +588,7 @@ namespace KeeperSecurity.Enterprise
                     continue;
                 }
 
-                var members = GetUsersForTeam(team.Uid);
+                var members = new HashSet<long>(GetUsersForTeam(team.Uid));
                 var queued = new HashSet<long>();
                 foreach (var email in emails)
                 {
@@ -598,7 +598,7 @@ namespace KeeperSecurity.Enterprise
                         continue;
                     }
 
-                    if (members == null || !members.Contains(user.Id))
+                    if (!members.Contains(user.Id))
                     {
                         warnings?.Invoke($"User \"{user.Email}\" is not a member of \"{team.Name}\" team. Skipped");
                         continue;

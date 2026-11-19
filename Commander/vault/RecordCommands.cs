@@ -887,19 +887,37 @@ namespace Commander
 
             if (purge)
             {
-                var uids = targets.Select(x => x.RecordUid)
-                    .Where(x => chosenPurgeUids == null || chosenPurgeUids.Contains(x))
-                    .Distinct().ToArray();
+                var allUids = targets.Select(x => x.RecordUid).Distinct().ToArray();
+
+                var purgeUids = chosenPurgeUids != null
+                    ? allUids.Where(x => chosenPurgeUids.Contains(x)).ToArray()
+                    : allUids.Where(x => context.Vault.TryGetKeeperRecord(x, out var r) && r.Owner).ToArray();
+                if (chosenPurgeUids == null)
+                {
+                    foreach (var uid in allUids.Except(purgeUids))
+                    {
+                        var title = context.Vault.TryGetKeeperRecord(uid, out var skipped) ? skipped.Title : uid;
+                        Console.WriteLine(
+                            $"Skipping \"{title}\" ({uid}): you are not the record owner, so it cannot be deleted for all users.");
+                    }
+                }
+
+                if (purgeUids.Length == 0)
+                {
+                    Console.WriteLine("Nothing to delete: only the record owner can delete a record for all users.");
+                    return;
+                }
+
                 // The prompt choice already was the confirmation.
                 if (!options.Force && chosenPurgeUids == null &&
                     !await NsfHelpers.ConfirmAsync(
-                        $"This will permanently delete {uids.Length} record(s) for ALL users. Do you want to proceed? (y/N): "))
+                        $"This will permanently delete {purgeUids.Length} record(s) for ALL users. Do you want to proceed? (y/N): "))
                 {
                     Console.WriteLine("Cancelled.");
                     return;
                 }
 
-                var results = await context.Vault.PurgeRecords(uids);
+                var results = await context.Vault.PurgeRecords(purgeUids, true);
                 var deleted = results.Count(x => x.Status == "success");
                 foreach (var status in results.Where(x => x.Status != "success"))
                 {
@@ -908,7 +926,7 @@ namespace Commander
                         : status.Message);
                 }
 
-                Console.WriteLine($"{deleted} record(s) permanently deleted for all users.");
+                Console.WriteLine($"{deleted} of {purgeUids.Length} record(s) permanently deleted for all users.");
 
                 var remaining = chosenPurgeUids == null
                     ? new List<RecordPath>()

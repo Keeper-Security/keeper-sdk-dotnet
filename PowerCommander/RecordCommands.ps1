@@ -1468,7 +1468,7 @@ function Remove-KeeperRecord {
                 return
             }
         }
-        $statuses = $vault.PurgeRecords([string[]]@($recordUid)).GetAwaiter().GetResult()
+        $statuses = $vault.PurgeRecords([string[]]@($recordUid), $true).GetAwaiter().GetResult()
         foreach ($status in $statuses) {
             if ($status.Status -ne 'success') {
                 $message = if ($status.Message) { $status.Message } else { "Record $($status.RecordUid): $($status.Status)" }
