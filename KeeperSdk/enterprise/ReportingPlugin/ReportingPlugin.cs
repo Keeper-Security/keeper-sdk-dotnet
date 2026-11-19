@@ -273,18 +273,26 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                 ? new HashSet<long>()
                 : new HashSet<long>(ownerUserIds);
             var hasOwnerFilter = ownerUserIds != null && ownerUserIds.Count > 0;
+            EnterpriseData enterpriseData = null;
+            if (teams != null && teams.Count > 0)
+            {
+                enterpriseData = _enterpriseData as EnterpriseData;
+                if (enterpriseData == null)
+                    throw new NotSupportedException("Team filters require a concrete EnterpriseData instance.");
+            }
+
             var invalidUserIds = resolvedIds.Where(id => !_enterpriseData.TryGetUserById(id, out _)).ToList();
             if (invalidUserIds.Count > 0)
                 throw new ArgumentException($"Unknown enterprise user ID(s): {string.Join(", ", invalidUserIds)}.", nameof(ownerUserIds));
 
             if (teams != null && teams.Count > 0)
             {
-                if (!(_enterpriseData is EnterpriseData enterpriseData))
-                    throw new NotSupportedException("Team filters require a concrete EnterpriseData instance.");
                 var teamUserIds = new HashSet<long>();
                 var teamFilters = teams.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                 if (teamFilters.Count == 0)
-                    throw new ArgumentException("Team filters cannot be empty.", nameof(teams));
+                    throw new ArgumentException(
+                        "No teams found matching the provided filters. Please check the team names.",
+                        nameof(teams));
                 foreach (var teamNameOrUid in teamFilters)
                 {
                     var matches = _enterpriseData.Teams.Where(team =>
@@ -537,7 +545,7 @@ namespace KeeperSecurity.Enterprise.ReportingPlugin
                 {
                     var plaintext = CryptoUtils.DecryptEc(info.EncryptedData, _enterpriseEcPrivateKey);
                     var fields = JsonUtils.ParseJson<Dictionary<string, object>>(plaintext);
-                    info.Title ??= GetMetadataString(fields, "title");
+                    info.Title ??= GetMetadataString(fields, "title") ?? GetMetadataString(fields, "record_title");
                     info.RecordType ??= GetMetadataString(fields, "record_type") ?? GetMetadataString(fields, "type");
                     info.Url ??= GetMetadataString(fields, "url");
                     Trace.TraceInformation(
