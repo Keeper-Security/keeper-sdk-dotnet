@@ -239,6 +239,18 @@ namespace KeeperSecurity
                 public string[] IpAddress { get; set; }
 
                 /// <summary>
+                /// Geo location filter (for example, country or city/region/country).
+                /// </summary>
+                [DataMember(Name = "geo_location", EmitDefaultValue = false)]
+                public string[] GeoLocation { get; set; }
+
+                /// <summary>
+                /// Keeper device/application type and optional version.
+                /// </summary>
+                [DataMember(Name = "device_type", EmitDefaultValue = false)]
+                public string[] DeviceType { get; set; }
+
+                /// <summary>
                 /// Event Time
                 /// </summary>
                 /// <seealso cref="CreatedFilter"/>
@@ -350,6 +362,12 @@ namespace KeeperSecurity
                 /// </summary>
                 [DataMember(Name = "report_format", EmitDefaultValue = false)]
                 public string ReportFormat { get; set; }
+
+                /// <summary>
+                /// Time zone used to interpret report periods.
+                /// </summary>
+                [DataMember(Name = "timezone", EmitDefaultValue = false)]
+                public string Timezone { get; set; }
             }
 
             /// <summary>
