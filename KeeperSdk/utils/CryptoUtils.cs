@@ -525,8 +525,7 @@ namespace KeeperSecurity.Utils
                 throw new ArgumentException($"Iteration count must be at least {MinimalIterations}", nameof(iterations));
             }
 #if NET8_0_OR_GREATER
-            using var pdb = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
-            return pdb.GetBytes(256 / 8);
+            return Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, 256 / 8);
 #elif NETSTANDARD2_0_OR_GREATER
                 var pdb = new Pkcs5S2ParametersGenerator(new Sha256Digest());
                 pdb.Init(PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password.ToCharArray()), salt, iterations);
@@ -663,8 +662,7 @@ namespace KeeperSecurity.Utils
             }
 
 #if NET8_0_OR_GREATER
-            using var pdb = new Rfc2898DeriveBytes(domain + password, salt, iterations, HashAlgorithmName.SHA512);
-            var key = pdb.GetBytes(512 / 8);
+            var key = Rfc2898DeriveBytes.Pbkdf2(domain + password, salt, iterations, HashAlgorithmName.SHA512, 512 / 8);
             using var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
 #elif NETSTANDARD2_0_OR_GREATER

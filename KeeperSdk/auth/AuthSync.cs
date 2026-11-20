@@ -43,7 +43,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// Constructor.
         /// </summary>
         /// <param name="storage">Configuration storage.</param>
-        /// <param name="endpoint">Keeper Endpoint.</param>
+        /// <param name="endpoint">Keeper Endpoint. If disposable, it is disposed with this authentication instance.</param>
         public AuthSync(IConfigurationStorage storage, IKeeperEndpoint endpoint = null) 
         {
             Storage = storage ?? new InMemoryConfigurationStorage();
@@ -237,7 +237,7 @@ namespace KeeperSecurity.Authentication.Sync
                     break;
 
                 case LoginState.Requires2Fa:
-                    return TwoFactorValidate(response.EncryptedLoginToken, response.Channels.ToArray());
+                    return TwoFactorValidate(response.EncryptedLoginToken, response.Channels.ToArray(), response.Message);
 
                 case LoginState.RequiresAuthHash:
                     return await ValidateAuthHash(response.EncryptedLoginToken, response.Salt.ToArray());
@@ -339,7 +339,7 @@ namespace KeeperSecurity.Authentication.Sync
             }
         }
 
-        private TwoFactorStep TwoFactorValidate(ByteString loginToken, IEnumerable<TwoFactorChannelInfo> channels)
+        private TwoFactorStep TwoFactorValidate(ByteString loginToken, IEnumerable<TwoFactorChannelInfo> channels, string serverMessage = null)
         {
             this.EnsurePushNotification(_loginContext);
             
@@ -356,6 +356,18 @@ namespace KeeperSecurity.Authentication.Sync
                 channels);
             var channelInfo = t.Item1;
             var onDone = t.Item2;
+
+            if (channelInfo.Length == 0)
+            {
+                // The account requires two-factor authentication, but none of the methods
+                // configured on it (e.g. security key without a security-key UI) are supported by this client.
+                onDone?.Invoke();
+                // Prefer the message supplied by the server (if any) over our generic text.
+                throw new KeeperApiException("two_factor_unsupported",
+                    string.IsNullOrWhiteSpace(serverMessage)
+                        ? "The two-factor authentication method required for this account is not supported by this application."
+                        : serverMessage);
+            }
 
             tfaStep.Channels = channelInfo.Select(x => x.Channel).ToArray();
             tfaStep.Duration = TwoFactorDuration.EveryLogin;

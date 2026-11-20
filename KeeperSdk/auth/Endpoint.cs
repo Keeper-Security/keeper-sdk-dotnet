@@ -17,6 +17,7 @@ using System.Net.Http;
 using System.Net.Security;
 using Router;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace KeeperSecurity.Authentication
 {
@@ -176,7 +177,7 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <exclude/>
-    public class KeeperEndpoint : IKeeperEndpoint
+    public class KeeperEndpoint : IKeeperEndpoint, IDisposable
     {
         private const string DefaultDeviceName = ".NET Keeper API";
         private const string DefaultKeeperServer = "keepersecurity.com";
@@ -186,10 +187,29 @@ namespace KeeperSecurity.Authentication
         private readonly HttpClient _httpClient;
         private readonly HttpClientHandler _httpMessageHandler;
         private string _clientVersion;
+        private string _lastReportedEncryptionMode;
+        private bool _disposed;
+
+        /// <summary>
+        /// Gets the encryption mode used for the most recent API request.
+        /// </summary>
+        /// <remarks>
+        /// This can be used by hosts to display the selected mode in their own
+        /// logging or verbose output. SDK trace information is also emitted.
+        /// </remarks>
+        public string LastEncryptionMode { get; private set; }
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+        private int? _qrcKeyId;
+        private bool _qrcDisabled;
+        private EcPrivateKey _clientEcPrivateKey;
+#endif
 
         static KeeperEndpoint()
         {
+#if !NET8_0_OR_GREATER
+            // Only the netstandard2.0 build (used by .NET Framework hosts) needs this; HttpClient on modern .NET ignores ServicePointManager.
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#endif
 //            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
         }
 
@@ -222,6 +242,20 @@ namespace KeeperSecurity.Authentication
             }
 
             Server = keeperServer ?? DefaultKeeperServer;
+        }
+
+        /// <summary>
+        /// Releases the HTTP client and any QRC cryptographic key material held by this endpoint.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+            DisposeClientEcKey();
+            _clientEcPrivateKey = null;
+#endif
+            _httpClient.Dispose();
         }
 
         public string PushServer()
@@ -283,15 +317,65 @@ namespace KeeperSecurity.Authentication
             while (true)
             {
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
-                var encKey = EncryptWithKeeperKey(transmissionKey, keyId);
-
-                var apiRequest = new ApiRequest()
+                var apiRequest = new ApiRequest
                 {
-                    EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
-                    PublicKeyId = keyId,
                     Locale = Locale,
                     EncryptedPayload = ByteString.CopyFrom(encPayload)
                 };
+                var qrcSuccess = false;
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+                if (!_qrcDisabled && _qrcKeyId.HasValue)
+                {
+                    try
+                    {
+                        if (_clientEcPrivateKey == null)
+                        {
+                            CryptoUtils.GenerateEcKey(out _clientEcPrivateKey, out _);
+                        }
+
+                        if (!TryGetEcPublicKey(keyId, out var ecPublicKey))
+                        {
+                            throw new CryptographicException($"EC public key {keyId} is not available for QRC.");
+                        }
+
+                        var qrcMessage = QrcCrypto.Encrypt(
+                            transmissionKey,
+                            _clientEcPrivateKey,
+                            ecPublicKey,
+                            _qrcKeyId.Value);
+                        apiRequest.QrcMessageKey = new QrcMessageKey
+                        {
+                            ClientEcPublicKey = ByteString.CopyFrom(qrcMessage.ClientEcPublicKey),
+                            MlKemEncapsulatedKey = ByteString.CopyFrom(qrcMessage.MlKemEncapsulatedKey),
+                            Data = ByteString.CopyFrom(qrcMessage.Data),
+                            MsgVersion = qrcMessage.MessageVersion,
+                            EcKeyId = keyId
+                        };
+                        qrcSuccess = true;
+                    }
+                    catch (Exception ex) when (
+                        ex is CryptographicException
+                        || ex is ArgumentException
+                        || ex is InvalidOperationException
+                        || ex is NotSupportedException)
+                    {
+                        Trace.TraceWarning($"QRC encryption failed; falling back to EC encryption: {ex.Message}");
+                        DisableQrc();
+                    }
+                }
+#endif
+                if (!qrcSuccess)
+                {
+                    var encKey = EncryptWithKeeperKey(transmissionKey, keyId);
+                    apiRequest.EncryptedTransmissionKey = ByteString.CopyFrom(encKey);
+                }
+
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+                apiRequest.PublicKeyId = qrcSuccess ? _qrcKeyId.Value : keyId;
+#else
+                apiRequest.PublicKeyId = keyId;
+#endif
+                ReportEncryptionMode(qrcSuccess);
 
                 var content = new ByteArrayContent(apiRequest.ToByteArray());
                 content.Headers.Add("Content-Type", "application/octet-stream");
@@ -331,7 +415,7 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
                     Debug.WriteLine("Error Response: " + errorCode + " " + errorMessage);
 #endif
-                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase) && IsServerKeyKnown(errorRs.KeyId))
+                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase))
                     {
                         keyRetries++;
                         if (keyRetries > ThrottleHandling.MaxKeyRetries)
@@ -339,15 +423,49 @@ namespace KeeperSecurity.Authentication
                             throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
                         }
 
-                        keyId = errorRs.KeyId;
-                        continue;
-                    }
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+                        if (!_qrcDisabled && _qrcKeyId.HasValue)
+                        {
+                            if (errorRs.QrcEcKeyId > 0)
+                            {
+                                if (IsKnownEcKeyId(errorRs.QrcEcKeyId) && keyId != errorRs.QrcEcKeyId)
+                                {
+                                    keyId = errorRs.QrcEcKeyId;
+                                    ServerKeyId = keyId;
+                                }
+                                else
+                                {
+                                    // Unknown EC key ID, or the server rejected the current EC key ID again.
+                                    // Retrying QRC cannot make progress, so disable QRC and retry with EC.
+                                    DisableQrc();
+                                }
 
-                    // Self hosted Keeper instance: the key ID is right but the public key is not.
-                    if (string.Equals(errorCode, "key", StringComparison.OrdinalIgnoreCase) && await DiscoverServerPublicKey())
-                    {
-                        keyId = ServerKeyId;
-                        continue;
+                                continue;
+                            }
+
+                            if (!IsKnownEcKeyId(errorRs.KeyId))
+                            {
+                                // The response key ID may be the QRC key ID, not an EC key.
+                                DisableQrc();
+                                continue;
+                            }
+                        }
+#endif
+                        if (errorRs.KeyId > 0 && IsServerKeyKnown(errorRs.KeyId))
+                        {
+                            keyId = errorRs.KeyId;
+                            ServerKeyId = keyId;
+                            continue;
+                        }
+
+                        // Self hosted Keeper instance: the key ID is right but the public key is not.
+                        if (await DiscoverServerPublicKey())
+                        {
+                            keyId = ServerKeyId;
+                            continue;
+                        }
+
+                        throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
                     }
 
                     if (string.Equals(errorCode, "region_redirect", StringComparison.OrdinalIgnoreCase))
@@ -370,6 +488,18 @@ namespace KeeperSecurity.Authentication
                     {
                         throw new KeeperCanceled(errorCode, errorMessage);
                     }
+
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+                    if (!_qrcDisabled
+                        && _qrcKeyId.HasValue
+                        && (response.StatusCode == HttpStatusCode.BadRequest
+                            || response.StatusCode == HttpStatusCode.InternalServerError)
+                        && IsQrcCryptoError(errorCode, errorMessage))
+                    {
+                        DisableQrc();
+                        continue;
+                    }
+#endif
 
                     var throttle = await TryThrottleRetryAsync(
                         response, errorCode, errorMessage, throttleRetries, endpoint);
@@ -750,7 +880,23 @@ namespace KeeperSecurity.Authentication
             get => string.IsNullOrEmpty(_server) ? DefaultKeeperServer : _server;
             set
             {
-                _server = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
+                var newServer = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
+                var serverChanged = !string.Equals(_server, newServer, StringComparison.OrdinalIgnoreCase);
+                _server = newServer;
+                if (serverChanged)
+                {
+                    _lastReportedEncryptionMode = null;
+                    LastEncryptionMode = null;
+                }
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+                if (serverChanged)
+                {
+                    DisposeClientEcKey();
+                    _clientEcPrivateKey = null;
+                    _qrcDisabled = false;
+                    _qrcKeyId = QrcCrypto.GetQrcKeyId(_server);
+                }
+#endif
                 var configuration = _storage.Get();
                 var sc = configuration.Servers.Get(_server);
                 _serverPublicKeys = LoadServerPublicKeys(sc);
@@ -805,6 +951,72 @@ namespace KeeperSecurity.Authentication
             return _serverPublicKeys.ContainsKey(keyId) ||
                    KeeperSettings.KeeperRsaPublicKeys.ContainsKey(keyId) ||
                    KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId);
+        }
+
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+        private static readonly string[] QrcCryptoErrorIndicators =
+            { "qrc", "quantum", "ml-kem", "encryption", "decryption", "key" };
+        private static readonly string[] QrcBusinessErrorIndicators =
+            { "duplicate", "already", "permission", "access", "not found", "invalid uid" };
+
+        private bool TryGetEcPublicKey(int keyId, out EcPublicKey publicKey)
+        {
+            if (_serverPublicKeys.TryGetValue(keyId, out publicKey))
+            {
+                return true;
+            }
+
+            return KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out publicKey);
+        }
+
+        private static bool IsKnownEcKeyId(int keyId)
+        {
+            return keyId >= 7 && keyId <= 18;
+        }
+
+        private void DisposeClientEcKey()
+        {
+#if NET8_0_OR_GREATER
+            _clientEcPrivateKey?.Dispose();
+#endif
+            _clientEcPrivateKey = null;
+        }
+
+        private void DisableQrc()
+        {
+            _qrcDisabled = true;
+            _qrcKeyId = null;
+            DisposeClientEcKey();
+            _clientEcPrivateKey = null;
+        }
+
+        private static bool IsQrcCryptoError(string errorCode, string errorMessage)
+        {
+            var message = errorMessage ?? string.Empty;
+            var isQrcError = string.Equals(errorCode, "crypto_error", StringComparison.OrdinalIgnoreCase)
+                             || QrcCryptoErrorIndicators.Any(indicator =>
+                                 message.IndexOf(indicator, StringComparison.OrdinalIgnoreCase) >= 0);
+            return isQrcError && !QrcBusinessErrorIndicators.Any(indicator =>
+                message.IndexOf(indicator, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+#endif
+
+        private void ReportEncryptionMode(bool qrcSuccess)
+        {
+            string mode;
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+            mode = qrcSuccess ? "Using QRC hybrid encryption" : "Using EC encryption";
+#else
+            mode = "Using EC encryption";
+#endif
+            if (string.Equals(_lastReportedEncryptionMode, mode, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _lastReportedEncryptionMode = mode;
+            LastEncryptionMode = mode;
+            Trace.TraceInformation(mode);
         }
 
         /// <summary>
