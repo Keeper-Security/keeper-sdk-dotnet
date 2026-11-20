@@ -330,11 +330,6 @@ namespace Commander
                 }
             }
 
-            if (generatePassword)
-            {
-                fieldDict["password"] = CryptoUtils.GeneratePassword(null);
-            }
-
             return fieldDict.Count > 0 ? fieldDict : null;
         }
 
@@ -350,9 +345,11 @@ namespace Commander
             if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
                 && rawValue.StartsWith(GenerateFieldValueToken, StringComparison.Ordinal))
             {
-                if (string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal))
+                if (string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal)
+                    || rawValue.StartsWith(GenerateFieldValueToken + ":", StringComparison.Ordinal))
                 {
-                    return CryptoUtils.GeneratePassword(null);
+                    // The command resolves the token after selecting the record's policy.
+                    return rawValue;
                 }
 
                 throw new ArgumentException(
@@ -387,7 +384,8 @@ namespace Commander
             var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
             var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
             return string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal);
+                && (string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal)
+                    || rawValue.StartsWith(GenerateFieldValueToken + ":", StringComparison.Ordinal));
         }
 
         internal static void WriteRemoveImpact(RemoveResponse response, string itemLabel = "Record")
