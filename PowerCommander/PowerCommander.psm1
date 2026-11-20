@@ -1,5 +1,34 @@
 #requires -Version 5.1
 
+$webAuthnTypeName = 'KeeperSecurity.Authentication.WindowsWebAuthnSecurityKeyUI'
+$webAuthnType = [AppDomain]::CurrentDomain.GetAssemblies() |
+    ForEach-Object { $_.GetType($webAuthnTypeName, $false) } |
+    Where-Object { $null -ne $_ } |
+    Select-Object -First 1
+if ($null -eq $webAuthnType) {
+    # Newer KeeperSdk builds include the WebAuthn implementation. For an older KeeperSdk
+    # assembly, compile the helper source when it is available next to the module
+    # (or in the source repository). Otherwise continue without Windows WebAuthn support:
+    # only security-key (2FA) authentication is affected, the rest of the module still loads.
+    $webAuthnSource = @(
+        (Join-Path $PSScriptRoot 'WindowsWebAuthnSecurityKeyUI.cs'),
+        (Join-Path $PSScriptRoot '..\KeeperSdk\auth\WindowsWebAuthnSecurityKeyUI.cs')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+
+    if ($webAuthnSource) {
+        try {
+            # Use runtime defaults; explicit framework references break on PowerShell 7.
+            Add-Type -Path $webAuthnSource -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Windows WebAuthn security-key support is unavailable: $($_.Exception.Message)"
+        }
+    }
+    else {
+        Write-Warning 'Windows WebAuthn security-key support is unavailable: the loaded KeeperSdk does not include it and WindowsWebAuthnSecurityKeyUI.cs was not found.'
+    }
+}
+
 Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseLoader] $loader
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
