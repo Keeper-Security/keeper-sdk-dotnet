@@ -768,6 +768,10 @@ namespace KeeperSecurity.Authentication
                                 var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
                                 enforcements[kvp.Key] = mpr;
                                 break;
+                            case "generated_password_complexity":
+                            case "restrict_record_types":
+                                enforcements[kvp.Key] = kvp.Value;
+                                break;
                         }
                     }
                     catch (Exception e)

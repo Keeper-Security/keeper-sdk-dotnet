@@ -70,7 +70,10 @@ function Set-KeeperPassphraseField {
         [Parameter()]
         [AllowNull()]
         [AllowEmptyCollection()]
-        [string[]] $PassphraseRuleValues
+        [string[]] $PassphraseRuleValues,
+
+        [Parameter()]
+        $Policy
     )
 
     try {
@@ -79,8 +82,58 @@ function Set-KeeperPassphraseField {
         } else {
             $passphraseOptions = New-KeeperPassphraseOptions
         }
-        $FieldDict['password'] = [KeeperSecurity.Utils.PassphraseGenerator]::GeneratePassphrase($passphraseOptions)
-        return $true
+        if ($Policy) {
+            $ruleParts = if ($PassphraseRuleValues -and $PassphraseRuleValues.Count -eq 1 -and $PassphraseRuleValues[0].Contains(',')) {
+                @($PassphraseRuleValues[0].Split(','))
+            } else { @($PassphraseRuleValues) }
+            if ((Get-KeeperPolicyProperty $Policy 'passphrase-allow') -eq $false) {
+                Write-Warning 'Passphrase generation is disabled by enterprise policy; generating a random password instead.'
+                $FieldDict['password'] = New-KeeperGeneratedPassword -Policy $Policy -Options (New-KeeperPolicyPasswordOptions -Policy $Policy)
+                return $true
+            }
+            $minimumWords = Get-KeeperPolicyProperty $Policy 'passphrase-length'
+            if ($minimumWords) {
+                $passphraseOptions.WordCount = [Math]::Max($passphraseOptions.WordCount, [int]$minimumWords)
+                [void][KeeperSecurity.Utils.PassphraseGenerator]::ValidateWordCount($passphraseOptions.WordCount)
+            }
+            $allowedSeparators = Get-KeeperPolicyProperty $Policy 'passphrase-separator'
+            if ($allowedSeparators) { $allowedSeparators = ([string]$allowedSeparators).Replace([char]0x2423, ' ') }
+            if ($allowedSeparators -and -not $allowedSeparators.Contains($passphraseOptions.Separator)) {
+                $selectedSeparator = $null
+                foreach ($candidate in '-._?! '.ToCharArray()) {
+                    if ($allowedSeparators.IndexOf($candidate) -lt 0) { continue }
+                    try {
+                        $selectedSeparator = [KeeperSecurity.Utils.PassphraseGenerator]::ValidateSeparator([string]$candidate)
+                        break
+                    } catch { }
+                }
+                if (-not $selectedSeparator) { throw 'Enterprise passphrase policy has no supported separator.' }
+                $passphraseOptions.Separator = $selectedSeparator
+            }
+            $capitalize = Get-KeeperPolicyProperty $Policy 'passphrase-capitalize'
+            if ($null -ne $capitalize -and $ruleParts.Count -lt 3) {
+                $passphraseOptions.UseCaps = [bool]$capitalize
+            }
+            $number = Get-KeeperPolicyProperty $Policy 'passphrase-number'
+            if ($null -eq $number) { $number = $true }
+            if ($ruleParts.Count -ge 4) { $number = $passphraseOptions.UseDigits }
+            $passphraseOptions.UseDigits = $false
+        }
+
+        for ($attempt = 0; $attempt -lt 100; $attempt++) {
+            $passphrase = [KeeperSecurity.Utils.PassphraseGenerator]::GeneratePassphrase($passphraseOptions)
+            if ($Policy -and $number) {
+                $position = $passphrase.IndexOf($passphraseOptions.Separator)
+                $randomBytes = [KeeperSecurity.Utils.CryptoUtils]::GetRandomBytes(1)
+                $digit = $randomBytes[0] % 10
+                $passphrase = $passphrase.Insert($position, [string]$digit)
+            }
+            if (-not $Policy -or @(Test-KeeperPassphrasePolicy -Passphrase $passphrase -Policy $Policy).Count -eq 0) {
+                $FieldDict['password'] = $passphrase
+                return $true
+            }
+        }
+        throw 'Could not generate a passphrase that satisfies the enterprise passphrase policy.'
     } catch {
         Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
         return $false

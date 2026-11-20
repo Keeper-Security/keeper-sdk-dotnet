@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Text;
+using System.Diagnostics;
 using Tokens;
 using KeeperSecurity.BreachWatch;
 using Authentication;
@@ -26,6 +27,13 @@ namespace Commander
     {
 
         private const string FieldPattern = @"^([^\[\.]+)(\.[^\[]+)?(\[.*\])?\s*=\s*(.*)$";
+
+        internal static bool IsPasswordFieldName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            return string.Equals(name.Trim().TrimStart('$').Split('.')[0].Split(':')[0],
+                "password", StringComparison.OrdinalIgnoreCase);
+        }
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
@@ -238,6 +246,402 @@ namespace Commander
                 }
             }
         }
+
+        internal bool IsRecordTypeRestricted(string recordTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(recordTypeName)
+                || string.Equals(recordTypeName, "general", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(recordTypeName, "legacy", StringComparison.OrdinalIgnoreCase)
+                || !Vault.TryGetRecordTypeByName(recordTypeName, out var recordType))
+            {
+                return false;
+            }
+
+            if (!TryGetEnforcement("restrict_record_types", out var enforcement)) return false;
+            try
+            {
+                var policy = JsonUtils.ParseJson<RestrictedRecordTypesPolicy>(Encoding.UTF8.GetBytes(enforcement));
+                var restrictedIds = recordType.Scope == RecordTypeScope.Standard
+                    ? policy.Standard
+                    : recordType.Scope == RecordTypeScope.Enterprise ? policy.Enterprise : null;
+                return restrictedIds?.Contains(recordType.Id) == true;
+            }
+            catch (SerializationException ex)
+            {
+                Debug.WriteLine($"Unable to parse restrict_record_types enforcement: {ex.Message}");
+                return false;
+            }
+        }
+
+        internal PasswordGenerationOptions GetGeneratedPasswordPolicy(string url = null)
+        {
+            var policy = GetGeneratedPasswordPolicyData(url);
+            if (policy != null)
+            {
+                var lower = PolicyCharacterCount(policy.LowerUse, policy.LowerMin);
+                var upper = PolicyCharacterCount(policy.UpperUse, policy.UpperMin);
+                var digit = PolicyCharacterCount(policy.DigitUse, policy.DigitMin);
+                var special = PolicyCharacterCount(policy.SpecialUse, policy.SpecialMin);
+                var minimumLength = new[] { lower, upper, digit, special }.Where(x => x > 0).Sum();
+                return new PasswordGenerationOptions
+                {
+                    Length = Math.Max(policy.Length.GetValueOrDefault() > 0 ? policy.Length.Value : 20, minimumLength),
+                    Lower = lower,
+                    Upper = upper,
+                    Digit = digit,
+                    Special = special,
+                    SpecialCharacters = string.IsNullOrEmpty(policy.Special) ? CryptoUtils.SpecialCharacters : policy.Special,
+                };
+            }
+            return null;
+        }
+
+        private static int PolicyCharacterCount(bool? use, int? minimum)
+        {
+            return use == true ? (minimum.GetValueOrDefault(1) > 0 ? minimum.GetValueOrDefault(1) : -1) : 0;
+        }
+
+        internal IEnumerable<string> ValidatePasswordPolicy(IEnumerable<string> passwords, GeneratedPasswordComplexityPolicy policy = null)
+        {
+            policy ??= GetGeneratedPasswordPolicyData();
+            if (policy == null) yield break;
+            foreach (var password in passwords?.Where(x => !string.IsNullOrEmpty(x)) ?? Enumerable.Empty<string>())
+            {
+                if (policy.Length > 0 && password.Length < policy.Length.Value)
+                    yield return $"Password must be at least {policy.Length} characters (got {password.Length}).";
+                foreach (var error in CheckClass(password, policy.LowerUse, policy.LowerMin, char.IsLower, "lowercase")) yield return error;
+                foreach (var error in CheckClass(password, policy.UpperUse, policy.UpperMin, char.IsUpper, "uppercase")) yield return error;
+                foreach (var error in CheckClass(password, policy.DigitUse, policy.DigitMin, char.IsDigit, "digit")) yield return error;
+                if (policy.SpecialUse == true)
+                {
+                    var specialCount = string.IsNullOrEmpty(policy.Special)
+                        ? password.Count(x => !char.IsLetterOrDigit(x))
+                        : password.Count(x => policy.Special.IndexOf(x) >= 0);
+                    var required = policy.SpecialMin.GetValueOrDefault(1);
+                    if (required > 0 && specialCount < required)
+                        yield return $"Password must contain at least {required} special character(s).";
+                    if (required <= 0 && password.Any(x => !char.IsLetterOrDigit(x)))
+                        yield return "Password must not contain special characters.";
+                }
+                if (!string.IsNullOrEmpty(policy.Special) && password.Any(x => !char.IsLetterOrDigit(x) && policy.Special.IndexOf(x) < 0))
+                    yield return "Password contains a special character not allowed by policy.";
+            }
+        }
+
+        private static IEnumerable<string> CheckClass(string password, bool? use, int? minimum,
+            Func<char, bool> predicate, string label)
+        {
+            if (use != true) yield break;
+            var required = minimum.GetValueOrDefault(1);
+            var count = password.Count(predicate);
+            if (required > 0 && count < required)
+                yield return $"Password must contain at least {required} {label} character(s).";
+            if (required <= 0 && count > 0)
+                yield return $"Password must not contain {label} characters.";
+        }
+
+        internal string GeneratePolicyPassword(PasswordGenerationOptions options, GeneratedPasswordComplexityPolicy policy = null)
+        {
+            const int maxAttempts = 100;
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                var password = CryptoUtils.GeneratePassword(options);
+                if (!ValidatePasswordPolicy(new[] { password }, policy).Any()) return password;
+            }
+
+            throw new InvalidOperationException("Could not generate a password that satisfies the enterprise password policy.");
+        }
+
+        internal string GeneratePolicyPassphrase(GeneratedPasswordComplexityPolicy policy, string url = null,
+            int? wordCountOverride = null, string separatorOverride = null,
+            bool? capitalizeOverride = null, bool? numberOverride = null)
+        {
+            if (policy?.PassphraseAllow == false)
+            {
+                Console.WriteLine("Warning: Passphrase generation is disabled by enterprise policy; generating a random password instead.");
+                return GeneratePolicyPassword(GetGeneratedPasswordPolicy(url), policy);
+            }
+
+            const string supportedSeparators = "-._?! ";
+            var allowed = policy?.PassphraseSeparator?.Replace('\u2423', ' ');
+            var separator = separatorOverride != null ? separatorOverride.Replace('\u2423', ' ')[0] : string.IsNullOrWhiteSpace(allowed)
+                ? '-'
+                : supportedSeparators.FirstOrDefault(ch => allowed.IndexOf(ch) >= 0);
+            if (separator == '\0' || supportedSeparators.IndexOf(separator) < 0)
+                throw new InvalidOperationException("Enterprise passphrase policy has no supported separator.");
+
+            var wordCount = Math.Max(PassphraseGenerator.MinWordCount,
+                Math.Min(PassphraseGenerator.MaxWordCount, wordCountOverride ?? policy?.PassphraseLength ?? PassphraseGenerator.MinWordCount));
+            var options = new PassphraseGenerationOptions
+            {
+                WordCount = wordCount,
+                Separator = separator.ToString(),
+                UseCaps = capitalizeOverride ?? policy?.PassphraseCapitalize ?? true,
+                UseDigits = false,
+            };
+            for (var attempt = 0; attempt < 100; attempt++)
+            {
+                var passphrase = PassphraseGenerator.GeneratePassphrase(options);
+                if (numberOverride ?? policy?.PassphraseNumber ?? true)
+                {
+                    var split = passphrase.IndexOf(separator);
+                    passphrase = passphrase.Insert(split, (CryptoUtils.GetRandomBytes(1)[0] % 10).ToString());
+                }
+                if (!ValidatePassphrasePolicy(passphrase, policy).Any()) return passphrase;
+            }
+            throw new InvalidOperationException("Could not generate a passphrase that satisfies the enterprise passphrase policy.");
+        }
+
+        internal static IEnumerable<string> ValidatePassphrasePolicy(string passphrase, GeneratedPasswordComplexityPolicy policy)
+        {
+            if (policy == null || string.IsNullOrEmpty(passphrase)) yield break;
+            const string supportedSeparators = "-._?! ";
+            var configured = policy.PassphraseSeparator?.Replace('\u2423', ' ');
+            var allowed = string.IsNullOrWhiteSpace(configured)
+                ? supportedSeparators
+                : new string(supportedSeparators.Where(ch => configured.IndexOf(ch) >= 0).ToArray());
+            if (allowed.Length == 0)
+            {
+                yield return "Passphrase policy has no supported separator.";
+                yield break;
+            }
+            var separator = allowed.FirstOrDefault(ch => passphrase.IndexOf(ch) >= 0);
+            if (separator == '\0') separator = supportedSeparators.FirstOrDefault(ch => passphrase.IndexOf(ch) >= 0);
+            if (separator == '\0')
+            {
+                yield return "Passphrase must contain a separator.";
+                yield break;
+            }
+            var words = passphrase.Split(separator);
+            if (words.Any(string.IsNullOrEmpty))
+            {
+                yield return "Passphrase contains an empty word.";
+                yield break;
+            }
+            var minimum = policy.PassphraseLength.GetValueOrDefault() > 0
+                ? policy.PassphraseLength.Value : PassphraseGenerator.MinWordCount;
+            if (words.Length < minimum) yield return $"Passphrase must contain at least {minimum} words.";
+            if (words.Length > PassphraseGenerator.MaxWordCount) yield return "Passphrase has too many words.";
+            var capitalize = policy.PassphraseCapitalize ?? true;
+            var number = policy.PassphraseNumber ?? true;
+            for (var i = 0; i < words.Length; i++)
+            {
+                var word = words[i].Normalize(NormalizationForm.FormC);
+                var hasNumber = word.Length > 0 && word[word.Length - 1] >= '0' && word[word.Length - 1] <= '9';
+                if (i == 0 && number && !hasNumber)
+                {
+                    yield return "First passphrase word must end with a digit.";
+                    yield break;
+                }
+                if (i == 0 && hasNumber) word = word.Substring(0, word.Length - 1);
+                if (word.Length < 3 || word.Any(ch => !char.IsLetter(ch))
+                    || (capitalize && (!char.IsUpper(word[0]) || word.Skip(1).Any(ch => !char.IsLower(ch)))))
+                {
+                    yield return capitalize
+                        ? "Each passphrase word must start with a capital letter and contain at least 3 letters."
+                        : "Each passphrase word must contain at least 3 letters.";
+                    yield break;
+                }
+            }
+        }
+
+        internal static string GetPolicyUrl(KeeperRecord record, IEnumerable<CmdLineRecordField> fields)
+        {
+            var fieldUrl = fields?.FirstOrDefault(f =>
+                (string.Equals(f.FieldName, "url", StringComparison.OrdinalIgnoreCase)
+                 || string.Equals(f.FieldName, "link", StringComparison.OrdinalIgnoreCase)
+                 || string.Equals(f.FieldName, "login_url", StringComparison.OrdinalIgnoreCase))
+                && !string.IsNullOrWhiteSpace(f.Value))?.Value;
+            if (fieldUrl != null) return fieldUrl;
+            if (record is PasswordRecord password) return password.Link;
+            if (record is TypedRecord typed)
+                return typed.Fields.Concat(typed.Custom).FirstOrDefault(f =>
+                    string.Equals(f.FieldName, "url", StringComparison.OrdinalIgnoreCase))?.ObjectValue as string;
+            return null;
+        }
+
+        internal static string GetPolicyUrl(KeeperNSFRecord record, IDictionary<string, object> fields)
+        {
+            if (fields != null)
+            {
+                foreach (var pair in fields)
+                {
+                    var name = pair.Key?.TrimStart('$').Split('.')[0];
+                    if ((string.Equals(name, "url", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(name, "link", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(name, "login_url", StringComparison.OrdinalIgnoreCase))
+                        && pair.Value is string url && !string.IsNullOrWhiteSpace(url)) return url;
+                }
+            }
+            return record?.Fields?.FirstOrDefault(f => string.Equals(f.Type, "url", StringComparison.OrdinalIgnoreCase))
+                ?.Value?.FirstOrDefault();
+        }
+
+        internal string GenerateFieldPassword(string specification, string url)
+        {
+            if (specification == null || !specification.StartsWith("$GEN", StringComparison.OrdinalIgnoreCase)
+                || (specification.Length > 4 && specification[4] != ':')) return null;
+            var parts = specification.Length == 4 ? Array.Empty<string>()
+                : specification.Substring(5).Split(',');
+            var algorithm = parts.Length == 0 || parts[0].Length == 0 ? "rand" : parts[0].Trim().ToLowerInvariant();
+            var policy = GetGeneratedPasswordPolicyData(url);
+            if (algorithm == "rand")
+            {
+                var options = GetGeneratedPasswordPolicy(url);
+                if (parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    if (!int.TryParse(parts[1], out var length) || length <= 0)
+                        throw new ArgumentException("$GEN:rand length must be a positive integer.");
+                    options ??= new PasswordGenerationOptions { Lower = 4, Upper = 4, Digit = 2, Special = -1 };
+                    options.Length = Math.Max(length, options.Length > 0 && policy != null ? options.Length : 0);
+                }
+                if (parts.Length > 2) throw new ArgumentException("$GEN:rand accepts only a length parameter.");
+                return GeneratePolicyPassword(options, policy);
+            }
+            if (algorithm == "passphrase")
+            {
+                if (parts.Length > 5) throw new ArgumentException("$GEN:passphrase accepts at most four options.");
+                int? count = null;
+                if (parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]))
+                {
+                    if (!int.TryParse(parts[1], out var parsed)) throw new ArgumentException("Invalid $GEN:passphrase word count.");
+                    count = parsed;
+                }
+                var separator = parts.Length > 2 && parts[2].Length > 0 ? parts[2] : null;
+                bool? cap = parts.Length > 3 && parts[3].Length > 0 ? ParseGenBool(parts[3]) : null;
+                bool? num = parts.Length > 4 && parts[4].Length > 0 ? ParseGenBool(parts[4]) : null;
+                return GeneratePolicyPassphrase(policy, url, count, separator, cap, num);
+            }
+            throw new ArgumentException($"Unknown $GEN algorithm '{algorithm}'. Use rand or passphrase.");
+        }
+
+        private static bool ParseGenBool(string value)
+        {
+            if (bool.TryParse(value, out var result)) return result;
+            throw new ArgumentException($"Invalid $GEN boolean '{value}'. Use true or false.");
+        }
+
+        private bool TryGetEnforcement(string name, out string enforcement)
+        {
+            enforcement = null;
+            return Vault.Auth.AuthContext.Enforcements != null
+                && Vault.Auth.AuthContext.Enforcements.TryGetValue(name, out var value)
+                && (enforcement = value as string) != null;
+        }
+
+        internal GeneratedPasswordComplexityPolicy GetGeneratedPasswordPolicyData(string url = null)
+        {
+            if (!TryGetEnforcement("generated_password_complexity", out var enforcement)) return null;
+            var policies = ParseGeneratedPasswordPolicies(enforcement);
+            var defaultPolicy = policies.FirstOrDefault(p => p.Domains?.Any(d =>
+                    string.Equals(d?.Trim(), "_default_", StringComparison.OrdinalIgnoreCase)) == true)
+                ?? policies.FirstOrDefault(p => p.Domains == null);
+            var host = NormalizePolicyHost(url);
+            GeneratedPasswordComplexityPolicy domainPolicy = null;
+            var longest = -1;
+            if (host != null)
+            {
+                foreach (var policy in policies)
+                {
+                    foreach (var domain in policy.Domains ?? Array.Empty<string>())
+                    {
+                        var candidate = NormalizePolicyHost(domain);
+                        if (candidate != null && candidate.Length > longest
+                            && (host == candidate || host.EndsWith("." + candidate, StringComparison.Ordinal)))
+                        {
+                            longest = candidate.Length;
+                            domainPolicy = policy;
+                        }
+                    }
+                }
+            }
+            return GeneratedPasswordComplexityPolicy.Merge(defaultPolicy, domainPolicy);
+        }
+
+        private static string NormalizePolicyHost(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            value = value.Trim().TrimEnd('.');
+            if (string.Equals(value, "_default_", StringComparison.OrdinalIgnoreCase)) return null;
+            if (value.StartsWith("*.", StringComparison.Ordinal)) value = value.Substring(2);
+            if (!Uri.TryCreate(value.Contains("://") ? value : "https://" + value, UriKind.Absolute, out var uri))
+                return null;
+            try { return new IdnMapping().GetAscii(uri.Host).TrimEnd('.').ToLowerInvariant(); }
+            catch (ArgumentException) { return null; }
+        }
+
+        private static GeneratedPasswordComplexityPolicy[] ParseGeneratedPasswordPolicies(string enforcement)
+        {
+            if (string.IsNullOrWhiteSpace(enforcement)) return Array.Empty<GeneratedPasswordComplexityPolicy>();
+            try
+            {
+                var json = Encoding.UTF8.GetBytes(enforcement);
+                return enforcement.TrimStart().StartsWith("[", StringComparison.Ordinal)
+                    ? JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy[]>(json)
+                        ?.Where(p => p != null).ToArray() ?? Array.Empty<GeneratedPasswordComplexityPolicy>()
+                    : new[] { JsonUtils.ParseJson<GeneratedPasswordComplexityPolicy>(json) }
+                        .Where(p => p != null).ToArray();
+            }
+            catch (SerializationException ex)
+            {
+                Debug.WriteLine($"Unable to parse generated_password_complexity enforcement: {ex.Message}");
+                return Array.Empty<GeneratedPasswordComplexityPolicy>();
+            }
+        }
+    }
+
+    [DataContract]
+    internal class GeneratedPasswordComplexityPolicy
+    {
+        [DataMember(Name = "domains")] public string[] Domains { get; set; }
+        [DataMember(Name = "length")] public int? Length { get; set; }
+        [DataMember(Name = "lower-use")] public bool? LowerUse { get; set; }
+        [DataMember(Name = "lower-min")] public int? LowerMin { get; set; }
+        [DataMember(Name = "upper-use")] public bool? UpperUse { get; set; }
+        [DataMember(Name = "upper-min")] public int? UpperMin { get; set; }
+        [DataMember(Name = "digit-use")] public bool? DigitUse { get; set; }
+        [DataMember(Name = "digit-min")] public int? DigitMin { get; set; }
+        [DataMember(Name = "special-use")] public bool? SpecialUse { get; set; }
+        [DataMember(Name = "special-min")] public int? SpecialMin { get; set; }
+        [DataMember(Name = "special")] public string Special { get; set; }
+        [DataMember(Name = "passphrase-allow")] public bool? PassphraseAllow { get; set; }
+        [DataMember(Name = "passphrase-length")] public int? PassphraseLength { get; set; }
+        [DataMember(Name = "passphrase-separator")] public string PassphraseSeparator { get; set; }
+        [DataMember(Name = "passphrase-capitalize")] public bool? PassphraseCapitalize { get; set; }
+        [DataMember(Name = "passphrase-number")] public bool? PassphraseNumber { get; set; }
+
+        internal static GeneratedPasswordComplexityPolicy Merge(
+            GeneratedPasswordComplexityPolicy defaults, GeneratedPasswordComplexityPolicy domain)
+        {
+            if (domain == null) return defaults;
+            if (defaults == null) return domain;
+            return new GeneratedPasswordComplexityPolicy
+            {
+                Domains = domain.Domains,
+                Length = domain.Length ?? defaults.Length,
+                LowerUse = domain.LowerUse ?? defaults.LowerUse,
+                LowerMin = domain.LowerMin ?? defaults.LowerMin,
+                UpperUse = domain.UpperUse ?? defaults.UpperUse,
+                UpperMin = domain.UpperMin ?? defaults.UpperMin,
+                DigitUse = domain.DigitUse ?? defaults.DigitUse,
+                DigitMin = domain.DigitMin ?? defaults.DigitMin,
+                SpecialUse = domain.SpecialUse ?? defaults.SpecialUse,
+                SpecialMin = domain.SpecialMin ?? defaults.SpecialMin,
+                Special = domain.Special ?? defaults.Special,
+                PassphraseAllow = domain.PassphraseAllow ?? defaults.PassphraseAllow,
+                PassphraseLength = domain.PassphraseLength ?? defaults.PassphraseLength,
+                PassphraseSeparator = domain.PassphraseSeparator ?? defaults.PassphraseSeparator,
+                PassphraseCapitalize = domain.PassphraseCapitalize ?? defaults.PassphraseCapitalize,
+                PassphraseNumber = domain.PassphraseNumber ?? defaults.PassphraseNumber,
+            };
+        }
+    }
+
+    [DataContract]
+    internal class RestrictedRecordTypesPolicy
+    {
+        [DataMember(Name = "std")] public int[] Standard { get; set; }
+        [DataMember(Name = "ent")] public int[] Enterprise { get; set; }
     }
 
     internal static class RecordCommandExtensions
@@ -382,7 +786,16 @@ namespace Commander
                 Console.WriteLine($"\"Title\" parameter is missing.");
                 return;
             }
-            var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
+            if (context.IsRecordTypeRestricted(options.RecordType))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be created.");
+                return;
+            }
+            if (options.Generate && options.GeneratePassphrase)
+                throw new ArgumentException("--generate and --generate-passphrase cannot be used together.");
+            var fields = VaultContext.ParseRecordFields(options.Fields ?? Array.Empty<string>()).ToArray();
+            if (options.Generate || options.GeneratePassphrase)
+                fields = fields.Where(x => !VaultContext.IsPasswordFieldName(x.FieldName)).ToArray();
 
             KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
@@ -417,9 +830,21 @@ namespace Commander
             }
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record);
+                var url = VaultContext.GetPolicyUrl(record, fields);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy(url),
+                    generatedOptions => context.GeneratePolicyPassword(generatedOptions, policy));
             }
-
+            else if (options.GeneratePassphrase)
+            {
+                var url = VaultContext.GetPolicyUrl(record, fields);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                context.Vault.RotateRecordPassword(record, null,
+                    _ => context.GeneratePolicyPassphrase(policy, url));
+            }
+            var fieldPolicyUrl = VaultContext.GetPolicyUrl(record, fields);
+            foreach (var field in fields.Where(f => VaultContext.IsPasswordFieldName(f.FieldName)))
+                field.Value = context.GenerateFieldPassword(field.Value, fieldPolicyUrl) ?? field.Value;
             context.AssignRecordFields(record, fields);
             var createdRecord = await context.Vault.CreateRecord(record, node.FolderUid);
 
@@ -505,16 +930,32 @@ namespace Commander
                 Console.WriteLine($"Cannot resolve record {options.RecordId}");
                 return;
             }
+            if (options.Generate && options.GeneratePassphrase)
+                throw new ArgumentException("--generate and --generate-passphrase cannot be used together.");
+            var fields = VaultContext.ParseRecordFields(options.Fields ?? Array.Empty<string>()).ToArray();
+            if (options.Generate || options.GeneratePassphrase)
+                fields = fields.Where(x => !VaultContext.IsPasswordFieldName(x.FieldName)).ToArray();
             if (!string.IsNullOrEmpty(options.RecordType))
             {
-                if (record is TypedRecord typed)
+                var newType = options.RecordType;
+                if (record is TypedRecord currentTyped
+                    && string.Equals(currentTyped.TypeName, newType, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (context.Vault.TryGetRecordTypeByName(options.RecordType, out var rt))
+                    newType = null;
+                }
+                if (!string.IsNullOrEmpty(newType) && context.IsRecordTypeRestricted(newType))
+                {
+                    Console.WriteLine($"Error: Record type '{newType}' is restricted by your enterprise role policy and cannot be used.");
+                    return;
+                }
+                if (!string.IsNullOrEmpty(newType) && record is TypedRecord typed)
+                {
+                    if (context.Vault.TryGetRecordTypeByName(newType, out var rt))
                     {
                         typed.TypeName = rt.Name;
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(newType))
                 {
                     Console.WriteLine($"{options.RecordId} is a legacy record. Record type is not supported.");
                     return;
@@ -528,10 +969,21 @@ namespace Commander
 
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record);
+                var url = VaultContext.GetPolicyUrl(record, fields);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy(url),
+                    generatedOptions => context.GeneratePolicyPassword(generatedOptions, policy));
             }
-
-            var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
+            else if (options.GeneratePassphrase)
+            {
+                var url = VaultContext.GetPolicyUrl(record, fields);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                context.Vault.RotateRecordPassword(record, null,
+                    _ => context.GeneratePolicyPassphrase(policy, url));
+            }
+            var fieldPolicyUrl = VaultContext.GetPolicyUrl(record, fields);
+            foreach (var field in fields.Where(f => VaultContext.IsPasswordFieldName(f.FieldName)))
+                field.Value = context.GenerateFieldPassword(field.Value, fieldPolicyUrl) ?? field.Value;
             context.AssignRecordFields(record, fields);
             await context.Vault.UpdateRecord(record);
         }
@@ -1731,6 +2183,9 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
+        [Option("generate-passphrase", Required = false, Default = false, HelpText = "generate a passphrase")]
+        public bool GeneratePassphrase { get; set; }
+
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
         public string SelfDestruct { get; set; }
 
@@ -1751,6 +2206,9 @@ namespace Commander
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
+
+        [Option("generate-passphrase", Required = false, Default = false, HelpText = "generate a passphrase")]
+        public bool GeneratePassphrase { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
         public string RecordId { get; set; }

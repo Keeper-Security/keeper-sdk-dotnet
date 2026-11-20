@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cli;
 using CommandLine;
 using KeeperSecurity.Vault;
+using KeeperSecurity.Utils;
 using ZeroDep;
 
 namespace Commander
@@ -169,8 +170,10 @@ namespace Commander
 
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
         {
+            if (options.GeneratePassword && options.GeneratePassphrase)
+                throw new ArgumentException("--generate and --generate-passphrase cannot be used together.");
             Dictionary<string, object> fieldDict = null;
-            if ((options.Fields != null && options.Fields.Any()) || options.GeneratePassword)
+            if ((options.Fields != null && options.Fields.Any()) || options.GeneratePassword || options.GeneratePassphrase)
             {
                 try
                 {
@@ -181,6 +184,28 @@ namespace Commander
                     Console.WriteLine($"Error: {ex.Message}");
                     return;
                 }
+            }
+            if (context.IsRecordTypeRestricted(options.RecordType ?? "login"))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType ?? "login"}' is restricted by your enterprise role policy and cannot be created.");
+                return;
+            }
+            if ((options.GeneratePassword || options.GeneratePassphrase) && fieldDict == null)
+                fieldDict = new Dictionary<string, object>();
+            if (fieldDict != null)
+            {
+                var url = VaultContext.GetPolicyUrl((KeeperNSFRecord)null, fieldDict);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                if (options.GeneratePassword || options.GeneratePassphrase)
+                {
+                    foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray()) fieldDict.Remove(key);
+                    fieldDict["password"] = options.GeneratePassphrase
+                        ? context.GeneratePolicyPassphrase(policy, url)
+                        : context.GeneratePolicyPassword(context.GetGeneratedPasswordPolicy(url), policy);
+                }
+                else foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray())
+                    if (fieldDict[key] is string value)
+                        fieldDict[key] = context.GenerateFieldPassword(value, url) ?? value;
             }
 
             try
@@ -208,19 +233,32 @@ namespace Commander
 
         public static async Task NsfRecordUpdateCommand(this VaultContext context, NsfRecordUpdateOptions options)
         {
+            if (options.GeneratePassword && options.GeneratePassphrase)
+                throw new ArgumentException("--generate and --generate-passphrase cannot be used together.");
             var hasTitle = options.Title != null;
             var hasType = options.RecordType != null;
             var hasNotes = options.Notes != null;
             var hasFields = options.Fields != null && options.Fields.Any();
 
-            if (!hasTitle && !hasType && !hasNotes && !hasFields && !options.GeneratePassword)
+            if (!hasTitle && !hasType && !hasNotes && !hasFields && !options.GeneratePassword && !options.GeneratePassphrase)
             {
                 Console.WriteLine("Error: At least one of --title, --type, --notes, --generate, or field values must be specified.");
                 return;
             }
 
+            if (hasType && !context.Vault.TryGetRecordTypeByName(options.RecordType, out _))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' not found.");
+                return;
+            }
+            if (hasType && context.IsRecordTypeRestricted(options.RecordType))
+            {
+                Console.WriteLine($"Error: Record type '{options.RecordType}' is restricted by your enterprise role policy and cannot be used.");
+                return;
+            }
+
             Dictionary<string, object> fieldDict = null;
-            if (hasFields || options.GeneratePassword)
+            if (hasFields || options.GeneratePassword || options.GeneratePassphrase)
             {
                 int parsedCount;
                 try
@@ -232,11 +270,29 @@ namespace Commander
                     Console.WriteLine($"Error: {ex.Message}");
                     return;
                 }
-                if (parsedCount == 0 && !options.GeneratePassword)
+                if (parsedCount == 0 && !options.GeneratePassword && !options.GeneratePassphrase)
                 {
                     Console.WriteLine("Error: No valid field values were parsed. Use key=value (e.g. login=a12).");
                     return;
                 }
+            }
+            if ((options.GeneratePassword || options.GeneratePassphrase) && fieldDict == null)
+                fieldDict = new Dictionary<string, object>();
+            if (fieldDict != null)
+            {
+                context.Vault.TryGetKeeperNSFRecord(options.RecordUid, out var existingRecord);
+                var url = VaultContext.GetPolicyUrl(existingRecord, fieldDict);
+                var policy = context.GetGeneratedPasswordPolicyData(url);
+                if (options.GeneratePassword || options.GeneratePassphrase)
+                {
+                    foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray()) fieldDict.Remove(key);
+                    fieldDict["password"] = options.GeneratePassphrase
+                        ? context.GeneratePolicyPassphrase(policy, url)
+                        : context.GeneratePolicyPassword(context.GetGeneratedPasswordPolicy(url), policy);
+                }
+                else foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray())
+                    if (fieldDict[key] is string value)
+                        fieldDict[key] = context.GenerateFieldPassword(value, url) ?? value;
             }
 
             try
@@ -955,6 +1011,9 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
+        [Option("generate-passphrase", Required = false, HelpText = "Generate a passphrase")]
+        public bool GeneratePassphrase { get; set; }
+
         [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
@@ -975,6 +1034,9 @@ namespace Commander
 
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
+
+        [Option("generate-passphrase", Required = false, HelpText = "Generate a passphrase")]
+        public bool GeneratePassphrase { get; set; }
 
         [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
