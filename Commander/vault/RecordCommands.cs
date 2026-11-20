@@ -31,7 +31,8 @@ namespace Commander
         internal static bool IsPasswordFieldName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
-            return string.Equals(name.Trim().TrimStart('$').Split('.')[0], "password", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(name.Trim().TrimStart('$').Split('.')[0].Split(':')[0],
+                "password", StringComparison.OrdinalIgnoreCase);
         }
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)

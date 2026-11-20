@@ -214,8 +214,10 @@ function Script:Resolve-KeeperNSFFieldValue {
 
     $fieldType = $FieldKey.Split(':', 2)[0]
     if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
-        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
-            return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken -or
+            $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken + ':', [System.StringComparison]::Ordinal)) {
+            # Resolve after the record URL and enterprise policy are known.
+            return $RawValue
         }
 
         throw "Unsupported password generation token '$RawValue'. Use $script:KdNsfGenerateFieldValueToken or -GeneratePassword."
@@ -282,7 +284,9 @@ function Script:Parse-KeeperNSFFieldSpecs {
         if ($fieldType -ieq 'password' -and [string]::IsNullOrEmpty($val)) {
             throw "Password value cannot be empty. Use -GeneratePassword or '$($script:KdNsfGenerateFieldValueToken)' in single quotes."
         }
-        if ($fieldType -ieq 'password' -and $val -ceq $script:KdNsfGenerateFieldValueToken) {
+        if ($fieldType -ieq 'password' -and
+            ($val -ceq $script:KdNsfGenerateFieldValueToken -or
+             $val.StartsWith($script:KdNsfGenerateFieldValueToken + ':', [System.StringComparison]::Ordinal))) {
             $hasGenerateToken = $true
         }
 
