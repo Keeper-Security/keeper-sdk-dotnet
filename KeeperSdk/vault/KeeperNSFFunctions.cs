@@ -3311,7 +3311,7 @@ namespace KeeperSecurity.Vault
         }
 
         private static async Task<RecordSharingProto.Permissions> BuildRecordDenySharePermissions(
-            VaultOnline vault, string recordUid, string userEmail)
+            VaultOnline vault, string recordUid, string userEmail, FolderProto.AccessRoleType accessRole)
         {
             if (!vault.TryGetKeeperNSFRecord(recordUid, out var record))
                 throw new VaultException($"Keeper NSF record '{recordUid}' not found");
@@ -3351,15 +3351,17 @@ namespace KeeperSecurity.Vault
                 AccessType = FolderProto.AccessType.AtUser,
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 Owner = false,
+                AccessRoleType = accessRole == FolderProto.AccessRoleType.Navigator
+                    ? FolderProto.AccessRoleType.Viewer : accessRole,
                 DeniedAccess = true,
             };
             return perm;
         }
 
         private static async Task DenyInheritedKeeperNSFRecordShareAsync(
-            VaultOnline vault, string recordUid, string userEmail)
+            VaultOnline vault, string recordUid, string userEmail, FolderProto.AccessRoleType accessRole)
         {
-            var perm = await BuildRecordDenySharePermissions(vault, recordUid, userEmail).ConfigureAwait(false);
+            var perm = await BuildRecordDenySharePermissions(vault, recordUid, userEmail, accessRole).ConfigureAwait(false);
             var rq = new RecordSharingProto.Request();
             rq.CreateSharingPermissions.Add(perm);
             var rs = await vault.Auth.ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
@@ -3761,7 +3763,7 @@ namespace KeeperSecurity.Vault
             catch (Exception ex)
             {
                 Trace.TraceWarning(
-                    $"KeeperNSF: Could not batch-fetch record access for unshare; will revoke and deny: {ex.Message}");
+                    $"KeeperNSF: Could not batch-fetch record access for unshare: {ex.Message}");
             }
 
             var accessFlags = BuildRecordUserAccessFlags(accessDetails);
@@ -3850,23 +3852,40 @@ namespace KeeperSecurity.Vault
                 }
 
                 var accountUid = CryptoUtils.Base64UrlEncode(pkRs.AccountUid.ToByteArray());
-                var hasDirect = false;
-                var hasInherited = false;
-                if (accessLookupSucceeded
-                    && accessFlags.TryGetValue((recordUid, accountUid), out var flags))
+                if (!accessLookupSucceeded || accessDetails == null)
                 {
-                    hasDirect = flags.HasDirect;
-                    hasInherited = flags.HasInherited;
+                    results[i].Status = "access_lookup_failed";
+                    results[i].Message = "Could not determine whether record access is direct or inherited. No permissions were changed.";
+                    continue;
                 }
-                else if (!accessLookupSucceeded)
+
+                var hasDirect = accessFlags.TryGetValue((recordUid, accountUid), out var flags)
+                    && flags.HasDirect;
+                // Revoke a direct share first. A later revoke can deny any access
+                // still inherited from a parent folder, as in Commander.
+                if (!hasDirect)
                 {
-                    // Unknown access model: revoke direct share and deny inherited (safe fallback).
-                    hasDirect = true;
-                    hasInherited = true;
+                    if (HasDeniedRecordAccess(accessDetails, recordUid, accountUid, userEmail))
+                    {
+                        results[i].Status = "already_denied";
+                        results[i].Message = "Access already denied";
+                        results[i].Success = true;
+                        continue;
+                    }
+                }
+
+                var inheritedRole = hasDirect
+                    ? null
+                    : GetInheritedRecordAccessRole(accessDetails, recordUid, accountUid, userEmail);
+                if (!hasDirect && !inheritedRole.HasValue)
+                {
+                    results[i].Status = "no_access";
+                    results[i].Message = $"No direct or inherited user access found for '{userEmail}' on record '{recordUid}'.";
+                    continue;
                 }
 
                 RecordSharingProto.Permissions denyPermission = null;
-                if (hasInherited)
+                if (inheritedRole.HasValue)
                 {
                     if (record.RecordKey == null)
                     {
@@ -3887,7 +3906,7 @@ namespace KeeperSecurity.Vault
                     try
                     {
                         denyPermission = BuildRecordDenySharePermissionsFromPublicKey(
-                            recordUid, record.RecordKey, pkRs);
+                            recordUid, record.RecordKey, pkRs, inheritedRole.Value);
                     }
                     catch (Exception ex)
                     {
@@ -3897,7 +3916,7 @@ namespace KeeperSecurity.Vault
                     }
                 }
 
-                if (hasDirect || (!hasDirect && !hasInherited))
+                if (hasDirect)
                 {
                     needRevoke[i] = true;
                     pendingRevoke.Add((i, BuildRecordRevokePermissions(recordUid, pkRs.AccountUid)));
@@ -4017,6 +4036,38 @@ namespace KeeperSecurity.Vault
             }
 
             return results;
+        }
+
+        internal static FolderProto.AccessRoleType? GetInheritedRecordAccessRole(
+            RecordDetailsProto.RecordAccessResponse details, string recordUid, string accountUid, string userEmail)
+        {
+            var row = details?.RecordAccesses.FirstOrDefault(row =>
+                row?.Data != null
+                && row.Data.AccessType == FolderProto.AccessType.AtUser
+                && row.Data.Inherited
+                && !row.Data.DeniedAccess
+                && !row.Data.Owner
+                && row.Data.RecordUid != null
+                && string.Equals(CryptoUtils.Base64UrlEncode(row.Data.RecordUid.ToByteArray()), recordUid, StringComparison.Ordinal)
+                && (string.Equals(CryptoUtils.Base64UrlEncode(row.Data.AccessTypeUid.ToByteArray()), accountUid, StringComparison.Ordinal)
+                    || string.Equals(row.AccessorInfo?.Name, userEmail, StringComparison.OrdinalIgnoreCase)));
+            if (row == null) return null;
+            return row.Data.AccessRoleType == FolderProto.AccessRoleType.Navigator
+                ? FolderProto.AccessRoleType.Viewer
+                : row.Data.AccessRoleType;
+        }
+
+        internal static bool HasDeniedRecordAccess(
+            RecordDetailsProto.RecordAccessResponse details, string recordUid, string accountUid, string userEmail)
+        {
+            return details?.RecordAccesses != null && details.RecordAccesses.Any(row =>
+                row?.Data != null
+                && row.Data.AccessType == FolderProto.AccessType.AtUser
+                && row.Data.DeniedAccess
+                && row.Data.RecordUid != null
+                && string.Equals(CryptoUtils.Base64UrlEncode(row.Data.RecordUid.ToByteArray()), recordUid, StringComparison.Ordinal)
+                && (string.Equals(CryptoUtils.Base64UrlEncode(row.Data.AccessTypeUid.ToByteArray()), accountUid, StringComparison.Ordinal)
+                    || string.Equals(row.AccessorInfo?.Name, userEmail, StringComparison.OrdinalIgnoreCase)));
         }
 
         private static Dictionary<(string RecordUid, string AccountUid), (bool HasDirect, bool HasInherited)>
@@ -4178,7 +4229,8 @@ namespace KeeperSecurity.Vault
         private static RecordSharingProto.Permissions BuildRecordDenySharePermissionsFromPublicKey(
             string recordUid,
             byte[] recordKey,
-            AuthProto.PublicKeyResponse pkRs)
+            AuthProto.PublicKeyResponse pkRs,
+            FolderProto.AccessRoleType accessRole)
         {
             byte[] encryptedRecordKey;
             bool useEcc;
@@ -4208,6 +4260,7 @@ namespace KeeperSecurity.Vault
                 AccessType = FolderProto.AccessType.AtUser,
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 Owner = false,
+                AccessRoleType = accessRole,
                 DeniedAccess = true,
             };
             return perm;
@@ -4559,7 +4612,8 @@ namespace KeeperSecurity.Vault
                                 try
                                 {
                                     await DenyInheritedKeeperNSFRecordShareAsync(
-                                        vault, access.RecordUid, access.AccessorName);
+                                        vault, access.RecordUid, access.AccessorName,
+                                        (FolderProto.AccessRoleType)access.AccessRoleType);
                                     result.Denies.Add(new KeeperNSFPermissionChange
                                     {
                                         RecordUid = access.RecordUid, Email = access.AccessorName,
