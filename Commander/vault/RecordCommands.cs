@@ -28,6 +28,12 @@ namespace Commander
 
         private const string FieldPattern = @"^([^\[\.]+)(\.[^\[]+)?(\[.*\])?\s*=\s*(.*)$";
 
+        internal static bool IsPasswordFieldName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            return string.Equals(name.Trim().TrimStart('$').Split('.')[0], "password", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
             var rx = new Regex(FieldPattern);
@@ -279,7 +285,7 @@ namespace Commander
                 var minimumLength = new[] { lower, upper, digit, special }.Where(x => x > 0).Sum();
                 return new PasswordGenerationOptions
                 {
-                    Length = Math.Max(policy.Length, minimumLength),
+                    Length = Math.Max(20, Math.Max(policy.Length, minimumLength)),
                     Lower = lower,
                     Upper = upper,
                     Digit = digit,
@@ -315,6 +321,18 @@ namespace Commander
                         yield return $"Password must contain at least {Math.Max(policy.SpecialMin, 1)} special character(s).";
                 }
             }
+        }
+
+        internal string GeneratePolicyPassword(PasswordGenerationOptions options)
+        {
+            const int maxAttempts = 100;
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                var password = CryptoUtils.GeneratePassword(options);
+                if (!ValidatePasswordPolicy(new[] { password }).Any()) return password;
+            }
+
+            throw new InvalidOperationException("Could not generate a password that satisfies the enterprise password policy.");
         }
 
         private bool TryGetEnforcement(string name, out string enforcement)
@@ -518,7 +536,7 @@ namespace Commander
                 return;
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
-            if (!EnforcePasswordPolicy(context, options.Generate ? fields.Where(x => !string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase)) : fields, options.Force)) return;
+            if (options.Generate) fields = fields.Where(x => !VaultContext.IsPasswordFieldName(x.FieldName)).ToArray();
 
             KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
@@ -553,9 +571,8 @@ namespace Commander
             }
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy());
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy(), context.GeneratePolicyPassword);
             }
-
             context.AssignRecordFields(record, fields);
             var createdRecord = await context.Vault.CreateRecord(record, node.FolderUid);
 
@@ -642,7 +659,7 @@ namespace Commander
                 return;
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
-            if (!EnforcePasswordPolicy(context, options.Generate ? fields.Where(x => !string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase)) : fields, options.Force)) return;
+            if (options.Generate) fields = fields.Where(x => !VaultContext.IsPasswordFieldName(x.FieldName)).ToArray();
             if (!string.IsNullOrEmpty(options.RecordType))
             {
                 var newType = options.RecordType;
@@ -677,31 +694,10 @@ namespace Commander
 
             if (options.Generate)
             {
-                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy());
+                context.Vault.RotateRecordPassword(record, context.GetGeneratedPasswordPolicy(), context.GeneratePolicyPassword);
             }
-
             context.AssignRecordFields(record, fields);
             await context.Vault.UpdateRecord(record);
-        }
-
-        private static bool EnforcePasswordPolicy(VaultContext context, IEnumerable<CmdLineRecordField> fields,
-            bool force)
-        {
-            var passwords = fields
-                .Where(x => string.Equals(x.FieldName.TrimStart('$'), "password", StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Value)
-                .Where(x => !string.IsNullOrEmpty(x));
-
-            var violations = context.ValidatePasswordPolicy(passwords).Distinct().ToArray();
-            if (violations.Length == 0) return true;
-            foreach (var violation in violations)
-            {
-                Console.WriteLine($"Error: {violation}");
-            }
-            if (force) return true;
-
-            Console.WriteLine("Password policy validation failed. Use --force to override the enterprise password policy.");
-            return false;
         }
 
         public static async Task DownloadAttachmentCommand(this VaultContext context, DownloadAttachmentOptions options)
@@ -1899,7 +1895,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Option("force", Required = false, Default = false, HelpText = "override enterprise password policy validation errors")]
+        [Option("force", Required = false, Default = false, HelpText = "Deprecated; retained for command compatibility")]
         public bool Force { get; set; }
 
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
@@ -1923,7 +1919,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Option("force", Required = false, Default = false, HelpText = "override enterprise password policy validation errors")]
+        [Option("force", Required = false, Default = false, HelpText = "Deprecated; retained for command compatibility")]
         public bool Force { get; set; }
 
         [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
