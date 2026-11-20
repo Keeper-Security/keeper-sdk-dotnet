@@ -206,7 +206,10 @@ namespace KeeperSecurity.Authentication
 
         static KeeperEndpoint()
         {
+#if !NET8_0_OR_GREATER
+            // Only the netstandard2.0 build (used by .NET Framework hosts) needs this; HttpClient on modern .NET ignores ServicePointManager.
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#endif
 //            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
         }
 
