@@ -128,6 +128,8 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | Update-KeeperNSFFolderAccesses                          | nsf-update-folder-access | Batch update NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
 | Unshare-KeeperNSFFolderAccesses                         | nsf-unshare-folders | Batch revoke NSF folder access from JSON (`-DownloadSampleAccesses`; max 500)
 
+Keeper Drive release note: `Set-KeeperNSFRecordAccess` now requires `-Role` for grants instead of defaulting to `viewer`; add `-Role viewer` to existing scripts where appropriate. `Add-KeeperNSFRecord` keeps its positional title and default `login` type, so its syntax remains compatible. `-Folder` accepts UID, unique name or path (`-FolderUid` remains an alias); `-PasswordRules` and `-SpecialChars` customize generated passwords. Sharing supports `-ContactsOnly`, `-Recursive`, `-DryRun`, and future `-ExpireAt` or `-ExpireIn` with `-RotateOnExpiration` for eligible PAM user records.
+
 ### Biometric Cmdlets
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
