@@ -110,7 +110,7 @@ function script:Remove-KeeperPasswordFields {
 
     if (-not $Fields) { return }
     foreach ($key in @($Fields.Keys)) {
-        $fieldType = ([string]$key).Trim().TrimStart('$').Split('.')[0]
+        $fieldType = ([string]$key).Trim().TrimStart('$').Split('.')[0].Split(':')[0]
         if ($fieldType -ieq 'password') { [void]$Fields.Remove($key) }
     }
 }
@@ -192,7 +192,7 @@ function script:Resolve-KeeperGeneratedFieldValues {
     param($Fields, $Policy)
     if (-not $Fields) { return $true }
     foreach ($key in @($Fields.Keys)) {
-        $name = ([string]$key).TrimStart('$').Split('.')[0]
+        $name = ([string]$key).TrimStart('$').Split('.')[0].Split(':')[0]
         if ($name -ine 'password' -or $Fields[$key] -isnot [string]) { continue }
         $value = [string]$Fields[$key]
         if ($value -notmatch '^\$GEN(?::(.*))?$') { continue }
