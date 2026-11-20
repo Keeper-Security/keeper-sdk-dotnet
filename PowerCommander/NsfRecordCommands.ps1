@@ -383,9 +383,6 @@ function Add-KeeperNSFRecord {
         [switch] $GeneratePassword,
 
         [Parameter()]
-        [switch] $Force,
-
-        [Parameter()]
         [Alias('PassphraseRules')]
         [switch] $GeneratePassphrase,
 
@@ -415,7 +412,6 @@ function Add-KeeperNSFRecord {
         return
     }
 
-    $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
     $fieldDict = $null
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
@@ -429,6 +425,7 @@ function Add-KeeperNSFRecord {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
         }
+        $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault -Url (Get-KeeperPolicyUrl -Fields $fieldDict)
         if ($GeneratePassword.IsPresent) {
             Remove-KeeperPasswordFields -Fields $fieldDict
             $options = New-KeeperPolicyPasswordOptions -Policy $passwordPolicy
@@ -440,6 +437,7 @@ function Add-KeeperNSFRecord {
                 return
             }
         }
+        elseif (-not (Resolve-KeeperGeneratedFieldValues -Fields $fieldDict -Policy $passwordPolicy)) { return }
     }
 
     try {
@@ -787,9 +785,6 @@ function Edit-KeeperNSFRecord {
         [switch] $GeneratePassword,
 
         [Parameter()]
-        [switch] $Force,
-
-        [Parameter()]
         [Alias('PassphraseRules')]
         [switch] $GeneratePassphrase,
 
@@ -859,7 +854,6 @@ function Edit-KeeperNSFRecord {
     $typeParam  = if ($hasType)  { $RecordType } else { [NullString]::Value }
     $notesParam = if ($hasNotes) { $Notes }      else { [NullString]::Value }
 
-    $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
     $fieldDict = $null
     if ($hasFields -or $GeneratePassword.IsPresent -or $generatePassphrase) {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
@@ -877,6 +871,7 @@ function Edit-KeeperNSFRecord {
                 return
             }
         }
+        $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault -Url (Get-KeeperPolicyUrl -Fields $fieldDict -Record $resolvedRecord)
         if ($GeneratePassword.IsPresent) {
             Remove-KeeperPasswordFields -Fields $fieldDict
             $fieldDict['password'] = New-KeeperGeneratedPassword -Policy $passwordPolicy -Options (New-KeeperPolicyPasswordOptions -Policy $passwordPolicy)
@@ -887,6 +882,7 @@ function Edit-KeeperNSFRecord {
                 return
             }
         }
+        elseif (-not (Resolve-KeeperGeneratedFieldValues -Fields $fieldDict -Policy $passwordPolicy)) { return }
     }
 
     try {
