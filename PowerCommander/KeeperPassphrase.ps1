@@ -70,7 +70,10 @@ function Set-KeeperPassphraseField {
         [Parameter()]
         [AllowNull()]
         [AllowEmptyCollection()]
-        [string[]] $PassphraseRuleValues
+        [string[]] $PassphraseRuleValues,
+
+        [Parameter()]
+        $Policy
     )
 
     try {
@@ -79,8 +82,39 @@ function Set-KeeperPassphraseField {
         } else {
             $passphraseOptions = New-KeeperPassphraseOptions
         }
-        $FieldDict['password'] = [KeeperSecurity.Utils.PassphraseGenerator]::GeneratePassphrase($passphraseOptions)
-        return $true
+        if ($Policy) {
+            if ((Get-KeeperPolicyProperty $Policy 'passphrase-allow') -eq $false) {
+                throw 'Passphrase generation is disabled by enterprise policy.'
+            }
+            $minimumWords = Get-KeeperPolicyProperty $Policy 'passphrase-length'
+            if ($minimumWords) {
+                $passphraseOptions.WordCount = [Math]::Max($passphraseOptions.WordCount, [int]$minimumWords)
+                [void][KeeperSecurity.Utils.PassphraseGenerator]::ValidateWordCount($passphraseOptions.WordCount)
+            }
+            $allowedSeparators = Get-KeeperPolicyProperty $Policy 'passphrase-separator'
+            if ($allowedSeparators -and -not $allowedSeparators.Contains($passphraseOptions.Separator)) {
+                $selectedSeparator = $null
+                foreach ($candidate in $allowedSeparators.ToCharArray()) {
+                    try {
+                        $selectedSeparator = [KeeperSecurity.Utils.PassphraseGenerator]::ValidateSeparator([string]$candidate)
+                        break
+                    } catch { }
+                }
+                if (-not $selectedSeparator) { throw 'Enterprise passphrase policy has no supported separator.' }
+                $passphraseOptions.Separator = $selectedSeparator
+            }
+            if ((Get-KeeperPolicyProperty $Policy 'passphrase-capitalize') -eq $true) { $passphraseOptions.UseCaps = $true }
+            if ((Get-KeeperPolicyProperty $Policy 'passphrase-number') -eq $true) { $passphraseOptions.UseDigits = $true }
+        }
+
+        for ($attempt = 0; $attempt -lt 100; $attempt++) {
+            $passphrase = [KeeperSecurity.Utils.PassphraseGenerator]::GeneratePassphrase($passphraseOptions)
+            if (-not $Policy -or @(Test-KeeperPassphrasePolicy -Passphrase $passphrase -Policy $Policy).Count -eq 0) {
+                $FieldDict['password'] = $passphrase
+                return $true
+            }
+        }
+        throw 'Could not generate a passphrase that satisfies the enterprise passphrase policy.'
     } catch {
         Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
         return $false

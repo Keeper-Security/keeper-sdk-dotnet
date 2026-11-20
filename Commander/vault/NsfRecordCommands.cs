@@ -190,7 +190,8 @@ namespace Commander
             }
             if (options.GeneratePassword && fieldDict != null)
             {
-                fieldDict["password"] = CryptoUtils.GeneratePassword(context.GetGeneratedPasswordPolicy());
+                foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray()) fieldDict.Remove(key);
+                fieldDict["password"] = context.GeneratePolicyPassword(context.GetGeneratedPasswordPolicy());
             }
 
             try
@@ -261,7 +262,8 @@ namespace Commander
             }
             if (options.GeneratePassword && fieldDict != null)
             {
-                fieldDict["password"] = CryptoUtils.GeneratePassword(context.GetGeneratedPasswordPolicy());
+                foreach (var key in fieldDict.Keys.Where(VaultContext.IsPasswordFieldName).ToArray()) fieldDict.Remove(key);
+                fieldDict["password"] = context.GeneratePolicyPassword(context.GetGeneratedPasswordPolicy());
             }
 
             try
