@@ -198,7 +198,7 @@ namespace KeeperSecurity.Authentication
         /// logging or verbose output. SDK trace information is also emitted.
         /// </remarks>
         public string LastEncryptionMode { get; private set; }
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
         private int? _qrcKeyId;
         private bool _qrcDisabled;
         private EcPrivateKey _clientEcPrivateKey;
@@ -248,8 +248,8 @@ namespace KeeperSecurity.Authentication
         {
             if (_disposed) return;
             _disposed = true;
-#if NET10_0_OR_GREATER
-            _clientEcPrivateKey?.Dispose();
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+            DisposeClientEcKey();
             _clientEcPrivateKey = null;
 #endif
             _httpClient.Dispose();
@@ -320,7 +320,7 @@ namespace KeeperSecurity.Authentication
                     EncryptedPayload = ByteString.CopyFrom(encPayload)
                 };
                 var qrcSuccess = false;
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
                 if (!_qrcDisabled && _qrcKeyId.HasValue)
                 {
                     try
@@ -367,7 +367,7 @@ namespace KeeperSecurity.Authentication
                     apiRequest.EncryptedTransmissionKey = ByteString.CopyFrom(encKey);
                 }
 
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
                 apiRequest.PublicKeyId = qrcSuccess ? _qrcKeyId.Value : keyId;
 #else
                 apiRequest.PublicKeyId = keyId;
@@ -420,7 +420,7 @@ namespace KeeperSecurity.Authentication
                             throw new KeeperApiException(errorCode, errorMessage ?? "Invalid server public key");
                         }
 
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
                         if (!_qrcDisabled && _qrcKeyId.HasValue)
                         {
                             if (errorRs.QrcEcKeyId > 0)
@@ -486,7 +486,7 @@ namespace KeeperSecurity.Authentication
                         throw new KeeperCanceled(errorCode, errorMessage);
                     }
 
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
                     if (!_qrcDisabled
                         && _qrcKeyId.HasValue
                         && (response.StatusCode == HttpStatusCode.BadRequest
@@ -885,10 +885,10 @@ namespace KeeperSecurity.Authentication
                     _lastReportedEncryptionMode = null;
                     LastEncryptionMode = null;
                 }
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
                 if (serverChanged)
                 {
-                    _clientEcPrivateKey?.Dispose();
+                    DisposeClientEcKey();
                     _clientEcPrivateKey = null;
                     _qrcDisabled = false;
                     _qrcKeyId = QrcCrypto.GetQrcKeyId(_server);
@@ -950,7 +950,7 @@ namespace KeeperSecurity.Authentication
                    KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId);
         }
 
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
         private static readonly string[] QrcCryptoErrorIndicators =
             { "qrc", "quantum", "ml-kem", "encryption", "decryption", "key" };
         private static readonly string[] QrcBusinessErrorIndicators =
@@ -971,11 +971,19 @@ namespace KeeperSecurity.Authentication
             return keyId >= 7 && keyId <= 18;
         }
 
+        private void DisposeClientEcKey()
+        {
+#if NET8_0_OR_GREATER
+            _clientEcPrivateKey?.Dispose();
+#endif
+            _clientEcPrivateKey = null;
+        }
+
         private void DisableQrc()
         {
             _qrcDisabled = true;
             _qrcKeyId = null;
-            _clientEcPrivateKey?.Dispose();
+            DisposeClientEcKey();
             _clientEcPrivateKey = null;
         }
 
@@ -993,7 +1001,7 @@ namespace KeeperSecurity.Authentication
         private void ReportEncryptionMode(bool qrcSuccess)
         {
             string mode;
-#if NET10_0_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
             mode = qrcSuccess ? "Using QRC hybrid encryption" : "Using EC encryption";
 #else
             mode = "Using EC encryption";

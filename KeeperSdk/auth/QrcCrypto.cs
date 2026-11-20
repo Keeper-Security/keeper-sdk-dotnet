@@ -1,10 +1,11 @@
-#if NET10_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Authentication;
 using KeeperSecurity.Utils;
+using Org.BouncyCastle.Crypto.Kems;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace KeeperSecurity.Authentication
 {
@@ -39,7 +40,7 @@ namespace KeeperSecurity.Authentication
         internal static int? GetQrcKeyId(string server)
         {
             var value = server ?? string.Empty;
-            if (!value.Contains("://", StringComparison.Ordinal))
+            if (value.IndexOf("://", StringComparison.Ordinal) < 0)
             {
                 value = "https://" + value;
             }
@@ -79,16 +80,21 @@ namespace KeeperSecurity.Authentication
                 throw new CryptographicException($"Invalid ML-KEM-1024 public key size: {serverMlKemPublicKey.Length} bytes.");
             }
 
-            var ecSharedSecret = clientEcPrivateKey.DeriveRawSecretAgreement(serverEcPublicKey);
+            var ecSharedSecret = DeriveEcSharedSecret(clientEcPrivateKey, serverEcPublicKey);
             byte[] mlKemSharedSecret = null;
             byte[] aesKey = null;
             try
             {
-                var clientEcPublicKey = CryptoUtils.UnloadEcPublicKey(clientEcPrivateKey.PublicKey);
+                var clientEcPublicKey = CryptoUtils.UnloadEcPublicKey(CryptoUtils.GetEcPublicKey(clientEcPrivateKey));
                 var serverEcPublicKeyBytes = CryptoUtils.UnloadEcPublicKey(serverEcPublicKey);
 
-                using var mlKem = MLKem.ImportEncapsulationKey(MLKemAlgorithm.MLKem1024, serverMlKemPublicKey);
-                mlKem.Encapsulate(out var mlKemEncapsulatedKey, out mlKemSharedSecret);
+                var mlKemPublicKey = MLKemPublicKeyParameters.FromEncoding(MLKemParameters.ml_kem_1024, serverMlKemPublicKey);
+                var encapsulator = new MLKemEncapsulator(MLKemParameters.ml_kem_1024);
+                encapsulator.Init(mlKemPublicKey);
+                var mlKemEncapsulatedKey = new byte[encapsulator.EncapsulationLength];
+                mlKemSharedSecret = new byte[encapsulator.SecretLength];
+                encapsulator.Encapsulate(mlKemEncapsulatedKey, 0, mlKemEncapsulatedKey.Length,
+                    mlKemSharedSecret, 0, mlKemSharedSecret.Length);
 
                 aesKey = DeriveAesKey(
                     ecSharedSecret,
@@ -108,15 +114,15 @@ namespace KeeperSecurity.Authentication
             }
             finally
             {
-                CryptographicOperations.ZeroMemory(ecSharedSecret);
+                ZeroMemory(ecSharedSecret);
                 if (mlKemSharedSecret != null)
                 {
-                    CryptographicOperations.ZeroMemory(mlKemSharedSecret);
+                    ZeroMemory(mlKemSharedSecret);
                 }
 
                 if (aesKey != null)
                 {
-                    CryptographicOperations.ZeroMemory(aesKey);
+                    ZeroMemory(aesKey);
                 }
             }
         }
@@ -128,7 +134,7 @@ namespace KeeperSecurity.Authentication
             byte[] clientEcPublicKey,
             byte[] mlKemEncapsulatedKey)
         {
-            var mlKemCiphertextHash = SHA256.HashData(mlKemEncapsulatedKey);
+            var mlKemCiphertextHash = Sha256(mlKemEncapsulatedKey);
             var cipherSuite = Encoding.UTF8.GetBytes(CipherSuite);
             var info = new byte[cipherSuite.Length + serverEcPublicKey.Length + clientEcPublicKey.Length
                                 + mlKemCiphertextHash.Length + 1];
@@ -165,12 +171,38 @@ namespace KeeperSecurity.Authentication
             }
             finally
             {
-                CryptographicOperations.ZeroMemory(inputKeyMaterial);
+                ZeroMemory(inputKeyMaterial);
                 if (pseudoRandomKey != null)
                 {
-                    CryptographicOperations.ZeroMemory(pseudoRandomKey);
+                    ZeroMemory(pseudoRandomKey);
                 }
             }
+        }
+
+        private static void ZeroMemory(byte[] data)
+        {
+            if (data != null) Array.Clear(data, 0, data.Length);
+        }
+
+        private static byte[] Sha256(byte[] data)
+        {
+            using var sha = SHA256.Create();
+            return sha.ComputeHash(data);
+        }
+
+        private static byte[] DeriveEcSharedSecret(EcPrivateKey privateKey, EcPublicKey publicKey)
+        {
+#if NET8_0_OR_GREATER
+            return privateKey.DeriveRawSecretAgreement(publicKey);
+#else
+            var agreement = new Org.BouncyCastle.Crypto.Agreement.ECDHBasicAgreement();
+            agreement.Init(privateKey);
+            var secret = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
+            if (secret.Length >= 32) return secret;
+            var padded = new byte[32];
+            Array.Copy(secret, 0, padded, 32 - secret.Length, secret.Length);
+            return padded;
+#endif
         }
 
         private static byte[] DecodeBase64Url(string value)
@@ -190,4 +222,3 @@ namespace KeeperSecurity.Authentication
         }
     }
 }
-#endif
