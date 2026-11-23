@@ -469,7 +469,9 @@ namespace Commander
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error {action}ing access for '{user}': {ex.Message}");
+                    Console.WriteLine(ex.Message == "Denying inherited team access on a record is not yet supported."
+                        ? ex.Message
+                        : $"Error {action}ing access for '{user}': {ex.Message}");
                 }
             }
         }
@@ -1219,7 +1221,7 @@ namespace Commander
         [Value(0, Required = false, MetaName = "record", HelpText = "record path or UID")]
         public string RecordUid { get; set; }
 
-        [Option('e', "email", Required = true, HelpText = "account email. Repeatable: -e user1@example.com -e user2@example.com")]
+        [Option('e', "email", Required = false, HelpText = "account email. Repeatable: -e user1@example.com -e user2@example.com")]
         public IEnumerable<string> Email { get; set; }
 
         [Option("contacts-only", Required = false, HelpText = "Share only to known targets")]

@@ -3486,6 +3486,8 @@ namespace KeeperSecurity.Vault
             {
                 ThrowIfOwnerShareResult(result.Status, result.Message);
 
+                if (result.Status == "unsupported") throw new VaultException(result.Message);
+
                 throw new VaultException(string.IsNullOrEmpty(result.Message)
                     ? $"Failed to revoke record access: {result.Status ?? "unknown error"}"
                     : $"Failed to revoke record access: {result.Message}");
@@ -3779,6 +3781,8 @@ namespace KeeperSecurity.Vault
             var denyOk = new bool[unshares.Count];
             var revokeStatus = new RecordSharingProto.Status[unshares.Count];
             var denyStatus = new RecordSharingProto.Status[unshares.Count];
+            var revokeErrors = new string[unshares.Count];
+            var denyErrors = new string[unshares.Count];
 
             for (var i = 0; i < unshares.Count; i++)
             {
@@ -3830,6 +3834,13 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
+                if (accessDetails != null && HasInheritedTeamRecordAccess(accessDetails, recordUid, userEmail))
+                {
+                    results[i].Status = "unsupported";
+                    results[i].Message = "Denying inherited team access on a record is not yet supported.";
+                    continue;
+                }
+
                 if (!publicKeysByEmail.TryGetValue(userEmail, out var pkRs) || pkRs == null)
                 {
                     results[i].Status = "user_not_found";
@@ -3861,20 +3872,16 @@ namespace KeeperSecurity.Vault
 
                 var hasDirect = accessFlags.TryGetValue((recordUid, accountUid), out var flags)
                     && flags.HasDirect;
-                // Revoke a direct share first. A later revoke can deny any access
-                // still inherited from a parent folder, as in Commander.
-                if (!hasDirect)
+                var alreadyDenied = HasDeniedRecordAccess(accessDetails, recordUid, accountUid, userEmail);
+                if (!hasDirect && alreadyDenied)
                 {
-                    if (HasDeniedRecordAccess(accessDetails, recordUid, accountUid, userEmail))
-                    {
-                        results[i].Status = "already_denied";
-                        results[i].Message = "Access already denied";
-                        results[i].Success = true;
-                        continue;
-                    }
+                    results[i].Status = "already_denied";
+                    results[i].Message = "Access already denied";
+                    results[i].Success = true;
+                    continue;
                 }
 
-                var inheritedRole = hasDirect
+                var inheritedRole = alreadyDenied
                     ? null
                     : GetInheritedRecordAccessRole(accessDetails, recordUid, accountUid, userEmail);
                 if (!hasDirect && !inheritedRole.HasValue)
@@ -3938,10 +3945,25 @@ namespace KeeperSecurity.Vault
                     revokeRq.RevokeSharingPermissions.Add(item.Permission);
                 }
 
-                var revokeRs = await vault.Auth
-                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                        "vault/records/v3/share", revokeRq)
-                    .ConfigureAwait(false);
+                RecordSharingProto.Response revokeRs;
+                try
+                {
+                    revokeRs = await vault.Auth
+                        .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                            "vault/records/v3/share", revokeRq)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    foreach (var item in chunk) revokeErrors[item.Index] = ex.Message;
+                    continue;
+                }
+
+                if (revokeRs == null)
+                {
+                    foreach (var item in chunk) revokeErrors[item.Index] = "Server returned no revoke response.";
+                    continue;
+                }
 
                 var statusByKey = IndexShareStatuses(revokeRs.RevokedSharingStatus);
                 for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
@@ -3970,10 +3992,25 @@ namespace KeeperSecurity.Vault
                     denyRq.CreateSharingPermissions.Add(item.Permission);
                 }
 
-                var denyRs = await vault.Auth
-                    .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
-                        "vault/records/v3/share", denyRq)
-                    .ConfigureAwait(false);
+                RecordSharingProto.Response denyRs;
+                try
+                {
+                    denyRs = await vault.Auth
+                        .ExecuteAuthRest<RecordSharingProto.Request, RecordSharingProto.Response>(
+                            "vault/records/v3/share", denyRq)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    foreach (var item in chunk) denyErrors[item.Index] = ex.Message;
+                    continue;
+                }
+
+                if (denyRs == null)
+                {
+                    foreach (var item in chunk) denyErrors[item.Index] = "Server returned no deny response.";
+                    continue;
+                }
 
                 var statusByKey = IndexShareStatuses(denyRs.CreatedSharingStatus);
                 for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
@@ -4013,13 +4050,28 @@ namespace KeeperSecurity.Vault
 
                 var revokeFailed = needRevoke[i] && !revokeOk[i];
                 var denyFailed = needDeny[i] && !denyOk[i];
+                if (needRevoke[i] && needDeny[i])
+                {
+                    var revokeMessage = revokeOk[i]
+                        ? "Direct access revoked"
+                        : $"Direct revoke failed: {revokeErrors[i] ?? revokeStatus[i]?.Message ?? "server returned no status"}";
+                    var denyMessage = denyOk[i]
+                        ? "Inherited access denied"
+                        : $"Inherited deny failed: {denyErrors[i] ?? denyStatus[i]?.Message ?? "server returned no status"}";
+                    results[i].Status = revokeFailed && denyFailed ? "failed"
+                        : revokeFailed || denyFailed ? "partial_failure" : "Success";
+                    results[i].Message = $"{revokeMessage}; {denyMessage}.";
+                    results[i].Success = !revokeFailed && !denyFailed;
+                    continue;
+                }
                 if (revokeFailed || denyFailed)
                 {
                     var failedStatus = revokeFailed ? revokeStatus[i] : denyStatus[i];
-                    results[i].Status = failedStatus != null
+                    var requestError = revokeFailed ? revokeErrors[i] : denyErrors[i];
+                    results[i].Status = requestError != null ? "request_failed" : failedStatus != null
                         ? FormatSharingStatus(failedStatus.Status_)
                         : "missing";
-                    results[i].Message = failedStatus?.Message
+                    results[i].Message = requestError ?? failedStatus?.Message
                         ?? (revokeFailed
                             ? "Server returned no status for this revoke."
                             : "Server returned no status for this deny.");
@@ -4052,9 +4104,21 @@ namespace KeeperSecurity.Vault
                 && (string.Equals(CryptoUtils.Base64UrlEncode(row.Data.AccessTypeUid.ToByteArray()), accountUid, StringComparison.Ordinal)
                     || string.Equals(row.AccessorInfo?.Name, userEmail, StringComparison.OrdinalIgnoreCase)));
             if (row == null) return null;
-            return row.Data.AccessRoleType == FolderProto.AccessRoleType.Navigator
-                ? FolderProto.AccessRoleType.Viewer
-                : row.Data.AccessRoleType;
+            return row.Data.AccessRoleType;
+        }
+
+        internal static bool HasInheritedTeamRecordAccess(
+            RecordDetailsProto.RecordAccessResponse details, string recordUid, string teamUid)
+        {
+            return details?.RecordAccesses != null && details.RecordAccesses.Any(row =>
+                row?.Data != null
+                && row.Data.AccessType == FolderProto.AccessType.AtTeam
+                && row.Data.Inherited
+                && !row.Data.DeniedAccess
+                && row.Data.RecordUid != null
+                && string.Equals(CryptoUtils.Base64UrlEncode(row.Data.RecordUid.ToByteArray()), recordUid, StringComparison.Ordinal)
+                && (string.Equals(CryptoUtils.Base64UrlEncode(row.Data.AccessTypeUid.ToByteArray()), teamUid, StringComparison.Ordinal)
+                    || string.Equals(row.AccessorInfo?.Name, teamUid, StringComparison.OrdinalIgnoreCase)));
         }
 
         internal static bool HasDeniedRecordAccess(
@@ -4084,7 +4148,7 @@ namespace KeeperSecurity.Vault
                 var data = ra?.Data;
                 if (data == null) continue;
                 if (data.AccessType != FolderProto.AccessType.AtUser) continue;
-                if (data.Owner) continue;
+                if (data.Owner || data.DeniedAccess) continue;
                 if (data.RecordUid == null || data.RecordUid.IsEmpty) continue;
                 if (data.AccessTypeUid == null || data.AccessTypeUid.IsEmpty) continue;
 

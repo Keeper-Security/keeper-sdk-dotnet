@@ -193,7 +193,7 @@ function Grant-KeeperRecordAccess {
         .PARAMETER Record
             The UID of the Keeper record to share, or an object containing a 'Uid' property.
 
-        .PARAMETER User
+        .PARAMETER Email
             The email address of the user to share the record with.
 
         .PARAMETER CanEdit
@@ -213,22 +213,22 @@ function Grant-KeeperRecordAccess {
             record with rotation configured.
 
         .EXAMPLE
-            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -Email "jane.doe@example.com" -CanEdit -CanShare
 
             Shares the record with full permissions (edit and re-share) with Jane Doe.
 
         .EXAMPLE
-            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -ExpireIn 60
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -Email "john.doe@example.com" -ExpireIn 60
 
             Shares the record with John Doe for 1 hour from now.
 
         .EXAMPLE
-            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpireIn "00:30:00"
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -Email "alice@example.com" -ExpireIn "00:30:00"
 
             Shares the record with Alice for 30 minutes.
 
         .EXAMPLE
-            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "bob@example.com" -ExpireAt "2025-05-23T08:59:11Z"
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -Email "bob@example.com" -ExpireAt "2025-05-23T08:59:11Z"
 
             Shares the record with Bob until the specified UTC datetime.
     #>
@@ -237,7 +237,8 @@ function Grant-KeeperRecordAccess {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
-        [Parameter(Mandatory = $true)]$User,
+        [Alias('User')]
+        [Parameter(Mandatory = $true)]$Email,
         [Parameter()][switch]$CanEdit,
         [Parameter()][switch]$CanShare,
         [Parameter()][System.Object]$ExpireIn,
@@ -285,16 +286,16 @@ function Grant-KeeperRecordAccess {
         }
         if ($rec) {
             try {
-                $vault.ShareRecordWithUser($rec.Uid, $User, $options).GetAwaiter().GetResult() | Out-Null
-                Write-Output "Successfully shared the record $($rec.Uid) with user $User"
+                $vault.ShareRecordWithUser($rec.Uid, $Email, $options).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Successfully shared the record $($rec.Uid) with user $Email"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
                 Write-Output $_
-                $prompt = "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
+                $prompt = "Do you want to send share invitation request to `"$($Email)`"? (Yes/No)"
                 $answer = Read-Host -Prompt $prompt
                 if ($answer -in 'yes', 'y') {
-                    $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
-                    Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
+                    $vault.SendShareInvitationRequest($Email).GetAwaiter().GetResult() | Out-Null
+                    Write-Output("Invitation has been sent to $($Email)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
             catch {
@@ -393,14 +394,15 @@ function Revoke-KeeperRecordAccess {
     	.Parameter Record
 	    Record UID or any object containg record UID
 
-        .Parameter User
+        .Parameter Email
 	    User email
     #>
 
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
-        [Parameter(Mandatory = $true)]$User,
+        [Alias('User')]
+        [Parameter(Mandatory = $true)]$Email,
         [Alias('f')]
         [switch]$Force
     )
@@ -433,15 +435,15 @@ function Revoke-KeeperRecordAccess {
         if ($rec) {
             $found = $true
             if (-not $Force.IsPresent) {
-                $confirmation = Read-Host "Are you sure you want to revoke $User's access to record '$($rec.Title)'? (yes/No)"
+                $confirmation = Read-Host "Are you sure you want to revoke $Email's access to record '$($rec.Title)'? (yes/No)"
                 if ($confirmation -notmatch '^(y|yes)$') {
                     Write-Output "Revoke operation cancelled"
                     return
                 }
             }
             try {
-                $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
-                Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
+                $vault.RevokeShareFromUser($rec.Uid, $Email).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Record `"$($rec.Title)`" share has been removed from $Email"
             }
             catch {
                 if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {

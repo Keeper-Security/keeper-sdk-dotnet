@@ -1282,7 +1282,13 @@ function Set-KeeperNSFRecordAccess {
                 }
             }
             catch {
-                [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
+                $message = Get-KeeperExceptionMessage -Exception $_.Exception
+                if ($message -eq 'Denying inherited team access on a record is not yet supported.') {
+                    Write-Error -Message $message
+                }
+                else {
+                    [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
+                }
             }
         }
     }
