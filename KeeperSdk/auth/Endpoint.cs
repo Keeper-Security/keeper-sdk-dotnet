@@ -428,16 +428,21 @@ namespace KeeperSecurity.Authentication
                         {
                             if (errorRs.QrcEcKeyId > 0)
                             {
-                                if (IsKnownEcKeyId(errorRs.QrcEcKeyId) && keyId != errorRs.QrcEcKeyId)
+                                if (IsKnownEcKeyId(errorRs.QrcEcKeyId)
+                                    && keyId != errorRs.QrcEcKeyId
+                                    && IsServerKeyKnown(errorRs.QrcEcKeyId))
                                 {
+                                    // Only adopt (and persist) an EC key ID we actually hold a public key for.
                                     keyId = errorRs.QrcEcKeyId;
                                     ServerKeyId = keyId;
                                 }
                                 else
                                 {
-                                    // Unknown EC key ID, or the server rejected the current EC key ID again.
+                                    // Invalid/unusable EC key ID, or the server rejected the current EC key ID again.
                                     // Retrying QRC cannot make progress, so disable QRC and retry with EC.
+                                    // The QRC fallback happens at most once, so it does not consume the key retry budget.
                                     DisableQrc();
+                                    keyRetries--;
                                 }
 
                                 continue;
@@ -446,7 +451,9 @@ namespace KeeperSecurity.Authentication
                             if (!IsKnownEcKeyId(errorRs.KeyId))
                             {
                                 // The response key ID may be the QRC key ID, not an EC key.
+                                // Never copy it into ServerKeyId; fall back to EC with the current EC key.
                                 DisableQrc();
+                                keyRetries--;
                                 continue;
                             }
                         }

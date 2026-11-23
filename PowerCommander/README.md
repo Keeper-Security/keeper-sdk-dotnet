@@ -10,7 +10,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 
 ### QRC support
 
-Power Commander uses normal module assembly loading from `RequiredAssemblies`. Each Power Commander package supplies its matching `KeeperSdk.dll` in the module directory: the 5.1 package uses the .NET Standard 2.0 SDK build (EC), while the 7.1 package uses the .NET 10 SDK build (QRC) and therefore requires a .NET 10 PowerShell host. The SDK determines the encryption behavior; it attempts QRC where supported and falls back to EC when QRC is unavailable or fails. The package must also include the SDK's matching dependencies.
+Power Commander supports **Windows PowerShell 5.1** only (`PowerShellVersion = '5.1'`, `CompatiblePSEditions = @('Desktop')`). It loads `KeeperSdk.dll` (the .NET Standard 2.0 build) and its dependencies from the module directory through `RequiredAssemblies`.
+
+QRC (post-quantum hybrid encryption using ML-KEM) is implemented with BouncyCastle, so it works on 5.1 and the module must include `BouncyCastle.Cryptography.dll` and `System.Numerics.Vectors.dll`. The SDK tries QRC first and falls back to EC encryption if QRC is unavailable or fails. A key mismatch reported by the server (including an unknown or non-EC key ID) disables QRC for that session and retries with EC.
 
 Run `Connect-Keeper -Verbose` to see which encryption mode the SDK used.
 
