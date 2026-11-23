@@ -308,6 +308,19 @@ namespace KeeperSecurity.Authentication.Sync
             throw new KeeperStartLoginException(response.LoginState, response.Message);
         }
 
+        private async Task SyncBiometricPasskeyStatusAsync()
+        {
+            if (BiometricLoginProvider is not IBiometricPasskeySync sync) return;
+            try
+            {
+                await sync.SyncAccountPasskeyStatusAsync(this);
+            }
+            catch (Exception e)
+            {
+                Trace.TraceWarning($"Biometric passkey sync failed: {e.Message}");
+            }
+        }
+
         private async Task<AuthStep> OnConnected(AuthContext context)
         {
             authContext = context;
@@ -323,9 +336,13 @@ namespace KeeperSecurity.Authentication.Sync
             try
             {
                 await PostLogin();
-                return authContext.SessionTokenRestriction == 0
-                    ? new ConnectedStep()
-                    : new RestrictedConnectionStep();
+                if (authContext.SessionTokenRestriction == 0)
+                {
+                    await SyncBiometricPasskeyStatusAsync();
+                    return new ConnectedStep();
+                }
+
+                return new RestrictedConnectionStep();
             }
             catch (KeeperApiException kae)
             {

@@ -102,13 +102,64 @@ namespace KeeperBiometrics
         }
         
         /// <summary>
-        /// Checks if a credential ID is stored for a username
+        /// Checks if biometric login is enabled for a username: either a locally registered credential ID
+        /// (string value) or an account-level flag is stored.
         /// </summary>
         /// <param name="username">The username</param>
-        /// <returns>True if credential exists, false otherwise</returns>
+        /// <returns>True if biometric login is enabled for the user, false otherwise</returns>
         public static bool HasCredential(string username)
         {
-            return !string.IsNullOrEmpty(GetCredentialId(username));
+            if (string.IsNullOrWhiteSpace(username)) return false;
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(RegistryPath))
+                {
+                    return IsEnabledValue(key?.GetValue(username));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reading biometric state for username {username}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Stores an account-level "passkey available" flag without inventing a credential ID.
+        /// An existing credential ID or flag is preserved.
+        /// </summary>
+        /// <param name="username">The username</param>
+        /// <returns>True if the flag (or an existing credential) is present afterwards</returns>
+        public static bool SetBiometricFlag(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username)
+                || username.IndexOfAny(new[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' }) >= 0)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (HasCredential(username)) return true;
+                using (var key = Registry.CurrentUser.CreateSubKey(RegistryPath))
+                {
+                    if (key == null) return false;
+                    key.SetValue(username, 1, RegistryValueKind.DWord);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting biometric flag for username {username}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static bool IsEnabledValue(object value)
+        {
+            if (value is string s) return !string.IsNullOrEmpty(s);
+            if (value is int i) return i == 1;
+            return false;
         }
     }
 }

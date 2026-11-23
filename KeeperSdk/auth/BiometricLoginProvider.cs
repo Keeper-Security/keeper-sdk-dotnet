@@ -36,6 +36,21 @@ namespace KeeperSecurity.Authentication
         Task<IBiometricLoginResult> TryAuthenticateAsync(IAuthEndpoint auth, string username);
     }
 
+        /// <summary>
+        /// Optional extension for <see cref="IBiometricLoginProvider"/>.
+        /// If the provider implements this interface, <see cref="AuthSync"/> calls it after a successful login
+        /// and account summary processing. This lets the provider enable biometric login for accounts that
+        /// already have an active login passkey. Normal failures should be handled without throwing exceptions.
+        /// </summary>
+    public interface IBiometricPasskeySync
+    {
+        /// <summary>
+        /// Synchronizes the local biometric-login state with the account's passkeys.
+        /// </summary>
+        /// <param name="auth">The authenticated session.</param>
+        Task SyncAccountPasskeyStatusAsync(IAuthentication auth);
+    }
+
     /// <summary>
     /// biometric login entry point result (<see cref="AuthSync.TryBiometricLoginAsync"/>).
     /// </summary>

@@ -231,8 +231,9 @@ namespace KeeperBiometrics
                     };
                 }
                 
-                var storedCredId = CredentialStorage.GetCredentialId(username);
-                if (string.IsNullOrEmpty(storedCredId))
+                // A locally registered credential ID or an account-level passkey flag both enable login;
+                // the server supplies the allowed credentials.
+                if (!CredentialStorage.HasCredential(username))
                 {
                     return new PasskeyAuthenticationResult
                     {
@@ -425,6 +426,21 @@ namespace KeeperBiometrics
         {
             try
             {
+                return await ListPasskeysOrThrowAsync(auth, includeDisabled);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to list passkeys: {ex.Message}");
+                return new List<PasskeyInfo>();
+            }
+        }
+
+        /// <summary>
+        /// Lists passkeys and lets request failures propagate, so callers can tell "no passkeys" from "lookup failed".
+        /// </summary>
+        internal static async Task<List<PasskeyInfo>> ListPasskeysOrThrowAsync(IAuthentication auth, bool includeDisabled = false)
+        {
+            {
                 var request = new PasskeyListRequest
                 {
                     IncludeDisabled = includeDisabled
@@ -461,11 +477,6 @@ namespace KeeperBiometrics
                     };
                 }).ToList();
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to list passkeys: {ex.Message}");
-                return new List<PasskeyInfo>();
-            }
         }
         
         /// <summary>
@@ -488,7 +499,9 @@ namespace KeeperBiometrics
                 var credentialId = CredentialStorage.GetCredentialId(username);
                 if (string.IsNullOrEmpty(credentialId))
                 {
-                    return false;
+                    // No credential is registered on this device, so keep server-side passkeys enabled and clear the local flag.
+                    if (!CredentialStorage.HasCredential(username)) return false;
+                    return CredentialStorage.RemoveCredentialId(username);
                 }
                 
                 var credentials = await ListPasskeysAsync(auth);
