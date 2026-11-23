@@ -34,15 +34,15 @@ function script:Get-KeeperGeneratedPasswordPolicy {
         if (-not $default) {
             $default = $policies | Where-Object { -not $_.PSObject.Properties['domains'] -or $null -eq $_.domains } | Select-Object -First 1
         }
-        $host = Get-KeeperPolicyHost -Value $Url
+        $policyHost = Get-KeeperPolicyHost -Value $Url
         $matched = $null
         $longest = -1
-        if ($host) {
+        if ($policyHost) {
             foreach ($entry in $policies) {
                 foreach ($domain in @($entry.domains)) {
                     $candidate = Get-KeeperPolicyHost -Value ([string]$domain)
                     if ($candidate -and $candidate.Length -gt $longest -and
-                        ($host -eq $candidate -or $host.EndsWith(".$candidate", [StringComparison]::Ordinal))) {
+                        ($policyHost -eq $candidate -or $policyHost.EndsWith(".$candidate", [StringComparison]::Ordinal))) {
                         $matched = $entry
                         $longest = $candidate.Length
                     }

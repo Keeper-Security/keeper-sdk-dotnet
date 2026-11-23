@@ -708,7 +708,7 @@ namespace KeeperSecurity.Authentication
         {
             var rq = new AccountSummaryRequest
             {
-                SummaryVersion = 1
+                SummaryVersion = 3
             };
             var accountSummaryResponse = await this.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
             
