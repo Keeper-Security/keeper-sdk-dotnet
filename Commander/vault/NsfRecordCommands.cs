@@ -456,9 +456,23 @@ namespace Commander
                 {
                     if (isGrant)
                     {
-                        // ShareKeeperNSFRecord promotes an already-existing direct share to an update,
-                        // so both grant and update retain the same idempotent CLI behavior.
-                        await vault.ShareKeeperNSFRecord(recordUid, user, role, shareOptions);
+                        var results = await vault.ShareKeeperNSFRecords(new[]
+                        {
+                            new KeeperNSFRecordShareRequest
+                            {
+                                RecordUid = recordUid,
+                                UserEmail = user,
+                                Role = role,
+                                Options = shareOptions,
+                            },
+                        });
+                        var result = results.FirstOrDefault();
+                        if (result == null || !result.Success)
+                        {
+                            Console.WriteLine($"Error sharing record '{recordUid}' with '{user}': "
+                                + (result?.Message ?? result?.Status ?? "server returned no result"));
+                            continue;
+                        }
                         Console.WriteLine($"{(string.Equals(action, "update", StringComparison.OrdinalIgnoreCase) ? "Updated" : "Granted")} '{options.Role}' access to '{user}' on record '{recordUid}'.");
                     }
                     else
@@ -469,9 +483,7 @@ namespace Commander
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message == "Denying inherited team access on a record is not yet supported."
-                        ? ex.Message
-                        : $"Error {action}ing access for '{user}': {ex.Message}");
+                    Console.WriteLine($"Error {action}ing access for '{user}' on record '{recordUid}': {ex.Message}");
                 }
             }
         }
@@ -1245,7 +1257,7 @@ namespace Commander
         [Option("expire-in", Required = false, HelpText = "share expiration: never or period (e.g. 30d, 6mo, 1y)")]
         public string ExpireIn { get; set; }
 
-        [Option("rotate-on-expiration", Required = false, HelpText = "rotate the password when the share access expires (-roe alias). Only valid on grant; requires a future expiration and a pamUser record with rotation configured")]
+        [Option("rotate-on-expiration", Required = false, HelpText = "rotate the password when the share access expires. Only valid on grant; requires a future expiration and a pamUser record with rotation configured")]
         public bool RotateOnExpiration { get; set; }
     }
 

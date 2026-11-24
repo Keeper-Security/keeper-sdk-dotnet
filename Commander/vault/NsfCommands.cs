@@ -126,18 +126,10 @@ namespace Commander
                 });
 
             cli.Commands.Add("nsf-share-record",
-                new ValidatingParseableCommand<NsfShareRecordOptions>
+                new ParseableCommand<NsfShareRecordOptions>
                 {
                     Order = 47,
                     Description = "Change the sharing permissions of an individual record",
-                    Validate = tokens =>
-                    {
-                        if (tokens is IList<string> mutable)
-                            for (var i = 0; i < mutable.Count; i++)
-                                if (mutable[i] == "-roe" && (i == 0 || !new[] { "-e", "--email", "-a", "--action", "-r", "--role", "--expire-at", "--expire-in" }.Contains(mutable[i - 1])))
-                                    mutable[i] = "--rotate-on-expiration";
-                        return null;
-                    },
                     Action = context.NsfShareRecordCommand
                 });
 

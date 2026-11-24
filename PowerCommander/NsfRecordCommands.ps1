@@ -469,8 +469,13 @@ function Add-KeeperNSFRecord {
             foreach ($key in @($fieldDict.Keys)) {
                 if ($key.TrimStart('$') -ieq 'password') { [void]$fieldDict.Remove($key) }
             }
-            $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
-            $generatedPassword = New-KeeperGeneratedPassword -Policy $policy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
+            try {
+                $policy = Get-KeeperGeneratedPasswordPolicy -Vault $vault
+                $generatedPassword = New-KeeperGeneratedPassword -Policy $policy -PasswordRules $PasswordRules -SpecialChars $SpecialChars
+            } catch {
+                Write-Host "Error generating password: $($_.Exception.Message)" -ForegroundColor Red
+                return
+            }
             if (-not $generatedPassword) { return }
             $fieldDict['password'] = $generatedPassword
         }
@@ -1155,6 +1160,22 @@ function Set-KeeperNSFRecordAccess {
         [switch] $Force
     )
 
+    $normalizedEmails = @()
+    foreach ($user in $Email) {
+        $address = if ($null -ne $user) { $user.Trim() } else { '' }
+        try {
+            if (-not $address -or
+                ([System.Net.Mail.MailAddress]::new($address)).Address -ine $address) {
+                throw 'Invalid email address'
+            }
+        } catch {
+            Write-Host "Error: Invalid recipient email '$user'." -ForegroundColor Red
+            return
+        }
+        $normalizedEmails += $address
+    }
+    $Email = $normalizedEmails
+
     try {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     } catch {
@@ -1245,7 +1266,9 @@ function Set-KeeperNSFRecordAccess {
             $shareTargets = $vault.Auth.ExecuteAuthRest('vault/get_share_objects', (New-Object Records.GetShareObjectsRequest), [Records.GetShareObjectsResponse]).GetAwaiter().GetResult()
             $knownEmails = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             foreach ($targetList in @($shareTargets.ShareRelationships, $shareTargets.ShareFamilyUsers, $shareTargets.ShareEnterpriseUsers, $shareTargets.ShareMCEnterpriseUsers)) {
-                foreach ($target in $targetList) { if ($target.Username) { [void]$knownEmails.Add($target.Username) } }
+                foreach ($target in $targetList) {
+                    if ($target.Username) { [void]$knownEmails.Add($target.Username.Trim()) }
+                }
             }
             foreach ($user in $Email) {
                 if (-not $knownEmails.Contains($user)) { Write-Host "Error: '$user' is not a known share contact." -ForegroundColor Red; return }
@@ -1284,10 +1307,10 @@ function Set-KeeperNSFRecordAccess {
             catch {
                 $message = Get-KeeperExceptionMessage -Exception $_.Exception
                 if ($message -eq 'Denying inherited team access on a record is not yet supported.') {
-                    Write-Error -Message $message
+                    Write-Error -Message "Record '$uid', recipient '$user': $message"
                 }
                 else {
-                    [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
+                    [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user' on record '$uid'")
                 }
             }
         }

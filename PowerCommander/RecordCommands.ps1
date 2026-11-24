@@ -25,11 +25,11 @@ function script:Get-KeeperGeneratedPasswordPolicy {
     param([KeeperSecurity.Vault.VaultOnline] $Vault)
 
     $raw = Get-KeeperRecordPolicyValue -Vault $Vault -Name 'generated_password_complexity'
-    return ConvertFrom-KeeperGeneratedPasswordPolicy -Json $raw
+    return ConvertFrom-KeeperGeneratedPasswordPolicy -Json $raw -AccountEmail $Vault.Auth.Username
 }
 
 function script:ConvertFrom-KeeperGeneratedPasswordPolicy {
-    param([AllowNull()][string] $Json)
+    param([AllowNull()][string] $Json, [string] $AccountEmail)
 
     if ([string]::IsNullOrWhiteSpace($Json)) { return $null }
     try {
@@ -74,9 +74,22 @@ function script:ConvertFrom-KeeperGeneratedPasswordPolicy {
         Write-Warning 'Invalid generated_password_complexity policy shape; using generator defaults.'
         return $null
     }
+    $accountDomain = if ($AccountEmail -and $AccountEmail.Contains('@')) {
+        $AccountEmail.Substring($AccountEmail.LastIndexOf('@') + 1).Trim().ToLowerInvariant()
+    } else { $null }
+    if ($accountDomain) {
+        $matching = $policies | Where-Object {
+            @((Get-KeeperPolicyProperty -Policy $_ -Name 'domains')) |
+                Where-Object { $_ -and $_.ToString().Trim().ToLowerInvariant() -eq $accountDomain }
+        } | Select-Object -First 1
+        if ($matching) { return $matching }
+    }
     $default = $policies | Where-Object { @(Get-KeeperPolicyProperty -Policy $_ -Name 'domains') -contains '_default_' } | Select-Object -First 1
     if ($default) { return $default }
-    return $policies[0]
+    if ($policies.Count -eq 1 -and -not (Get-KeeperPolicyProperty -Policy $policies[0] -Name 'domains')) {
+        return $policies[0]
+    }
+    throw "No generated password policy matches account domain '$accountDomain' and no _default_ policy is defined."
 }
 
 function script:Get-KeeperPolicyProperty {
@@ -142,6 +155,9 @@ function script:New-KeeperGeneratedPassword {
             }
         }
     }
+    if ($Policy) {
+        Assert-KeeperPasswordPolicyFeasible -Policy $Policy -Options $options
+    }
     for ($attempt = 0; $attempt -lt 100; $attempt++) {
         $password = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($options)
         if (-not $Policy -or (Test-KeeperGeneratedPasswordPolicy -Password $password -Policy $Policy)) {
@@ -149,6 +165,35 @@ function script:New-KeeperGeneratedPassword {
         }
     }
     throw 'Could not generate a password that satisfies the enterprise password policy.'
+}
+
+function script:Assert-KeeperPasswordPolicyFeasible {
+    param($Policy, [KeeperSecurity.Utils.PasswordGenerationOptions] $Options)
+
+    $enabled = @($Options.Lower, $Options.Upper, $Options.Digit, $Options.Special) |
+        Where-Object { $_ -ge 0 }
+    if ($enabled.Count -eq 0) {
+        throw 'Enterprise password policy disables every character category; password generation is impossible.'
+    }
+    $required = 0
+    foreach ($name in @('lower', 'upper', 'digit', 'special')) {
+        if ((Get-KeeperPolicyProperty -Policy $Policy -Name ($name + '-use')) -eq $true) {
+            $minimum = [Math]::Max([int](Get-KeeperPolicyProperty -Policy $Policy -Name ($name + '-min')), 1)
+            $required += $minimum
+            if ($Options.$name -lt $minimum) {
+                throw "Enterprise password policy requires $minimum $name characters, but generation cannot provide them."
+            }
+        }
+    }
+    if ($required -gt $Options.Length) {
+        throw "Enterprise password policy requires $required characters in a password of length $($Options.Length)."
+    }
+    if ($Options.Special -gt 0 -and (Get-KeeperPolicyProperty -Policy $Policy -Name 'special-use') -eq $true) {
+        $allowed = Get-KeeperPolicyProperty -Policy $Policy -Name 'special'
+        if ($allowed -and -not ($allowed.ToCharArray() | Where-Object { -not [char]::IsLetterOrDigit($_) } | Select-Object -First 1)) {
+            throw 'Enterprise password policy requires special characters but its allowed character set contains none.'
+        }
+    }
 }
 
 function script:Test-KeeperGeneratedPasswordPolicy {

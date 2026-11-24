@@ -3351,8 +3351,7 @@ namespace KeeperSecurity.Vault
                 AccessType = FolderProto.AccessType.AtUser,
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 Owner = false,
-                AccessRoleType = accessRole == FolderProto.AccessRoleType.Navigator
-                    ? FolderProto.AccessRoleType.Viewer : accessRole,
+                AccessRoleType = GetRecordDenyAccessRole(accessRole),
                 DeniedAccess = true,
             };
             return perm;
@@ -3969,17 +3968,9 @@ namespace KeeperSecurity.Vault
                 for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
                 {
                     var item = chunk[chunkIndex];
-                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
-                    if (!statusByKey.TryGetValue(key, out var status)
-                        && chunkIndex < revokeRs.RevokedSharingStatus.Count)
-                    {
-                        status = revokeRs.RevokedSharingStatus[chunkIndex];
-                    }
-
+                    var status = GetRevokeStatus(revokeRs, statusByKey, item.Permission, chunkIndex);
                     revokeStatus[item.Index] = status;
-                    revokeOk[item.Index] = status != null
-                        && (status.Status_ == RecordSharingProto.SharingStatus.Success
-                            || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept);
+                    revokeOk[item.Index] = IsSuccessfulShareStatus(status);
                 }
             }
 
@@ -4016,17 +4007,9 @@ namespace KeeperSecurity.Vault
                 for (var chunkIndex = 0; chunkIndex < chunk.Count; chunkIndex++)
                 {
                     var item = chunk[chunkIndex];
-                    var key = BuildShareStatusKey(item.Permission.RecordUid, item.Permission.RecipientUid);
-                    if (!statusByKey.TryGetValue(key, out var status)
-                        && chunkIndex < denyRs.CreatedSharingStatus.Count)
-                    {
-                        status = denyRs.CreatedSharingStatus[chunkIndex];
-                    }
-
+                    var status = GetDenyStatus(denyRs, statusByKey, item.Permission, chunkIndex);
                     denyStatus[item.Index] = status;
-                    denyOk[item.Index] = status != null
-                        && (status.Status_ == RecordSharingProto.SharingStatus.Success
-                            || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept);
+                    denyOk[item.Index] = IsSuccessfulShareStatus(status);
                 }
             }
 
@@ -4060,7 +4043,8 @@ namespace KeeperSecurity.Vault
                         : $"Inherited deny failed: {denyErrors[i] ?? denyStatus[i]?.Message ?? "server returned no status"}";
                     results[i].Status = revokeFailed && denyFailed ? "failed"
                         : revokeFailed || denyFailed ? "partial_failure" : "Success";
-                    results[i].Message = $"{revokeMessage}; {denyMessage}.";
+                    results[i].Message = BuildPartialFailureMessage(
+                        results[i].RecordUid, results[i].UserEmail, revokeMessage, denyMessage);
                     results[i].Success = !revokeFailed && !denyFailed;
                     continue;
                 }
@@ -4088,6 +4072,41 @@ namespace KeeperSecurity.Vault
             }
 
             return results;
+        }
+
+        private static RecordSharingProto.Status GetRevokeStatus(RecordSharingProto.Response response,
+            Dictionary<string, RecordSharingProto.Status> statuses, RecordSharingProto.Permissions permission,
+            int position)
+        {
+            return GetBatchShareStatus(response.RevokedSharingStatus, statuses, permission, position);
+        }
+
+        private static RecordSharingProto.Status GetDenyStatus(RecordSharingProto.Response response,
+            Dictionary<string, RecordSharingProto.Status> statuses, RecordSharingProto.Permissions permission,
+            int position)
+        {
+            return GetBatchShareStatus(response.CreatedSharingStatus, statuses, permission, position);
+        }
+
+        private static RecordSharingProto.Status GetBatchShareStatus(IList<RecordSharingProto.Status> responseStatuses,
+            Dictionary<string, RecordSharingProto.Status> statuses, RecordSharingProto.Permissions permission,
+            int position)
+        {
+            var key = BuildShareStatusKey(permission.RecordUid, permission.RecipientUid);
+            if (statuses.TryGetValue(key, out var status)) return status;
+            return position < responseStatuses.Count ? responseStatuses[position] : null;
+        }
+
+        private static bool IsSuccessfulShareStatus(RecordSharingProto.Status status)
+        {
+            return status != null && (status.Status_ == RecordSharingProto.SharingStatus.Success
+                || status.Status_ == RecordSharingProto.SharingStatus.PendingAccept);
+        }
+
+        private static string BuildPartialFailureMessage(string recordUid, string userEmail,
+            string revokeMessage, string denyMessage)
+        {
+            return $"Record '{recordUid}', recipient '{userEmail}': {revokeMessage}; {denyMessage}.";
         }
 
         internal static FolderProto.AccessRoleType? GetInheritedRecordAccessRole(
@@ -4324,10 +4343,30 @@ namespace KeeperSecurity.Vault
                 AccessType = FolderProto.AccessType.AtUser,
                 RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                 Owner = false,
-                AccessRoleType = accessRole,
+                AccessRoleType = GetRecordDenyAccessRole(accessRole),
                 DeniedAccess = true,
             };
             return perm;
+        }
+
+        private static FolderProto.AccessRoleType GetRecordDenyAccessRole(FolderProto.AccessRoleType inheritedRole)
+        {
+            // Record denies use the same RecordAccessData role enum as shares. Only the five
+            // record-sharing roles are valid on the outgoing deny; folder-only roles become Viewer.
+            switch (inheritedRole)
+            {
+                case FolderProto.AccessRoleType.Navigator:
+                case FolderProto.AccessRoleType.Requestor:
+                    return FolderProto.AccessRoleType.Viewer;
+                case FolderProto.AccessRoleType.Viewer:
+                case FolderProto.AccessRoleType.SharedManager:
+                case FolderProto.AccessRoleType.ContentManager:
+                case FolderProto.AccessRoleType.ContentShareManager:
+                case FolderProto.AccessRoleType.Manager:
+                    return inheritedRole;
+                default:
+                    throw new VaultException($"Unsupported inherited record access role: {inheritedRole}.");
+            }
         }
 
         // fetches public keys for share recipients
