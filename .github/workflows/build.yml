@@ -44,7 +44,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: '8.0.x'
+         dotnet-version: |
+           8.0.x
+           10.0.x
 
       - name: Setup Code Sign Cert
         shell: bash
@@ -85,8 +87,15 @@ jobs:
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\KeeperSdk.dll"
+          # net10.0 is only built when the .NET 10 SDK is installed, so sign only the outputs that exist
+          foreach ($tfm in 'netstandard2.0', 'net8.0', 'net10.0') {
+            $dll = "bin\Release\$tfm\KeeperSdk.dll"
+            if (Test-Path $dll) {
+              & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" $dll
+            } else {
+              Write-Host "Skipping signing, not built: $dll"
+            }
+          }
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
           # $cert = Get-Item "Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}"
           # $sha256 = $cert.GetCertHashString("SHA256") 
@@ -127,7 +136,14 @@ jobs:
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build --configuration=Release
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Commander.exe"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\Commander.dll"
+          foreach ($tfm in 'net8.0', 'net10.0') {
+            $dll = "bin\Release\$tfm\Commander.dll"
+            if (Test-Path $dll) {
+              & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" $dll
+            } else {
+              Write-Host "Skipping signing, not built: $dll"
+            }
+          }
         shell: powershell 
 
       - name: Zip .Net Framework Commander
