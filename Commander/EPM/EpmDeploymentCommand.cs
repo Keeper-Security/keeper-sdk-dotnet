@@ -189,12 +189,20 @@ namespace Commander.EPM
                         }
                         else if (ext == ".pem")
                         {
-                            var cert = new X509Certificate2(spiffePath);
+#if NET10_0_OR_GREATER
+                            using var cert = X509CertificateLoader.LoadCertificateFromFile(spiffePath);
+#else
+                            using var cert = new X509Certificate2(spiffePath);
+#endif
                             certBytes = cert.Export(X509ContentType.Cert);
                         }
                         else
                         {
-                            var cert = new X509Certificate2(spiffePath);
+#if NET10_0_OR_GREATER
+                            using var cert = X509CertificateLoader.LoadCertificateFromFile(spiffePath);
+#else
+                            using var cert = new X509Certificate2(spiffePath);
+#endif
                             certBytes = cert.Export(X509ContentType.Cert);
                         }
                         
