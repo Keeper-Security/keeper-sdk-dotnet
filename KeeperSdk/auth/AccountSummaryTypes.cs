@@ -227,6 +227,10 @@ namespace KeeperSecurity.Authentication
         /// Persistent login.
         /// </summary>
         public bool PersistentLogin { get; internal set; }
+        /// <summary>
+        /// If true, security keys are allowed to authenticate without user verification (for example, a YubiKey PIN).
+        /// </summary>
+        public bool SecurityKeysNoUserVerify { get; internal set; }
         internal string AccountFolderKey { get; set; }
         internal AccountShareTo[] ShareAccountTo { get; set; }
 
@@ -252,6 +256,7 @@ namespace KeeperSecurity.Authentication
                 ShareDataKeyWithDevicePublicKey = settings.ShareDataKeyWithDevicePublicKey,
                 LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : null,
                 PersistentLogin = settings.PersistentLogin,
+                SecurityKeysNoUserVerify = settings.SecurityKeysNoUserVerify,
             };
         }
     }

@@ -176,7 +176,7 @@ namespace Commander
             }
 
             var availableVerbs = new[]
-                {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout", "bio"};
+                {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout", "bio", "no-yubikey-pin"};
 
             var deviceToken = device.EncryptedDeviceToken.ToByteArray();
             var bioTarget = _auth.Username.BiometricCredentialTarget(deviceToken);
@@ -210,6 +210,8 @@ namespace Commander
                         !_accountSummary.Settings.IpDisableAutoApprove);
                     Console.WriteLine("{0, 20}: {1}", "Persistent Login",
                         !persistentLoginDisabled && _accountSummary.Settings.PersistentLogin);
+                    Console.WriteLine("{0, 20}: {1}", "No YubiKey PIN",
+                        _accountSummary.Settings.SecurityKeysNoUserVerify);
 
                     var deviceTimeout = TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer);
                     if (deviceTimeout > TimeSpan.Zero)
@@ -273,6 +275,42 @@ namespace Commander
                         Console.WriteLine("Device already registered.");
                     }
 
+                }
+                break;
+
+                case "no-yubikey-pin":
+                {
+                    bool noYubiKeyPin;
+                    if (string.Compare(arguments.Parameter, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        noYubiKeyPin = true;
+                    }
+                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        noYubiKeyPin = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
+                        return;
+                    }
+
+                    if (noYubiKeyPin)
+                    {
+                        Console.WriteLine("WARNING: This turns off the YubiKey PIN requirement for security-key authentication");
+                        Console.WriteLine("on your whole account, on ALL devices. A stolen security key could then be used without a PIN.");
+                        if (!await NsfHelpers.ConfirmAsync("Do you want to proceed? (y/N): "))
+                        {
+                            Console.WriteLine("Cancelled.");
+                            return;
+                        }
+                    }
+
+                    await _auth.SetSecurityKeysNoUserVerify(noYubiKeyPin);
+                    _accountSummary = null;
+                    Console.WriteLine(noYubiKeyPin
+                        ? "Security-key authentication no longer requires a YubiKey PIN (applies to all devices on this account)."
+                        : "Security-key authentication requires a YubiKey PIN (applies to all devices on this account).");
                 }
                 break;
 
@@ -1241,7 +1279,7 @@ namespace Commander
 
     class ThisDeviceOptions
     {
-        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\", \"bio\", \"ip_disable_auto_approve\", \"persistent_login\"")]
+        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\", \"bio\", \"ip_disable_auto_approve\", \"persistent_login\", \"no-yubikey-pin\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]
