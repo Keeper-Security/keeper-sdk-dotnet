@@ -388,6 +388,12 @@ namespace Commander
 
                 if (_auth.IsAuthenticated())
                 {
+                    if (_auth.Endpoint is KeeperEndpoint endpoint
+                        && !string.IsNullOrEmpty(endpoint.LastEncryptionMode))
+                    {
+                        Console.WriteLine(endpoint.LastEncryptionMode);
+                    }
+
                     var connectedCommands = new ConnectedContext(_auth);
                     NextStateCommands = connectedCommands;
                 }

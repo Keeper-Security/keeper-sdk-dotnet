@@ -1093,6 +1093,10 @@ namespace KeeperSecurity.Authentication
             authContext = null;
             PushNotifications?.Dispose();
             _timer?.Dispose();
+            if (Endpoint is IDisposable disposableEndpoint)
+            {
+                disposableEndpoint.Dispose();
+            }
         }
     }
 #pragma warning disable 0649
