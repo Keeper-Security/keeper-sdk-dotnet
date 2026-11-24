@@ -105,39 +105,38 @@ namespace KeeperSecurity.Authentication
                 parameters.AllowCredential(credentialId);
             }
 
-            var devices = YubiKeyDevice.FindByTransport(Transport.HidFido);
-            using (var iterator = devices.GetEnumerator())
+            var userVerificationRequired =
+                string.Equals(request.userVerification, "required", StringComparison.OrdinalIgnoreCase);
+            var deviceCount = 0;
+            Exception lastDeviceError = null;
+
+            // Try every connected FIDO2 key: another key may hold the credential.
+            foreach (var device in YubiKeyDevice.FindByTransport(Transport.HidFido))
             {
-                if (!iterator.MoveNext())
+                deviceCount++;
+                IReadOnlyList<GetAssertionData> assertions = null;
+                try
                 {
-                    throw new InvalidOperationException(
-                        "No FIDO2 security key was found. Connect a YubiKey and try again.");
-                }
-
-                using (var fido2 = new Fido2Session(iterator.Current))
-                {
-                    fido2.KeyCollector = CollectKeyEntry;
-
-                    // GetAssertionParameters does not expose the WebAuthn
-                    // userVerification option. Verifying the PIN first makes a
-                    // required-UV request produce an authenticator UV flag.
-                    if (string.Equals(request.userVerification, "required", StringComparison.OrdinalIgnoreCase))
+                    using (var fido2 = new Fido2Session(device))
                     {
-                        fido2.VerifyPin(PinUvAuthTokenPermissions.GetAssertion, relyingPartyId);
-                    }
+                        fido2.KeyCollector = CollectKeyEntry;
 
-                    var assertions = fido2.GetAssertions(parameters);
-                    if (assertions == null || assertions.Count == 0)
-                    {
-                        throw new InvalidOperationException(
-                            "The connected YubiKey has no credential for this Keeper account.");
-                    }
+                        // GetAssertionParameters does not expose the WebAuthn
+                        // userVerification option. Verifying the PIN first makes a
+                        // required-UV request produce an authenticator UV flag.
+                        if (userVerificationRequired)
+                        {
+                            fido2.VerifyPin(PinUvAuthTokenPermissions.GetAssertion, relyingPartyId);
+                        }
 
-                    try
-                    {
+                        assertions = fido2.GetAssertions(parameters);
+                        if (assertions == null || assertions.Count == 0)
+                        {
+                            continue;   // no credential on this key, try the next one
+                        }
+
                         var assertion = assertions[0];
-                        if (string.Equals(request.userVerification, "required", StringComparison.OrdinalIgnoreCase) &&
-                            !assertion.AuthenticatorData.UserVerification)
+                        if (userVerificationRequired && !assertion.AuthenticatorData.UserVerification)
                         {
                             throw new InvalidOperationException(
                                 "The YubiKey did not verify the user. Configure and use a FIDO2 PIN, then retry.");
@@ -147,7 +146,24 @@ namespace KeeperSecurity.Authentication
                             clientDataJson,
                             !string.IsNullOrWhiteSpace(request.extensions?.appid));
                     }
-                    finally
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (InvalidOperationException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    // Device/transport error (e.g. key has no matching credential or
+                    // was removed); remember it and fall through to the next key.
+                    lastDeviceError = e;
+                }
+                finally
+                {
+                    if (assertions != null)
                     {
                         foreach (var assertion in assertions)
                         {
@@ -156,6 +172,17 @@ namespace KeeperSecurity.Authentication
                     }
                 }
             }
+
+            if (deviceCount == 0)
+            {
+                throw new InvalidOperationException(
+                    "No FIDO2 security key was found. Connect a YubiKey and try again.");
+            }
+            throw new InvalidOperationException(
+                deviceCount == 1
+                    ? "The connected YubiKey has no credential for this Keeper account."
+                    : "None of the connected YubiKeys has a credential for this Keeper account.",
+                lastDeviceError);
         }
 
         private static bool CollectKeyEntry(KeyEntryData keyEntryData)
