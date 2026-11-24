@@ -135,6 +135,10 @@ Console.WriteLine($"Record created with UID: {createdRecord.Uid}");
 - **Biometric authentication** - WebAuthn/FIDO2 support
 - **Input management** - Console and GUI input handlers via `IInputManager`
 
+Security-key 2FA is handled by `YubiKeySecurityKeyUI` when no application-specific
+`IAuthSecurityKeyUI` is supplied. Windows uses the native WebAuthn prompt; macOS and
+Linux use Yubico's YubiKey library and request any FIDO2 PIN or touch in the terminal.
+
 ### Vault Operations (`KeeperSecurity.Vault`)
 
 - **Records**: Create, read, update, delete password records
