@@ -478,6 +478,12 @@ namespace KeeperSecurity.Authentication
         /// </remarks>
         public IPostLoginTaskUI PostLoginTaskUI { get; set; }
 
+        /// <summary>
+        /// Optional security-key handler for hosts that need to provide WebAuthn
+        /// independently of the regular authentication callback.
+        /// </summary>
+        public IAuthSecurityKeyUI SecurityKeyUI { get; set; }
+
         public TimeSpan LogoutTimeout { get; internal set; } = TimeSpan.FromHours(1);
 
         private void ResetKeepAliveTimer()

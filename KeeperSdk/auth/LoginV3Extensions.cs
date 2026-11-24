@@ -893,17 +893,27 @@ namespace KeeperSecurity.Authentication
                     break;
 
                     case TwoFactorChannelType.TwoFaCtWebauthn:
-                        if (auth.AuthCallback is IAuthSecurityKeyUI keyUi)
+                        var keyUi = (auth as AuthCommon)?.SecurityKeyUI
+                            ?? auth.AuthCallback as IAuthSecurityKeyUI;
+                        if (keyUi == null && YubiKeySecurityKeyUI.IsSupportedPlatform)
+                        {
+                            keyUi = new YubiKeySecurityKeyUI(auth.Endpoint.Server);
+                        }
+                        if (keyUi != null)
                         {
                             try
                             {
                                 var rqs = JsonUtils.ParseJson<KeeperWebAuthnRequest>(Encoding.UTF8.GetBytes(ch.Challenge));
-                                var ui = keyUi;
+                                if (rqs == null || rqs.publicKeyCredentialRequestOptions == null)
+                                {
+                                    throw new FormatException(
+                                        "The WebAuthn challenge is missing credential request options.");
+                                }
                                 var key2Fa = new TwoFactorSecurityKeyChannel
                                 {
                                     InvokeTwoFactorPushAction = async (_) =>
                                     {
-                                        var signature = await ui.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
+                                        var signature = await keyUi.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
 
                                         var request = new TwoFactorValidateRequest
                                         {
@@ -921,6 +931,8 @@ namespace KeeperSecurity.Authentication
                             }
                             catch (Exception e)
                             {
+                                Trace.TraceWarning("Keeper WebAuthn challenge could not be initialized: {0}",
+                                    e.GetType().Name);
                                 Debug.WriteLine(e.Message);
                             }
                         }
