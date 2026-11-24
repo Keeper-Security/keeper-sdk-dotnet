@@ -33,6 +33,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.36.2" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageReference Include="zxcvbn-core" Version="7.0.92" />
+    <PackageReference Include="Yubico.YubiKey" Version="1.18.1" />
   </ItemGroup>
   
   <ItemGroup>

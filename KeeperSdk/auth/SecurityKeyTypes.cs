@@ -69,6 +69,8 @@ namespace KeeperSecurity.Authentication
         public string challenge;
         [DataMember(Name = "origin", Order = 3)]
         public string origin;
+        [DataMember(Name = "crossOrigin", Order = 4)]
+        public bool crossOrigin;
     }
 
     /// <exclude/>
@@ -81,12 +83,16 @@ namespace KeeperSecurity.Authentication
         public string clientDataJSON;
         [DataMember(Name = "signature", Order = 3)]
         public string signature;
+        [DataMember(Name = "userHandle", Order = 4, EmitDefaultValue = false)]
+        public string userHandle;
     }
 
     /// <exclude/>
     [DataContract]
     public class ClientExtensionResults
     {
+        [DataMember(Name = "appid", EmitDefaultValue = false)]
+        public bool? appid;
     }
 
     /// <exclude/>

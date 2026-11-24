@@ -201,6 +201,16 @@ namespace KeeperSecurity.Authentication
                 });
         }
 
+        /// <summary>
+        /// Controls whether a security key, like a YubiKey, can authenticate without requiring a PIN.
+        /// </summary>
+        /// <param name="auth">The authenticated connection.</param>
+        /// <param name="noUserVerify">True to allow security-key authentication without user verification.</param>
+        public static Task SetSecurityKeysNoUserVerify(this IAuthentication auth, bool noUserVerify)
+        {
+            return auth.SetSessionParameter("security_keys_no_user_verify", noUserVerify ? "1" : "0");
+        }
+
         /// <exclude/>
         public static Task SetSessionInactivityTimeout(this IAuthentication auth, int timeoutInMinutes)
         {
