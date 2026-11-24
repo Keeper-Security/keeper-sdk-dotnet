@@ -12,6 +12,14 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 
 Keep `zxcvbn-core.dll` alongside `KeeperSdk.dll` in the PowerCommander module folder. The SDK uses zxcvbn internally to estimate master-password strength; PowerCommander calls the SDK API and does not need to reference zxcvbn itself. `PowerCommander.psd1` loads the dependency before `KeeperSdk.dll`.
 
+### QRC support
+
+Power Commander supports **Windows PowerShell 5.1** only (`PowerShellVersion = '5.1'`, `CompatiblePSEditions = @('Desktop')`). It loads `KeeperSdk.dll` (the .NET Standard 2.0 build) and its dependencies from the module directory through `RequiredAssemblies`.
+
+QRC (post-quantum hybrid encryption using ML-KEM) is implemented with BouncyCastle, so it works on 5.1 and the module must include `BouncyCastle.Cryptography.dll` and `System.Numerics.Vectors.dll`. The SDK tries QRC first and falls back to EC encryption if QRC is unavailable or fails. A key mismatch reported by the server (including an unknown or non-EC key ID) disables QRC for that session and retries with EC.
+
+Run `Connect-Keeper -Verbose` to see which encryption mode the SDK used.
+
 ### Optional: SQLite vault storage (-UseOfflineStorage)
 
 To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll`, `KeeperBiometrics.dll`, and `zxcvbn-core.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
