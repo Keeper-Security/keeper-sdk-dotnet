@@ -496,7 +496,7 @@ function Get-KeeperRecord {
 	Return matching classic records only as KeeperRecord objects
 
 	.Parameter Format
-	Output table (default) or JSON. -Filter and the default list view return arrays; -Uid returns a classic record object.
+	Output table (default) or JSON. -Filter and the default list view return arrays; -Uid returns classic or NSF record JSON.
 
 	.Parameter AsObject
 	Return unified list rows (KeeperRecordListItem) for scripting
@@ -557,7 +557,8 @@ function Get-KeeperRecord {
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
             if ($Format -eq 'json') {
-                Write-Error -Message 'JSON output is not supported for NSF records.' -ErrorAction Stop
+                Get-KeeperNSFRecord -Uid $Uid -Format json -Unmask:$Unmask
+                return
             }
             Get-KeeperNSFRecord -Uid $Uid -Unmask:$Unmask
         }

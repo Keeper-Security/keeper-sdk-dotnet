@@ -348,7 +348,7 @@ function Get-KeeperFolder {
 	Return the folder object instead of displaying formatted information
 
 	.Parameter Format
-	Output format: table (default) or Python Commander-compatible JSON for a classic folder.
+	Output format: table (default) or JSON for a classic or NSF folder.
 
 	.Example
 	Get-KeeperFolder 'Engineering' -Format json
@@ -371,7 +371,8 @@ function Get-KeeperFolder {
         $nsfFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
         if ($nsfFolder) {
             if ($Format -eq 'json') {
-                Write-Error -Message 'JSON output is not supported for NSF folders.' -ErrorAction Stop
+                Get-KeeperNSFRecord -Uid $nsfFolder.FolderUid -Format json
+                return
             }
             if ($AsObject.IsPresent) { return $nsfFolder }
             Get-KeeperNSFRecord -Uid $Uid

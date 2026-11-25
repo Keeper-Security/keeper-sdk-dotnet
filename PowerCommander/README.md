@@ -488,8 +488,8 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     PS > Get-KeeperFolder '/Shared Folder/SubFolder'
     ```
 
-    For Python Commander-style JSON, use `Get-KeeperFolder 'Shared Folder' -Format json`. For a classic record, use `kr -Uid <record-uid> -Format json`. Hidden record values are masked unless `-Unmask` is supplied.
-    `kr -Format json` and `kr -Filter <pattern> -Format json` retain complete descriptions. Classic shared-folder JSON uses the same parent folder location shape as folder JSON. JSON requests for unsupported NSF items return an error.
+    For JSON, use `Get-KeeperFolder '<folder-uid>' -Format json` or `kr -Uid <record-uid> -Format json`. Classic items use Python Commander-style fields; NSF items use the existing `nsf-get -Format json` schema. Hidden record values are masked unless `-Unmask` is supplied.
+    `kr -Format json` and `kr -Filter <pattern> -Format json` retain complete descriptions. Classic shared-folder JSON uses the same parent folder location shape as folder JSON.
 
 9. List all enterprise users
     ```
