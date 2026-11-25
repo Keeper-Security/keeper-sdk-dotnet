@@ -52,6 +52,7 @@ function Add-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
     if ([string]::IsNullOrWhiteSpace($Name)) {
         Write-Host "Error: Folder name cannot be empty."
         return
@@ -361,11 +362,17 @@ function Get-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if ($AsObject.IsPresent -and $Format -eq 'json') {
+        Write-Error -Message '-AsObject cannot be combined with -Format json.' -ErrorAction Stop
+    }
 
     $folder = tryResolveKeeperFolder -Identifier $Uid -Vault $vault -SupportPaths
     if (-not $folder) {
         $nsfFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
         if ($nsfFolder) {
+            if ($Format -eq 'json') {
+                Write-Error -Message 'JSON output is not supported for NSF folders.' -ErrorAction Stop
+            }
             if ($AsObject.IsPresent) { return $nsfFolder }
             Get-KeeperNSFRecord -Uid $Uid
             return

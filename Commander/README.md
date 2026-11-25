@@ -217,6 +217,7 @@ For JSON search results, use `search --format json database` or `list --format j
 NSF CLI compatibility: `nsf-record-add` now requires `--title` and `-t/--type` instead of a positional title and an implicit `login` type. `nsf-share-record` requires `-r/--role` for grants instead of defaulting to `viewer`; existing scripts should add `-r viewer` where appropriate. Sharing also accepts `--contacts-only` and `--rotate-on-expiration`.
 
 Use `get --format json <record-uid>` for a classic record object, or `get --format json --folder <folder-uid>` for a classic folder object. These use Python Commander field names and folder paths. Hidden record values are masked unless `--unmask` is supplied.
+Classic shared-folder JSON uses the same parent folder location shape (`uid: null`, `path: "/"` at the vault root). Unsupported record types return a clear error when JSON is requested.
 
 ### Attachment Management
 

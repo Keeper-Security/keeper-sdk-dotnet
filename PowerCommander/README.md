@@ -489,6 +489,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
 
     For Python Commander-style JSON, use `Get-KeeperFolder 'Shared Folder' -Format json`. For a classic record, use `kr -Uid <record-uid> -Format json`. Hidden record values are masked unless `-Unmask` is supplied.
+    `kr -Format json` and `kr -Filter <pattern> -Format json` retain complete descriptions. Classic shared-folder JSON uses the same parent folder location shape as folder JSON. JSON requests for unsupported NSF items return an error.
 
 9. List all enterprise users
     ```

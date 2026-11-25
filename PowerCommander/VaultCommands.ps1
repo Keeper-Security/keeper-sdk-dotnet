@@ -914,8 +914,8 @@ function ConvertTo-KeeperFolderLocation {
 
     $parentUid = if ($Folder) { $Folder.ParentUid } else { $null }
     [ordered]@{
-        uid  = if ($parentUid) { $parentUid } else { '' }
-        path = if ($parentUid) { (getVaultFolderPath $Vault $parentUid).TrimStart($Script:PathDelimiter) } else { '' }
+        uid  = if ($parentUid) { $parentUid } else { $null }
+        path = if ($parentUid) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $parentUid } else { [string]$Script:PathDelimiter }
     }
 }
 
@@ -929,10 +929,13 @@ function Get-KeeperJsonFolderPath {
     while ($FolderUid) {
         [KeeperSecurity.Vault.FolderNode]$node = $null
         if (-not $Vault.TryGetFolder($FolderUid, [ref]$node)) { break }
-        $names.Insert(0, $node.Name.Replace('/', '//'))
+        if (-not [string]::IsNullOrEmpty($node.Name)) {
+            $delimiter = [string]$Script:PathDelimiter
+            $names.Insert(0, $node.Name.Replace($delimiter, $delimiter + $delimiter))
+        }
         $FolderUid = $node.ParentUid
     }
-    $names -join '/'
+    $names -join [string]$Script:PathDelimiter
 }
 
 function ConvertTo-KeeperFolderJson {
@@ -954,10 +957,7 @@ function ConvertTo-KeeperFolderJson {
         name       = $Folder.Name
         path       = Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $Folder.FolderUid
         parent_uid = if ($Folder.ParentUid) { $Folder.ParentUid } else { $null }
-        folder     = [ordered]@{
-            uid = if ($Folder.ParentUid) { $Folder.ParentUid } else { $null }
-            path = if ($Folder.ParentUid) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $Folder.ParentUid } else { '/' }
-        }
+        folder     = ConvertTo-KeeperFolderLocation -Folder $Folder -Vault $Vault
     }
     if ($Folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::SharedFolderFolder) {
         $json['shared_folder_uid'] = $Folder.SharedFolderUid

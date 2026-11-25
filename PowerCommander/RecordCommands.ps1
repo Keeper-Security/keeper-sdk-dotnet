@@ -300,10 +300,13 @@ function Get-KeeperRecordListItems {
 }
 
 function ConvertTo-KeeperRecordListRow {
-    Param([Parameter(Mandatory = $true)][KeeperRecordListItem] $Item)
+    Param(
+        [Parameter(Mandatory = $true)][KeeperRecordListItem] $Item,
+        [switch] $FullDescription
+    )
 
     $desc = $Item.Description
-    if (-not [string]::IsNullOrEmpty($desc)) {
+    if (-not $FullDescription.IsPresent -and -not [string]::IsNullOrEmpty($desc)) {
         $desc = ($desc -replace '\s+', ' ').Trim()
         if ($desc.Length -gt 36) { $desc = $desc.Substring(0, 33) + '...' }
     }
@@ -415,7 +418,7 @@ function ConvertTo-KeeperClassicRecordJson {
     $folder = $Vault.Folders | Where-Object { $_.Records.Contains($Record.Uid) } | Select-Object -First 1
     $json['folder'] = [ordered]@{
         uid = if ($folder) { $folder.FolderUid } else { $null }
-        path = if ($folder) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $folder.FolderUid } else { '/' }
+        path = if ($folder) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $folder.FolderUid } else { [string]$Script:PathDelimiter }
     }
     ConvertTo-Json -InputObject $json -Depth 10
 }
@@ -521,6 +524,10 @@ function Get-KeeperRecord {
     if ($Uid) {
         $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
         if ($null -ne $record) {
+            if ($Format -eq 'json' -and $record -isnot [KeeperSecurity.Vault.PasswordRecord] -and
+                $record -isnot [KeeperSecurity.Vault.TypedRecord]) {
+                Write-Error -Message "JSON output is not supported for record type $($record.GetType().Name)." -ErrorAction Stop
+            }
             if ($Format -eq 'json' -and ($record -is [KeeperSecurity.Vault.PasswordRecord] -or
                 $record -is [KeeperSecurity.Vault.TypedRecord])) {
                 ConvertTo-KeeperClassicRecordJson -Record $record -Vault $vault -Unmask:$Unmask
@@ -545,6 +552,9 @@ function Get-KeeperRecord {
             }
         }
         elseif (resolveKeeperNSFRecord -Identifier $Uid -Vault $vault) {
+            if ($Format -eq 'json') {
+                Write-Error -Message 'JSON output is not supported for NSF records.' -ErrorAction Stop
+            }
             Get-KeeperNSFRecord -Uid $Uid -Unmask:$Unmask
         }
     }
@@ -567,7 +577,7 @@ function Get-KeeperRecord {
                 $item.Version = $record.Version
                 $item.Revision = $record.Revision
                 $item.Shared = $record.Shared
-                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item)) | Out-Null
+                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item -FullDescription)) | Out-Null
                 continue
             }
             $record
@@ -580,7 +590,7 @@ function Get-KeeperRecord {
         if ($Format -eq 'json') {
             $rows = [System.Collections.Generic.List[object]]::new()
             foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
-                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item)) | Out-Null
+                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item -FullDescription)) | Out-Null
             }
             ConvertTo-Json -InputObject ([object[]]$rows.ToArray()) -Depth 4
             return

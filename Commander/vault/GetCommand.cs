@@ -41,6 +41,13 @@ namespace Commander
 
                 if (record != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase) &&
+                        record is not PasswordRecord && record is not TypedRecord)
+                    {
+                        Console.WriteLine($"JSON output is not supported for record type {record.GetType().Name}.");
+                        return;
+                    }
+
                     if ((record is PasswordRecord || record is TypedRecord) &&
                         string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
                     {
