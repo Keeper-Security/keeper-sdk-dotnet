@@ -178,6 +178,16 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `logout` | | Logout and clear session |
 | `whoami` | | Display current user information |
 
+### Device Management Commands
+
+| Command | Description |
+|---------|-------------|
+| `device-list [--format table\|json] [--output FILE]` | List devices registered to the current account. `--output` applies only to JSON output. |
+| `device-action <action> <device...>` | Perform `logout`, `remove`, `lock`, `unlock`, `account-lock`, `account-unlock`, `link`, or `unlink`. A device can be a row ID from `device-list`, a full/token-prefix ID, or a device name. |
+| `device-rename <device> <new-name>` | Rename one device selected by row ID, token ID/prefix, or name. |
+
+`link` and `unlink` require at least two device identifiers. Ambiguous device names or token prefixes are rejected; use a row ID or a more specific token.
+
 ### Vault Navigation & Search
 
 | Command | Alias | Description |
@@ -229,6 +239,8 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `trash` | | Manage deleted records in trash |
+
+Trash status values are `Record`, `Share` (an orphaned shared record), `Folder` (a deleted shared folder or its records), `NSF Record`, and `NSF Folder`.
 
 ### Device Management
 
@@ -451,6 +463,10 @@ For complete SDK documentation, see:
 - Check shared folder permissions with `sf-list`
 
 ## Support
+
+### Nested Shared Folder permissions
+
+`nsf-get --uid <uid>` shows direct permissions by default. Use `--show-inherited` to show inherited permission rows and `--show-denied` to show denied-access rows; the options can be combined. JSON permission entries include `inherited` and `denied_access` state fields.
 
 ### Get Help
 

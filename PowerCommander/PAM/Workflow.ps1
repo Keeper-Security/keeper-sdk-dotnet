@@ -92,7 +92,7 @@ function script:writePamWorkflowExemptMessage {
     Write-Output ''
 }
 
-function script:resolvePamWorkflowResourceName {
+function script:resolvePamWorkflowRecordName {
     Param (
         [KeeperSecurity.Vault.VaultOnline] $Vault,
         $Resource
@@ -106,16 +106,35 @@ function script:resolvePamWorkflowResourceName {
         return $Resource.Name
     }
 
-    if ($null -ne $Resource.Value -and -not $Resource.Value.IsEmpty) {
-        $uid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Resource.Value.ToByteArray())
-        [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-        if ($null -ne $Vault -and $Vault.TryGetKeeperRecord($uid, [ref]$rec) -and $null -ne $rec -and -not [string]::IsNullOrEmpty($rec.Title)) {
-            return $rec.Title
-        }
-        return $null
+    if ($null -eq $Resource.Value -or $Resource.Value.IsEmpty) {
+        return ''
+    }
+
+    $uid = [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($Resource.Value.ToByteArray())
+    [KeeperSecurity.Vault.TypedRecord]$record = $null
+    if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetTypedRecord(
+            $Vault, $uid, [ref]$record) -and $null -ne $record) {
+        return $record.Title
+    }
+
+    [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
+    if ($null -ne $Vault -and
+        $Vault.TryGetKeeperNSFRecord($uid, [ref]$nsfRecord) -and
+        $null -ne $nsfRecord -and
+        -not [string]::IsNullOrEmpty($nsfRecord.Title)) {
+        return $nsfRecord.Title
     }
 
     return ''
+}
+
+function script:resolvePamWorkflowPendingResourceName {
+    Param (
+        [KeeperSecurity.Vault.VaultOnline] $Vault,
+        $Resource
+    )
+
+    return resolvePamWorkflowRecordName -Vault $Vault -Resource $Resource
 }
 
 function script:getPamWorkflowFlowUidString {
@@ -185,9 +204,10 @@ function Get-KeeperPamWorkflowPending {
 
         $recordKey = $null
         if (-not [string]::IsNullOrEmpty($recordUid)) {
-            [KeeperSecurity.Vault.KeeperRecord]$rec = $null
-            if ($vault.TryGetKeeperRecord($recordUid, [ref]$rec)) {
-                $recordKey = $rec.RecordKey
+            [byte[]]$resolvedRecordKey = $null
+            if ([KeeperSecurity.Plugins.PAM.PamVaultHelpers]::TryGetRecordKey(
+                    $vault, $recordUid, [ref]$resolvedRecordKey)) {
+                $recordKey = $resolvedRecordKey
             }
         }
 
@@ -226,7 +246,7 @@ function Get-KeeperPamWorkflowPending {
         $requestedBy = if (-not [string]::IsNullOrEmpty($wf.User)) { $wf.User } else { "User ID $($wf.UserId)" }
 
         $row = [PamWorkflowRow]@{
-            RecordName  = resolvePamWorkflowResourceName -Vault $vault -Resource $wf.Resource
+            RecordName  = resolvePamWorkflowPendingResourceName -Vault $vault -Resource $wf.Resource
             RecordUid   = $recordUid
             FlowUid     = getPamWorkflowFlowUidString $wf.FlowUid
             RequestedBy = $requestedBy
@@ -313,9 +333,13 @@ function Deny-KeeperPamWorkflowAccess {
     $trimmedReason = if ($null -ne $Reason) { $Reason.Trim() } else { '' }
     $denialReasonEncrypted = $null
     if (-not [string]::IsNullOrEmpty($trimmedReason)) {
+        $vault = getVault
         $denialReasonEncrypted = invokePamSdkCall {
-            [KeeperSecurity.Plugins.PAM.WorkflowUtils]::TryEncryptDenialReasonAsync(
-                $auth, $flowUidBytes, $trimmedReason).GetAwaiter().GetResult()
+            $encryptedReason = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::TryEncryptDenialReasonAsync(
+                $auth, $vault, $flowUidBytes, $trimmedReason).GetAwaiter().GetResult()
+            if ($null -ne $encryptedReason) {
+                Write-Output -NoEnumerate $encryptedReason
+            }
         }
         if ($null -eq $denialReasonEncrypted) {
             Write-Warning 'Could not encrypt denial reason for the requester -- reason will not be attached. The denial itself will still be sent.'
@@ -655,7 +679,8 @@ function script:assertPamWorkflowManagementPermission {
         [KeeperSecurity.Authentication.IAuthentication] $Auth
     )
 
-    if (-not [KeeperSecurity.Plugins.PAM.WorkflowUtils]::CanManageWorkflowSettings($Auth)) {
+    $canManage = [KeeperSecurity.Plugins.PAM.WorkflowUtils]::CanManageWorkflowSettingsFreshAsync($Auth).GetAwaiter().GetResult()
+    if (-not $canManage) {
         Write-Error -Message ('You do not have permission to manage PAM workflow settings. ' +
             'Contact your Keeper administrator to enable the workflow-management enforcement for your role.') -ErrorAction Stop
     }
@@ -983,17 +1008,9 @@ function script:resolvePamWorkflowResourceName {
         return $State.Resource.Name
     }
 
-    if ($Vault -and $State.Resource -and $State.Resource.Value -and -not $State.Resource.Value.IsEmpty) {
-        $recordUid = encodePamByteString -ByteString $State.Resource.Value
-        $record = $null
-        if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record) {
-            return $record.Title
-        }
-
-        $nsfRecord = $null
-        if ($Vault.TryGetKeeperNSFRecord($recordUid, [ref]$nsfRecord) -and $nsfRecord) {
-            return $nsfRecord.Title
-        }
+    $resolved = resolvePamWorkflowRecordName -Vault $Vault -Resource $State.Resource
+    if (-not [string]::IsNullOrEmpty($resolved)) {
+        return $resolved
     }
 
     return $FallbackName

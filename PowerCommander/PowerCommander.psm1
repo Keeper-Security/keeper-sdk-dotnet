@@ -1,5 +1,34 @@
 #requires -Version 5.1
 
+$webAuthnTypeName = 'KeeperSecurity.Authentication.WindowsWebAuthnSecurityKeyUI'
+$webAuthnType = [AppDomain]::CurrentDomain.GetAssemblies() |
+    ForEach-Object { $_.GetType($webAuthnTypeName, $false) } |
+    Where-Object { $null -ne $_ } |
+    Select-Object -First 1
+if ($null -eq $webAuthnType) {
+    # Newer KeeperSdk builds include the WebAuthn implementation. For an older KeeperSdk
+    # assembly, compile the helper source when it is available next to the module
+    # (or in the source repository). Otherwise continue without Windows WebAuthn support:
+    # only security-key (2FA) authentication is affected, the rest of the module still loads.
+    $webAuthnSource = @(
+        (Join-Path $PSScriptRoot 'WindowsWebAuthnSecurityKeyUI.cs'),
+        (Join-Path $PSScriptRoot '..\KeeperSdk\auth\WindowsWebAuthnSecurityKeyUI.cs')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+
+    if ($webAuthnSource) {
+        try {
+            # Use runtime defaults; explicit framework references break on PowerShell 7.
+            Add-Type -Path $webAuthnSource -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Windows WebAuthn security-key support is unavailable: $($_.Exception.Message)"
+        }
+    }
+    else {
+        Write-Warning 'Windows WebAuthn security-key support is unavailable: the loaded KeeperSdk does not include it and WindowsWebAuthnSecurityKeyUI.cs was not found.'
+    }
+}
+
 Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseLoader] $loader
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
@@ -61,8 +90,9 @@ if ($null -ne $Script:Context.Enterprise -and -not ($Script:Context.Enterprise -
 }
 
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation,
-Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Set-KeeperAccountRecovery
-Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Set-KeeperAccountRecovery,
+Get-KeeperDeviceList, Invoke-KeeperDeviceAction, Rename-KeeperDevice
+Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device, device-list, device-action, device-rename
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject, Get-KeeperTree
@@ -100,7 +130,8 @@ Set-KeeperEnterpriseUserMasterPasswordExpire, Add-KeeperEnterpriseUserAlias, Rem
 Get-KeeperEnterpriseUserTeam, Invoke-KeeperEnterprisePush, Invoke-KeeperTeamApprove,
 Update-KeeperEnterpriseTeamUser, Update-KeeperEnterpriseUser
 
-Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice
+Export-ModuleMember -Function Get-PendingKeeperDeviceApproval, Approve-KeeperDevice, Deny-KeeperDevice,
+Get-KeeperAdminUserDevice, Invoke-KeeperAdminUserDeviceAction
 
 Export-ModuleMember -Function Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseAdminRole, Set-KeeperEnterpriseRole, Grant-KeeperEnterpriseRoleToUser, Revoke-KeeperEnterpriseRoleFromUser,
@@ -124,9 +155,9 @@ Export-ModuleMember -Alias ked, keu, ket, keta, kete, ketdel, ketu, ketr, keut, 
 kerua, kerur, kerta, kertr, keradd, kerdel, kercopy, keitree, kein, keiu, keit, keir, keimc, invite-user, 
 lock-user, unlock-user, transfer-user, delete-user, kuser-alias-add, kuser-alias-remove, list-team, kar, user-report, kal, audit-alert
 
-Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
+Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Convert-KeeperMspNode, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Get-KeeperMspLegacyReport, Switch-KeeperMC, Switch-KeeperMSP, Copy-KeeperMCRole
-Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp, msp-copy-role, msp-legacy-report
+Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp, msp-copy-role, msp-legacy-report, msp-convert-node
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
 Revoke-KeeperSharesWithUser,Set-KeeperSharedFolderRecordPermission,Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam,
@@ -175,11 +206,11 @@ Export-ModuleMember -Alias nsf-list, nsf-folders, nsf-records, nsf-get, nsf-reco
 Export-ModuleMember -Function New-KeeperNSFFolder, New-KeeperNSFFolders, Set-KeeperNSFFolderAccess, Share-KeeperNSFFolderAccesses, Update-KeeperNSFFolderAccesses, Unshare-KeeperNSFFolderAccesses, Set-KeeperNSFFolder, Set-KeeperNSFFolders, Remove-KeeperNSFFolder, Remove-KeeperNSFFolders, Move-KeeperNSFItem, Move-KeeperNSFFolders
 Export-ModuleMember -Alias nsf-mkdir, nsf-mkdirs, nsf-share-folder, nsf-share-folders, nsf-update-folder-access, nsf-unshare-folders, nsf-rndir, nsf-folders-update, nsf-rmdir, nsf-rmdirs, nsf-move, nsf-move-folders
 
-Export-ModuleMember -Function Add-KeeperNSFRecord, Add-KeeperNSFRecords, Edit-KeeperNSFRecord, Edit-KeeperNSFRecords, Set-KeeperNSFRecordAccess, Share-KeeperNSFRecords, Unshare-KeeperNSFRecords, Set-KeeperNSFRecordPermission,
+Export-ModuleMember -Function Add-KeeperNSFRecord, Add-KeeperNSFRecords, Edit-KeeperNSFRecord, Edit-KeeperNSFRecords, ConvertTo-KeeperNSFRecord, Set-KeeperNSFRecordAccess, Share-KeeperNSFRecords, Unshare-KeeperNSFRecords, Set-KeeperNSFRecordPermission,
 Remove-KeeperNSFRecord, Remove-KeeperNSFRecords, Link-KeeperNSFRecord, Link-KeeperNSFRecords, Unlink-KeeperNSFRecords, Move-KeeperNSFRecords, Transfer-KeeperNSFRecordOwnership,
 Get-KeeperNSFShortcut, Set-KeeperNSFShortcutKeep
 Export-ModuleMember -Alias nsf-record-add, nsf-records-add, nsf-record-update, nsf-records-update, nsf-share-record, nsf-share-records, nsf-unshare-records, nsf-record-permission,
-nsf-rm, nsf-records-rm, nsf-ln, nsf-lns, nsf-unln, nsf-move-records, nsf-transfer-record,
+nsf-convert, nsf-rm, nsf-records-rm, nsf-ln, nsf-lns, nsf-unln, nsf-move-records, nsf-transfer-record,
 nsf-shortcut-list, nsf-shortcut-keep
 
 Export-ModuleMember -Function Sync-KeeperEpm,

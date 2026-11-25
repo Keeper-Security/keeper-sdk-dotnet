@@ -53,7 +53,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometrics.dll')
+    RequiredAssemblies   = @('zxcvbn-core.dll', 'KeeperSdk.dll', 'KeeperBiometrics.dll')
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
@@ -67,8 +67,8 @@
         'Record.format.ps1xml', 'SecretsManager.format.ps1xml')
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-    NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'KeeperPassphrase.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
-        'FolderCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1', 
+    NestedModules        = @('AuthCommands.ps1', 'CommandHelpers.ps1', 'VaultCommands.ps1', 'KeeperPassphrase.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
+        'FolderCommands.ps1', 'DeviceCommands.ps1', 'EnterpriseHelpers.ps1', 'EnterpriseCore.ps1', 'EnterpriseUser.ps1', 'EnterpriseRole.ps1',
         'EnterpriseTeam.ps1', 'EnterpriseNode.ps1', 'EnterpriseInfo.ps1', 'SecurityAuditReport.ps1', 'EnterpriseDevices.ps1', 
         'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1', 'BreachWatch.ps1', 
         'KeeperBiometrics.ps1',  'TrashCommands.ps1', 'Membership.ps1','EPM\SyncDown.ps1', 'EPM\Deployment.ps1',  'EPM\Agents.ps1', 
@@ -98,11 +98,11 @@
         'Get-KeeperEnterpriseUserTeam', 'Invoke-KeeperEnterprisePush', 'Invoke-KeeperTeamApprove',
         'Update-KeeperEnterpriseTeamUser', 'Update-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 
         'Get-KeeperEnterpriseRoleUsers','Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole', 'Edit-KeeperEnterpriseNode', 
-        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice', 
-        'Deny-KeeperDevice','Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
-        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport', 
+        'Remove-KeeperEnterpriseNode', 'Invoke-KeeperEnterpriseNodeWipeOut','Get-PendingKeeperDeviceApproval', 'Approve-KeeperDevice',
+        'Deny-KeeperDevice', 'Get-KeeperAdminUserDevice', 'Invoke-KeeperAdminUserDeviceAction', 'Set-KeeperEnterpriseNodeCustomInvitation', 'Get-KeeperEnterpriseNodeCustomInvitation', 'Set-KeeperEnterpriseNodeCustomLogo',
+        'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Convert-KeeperMspNode', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
         'Get-KeeperMspLegacyReport','Switch-KeeperMC', 'Switch-KeeperMSP', 'Copy-KeeperMCRole','Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 
-        'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
+        'Get-KeeperDeviceSettings','Set-KeeperDeviceSettings', 'Get-KeeperDeviceList', 'Invoke-KeeperDeviceAction', 'Rename-KeeperDevice', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember', 'Set-KeeperEnterpriseRole',
         'Grant-KeeperEnterpriseRoleToUser', 'Revoke-KeeperEnterpriseRoleFromUser', 'Grant-KeeperEnterpriseRoleToTeam', 
         'Revoke-KeeperEnterpriseRoleFromTeam', 'New-KeeperEnterpriseRole', 'Remove-KeeperEnterpriseRole', 'Copy-KeeperEnterpriseRole', 
@@ -139,7 +139,7 @@
         'Update-KeeperEpmPolicy', 'Remove-KeeperEpmPolicy', 'Get-KeeperEpmPolicyAgent', 'Add-KeeperEpmPolicyCollection',
         'Get-KeeperNSFList', 'Get-KeeperNSFFolderList', 'Get-KeeperNSFRecordList', 'Get-KeeperNSFRecord', 'Get-KeeperNSFRecordDetails',
         'New-KeeperNSFFolder', 'New-KeeperNSFFolders', 'Set-KeeperNSFFolderAccess', 'Share-KeeperNSFFolderAccesses', 'Update-KeeperNSFFolderAccesses', 'Unshare-KeeperNSFFolderAccesses', 'Set-KeeperNSFFolder', 'Set-KeeperNSFFolders', 'Remove-KeeperNSFFolder', 'Remove-KeeperNSFFolders', 'Move-KeeperNSFItem', 'Move-KeeperNSFFolders',
-        'Add-KeeperNSFRecord', 'Add-KeeperNSFRecords', 'Edit-KeeperNSFRecord', 'Edit-KeeperNSFRecords', 'Set-KeeperNSFRecordAccess', 'Share-KeeperNSFRecords', 'Unshare-KeeperNSFRecords', 'Set-KeeperNSFRecordPermission',
+        'Add-KeeperNSFRecord', 'Add-KeeperNSFRecords', 'Edit-KeeperNSFRecord', 'Edit-KeeperNSFRecords', 'Set-KeeperNSFRecordAccess', 'Share-KeeperNSFRecords', 'Unshare-KeeperNSFRecords', 'Set-KeeperNSFRecordPermission', 'ConvertTo-KeeperNSFRecord',
         'Remove-KeeperNSFRecord', 'Remove-KeeperNSFRecords', 'Link-KeeperNSFRecord', 'Link-KeeperNSFRecords', 'Unlink-KeeperNSFRecords', 'Move-KeeperNSFRecords', 'Transfer-KeeperNSFRecordOwnership',
         'Get-KeeperNSFShortcut', 'Set-KeeperNSFShortcutKeep',
         'Sync-KeeperPam', 'Get-KeeperPamGatewayList', 'New-KeeperPamGateway',
@@ -170,11 +170,11 @@
         'kepm-agent-list', 'kepm-agent-view', 'kepm-agent-edit', 'kepm-agent-delete', 'kepm-agent-collection',
         'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'kenu', 'kend', 'kenwipe', 'msp-license', 'switch-to-mc', 'switch-to-msp', 'msp-copy-role',
         'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kuser-alias-add', 'kuser-alias-remove', 'kshrsh', 'kshr', 'kushr', 'ksfr', 'kcancelshare', 'kshf',
-        'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device','ksm', 'ksm-create', 'ksm-delete', 
+        'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device', 'device-list', 'device-action', 'device-rename', 'ksm', 'ksm-create', 'ksm-delete',
         'ksm-share', 'ksm-unshare', 'ksm-share-update', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kbwp', 'kbwi', 'kbwig', 'bw-report', 'krfa', 
         'ktrash', 'ktrash-restore', 'ktrash-unshare', 'ktrash-get', 'ktrash-purge', 'kexport', 'kdwnmbs','kapplymbs',
         'kers', 'kerua', 'kerur', 'kerta', 'kertr', 'keradd', 'kerdel', 'kercopy','list-team', 'find-duplicates', 'keitree', 'kep', 'kta',
-        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report',
+        'kein', 'keiu', 'keit', 'keir', 'keimc', 'file-report', 'krh', 'kar', 'user-report', 'kimport', 'action-report','ksrr', 'msp-legacy-report', 'msp-convert-node',
         'kal', 'audit-alert', 'risk-report', 'compliance-report', 'compliance-team-report', 'record-access-report', 'compliance-summary-report', 'compliance-shared-folder-report',
         'external-shares-report', 'aging-report','kepm-policy-list', 'kepm-policy-view', 'kepm-policy-add', 'kepm-policy-edit',
         'kepm-policy-delete', 'kepm-policy-remove', 'kepm-policy-agents', 'kepm-policy-assign',
@@ -182,7 +182,7 @@
         'kepm-collection-delete', 'kepm-collection-connect', 'kepm-collection-disconnect', 'kepm-collection-wipeout',
         'nsf-list', 'nsf-folders', 'nsf-records', 'nsf-get', 'nsf-record-details',
         'nsf-mkdir', 'nsf-mkdirs', 'nsf-share-folder', 'nsf-share-folders', 'nsf-update-folder-access', 'nsf-unshare-folders', 'nsf-rndir', 'nsf-folders-update', 'nsf-rmdir', 'nsf-rmdirs', 'nsf-move', 'nsf-move-folders',
-        'nsf-record-add', 'nsf-records-add', 'nsf-record-update', 'nsf-records-update', 'nsf-share-record', 'nsf-share-records', 'nsf-unshare-records', 'nsf-record-permission',
+        'nsf-record-add', 'nsf-records-add', 'nsf-record-update', 'nsf-records-update', 'nsf-share-record', 'nsf-share-records', 'nsf-unshare-records', 'nsf-record-permission', 'nsf-convert',
         'nsf-rm', 'nsf-records-rm', 'nsf-ln', 'nsf-lns', 'nsf-unln', 'nsf-move-records', 'nsf-transfer-record',
         'nsf-shortcut-list', 'nsf-shortcut-keep',
         'pam-sync', 'pam-gateway-list', 'pam-gw-list', 'pam-gateway-new', 'pam-gw-new',

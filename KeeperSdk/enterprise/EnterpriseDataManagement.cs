@@ -24,6 +24,11 @@ namespace KeeperSecurity.Enterprise
         {
             if (email == null) throw new ArgumentNullException(nameof(email));
 
+            if (TryGetUserByEmail(email, out _))
+            {
+                throw new EnterpriseException($"User '{email}' already exists");
+            }
+
             var userId = await Enterprise.GetEnterpriseId();
             var rq = new EnterpriseUserAddCommand
             {

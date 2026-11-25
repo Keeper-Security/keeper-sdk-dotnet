@@ -2,6 +2,159 @@
 
 . "$PSScriptRoot/NsfBatchSampleData.ps1"
 
+$script:KdNsfGenerateFieldValueToken = '$GEN'
+
+function ConvertTo-KeeperNSFRecord {
+    <#
+    .SYNOPSIS
+    Permanently converts classic records to Keeper NSF records.
+
+    .DESCRIPTION
+    The current user must own each classic record. Accepts classic record UIDs, titles, or paths in batches of up to 100 per API request.
+    Conversion is permanent. Leave -FolderUid unspecified to convert to Vault (root); otherwise supply an existing NSF folder UID, unique name, or path.
+
+    .EXAMPLE
+    ConvertTo-KeeperNSFRecord -Record abc123
+
+    .EXAMPLE
+    ConvertTo-KeeperNSFRecord -Record abc123,def456 -FolderUid '/Team/Secrets' -Force
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [Alias('RecordUid')]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $Record,
+
+        [Parameter()]
+        [Alias('Folder')]
+        [ValidateNotNullOrEmpty()]
+        [string] $FolderUid,
+
+        [Parameter()]
+        [switch] $Force
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        $classicRecords = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperRecord]'
+        $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($identifier in $Record) {
+            if ([string]::IsNullOrWhiteSpace($identifier)) {
+                throw 'Record UID or title cannot be empty.'
+            }
+
+            [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
+            if ($vault.TryGetKeeperNSFRecord($identifier, [ref]$nsfRecord)) {
+                if (-not $seen.Add($nsfRecord.RecordUid)) {
+                    Write-Warning "Record '$($nsfRecord.RecordUid)' was selected more than once; duplicate skipped."
+                    continue
+                }
+                Write-Host "Record '$($nsfRecord.RecordUid)' is already an NSF record; skipped."
+                continue
+            }
+
+            [KeeperSecurity.Vault.KeeperRecord]$classicRecord = Resolve-ClassicRecordForNSFConversion -Vault $vault -Identifier $identifier
+
+            if (-not $seen.Add($classicRecord.Uid)) {
+                Write-Warning "Record '$($classicRecord.Uid)' was selected more than once; duplicate skipped."
+                continue
+            }
+            $classicRecords.Add($classicRecord)
+        }
+
+        if ($classicRecords.Count -eq 0) {
+            Write-Host 'No classic records remain to convert.'
+            return
+        }
+        $destinationFolderUid = $null
+        if ($PSBoundParameters.ContainsKey('FolderUid')) {
+            [KeeperSecurity.Vault.FolderNode]$destinationFolder = $null
+            if (-not $vault.TryResolveKeeperNSFFolderReference($FolderUid, [ref]$destinationFolder)) {
+                throw "Keeper NSF folder '$FolderUid' was not found or is ambiguous. Specify its UID or full path."
+            }
+            $destinationFolderUid = $destinationFolder.FolderUid
+        }
+
+        [string[]]$recordUids = @($classicRecords | ForEach-Object { $_.Uid })
+        if (-not $Force.IsPresent) {
+            Write-Warning 'Conversion is permanent. Classic shared-folder membership and additional classic folder placements are not retained.'
+        }
+        $oldConfirmPreference = $ConfirmPreference
+        try {
+            if ($Force.IsPresent) { $ConfirmPreference = 'None' }
+            if (-not $PSCmdlet.ShouldProcess(($recordUids -join ', '), 'Permanently convert classic record(s) to Keeper NSF')) {
+                return
+            }
+        }
+        finally {
+            $ConfirmPreference = $oldConfirmPreference
+        }
+
+        $result = $vault.ConvertClassicRecordsToKeeperNSFForPowerCommander($recordUids, $destinationFolderUid)
+        $refreshWarning = @($result | Where-Object { $_.RefreshWarning } | Select-Object -First 1)
+        if ($refreshWarning.Count -gt 0) {
+            Write-Warning $refreshWarning[0].RefreshWarning
+        }
+        foreach ($entry in $result) {
+            if ($entry.OutcomeUncertain) {
+                Write-Warning "Conversion outcome for '$($entry.RecordUid)' is uncertain; refresh the vault and verify the record before retrying."
+            }
+            elseif ($entry.Skipped) {
+                Write-Warning "Record '$($entry.RecordUid)' skipped: $($entry.Message)"
+            }
+            $entry
+        }
+    }
+    catch {
+        $PSCmdlet.ThrowTerminatingError($_)
+    }
+}
+
+New-Alias -Name nsf-convert -Value ConvertTo-KeeperNSFRecord
+
+function script:Resolve-ClassicRecordForNSFConversion {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline]$Vault,
+        [Parameter(Mandatory = $true)][string]$Identifier
+    )
+
+    [KeeperSecurity.Vault.KeeperRecord]$record = $null
+    if ($Vault.TryGetKeeperRecord($Identifier, [ref]$record)) {
+        return $record
+    }
+
+    $matches = @()
+    if ($Identifier.Contains('/') -or $Identifier.Contains('\')) {
+        # Classic record paths are relative to the current classic folder unless rooted.
+        $path = $Identifier.Replace('/', [string]$Script:PathDelimiter).Replace('\', [string]$Script:PathDelimiter)
+        [KeeperSecurity.Vault.FolderNode]$currentFolder = $null
+        if (-not $Vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentFolder)) {
+            $currentFolder = $Vault.RootFolder
+        }
+        $resolved = @(parseKeeperPath (splitKeeperPath $path) $Vault $currentFolder)
+        if ($resolved.Count -eq 2 -and $resolved[0] -and $resolved[1] -and
+            -not ([string]$resolved[1]).Contains([string]$Script:PathDelimiter)) {
+            $folder = $resolved[0]
+            $title = [string]$resolved[1]
+            $matches = @($folder.Records | ForEach-Object {
+                [KeeperSecurity.Vault.KeeperRecord]$candidate = $null
+                if ($Vault.TryGetKeeperRecord($_, [ref]$candidate) -and $candidate.Title -ieq $title) {
+                    $candidate
+                }
+            } | Select-Object -First 2)
+        }
+    }
+    else {
+        $matches = @($Vault.KeeperRecords | Where-Object { $_.Title -ieq $Identifier } | Select-Object -First 2)
+    }
+
+    if ($matches.Count -ne 1) {
+        throw "Classic record '$Identifier' was not found or is ambiguous. Specify its UID or full path."
+    }
+    return $matches[0]
+}
+
 function Script:ConvertTo-NSFJsonValue {
     <#
     .SYNOPSIS
@@ -53,10 +206,20 @@ function Script:ConvertTo-NSFJsonValue {
 
 function Script:Resolve-KeeperNSFFieldValue {
     Param(
+        [Parameter(Mandatory = $true)][string] $FieldKey,
         [Parameter(Mandatory = $true)][AllowEmptyString()][string] $RawValue
     )
 
     if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
+
+    $fieldType = $FieldKey.Split(':', 2)[0]
+    if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
+        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
+            return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        }
+
+        throw "Unsupported password generation token '$RawValue'. Use $script:KdNsfGenerateFieldValueToken or -GeneratePassword."
+    }
 
     if ($RawValue -clike '$JSON:*') {
         $jsonStr = $RawValue.Substring(6)
@@ -85,6 +248,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
 
     $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
     $skipped = New-Object 'System.Collections.Generic.List[string]'
+    $hasGenerateToken = $false
 
     foreach ($f in $FieldSpecs) {
         if ([string]::IsNullOrWhiteSpace($f)) { continue }
@@ -114,7 +278,15 @@ function Script:Parse-KeeperNSFFieldSpecs {
             continue
         }
 
-        $resolved = Resolve-KeeperNSFFieldValue -RawValue $val
+        $fieldType = $key.Split(':', 2)[0]
+        if ($fieldType -ieq 'password' -and [string]::IsNullOrEmpty($val)) {
+            throw "Password value cannot be empty. Use -GeneratePassword or '$($script:KdNsfGenerateFieldValueToken)' in single quotes."
+        }
+        if ($fieldType -ieq 'password' -and $val -ceq $script:KdNsfGenerateFieldValueToken) {
+            $hasGenerateToken = $true
+        }
+
+        $resolved = Resolve-KeeperNSFFieldValue -FieldKey $key -RawValue $val
         if ($resolved -is [System.Management.Automation.PSObject] -and $null -ne $resolved.PSObject.BaseObject) {
             $resolved = $resolved.PSObject.BaseObject
         }
@@ -125,6 +297,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
         Dictionary = $fieldDict
         Skipped    = $skipped
         ParsedCount = $fieldDict.Count
+        HasGenerateToken = $hasGenerateToken
     }
 }
 
@@ -151,6 +324,7 @@ function Add-KeeperNSFRecord {
 
 	.Parameter Fields
 	Optional field values as key=value pairs (e.g. login=admin password=secret url=https://example.com).
+	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. for a `databaseCredentials` record's `host` field:
@@ -239,6 +413,10 @@ function Add-KeeperNSFRecord {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($Fields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
+                Write-Host "Error: Do not combine -GeneratePassword with password=$script:KdNsfGenerateFieldValueToken." -ForegroundColor Red
+                return
+            }
             foreach ($key in $parsed.Dictionary.Keys) {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
@@ -259,7 +437,13 @@ function Add-KeeperNSFRecord {
         return $recordUid
     }
     catch {
-        Write-Host "Error creating record: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating record: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -485,14 +669,25 @@ function Add-KeeperNSFRecords {
             }
             else {
                 $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-                Write-Host "  [FAIL] $($result.Title)  status=$($result.Status)  $msg" -ForegroundColor Red
+                if ([string]$result.Status -match '(?i)duplicate' -or $msg -match '(?i)(already exists|duplicat(?:e|ed))') {
+                    Write-Host "Error: $msg"
+                }
+                else {
+                    Write-Host "  [FAIL] $($result.Title)  status=$($result.Status)  $msg" -ForegroundColor Red
+                }
             }
         }
 
         return ,@($results)
     }
     catch {
-        Write-Host "Error creating records in batch: $($_.Exception.Message)" -ForegroundColor Red
+        $message = getKeeperInnerExceptionMessage -ErrorRecord $_
+        if ($message -match '(?i)(already exists|duplicat(?:e|ed))') {
+            Write-Host "Error: $message"
+        }
+        else {
+            Write-Host "Error creating records in batch: $message" -ForegroundColor Red
+        }
     }
 }
 
@@ -505,10 +700,11 @@ function Edit-KeeperNSFRecord {
 
 	.Description
 	Updates the title, type, notes, and/or fields of a Keeper NSF record using the v3 API.
+	Accepts a record UID or exact title. Ambiguous titles require a record UID.
 	Only specified parameters are changed; others are preserved.
 
 	.Parameter RecordUid
-	UID of the record to update.
+	Record UID or exact title of the record to update.
 
 	.Parameter Title
 	New title for the record.
@@ -521,6 +717,7 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
 	e.g. updating a `databaseCredentials` record's `host` field:
@@ -596,6 +793,11 @@ function Edit-KeeperNSFRecord {
     $hasFields = $Fields -and $Fields.Count -gt 0
     $generatePassphrase = $GeneratePassphrase.IsPresent -or ($PassphraseRuleValues -and $PassphraseRuleValues.Count -gt 0)
 
+    if ($hasTitle -and [string]::IsNullOrWhiteSpace($Title)) {
+        Write-Host "Error: Record title cannot be empty." -ForegroundColor Red
+        return
+    }
+
     if ($GeneratePassword.IsPresent -and $generatePassphrase) {
         Write-Host "Error: -GeneratePassword and -GeneratePassphrase cannot be used together." -ForegroundColor Red
         return
@@ -613,6 +815,20 @@ function Edit-KeeperNSFRecord {
         return
     }
 
+    [KeeperSecurity.Vault.KeeperNSFRecord]$resolvedRecord = $null
+    try {
+        $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if (-not $resolvedRecord) {
+        Write-Host "Error: NSF record '$RecordUid' not found by UID or exact title."
+        return
+    }
+    $RecordUid = [string]$resolvedRecord.RecordUid
+
     $titleParam = if ($hasTitle) { $Title }      else { [NullString]::Value }
     $typeParam  = if ($hasType)  { $RecordType } else { [NullString]::Value }
     $notesParam = if ($hasNotes) { $Notes }      else { [NullString]::Value }
@@ -622,6 +838,10 @@ function Edit-KeeperNSFRecord {
         $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
         if ($hasFields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
+            if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
+                Write-Host "Error: Do not combine -GeneratePassword with password=$script:KdNsfGenerateFieldValueToken." -ForegroundColor Red
+                return
+            }
             foreach ($key in $parsed.Dictionary.Keys) {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
@@ -795,10 +1015,11 @@ function Set-KeeperNSFRecordAccess {
 
 	.Description
 	Shares or unshares a Keeper NSF record with a user using the v3 API.
+	Accepts a record UID or exact record title. Ambiguous titles require a record UID.
 	When granting, encrypts and sends the record key to the recipient.
 
 	.Parameter RecordUid
-	UID of the record to share/unshare.
+	Record UID or exact title of the record to share/unshare.
 
 	.Parameter Action
 	Action to perform: 'grant' (default) or 'revoke'.
@@ -816,6 +1037,9 @@ function Set-KeeperNSFRecordAccess {
 
 	.Parameter ExpireAt
 	Optional. Absolute share expiration as ISO datetime (e.g. 2027-01-01T00:00:00Z).
+
+	.Parameter Force
+	Skip confirmation before revoking access.
 #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
@@ -840,7 +1064,11 @@ function Set-KeeperNSFRecordAccess {
 
         [Alias('expire-at')]
         [Parameter()]
-        [string] $ExpireAt
+        [string] $ExpireAt,
+
+        [Alias('f')]
+        [Parameter()]
+        [switch] $Force
     )
 
     try {
@@ -851,10 +1079,18 @@ function Set-KeeperNSFRecordAccess {
     }
 
     [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-    if (-not $vault.TryGetKeeperNSFRecord($RecordUid, [ref]$tmpRecord)) {
-        Write-Host "Error: NSF record '$RecordUid' not found." -ForegroundColor Red
+    try {
+        $tmpRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
         return
     }
+    if (-not $tmpRecord) {
+        Write-Host "Error: NSF record '$RecordUid' not found by UID or exact title."
+        return
+    }
+    $RecordUid = [string]$tmpRecord.RecordUid
 
     $shareOptions = $null
     if ($Action -eq 'grant' -and ($ExpireIn -or $ExpireAt)) {
@@ -867,6 +1103,14 @@ function Set-KeeperNSFRecordAccess {
         }
         $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
         $shareOptions.Expiration = $expirationDto
+    }
+
+    if ($Action -eq 'revoke' -and -not $Force.IsPresent) {
+        $confirmation = Read-Host "Are you sure you want to revoke access to record '$RecordUid' from $($Email.Count) user(s)? (yes/No)"
+        if ($confirmation -notmatch '^(y|yes)$') {
+            Write-Host "Revoke operation cancelled"
+            return
+        }
     }
 
     foreach ($user in $Email) {
@@ -884,7 +1128,7 @@ function Set-KeeperNSFRecordAccess {
             }
         }
         catch {
-            Write-Host "Error ${Action}ing access for '$user': $($_.Exception.Message)" -ForegroundColor Red
+            [void](Write-KeeperShareFailure -Exception $_.Exception -Context "Error ${Action}ing access for '$user'")
         }
     }
 }
@@ -1020,7 +1264,12 @@ function Share-KeeperNSFRecords {
             }
             else {
                 $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-                Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+                if ([string]$result.Status -eq 'duplicate') {
+                    Write-Host "Error: $msg"
+                }
+                else {
+                    Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+                }
             }
         }
 
@@ -1236,7 +1485,12 @@ function Unshare-KeeperNSFRecords {
             }
             else {
                 $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-                Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+                if ([string]$result.Status -eq 'duplicate') {
+                    Write-Host "Error: $msg"
+                }
+                else {
+                    Write-Host "  [FAIL] $($result.RecordUid) -> $($result.UserEmail)  status=$($result.Status)  $msg" -ForegroundColor Red
+                }
             }
         }
 
@@ -1429,11 +1683,15 @@ function Set-KeeperNSFRecordPermission {
     }
 
     if ($FolderUid) {
-        [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-        if (-not $vault.TryGetKeeperNSFFolder($FolderUid, [ref]$tmpFolder)) {
-            foreach ($f in $vault.KeeperNSFFolderNodes) {
-                if ($f.Name -and $f.Name -ieq $FolderUid) { $FolderUid = $f.FolderUid; break }
-            }
+        try {
+            $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
+        if ($resolvedFolder) {
+            $FolderUid = $resolvedFolder.FolderUid
         }
     }
 
@@ -1625,20 +1883,28 @@ function Get-KeeperNSFShortcut {
                 $folderUid = $Target
             } else {
                 $foundByTitle = $false
-                foreach ($r in $vault.KeeperNSFRecordEntries) {
-                    if ($r.Title -and $r.Title -ieq $Target) {
-                        $recordUid = $r.RecordUid
-                        $foundByTitle = $true
-                        break
-                    }
+                try {
+                    $resolvedRecord = resolveKeeperNSFRecord -Identifier $Target -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+                    writeAmbiguousNsfError -ErrorRecord $_
+                    return
+                }
+                if ($resolvedRecord) {
+                    $recordUid = $resolvedRecord.RecordUid
+                    $foundByTitle = $true
                 }
                 if (-not $foundByTitle) {
-                    foreach ($f in $vault.KeeperNSFFolderNodes) {
-                        if ($f.Name -and $f.Name -ieq $Target) {
-                            $folderUid = $f.FolderUid
-                            $foundByTitle = $true
-                            break
-                        }
+                    try {
+                        $resolvedFolder = resolveKeeperNSFFolder -Identifier $Target -Vault $vault
+                    }
+                    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                        writeAmbiguousNsfError -ErrorRecord $_
+                        return
+                    }
+                    if ($resolvedFolder) {
+                        $folderUid = $resolvedFolder.FolderUid
+                        $foundByTitle = $true
                     }
                 }
                 if (-not $foundByTitle) {
@@ -1758,36 +2024,34 @@ function Set-KeeperNSFShortcutKeep {
         return
     }
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$tmpRecord = $null
-    if (-not $vault.TryGetKeeperNSFRecord($RecordUid, [ref]$tmpRecord)) {
-        $found = $false
-        foreach ($r in $vault.KeeperNSFRecordEntries) {
-            if ($r.Title -and $r.Title -ieq $RecordUid) {
-                $RecordUid = $r.RecordUid
-                $found = $true
-                break
-            }
-        }
-        if (-not $found) {
-            Write-Host "Error: Record '$RecordUid' not found." -ForegroundColor Red
-            return
-        }
+    try {
+        $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if ($resolvedRecord) {
+        $RecordUid = $resolvedRecord.RecordUid
+    }
+    else {
+        Write-Host "Error: Record '$RecordUid' not found." -ForegroundColor Red
+        return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$tmpFolder = $null
-    if (-not $vault.TryGetKeeperNSFFolder($FolderUid, [ref]$tmpFolder)) {
-        $found = $false
-        foreach ($f in $vault.KeeperNSFFolderNodes) {
-            if ($f.Name -and $f.Name -ieq $FolderUid) {
-                $FolderUid = $f.FolderUid
-                $found = $true
-                break
-            }
-        }
-        if (-not $found) {
-            Write-Host "Error: Folder '$FolderUid' not found." -ForegroundColor Red
-            return
-        }
+    try {
+        $resolvedFolder = resolveKeeperNSFFolder -Identifier $FolderUid -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if ($resolvedFolder) {
+        $FolderUid = $resolvedFolder.FolderUid
+    }
+    else {
+        Write-Host "Error: Folder '$FolderUid' not found." -ForegroundColor Red
+        return
     }
 
     $shortcuts = $vault.GetKeeperNSFShortcuts($RecordUid, $null)
@@ -1909,13 +2173,29 @@ function Remove-KeeperNSFRecord {
     begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
+        # Resolve every record before removing anything: a destructive batch either runs in full or not at all,
+        # so one ambiguous/missing identifier can't result in a half-done delete of the others.
+        $resolveErrors = New-Object 'System.Collections.Generic.List[string]'
+        $totalRecordCount = 0
+        $unresolvedRecordCount = 0
         $folderHint = $null
+        $folderResolutionError = $null
 
         if ($Folder) {
-            [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-            if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
-                Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
-                return
+            try {
+                $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                $folderResolutionError = $_.Exception.Message
+            }
+            if (-not $folderResolutionError -and -not $folderNode) {
+                $errorRecord = New-Object System.Management.Automation.ErrorRecord -ArgumentList (
+                    (New-Object System.Exception("Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first.")),
+                    'FolderNotFound',
+                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                    $Folder
+                )
+                $PSCmdlet.ThrowTerminatingError($errorRecord)
             }
             $folderHint = $Folder
         }
@@ -1929,28 +2209,63 @@ function Remove-KeeperNSFRecord {
             'unlink' { [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink }
         }
 
-        if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
-            Write-Error -Message "Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder."
-            return
+        if (-not $folderResolutionError -and
+            $op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and
+            [string]::IsNullOrWhiteSpace($folderHint)) {
+            $errorRecord = New-Object System.Management.Automation.ErrorRecord -ArgumentList (
+                (New-Object System.Exception("Folder context is required for unlink. Use -Folder or cd into a Keeper NSF folder.")),
+                'FolderContextRequired',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $Operation
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
     }
 
     process {
         foreach ($name in $Record) {
-            [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-            if (-not $vault.TryResolveKeeperNSFRecord($name, [ref]$kdRecord)) {
-                Write-Error -Message "Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first."
+            $totalRecordCount++
+            if ($folderResolutionError) {
+                if (-not $resolveErrors.Contains($folderResolutionError)) {
+                    $resolveErrors.Add($folderResolutionError)
+                }
+                $unresolvedRecordCount++
+                continue
+            }
+
+            try {
+                $kdRecord = resolveKeeperNSFRecord -Identifier $name -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+                $resolveErrors.Add($_.Exception.Message)
+                $unresolvedRecordCount++
+                continue
+            }
+            if (-not $kdRecord) {
+                $resolveErrors.Add("Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first.")
+                $unresolvedRecordCount++
                 continue
             }
 
             [string]$folderUid = $null
-            if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
+            try {
+                $folderResolved = $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)
+            }
+            catch {
+                $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+                if (-not $ambiguous) { throw }
+                $resolveErrors.Add($ambiguous.Message)
+                $unresolvedRecordCount++
+                continue
+            }
+            if (-not $folderResolved) {
                 if ($Folder) {
-                    Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
+                    $resolveErrors.Add("Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first.")
                 }
                 else {
-                    Write-Error -Message "No folder context for record `"$name`". Use -Folder or -Operation owner-trash."
+                    $resolveErrors.Add("No folder context for record `"$name`". Use -Folder or -Operation owner-trash.")
                 }
+                $unresolvedRecordCount++
                 continue
             }
 
@@ -1963,6 +2278,14 @@ function Remove-KeeperNSFRecord {
     }
 
     end {
+        if ($resolveErrors.Count -gt 0) {
+            foreach ($resolveError in $resolveErrors) {
+                Write-Host "Error: $resolveError"
+            }
+            Write-Host "Aborted: $unresolvedRecordCount of $totalRecordCount record(s) could not be resolved. No records were removed."
+            return
+        }
+
         if ($removals.Count -eq 0) {
             return
         }
@@ -2143,11 +2466,28 @@ function Remove-KeeperNSFRecords {
         return
     }
 
+    # Resolve every record before removing anything: a destructive batch either runs in full or not at all,
+    # so one ambiguous/missing identifier can't result in a half-done delete of the others.
     $removals = New-Object 'System.Collections.Generic.List[KeeperSecurity.Vault.KeeperNSFRecordRemoval]'
+    $resolveErrors = New-Object 'System.Collections.Generic.List[string]'
+    $index = 0
     foreach ($spec in $specs) {
-        [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-        if (-not $vault.TryResolveKeeperNSFRecord($spec.RecordUid, [ref]$kdRecord)) {
-            Write-Error -Message "Keeper NSF record `"$($spec.RecordUid)`" was not found. Run Sync-Keeper or nsf-list first."
+        if ([string]::IsNullOrWhiteSpace($spec.RecordUid)) {
+            $resolveErrors.Add("Missing record_uid (or uid) at index $index")
+            $index++
+            continue
+        }
+        try {
+            $kdRecord = resolveKeeperNSFRecord -Identifier $spec.RecordUid -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+            $resolveErrors.Add($_.Exception.Message)
+            $index++
+            continue
+        }
+        if (-not $kdRecord) {
+            $resolveErrors.Add("Keeper NSF record `"$($spec.RecordUid)`" was not found. Run Sync-Keeper or nsf-list first.")
+            $index++
             continue
         }
 
@@ -2162,19 +2502,50 @@ function Remove-KeeperNSFRecords {
             $folderHint = $Script:Context.CurrentFolder
         }
 
+        if (-not [string]::IsNullOrWhiteSpace($folderHint)) {
+            try {
+                $resolvedFolderHint = resolveKeeperNSFFolder -Identifier $folderHint -Vault $vault
+            }
+            catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                $resolveErrors.Add($_.Exception.Message)
+                $index++
+                continue
+            }
+
+            if (-not $resolvedFolderHint) {
+                $resolveErrors.Add("Keeper NSF folder `"$folderHint`" was not found for record `"$($spec.RecordUid)`".")
+                $index++
+                continue
+            }
+
+            $folderHint = [string]$resolvedFolderHint.FolderUid
+        }
+
         if ($op -eq [KeeperSecurity.Vault.KeeperNSFRecordRemoveOperation]::Unlink -and [string]::IsNullOrWhiteSpace($folderHint)) {
-            Write-Error -Message "Folder is required for unlink of record `"$($spec.RecordUid)`"."
+            $resolveErrors.Add("Folder is required for unlink of record `"$($spec.RecordUid)`".")
+            $index++
             continue
         }
 
         [string]$folderUid = $null
-        if (-not $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)) {
+        try {
+            $folderResolved = $vault.TryResolveKeeperNSFRecordRemovalFolder($kdRecord.RecordUid, $folderHint, $op, [ref]$folderUid)
+        }
+        catch {
+            $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+            if (-not $ambiguous) { throw }
+            $resolveErrors.Add($ambiguous.Message)
+            $index++
+            continue
+        }
+        if (-not $folderResolved) {
             if ($spec.Folder) {
-                Write-Error -Message "Keeper NSF folder `"$($spec.Folder)`" was not found for record `"$($spec.RecordUid)`"."
+                $resolveErrors.Add("Keeper NSF folder `"$($spec.Folder)`" was not found for record `"$($spec.RecordUid)`".")
             }
             else {
-                Write-Error -Message "No folder context for record `"$($spec.RecordUid)`". Set folder in JSON or use operation owner-trash."
+                $resolveErrors.Add("No folder context for record `"$($spec.RecordUid)`". Set folder in JSON or use operation owner-trash.")
             }
+            $index++
             continue
         }
 
@@ -2183,6 +2554,15 @@ function Remove-KeeperNSFRecords {
         $removal.FolderUid = $folderUid
         $removal.Operation = $op
         $removals.Add($removal)
+        $index++
+    }
+
+    if ($resolveErrors.Count -gt 0) {
+        foreach ($resolveError in $resolveErrors) {
+            Write-Host "Error: $resolveError"
+        }
+        Write-Host "Aborted: $($resolveErrors.Count) of $($specs.Count) record(s) could not be resolved. No records were removed."
+        return
     }
 
     if ($removals.Count -eq 0) {
@@ -2283,14 +2663,26 @@ function Link-KeeperNSFRecord {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-    if (-not $vault.TryResolveKeeperNSFRecord($Record, [ref]$kdRecord)) {
+    try {
+        $kdRecord = resolveKeeperNSFRecord -Identifier $Record -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if (-not $kdRecord) {
         Write-Error -Message "Keeper NSF record `"$Record`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
 
-    [KeeperSecurity.Vault.FolderNode]$folderNode = $null
-    if (-not $vault.TryResolveKeeperNSFFolder($Folder, [ref]$folderNode)) {
+    try {
+        $folderNode = resolveKeeperNSFFolder -Identifier $Folder -Vault $vault
+    }
+    catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+        writeAmbiguousNsfError -ErrorRecord $_
+        return
+    }
+    if (-not $folderNode) {
         Write-Error -Message "Keeper NSF folder `"$Folder`" was not found. Run Sync-Keeper or nsf-list first."
         return
     }
@@ -2795,7 +3187,12 @@ function Script:Write-KeeperNSFFolderRecordBatchResults {
         }
         else {
             $msg = if ($result.Message) { $result.Message } else { '(no message)' }
-            Write-Host "  [FAIL] $($result.RecordUid) @ $folderLabel  status=$($result.Status)  $msg" -ForegroundColor Red
+            if ([string]$result.Status -eq 'duplicate') {
+                Write-Host "Error: $msg"
+            }
+            else {
+                Write-Host "  [FAIL] $($result.RecordUid) @ $folderLabel  status=$($result.Status)  $msg" -ForegroundColor Red
+            }
         }
     }
 }
@@ -2933,8 +3330,14 @@ function Transfer-KeeperNSFRecordOwnership {
     $resolvedRecords = New-Object 'System.Collections.Generic.List[string]'
 
     foreach ($name in $recordArgs) {
-        [KeeperSecurity.Vault.KeeperNSFRecord]$kdRecord = $null
-        if (-not $vault.TryResolveKeeperNSFRecord($name, [ref]$kdRecord)) {
+        try {
+            $kdRecord = resolveKeeperNSFRecord -Identifier $name -Vault $vault
+        }
+        catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+            writeAmbiguousNsfError -ErrorRecord $_
+            return
+        }
+        if (-not $kdRecord) {
             Write-Error -Message "Keeper NSF record `"$name`" was not found. Run Sync-Keeper or nsf-list first."
             return
         }

@@ -14,43 +14,122 @@ function getVault {
     $Script:Context.Vault
 }
 
-function resolveKeeperNSFFolder {
+function getAmbiguousNsfException {
+    <#
+    .Synopsis
+    Internal helper. PowerShell sometimes wraps a .NET method call's exception in a
+    MethodInvocationException, which breaks both `catch [ExactType]` reliability and
+    `$_.Exception.Message` (it shows "Exception calling "X" with "N" argument(s): ..."
+    instead of the clean message). Given a caught ErrorRecord, returns the real
+    AmbiguousFolderException/AmbiguousNsfRecordException (unwrapped if necessary),
+    or $null if the error isn't one of those - callers should `throw` in that case.
+    #>
     Param(
-        [Parameter(Mandatory = $true)][string] $Identifier,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+        [Parameter(Mandatory = $true)] $ErrorRecord
     )
 
-    [KeeperSecurity.Vault.FolderNode]$folder = $null
-    if ($Vault.TryGetKeeperNSFFolder($Identifier, [ref]$folder)) {
-        return $folder
+    $ex = $ErrorRecord.Exception
+    if ($ex -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+        return $ex
     }
-
-    $match = @($Vault.KeeperNSFFolderNodes | Where-Object { $_.Name -and $_.Name -ieq $Identifier })
-    if ($match.Count -eq 1) { return $match[0] }
+    if ($ex.InnerException -is [KeeperSecurity.Vault.AmbiguousFolderException] -or $ex.InnerException -is [KeeperSecurity.Vault.AmbiguousNsfRecordException]) {
+        return $ex.InnerException
+    }
     return $null
 }
 
-function resolveKeeperNSFRecord {
+function getKeeperInnerExceptionMessage {
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    $exception = $ErrorRecord.Exception
+    while ($exception -and $exception.InnerException) {
+        $exception = $exception.InnerException
+    }
+    if ($exception) {
+        return [string]$exception.Message
+    }
+    return [string]$ErrorRecord
+}
+
+function writeAmbiguousNsfError {
+    <#
+    .Synopsis
+    Internal helper. Prints a caught ambiguity as plain console text with a consistent "Error:" prefix,
+    without writing to PowerShell's red error stream.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)] $ErrorRecord
+    )
+
+    $ambiguous = getAmbiguousNsfException -ErrorRecord $ErrorRecord
+    $message = if ($ambiguous) { $ambiguous.Message } else { $ErrorRecord.Exception.Message }
+    Write-Host "Error: $message"
+}
+
+function resolveKeeperNSFFolder {
+    <#
+    .Synopsis
+    Internal helper. Resolves a Keeper NSF folder by UID or name via the SDK's strict resolver.
+    Throws [KeeperSecurity.Vault.AmbiguousFolderException] when the name matches more than one folder;
+    callers processing multiple identifiers in a loop should catch it to continue past a single bad entry.
+    #>
     Param(
         [Parameter(Mandatory = $true)][string] $Identifier,
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
     )
 
-    [KeeperSecurity.Vault.KeeperNSFRecord]$record = $null
-    if ($Vault.TryGetKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
+    try {
+        return $Vault.ResolveKeeperNSFFolderStrict($Identifier)
     }
-
-    $titleMatch = @($Vault.KeeperNSFRecordEntries | Where-Object {
-            $_.Title -and $_.Title -ieq $Identifier
-        })
-    if ($titleMatch.Count -eq 1) { return $titleMatch[0] }
-
-    if ($titleMatch.Count -eq 0 -and $Vault.TryResolveKeeperNSFRecord($Identifier, [ref]$record)) {
-        return $record
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
     }
+}
 
-    return $null
+function resolveKeeperNSFFolderOrRoot {
+    <#
+    .Synopsis
+    Internal helper. Same as resolveKeeperNSFFolder, but also accepts '', '/' or 'root' to mean the Keeper Drive root.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    try {
+        return $Vault.ResolveKeeperNSFFolderOrRootStrict($Identifier)
+    }
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
+    }
+}
+
+function resolveKeeperNSFRecord {
+    <#
+    .Synopsis
+    Internal helper. Resolves a Keeper NSF record by UID or title via the SDK's strict resolver.
+    Throws [KeeperSecurity.Vault.AmbiguousNsfRecordException] when the title matches more than one record;
+    callers processing multiple identifiers in a loop should catch it to continue past a single bad entry.
+    #>
+    Param(
+        [Parameter(Mandatory = $true)][string] $Identifier,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    try {
+        return $Vault.ResolveKeeperNSFRecordStrict($Identifier)
+    }
+    catch {
+        $ambiguous = getAmbiguousNsfException -ErrorRecord $_
+        if ($ambiguous) { throw $ambiguous }
+        throw
+    }
 }
 
 function Get-KeeperLocation {
@@ -746,6 +825,99 @@ function Get-KeeperTree {
 New-Alias -Name ktree -Value Get-KeeperTree
 
 
+function ConvertTo-KeeperSharedFolderJson {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SharedFolder] $SharedFolder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    [KeeperSecurity.Vault.FolderNode]$folder = $null
+    $Vault.TryGetFolder($SharedFolder.Uid, [ref]$folder) | Out-Null
+
+    [ordered]@{
+        folder_uid = $SharedFolder.Uid
+        type = 'classic_folder'
+        name = $SharedFolder.Name
+        folder = ConvertTo-KeeperFolderLocation -Folder $folder -Vault $Vault
+        users = @(
+            $SharedFolder.UsersPermissions |
+            Where-Object { $_.UserType -eq [KeeperSecurity.Vault.UserType]::User } |
+            ForEach-Object {
+                [ordered]@{
+                    username = $_.Name
+                    user_id = $_.Uid
+                    owner = [bool]$_.Owner
+                    manage_records = [bool]$_.ManageRecords
+                    manage_users = [bool]$_.ManageUsers
+                    expiration = if ($_.Expiration) {
+                        $_.Expiration.UtcDateTime.ToString('o')
+                    }
+                    else {
+                        'never'
+                    }
+                }
+            }
+        )
+        share_admins = @(
+            $SharedFolder.UsersPermissions |
+            Where-Object {
+                $_.UserType -eq [KeeperSecurity.Vault.UserType]::User -and
+                $_.ManageUsers
+            } |
+            ForEach-Object { $_.Name }
+        )
+        records = @(
+            $SharedFolder.RecordPermissions |
+            ForEach-Object {
+                [ordered]@{
+                    record_uid = $_.RecordUid
+                    record_name = $(
+                        [KeeperSecurity.Vault.KeeperRecord]$record = $null
+                        if ($Vault.TryGetKeeperRecord($_.RecordUid, [ref]$record) -and $record.Title) { $record.Title } else { $_.RecordUid }
+                    )
+                }
+            }
+        )
+    } | ConvertTo-Json -Depth 10
+}
+
+function ConvertTo-KeeperFolderLocation {
+    Param(
+        [Parameter(Mandatory = $false)][KeeperSecurity.Vault.FolderNode] $Folder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    $parentUid = if ($Folder) { $Folder.ParentUid } else { $null }
+    [ordered]@{
+        uid  = if ($parentUid) { $parentUid } else { '' }
+        path = if ($parentUid) { (getVaultFolderPath $Vault $parentUid).TrimStart($Script:PathDelimiter) } else { '' }
+    }
+}
+
+function ConvertTo-KeeperFolderJson {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.FolderNode] $Folder,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+    )
+
+    $records = foreach ($recordUid in @($Folder.Records)) {
+        [KeeperSecurity.Vault.KeeperRecord]$record = $null
+        [ordered]@{
+            record_uid  = $recordUid
+            record_name = if ($Vault.TryGetKeeperRecord($recordUid, [ref]$record) -and $record.Title) { $record.Title } else { $recordUid }
+        }
+    }
+
+    [ordered]@{
+        folder_uid = $Folder.FolderUid
+        type       = if ($Folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::UserFolder) { 'user_folder' } else { 'classic_folder' }
+        name       = $Folder.Name
+        path       = (getVaultFolderPath $Vault $Folder.FolderUid).TrimStart($Script:PathDelimiter)
+        folder     = ConvertTo-KeeperFolderLocation -Folder $Folder -Vault $Vault
+        records    = @($records)
+    } | ConvertTo-Json -Depth 10
+}
+
 function Get-KeeperObject {
     <#
 	.Synopsis
@@ -759,12 +931,16 @@ function Get-KeeperObject {
 
 	.Parameter PropertyName
 	Return object property not the entire object
+
+	.Parameter Format
+	Output format: table or json
 #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)][string[]] $Uid,
         [string] [ValidateSet('Record' , 'SharedFolder', 'Folder', 'Team')] $ObjectType,
-        [string] $PropertyName
+        [string] $PropertyName,
+        [ValidateSet('table', 'json')][string] $Format = 'table'
     )
 
     Begin {
@@ -802,7 +978,12 @@ function Get-KeeperObject {
                         }
                     }
                     else {
-                        $sf
+                        if ($Format -eq 'json') {
+                            ConvertTo-KeeperSharedFolderJson -SharedFolder $sf -Vault $vault
+                        }
+                        else {
+                            $sf
+                        }
                     }
                     continue
                 }
@@ -815,6 +996,9 @@ function Get-KeeperObject {
                         if ($mp) {
                             $f | Select-Object -ExpandProperty $PropertyName
                         }
+                    }
+                    elseif ($Format -eq 'json') {
+                        ConvertTo-KeeperFolderJson -Folder $f -Vault $vault
                     }
                     else {
                         $f
@@ -854,7 +1038,13 @@ function Get-KeeperObject {
             }
 
             if ($testRecord) {
-                $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
+                try {
+                    $nsfRecord = resolveKeeperNSFRecord -Identifier $oid -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousNsfRecordException] {
+                    writeAmbiguousNsfError -ErrorRecord $_
+                    continue
+                }
                 if ($nsfRecord) {
                     if ($PropertyName) {
                         $mp = $nsfRecord | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
@@ -865,7 +1055,13 @@ function Get-KeeperObject {
                 }
             }
             if ($testFolder) {
-                $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
+                try {
+                    $nsfFolder = resolveKeeperNSFFolder -Identifier $oid -Vault $vault
+                }
+                catch [KeeperSecurity.Vault.AmbiguousFolderException] {
+                    writeAmbiguousNsfError -ErrorRecord $_
+                    continue
+                }
                 if ($nsfFolder) {
                     if ($PropertyName) {
                         $mp = $nsfFolder | Get-Member -MemberType Properties -Name $PropertyName -ErrorAction SilentlyContinue
@@ -907,15 +1103,32 @@ function parseKeeperPath {
                 $resume = $true
             }
             else {
+                $uidMatch = $null
+                $nameMatches = [System.Collections.Generic.List[object]]::new()
                 foreach ($x in $folder.Subfolders) {
                     [KeeperSecurity.Vault.FolderNode] $subfolder = $null
                     if ($vault.TryGetFolder($x, [ref]$subfolder)) {
-                        if ($subfolder.Name -eq $component) {
-                            $resume = $true
-                            $folder = $subfolder
+                        if ([string]::Equals($subfolder.FolderUid, $component, [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $uidMatch = $subfolder
                             break
                         }
+                        if ($subfolder.Name -and [string]::Equals($subfolder.Name, $component, [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $nameMatches.Add($subfolder)
+                        }
                     }
+                }
+
+                if ($uidMatch) {
+                    $resume = $true
+                    $folder = $uidMatch
+                }
+                elseif ($nameMatches.Count -gt 1) {
+                    $details = ($nameMatches | ForEach-Object { "  UID: $($_.FolderUid), Name: $($_.Name)" }) -join "`n"
+                    Write-Error -Message "There are $($nameMatches.Count) folders with name `"$component`". Use Folder UID or full path to specify the correct one:`n$details" -ErrorAction Stop
+                }
+                elseif ($nameMatches.Count -eq 1) {
+                    $resume = $true
+                    $folder = $nameMatches[0]
                 }
             }
 

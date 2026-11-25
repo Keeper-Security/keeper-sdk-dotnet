@@ -24,7 +24,7 @@ namespace Commander
             if (!string.IsNullOrEmpty(options.Folder) &&
                 !Vault.TryGetKeeperNSFFolder(options.Folder, out folder) &&
                 !Vault.TryGetFolder(options.Folder, out folder) &&
-                !TryResolvePath(options.Folder, out folder))
+                !ResolvePath(options.Folder, out folder))
             {
                 Console.WriteLine($"Invalid folder: {options.Folder}");
                 return false;

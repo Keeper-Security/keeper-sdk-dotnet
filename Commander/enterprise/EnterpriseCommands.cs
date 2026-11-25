@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -21,6 +23,10 @@ using Commander.EPM;
 using Commander.PAM;
 using KeeperSecurity.Plugins.PAM;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Enterprise.ReportingPlugin;
+using System.Data;
+using KeeperSecurity.Compliance;
+using KeeperSecurity.Storage;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
 using EnterpriseUser = KeeperSecurity.Enterprise.EnterpriseUser;
@@ -201,6 +207,20 @@ namespace Commander
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
+            cli.Commands.Add("device-admin-list",
+                new ParseableCommand<DeviceAdminListOptions>
+                {
+                    Order = 95,
+                    Description = "List devices registered to enterprise user(s)",
+                    Action = async options => { await context.DeviceAdminListCommand(options); },
+                });
+            cli.Commands.Add("device-admin-action",
+                new ParseableCommand<DeviceAdminActionOptions>
+                {
+                    Order = 96,
+                    Description = "Perform an action on enterprise user device(s) (logout, remove, lock, unlock, account-lock, account-unlock)",
+                    Action = async options => { await context.DeviceAdminActionCommand(options); },
+                });
             cli.Commands.Add("team-approve",
                 new ParseableCommand<TeamApproveCommandOptions>
                 {
@@ -219,7 +239,7 @@ namespace Commander
                 new ParseableCommand<EnterpriseTransferUserOptions>
                 {
                     Order = 66,
-                    Description = "Transfer User Account",
+                    Description = "Transfer User Account",  
                     Action = async options => { await context.TransferUserCommand(options); },
                 });
 
@@ -1575,6 +1595,18 @@ namespace Commander
 
         public static async Task EnterpriseRoleCommand(this RoleData roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
         {
+            if (!string.IsNullOrWhiteSpace(arguments.AddRole))
+            {
+                if (!string.IsNullOrWhiteSpace(arguments.Command) || !string.IsNullOrWhiteSpace(arguments.Role))
+                {
+                    Console.WriteLine("Use either --add <role name> or the positional add command, not both.");
+                    return;
+                }
+
+                arguments.Command = "add";
+                arguments.Role = arguments.AddRole;
+            }
+
             if (arguments.Force)
             {
                 await roleData.Enterprise.Load();
@@ -1740,7 +1772,43 @@ namespace Commander
                     nodeId = enterpriseData.RootNode.Id;
                 }
 
-                await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser ?? false);
+                var managedNodesToAdd = new List<EnterpriseNode>();
+                var managedNodeIds = new HashSet<long>();
+                foreach (var managedNodeInput in arguments.AddAdmin ?? Enumerable.Empty<string>())
+                {
+                    if (!TryResolveNode(enterpriseData, managedNodeInput, out var managedNode, out var errorMessage))
+                    {
+                        Console.WriteLine(errorMessage);
+                        return;
+                    }
+
+                    if (!managedNodeIds.Add(managedNode.Id))
+                    {
+                        Console.WriteLine($"Managed node \"{GetNodeDisplayName(managedNode)}\" was specified more than once.");
+                        return;
+                    }
+
+                    managedNodesToAdd.Add(managedNode);
+                }
+
+                var createdRole = await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser ?? false);
+                if (createdRole == null)
+                {
+                    Console.WriteLine($"Role \"{arguments.Role}\" was created but could not be loaded. Managed nodes were not added.");
+                    return;
+                }
+
+                foreach (var managedNode in managedNodesToAdd)
+                {
+                    try
+                    {
+                        await roleData.RoleManagedNodeAdd(createdRole, managedNode, arguments.Cascade);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new EnterpriseException($"Role \"{createdRole.DisplayName}\" (ID: {createdRole.Id}) was created, but managed node \"{GetNodeDisplayName(managedNode)}\" could not be added: {e.Message} Add it with: enterprise-role managed-node-add {createdRole.Id} --node {managedNode.Id}.");
+                    }
+                }
                 Console.WriteLine($"Role \"{arguments.Role}\" successfully added.");
                 return;
             }
@@ -2655,6 +2723,228 @@ namespace Commander
             }
         }
 
+        private static readonly HashSet<string> DestructiveDeviceActions =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "remove", "lock", "account-lock" };
+
+        private static bool TryResolveEnterpriseUserByIdentifier(this IEnterpriseContext context, string identifier, out EnterpriseUser user)
+        {
+            if (long.TryParse(identifier, out var userId))
+            {
+                return context.EnterpriseData.TryGetUserById(userId, out user);
+            }
+
+            return context.EnterpriseData.TryGetUserByEmail(identifier, out user);
+        }
+
+        private static long[] ResolveAdminEnterpriseUsers(this IEnterpriseContext context, string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier) || identifier.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                return context.EnterpriseData.Users.Select(x => x.Id).ToArray();
+            }
+
+            return context.TryResolveEnterpriseUserByIdentifier(identifier, out var user) ? new[] { user.Id } : Array.Empty<long>();
+        }
+
+        public static async Task DeviceAdminListCommand(this IEnterpriseContext context, DeviceAdminListOptions arguments)
+        {
+            var userIds = context.ResolveAdminEnterpriseUsers(arguments.User);
+            if (userIds.Length == 0)
+            {
+                Console.WriteLine($"No enterprise user found matching \"{arguments.User}\"");
+                return;
+            }
+
+            var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(userIds)).ToArray();
+            if (userLists.Length == 0)
+            {
+                Console.WriteLine("No devices available");
+                return;
+            }
+
+            context.PrintAdminUserDevices(userLists, arguments.Format?.ToLowerInvariant());
+        }
+
+        private static readonly string[] AdminDeviceHeaderRow =
+            { "Email", "Device Name", "ID", "Status", "Login State", "UI Category", "Last Modified" };
+
+        private static void PrintAdminUserDevices(this IEnterpriseContext context, IEnumerable<DeviceManagement.DeviceUserList> userLists, string format = "table")
+        {
+            var rows = new List<object[]>();
+            var jsonData = new List<Dictionary<string, object>>();
+            foreach (var userList in userLists)
+            {
+                var email = context.EnterpriseData.TryGetUserById(userList.EnterpriseUserId, out var user) ? user.Email : userList.EnterpriseUserId.ToString();
+                foreach (var device in userList.DeviceGroups.SelectMany(x => x.Devices))
+                {
+                    var deviceToken = device.EncryptedDeviceToken.ToByteArray();
+                    var lastModified = device.LastModifiedTime > 0
+                        ? DateTimeOffset.FromUnixTimeMilliseconds(device.LastModifiedTime).LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                        : "";
+                    var deviceId = deviceToken.TokenToString();
+                    var status = device.DeviceStatus.DeviceStatusToString();
+                    var loginState = device.LoginState.ToString();
+                    var uiCategory = KeeperSecurity.Authentication.DeviceManagementExtensions.GetUiCategory(device);
+
+                    rows.Add(new object[] { email, device.DeviceName, deviceId, status, loginState, uiCategory, lastModified });
+                    jsonData.Add(new Dictionary<string, object>
+                    {
+                        ["email"] = email,
+                        ["deviceName"] = device.DeviceName,
+                        ["id"] = deviceId,
+                        ["status"] = status,
+                        ["loginState"] = loginState,
+                        ["uiCategory"] = uiCategory,
+                        ["lastModified"] = lastModified,
+                    });
+                }
+            }
+
+            Console.WriteLine();
+            WriteFormattedOutput(Console.Out, format, AdminDeviceHeaderRow, rows, jsonData);
+        }
+
+        public static async Task DeviceAdminActionCommand(this IEnterpriseContext context, DeviceAdminActionOptions arguments)
+        {
+            if (string.IsNullOrEmpty(arguments.Action) ||
+                !KeeperSecurity.Authentication.DeviceManagementExtensions.TryParseDeviceAction(arguments.Action, out var actionType))
+            {
+                Console.WriteLine($"Unsupported device action \"{arguments.Action}\". Valid actions: " +
+                                   string.Join(", ", KeeperSecurity.Authentication.DeviceManagementExtensions.DeviceActionNameList));
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.User))
+            {
+                Console.WriteLine("No enterprise user specified");
+                return;
+            }
+
+            if (!context.TryResolveEnterpriseUserByIdentifier(arguments.User, out var enterpriseUser))
+            {
+                Console.WriteLine($"No enterprise user found matching \"{arguments.User}\"");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.Devices))
+            {
+                Console.WriteLine("No device Id(s) specified");
+                return;
+            }
+
+            DeviceManagement.Device[] devices;
+            try
+            {
+                var userLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+                devices = userLists.SelectMany(x => x.DeviceGroups).SelectMany(x => x.Devices).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to retrieve devices for user \"{enterpriseUser.Email}\": {e.Message}");
+                return;
+            }
+
+            if (devices.Length == 0)
+            {
+                Console.WriteLine($"No devices found for user \"{enterpriseUser.Email}\"");
+                return;
+            }
+
+            var identifiers = arguments.Devices.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
+            var resolved = KeeperSecurity.Authentication.DeviceManagementExtensions.ResolveDevicesByIdentifiers(
+                devices, identifiers, token => token.TokenToString());
+            foreach (var identifier in resolved.NotFound)
+            {
+                Console.WriteLine($"No device found for \"{identifier}\"");
+            }
+            foreach (var identifier in resolved.Ambiguous)
+            {
+                Console.WriteLine($"\"{identifier}\" matches more than one device. Use \"id:\", \"name:\", \"#<row>\", or \"all\" to disambiguate.");
+            }
+
+            if (resolved.Matched.Count == 0)
+            {
+                Console.WriteLine("No devices to act on");
+                return;
+            }
+
+            Console.WriteLine($"The following device(s) will be \"{arguments.Action}\"'d for \"{enterpriseUser.Email}\":");
+            foreach (var device in resolved.Matched)
+            {
+                Console.WriteLine($"  {device.EncryptedDeviceToken.ToByteArray().TokenToString()}  {device.DeviceName}");
+            }
+
+            if (DestructiveDeviceActions.Contains(arguments.Action) && !arguments.Yes)
+            {
+                Console.Write($"Do you want to \"{arguments.Action}\" {resolved.Matched.Count} device(s) (Yes/No)? > ");
+                var answer = await Program.GetInputManager().ReadLine();
+                if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    answer = "yes";
+                }
+
+                if (!string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Console.WriteLine("Cancelled");
+                    return;
+                }
+            }
+
+            IEnumerable<DeviceManagement.DeviceAdminActionResult> results;
+            try
+            {
+                results = await context.Enterprise.Auth.ExecuteAdminDeviceAction(actionType, enterpriseUser.Id, resolved.Matched.Select(x => x.EncryptedDeviceToken));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Device action \"{arguments.Action}\" failed: {e.Message}");
+                return;
+            }
+
+            var succeeded = 0;
+            var failed = 0;
+            foreach (var result in results)
+            {
+                var isSuccess = result.DeviceActionStatus == DeviceManagement.DeviceActionStatus.Success;
+                if (isSuccess)
+                {
+                    succeeded += result.EncryptedDeviceToken.Count;
+                }
+                else
+                {
+                    failed += result.EncryptedDeviceToken.Count;
+                }
+
+                foreach (var token in result.EncryptedDeviceToken)
+                {
+                    var line = $"Device {token.ToByteArray().TokenToString()}: {result.DeviceActionStatus}";
+                    if (isSuccess)
+                    {
+                        Console.WriteLine(line);
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine(line);
+                    }
+                }
+            }
+
+            Console.WriteLine($"{succeeded} succeeded, {failed} failed");
+
+            try
+            {
+                var updatedUserLists = (await context.Enterprise.Auth.GetAdminUserDevices(new[] { enterpriseUser.Id })).ToArray();
+                if (updatedUserLists.Length > 0)
+                {
+                    context.PrintAdminUserDevices(updatedUserLists);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Device action completed, but failed to refresh the device list: {e.Message}");
+            }
+        }
+
         internal static async Task EnterpriseRegisterEcKey(this IEnterpriseContext context, Cli.CliCommands cli)
         {
             if (context.Enterprise.TreeKey == null)
@@ -2803,7 +3093,9 @@ namespace Commander
                 return null;
 
             var filter = new PatternFilter();
-            var workingPattern = pattern;
+            var workingPattern = pattern.Trim();
+            if (workingPattern.Length == 0)
+                return null;
 
             if (workingPattern.StartsWith("not:", StringComparison.OrdinalIgnoreCase))
             {
@@ -2821,8 +3113,7 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
-                    return null;
+                    filter.Type = PatternType.Substring;
                 }
             }
             else if (workingPattern.StartsWith("exact:", StringComparison.OrdinalIgnoreCase))
@@ -2840,8 +3131,7 @@ namespace Commander
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Error: Invalid regex pattern '{filter.Pattern}', skipping this filter");
-                    return null;
+                    filter.Type = PatternType.Substring;
                 }
             }
             else
@@ -2853,41 +3143,42 @@ namespace Commander
             return filter;
         }
 
+        private static string GetPatternText(object value)
+        {
+            if (value == null)
+                return "";
+            if (value is string text)
+                return text;
+            if (value is System.Collections.IEnumerable items)
+            {
+                var parts = new List<string>();
+                foreach (var item in items)
+                    parts.Add(GetPatternText(item));
+                return string.Join(" ", parts);
+            }
+            return value.ToString() ?? "";
+        }
+
         private static bool MatchesPattern(Dictionary<string, object> eventData, PatternFilter filter)
         {
             if (filter == null) return true;
             if (eventData == null) return false; 
 
-            bool matches = false;
-            foreach (var kvp in eventData)
+            var fieldValues = eventData.Values.Select(GetPatternText).ToArray();
+            var rowText = string.Join(" ", fieldValues);
+            bool matches;
+            switch (filter.Type)
             {
-                var value = kvp.Value?.ToString() ?? "";
-                
-                switch (filter.Type)
-                {
-                    case PatternType.Regex:
-                        if (filter.CompiledRegex != null && filter.CompiledRegex.IsMatch(value))
-                        {
-                            matches = true;
-                        }
-                        break;
-                    
-                    case PatternType.Exact:
-                        if (value.Equals(filter.Pattern, StringComparison.OrdinalIgnoreCase))
-                        {
-                            matches = true;
-                        }
-                        break;
-                    
-                    case PatternType.Substring:
-                        if (value.IndexOf(filter.Pattern, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            matches = true;
-                        }
-                        break;
-                }
-
-                if (matches) break;
+                case PatternType.Regex:
+                    matches = filter.CompiledRegex != null && filter.CompiledRegex.IsMatch(rowText);
+                    break;
+                case PatternType.Exact:
+                    matches = fieldValues.Any(value =>
+                        value.Equals(filter.Pattern, StringComparison.OrdinalIgnoreCase));
+                    break;
+                default:
+                    matches = rowText.IndexOf(filter.Pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+                    break;
             }
 
             return filter.IsNegated ? !matches : matches;
@@ -2908,12 +3199,694 @@ namespace Commander
             }
         }
 
+        private static string FormatAuditEventMessage(
+            IEnterpriseContext context,
+            string eventTypeName,
+            string username,
+            IDictionary<string, object> details)
+        {
+            if (context?.AuditEvents == null ||
+                !context.AuditEvents.TryGetValue(eventTypeName ?? "", out var eventType) ||
+                string.IsNullOrEmpty(eventType?.SyslogMessage))
+            {
+                return "";
+            }
+
+            var message = eventType.SyslogMessage;
+            var match = Regex.Match(message, ParameterPattern);
+            while (match.Success)
+            {
+                var parameter = match.Groups[1].Value;
+                var value = "";
+                if (string.Equals(parameter, "username", StringComparison.OrdinalIgnoreCase))
+                {
+                    value = username ?? "";
+                }
+                else if (details != null && details.TryGetValue(parameter, out var detailValue))
+                {
+                    value = detailValue?.ToString() ?? "";
+                }
+                message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                message = message.Insert(match.Groups[0].Index, value);
+                match = Regex.Match(message, ParameterPattern);
+            }
+            return message;
+        }
+
+        private static Dictionary<string, object> CreateAuditEntryFilterData(
+            IEnterpriseContext context,
+            AuditReportEntry entry)
+        {
+            var eventData = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            if (entry.Details != null)
+            {
+                foreach (var detail in entry.Details)
+                    eventData[detail.Key] = detail.Value;
+            }
+
+            eventData["audit_event_type"] = entry.EventType;
+            eventData["username"] = entry.Username;
+            eventData["ip_address"] = entry.IpAddress;
+            eventData["record_uid"] = entry.RecordUid;
+            eventData["record_title"] = entry.RecordTitle;
+            eventData["client_type"] = entry.ClientType;
+            eventData["geo_location"] = entry.GeoLocation;
+            eventData["created"] = entry.EventTime.ToString("O", CultureInfo.InvariantCulture);
+            eventData["message"] = FormatAuditEventMessage(
+                context, entry.EventType, entry.Username, entry.Details);
+            return eventData;
+        }
+
+        private static string GetReportingCachePath(IEnterpriseContext context)
+        {
+            var auth = context.Enterprise?.Auth;
+            var server = auth?.Endpoint?.Server ?? "keepersecurity.com";
+            var safeServer = Regex.Replace(server, @"[^\w.-]", "_");
+            var enterpriseId = context.EnterpriseData?.EnterpriseLicense?.EnterpriseLicenseId ?? 0;
+            var scope = $"{server}|{enterpriseId}|{auth?.Username ?? string.Empty}";
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var scopeHash = string.Concat(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(scope))
+                .Select(b => b.ToString("x2", CultureInfo.InvariantCulture)));
+            var cacheRoot = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Keeper", "compliance_cache", safeServer);
+            return System.IO.Path.Combine(cacheRoot, $"enterprise_{enterpriseId}_{scopeHash}.sqlite");
+        }
+
+        private static bool IsRecordNameColumn(string column)
+        {
+            return string.Equals(column, "record_name", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(column, "record_title", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string FormatAuditReportTime(object value, TimeZoneInfo timeZone)
+        {
+            if (value == null)
+                return "";
+
+            DateTimeOffset timestamp;
+            if (long.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var epoch))
+            {
+                timestamp = DateTimeOffset.FromUnixTimeSeconds(epoch);
+            }
+            else if (!DateTimeOffset.TryParse(value.ToString(), CultureInfo.InvariantCulture,
+                         DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp))
+            {
+                return value.ToString();
+            }
+
+            timestamp = timeZone == null
+                ? timestamp.ToLocalTime()
+                : TimeZoneInfo.ConvertTime(timestamp, timeZone);
+            return timestamp.ToString("G", CultureInfo.CurrentCulture);
+        }
+
+        private static CreatedFilter ResolvePredefinedCreatedFilter(string value, TimeZoneInfo timeZone)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            var zone = timeZone ?? TimeZoneInfo.Utc;
+            var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+            var today = DateTime.SpecifyKind(now.Date, DateTimeKind.Unspecified);
+            DateTime start;
+            DateTime end;
+            switch (value.Trim().ToLowerInvariant())
+            {
+                case "today":
+                    start = today;
+                    end = today.AddDays(1);
+                    break;
+                case "yesterday":
+                    start = today.AddDays(-1);
+                    end = today;
+                    break;
+                case "last_7_days":
+                    start = today.AddDays(-6);
+                    end = today.AddDays(1);
+                    break;
+                case "last_30_days":
+                    start = today.AddDays(-29);
+                    end = today.AddDays(1);
+                    break;
+                case "month_to_date":
+                    start = new DateTime(today.Year, today.Month, 1);
+                    end = today.AddDays(1);
+                    break;
+                case "last_month":
+                    end = new DateTime(today.Year, today.Month, 1);
+                    start = end.AddMonths(-1);
+                    break;
+                case "year_to_date":
+                    start = new DateTime(today.Year, 1, 1);
+                    end = today.AddDays(1);
+                    break;
+                case "last_year":
+                    start = new DateTime(today.Year - 1, 1, 1);
+                    end = new DateTime(today.Year, 1, 1);
+                    break;
+                default:
+                    return null;
+            }
+
+            return new CreatedFilter
+            {
+                Min = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(start, zone)).ToUnixTimeSeconds(),
+                Max = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(end, zone)).ToUnixTimeSeconds(),
+                ExcludeMin = false,
+                ExcludeMax = true
+            };
+        }
+
+        private static CreatedFilter CloneCreatedFilter(CreatedFilter source)
+        {
+            return source == null
+                ? null
+                : new CreatedFilter
+                {
+                    Min = source.Min,
+                    Max = source.Max,
+                    ExcludeMin = source.ExcludeMin,
+                    ExcludeMax = source.ExcludeMax
+                };
+        }
+
+        private static ReportFilter CloneReportFilter(ReportFilter source, CreatedFilter created)
+        {
+            if (source == null)
+                return new ReportFilter { Created = created };
+            return new ReportFilter
+            {
+                EventTypes = source.EventTypes,
+                Username = source.Username,
+                ToUsername = source.ToUsername,
+                RecordUid = source.RecordUid,
+                SharedFolderUid = source.SharedFolderUid,
+                NodeId = source.NodeId,
+                IpAddress = source.IpAddress,
+                GeoLocation = source.GeoLocation,
+                DeviceType = source.DeviceType,
+                ParentId = source.ParentId,
+                Created = created
+            };
+        }
+
+        private static async Task<List<Dictionary<string, object>>> FetchAuditReportRowsAsync(
+            IAuthentication auth,
+            GetAuditEventReportsCommand request,
+            int requestedLimit,
+            TimeZoneInfo timeZone)
+        {
+            var isRaw = string.Equals(request.ReportType, "raw", StringComparison.OrdinalIgnoreCase);
+            var pageSize = isRaw ? 1000 : 2000;
+            if (requestedLimit <= pageSize)
+            {
+                request.Limit = requestedLimit;
+                var response = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(request);
+                return response?.Events ?? new List<Dictionary<string, object>>();
+            }
+
+            var originalCreated = request.Filter?.Created;
+            var range = originalCreated as CreatedFilter ??
+                ResolvePredefinedCreatedFilter(originalCreated as string, timeZone);
+            if (range == null)
+            {
+                range = new CreatedFilter
+                {
+                    Min = 0,
+                    Max = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    ExcludeMin = false,
+                    ExcludeMax = false
+                };
+            }
+            else
+            {
+                range = CloneCreatedFilter(range);
+                range.Min ??= 0;
+                range.Max ??= DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            }
+
+            if (isRaw)
+            {
+                var rows = new List<Dictionary<string, object>>();
+                var seenIds = new HashSet<string>(StringComparer.Ordinal);
+                var ascending = string.Equals(request.Order, "ascending", StringComparison.OrdinalIgnoreCase);
+                var cursor = ascending ? range.Min.Value : range.Max.Value;
+                while (rows.Count < requestedLimit)
+                {
+                    var pageCreated = CloneCreatedFilter(range);
+                    if (ascending)
+                    {
+                        pageCreated.Min = cursor;
+                        pageCreated.ExcludeMin = rows.Count > 0 ? false : range.ExcludeMin;
+                    }
+                    else
+                    {
+                        pageCreated.Max = cursor;
+                        pageCreated.ExcludeMax = rows.Count > 0 ? false : range.ExcludeMax;
+                    }
+
+                    var pageRequest = new GetAuditEventReportsCommand
+                    {
+                        ReportType = request.ReportType,
+                        Order = request.Order,
+                        Limit = Math.Min(pageSize, requestedLimit - rows.Count),
+                        Filter = CloneReportFilter(request.Filter, pageCreated),
+                        Columns = request.Columns,
+                        Aggregate = request.Aggregate,
+                        ReportFormat = request.ReportFormat,
+                        Timezone = request.Timezone
+                    };
+                    var page = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(pageRequest);
+                    var pageRows = page?.Events ?? new List<Dictionary<string, object>>();
+                    var added = 0;
+                    foreach (var row in pageRows)
+                    {
+                        var id = row != null && row.TryGetValue("id", out var idValue) && idValue != null
+                            ? idValue.ToString()
+                            : string.Join("|", (row ?? new Dictionary<string, object>())
+                                .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                                .Select(pair => $"{pair.Key}={pair.Value}"));
+                        if (seenIds.Add(id))
+                        {
+                            rows.Add(row);
+                            added++;
+                        }
+                    }
+
+                    if (pageRows.Count < pageRequest.Limit || rows.Count >= requestedLimit)
+                        break;
+                    if (added == 0)
+                        throw new InvalidOperationException("Audit report pagination could not advance past events sharing the same timestamp.");
+
+                    var timestamps = pageRows
+                        .Where(row => row != null && row.TryGetValue("created", out var created) &&
+                                      long.TryParse(created?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                        .Select(row => long.Parse(row["created"].ToString(), CultureInfo.InvariantCulture))
+                        .ToArray();
+                    if (timestamps.Length == 0)
+                        throw new InvalidOperationException("Audit report pagination cannot continue because the response has no event timestamps.");
+                    cursor = ascending ? timestamps.Max() : timestamps.Min();
+                }
+                return rows.Take(requestedLimit).ToList();
+            }
+
+            var reportRows = new List<Dictionary<string, object>>();
+            var min = range.Min.Value;
+            var max = range.Max.Value;
+            async Task FetchRange(long rangeMin, long rangeMax, bool excludeMin, bool excludeMax, int depth)
+            {
+                var pageRequest = new GetAuditEventReportsCommand
+                {
+                    ReportType = request.ReportType,
+                    Order = request.Order,
+                    Limit = pageSize,
+                    Filter = CloneReportFilter(request.Filter, new CreatedFilter
+                    {
+                        Min = rangeMin,
+                        Max = rangeMax,
+                        ExcludeMin = excludeMin,
+                        ExcludeMax = excludeMax
+                    }),
+                    Columns = request.Columns,
+                    Aggregate = request.Aggregate,
+                    ReportFormat = request.ReportFormat,
+                    Timezone = request.Timezone
+                };
+                var page = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(pageRequest);
+                var pageRows = page?.Events ?? new List<Dictionary<string, object>>();
+                if (pageRows.Count < pageSize)
+                {
+                    reportRows.AddRange(pageRows);
+                    return;
+                }
+                if (depth >= 40 || rangeMax - rangeMin <= 1)
+                    throw new InvalidOperationException("Aggregated audit report pagination reached a time interval that is still larger than the API page limit.");
+
+                var midpoint = rangeMin + (rangeMax - rangeMin) / 2;
+                await FetchRange(rangeMin, midpoint, excludeMin, true, depth + 1);
+                await FetchRange(midpoint, rangeMax, false, excludeMax, depth + 1);
+            }
+            await FetchRange(min, max, range.ExcludeMin, range.ExcludeMax, 0);
+
+            var aggregateColumns = new HashSet<string>(
+                (request.Aggregate ?? new[] { "occurrences" }).Concat(new[] { "occurrences" }),
+                StringComparer.OrdinalIgnoreCase);
+            var merged = new Dictionary<string, Dictionary<string, object>>(StringComparer.Ordinal);
+            foreach (var row in reportRows)
+            {
+                var groupingValues = row
+                    .Where(pair => !aggregateColumns.Contains(pair.Key))
+                    .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                var key = string.Join("|", groupingValues.Select(pair => $"{pair.Key}={pair.Value}"));
+                if (!merged.TryGetValue(key, out var existing))
+                {
+                    existing = new Dictionary<string, object>(row, StringComparer.OrdinalIgnoreCase);
+                    merged[key] = existing;
+                    continue;
+                }
+
+                foreach (var aggregate in aggregateColumns)
+                {
+                    if (!row.TryGetValue(aggregate, out var newValue) || newValue == null)
+                        continue;
+                    if (!existing.TryGetValue(aggregate, out var oldValue) || oldValue == null)
+                    {
+                        existing[aggregate] = newValue;
+                        continue;
+                    }
+                    if (!long.TryParse(oldValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oldNumber) ||
+                        !long.TryParse(newValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var newNumber))
+                        continue;
+                    existing[aggregate] = string.Equals(aggregate, "first_created", StringComparison.OrdinalIgnoreCase)
+                        ? Math.Min(oldNumber, newNumber)
+                        : string.Equals(aggregate, "last_created", StringComparison.OrdinalIgnoreCase)
+                            ? Math.Max(oldNumber, newNumber)
+                            : oldNumber + newNumber;
+                }
+            }
+            var mergedRows = merged.Values.ToList();
+            var sortColumn = request.Aggregate?.FirstOrDefault() ?? request.Columns?.FirstOrDefault();
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                var descending = !string.Equals(request.Order, "ascending", StringComparison.OrdinalIgnoreCase);
+                mergedRows.Sort((left, right) =>
+                {
+                    left.TryGetValue(sortColumn, out var leftValue);
+                    right.TryGetValue(sortColumn, out var rightValue);
+                    var comparison = 0;
+                    if (decimal.TryParse(leftValue?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var leftNumber) &&
+                        decimal.TryParse(rightValue?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var rightNumber))
+                    {
+                        comparison = leftNumber.CompareTo(rightNumber);
+                    }
+                    else
+                    {
+                        comparison = string.Compare(
+                            leftValue?.ToString(),
+                            rightValue?.ToString(),
+                            StringComparison.OrdinalIgnoreCase);
+                    }
+                    return descending ? -comparison : comparison;
+                });
+            }
+            return mergedRows.Take(requestedLimit).ToList();
+        }
+
+        private static Dictionary<string, ComplianceContextInfo> GetCachedAuditComplianceContext(
+            IEnterpriseContext context,
+            IEnumerable<Dictionary<string, object>> rows)
+        {
+            // Compliance data is only available to users with the privilege and the add-on.
+            if (!context.IsComplianceReportingEnabled())
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+
+            var recordUids = rows?
+                .Where(row => row != null &&
+                              row.TryGetValue("record_uid", out var uid) &&
+                              !string.IsNullOrWhiteSpace(uid?.ToString()))
+                .Select(row => row["record_uid"].ToString().Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToList() ?? new List<string>();
+            if (recordUids.Count == 0)
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+
+            var dbPath = GetReportingCachePath(context);
+            if (!System.IO.File.Exists(dbPath))
+            {
+                Trace.TraceInformation($"Audit record-name lookup: no compliance cache found at '{dbPath}'.");
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+
+            try
+            {
+                var connectionString = $"Data Source={dbPath};Pooling=True;";
+                Func<IDbConnection> getConnection = () =>
+                {
+                    var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+                    connection.Open();
+                    return connection;
+                };
+
+                var dialect = SqliteDialect.Instance;
+                var sqlStorage = new SqlComplianceStorage(getConnection, dialect);
+                using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteReportingStorage.VerifyDatabase(connection, dialect);
+                }
+
+                var reportingStorage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
+                var complianceData = reportingStorage.GetComplianceData(recordUids);
+                Trace.TraceInformation(
+                    $"Audit record-name lookup: queried {recordUids.Count} UID(s) in compliance cache; found {complianceData?.Count ?? 0} record(s).");
+                return complianceData ?? new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"Audit record-name lookup: failed to read compliance cache '{dbPath}': {ex.Message}");
+                return new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            }
+        }
+
+        private static async Task<Dictionary<string, ComplianceContextInfo>> FetchAuditComplianceDetailsAsync(
+            IEnterpriseContext context,
+            List<string> recordUids)
+        {
+            var result = new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            if (recordUids == null || recordUids.Count == 0)
+                return result;
+
+            try
+            {
+                var dbPath = GetReportingCachePath(context);
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath));
+                var connectionString = $"Data Source={dbPath};Pooling=True;";
+                Func<IDbConnection> getConnection = () =>
+                {
+                    var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+                    connection.Open();
+                    return connection;
+                };
+                var dialect = SqliteDialect.Instance;
+                var sqlStorage = new SqlComplianceStorage(getConnection, dialect);
+                using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteReportingStorage.VerifyDatabase(connection, dialect);
+                }
+
+                var storage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
+                var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(
+                    context.EnterpriseData,
+                    storage,
+                    context.EnterprisePrivateKey);
+                var report = await reportingPlugin.GenerateComplianceReportAsync(
+                    context.Enterprise.Auth,
+                    new ComplianceReportConfig { Rebuild = true, CacheMaxAgeDays = 0 },
+                    recordUids);
+                if (!string.IsNullOrWhiteSpace(report.ErrorMessage))
+                    throw new InvalidOperationException(report.ErrorMessage);
+
+                foreach (var entry in report.Entries ?? new List<ComplianceReportEntry>())
+                {
+                    if (string.IsNullOrWhiteSpace(entry.RecordUid) || string.IsNullOrWhiteSpace(entry.Title))
+                        continue;
+                    result[entry.RecordUid] = new ComplianceContextInfo
+                    {
+                        RecordUid = entry.RecordUid,
+                        Title = entry.Title
+                    };
+                }
+                Trace.TraceInformation(
+                    $"Audit max-record-details: fetched titles for {result.Count}/{recordUids.Count} missing compliance record(s).");
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning($"Audit max-record-details: unable to fetch compliance record details: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        private static bool TryGetVaultRecordTitle(IEnterpriseContext context, string recordUid, out string title)
+        {
+            title = null;
+            try
+            {
+                var vault = context?.GetVault();
+                if (vault != null && vault.TryGetKeeperRecord(recordUid, out var vaultRecord))
+                {
+                    title = vaultRecord.Title ?? "";
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceInformation($"Audit record-name lookup: vault lookup failed for UID '{recordUid}': {ex.Message}");
+            }
+
+            return false;
+        }
+
+        private static string ResolveAuditRecordName(
+            IEnterpriseContext context,
+            Dictionary<string, object> row,
+            Dictionary<string, ComplianceContextInfo> complianceContext)
+        {
+            if (row == null)
+                return "";
+
+            foreach (var column in new[] { "record_name", "record_title" })
+            {
+                if (row.TryGetValue(column, out var name) && !string.IsNullOrWhiteSpace(name?.ToString()))
+                    return name.ToString();
+            }
+
+            if (!row.TryGetValue("record_uid", out var uidValue) ||
+                string.IsNullOrWhiteSpace(uidValue?.ToString()))
+                return "";
+
+            var recordUid = uidValue.ToString().Trim();
+
+            // Prefer the local vault (always current); use compliance data only for records
+            // that are not in the vault.
+            if (TryGetVaultRecordTitle(context, recordUid, out var vaultTitle))
+                return vaultTitle;
+
+            if (complianceContext != null &&
+                complianceContext.TryGetValue(recordUid, out var complianceRecord) &&
+                complianceRecord != null &&
+                !string.IsNullOrWhiteSpace(complianceRecord.Title))
+                return complianceRecord.Title;
+
+            return "";
+        }
+
+        /// <summary>
+        /// True when the user has the "run_compliance_reports" privilege and the "compliance_report" add-on is enabled.
+        /// </summary>
+        private static bool IsComplianceReportingEnabled(this IEnterpriseContext context)
+        {
+            if (context?.EnterpriseData == null || context.RoleManagement == null)
+                return false;
+
+            var username = context.Enterprise?.Auth?.Username;
+            if (string.IsNullOrEmpty(username) || !context.EnterpriseData.TryGetUserByEmail(username, out var currentUser))
+                return false;
+
+            var userRoleIds = context.RoleManagement.GetRolesForUser(currentUser.Id).ToHashSet();
+            var hasPrivilege = context.RoleManagement.GetManagedNodes()
+                .Where(mn => userRoleIds.Contains(mn.RoleId))
+                .SelectMany(mn => context.RoleManagement.GetPrivilegesForRoleAndNode(mn.RoleId, mn.ManagedNodeId))
+                .Any(rp => string.Equals(rp.PrivilegeType, "run_compliance_reports", StringComparison.OrdinalIgnoreCase));
+            if (!hasPrivilege)
+                return false;
+
+            var license = context.EnterpriseData.EnterpriseLicense;
+            return license?.AddOns?.Any(a =>
+                string.Equals(a.Name, "compliance_report", StringComparison.OrdinalIgnoreCase) &&
+                (a.Enabled || a.IncludedInProduct)) == true;
+        }
+
         internal static async Task RunAuditEventsReport(this IEnterpriseContext context, AuditReportOptions options)
         {
-            if (options.MaxRecordDetails)
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+            if (options.Limit <= 0)
             {
-                Console.WriteLine("--max-record-details feature is not yet supported.");
+                Console.WriteLine("Error: --limit must be greater than 0.");
                 return;
+            }
+            TimeZoneInfo reportTimeZone = null;
+            if (!string.IsNullOrWhiteSpace(options.Timezone))
+            {
+                try
+                {
+                    reportTimeZone = TimeZoneInfo.FindSystemTimeZoneById(options.Timezone);
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    Console.WriteLine($"Error: unknown time zone '{options.Timezone}'.");
+                    return;
+                }
+                catch (InvalidTimeZoneException)
+                {
+                    Console.WriteLine($"Error: invalid time zone '{options.Timezone}'.");
+                    return;
+                }
+            }
+            if (string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(options.ReportFormat) &&
+                !string.Equals(options.ReportFormat, "message", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Error: --report-format must be either 'message' or 'fields'.");
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(options.Order) &&
+                !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(options.Order, "desc", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Error: --order must be either 'asc' or 'desc'.");
+                return;
+            }
+            var selectedReportType = (options.ReportType ?? "raw").Trim().ToLowerInvariant();
+            if (selectedReportType != "raw" && selectedReportType != "dim" &&
+                selectedReportType != "hour" && selectedReportType != "day" &&
+                selectedReportType != "week" && selectedReportType != "month" &&
+                selectedReportType != "span")
+            {
+                Console.WriteLine("Error: --report-type must be raw, dim, hour, day, week, month, or span.");
+                return;
+            }
+            if (selectedReportType != "raw" && options.Aggregate != null)
+            {
+                var validAggregates = new HashSet<string>(
+                    new[] { "occurrences", "first_created", "last_created" },
+                    StringComparer.OrdinalIgnoreCase);
+                var invalidAggregates = options.Aggregate
+                    .Where(aggregate => !validAggregates.Contains(aggregate ?? ""))
+                    .ToArray();
+                if (invalidAggregates.Length > 0)
+                {
+                    Console.WriteLine($"Error: unsupported aggregate column(s): {string.Join(", ", invalidAggregates)}.");
+                    return;
+                }
+            }
+
+            // Compliance data is optional enrichment (as in Python Commander, where it is only used to
+            // resolve record details that are not in the local cache). The compliance report pipeline
+            // is used only when the user explicitly asks for compliance output.
+            var complianceRequested = options.IncludeCompliance || options.IncludeAging || options.RebuildCompliance;
+            if (complianceRequested)
+            {
+                if (!context.IsComplianceReportingEnabled())
+                {
+                    Console.WriteLine(
+                        "Error: --include-compliance, --include-aging and --rebuild-compliance require the " +
+                        "'compliance_report' add-on and the 'run_compliance_reports' privilege.");
+                    return;
+                }
+
+                if (string.Equals(options.ReportType ?? "raw", "raw", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(options.Order, "asc", StringComparison.OrdinalIgnoreCase) &&
+                    string.IsNullOrWhiteSpace(options.Timezone) &&
+                    !string.Equals(options.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase) &&
+                    (options.GeoLocation == null || !options.GeoLocation.Any()) &&
+                    (options.DeviceType == null || !options.DeviceType.Any()) &&
+                    (options.Columns == null || !options.Columns.Any()) &&
+                    (options.Aggregate == null || !options.Aggregate.Any()))
+                {
+                    await RunAuditEventsReportWithCompliance(context, options);
+                    return;
+                }
+
+                Console.WriteLine(
+                    "Warning: compliance options are supported only for the raw report type with the default " +
+                    "order, time zone, report format and columns. They are ignored for this report.");
             }
 
             if (context.AuditEvents == null)
@@ -2933,6 +3906,11 @@ namespace Commander
             if (!string.IsNullOrEmpty(options.Created))
             {
                 filter.Created = ParseDateCreatedFilter(options.Created);
+                if (filter.Created == null)
+                {
+                    Console.WriteLine($"Error: invalid --created value '{options.Created}'.");
+                    return;
+                }
             }
 
             if (options.EventType != null && options.EventType.Any())
@@ -2990,11 +3968,20 @@ namespace Commander
             {
                 filter.IpAddress = options.IpAddress.ToArray();
             }
+            if (options.GeoLocation != null && options.GeoLocation.Any())
+            {
+                filter.GeoLocation = options.GeoLocation.ToArray();
+            }
+            if (options.DeviceType != null && options.DeviceType.Any())
+            {
+                filter.DeviceType = options.DeviceType.ToArray();
+            }
 
             var rq = new GetAuditEventReportsCommand
             {
                 Filter = filter,
                 Limit = options.Limit,
+                Timezone = options.Timezone,
             };
 
             if (!string.IsNullOrEmpty(options.Order)) 
@@ -3007,21 +3994,48 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.ReportType))
             {
-                rq.ReportType = options.ReportType;
+                rq.ReportType = options.ReportType.Trim().ToLowerInvariant();
             }
-            if (options.Aggregate != null && options.Aggregate.Any())
+            var reportType = options.ReportType ?? "raw";
+            var isRawReport = string.Equals(reportType, "raw", StringComparison.OrdinalIgnoreCase);
+            if (!isRawReport && options.Aggregate != null && options.Aggregate.Any())
             {
                 rq.Aggregate = options.Aggregate.ToArray();
             }
-            if (options.Columns != null && options.Columns.Any())
+            else if (!isRawReport)
             {
-                rq.Columns = options.Columns.ToArray();
+                rq.Aggregate = new[] { "occurrences" };
+            }
+            if (isRawReport)
+            {
+                var reportFormat = string.IsNullOrWhiteSpace(options.ReportFormat)
+                    ? "message"
+                    : options.ReportFormat.Trim().ToLowerInvariant();
+                if (reportFormat != "message" && reportFormat != "fields")
+                    throw new ArgumentException("--report-format must be either 'message' or 'fields'.");
+                rq.ReportFormat = reportFormat;
             }
 
-            if (options.ReportType == "dim")
+            var requestedColumns = isRawReport
+                ? Array.Empty<string>()
+                : options.Columns?.ToArray() ?? Array.Empty<string>();
+            // Resolve names locally from compliance data; the audit API groups on record_uid.
+            var apiColumns = requestedColumns
+                .Select(column => IsRecordNameColumn(column)
+                    ? "record_uid"
+                    : column)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (apiColumns.Length > 0)
             {
-                var dimColumns = (options.Columns != null && options.Columns.Any()) 
-                    ? options.Columns.ToArray() 
+                rq.Columns = apiColumns;
+            }
+
+            if (string.Equals(rq.ReportType, "dim", StringComparison.OrdinalIgnoreCase))
+            {
+                var dimColumns = (apiColumns.Length > 0)
+                    ? apiColumns
                     : new[] { "audit_event_type" };
                 var dimRq = new GetAuditEventDimensionsCommand
                 {
@@ -3030,7 +4044,16 @@ namespace Commander
                 var dimRs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventDimensionsCommand, GetAuditEventDimensionsResponse>(dimRq);
 
                 bool hasData = false;
-                int limit = options.Limit > 0 ? options.Limit : int.MaxValue;
+                int limit = options.Limit;
+                var requestedRecordNames = requestedColumns.Any(IsRecordNameColumn);
+                var dimComplianceContext = requestedRecordNames
+                    ? GetCachedAuditComplianceContext(
+                        context,
+                        dimRs.Dimensions?.RecordUid?.Select(uid => new Dictionary<string, object>
+                        {
+                            ["record_uid"] = uid
+                        }))
+                    : new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
 
                 void DisplayDimension<T>(T[] data, string title, string[] headers, Func<T, object[]> rowSelector)
                 {
@@ -3077,7 +4100,21 @@ namespace Commander
                 DisplayDimension(dimRs.Dimensions?.ToUsername, "ToUsernames", new[] { "To Username" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.FromUsername, "FromUsernames", new[] { "From Username" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.Channel, "Channels", new[] { "channel" }, item => new object[] { item });
-                DisplayDimension(dimRs.Dimensions?.RecordUid, "Record IDs", new[] { "Record ID" }, item => new object[] { item });
+                if (requestedRecordNames)
+                {
+                    DisplayDimension(
+                        dimRs.Dimensions?.RecordUid,
+                        "Record Names",
+                        new[] { "Record Name" },
+                        uid => new object[]
+                        {
+                            dimComplianceContext.TryGetValue(uid, out var record) ? record.Title : ""
+                        });
+                }
+                else
+                {
+                    DisplayDimension(dimRs.Dimensions?.RecordUid, "Record IDs", new[] { "Record ID" }, item => new object[] { item });
+                }
                 DisplayDimension(dimRs.Dimensions?.SharedFolderUid, "Shared Folder IDs", new[] { "Shared Folder ID" }, item => new object[] { item });
                 DisplayDimension(dimRs.Dimensions?.TeamUid, "Team IDs", new[] { "Team Id" }, item => new object[] { item });
 
@@ -3088,7 +4125,11 @@ namespace Commander
                 return;
             }
 
-            var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
+            var reportRows = await FetchAuditReportRowsAsync(
+                context.Enterprise.Auth,
+                rq,
+                options.Limit,
+                reportTimeZone);
 
             List<PatternFilter> patternFilters = null;
             if (options.FilterPatterns != null && options.FilterPatterns.Any())
@@ -3104,10 +4145,32 @@ namespace Commander
                 }
             }
 
-            var filteredEvents = rs.Events;
+            var filteredEvents = reportRows;
             if (patternFilters != null && patternFilters.Any())
             {
-                filteredEvents = rs.Events.Where(evt => ApplyFilters(evt, patternFilters, options.MatchAll)).ToList();
+                filteredEvents = reportRows.Where(evt => ApplyFilters(evt, patternFilters, options.MatchAll)).ToList();
+            }
+
+            var requestedRecordName = requestedColumns.Any(IsRecordNameColumn);
+            var cachedAuditComplianceContext = requestedRecordName && rq.ReportType != "raw"
+                ? GetCachedAuditComplianceContext(context, filteredEvents)
+                : new Dictionary<string, ComplianceContextInfo>(StringComparer.Ordinal);
+            if (options.MaxRecordDetails && requestedRecordName && rq.ReportType != "raw" &&
+                context.IsComplianceReportingEnabled())
+            {
+                var missingRecordUids = filteredEvents
+                    .Where(evt => evt != null &&
+                                  evt.TryGetValue("record_uid", out var uid) &&
+                                  !string.IsNullOrWhiteSpace(uid?.ToString()) &&
+                                  !TryGetVaultRecordTitle(context, uid.ToString().Trim(), out _) &&
+                                  (!cachedAuditComplianceContext.TryGetValue(uid.ToString().Trim(), out var cached) ||
+                                   string.IsNullOrWhiteSpace(cached?.Title)))
+                    .Select(evt => evt["record_uid"].ToString().Trim())
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+                var fetchedDetails = await FetchAuditComplianceDetailsAsync(context, missingRecordUids);
+                foreach (var detail in fetchedDetails)
+                    cachedAuditComplianceContext[detail.Key] = detail.Value;
             }
 
             var headers = new List<string>();
@@ -3115,64 +4178,72 @@ namespace Commander
 
             if (rq.ReportType == "raw")
             {
-                headers.AddRange(new[] { "Created", "Username", "Event", "Message" });
+                var fieldsFormat = string.Equals(rq.ReportFormat, "fields", StringComparison.OrdinalIgnoreCase);
+                headers.AddRange(fieldsFormat
+                    ? new[] { "Created", "Audit Event Type", "Username", "IP Address", "Keeper Version", "Geo Location", "Record UID" }
+                    : new[] { "Created", "Audit Event Type", "Username", "IP Address", "Keeper Version", "Geo Location", "Message" });
                 foreach (var evt in filteredEvents)
                 {
                     if (!evt.TryGetValue("audit_event_type", out var v)) continue;
                     var eventName = v.ToString();
-                    if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+                    var created = evt.TryGetValue("created", out var createdValue)
+                        ? FormatAuditReportTime(createdValue, reportTimeZone)
+                        : "";
+                    var username = evt.TryGetValue("username", out var usernameValue) ? usernameValue?.ToString() ?? "" : "";
+                    var ipAddress = evt.TryGetValue("ip_address", out var ipAddressValue) ? ipAddressValue?.ToString() ?? "" : "";
+                    var keeperVersion = evt.TryGetValue("keeper_version", out var versionValue) ? versionValue?.ToString() ?? "" : "";
+                    var geoLocation = evt.TryGetValue("geo_location", out var geoValue) ? geoValue?.ToString() ?? "" : "";
 
-                    var message = eventType.SyslogMessage;
-                    do
+                    if (fieldsFormat)
                     {
-                        var match = Regex.Match(message, ParameterPattern);
-                        if (!match.Success) break;
-                        if (match.Groups.Count != 2) break;
-                        var parameter = match.Groups[1].Value;
-                        var value = "";
-                        if (evt.TryGetValue(parameter, out v))
-                        {
-                            value = v.ToString();
-                        }
-
-                        message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
-                        message = message.Insert(match.Groups[0].Index, value);
-                    } while (true);
-                    var created = "";
-                    if (evt.TryGetValue("created", out v))
-                    {
-                        created = v.ToString();
-                        if (long.TryParse(created, out var epoch))
-                        {
-                            created = DateTimeOffset.FromUnixTimeSeconds(epoch).ToString("G");
-                        }
+                        var recordUid = evt.TryGetValue("record_uid", out var uidValue) ? uidValue?.ToString() ?? "" : "";
+                        rows.Add(new object[] { created, eventName, username, ipAddress, keeperVersion, geoLocation, recordUid });
                     }
-                    var username = "";
-                    if (evt.TryGetValue("username", out v))
+                    else
                     {
-                        username = v.ToString();
+                        if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+                        var message = eventType.SyslogMessage;
+                        do
+                        {
+                            var match = Regex.Match(message, ParameterPattern);
+                            if (!match.Success || match.Groups.Count != 2) break;
+                            var parameter = match.Groups[1].Value;
+                            var value = evt.TryGetValue(parameter, out var parameterValue)
+                                ? parameterValue?.ToString() ?? ""
+                                : "";
+                            message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                            message = message.Insert(match.Groups[0].Index, value);
+                        } while (true);
+                        rows.Add(new object[] { created, eventName, username, ipAddress, keeperVersion, geoLocation, message });
                     }
-                    rows.Add(new object[] { created, username, eventName, message });
                 }
             }
             else
             {
-                var columns = options.Aggregate.Concat(options.Columns).ToArray();
+                var aggregateColumns = options.Aggregate != null && options.Aggregate.Any()
+                    ? options.Aggregate
+                    : rq.Aggregate;
+                var columns = aggregateColumns.Concat(requestedColumns).ToArray();
 
                 headers.AddRange(columns);
                 foreach (var evt in filteredEvents)
                 {
                     var values = columns.Select(x => {
                         object value = null;
-                        evt.TryGetValue(x, out value);
-                        if (value != null && (x == "last_created" || x == "first_created")) 
+                        if (IsRecordNameColumn(x))
                         {
-                            if (value is IConvertible c) 
-                            {
-                                var ts = c.ToInt64(CultureInfo.InvariantCulture);
-                                var dt = DateTimeOffset.FromUnixTimeSeconds(ts);
-                                value = dt.ToString("g");
-                            }
+                            value = ResolveAuditRecordName(context, evt, cachedAuditComplianceContext);
+                        }
+                        else
+                        {
+                            evt.TryGetValue(x, out value);
+                        }
+                        if (value != null &&
+                            (string.Equals(x, "last_created", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(x, "first_created", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(x, "created", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            value = FormatAuditReportTime(value, reportTimeZone);
                         }
                         return value;
                     }).ToArray();
@@ -3225,6 +4296,308 @@ namespace Commander
                     }
                     tab.Dump();
                     break;
+            }
+        }
+
+        private static async Task RunAuditEventsReportWithCompliance(this IEnterpriseContext context, AuditReportOptions options)
+        {
+            try
+            {
+                var auth = context.Enterprise.Auth;
+
+                if (context.AuditEvents == null)
+                {
+                    var auditEvents = await context.Enterprise.Auth.GetAvailableEvents();
+                    lock (context)
+                    {
+                        context.AuditEvents = new ConcurrentDictionary<string, AuditEventType>();
+                        foreach (var evt in auditEvents)
+                        {
+                            context.AuditEvents[evt.Name] = evt;
+                        }
+                    }
+                }
+
+                IReportingStorage storage = null;
+                try
+                {
+                    var dbPath = GetReportingCachePath(context);
+                    var dbDirectory = System.IO.Path.GetDirectoryName(dbPath);
+                    System.IO.Directory.CreateDirectory(dbDirectory);
+                    var connectionString = $"Data Source={dbPath};Pooling=True;";
+
+                    Func<System.Data.IDbConnection> getConnection = () =>
+                    {
+                        var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+                        connection.Open();
+                        return connection;
+                    };
+
+                    var dialect = SqliteDialect.Instance;
+                    var sqlStorage = new SqlComplianceStorage(getConnection, dialect);
+
+                    using (var conn = new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+                    {
+                        conn.Open();
+                        SqliteReportingStorage.VerifyDatabase(conn, dialect);
+                    }
+
+                    storage = new SqliteReportingStorage(sqlStorage, context.EnterprisePrivateKey);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Could not initialize SQLite storage, using in-memory cache: {ex.Message}");
+                    storage = new InMemoryReportingStorage();
+                }
+
+                var reportingPlugin = new KeeperSecurity.Enterprise.ReportingPlugin.ReportingPlugin(
+                    context.EnterpriseData,
+                    storage,
+                    context.EnterprisePrivateKey);
+
+                // Handle rebuild flag
+                var cacheMaxAgeDays = 1;
+                if (options.RebuildCompliance)
+                {
+                    cacheMaxAgeDays = 0;  // Force fresh fetch
+                    Console.WriteLine("[AUDIT_REPORT] Compliance cache rebuild requested - fetching fresh data from API");
+                }
+
+                var config = new AuditReportConfig
+                {
+                    IncludeComplianceContext = options.IncludeCompliance,  // Now opt-in
+                    IncludeAging = options.IncludeAging,                    // Now opt-in
+                    CacheMaxAgeDays = cacheMaxAgeDays,
+                    Limit = options.Limit,
+                    Format = options.Format ?? "table",
+                    ReportType = options.ReportType ?? "raw",
+                    Order = options.Order,
+                    CreatedFilter = string.IsNullOrWhiteSpace(options.Created) ? null : ParseDateCreatedFilter(options.Created)
+                };
+
+                if (!string.IsNullOrWhiteSpace(options.Created) && config.CreatedFilter == null)
+                    throw new ArgumentException($"Invalid created filter: {options.Created}");
+
+                if (options.EventType != null && options.EventType.Any())
+                {
+                    config.EventTypes = options.EventType.ToList();
+                }
+                if (options.Username != null && options.Username.Any())
+                {
+                    config.Usernames = options.Username.ToList();
+                }
+
+                // Add user filtering for compliance data
+                if (options.IncludeCompliance)
+                {
+                    var complianceUserIds = new List<long>();
+
+                    if (options.ComplianceUsernames != null && options.ComplianceUsernames.Any())
+                    {
+                        Console.WriteLine($"[AUDIT_REPORT] Filtering compliance data by usernames: {string.Join(", ", options.ComplianceUsernames)}");
+                        foreach (var username in options.ComplianceUsernames)
+                        {
+                            if (context.EnterpriseData.TryGetUserByEmail(username, out var user))
+                            {
+                                complianceUserIds.Add(user.Id);
+                                Console.WriteLine($"[AUDIT_REPORT] Added user {username} (ID: {user.Id}) to compliance filter");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[AUDIT_REPORT] WARNING: User not found: {username}");
+                            }
+                        }
+                    }
+
+                    if (options.ComplianceTeams != null && options.ComplianceTeams.Any())
+                    {
+                        Console.WriteLine($"[AUDIT_REPORT] Filtering compliance data by teams: {string.Join(", ", options.ComplianceTeams)}");
+                        foreach (var teamName in options.ComplianceTeams)
+                        {
+                            var team = context.EnterpriseData.Teams.FirstOrDefault(t =>
+                                t.Name == teamName || t.Uid == teamName);
+                            if (team != null)
+                            {
+                                var teamUserIds = context.EnterpriseData.GetUsersForTeam(team.Uid);
+                                foreach (var userId in teamUserIds)
+                                {
+                                    if (!complianceUserIds.Contains(userId))
+                                        complianceUserIds.Add(userId);
+                                }
+                                Console.WriteLine($"[AUDIT_REPORT] Added {teamUserIds.Length} users from team '{teamName}' to compliance filter");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[AUDIT_REPORT] WARNING: Team not found: {teamName}");
+                            }
+                        }
+                    }
+
+                    if (complianceUserIds.Count > 0)
+                    {
+                        config.OwnerUserIds = complianceUserIds;
+                        Console.WriteLine($"[AUDIT_REPORT] Compliance data filter: {complianceUserIds.Count} user(s)");
+                    }
+                }
+                if (!string.IsNullOrEmpty(options.ToUsername))
+                {
+                    config.ToUsername = options.ToUsername;
+                }
+                if (options.RecordUid != null && options.RecordUid.Any())
+                {
+                    config.RecordUids = options.RecordUid.ToList();
+                }
+                if (options.SharedFolderUid != null && options.SharedFolderUid.Any())
+                {
+                    config.SharedFolderUids = options.SharedFolderUid.ToList();
+                }
+                if (options.IpAddress != null && options.IpAddress.Any())
+                {
+                    config.IpAddresses = options.IpAddress.ToList();
+                }
+                if (options.NodeId != null && options.NodeId.Any())
+                {
+                    var nodeIds = new List<long>();
+                    foreach (var nodeIdOrName in options.NodeId)
+                    {
+                        try
+                        {
+                            if (long.TryParse(nodeIdOrName, out var parsedId))
+                            {
+                                if (!context.EnterpriseData.TryGetNode(parsedId, out _))
+                                    throw new ArgumentException($"Node ID '{nodeIdOrName}' was not found.");
+                                nodeIds.Add(parsedId);
+                            }
+                            else
+                            {
+                                var node = context.EnterpriseData.ResolveNodeName(nodeIdOrName);
+                                nodeIds.Add(node.Id);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Warning: Could not resolve node: {e.Message}");
+                        }
+                    }
+                    if (nodeIds.Any())
+                    {
+                        config.NodeIds = nodeIds;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("No valid node IDs were provided; refusing to run an unfiltered report.");
+                    }
+                }
+                if (options.Columns != null && options.Columns.Any())
+                {
+                    config.Columns = options.Columns.ToList();
+                }
+                if (options.Aggregate != null && options.Aggregate.Any())
+                {
+                    config.Aggregate = options.Aggregate.ToList();
+                }
+
+                var report = await reportingPlugin.GenerateAuditReportAsync(auth, config);
+                if (!string.IsNullOrWhiteSpace(report.ErrorMessage))
+                    throw new InvalidOperationException(report.ErrorMessage);
+
+                var filteredEntries = report.Entries;
+
+                List<PatternFilter> patternFilters = null;
+                if (options.FilterPatterns != null && options.FilterPatterns.Any())
+                {
+                    patternFilters = new List<PatternFilter>();
+                    foreach (var pattern in options.FilterPatterns)
+                    {
+                        var patternFilter = ParsePattern(pattern, options.UseRegex);
+                        if (patternFilter != null)
+                        {
+                            patternFilters.Add(patternFilter);
+                        }
+                    }
+                }
+
+                if (patternFilters != null && patternFilters.Any())
+                {
+                    var patternFilteredEntries = new List<AuditReportEntry>();
+                    foreach (var evt in filteredEntries)
+                    {
+                        var eventData = CreateAuditEntryFilterData(context, evt);
+                        if (ApplyFilters(eventData, patternFilters, options.MatchAll))
+                        {
+                            patternFilteredEntries.Add(evt);
+                        }
+                    }
+                    filteredEntries = patternFilteredEntries;
+                }
+
+                var headers = new List<string>()
+                {
+                    "Created",
+                    "Event Type",
+                    "Username",
+                    "IP Address",
+                    "Keeper Version",
+                    "Geo Location",
+                    "Message"
+                };
+
+                var displayRows = new List<Dictionary<string, object>>();
+                var tab = new Tabulate(headers.Count);
+                tab.AddHeader(headers.ToArray());
+
+                foreach (var evt in filteredEntries)
+                {
+                    var message = FormatAuditEventMessage(context, evt.EventType, evt.Username, evt.Details);
+
+                    // Extract keeper_version from Details if available
+                    string keeperVersion = "";
+                    if (evt.Details != null && evt.Details.ContainsKey("keeper_version"))
+                    {
+                        keeperVersion = evt.Details["keeper_version"]?.ToString() ?? "";
+                    }
+
+                    var row = new object[]
+                    {
+                        evt.EventTime.ToString("O"),
+                        evt.EventType,
+                        evt.Username,
+                        evt.IpAddress,
+                        keeperVersion,
+                        evt.GeoLocation,
+                        message
+                    };
+                    tab.AddRow(row);
+                    displayRows.Add(headers.Select((header, index) => new { header, value = row[index] })
+                        .ToDictionary(x => x.header, x => x.value));
+                }
+
+                switch ((options.Format ?? "table").ToLowerInvariant())
+                {
+                    case "json":
+                        Console.WriteLine(System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(displayRows, true)));
+                        break;
+                    case "csv":
+                        static string EscapeCsv(object value)
+                        {
+                            var text = value?.ToString() ?? string.Empty;
+                            return text.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0
+                                ? "\"" + text.Replace("\"", "\"\"") + "\""
+                                : text;
+                        }
+                        Console.WriteLine(string.Join(",", headers.Select(EscapeCsv)));
+                        foreach (var row in displayRows)
+                            Console.WriteLine(string.Join(",", headers.Select(h => EscapeCsv(row[h]))));
+                        break;
+                    default:
+                        tab.Dump();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error generating compliance report: {ex.Message}");
+                throw;
             }
         }
 
@@ -3310,6 +4683,16 @@ namespace Commander
 
         public static async Task EnterpriseInfoCommand(this IEnterpriseContext context, EnterpriseInfoOptions options)
         {
+            var hasPositionalPattern = !string.IsNullOrWhiteSpace(options.Pattern);
+            var hasNamedPattern = !string.IsNullOrWhiteSpace(options.PatternOption);
+            if (hasPositionalPattern && hasNamedPattern)
+            {
+                Console.Error.WriteLine("Error: specify either the positional search pattern or --pattern, not both.");
+                return;
+            }
+            var effectivePattern = hasNamedPattern ? options.PatternOption : options.Pattern;
+            WarnIfRegexLikeEnterpriseInfoPattern(effectivePattern);
+
             if (options.Force)
             {
                 await context.Enterprise.Load();
@@ -3342,19 +4725,19 @@ namespace Commander
 
             if (options.Nodes)
             {
-                DisplayNodesTable(context, options, nodeIds);
+                DisplayNodesTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Users)
             {
-                DisplayUsersTable(context, options, nodeIds);
+                DisplayUsersTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Teams)
             {
-                DisplayTeamsTable(context, options, nodeIds);
+                DisplayTeamsTable(context, options, nodeIds, effectivePattern);
             }
             else if (options.Roles)
             {
-                DisplayRolesTable(context, options, nodeIds);
+                DisplayRolesTable(context, options, nodeIds, effectivePattern);
             }
             else
             {
@@ -3457,23 +4840,16 @@ namespace Commander
             }
         }
 
-        private static void DisplayNodesTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
+        private static void DisplayNodesTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
         {
             var nodes = context.EnterpriseData.Nodes
                 .Where(n => nodeIds.Contains(n.Id))
-                .Where(n => MatchesPattern(n.DisplayName, options.Pattern))
                 .OrderBy(n => n.DisplayName ?? "")
                 .ToList();
-
-            if (options.Limit.HasValue)
-            {
-                var totalCount = nodes.Count;
-                nodes = nodes.Take(options.Limit.Value).ToList();
-                if (totalCount > options.Limit.Value)
-                {
-                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} nodes (limit applied)");
-                }
-            }
 
             var allColumns = new Dictionary<string, Func<EnterpriseNode, object>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -3492,27 +4868,33 @@ namespace Commander
 
             var defaultColumns = new[] { "node_id", "name", "parent_node", "parent_node_id", "user_count", "team_count", "role_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
-
-            OutputData<KeeperSecurity.Enterprise.EnterpriseNode>(options, nodes, selectedColumns, allColumns, NodeHeaders);
-        }
-
-        private static void DisplayUsersTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
-        {
-            var users = context.EnterpriseData.Users
-                .Where(u => nodeIds.Contains(u.ParentNodeId))
-                .Where(u => MatchesPattern(u.Email, options.Pattern) || MatchesPattern(u.DisplayName, options.Pattern))
-                .OrderBy(u => u.Email)
+            nodes = nodes
+                .Where(n => MatchesPatternValues(pattern, selectedColumns, allColumns, n, n.Id, n.DisplayName))
                 .ToList();
 
             if (options.Limit.HasValue)
             {
-                var totalCount = users.Count;
-                users = users.Take(options.Limit.Value).ToList();
+                var totalCount = nodes.Count;
+                nodes = nodes.Take(options.Limit.Value).ToList();
                 if (totalCount > options.Limit.Value)
                 {
-                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} users (limit applied)");
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} nodes (limit applied)");
                 }
             }
+
+            OutputData<KeeperSecurity.Enterprise.EnterpriseNode>(options, nodes, selectedColumns, allColumns, NodeHeaders);
+        }
+
+        private static void DisplayUsersTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
+        {
+            var users = context.EnterpriseData.Users
+                .Where(u => nodeIds.Contains(u.ParentNodeId))
+                .OrderBy(u => u.Email)
+                .ToList();
 
             var allColumns = new Dictionary<string, Func<KeeperSecurity.Enterprise.EnterpriseUser, object>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -3536,27 +4918,33 @@ namespace Commander
 
             var defaultColumns = new[] { "user_id","email", "name", "status", "transfer_status", "node" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
-
-            OutputData<KeeperSecurity.Enterprise.EnterpriseUser>(options, users, selectedColumns, allColumns, UserHeaders);
-        }
-
-        private static void DisplayTeamsTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
-        {
-            var teams = context.EnterpriseData.Teams
-                .Where(t => nodeIds.Contains(t.ParentNodeId))
-                .Where(t => MatchesPattern(t.Name, options.Pattern))
-                .OrderBy(t => t.Name)
+            users = users
+                .Where(u => MatchesPatternValues(pattern, selectedColumns, allColumns, u, u.Id, u.Email))
                 .ToList();
 
             if (options.Limit.HasValue)
             {
-                var totalCount = teams.Count;
-                teams = teams.Take(options.Limit.Value).ToList();
+                var totalCount = users.Count;
+                users = users.Take(options.Limit.Value).ToList();
                 if (totalCount > options.Limit.Value)
                 {
-                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} teams (limit applied)");
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} users (limit applied)");
                 }
             }
+
+            OutputData<KeeperSecurity.Enterprise.EnterpriseUser>(options, users, selectedColumns, allColumns, UserHeaders);
+        }
+
+        private static void DisplayTeamsTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
+        {
+            var teams = context.EnterpriseData.Teams
+                .Where(t => nodeIds.Contains(t.ParentNodeId))
+                .OrderBy(t => t.Name)
+                .ToList();
 
             var allColumns = new Dictionary<string, Func<EnterpriseTeam, object>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -3574,27 +4962,35 @@ namespace Commander
 
             var defaultColumns = new[] { "team_uid", "name", "restricts", "node", "user_count", "queued_user_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
-
-            OutputData<KeeperSecurity.Enterprise.EnterpriseTeam>(options, teams, selectedColumns, allColumns, TeamHeaders);
-        }
-
-        private static void DisplayRolesTable(IEnterpriseContext context, EnterpriseInfoOptions options, HashSet<long> nodeIds)
-        {
-            var roles = context.RoleManagement.Roles
-                .Where(r => nodeIds.Contains(r.ParentNodeId))
-                .Where(r => MatchesPattern(r.DisplayName, options.Pattern))
-                .OrderBy(r => r.DisplayName ?? "")
+            teams = teams
+                .Where(t => MatchesPatternValues(pattern, selectedColumns, allColumns, t, t.Uid, t.Name))
                 .ToList();
 
             if (options.Limit.HasValue)
             {
-                var totalCount = roles.Count;
-                roles = roles.Take(options.Limit.Value).ToList();
+                var totalCount = teams.Count;
+                teams = teams.Take(options.Limit.Value).ToList();
                 if (totalCount > options.Limit.Value)
                 {
-                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} roles (limit applied)");
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} teams (limit applied)");
                 }
             }
+
+            OutputData<KeeperSecurity.Enterprise.EnterpriseTeam>(options, teams, selectedColumns, allColumns, TeamHeaders);
+        }
+
+        private static void DisplayRolesTable(
+            IEnterpriseContext context,
+            EnterpriseInfoOptions options,
+            HashSet<long> nodeIds,
+            string pattern)
+        {
+            var roles = context.RoleManagement.Roles
+                .Where(r => nodeIds.Contains(r.ParentNodeId))
+                .OrderBy(r => r.DisplayName ?? "")
+                .ToList();
+            var managedNodeInfoByRole = new Lazy<Dictionary<long, RoleManagedNodeInfo[]>>(
+                () => BuildRoleManagedNodeInfoByRole(context));
 
             var allColumns = new Dictionary<string, Func<EnterpriseRole, object>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -3608,10 +5004,26 @@ namespace Commander
                 { "users", r => GetRoleUserNames(context, r.Id) },
                 { "team_count", r => context.RoleManagement.GetTeamsForRole(r.Id)?.Count() ?? 0 },
                 { "teams", r => GetRoleTeamNames(context, r.Id) },
+                { "enforcements", r => FormatRoleEnforcements(context, r.Id, options.Format) },
+                { "managed_nodes", r => FormatRoleManagedNodeNames(managedNodeInfoByRole.Value, r.Id, options.Format) },
+                { "managed_nodes_permissions", r => FormatRoleManagedNodePermissions(managedNodeInfoByRole.Value, r.Id, options.Format) },
             };
 
             var defaultColumns = new[] { "role_id", "name", "default_role", "admin", "node", "user_count" };
             var selectedColumns = GetSelectedColumns(options.Columns, defaultColumns, allColumns.Keys);
+            roles = roles
+                .Where(r => MatchesPatternValues(pattern, selectedColumns, allColumns, r, r.Id, r.DisplayName))
+                .ToList();
+
+            if (options.Limit.HasValue)
+            {
+                var totalCount = roles.Count;
+                roles = roles.Take(options.Limit.Value).ToList();
+                if (totalCount > options.Limit.Value)
+                {
+                    Console.WriteLine($"Showing {options.Limit.Value} of {totalCount} roles (limit applied)");
+                }
+            }
 
             OutputData<KeeperSecurity.Enterprise.EnterpriseRole>(options, roles, selectedColumns, allColumns, RoleHeaders);
         }
@@ -3716,18 +5128,92 @@ namespace Commander
             return s;
         }
 
+        private static int _enterpriseInfoRegexWarningReported;
+
+        private static void WarnIfRegexLikeEnterpriseInfoPattern(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern)
+                || pattern.IndexOfAny(new[] { '\\', '.', '^', '$', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|' }) < 0
+                || System.Threading.Interlocked.Exchange(ref _enterpriseInfoRegexWarningReported, 1) != 0)
+            {
+                return;
+            }
+
+            Console.Error.WriteLine("Warning: enterprise-info patterns are literal, case-insensitive substrings; regular expressions are not supported.");
+        }
+
         private static bool MatchesPattern(string value, string pattern)
         {
             if (string.IsNullOrEmpty(pattern)) return true;
             if (string.IsNullOrEmpty(value)) return false;
-            try
+            return value.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool MatchesPatternValues<T>(
+            string pattern,
+            IEnumerable<string> selectedColumns,
+            IDictionary<string, Func<T, object>> columnGetters,
+            T item,
+            params object[] baseValues)
+        {
+            if (string.IsNullOrEmpty(pattern)) return true;
+
+            if (baseValues.Any(value => ValueMatchesPattern(value, pattern)))
             {
-                return Regex.IsMatch(value, pattern, RegexOptions.IgnoreCase);
+                return true;
             }
-            catch
+
+            foreach (var column in selectedColumns)
             {
-                return value.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+                if (columnGetters.TryGetValue(column, out var getter)
+                    && ValueMatchesPattern(getter(item), pattern))
+                {
+                    return true;
+                }
             }
+
+            return false;
+        }
+
+        private const int MaxEnterpriseInfoPatternDepth = 10;
+
+        private static bool ValueMatchesPattern(object value, string pattern, int depth = 0)
+        {
+            if (value == null || depth > MaxEnterpriseInfoPatternDepth) return false;
+
+            if (value is string text)
+            {
+                return MatchesPattern(text, pattern);
+            }
+
+            if (value is IDictionary dictionary)
+            {
+                foreach (DictionaryEntry entry in dictionary)
+                {
+                    if (ValueMatchesPattern(entry.Key, pattern, depth + 1)
+                        || ValueMatchesPattern(entry.Value, pattern, depth + 1))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            if (value is IEnumerable values)
+            {
+                foreach (var item in values)
+                {
+                    if (ValueMatchesPattern(item, pattern, depth + 1))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return MatchesPattern(Convert.ToString(value, CultureInfo.InvariantCulture), pattern);
         }
 
         internal static string GetNodePath(EnterpriseData enterpriseData, long nodeId)
@@ -3868,6 +5354,123 @@ namespace Commander
                 context.EnterpriseData.TryGetTeam(uid, out var team) ? team.Name : null);
         }
 
+        private static object FormatRoleEnforcements(IEnterpriseContext context, long roleId, string format)
+        {
+            var enforcementItems = (context.RoleManagement.GetEnforcementsForRole(roleId)
+                    ?? Enumerable.Empty<RoleEnforcement>())
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.EnforcementType))
+                .OrderBy(x => x.EnforcementType, StringComparer.Ordinal)
+                .ToArray();
+
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                return enforcementItems.ToDictionary(
+                    x => x.EnforcementType,
+                    x => (object)(x.Value ?? string.Empty),
+                    StringComparer.Ordinal);
+            }
+
+            return string.Join(", ", enforcementItems.Select(x => x.EnforcementType));
+        }
+
+        private sealed class RoleManagedNodeInfo
+        {
+            public long NodeId { get; }
+            public string NodeName { get; }
+            public string[] Permissions { get; }
+            public bool Cascade { get; }
+
+            public RoleManagedNodeInfo(long nodeId, string nodeName, string[] permissions, bool cascade)
+            {
+                NodeId = nodeId;
+                NodeName = nodeName;
+                Permissions = permissions ?? Array.Empty<string>();
+                Cascade = cascade;
+            }
+        }
+
+        private static Dictionary<long, RoleManagedNodeInfo[]> BuildRoleManagedNodeInfoByRole(IEnterpriseContext context)
+        {
+            var result = new Dictionary<long, List<RoleManagedNodeInfo>>();
+            var managedNodes = context.RoleManagement.GetManagedNodes();
+            if (managedNodes == null)
+            {
+                return new Dictionary<long, RoleManagedNodeInfo[]>();
+            }
+
+            foreach (var managedNode in managedNodes)
+            {
+                if (managedNode == null) continue;
+
+                var nodeName = context.EnterpriseData.TryGetNode(managedNode.ManagedNodeId, out var node)
+                    ? node.DisplayName
+                    : null;
+                if (string.IsNullOrWhiteSpace(nodeName))
+                {
+                    nodeName = managedNode.ManagedNodeId.ToString(CultureInfo.InvariantCulture);
+                }
+
+                var permissions = (context.RoleManagement.GetPrivilegesForRoleAndNode(
+                        managedNode.RoleId, managedNode.ManagedNodeId) ?? Enumerable.Empty<RolePrivilege>())
+                    .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PrivilegeType))
+                    .Select(x => x.PrivilegeType.ToLowerInvariant())
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(x => x, StringComparer.Ordinal)
+                    .ToArray();
+
+                if (!result.TryGetValue(managedNode.RoleId, out var roleManagedNodes))
+                {
+                    roleManagedNodes = new List<RoleManagedNodeInfo>();
+                    result.Add(managedNode.RoleId, roleManagedNodes);
+                }
+
+                roleManagedNodes.Add(new RoleManagedNodeInfo(
+                    managedNode.ManagedNodeId, nodeName, permissions, managedNode.CascadeNodeManagement));
+            }
+
+            return result.ToDictionary(
+                x => x.Key,
+                x => x.Value.OrderBy(y => y.NodeId).ToArray());
+        }
+
+        private static object FormatRoleManagedNodeNames(
+            Dictionary<long, RoleManagedNodeInfo[]> managedNodeInfoByRole,
+            long roleId,
+            string format)
+        {
+            var managedNodeNames = managedNodeInfoByRole.TryGetValue(roleId, out var infos)
+                ? infos.Select(x => x.NodeName).ToArray()
+                : Array.Empty<string>();
+
+            return string.Equals(format, "json", StringComparison.OrdinalIgnoreCase)
+                ? managedNodeNames
+                : string.Join(", ", managedNodeNames);
+        }
+
+        private static object FormatRoleManagedNodePermissions(
+            Dictionary<long, RoleManagedNodeInfo[]> managedNodeInfoByRole,
+            long roleId,
+            string format)
+        {
+            var managedNodes = managedNodeInfoByRole.TryGetValue(roleId, out var infos)
+                ? infos.Select(x => new Dictionary<string, object>
+                {
+                    { "node", x.NodeName },
+                    { "permissions", x.Permissions ?? Array.Empty<string>() },
+                    { "cascade", x.Cascade },
+                }).ToArray()
+                : Array.Empty<Dictionary<string, object>>();
+
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                return managedNodes;
+            }
+
+            return string.Join("; ", infos?.Select(x =>
+                $"{x.NodeName} [{string.Join(", ", x.Permissions ?? Array.Empty<string>())}] (cascade: {x.Cascade})")
+                ?? Enumerable.Empty<string>());
+        }
+
         private static readonly Dictionary<string, string> NodeHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "node_id", "Node ID" }, { "name", "Name" }, { "parent_node", "Parent Node" }, { "parent_node_id", "Parent Node ID" },{ "user_count", "User Count" },
@@ -3898,6 +5501,8 @@ namespace Commander
             { "visible_below", "Visible Below" }, { "default_role", "Default Role" }, { "admin", "Admin" }, { "node", "Node" },
             { "user_count", "User Count" }, { "users", "Users" },
             { "team_count", "Team Count" }, { "teams", "Teams" },
+            { "enforcements", "Enforcements" }, { "managed_nodes", "Managed Nodes" },
+            { "managed_nodes_permissions", "Managed Node Permissions" },
         };
     }
 
@@ -4050,6 +5655,8 @@ namespace Commander
                                     Description = "Remove managed company",
                                     Action = RemoveManagedCompany,
                                 });
+                            Commands.Add("msp-legacy-report", new ParseableCommand<MspLegacyReportOptions> { Order = 77, Description = "Generate MSP legacy billing report", Action = MspLegacyReport });
+                            Commands.Add("msp-convert-node", new ParseableCommand<MspConvertNodeOptions> { Order = 78, Description = "Convert an MSP node subtree to a managed company", Action = MspConvertNode });
                             Commands.Add("switch-to-mc",
                                 new ParseableCommand<ManagedCompanyLoginOptions>
                                 {
@@ -4062,6 +5669,7 @@ namespace Commander
                             Aliases["ma"] = "msp-add";
                             Aliases["mrm"] = "msp-remove";
                             Aliases["mu"] = "msp-update";
+                            Aliases["mlr"] = "msp-legacy-report";
                             Aliases["mc-list"] = "msp-info";
                             Aliases["mc-create"] = "msp-add";
                             Aliases["mc-update"] = "msp-update";
@@ -4318,6 +5926,94 @@ namespace Commander
                 Console.WriteLine($"Managed company {options.Company} not found.");
             }
         }
+
+        private async Task MspLegacyReport(MspLegacyReportOptions options)
+        {
+            var format = (options.Format ?? "table").ToLowerInvariant();
+            if (format != "table" && format != "csv" && format != "json")
+                throw new ArgumentException("Invalid report format. Supported formats are table, csv, json.", nameof(options.Format));
+            if (format == "table" && !string.IsNullOrWhiteSpace(options.Output))
+                throw new ArgumentException("--output is supported only with csv or json format.", nameof(options.Output));
+
+            var range = (options.Range ?? "last_30_days").ToLowerInvariant();
+            var validRanges = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "today", "yesterday", "last_7_days", "last_30_days", "month_to_date", "last_month", "year_to_date", "last_year"
+            };
+            if (!validRanges.Contains(range))
+                throw new ArgumentException($"Invalid report range: {options.Range}.", nameof(options.Range));
+            if ((options.From.HasValue || options.To.HasValue) && range != "last_30_days")
+                throw new ArgumentException("Custom --from or --to dates cannot be combined with a named --range.");
+            var now = DateTimeOffset.Now;
+            var to = options.To ?? now;
+            var from = options.From ?? range switch
+            {
+                "today" => new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, to.Offset),
+                "yesterday" => new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, to.Offset).AddDays(-1),
+                "last_7_days" => to.AddDays(-7),
+                "month_to_date" => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset),
+                "last_month" => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset).AddMonths(-1),
+                "year_to_date" => new DateTimeOffset(to.Year, 1, 1, 0, 0, 0, to.Offset),
+                "last_year" => new DateTimeOffset(to.Year - 1, 1, 1, 0, 0, 0, to.Offset),
+                "last_30_days" => to.AddDays(-30),
+                _ => throw new ArgumentException($"Invalid report range: {options.Range}.", nameof(options.Range)),
+            };
+            if (!options.To.HasValue && range == "yesterday") to = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset).AddTicks(-1);
+            if (!options.To.HasValue && range == "last_month") to = from.AddMonths(1).AddTicks(-1);
+            if (!options.To.HasValue && range == "last_year") to = from.AddYears(1).AddTicks(-1);
+            if (from > to) throw new ArgumentException("The report start date must not be after the end date.");
+            var entries = await _managedCompanies.GetMspLegacyReport(from.ToUnixTimeMilliseconds(), to.ToUnixTimeMilliseconds());
+            if (format == "json")
+            {
+                var json = System.Text.Encoding.UTF8.GetString(JsonUtils.DumpJson(entries.Select(entry => new Dictionary<string, object>
+                {
+                    ["id"] = entry.Id, ["time"] = entry.Date, ["company_id"] = entry.EnterpriseId,
+                    ["company_name"] = entry.EnterpriseName, ["status"] = entry.Status,
+                    ["number_of_allocations"] = entry.NewNumberOfSeats, ["plan"] = entry.NewProductType,
+                    ["transaction_notes"] = entry.Note, ["price_estimate"] = entry.Price,
+                }).ToArray(), true));
+                if (!string.IsNullOrWhiteSpace(options.Output)) File.WriteAllText(options.Output, json, System.Text.Encoding.UTF8);
+                else Console.WriteLine(json);
+                return;
+            }
+            string EscapeCsv(object value)
+            {
+                var text = value?.ToString() ?? string.Empty;
+                if (value is string && text.Length > 0 && "=+-@\t\r".IndexOf(text[0]) >= 0)
+                    text = "'" + text;
+                return text.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0 ? $"\"{text.Replace("\"", "\"\"")}\"" : text;
+            }
+            var headers = new[] { "ID", "Time", "Company ID", "Company Name", "Status", "Number Of Allocations", "Plan", "Transaction Notes", "Price Estimate" };
+            if (format == "csv")
+            {
+                var lines = new List<string> { string.Join(",", headers.Select(EscapeCsv)) };
+                lines.AddRange(entries.Select(entry => string.Join(",", new object[] { entry.Id, entry.Date, entry.EnterpriseId, entry.EnterpriseName, entry.Status, entry.NewNumberOfSeats, entry.NewProductType, entry.Note, entry.Price }.Select(EscapeCsv))));
+                var csv = string.Join(Environment.NewLine, lines);
+                if (!string.IsNullOrWhiteSpace(options.Output)) File.WriteAllText(options.Output, csv, System.Text.Encoding.UTF8);
+                else Console.WriteLine(csv);
+                return;
+            }
+            var table = new Tabulate(9); table.AddHeader("ID", "Time", "Company ID", "Company Name", "Status", "Number Of Allocations", "Plan", "Transaction Notes", "Price Estimate");
+            foreach (var entry in entries) table.AddRow(entry.Id, entry.Date, entry.EnterpriseId, entry.EnterpriseName, entry.Status, entry.NewNumberOfSeats, entry.NewProductType, entry.Note, entry.Price);
+            table.Dump();
+        }
+
+        private async Task MspConvertNode(MspConvertNodeOptions options)
+        {
+            var node = EnterpriseData.ResolveNodeName(options.Node);
+            if (!options.Force)
+            {
+                Console.Write($"Convert node subtree \"{node.DisplayName}\" to a new managed company? This operation cannot be undone. (yes/No) ");
+                var answer = (await Program.GetInputManager().ReadLine())?.Trim();
+                if (!string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase) && !string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Conversion cancelled.");
+                    return;
+                }
+            }
+            var company = await _managedCompanies.ConvertNodeToManagedCompany(EnterpriseData, RoleManagement, QueuedTeamManagement, node.Id, options.Seats, options.Plan);
+            Console.WriteLine($"Node \"{node.DisplayName}\" was converted to managed company id={company.EnterpriseId}");
+        }
     }
 
     class EnterpriseGenericOptions
@@ -4426,6 +6122,9 @@ namespace Commander
 
     class EnterpriseRoleOptions : EnterpriseGenericOptions
     {
+        [Option("add", Required = false, HelpText = "Create role.")]
+        public string AddRole { get; set; }
+
         [Option("node", Required = false, HelpText = "Node Name or ID. \"add\", \"managed-node-add\", \"managed-node-update\", \"managed-node-delete\", \"add-privileges\", \"remove-privileges\"")]
         public string Node { get; set; }
 
@@ -4438,8 +6137,11 @@ namespace Commander
         [Option("new-role-name", Required = false, HelpText = "New role display name. \"update\"")]
         public string NewRoleName { get; set; }
 
-        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"managed-node-add\", \"managed-node-update\"")]
+        [Option("cascade", Required = false, Default = false, HelpText = "Cascade node management to subnodes. \"add\", \"managed-node-add\", \"managed-node-update\"")]
         public bool Cascade { get; set; }
+
+        [Option("add-admin", Required = false, Separator = ',', HelpText = "Managed node name or ID to add to a new role. Can be specified multiple times. \"add\"")]
+        public IEnumerable<string> AddAdmin { get; set; }
 
         [Option("privileges", Required = false, Separator = ',', HelpText = "Comma-separated list of privileges. Valid values: MANAGE_NODES, MANAGE_USER, MANAGE_LICENCES, MANAGE_ROLES, MANAGE_TEAMS, TRANSFER_ACCOUNT, RUN_REPORTS, VIEW_TREE, MANAGE_BRIDGE, MANAGE_COMPANIES, SHARING_ADMINISTRATOR, APPROVE_DEVICE, MANAGE_RECORD_TYPES, RUN_COMPLIANCE_REPORTS")]
         public IEnumerable<string> Privileges { get; set; }
@@ -4469,12 +6171,36 @@ namespace Commander
         public string Match { get; set; }
     }
 
+    class DeviceAdminListOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = false, HelpText = "enterprise user email, ID, or \"all\"")]
+        public string User { get; set; }
+
+        [Option("format", Required = false, Default = "table", HelpText = "Output format: table, json")]
+        public string Format { get; set; }
+    }
+
+    class DeviceAdminActionOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = true, HelpText = "device action: \"logout\", \"remove\", \"lock\", \"unlock\", \"account-lock\", \"account-unlock\"")]
+        public string Action { get; set; }
+
+        [Value(1, Required = true, HelpText = "enterprise user email or ID")]
+        public string User { get; set; }
+
+        [Value(2, Required = true, HelpText = "comma separated list of device id(s), name(s), \"#<row>\" (row number resolved against this user's devices only), or \"all\"")]
+        public string Devices { get; set; }
+
+        [Option("yes", Required = false, Default = false, HelpText = "skip the confirmation prompt")]
+        public bool Yes { get; set; }
+    }
+
     class AuditReportOptions 
     {
         [Value(0, Required = false, HelpText = "Filter patterns. Supports: regex:<pattern>, exact:<text>, not:<pattern>, not:regex:<pattern>, not:exact:<text>")]
         public IEnumerable<string> FilterPatterns { get; set; }
         
-        [Option("limit", Required = false, Default = 100, HelpText = "maximum number of returned events")]
+        [Option("limit", Required = false, Default = 50, HelpText = "maximum number of returned events; must be greater than 0")]
         public int Limit { get; set; }
 
         [Option("order", Required = false, Default = null, HelpText = "sort order: asc, desc")]
@@ -4504,13 +6230,25 @@ namespace Commander
         [Option("ip-address", Required = false, Default = null, HelpText = "filter by IP address")]
         public IEnumerable<string> IpAddress { get; set; }
 
+        [Option("geo-location", Required = false, Default = null, HelpText = "Geo location (city, region, and/or country)")]
+        public IEnumerable<string> GeoLocation { get; set; }
+
+        [Option("device-type", Required = false, Default = null, HelpText = "Keeper device/application and optional version")]
+        public IEnumerable<string> DeviceType { get; set; }
+
         [Option("report-type", Required = false, Default = "raw", HelpText = "report type")]
         public string ReportType { get; set; }
+
+        [Option("report-format", Required = false, Default = "message", HelpText = "raw report format: message or fields")]
+        public string ReportFormat { get; set; }
+
+        [Option("timezone", Required = false, Default = null, HelpText = "time zone for report periods and displayed timestamps")]
+        public string Timezone { get; set; }
 
         [Option("aggregate", Required = false, HelpText = "aggregate columns")]
         public IEnumerable<string> Aggregate { get; set; }
 
-        [Option("columns", Required = false, HelpText = "report columns")]
+        [Option("columns", Required = false, HelpText = "summary/dimension columns; includes audit_event_type, username, ip_address, keeper_version, geo_location, message, created, record_uid, record_name (or record_title)")]
         public IEnumerable<string> Columns { get; set; }
 
         [Option("match-all", Required = false, Default = false, HelpText = "Use AND logic (all patterns must match). Default is OR logic.")]
@@ -4524,6 +6262,21 @@ namespace Commander
 
         [Option("max-record-details", Required = false, Default = false, HelpText = "allow retrieval of additional record-detail data if not found in local cache")]
         public bool MaxRecordDetails { get; set; }
+
+        [Option("include-compliance", Required = false, Default = false, HelpText = "Include compliance context data for record titles (optional)")]
+        public bool IncludeCompliance { get; set; }
+
+        [Option("include-aging", Required = false, Default = false, HelpText = "Include record aging data - created, modified, password change dates (optional)")]
+        public bool IncludeAging { get; set; }
+
+        [Option("filter-username", Required = false, Separator = ',', HelpText = "Filter compliance data to specific username(s)")]
+        public IEnumerable<string> ComplianceUsernames { get; set; }
+
+        [Option("filter-team", Required = false, Separator = ',', HelpText = "Filter compliance data to specific team(s)")]
+        public IEnumerable<string> ComplianceTeams { get; set; }
+
+        [Option("rebuild-compliance", Required = false, Default = false, HelpText = "Rebuild compliance data from source instead of using cache")]
+        public bool RebuildCompliance { get; set; }
     }
 
     class EnterpriseUsersOptions : EnterpriseGenericOptions
@@ -4536,6 +6289,30 @@ namespace Commander
     {
         [Value(0, Required = true, HelpText = "mc-login <mc-company-id>")]
         public int CompanyId { get; set; }
+    }
+
+    class MspLegacyReportOptions
+    {
+        [Option("range", Default = "last_30_days", HelpText = "today, yesterday, last_7_days, last_30_days, month_to_date, last_month, year_to_date, last_year")] public string Range { get; set; }
+        [Option("from", HelpText = "Start date in ISO 8601 format")] public DateTimeOffset? From { get; set; }
+        [Option("to", HelpText = "End date in ISO 8601 format")] public DateTimeOffset? To { get; set; }
+        [Option("format", Default = "table", HelpText = "Output format: table, csv, json")] public string Format { get; set; }
+        [Option("output", HelpText = "Output file for csv or json format")] public string Output { get; set; }
+    }
+
+    class MspConvertNodeOptions
+    {
+        [Value(0, Required = true, HelpText = "Subtree root node name or ID")]
+        public string Node { get; set; }
+
+        [Option('s', "seats", HelpText = "Seat count; defaults to the subtree user count")]
+        public int? Seats { get; set; }
+
+        [Option('p', "plan", Default = "business", HelpText = "Product plan")]
+        public string Plan { get; set; }
+
+        [Option('f', "force", HelpText = "Skip the irreversible-operation confirmation prompt")]
+        public bool Force { get; set; }
     }
 
     class ManagedCompanyRemoveOptions : EnterpriseGenericOptions
@@ -4598,8 +6375,11 @@ namespace Commander
         [Option("node", Required = false, HelpText = "Filter by node name or ID")]
         public string Node { get; set; }
 
-        [Option("pattern", Required = false, HelpText = "Filter by pattern (regex)")]
+        [Value(0, Required = false, HelpText = "Optional literal, case-insensitive search substring (regex is not supported)")]
         public string Pattern { get; set; }
+
+        [Option("pattern", Required = false, HelpText = "Literal, case-insensitive search substring (regex is not supported)")]
+        public string PatternOption { get; set; }
 
         [Option("columns", Required = false, HelpText = "Comma-separated list of columns to display")]
         public string Columns { get; set; }

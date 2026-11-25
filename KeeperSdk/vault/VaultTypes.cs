@@ -369,6 +369,12 @@ namespace KeeperSecurity.Vault
         void AuditLogRecordCopyPassword(string recordUid);
 
         /// <summary>
+        /// Records "revealed_password" audit event for enterprise accounts
+        /// </summary>
+        /// <param name="recordUid"></param>
+        void AuditLogRecordRevealPassword(string recordUid);
+
+        /// <summary>
         /// Creates a password record.
         /// </summary>
         /// <param name="record">Keeper Record.</param>
@@ -568,6 +574,17 @@ namespace KeeperSecurity.Vault
             IReadOnlyList<KeeperNSFRecordCreateRequest> records);
 
         /// <summary>
+        /// Permanently converts classic records to Keeper NSF records. The caller must own every
+        /// source record. When <paramref name="folderUid"/> is omitted the records are placed at
+        /// the Keeper Drive root; otherwise it must identify a cached Keeper NSF folder.
+        /// </summary>
+        /// <param name="recordUids">Classic record UIDs to convert (sent in batches of up to 100).</param>
+        /// <param name="folderUid">Optional destination Keeper NSF folder UID.</param>
+        /// <returns>An outcome for each input UID, including skipped and uncertain entries.</returns>
+        Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null);
+
+        /// <summary>
         /// Creates multiple Keeper NSF records from an import file payload (same JSON record shape as Export/Import-KeeperVault).
         /// </summary>
         /// <param name="import">Import file containing records. <c>shared_folders</c> are ignored.</param>
@@ -719,6 +736,21 @@ namespace KeeperSecurity.Vault
         Task<KeeperNSFRemoveResult> RemoveKeeperNSFFolder(
             KeeperNSFFolderRemoval removal, bool dryRun = false);
 
+        /// <summary>Shows what's currently in the Keeper NSF trash (deleted records and folders).</summary>
+        /// <param name="reload">When <c>true</c>, discards the cached trashcan snapshot and resyncs first.</param>
+        Task<KeeperNSFTrashListResult> GetKeeperNSFTrash(bool reload = false);
+
+        /// <summary>Restores records and/or folders out of the Keeper NSF trash.</summary>
+        /// <param name="uids">Record and/or folder UIDs, or title patterns (<c>*</c>/<c>?</c> wildcards supported).</param>
+        /// <param name="targetFolderUid">Optional target folder to restore items into. Specify "root" to restore items to the root directory.</param>
+        /// <param name="dryRun">When <c>true</c>, reports what would be restored (e.g. for a confirmation prompt) without calling the restore endpoint.</param>
+        Task<KeeperNSFTrashRestoreResult> RestoreKeeperNSFTrash(
+            IReadOnlyList<string> uids, string targetFolderUid = null, bool dryRun = false);
+
+        /// <summary>Looks up a single record or folder in the Keeper NSF trash. Returns <c>null</c> if not found.</summary>
+        /// <param name="uid">Record or folder UID to look up.</param>
+        Task<KeeperNSFTrashGetResult> GetKeeperNSFTrashItem(string uid);
+
         /// <summary>Renames, recolors, or disables permission inheritance for a Keeper NSF folder.</summary>
         /// <param name="inheritPermissions">When set to <c>false</c>, disables inheriting parent folder permissions.
         /// Setting <c>true</c> is not supported on update (create-time only).</param>
@@ -804,6 +836,8 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Resolves folder context for record removal (explicit folder, first containing folder, or none for owner-trash).
+        /// Never throws: if <paramref name="folderUidOrName"/> is a name that matches more than one
+        /// Nested Shared Folder, it fails safe and returns <c>false</c> rather than silently picking one.
         /// </summary>
         bool TryResolveKeeperNSFRecordRemovalFolder(
             string recordUid,
@@ -1182,6 +1216,84 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    /// A single record or folder entry in the Keeper NSF trash.
+    /// </summary>
+    public class KeeperNSFTrashItem
+    {
+        /// <summary>Record or folder UID.</summary>
+        public string Uid { get; set; }
+
+        /// <summary>True when this entry is a folder; false when it is a record.</summary>
+        public bool IsFolder { get; set; }
+
+        /// <summary>Record or folder name, when it could be resolved.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type (e.g. "login"), when known. Always empty for folders.</summary>
+        public string RecordType { get; set; }
+
+        /// <summary>Deletion timestamp (epoch ms).</summary>
+        public long DateDeleted { get; set; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.GetKeeperNSFTrash"/>.
+    /// </summary>
+    public class KeeperNSFTrashListResult
+    {
+        /// <summary>Deleted and orphaned records currently in trash.</summary>
+        public IReadOnlyList<KeeperNSFTrashItem> Records { get; set; } = new List<KeeperNSFTrashItem>();
+
+        /// <summary>Deleted shared folders currently in trash.</summary>
+        public IReadOnlyList<KeeperNSFTrashItem> Folders { get; set; } = new List<KeeperNSFTrashItem>();
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.GetKeeperNSFTrashItem"/>.
+    /// </summary>
+    public class KeeperNSFTrashGetResult
+    {
+        /// <summary>Record or folder UID.</summary>
+        public string Uid { get; set; }
+
+        /// <summary>True when this is a folder; false when it's a record.</summary>
+        public bool IsFolder { get; set; }
+
+        /// <summary>Record or folder name, when it could be read.</summary>
+        public string Title { get; set; }
+
+        /// <summary>Record type (e.g. "login"), when known. Always empty for folders.</summary>
+        public string RecordType { get; set; }
+
+        /// <summary>A short label describing where this item came from: "Record", "Share", or "Folder".</summary>
+        public string Status { get; set; }
+
+        /// <summary>Deletion timestamp (epoch ms).</summary>
+        public long DateDeleted { get; set; }
+
+        /// <summary>Decrypted record fields when a trashed record and its key are accessible.</summary>
+        public KeeperNSFRecord Record { get; set; }
+    }
+
+    /// <summary>
+    /// Result of <see cref="IVault.RestoreKeeperNSFTrash"/>.
+    /// </summary>
+    public class KeeperNSFTrashRestoreResult
+    {
+        /// <summary>True when at least one item was restored and no errors occurred.</summary>
+        public bool Success { get; set; }
+
+        /// <summary>UIDs of records that were successfully restored.</summary>
+        public IReadOnlyList<string> RestoredRecordUids { get; set; } = new List<string>();
+
+        /// <summary>UIDs of folders that were successfully restored.</summary>
+        public IReadOnlyList<string> RestoredFolderUids { get; set; } = new List<string>();
+
+        /// <summary>Per-item or request-level error messages.</summary>
+        public IReadOnlyList<string> Errors { get; set; } = new List<string>();
+    }
+
+    /// <summary>
     /// Keeper NSF record removal operation (maps to Folder v3 remove API).
     /// </summary>
     public enum KeeperNSFRecordRemoveOperation
@@ -1354,7 +1466,10 @@ namespace KeeperSecurity.Vault
         /// <summary>User email, team name, or team UID that already has access.</summary>
         public string Accessor { get; set; }
 
-        /// <summary>New access role (required unless <see cref="Options"/> supplies an expiration change).</summary>
+        /// <summary>
+        /// New access role (required unless <see cref="Options"/> supplies an expiration change).
+        /// When omitted for inherited access, the inherited role is preserved while access becomes explicit.
+        /// </summary>
         public string Role { get; set; }
 
         /// <summary>
@@ -1402,7 +1517,12 @@ namespace KeeperSecurity.Vault
         /// <summary>Role from the request (grant/update).</summary>
         public string Role { get; set; }
 
-        /// <summary>Server or client status code.</summary>
+        /// <summary>
+        /// Server or client status code. Client-side statuses include <c>missing_key</c>,
+        /// <c>invalid_key</c>, <c>team_key_error</c>, <c>user_not_found</c>, and <c>lookup_failed</c>.
+        /// A repeated revoke of inherited access reports successful <c>already_denied</c> without
+        /// sending another access update.
+        /// </summary>
         public string Status { get; set; }
 
         /// <summary>Server or client message.</summary>
@@ -1497,6 +1617,38 @@ namespace KeeperSecurity.Vault
 
         /// <summary>True when the record was created successfully.</summary>
         public bool Success { get; set; }
+    }
+
+    /// <summary>Per-record outcome from <see cref="IVault.ConvertClassicRecordsToKeeperNSF"/>.</summary>
+    public class KeeperNSFRecordConversionResult
+    {
+        /// <summary>Classic record UID from the conversion request.</summary>
+        public string RecordUid { get; internal set; }
+
+        /// <summary>Protocol status, or a synthetic response status when the server outcome cannot be determined.</summary>
+        public string Status { get; internal set; }
+
+        /// <summary>Human-readable explanation of the conversion status.</summary>
+        public string Message { get; internal set; }
+
+        /// <summary>Whether the record was converted to the Keeper NSF permission model.</summary>
+        public bool Success { get; internal set; }
+
+        /// <summary>Whether this input was skipped before sending a conversion request.</summary>
+        public bool Skipped { get; internal set; }
+
+        /// <summary>
+        /// Whether the response cannot establish success or failure. Refresh the vault and check the record's
+        /// current permission model before retrying a permanent conversion.
+        /// </summary>
+        public bool OutcomeUncertain => ServerOutcomeUncertain;
+
+        /// <summary>A vault refresh warning after the conversion response was received, if sync-down failed.</summary>
+        public string RefreshWarning { get; internal set; }
+
+        // A missing, duplicate, unspecified, or unrecognized response may conceal a completed conversion.
+        // Refresh the vault before the caller relies on cached record state.
+        internal bool ServerOutcomeUncertain { get; set; }
     }
 
     /// <summary>
@@ -1865,6 +2017,87 @@ namespace KeeperSecurity.Vault
         /// <exclude/>
         public VaultException(string message) : base(message)
         {
+        }
+    }
+
+    /// <summary>
+    /// Base type for exceptions thrown when an identifier (name/title) matches more than one object,
+    /// instead of silently resolving to the first match.
+    /// </summary>
+    public abstract class AmbiguousIdentifierException : VaultException
+    {
+        /// <summary>The ambiguous identifier that was searched for.</summary>
+        public string Identifier { get; }
+
+        /// <exclude/>
+        protected AmbiguousIdentifierException(string identifier, string message) : base(message)
+        {
+            Identifier = identifier;
+        }
+
+        /// <exclude/>
+        protected static string BuildMessage(
+            string kind, string identifier, string uidLabel, IEnumerable<(string Uid, string Name)> matches)
+        {
+            var list = matches.ToList();
+            var details = string.Join(Environment.NewLine, list.Select(m => $"  UID: {m.Uid}, Name: {m.Name}"));
+            return $"There are {list.Count} {kind} with name \"{identifier}\". Use {uidLabel} to specify the correct one:{Environment.NewLine}{details}";
+        }
+    }
+
+    /// <summary>
+    /// Thrown when a folder identifier (name) matches more than one folder - classic or Nested Shared Folder.
+    /// </summary>
+    /// <remarks>
+    /// Raised instead of silently resolving to the first match, e.g. by
+    /// <see cref="VaultOnline.ResolveKeeperNSFFolderStrict"/> for Nested Shared Folders.
+    /// </remarks>
+    public class AmbiguousFolderException : AmbiguousIdentifierException
+    {
+        /// <summary>All folders whose name matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
+        public IReadOnlyList<FolderNode> Matches { get; }
+
+        /// <exclude/>
+        public AmbiguousFolderException(string identifier, IReadOnlyList<FolderNode> matches, string kind = "folders")
+            : base(identifier, BuildMessage(kind, identifier, "Folder UID", matches.Select(m => (m.FolderUid, m.Name))))
+        {
+            Matches = matches;
+        }
+    }
+
+    /// <summary>
+    /// Thrown when a classic shared folder identifier (name) matches more than one shared folder.
+    /// </summary>
+    public class AmbiguousSharedFolderException : AmbiguousIdentifierException
+    {
+        /// <summary>All shared folders whose name matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
+        public IReadOnlyList<SharedFolder> Matches { get; }
+
+        /// <exclude/>
+        public AmbiguousSharedFolderException(string identifier, IReadOnlyList<SharedFolder> matches)
+            : base(identifier, BuildMessage("shared folders", identifier, "Shared Folder UID", matches.Select(m => (m.Uid, m.Name))))
+        {
+            Matches = matches;
+        }
+    }
+
+    /// <summary>
+    /// Thrown when a Nested Shared Folder record identifier (title) matches more than one record.
+    /// </summary>
+    /// <remarks>
+    /// Raised by the "Strict" NSF record resolvers (e.g. <see cref="VaultOnline.ResolveKeeperNSFRecordStrict"/>)
+    /// instead of silently resolving to the first match.
+    /// </remarks>
+    public class AmbiguousNsfRecordException : AmbiguousIdentifierException
+    {
+        /// <summary>All Nested Shared Folder records whose title matched <see cref="AmbiguousIdentifierException.Identifier"/>.</summary>
+        public IReadOnlyList<KeeperNSFRecord> Matches { get; }
+
+        /// <exclude/>
+        public AmbiguousNsfRecordException(string identifier, IReadOnlyList<KeeperNSFRecord> matches)
+            : base(identifier, BuildMessage("Nested Shared Folder records", identifier, "Record UID", matches.Select(m => (m.RecordUid, m.Title))))
+        {
+            Matches = matches;
         }
     }
 
@@ -2988,6 +3221,11 @@ namespace KeeperSecurity.Vault
         /// Can Manage Records?
         /// </summary>
         public bool ManageRecords { get; internal set; }
+
+        /// <summary>
+        /// Is the user the owner of the shared folder?
+        /// </summary>
+        public bool Owner { get; internal set; }
 
         /// <summary>
         /// Can Manage Users?

@@ -19,6 +19,7 @@ namespace Commander
     {
         internal readonly VaultOnline Vault;
         internal string CurrentFolder;
+        internal string CurrentNsfFolder;
         internal EnterpriseData EnterpriseData { get; set; }
         internal IEnterpriseContext EnterpriseContext { get; set; }
 
@@ -27,9 +28,16 @@ namespace Commander
             Vault = vault;
         }
 
-        public bool TryResolvePath(string path, out FolderNode node)
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a single classic folder.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a segment matches zero subfolders.
+        /// </remarks>
+        public bool ResolvePath(string path, out FolderNode node)
         {
-            var res = TryResolvePath(path, out node, out var text);
+            var res = ResolvePath(path, out node, out var text);
             if (res)
             {
                 res = string.IsNullOrEmpty(text);
@@ -38,7 +46,15 @@ namespace Commander
             return res;
         }
 
-        public bool TryResolvePath(string path, out FolderNode node, out string text)
+        /// <summary>
+        /// Resolves <paramref name="path"/> to a folder, treating a trailing unresolved segment as a record
+        /// title/pattern returned via <paramref name="text"/> instead of failing.
+        /// </summary>
+        /// <remarks>
+        /// Throws <see cref="AmbiguousFolderException"/> if a path segment names more than
+        /// one subfolder; returns <c>false</c> (not an exception) if a non-trailing segment matches zero subfolders.
+        /// </remarks>
+        public bool ResolvePath(string path, out FolderNode node, out string text)
         {
             node = null;
             text = null;
@@ -86,19 +102,41 @@ namespace Commander
                 }
                 else
                 {
-                    var found = false;
+                    FolderNode uidMatch = null;
+                    var nameMatches = new List<FolderNode>();
                     foreach (var subFolder in node.Subfolders)
                     {
                         if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                        if ((string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) && (string.Compare(folder, subNode.FolderUid, StringComparison.CurrentCultureIgnoreCase) != 0))
-                            continue;
-                        found = true;
-                        node = subNode;
-                        break;
+                        if (string.Equals(folder, subNode.FolderUid, StringComparison.OrdinalIgnoreCase))
+                        {
+                            uidMatch = subNode;
+                            break;
+                        }
+
+                        if (!string.IsNullOrEmpty(subNode.Name) && string.Equals(folder, subNode.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            nameMatches.Add(subNode);
+                        }
                     }
 
-                    if (found) continue;
+                    if (uidMatch != null)
+                    {
+                        node = uidMatch;
+                        continue;
+                    }
+
+                    if (nameMatches.Count > 1)
+                    {
+                        throw new AmbiguousFolderException(folder, nameMatches);
+                    }
+
+                    if (nameMatches.Count == 1)
+                    {
+                        node = nameMatches[0];
+                        continue;
+                    }
+
                     if (string.IsNullOrEmpty(text))
                     {
                         text = folder;
@@ -112,7 +150,7 @@ namespace Commander
 
             return true;
         }
-    
+
     }
 
     internal static class VaultCommandExtensions
@@ -631,6 +669,11 @@ namespace Commander
 
         private static Task ListCommand(this VaultContext context, ListCommandOptions options)
         {
+            if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
+            {
+                return ListNsfFolder(context, options);
+            }
+
             FolderNode node = null;
             if (!string.IsNullOrEmpty(context.CurrentFolder))
             {
@@ -769,6 +812,69 @@ namespace Commander
             return Task.CompletedTask;
         }
 
+        private static Task ListNsfFolder(VaultContext context, ListCommandOptions options)
+        {
+            if (!context.Vault.TryGetKeeperNSFFolder(context.CurrentNsfFolder, out var node))
+            {
+                Console.WriteLine("Current Keeper NSF folder is no longer available. Run sync-down or cd /.");
+                return Task.CompletedTask;
+            }
+
+            var filterPattern = options.Filter ?? options.Pattern;
+            var nameFilter = string.IsNullOrEmpty(filterPattern) ? null : CreateListNameFilter(filterPattern);
+            if (!string.IsNullOrEmpty(filterPattern) && nameFilter == null) return Task.CompletedTask;
+            if (!string.IsNullOrEmpty(options.Sort) && !string.Equals(options.Sort, "name", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Unknown sort field '{options.Sort}' for Keeper NSF folders. Supported value: name.");
+                return Task.CompletedTask;
+            }
+
+            var folders = SortListFolders(node.Subfolders
+                    .Select(uid => context.Vault.TryGetKeeperNSFFolder(uid, out var child) ? child : null)
+                    .Where(child => child != null && ListFolderMatchesFilter(child, nameFilter)), options.Reverse)
+                .ToList();
+            IEnumerable<KeeperNSFRecord> records = node.Records
+                .Select(uid => context.Vault.TryGetKeeperNSFRecord(uid, out var record) ? record : null)
+                .Where(record => record != null && (nameFilter == null
+                    || TextMatchesFilter(record.Title, nameFilter)
+                    || TextMatchesFilter(record.RecordUid, nameFilter)))
+                .OrderBy(record => record.Title, StringComparer.InvariantCultureIgnoreCase);
+            if (options.Reverse) records = records.Reverse();
+
+            var recordList = records.ToList();
+            if (folders.Count == 0 && recordList.Count == 0 && !string.IsNullOrEmpty(filterPattern))
+                Console.WriteLine($"No folders or records match filter '{filterPattern}'.");
+
+            if (options.Details)
+            {
+                if (folders.Count > 0)
+                {
+                    var table = new Tabulate(2) { DumpRowNo = true };
+                    table.AddHeader("Folder UID", "Name");
+                    foreach (var folder in folders) table.AddRow(folder.FolderUid, folder.Name);
+                    table.Dump();
+                }
+                if (recordList.Count > 0)
+                {
+                    var table = new Tabulate(3) { DumpRowNo = true };
+                    table.AddHeader("Record UID", "Title", "Type");
+                    foreach (var record in recordList)
+                    {
+                        var metadata = NsfHelpers.GetRecordTypeAndTitle(record);
+                        table.AddRow(record.RecordUid, record.Title ?? metadata.Title, metadata.Type);
+                    }
+                    table.Dump();
+                }
+            }
+            else
+            {
+                foreach (var folder in folders) Console.WriteLine((folder.Name ?? folder.FolderUid) + "/");
+                foreach (var record in recordList) Console.WriteLine(record.Title ?? record.RecordUid);
+            }
+
+            return Task.CompletedTask;
+        }
+
         private static IEnumerable<FolderNode> SortListFolders(
             IEnumerable<FolderNode> folders,
             bool reverse)
@@ -839,9 +945,64 @@ namespace Commander
 
         private static Task ChangeDirectoryCommand(this VaultContext context, string name)
         {
-            if (context.TryResolvePath(name, out var node))
+            var reference = name?.Trim();
+            if (string.Equals(reference, "/", StringComparison.Ordinal))
+            {
+                context.CurrentFolder = null;
+                context.CurrentNsfFolder = null;
+                return Task.CompletedTask;
+            }
+
+            if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
+            {
+                if (string.Equals(reference, "..", StringComparison.Ordinal))
+                {
+                    if (context.Vault.TryGetKeeperNSFFolder(context.CurrentNsfFolder, out var current)
+                        && !string.IsNullOrEmpty(current.ParentUid)
+                        && context.Vault.TryGetKeeperNSFFolder(current.ParentUid, out _))
+                        context.CurrentNsfFolder = current.ParentUid;
+                    else
+                        context.CurrentNsfFolder = null;
+                    return Task.CompletedTask;
+                }
+
+                if (context.Vault.TryGetKeeperNSFFolder(context.CurrentNsfFolder, out var parent))
+                {
+                    var children = parent.Subfolders
+                        .Select(uid => context.Vault.TryGetKeeperNSFFolder(uid, out var child) ? child : null)
+                        .Where(child => child != null && (string.Equals(child.Name, reference, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(child.FolderUid, reference, StringComparison.OrdinalIgnoreCase)))
+                        .Take(2).ToList();
+                    if (children.Count == 1)
+                    {
+                        context.CurrentNsfFolder = children[0].FolderUid;
+                        return Task.CompletedTask;
+                    }
+                    if (children.Count > 1)
+                    {
+                        Console.WriteLine($"Ambiguous folder name: {name}. Use its UID.");
+                        return Task.CompletedTask;
+                    }
+                }
+            }
+
+            if (string.Equals(reference, "..", StringComparison.Ordinal)
+                && string.IsNullOrEmpty(context.CurrentFolder))
+            {
+                return Task.CompletedTask;
+            }
+
+            if ((!string.IsNullOrEmpty(reference) && context.Vault.TryGetFolder(reference, out var node))
+                || context.ResolvePath(reference, out node))
             {
                 context.CurrentFolder = node.FolderUid;
+                context.CurrentNsfFolder = null;
+            }
+            else if (!string.IsNullOrEmpty(reference)
+                && context.Vault.TryResolveKeeperNSFFolderReference(reference, out var nsfFolder))
+            {
+                context.CurrentFolder = null;
+                context.CurrentNsfFolder = nsfFolder.FolderUid;
             }
             else
             {
@@ -979,7 +1140,7 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.Folder))
             {
-                if (context.TryResolvePath(options.Folder, out var folder))
+                if (context.ResolvePath(options.Folder, out var folder))
                 {
                     foreach (var recordId in folder.Records)
                     {
@@ -1371,6 +1532,12 @@ namespace Commander
         }
     }
     
+    class VaultForceOptions
+    {
+        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
+        public bool Force { get; set; }
+    }
+
     class DownloadMembershipCommandOptions
     {
         [Option("source", Required = false, Default = "keeper",

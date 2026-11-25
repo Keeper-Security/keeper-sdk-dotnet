@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZeroDep;
 
 namespace Commander
 {
@@ -40,11 +41,16 @@ namespace Commander
 
                 if (record != null)
                 {
-                    await DisplayRecordInfo(context, record, tab);
+                    await DisplayRecordInfo(context, record, tab, options.Unmask);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
                     tab.LeftPadding = 4;
                     tab.Dump();
+                    context.Vault.AuditLogRecordOpen(record.Uid);
+                    if (options.Unmask && RecordSecurity.HasPassword(record))
+                    {
+                        context.Vault.AuditLogRecordRevealPassword(record.Uid);
+                    }
                     return;
                 }
 
@@ -57,9 +63,25 @@ namespace Commander
 
             if (checkSharedFolders)
             {
-                var sharedFolder = TryResolveSharedFolder(context, identifier);
+                SharedFolder sharedFolder;
+                try
+                {
+                    sharedFolder = ResolveSharedFolder(context, identifier);
+                }
+                catch (AmbiguousSharedFolderException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
+
                 if (sharedFolder != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DisplaySharedFolderJsonInfo(context, sharedFolder, options.IncludeDag);
+                        return;
+                    }
+
                     DisplaySharedFolderInfo(context, sharedFolder, tab);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
@@ -86,6 +108,12 @@ namespace Commander
 
                 if (folder != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DisplayFolderJsonInfo(context, folder);
+                        return;
+                    }
+
                     DisplayFolderInfo(folder, tab);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
@@ -145,7 +173,7 @@ namespace Commander
                 return folder;
             }
 
-            if (context.TryResolvePath(identifier, out var folderByPath))
+            if (context.ResolvePath(identifier, out var folderByPath))
             {
                 return folderByPath;
             }
@@ -162,18 +190,26 @@ namespace Commander
             return matches.FirstOrDefault();
         }
 
-        private static SharedFolder TryResolveSharedFolder(VaultContext context, string identifier)
+        private static SharedFolder ResolveSharedFolder(VaultContext context, string identifier)
         {
             if (context.Vault.TryGetSharedFolder(identifier, out var sharedFolder))
             {
                 return sharedFolder;
             }
 
-            return context.Vault.SharedFolders
-                .FirstOrDefault(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase));
+            var matches = context.Vault.SharedFolders
+                .Where(sf => string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count > 1)
+            {
+                throw new AmbiguousSharedFolderException(identifier, matches);
+            }
+
+            return matches.Count == 1 ? matches[0] : null;
         }
 
-        private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab)
+        private static async Task DisplayRecordInfo(VaultContext context, KeeperRecord record, Tabulate tab, bool unmask)
         {
             var totps = new List<string>();
 
@@ -185,19 +221,19 @@ namespace Commander
             {
                 tab.AddRow("Notes:", legacy.Notes);
                 tab.AddRow("$login:", legacy.Login);
-                tab.AddRow("$password:", legacy.Password);
+                tab.AddRow("$password:", RecordSecurity.Mask(legacy.Password, unmask));
                 tab.AddRow("$url:", legacy.Link);
                 if (!string.IsNullOrEmpty(legacy.Totp))
                 {
                     totps.Add(legacy.Totp);
-                    tab.AddRow("$oneTimeCode:", legacy.Totp);
                 }
 
                 if (legacy.Custom != null && legacy.Custom.Count > 0)
                 {
                     foreach (var c in legacy.Custom)
                     {
-                        tab.AddRow(c.Name + ":", c.Value);
+                        tab.AddRow(c.Name + ":", RecordSecurity.IsSensitive(c.Name)
+                            ? RecordSecurity.Mask(c.Value, unmask) : c.Value);
                     }
                 }
             }
@@ -220,7 +256,8 @@ namespace Commander
                         for (var i = 0; i < Math.Max(values.Length, 1); i++)
                         {
                             var v = i < values.Length ? values[i] : "";
-                            tab.AddRow(i == 0 ? $"{label}:" : "", v);
+                            tab.AddRow(i == 0 ? $"{label}:" : "", RecordSecurity.IsSensitive(f)
+                                ? RecordSecurity.Mask(v, unmask) : v);
                         }
                     }
                 }
@@ -238,7 +275,8 @@ namespace Commander
 
             foreach (var url in totps)
             {
-                tab.AddRow("$oneTimeCode:", url);
+                tab.AddRow("$oneTimeCode:", RecordSecurity.Mask(url, unmask));
+                if (!unmask) continue;
                 try
                 {
                     var tup = CryptoUtils.GetTotpCode(url);
@@ -283,7 +321,6 @@ namespace Commander
                 }
             }
 
-            context.Vault.AuditLogRecordOpen(record.Uid);
         }
 
         private static string FormatUserRecordShareStatus(UserRecordPermissions permission)
@@ -424,6 +461,126 @@ namespace Commander
             }
         }
 
+        private static void DisplaySharedFolderJsonInfo(VaultContext context, SharedFolder sf, bool includeDag)
+        {
+            var users = sf.UsersPermissions
+                .Where(x => x.UserType == UserType.User)
+                .Select(x => new Dictionary<string, object>
+                {
+                    ["username"] = x.Name,
+                    ["user_id"] = x.Uid,
+                    ["owner"] = x.Owner,
+                    ["manage_records"] = x.ManageRecords,
+                    ["manage_users"] = x.ManageUsers,
+                    ["expiration"] = x.Expiration.HasValue
+                        ? x.Expiration.Value.UtcDateTime.ToString("o")
+                        : "never"
+                })
+                .ToList();
+
+            var json = new Dictionary<string, object>
+            {
+                ["folder_uid"] = sf.Uid,
+                ["type"] = "classic_folder",
+                ["name"] = sf.Name,
+                ["folder"] = GetFolderLocation(context, sf.Uid),
+                ["users"] = users,
+                ["share_admins"] = sf.UsersPermissions
+                    .Where(x => x.UserType == UserType.User && x.ManageUsers)
+                    .Select(x => x.Name)
+                    .ToList()
+            };
+
+            if (includeDag)
+            {
+                json["records"] = sf.RecordPermissions
+                    .Select(x => new Dictionary<string, object>
+                    {
+                        ["record_uid"] = x.RecordUid,
+                        ["record_name"] = GetRecordName(context, x.RecordUid)
+                    })
+                    .ToList();
+            }
+
+            Json.WriteFormatted(Console.Out, json);
+            Console.WriteLine();
+        }
+
+        private static void DisplayFolderJsonInfo(VaultContext context, FolderNode folder)
+        {
+            var records = folder.Records
+                .Where(recordUid => !string.IsNullOrEmpty(recordUid))
+                .Select(recordUid => new Dictionary<string, object>
+                {
+                    ["record_uid"] = recordUid,
+                    ["record_name"] = GetRecordName(context, recordUid)
+                })
+                .ToList();
+
+            var json = new Dictionary<string, object>
+            {
+                ["folder_uid"] = folder.FolderUid,
+                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_shared_folder",
+                ["name"] = folder.Name,
+                ["path"] = GetFolderPath(context, folder.FolderUid),
+                ["folder"] = GetFolderLocation(context, folder.FolderUid),
+                ["records"] = records
+            };
+
+            Json.WriteFormatted(Console.Out, json);
+            Console.WriteLine();
+        }
+
+        private static Dictionary<string, object> GetFolderLocation(VaultContext context, string folderUid)
+        {
+            if (context?.Vault != null && !string.IsNullOrEmpty(folderUid) &&
+                context.Vault.TryGetFolder(folderUid, out var folder))
+            {
+                return new Dictionary<string, object>
+                {
+                    ["uid"] = folder.ParentUid ?? "",
+                    ["path"] = GetFolderPath(context, folder.ParentUid ?? string.Empty)
+                };
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["uid"] = "",
+                ["path"] = ""
+            };
+        }
+
+        private static string GetFolderPath(VaultContext context, string folderUid)
+        {
+            var components = new List<string>();
+            var currentUid = folderUid;
+            var visited = new HashSet<string>();
+            while (context?.Vault != null && !string.IsNullOrEmpty(currentUid) && visited.Add(currentUid) &&
+                   context.Vault.TryGetFolder(currentUid, out var folder))
+            {
+                if (!string.IsNullOrEmpty(folder.Name))
+                {
+                    components.Add(folder.Name);
+                }
+                currentUid = folder.ParentUid;
+            }
+
+            components.Reverse();
+            return string.Join("/", components);
+        }
+
+        private static string GetRecordName(VaultContext context, string recordUid)
+        {
+            if (context?.Vault != null && !string.IsNullOrEmpty(recordUid) &&
+                context.Vault.TryGetKeeperRecord(recordUid, out var record) &&
+                !string.IsNullOrEmpty(record.Title))
+            {
+                return record.Title;
+            }
+
+            return recordUid ?? string.Empty;
+        }
+
         private static void DisplayFolderInfo(FolderNode f, Tabulate tab)
         {
             tab.AddRow("Folder UID:", f.FolderUid);
@@ -457,5 +614,14 @@ namespace Commander
 
         [Option('t', "team", Required = false, HelpText = "Specify that the UID is a team")]
         public bool IsTeam { get; set; }
+
+        [Option("format", Required = false, Default = "table", HelpText = "table or json")]
+        public string Format { get; set; }
+
+        [Option("include-dag", Required = false, HelpText = "Include classic shared-folder record graph data")]
+        public bool IncludeDag { get; set; }
+
+        [Option("unmask", Required = false, HelpText = "display hidden field content")]
+        public bool Unmask { get; set; }
     }
 }

@@ -24,8 +24,7 @@ namespace Commander
         internal const int LabelWidth = 21;
         internal const int FolderLabelWidth = 25;
         internal const string KdRootFolderUid = "AAAAAAAAAAAAAAAAAPmtNA";
-
-        private static readonly string[] SecretFieldTypes = { "password", "secret", "privateKey", "passkey", "otp" };
+        internal const string GenerateFieldValueToken = "$GEN";
 
         private static readonly Dictionary<int, string> AccessRoleLabels = new Dictionary<int, string>
         {
@@ -64,9 +63,8 @@ namespace Commander
         };
 
         private static Dictionary<string, string> _shareObjectsCache;
+        private static Dictionary<string, string> _shareObjectsTeamCache;
         private static string _shareObjectsCacheAccountUid;
-
-        internal static bool PasswordVisible { get; set; }
 
         internal static string GetAccessRoleLabel(int roleType)
         {
@@ -97,6 +95,32 @@ namespace Commander
             return (recordType, title);
         }
 
+        /// <summary>
+        /// Resolves an NSF folder by UID or exact name. Throws <see cref="AmbiguousFolderException"/>
+        /// when the name matches more than one folder. Thin wrapper over the SDK's strict resolver.
+        /// </summary>
+        internal static FolderNode ResolveNsfFolderByUidOrName(VaultOnline vault, string uidOrName)
+        {
+            return vault.ResolveKeeperNSFFolderStrict(uidOrName);
+        }
+
+        /// <summary>
+        /// Same as <see cref="ResolveNsfFolderByUidOrName"/>, but also accepts "", "/" or "root" to mean the Keeper Drive root.
+        /// </summary>
+        internal static FolderNode ResolveNsfFolderOrRootByUidOrName(VaultOnline vault, string uidOrName)
+        {
+            return vault.ResolveKeeperNSFFolderOrRootStrict(uidOrName);
+        }
+
+        /// <summary>
+        /// Resolves an NSF record by UID or exact title. Throws <see cref="AmbiguousNsfRecordException"/>
+        /// when the title matches more than one record. Thin wrapper over the SDK's strict resolver.
+        /// </summary>
+        internal static KeeperNSFRecord ResolveNsfRecordByUidOrTitle(VaultOnline vault, string uidOrTitle)
+        {
+            return vault.ResolveKeeperNSFRecordStrict(uidOrTitle);
+        }
+
         internal static (KeeperNSFRecord Record, FolderNode Folder) ResolveNsfObject(VaultOnline vault, string uid, string name)
         {
             if (!string.IsNullOrEmpty(uid))
@@ -116,66 +140,44 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(name))
             {
-                foreach (var f in vault.KeeperNSFFolderNodes)
+                var folderMatch = ResolveNsfFolderByUidOrName(vault, name);
+                if (folderMatch != null)
                 {
-                    if (f.Name != null && string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (null, f);
-                    }
+                    return (null, folderMatch);
                 }
 
-                foreach (var r in vault.KeeperNSFRecordEntries)
+                var recordMatch = ResolveNsfRecordByUidOrTitle(vault, name);
+                if (recordMatch != null)
                 {
-                    if (r.Title != null && string.Equals(r.Title, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (r, null);
-                    }
+                    return (recordMatch, null);
                 }
 
-                foreach (var f in vault.KeeperNSFFolderNodes)
+                var partialFolderMatches = vault.KeeperNSFFolderNodes
+                    .Where(f => f.Name != null && f.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+                if (partialFolderMatches.Count > 1)
                 {
-                    if (f.Name != null && f.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        return (null, f);
-                    }
+                    throw new AmbiguousFolderException(name, partialFolderMatches, "Nested Shared Folders");
+                }
+                if (partialFolderMatches.Count == 1)
+                {
+                    return (null, partialFolderMatches[0]);
                 }
 
-                foreach (var r in vault.KeeperNSFRecordEntries)
+                var partialRecordMatches = vault.KeeperNSFRecordEntries
+                    .Where(r => r.Title != null && r.Title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+                if (partialRecordMatches.Count > 1)
                 {
-                    if (r.Title != null && r.Title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        return (r, null);
-                    }
+                    throw new AmbiguousNsfRecordException(name, partialRecordMatches);
+                }
+                if (partialRecordMatches.Count == 1)
+                {
+                    return (partialRecordMatches[0], null);
                 }
             }
 
             return (null, null);
-        }
-
-        internal static KeeperNSFRecord ResolveNsfRecord(VaultOnline vault, string identifier)
-        {
-            if (vault.TryGetKeeperNSFRecord(identifier, out var record))
-            {
-                return record;
-            }
-
-            foreach (var r in vault.KeeperNSFRecordEntries)
-            {
-                if (r.Title != null && string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
-                {
-                    return r;
-                }
-            }
-
-            foreach (var r in vault.KeeperNSFRecordEntries)
-            {
-                if (r.Title != null && r.Title.IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return r;
-                }
-            }
-
-            return null;
         }
 
         internal static Dictionary<string, FolderNode> GetFolderNodeMap(VaultOnline vault)
@@ -283,11 +285,6 @@ namespace Commander
                 : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(fieldType.ToLower());
         }
 
-        internal static bool IsSecretField(string fieldType)
-        {
-            return SecretFieldTypes.Contains(fieldType);
-        }
-
         internal static Dictionary<string, object> ParseFieldSpecs(IEnumerable<string> fieldSpecs, bool generatePassword, out int parsedCount)
         {
             var fieldDict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -316,7 +313,19 @@ namespace Commander
                         continue;
                     }
 
-                    fieldDict[key] = ResolveFieldValue(val);
+                    var fieldTypeEnd = key.IndexOf(':');
+                    var fieldType = fieldTypeEnd > 0 ? key.Substring(0, fieldTypeEnd) : key;
+                    if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                        && string.IsNullOrEmpty(val))
+                    {
+                        throw new ArgumentException($"Password value cannot be empty. Use --generate or password={GenerateFieldValueToken}.");
+                    }
+
+                    if (generatePassword && IsPasswordGenerationToken(key, val))
+                    {
+                        throw new ArgumentException($"Do not combine --generate with password={GenerateFieldValueToken}.");
+                    }
+                    fieldDict[key] = ResolveFieldValue(key, val);
                     parsedCount++;
                 }
             }
@@ -329,11 +338,25 @@ namespace Commander
             return fieldDict.Count > 0 ? fieldDict : null;
         }
 
-        private static object ResolveFieldValue(string rawValue)
+        private static object ResolveFieldValue(string fieldKey, string rawValue)
         {
             if (string.IsNullOrEmpty(rawValue))
             {
                 return rawValue;
+            }
+
+            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
+            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                && rawValue.StartsWith(GenerateFieldValueToken, StringComparison.Ordinal))
+            {
+                if (string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal))
+                {
+                    return CryptoUtils.GeneratePassword(null);
+                }
+
+                throw new ArgumentException(
+                    $"Unsupported password generation token '{rawValue}'. Use {GenerateFieldValueToken} or --generate.");
             }
 
             if (rawValue.StartsWith("$JSON:", StringComparison.Ordinal))
@@ -357,6 +380,14 @@ namespace Commander
             }
 
             return rawValue;
+        }
+
+        private static bool IsPasswordGenerationToken(string fieldKey, string rawValue)
+        {
+            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
+            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            return string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal);
         }
 
         internal static void WriteRemoveImpact(RemoveResponse response, string itemLabel = "Record")
@@ -455,6 +486,7 @@ namespace Commander
         internal static void ResetShareObjectsCache()
         {
             _shareObjectsCache = null;
+            _shareObjectsTeamCache = null;
             _shareObjectsCacheAccountUid = null;
         }
 
@@ -507,6 +539,22 @@ namespace Commander
                         }
                     }
 
+                    _shareObjectsTeamCache = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var teamList in new[] { rs.ShareTeams, rs.ShareMCTeams })
+                    {
+                        foreach (var st in teamList)
+                        {
+                            if (st.TeamUid != null && !st.TeamUid.IsEmpty)
+                            {
+                                var teamUid = st.TeamUid.ToByteArray().Base64UrlEncode();
+                                if (!string.IsNullOrEmpty(st.Teamname) && !_shareObjectsTeamCache.ContainsKey(teamUid))
+                                {
+                                    _shareObjectsTeamCache[teamUid] = st.Teamname;
+                                }
+                            }
+                        }
+                    }
+
                     _shareObjectsCacheAccountUid = currentAccountUid;
                 }
                 catch
@@ -516,6 +564,53 @@ namespace Commander
             }
 
             return _shareObjectsCache.TryGetValue(accessTypeUid, out var cached) ? cached : accessTypeUid;
+        }
+
+        internal static async Task<string> ResolveAccessorNameAsync(
+            VaultOnline vault,
+            string accessTypeUid,
+            string accessTypeLabel,
+            string emailHint = null)
+        {
+            if (accessTypeLabel == "AT_TEAM")
+            {
+                if (!string.IsNullOrEmpty(emailHint))
+                {
+                    return emailHint;
+                }
+
+                if (vault.TryGetTeam(accessTypeUid, out var team) && !string.IsNullOrEmpty(team.Name))
+                {
+                    return team.Name;
+                }
+
+                await ResolveUsernameAsync(vault, accessTypeUid);
+
+                if (_shareObjectsTeamCache != null && _shareObjectsTeamCache.TryGetValue(accessTypeUid, out var teamName))
+                {
+                    return teamName;
+                }
+
+                try
+                {
+                    var availableTeams = await SharedFolderSkipSyncDown.GetAvailableTeamsForShareAsync(vault.Auth);
+                    var match = availableTeams.FirstOrDefault(t =>
+                        string.Equals(t.TeamUid, accessTypeUid, StringComparison.OrdinalIgnoreCase));
+                    if (match != null && !string.IsNullOrEmpty(match.Name))
+                    {
+                        return match.Name;
+                    }
+                }
+                catch
+                {
+                    // fall through
+                }
+
+                return accessTypeUid;
+            }
+
+            var username = await ResolveUsernameAsync(vault, accessTypeUid, emailHint);
+            return !string.IsNullOrEmpty(username) ? username : accessTypeUid;
         }
 
         internal static void DisplayPermissionChanges(KeeperNSFPermissionResult result, bool isDryRun)

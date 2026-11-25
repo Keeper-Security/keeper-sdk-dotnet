@@ -103,6 +103,9 @@ function Get-KeeperTrashList {
     .PARAMETER Verbose
     Show detailed information including folder details
 
+    .PARAMETER Reload
+    Discard the cached trashcan snapshot and resync from the server
+
     .OUTPUTS
     None. Displays formatted table output to console.
 
@@ -117,13 +120,20 @@ function Get-KeeperTrashList {
     .EXAMPLE
     Get-KeeperTrashList -Verbose
     Shows detailed information including folder details
+
+    .EXAMPLE
+    Get-KeeperTrashList -Reload
+    Refresh trash list from server and list all items
     #>
     [CmdletBinding()]
     [OutputType([void])]
     param(
         [Parameter(Position = 0)]
         [ValidateLength(0, 100)]
-        [string]$Pattern        
+        [string]$Pattern,
+
+        [Parameter()]
+        [switch]$Reload
     )
 
     Write-Verbose "Starting trash list operation with pattern: '$Pattern'"
@@ -141,32 +151,163 @@ function Get-KeeperTrashList {
     $deletedRecords = [KeeperSecurity.Vault.TrashManagement]::GetDeletedRecords()
     $orphanedRecords = [KeeperSecurity.Vault.TrashManagement]::GetOrphanedRecords()
     $sharedFolders = [KeeperSecurity.Vault.TrashManagement]::GetSharedFolders()
-
-    if ([KeeperSecurity.Vault.TrashManagement]::IsTrashEmpty()) {
-        Write-Host "Trash is empty"
-        return
-    }
+    $classicTrashIsEmpty = [KeeperSecurity.Vault.TrashManagement]::IsTrashEmpty()
 
     $normalizedPattern = if ($Pattern -eq "*") { $null } elseif ($Pattern) { $Pattern.ToLower() } else { $null }
     $titlePattern = if ($normalizedPattern) { New-WildcardRegex -Pattern $normalizedPattern } else { $null }
 
-    $recordResults = @(
-        Get-RecordTableData -Records $deletedRecords -IsShared $false -Pattern $normalizedPattern -TitlePattern $titlePattern
-        Get-RecordTableData -Records $orphanedRecords -IsShared $true -Pattern $normalizedPattern -TitlePattern $titlePattern
-    )
-    $folderResults = @(Get-FolderTableData -SharedFolders $sharedFolders -Pattern $normalizedPattern -TitlePattern $titlePattern)
-    
+    $recordResults = @()
+    $folderResults = @()
+
+    if (-not $classicTrashIsEmpty) {
+        $recordResults = @(
+            Get-RecordTableData -Records $deletedRecords -IsShared $false -Pattern $normalizedPattern -TitlePattern $titlePattern
+            Get-RecordTableData -Records $orphanedRecords -IsShared $true -Pattern $normalizedPattern -TitlePattern $titlePattern
+        )
+        $folderResults = @(Get-FolderTableData -SharedFolders $sharedFolders -Pattern $normalizedPattern -TitlePattern $titlePattern)
+    }
+
+    $nsfResults = @(Get-NsfTrashTableData -Vault $vault -Pattern $normalizedPattern -TitlePattern $titlePattern -Reload:$Reload)
+
     $recordResults = @($recordResults | Sort-Object @{Expression={if ($_.'Deleted At') { $_.'Deleted At' } else { [DateTime]::MinValue }}; Descending=$true}, Name)
     $folderResults = @($folderResults | Sort-Object @{Expression={if ($_.'Deleted At') { $_.'Deleted At' } else { [DateTime]::MinValue }}; Descending=$true}, Name)
-    
-    $results = @($recordResults) + @($folderResults)
+    $nsfResults = @($nsfResults | Sort-Object @{Expression={if ($_.'Deleted At') { $_.'Deleted At' } else { [DateTime]::MinValue }}; Descending=$true}, Name)
+
+    $results = @($recordResults) + @($folderResults) + @($nsfResults)
 
     if ($results.Count -gt 0) {
-        $results | Format-Table -AutoSize -Wrap
+        $results | Format-Table -Property 'Folder UID', 'Record UID', Name, 'Record Type', 'Deleted At', Status -AutoSize -Wrap
+    }
+    elseif ($classicTrashIsEmpty) {
+        Write-Host "Trash is empty"
     }
     else {
         Write-Host "No records found matching the specified criteria"
     }
+}
+
+function Get-NsfTrashTableData {
+    # Internal: Builds trash-list table rows for Keeper NSF/Drive records and folders
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline]$Vault,
+
+        [string]$Pattern,
+        [regex]$TitlePattern,
+        [switch]$Reload
+    )
+
+    $results = @()
+
+    try {
+        $nsfTrash = $Vault.GetKeeperNSFTrash($Reload).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Verbose "Failed to load NSF trash: $($_.Exception.Message)"
+        return $results
+    }
+
+    if ($null -eq $nsfTrash) {
+        return $results
+    }
+
+    foreach ($item in (@($nsfTrash.Records) + @($nsfTrash.Folders))) {
+        if ($null -ne $Pattern -and $null -ne $TitlePattern -and $item.Title -notmatch $TitlePattern) {
+            continue
+        }
+
+        $deletedAt = if ($item.DateDeleted -gt 0) {
+            [DateTimeOffset]::FromUnixTimeMilliseconds($item.DateDeleted).LocalDateTime
+        } else { $null }
+
+        if ($item.IsFolder) {
+            $results += [PSCustomObject]@{
+                'Folder UID' = $item.Uid
+                'Record UID' = ""
+                'Name' = $item.Title
+                'Record Type' = "NSF Folder"
+                'Deleted At' = $deletedAt
+                'Status' = "NSF Folder"
+            }
+        }
+        else {
+            $results += [PSCustomObject]@{
+                'Folder UID' = ""
+                'Record UID' = $item.Uid
+                'Name' = $item.Title
+                'Record Type' = $item.RecordType
+                'Deleted At' = $deletedAt
+                'Status' = "NSF Record"
+            }
+        }
+    }
+
+    return $results
+}
+
+function Show-NsfTrashedItemDetails {
+    # Internal: Looks up and displays a trashed Keeper NSF/Drive record or folder by UID
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline]$Vault,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Uid,
+
+        [switch]$Unmask
+    )
+
+    try {
+        $item = $Vault.GetKeeperNSFTrashItem($Uid).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error "$Uid is not a valid deleted record UID"
+        return
+    }
+
+    if ($null -eq $item) {
+        Write-Error "$Uid is not a valid deleted record UID"
+        return
+    }
+
+    $deletedAt = if ($item.DateDeleted -gt 0) {
+        [DateTimeOffset]::FromUnixTimeMilliseconds($item.DateDeleted).LocalDateTime
+    } else { '' }
+
+    Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "UID", $item.Uid)
+    Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Title", $item.Title)
+    if (-not $item.IsFolder) {
+        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", $item.RecordType)
+        if ($item.Record -and $item.Record.Fields) {
+            foreach ($field in $item.Record.Fields) {
+                $name = if ($field.Label) { $field.Label } else { $field.Type }
+                $firstValue = $true
+                foreach ($value in $field.Value) {
+                    if ([string]::IsNullOrEmpty($value)) { continue }
+                    $display = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field.Type, $field.Label)) {
+                        [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
+                    } else { $value }
+                    if ($firstValue) {
+                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $display)
+                        $firstValue = $false
+                    }
+                    else {
+                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}  {1}" -f '', $display)
+                    }
+                }
+            }
+            if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($item.Record)) {
+                $Vault.AuditLogRecordRevealPassword($item.Uid)
+            }
+        }
+        elseif ($Unmask -and -not $item.Record) {
+            Write-Host 'Sensitive fields are unavailable for this NSF record in trash.' -ForegroundColor Yellow
+        }
+    }
+    Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Status", $item.Status)
+    Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Deleted At", $deletedAt)
 }
 
 function Get-RecordTableData {
@@ -260,7 +401,7 @@ function Get-FolderTableData {
                             'Name' = $metadata.Title
                             'Record Type' = $metadata.Type
                             'Deleted At' = Get-DeletedDate -Timestamp $record.DateDeleted
-                            'Status' = "Share"
+                            'Status' = "Folder"
                         }
                     }
                 }
@@ -404,11 +545,15 @@ function Restore-KeeperTrashRecords {
     Restores deleted records from trash
 
     .DESCRIPTION
-    Restores deleted records, orphaned records, and shared folders from the trash.
-    Supports restoring by record UID or pattern matching.
+    Restores deleted records, orphaned records, and shared folders from the trash, as well as
+    Keeper NSF/Drive records and folders. Supports restoring by record UID or pattern matching.
 
     .PARAMETER Records
     Array of record UIDs or patterns to restore. Supports wildcards (* and ?).
+
+    .PARAMETER TargetFolder
+    Keeper NSF/Drive folder UID to restore matching Drive items into instead of their original
+    location. Has no effect on classic vault items, which always restore to their original location.
 
     .PARAMETER Force
     Skip confirmation prompts and restore immediately.
@@ -435,13 +580,16 @@ function Restore-KeeperTrashRecords {
         [ValidateCount(1, 10000)]
         [ValidateLength(1, 100)]
         [string[]]$Records,
-        
+
+        [Parameter()]
+        [string]$TargetFolder,
+
         [Parameter()]
         [switch]$Force
     )
 
     Write-Verbose "Starting trash restore operation with $($Records.Count) record(s)"
-    
+
     $validationResult = Test-RecordParameters -Records $Records
     if (-not $validationResult.IsValid) {
         Write-Error $validationResult.ErrorMessage
@@ -453,16 +601,132 @@ function Restore-KeeperTrashRecords {
         return
     }
 
+    $vault = $null
+    $classicRestoreCount = 0
     try {
         $vault = Get-VaultOrThrow
-        $restoreTask = [KeeperSecurity.Vault.TrashManagement]::RestoreTrashRecords($vault, $validationResult.ValidRecords)
-        Invoke-TaskAndWait -Task $restoreTask
-        Write-Host "Successfully initiated restoration of $($validationResult.ValidRecords.Count) record(s)"
-        Write-Host "Use 'Get-KeeperTrashList' to verify the restoration"
+        $loadTask = [KeeperSecurity.Vault.TrashManagement]::EnsureDeletedRecordsLoaded($vault)
+        Invoke-TaskAndWait -Task $loadTask
     }
     catch {
-        Write-Error "Failed to restore records: $($_.Exception.Message)"
+        Write-Error "Failed to load deleted records: $($_.Exception.Message)"
+        return
     }
+
+    $deletedRecords = [KeeperSecurity.Vault.TrashManagement]::GetDeletedRecords()
+    $orphanedRecords = [KeeperSecurity.Vault.TrashManagement]::GetOrphanedRecords()
+
+    $recordsToRestore = @()
+    foreach ($record in $validationResult.ValidRecords) {
+        if ($deletedRecords.ContainsKey($record) -or $orphanedRecords.ContainsKey($record)) {
+            $recordsToRestore += $record
+        }
+    }
+
+    if ($recordsToRestore.Count -gt 0) {
+        try {
+            $vault = Get-VaultOrThrow
+            $restoreTask = [KeeperSecurity.Vault.TrashManagement]::RestoreTrashRecords($vault, $recordsToRestore)
+            Invoke-TaskAndWait -Task $restoreTask
+            $classicRestoreCount = $recordsToRestore.Count
+        }
+        catch {
+            Write-Error "Failed to restore classic trash records: $($_.Exception.Message)"
+        }
+    }
+
+    $nsfRestoreCount = 0
+    if ($null -ne $vault) {
+        $nsfRestoreCount = Restore-NsfTrashItems -Vault $vault -Records $validationResult.ValidRecords -TargetFolder $TargetFolder -Force:$Force
+    }
+
+    $totalRestored = $classicRestoreCount + $nsfRestoreCount
+    if ($totalRestored -gt 0) {
+        Write-Host "Successfully restored $totalRestored item(s)"
+    }
+}
+
+function Restore-NsfTrashItems {
+    # Internal: Restores matching Keeper NSF/Drive records and/or folders from trash.
+    # Best-effort: UIDs/patterns that only match classic trash items are silently ignored here.
+    [CmdletBinding()]
+    [OutputType([int])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline]$Vault,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$Records,
+
+        [string]$TargetFolder,
+        [switch]$Force
+    )
+
+    try {
+        if (-not $Force) {
+            $preview = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder, $true).GetAwaiter().GetResult()
+            if ($preview.RestoredRecordUids.Count -eq 0 -and $preview.RestoredFolderUids.Count -eq 0) {
+                if ($preview.Errors -and $preview.Errors.Count -gt 0) {
+                    foreach ($error in $preview.Errors) {
+                        Write-Host "Error: $error"
+                    }
+                }
+                else {
+                    Write-Host "Nothing matched - nothing to restore."
+                }
+                return 0
+            }
+
+            $toDo = @()
+            if ($preview.RestoredRecordUids.Count -gt 0) {
+                $toDo += "$($preview.RestoredRecordUids.Count) record(s)"
+            }
+
+            if ($preview.RestoredFolderUids.Count -gt 0) {
+                $toDo += "$($preview.RestoredFolderUids.Count) folder(s)"
+            }
+
+            $destination = if ([string]::IsNullOrEmpty($TargetFolder)) { "" } else { " into `"$TargetFolder`"" }
+            $confirmation = Read-Host "Do you want to restore $($toDo -join ' and ')$destination`? (yes/No)"
+            if ($confirmation -notmatch '^(y|yes)$') {
+                Write-Host "Restore cancelled."
+                return 0
+            }
+        }
+
+        $result = $Vault.RestoreKeeperNSFTrash([string[]]$Records, $TargetFolder).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Verbose "No Keeper NSF/Drive items restored: $($_.Exception.Message)"
+        return 0
+    }
+
+    if ($null -eq $result) {
+        return 0
+    }
+
+    $totalRestored = 0
+    if ($result.RestoredRecordUids.Count -gt 0) {
+        Write-Host "Restored $($result.RestoredRecordUids.Count) Drive record(s): $($result.RestoredRecordUids -join ', ')"
+        $totalRestored += $result.RestoredRecordUids.Count
+    }
+
+    if ($result.RestoredFolderUids.Count -gt 0) {
+        Write-Host "Restored $($result.RestoredFolderUids.Count) Drive folder(s): $($result.RestoredFolderUids -join ', ')"
+        $totalRestored += $result.RestoredFolderUids.Count
+    }
+
+    if ($result.Errors -and $result.Errors.Count -gt 0) {
+        foreach ($error in $result.Errors) {
+            Write-Host "Error: $error"
+        }
+    }
+
+    if (-not $result.Success -and $totalRestored -eq 0 -and (-not $result.Errors -or $result.Errors.Count -eq 0)) {
+        Write-Host "Nothing was restored."
+    }
+
+    return $totalRestored
 }
 
 function Test-RecordParameters {
@@ -839,7 +1103,9 @@ function Get-KeeperTrashedRecordDetails {
         [ValidateNotNullOrEmpty()]
         [ValidateLength(16, 64)]
         [ValidatePattern('^[A-Za-z0-9_-]+$')]
-        [string]$RecordUid
+        [string]$RecordUid,
+
+        [switch]$Unmask
     )
 
     Write-Verbose "Retrieving details for record: $RecordUid"
@@ -874,7 +1140,7 @@ function Get-KeeperTrashedRecordDetails {
         $isShared = $true
     }
     else {
-        Write-Error "$RecordUid is not a valid deleted record UID"
+        Show-NsfTrashedItemDetails -Vault $vault -Uid $RecordUid -Unmask:$Unmask
         return
     }
 
@@ -890,7 +1156,10 @@ function Get-KeeperTrashedRecordDetails {
             return
         }
 
-        Show-RecordDetails -RecordData $recordData
+        Show-RecordDetails -RecordData $recordData -Unmask:$Unmask
+        if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($recordData)) {
+            $vault.AuditLogRecordRevealPassword($RecordUid)
+        }
 
         if ($isShared) {
             Show-RecordShares -Vault $vault -RecordUid $RecordUid
@@ -1192,7 +1461,9 @@ function Show-RecordDetails {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        $RecordData
+        $RecordData,
+
+        [switch]$Unmask
     )
 
     try {
@@ -1202,25 +1473,28 @@ function Show-RecordDetails {
 
             if ($RecordData.Fields.Count -gt 0) {
                 foreach ($field in $RecordData.Fields) {
-                    Show-RecordField -Field $field
+                    Show-RecordField -Field $field -Unmask:$Unmask
                 }
             }
 
             if ($RecordData.Custom.Count -gt 0) {
                 foreach ($field in $RecordData.Custom) {
-                    Show-RecordField -Field $field
+                    Show-RecordField -Field $field -Unmask:$Unmask
                 }
             }
+
         }
         elseif ($RecordData -is [KeeperSecurity.Vault.PasswordRecord]) {
             Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Title", $RecordData.Title)
-            Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", [KeeperSecurity.Vault.VaultExtensions]::KeeperRecordType($RecordData))
+            $recordType = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($RecordData)
+            Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Type", $recordType)
 
             if (-not [string]::IsNullOrEmpty($RecordData.Login)) {
                 Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Login", $RecordData.Login)
             }
             if (-not [string]::IsNullOrEmpty($RecordData.Password)) {
-                Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Password", $RecordData.Password)
+                $password = [KeeperSecurity.Vault.RecordSecurity]::Mask($RecordData.Password, $Unmask.IsPresent)
+                Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "Password", $password)
             }
             if (-not [string]::IsNullOrEmpty($RecordData.Link)) {
                 Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f "URL", $RecordData.Link)
@@ -1232,7 +1506,10 @@ function Show-RecordDetails {
                 foreach ($custom in $RecordData.Custom) {
                     if (-not [string]::IsNullOrEmpty($custom.Value)) {
                         $name = if (-not [string]::IsNullOrEmpty($custom.Name)) { $custom.Name } else { "Custom" }
-                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $custom.Value)
+                        $value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($name)) {
+                            [KeeperSecurity.Vault.RecordSecurity]::Mask($custom.Value, $Unmask.IsPresent)
+                        } else { $custom.Value }
+                        Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $name, $value)
                     }
                 }
             }
@@ -1250,7 +1527,9 @@ function Show-RecordField {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        $Field
+        $Field,
+
+        [switch]$Unmask
     )
 
     try {
@@ -1296,6 +1575,9 @@ function Show-RecordField {
 
         for ($i = 0; $i -lt [Math]::Max($valueArray.Count, 1); $i++) {
             $value = if ($i -lt $valueArray.Count) { $valueArray[$i] } else { "" }
+            if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($Field.FieldName, $Field.FieldLabel)) {
+                $value = [KeeperSecurity.Vault.RecordSecurity]::Mask($value, $Unmask.IsPresent)
+            }
             if (-not [string]::IsNullOrEmpty($value)) {
                 if ($i -eq 0) {
                     Write-Host ("{0,$script:FIELD_LABEL_WIDTH}: {1}" -f $fieldName, $value)

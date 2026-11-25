@@ -8,9 +8,21 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
+### SDK runtime dependencies
+
+Keep `zxcvbn-core.dll` alongside `KeeperSdk.dll` in the PowerCommander module folder. The SDK uses zxcvbn internally to estimate master-password strength; PowerCommander calls the SDK API and does not need to reference zxcvbn itself. `PowerCommander.psd1` loads the dependency before `KeeperSdk.dll`.
+
+### QRC support
+
+Power Commander supports **Windows PowerShell 5.1** only (`PowerShellVersion = '5.1'`, `CompatiblePSEditions = @('Desktop')`). It loads `KeeperSdk.dll` (the .NET Standard 2.0 build) and its dependencies from the module directory through `RequiredAssemblies`.
+
+QRC (post-quantum hybrid encryption using ML-KEM) is implemented with BouncyCastle, so it works on 5.1 and the module must include `BouncyCastle.Cryptography.dll` and `System.Numerics.Vectors.dll`. The SDK tries QRC first and falls back to EC encryption if QRC is unavailable or fails. A key mismatch reported by the server (including an unknown or non-EC key ID) disables QRC for that session and retries with EC.
+
+Run `Connect-Keeper -Verbose` to see which encryption mode the SDK used.
+
 ### Optional: SQLite vault storage (-UseOfflineStorage)
 
-To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll` and `KeeperBiometrics.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
+To persist the vault cache between sessions, use `Connect-Keeper -UseOfflineStorage` (optionally with `-VaultDatabasePath`). Keep `KeeperSdk.dll`, `KeeperBiometrics.dll`, and `zxcvbn-core.dll` in the **PowerCommander module folder**. Copy the **same SQLite assemblies Commander uses** into `PowerCommander\StorageUtils\` (validated and loaded only when you use `-UseOfflineStorage`):
 
 - `Microsoft.Data.Sqlite.dll`
 - `SQLitePCLRaw.batteries_v2.dll`, `SQLitePCLRaw.core.dll`, `SQLitePCLRaw.provider.e_sqlite3.dll`
@@ -23,6 +35,10 @@ Offline storage checks **only** these files (Windows). Copy them from a **Comman
 Default vault database file: **`keeper_db.sqlite`** next to your config (or in the current directory if no `-Config`). Commander continues to use **`keeper_db.sqlite`** in its config folder, so the two do not share the same SQLite file unless you point `-VaultDatabasePath` to the same path.
 
 Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyResolve`; SQLitePCL is initialized; a `Func<IDbConnection>` for `SqlKeeperStorage` is built with **Reflection.Emit** (PowerShell cannot supply that delegate type directly). **KeeperSdk** does not reference `Microsoft.Data.Sqlite`; SQLite stays optional beside the module.
+
+### Nested Shared Folder (NSF) permissions
+
+`nsf-get -Uid <uid>` and `nsf-get -Uid <uid> -Format json` show only direct permissions by default. Add `-ShowInherited` to show inherited rows and `-ShowDenied` to show denied-access rows; the switches can be combined. JSON permission entries retain their `inherited` and `denied_access` state fields. Granting, revoking, or denying access does not change the folder's inheritance setting.
 
 ### Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -60,10 +76,16 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Copy-FileToKeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands/attachment-commands#power-commander)                                 |                  | Upload file attachment to a record
 | [Get-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander)                               |                  | Print the current device settings
 | [Set-KeeperDeviceSettings](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands/this-device-commands#powercommander-1)                                | this-device      | Modifies the current device settings
+| Get-KeeperDeviceList                                  | device-list      | Lists devices registered to the current Keeper account; supports `-Format table/json` and `-Output` for JSON files
+| Invoke-KeeperDeviceAction                             | device-action     | Performs `logout`, `remove`, `lock`, `unlock`, `account-lock`, `account-unlock`, `link`, or `unlink`; accepts row IDs, device-token prefixes, or device names
+| Rename-KeeperDevice                                    | device-rename     | Renames one user device selected by row ID, device-token prefix, or device name
 | [Get-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Show/hide secret fields setting
 | [Set-KeeperPasswordVisible](Get-KeeperPasswordVisible)                               |                  | Sets whether password fields should be visible or not
 
 ### Trash Management Cmdlets
+
+Trash status values are `Record`, `Share` (an orphaned shared record), `Folder` (a deleted shared folder or its records), `NSF Record`, and `NSF Folder`.
+
 | Cmdlet name                                             | Alias            | Description
 |---------------------------------------------------------|------------------|----------------------------
 | [Get-KeeperTrashList](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/trash-commands#power-commander)                                    | ktrash           | List deleted records in trash
@@ -90,6 +112,7 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | Add-KeeperNSFRecords                                    | nsf-records-add  | Batch create NSF records from JSON (`-DownloadSampleRecords` writes a starter template)
 | Edit-KeeperNSFRecord                                    | nsf-record-update | Update an existing Keeper NSF record
 | Edit-KeeperNSFRecords                                   | nsf-records-update | Batch update NSF records from JSON (`-DownloadSampleRecords`)
+| ConvertTo-KeeperNSFRecord                               | nsf-convert       | Permanently convert owned classic records by UID/title/path in batches of up to 100 per API request; optional `-FolderUid` or `-Folder` accepts an NSF folder UID/unique name/path (omitted = Vault root)
 | Remove-KeeperNSFRecord                                  | nsf-rm           | Remove Keeper NSF record(s) by UID/title
 | Remove-KeeperNSFRecords                                 | nsf-records-rm   | Batch remove NSF records from JSON (`-DownloadSampleRemovals`; preview then confirm)
 | Set-KeeperNSFRecordAccess                               | nsf-share-record | Grant or revoke user access to an NSF record
@@ -153,8 +176,10 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Get-KeeperEnterpriseInfoNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-1)                            | kein             | Outputs nodes with parent path, user/team/role counts, and optionally user/team/role lists and provisioning.
 | [Get-KeeperEnterpriseInfoUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-2)                            | keiu             | Outputs users with status, node, roles, teams, and optional columns.
 | [Get-KeeperEnterpriseInfoTeam](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-3)                            | keit             | Outputs teams with restricts (Read/Write/Share), node, user/role counts, and optional user/role lists.
-| [Get-KeeperEnterpriseInfoRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-4)                            | keir             | Outputs roles with node, user/team counts, admin flag, and optional user/team lists.
+| [Get-KeeperEnterpriseInfoRole](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-4)                            | keir             | Outputs roles with node, user/team counts, and admin flag; enforcement policies and managed-node permissions/cascade are available through optional columns.
 | [Get-KeeperEnterpriseInfoManagedCompany](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-5)                  | keimc            | Outputs managed company information. Available when logged in as MSP.
+
+The node, user, team, and role `-Pattern` filters use case-insensitive literal substring matching (not regular expressions). Role `enforcements` output lists policy names in table format and includes policy values in JSON.
 | Export-KeeperAuditLog                                 | kal              | Exports enterprise audit events to JSON, syslog, Splunk, Sumo, Azure Log Analytics, or a syslog port. Supports Keeper record-backed config and incremental export state.
 | [Get-KeeperEnterpriseNode](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-info-commands#powercommander-5)                                | ken              | Enumerate all enterprise nodes
 | [Get-KeeperEnterpriseUser](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/enterprise-user-commands#powercommander)                                | keu              | Enumerate all enterprise users
@@ -222,6 +247,12 @@ Official documentation (**Keeper Docs / GitBook**): **[Keeper NSF Commands](docs
 | [Get-PendingKeeperDeviceApproval](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/device-approve-commands#powercommander)                         |                  | List pending device approval requests with details (email, device ID, device name, client version, IP address). Supports table, CSV, and JSON output formats
 | [Approve-KeeperDevice](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/device-approve-commands#powercommander-1)                                    |                  | Approve pending device requests by device ID (partial match) or user email. Supports -TrustedIp to filter by trusted IP addresses
 | [Deny-KeeperDevice](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/enterprise-management-commands/device-approve-commands#powercommander-2)                                       |                  | Deny pending device requests by device ID (partial match) or user email
+
+### Device Admin Cmdlets
+| Cmdlet name                                             | Alias            | Description
+|---------------------------------------------------------|------------------|----------------------------
+| Get-KeeperAdminUserDevice                               |                  | List devices registered to one or more enterprise users (-User email, ID, or "all"). Supports -Format table/json
+| Invoke-KeeperAdminUserDeviceAction                      |                  | Perform an action (logout, remove, lock, unlock, account-lock, account-unlock) on one or more devices of an enterprise user (-Action, -User, -Devices by ID, name, "id:", "name:", "#<row>", or "all"). Prompts for confirmation before remove/lock/account-lock; use -Confirm:$false to skip
 
 ### BreachWatch Cmdlets
 | Cmdlet name                                             | Alias            | Description
@@ -349,8 +380,8 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
 | [Revoke-KeeperSharedFolderUserSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-3)                     |                  | Remove a user from a shared folder
 | [Grant-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-6)                         |                  | Add or update a team on a shared folder (`PutTeamToSharedFolderAsync`)
 | [Revoke-KeeperSharedFolderTeamSkipSync](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/sharing-commands/shared-folder-without-sync-down#powercommander-7)                       |                  | Remove a team from a shared folder
-| [New-KeeperOneTimeShareSkipSync]()                      |                  | Create a one-time share link for an owned record without a full vault sync
-| [Get-KeeperOneTimeShareSkipSync]()                      |                  | View all active one-time share links for an owned record without a full vault sync
+| [New-KeeperOneTimeShareSkipSync]()                      |                  | Create a one-time share for classic owned/directly shared/shared-folder records without a folder UID or full vault sync (NSF not supported)
+| [Get-KeeperOneTimeShareSkipSync]()                      |                  | View one-time share links for a record without a full vault sync
 | [Remove-KeeperOneTimeShareSkipSync]()                   |                  | Revoke one-time share link(s) for a record without a full vault sync
 
 #### Examples
@@ -361,6 +392,9 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
          Keeper Username: email_address@company.com
             ... Password:
     ```
+    When Keeper offers a WebAuthn/FIDO2 security-key 2FA option, choose `key` at the prompt.
+    Windows displays the touch/PIN dialog; the PIN is not collected by PowerCommander. This
+    supports login with an enrolled key and does not enroll keys or set up PINs.
 2. List the content of Keeper folder
     ```
     PS > kdir

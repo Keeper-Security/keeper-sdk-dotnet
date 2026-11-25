@@ -54,15 +54,30 @@ namespace Commander
             var deletedRecords = TrashManagement.GetDeletedRecords();
             var orphanedRecords = TrashManagement.GetOrphanedRecords();
             var sharedFolders = TrashManagement.GetSharedFolders();
-
-            if (TrashManagement.IsTrashEmpty())
-            {
-                Console.WriteLine("Trash is empty");
-                return;
-            }
+            var classicTrashIsEmpty = TrashManagement.IsTrashEmpty();
 
             var pattern = NormalizeSearchPattern(options.Pattern);
             var titlePattern = string.IsNullOrEmpty(pattern) ? null : CreateWildcardPattern(pattern);
+
+            var recordTable = classicTrashIsEmpty
+                ? new List<object[]>()
+                : BuildRecordTable(deletedRecords, orphanedRecords, pattern, titlePattern);
+            var folderTable = classicTrashIsEmpty
+                ? new List<object[]>()
+                : BuildFolderTable(sharedFolders, options.Verbose);
+            var nsfTable = await BuildNsfTrashTable(context.Vault, pattern, titlePattern, options.Reload);
+
+            SortTableByDateAndName(recordTable);
+            SortTableByDateAndName(folderTable);
+            SortTableByDateAndName(nsfTable);
+
+            var allRecords = recordTable.Concat(folderTable).Concat(nsfTable).ToList();
+
+            if (allRecords.Count == 0)
+            {
+                Console.WriteLine(classicTrashIsEmpty ? "Trash is empty" : "No records found matching the specified criteria");
+                return;
+            }
 
             var tab = new Tabulate(6)
             {
@@ -70,20 +85,52 @@ namespace Commander
             };
             tab.AddHeader(new[] { "Folder UID", "Record UID", "Name", "Record Type", "Deleted At", "Status" });
 
-            var recordTable = BuildRecordTable(deletedRecords, orphanedRecords, pattern, titlePattern);
-            var folderTable = BuildFolderTable(sharedFolders, options.Verbose);
-
-            SortTableByDateAndName(recordTable);
-            SortTableByDateAndName(folderTable);
-
-            var allRecords = recordTable.Concat(folderTable).ToList();
-
             foreach (var row in allRecords)
             {
                 tab.AddRow(row);
             }
 
             tab.Dump();
+        }
+
+        private static async Task<List<object[]>> BuildNsfTrashTable(VaultOnline vault, string pattern, Regex titlePattern, bool reload = false)
+        {
+            var nsfTable = new List<object[]>();
+
+            KeeperNSFTrashListResult nsfTrash;
+            try
+            {
+                nsfTrash = await vault.GetKeeperNSFTrash(reload);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load NSF trash: {ex.Message}");
+                return nsfTable;
+            }
+
+            if (nsfTrash == null)
+            {
+                return nsfTable;
+            }
+
+            foreach (var item in nsfTrash.Records.Concat(nsfTrash.Folders))
+            {
+                if (!string.IsNullOrEmpty(pattern) && !string.Equals(pattern, item.Uid, StringComparison.Ordinal)
+                    && (titlePattern == null || !titlePattern.IsMatch(item.Title ?? "")))
+                {
+                    continue;
+                }
+
+                var dateDeleted = item.DateDeleted > 0
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(item.DateDeleted).LocalDateTime
+                    : (DateTime?) null;
+
+                nsfTable.Add(item.IsFolder
+                    ? new object[] { item.Uid, "", item.Title, "NSF Folder", dateDeleted, "NSF Folder" }
+                    : new object[] { "", item.Uid, item.Title, item.RecordType, dateDeleted, "NSF Record" });
+            }
+
+            return nsfTable;
         }
 
         public static async Task TrashRestoreCommand(this VaultContext context, TrashRestoreOptions options)
@@ -96,14 +143,125 @@ namespace Commander
                 return;
             }
 
+            await TrashManagement.EnsureDeletedRecordsLoaded(context.Vault);
+            var deletedRecords = TrashManagement.GetDeletedRecords();
+            var orphanedRecords = TrashManagement.GetOrphanedRecords();
+
+            var classicRestoreCount = 0;
+            var recordsToRestore = new List<string>();
+            foreach (var record in records)
+            {
+                if (deletedRecords.ContainsKey(record) || orphanedRecords.ContainsKey(record))
+                {
+                    recordsToRestore.Add(record);
+                }
+            }
+
+            if (recordsToRestore.Count > 0)
+            {
+                try
+                {
+                    await TrashManagement.RestoreTrashRecords(context.Vault, recordsToRestore);
+                    classicRestoreCount = recordsToRestore.Count;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to restore classic trash records: {ex.Message}");
+                }
+            }
+
+            var nsfRestoreCount = await RestoreNsfTrashItems(context.Vault, records, options.TargetFolder, options.Force);
+
+            var totalRestored = classicRestoreCount + nsfRestoreCount;
+            if (totalRestored > 0)
+            {
+                Console.WriteLine($"Successfully restored {totalRestored} item(s)");
+            }
+        }
+
+        private static async Task<int> RestoreNsfTrashItems(VaultOnline vault, List<string> records, string targetFolder, bool force)
+        {
             try
             {
-                await TrashManagement.RestoreTrashRecords(context.Vault, records);
-                Console.WriteLine($"Successfully initiated restoration of {records.Count} record(s)");
+                if (!force)
+                {
+                    var preview = await vault.RestoreKeeperNSFTrash(records, targetFolder, dryRun: true);
+                    if (preview.RestoredRecordUids.Count == 0 && preview.RestoredFolderUids.Count == 0)
+                    {
+                        if (preview.Errors?.Count > 0)
+                        {
+                            foreach (var error in preview.Errors)
+                            {
+                                Console.WriteLine($"Error: {error}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Nothing matched - nothing to restore.");
+                        }
+                        return 0;
+                    }
+
+                    var toDo = new List<string>();
+                    if (preview.RestoredRecordUids.Count > 0)
+                    {
+                        toDo.Add($"{preview.RestoredRecordUids.Count} record(s)");
+                    }
+
+                    if (preview.RestoredFolderUids.Count > 0)
+                    {
+                        toDo.Add($"{preview.RestoredFolderUids.Count} folder(s)");
+                    }
+
+                    var destination = string.IsNullOrEmpty(targetFolder) ? "" : $" into \"{targetFolder}\"";
+                    Console.Write($"Do you want to restore {string.Join(" and ", toDo)}{destination}? (yes/No) ");
+                    var answer = Console.ReadLine()?.Trim().ToLower();
+                    if (answer != "y" && answer != "yes")
+                    {
+                        Console.WriteLine("Restore cancelled.");
+                        return 0;
+                    }
+                }
+
+                var result = await vault.RestoreKeeperNSFTrash(records, targetFolder);
+
+                if (result == null)
+                {
+                    return 0;
+                }
+
+                var totalRestored = 0;
+                if (result.RestoredRecordUids.Count > 0)
+                {
+                    Console.WriteLine($"Restored {result.RestoredRecordUids.Count} Drive record(s): {string.Join(", ", result.RestoredRecordUids)}");
+                    totalRestored += result.RestoredRecordUids.Count;
+                }
+
+                if (result.RestoredFolderUids.Count > 0)
+                {
+                    Console.WriteLine($"Restored {result.RestoredFolderUids.Count} Drive folder(s): {string.Join(", ", result.RestoredFolderUids)}");
+                    totalRestored += result.RestoredFolderUids.Count;
+                }
+
+                if (result.Errors?.Count > 0)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        Console.WriteLine($"Error: {error}");
+                    }
+                }
+
+                if (!result.Success && totalRestored == 0 && result.Errors?.Count == 0)
+                {
+                    Console.WriteLine("Nothing was restored.");
+                }
+
+                return totalRestored;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to restore records: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"No Keeper NSF/Drive items restored: {ex.Message}");
+                return 0;
             }
         }
 
@@ -660,7 +818,7 @@ namespace Commander
             var (record, isShared) = GetTrashRecord(recordUid);
             if (record == null)
             {
-                Console.WriteLine($"{recordUid} is not a valid deleted record UID");
+                await DisplayNsfTrashedItem(context.Vault, recordUid, options.Unmask);
                 return;
             }
 
@@ -671,12 +829,79 @@ namespace Commander
                 return;
             }
 
-            DisplayRecordInfo(recordData);
+            DisplayRecordInfo(recordData, options.Unmask);
+            if (recordData is KeeperRecord keeperRecord)
+            {
+                if (options.Unmask && RecordSecurity.HasPassword(keeperRecord))
+                {
+                    context.Vault.AuditLogRecordRevealPassword(keeperRecord.Uid);
+                }
+            }
 
             if (isShared)
             {
                 await DisplayShareInfo(context, recordUid);
             }
+        }
+
+        private static async Task DisplayNsfTrashedItem(VaultOnline vault, string uid, bool unmask)
+        {
+            KeeperNSFTrashGetResult item;
+            try
+            {
+                item = await vault.GetKeeperNSFTrashItem(uid);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to look up trash item: {ex.Message}");
+                return;
+            }
+
+            if (item == null)
+            {
+                Console.WriteLine($"{uid} is not a valid deleted record UID");
+                return;
+            }
+
+            var deletedAt = item.DateDeleted > 0
+                ? DateTimeOffset.FromUnixTimeMilliseconds(item.DateDeleted).LocalDateTime.ToString()
+                : "";
+
+            Console.WriteLine($"{"UID:",-14}{item.Uid}");
+            Console.WriteLine($"{"Title:",-14}{item.Title}");
+            if (!item.IsFolder)
+            {
+                Console.WriteLine($"{"Type:",-14}{item.RecordType}");
+            }
+            if (!item.IsFolder)
+            {
+                if (item.Record?.Fields != null)
+                {
+                    foreach (var field in item.Record.Fields)
+                    {
+                        var label = string.IsNullOrEmpty(field.Label) ? field.Type : field.Label;
+                        var firstValue = true;
+                        foreach (var value in field.Value ?? Array.Empty<string>())
+                        {
+                            if (string.IsNullOrEmpty(value)) continue;
+                            WriteFormattedField(label, RecordSecurity.IsSensitive(field)
+                                ? RecordSecurity.Mask(value, unmask) : value, indent: !firstValue);
+                            firstValue = false;
+                        }
+                    }
+
+                    if (unmask && RecordSecurity.HasPassword(item.Record))
+                    {
+                        vault.AuditLogRecordRevealPassword(item.Uid);
+                    }
+                }
+                else if (unmask)
+                {
+                    Console.WriteLine("Sensitive fields are unavailable for this NSF record in trash.");
+                }
+            }
+            Console.WriteLine($"{"Status:",-14}{item.Status}");
+            Console.WriteLine($"{"Deleted At:",-14}{deletedAt}");
         }
 
         private static (DeletedRecord record, bool isShared) GetTrashRecord(string recordUid)
@@ -758,7 +983,7 @@ namespace Commander
             };
         }
 
-        private static void DisplayRecordInfo(object recordData)
+        private static void DisplayRecordInfo(object recordData, bool unmask)
         {
             if (recordData == null)
                 return;
@@ -771,17 +996,17 @@ namespace Commander
             {
                 if (typedRecord.Fields != null && typedRecord.Fields.Count > 0)
                 {
-                    DisplayRecordFields(typedRecord.Fields);
+                    DisplayRecordFields(typedRecord.Fields, unmask);
                 }
 
                 if (typedRecord.Custom != null && typedRecord.Custom.Count > 0)
                 {
-                    DisplayRecordFields(typedRecord.Custom);
+                    DisplayRecordFields(typedRecord.Custom, unmask);
                 }
             }
             else if (recordData is PasswordRecord passwordRecord)
             {
-                DisplayPasswordRecordFields(passwordRecord);
+                DisplayPasswordRecordFields(passwordRecord, unmask);
             }
         }
 
@@ -800,7 +1025,7 @@ namespace Commander
             }
         }
 
-        private static void DisplayRecordFields(List<ITypedField> fields)
+        private static void DisplayRecordFields(List<ITypedField> fields, bool unmask)
         {
             foreach (var field in fields)
             {
@@ -810,15 +1035,16 @@ namespace Commander
                 for (var i = 0; i < Math.Max(values.Length, 1); i++)
                 {
                     var value = i < values.Length ? values[i] : "";
-                    WriteFormattedField(fieldName, value, indent: i > 0);
+                    WriteFormattedField(fieldName, RecordSecurity.IsSensitive(field)
+                        ? RecordSecurity.Mask(value, unmask) : value, indent: i > 0);
                 }
             }
         }
 
-        private static void DisplayPasswordRecordFields(PasswordRecord record)
+        private static void DisplayPasswordRecordFields(PasswordRecord record, bool unmask)
         {
             WriteFormattedField("Login", record.Login);
-            WriteFormattedField("Password", record.Password);
+            WriteFormattedField("Password", RecordSecurity.Mask(record.Password, unmask));
             WriteFormattedField("URL", record.Link);
             WriteFormattedField("Notes", record.Notes);
             
@@ -827,7 +1053,8 @@ namespace Commander
                 foreach (var custom in record.Custom)
                 {
                     var name = string.IsNullOrEmpty(custom.Name) ? "Custom" : custom.Name;
-                    WriteFormattedField(name, custom.Value);
+                    WriteFormattedField(name, RecordSecurity.IsSensitive(name)
+                        ? RecordSecurity.Mask(custom.Value, unmask) : custom.Value);
                 }
             }
         }
@@ -912,6 +1139,9 @@ namespace Commander
 
         [Option("pattern", Required = false, HelpText = "Filter by pattern")]
         public string Pattern { get; set; }
+
+        [Option('r', "reload", Required = false, HelpText = "Discard the cached trashcan snapshot and resync from the server")]
+        public bool Reload { get; set; }
     }
 
     [Verb("restore", HelpText = "Restore deleted records from trash")]
@@ -919,6 +1149,9 @@ namespace Commander
     {
         [Option('f', "force", Required = false, HelpText = "Do not prompt for confirmation")]
         public bool Force { get; set; }
+
+        [Option("target-folder", Required = false, HelpText = "Keeper NSF/Drive folder UID to restore matching Drive items into instead of their original location")]
+        public string TargetFolder { get; set; }
 
         [Value(0, MetaName = "records", Required = true, HelpText = "Record UID or search pattern")]
         public IEnumerable<string> Records { get; set; }
@@ -939,6 +1172,9 @@ namespace Commander
     {
         [Value(0, MetaName = "record", Required = true, HelpText = "Deleted record UID")]
         public string Record { get; set; }
+
+        [Option("unmask", Required = false, HelpText = "display hidden field content")]
+        public bool Unmask { get; set; }
     }
 
     [Verb("purge", HelpText = "Permanently delete all records in trash")]

@@ -18,6 +18,7 @@ using Authentication;
 using Google.Protobuf;
 using System.Security.Cryptography;
 using System.Threading;
+using ZeroDep;
 
 namespace Commander
 {
@@ -68,6 +69,13 @@ namespace Commander
                             break;
                         case "notes":
                             password.Notes = field.Value;
+                            break;
+                        case "totp":
+                        case "onetimecode":
+                            // "oneTimeCode" is the typed-record field name. "otp" is its
+                            // field type, not a legacy-record alias, so custom field "otp"
+                            // continues to be handled by the default branch.
+                            password.Totp = field.Value;
                             break;
                         default:
                             password.SetCustomField(field.FieldName, field.Value);
@@ -357,7 +365,14 @@ namespace Commander
 
         public static async Task AddRecordCommand(this VaultContext context, AddRecordOptions options)
         {
-            if (!context.TryResolvePath(options.Folder, out var node))
+            if (!string.IsNullOrEmpty(options.Format)
+                && !string.Equals(options.Format, "table", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Output format must be table or json");
+            }
+
+            if (!context.ResolvePath(options.Folder, out var node))
             {
                 Console.WriteLine($"Cannot resolve folder {options.Folder}");
                 return;
@@ -414,19 +429,55 @@ namespace Commander
                 {
                     var destructTime = ParseUtils.ParseTimePeriod(options.SelfDestruct);
                     var shareUrl = await CreateSelfDestructShare(context.Vault, createdRecord, destructTime);
-                    Console.WriteLine($"Record created with self-destruct enabled ({destructTime.TotalMinutes} minutes)");
-                    Console.WriteLine($"Share URL: {shareUrl}");
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                        {
+                            ["record_uid"] = createdRecord.Uid,
+                            ["share_url"] = shareUrl
+                        }));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Record created with self-destruct enabled ({destructTime.TotalMinutes} minutes)");
+                        Console.WriteLine($"Record UID: {createdRecord.Uid}");
+                        Console.WriteLine($"Share URL: {shareUrl}");
+                    }
+
                     return;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to create self-destruct share: {ex.Message}");
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                        {
+                            ["status"] = "error",
+                            ["record_uid"] = createdRecord.Uid,
+                            ["message"] = $"Record was created, but failed to create self-destruct share: {ex.Message}"
+                        }));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Record {createdRecord.Uid} was created, but failed to create self-destruct share: {ex.Message}");
+                    }
+
                     return;
                 }
             }
             else
             {
-                Console.WriteLine($"Record created: {createdRecord.Uid}");
+                if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine(Json.Serialize(new Dictionary<string, object>
+                    {
+                        ["record_uid"] = createdRecord.Uid
+                    }));
+                }
+                else
+                {
+                    Console.WriteLine($"Record created: {createdRecord.Uid}");
+                }
             }
 
         }
@@ -437,7 +488,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordId, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordId, out var node, out var title))
+            else if (context.ResolvePath(options.RecordId, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -490,7 +541,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -597,7 +648,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -630,7 +681,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.ResolvePath(options.RecordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -761,7 +812,7 @@ namespace Commander
             }
             else
             {
-                if (!context.TryResolvePath(options.RecordName, out var folder, out string recordTitle))
+                if (!context.ResolvePath(options.RecordName, out var folder, out string recordTitle))
                 {
                     Console.WriteLine($"Invalid record path: {options.RecordName}");
                     return;
@@ -864,11 +915,23 @@ namespace Commander
         public static async Task ShareRecordRevokeCommand(this VaultContext context, ShareRecordRevokeOptions options)
         {
             var record = ResolveKeeperRecord(context, options.RecordName);
+            if (!options.Force && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to revoke {options.Email}'s access to record '{record.Title}'? (yes/No) "))
+            {
+                return;
+            }
+
             await context.Vault.RevokeShareFromUser(record.Uid, options.Email);
         }
         public static async Task ShareRecordTransferCommand(this VaultContext context, ShareRecordTransferOptions options)
         {
             var record = ResolveKeeperRecord(context, options.RecordName);
+            if (!options.Force && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to transfer ownership of record '{record.Title}' to {options.Email}? This action cannot be undone. (yes/No) "))
+            {
+                return;
+            }
+
             await context.Vault.TransferRecordToUser(record.Uid, options.Email);
         }
 
@@ -1625,7 +1688,7 @@ namespace Commander
             if (context.Vault.TryGetKeeperRecord(recordName, out var record))
             {
             }
-            else if (context.TryResolvePath(recordName, out var node, out var title))
+            else if (context.ResolvePath(recordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -1670,6 +1733,9 @@ namespace Commander
 
         [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
         public string SelfDestruct { get; set; }
+
+        [Option('f', "format", Required = false, Default = "table", HelpText = "output format: table or json")]
+        public string Format { get; set; }
 
         [Value(0, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
         public IEnumerable<string> Fields { get; set; }
@@ -1739,7 +1805,7 @@ namespace Commander
     }
 
     [Verb("revoke", HelpText = "Revokes a record share")]
-    class ShareRecordRevokeOptions
+    class ShareRecordRevokeOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }
@@ -1749,7 +1815,7 @@ namespace Commander
     }
 
     [Verb("transfer", HelpText = "Transfer a record / change record ownership")]
-    class ShareRecordTransferOptions
+    class ShareRecordTransferOptions : VaultForceOptions
     {
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }

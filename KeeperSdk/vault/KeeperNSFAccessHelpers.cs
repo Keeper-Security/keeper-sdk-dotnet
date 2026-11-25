@@ -92,6 +92,7 @@ namespace KeeperSecurity.Vault
             for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)
             {
                 var batch = foldersList.Skip(i).Take(MaxFoldersPerRequest).ToList();
+                var returnedFolderUids = new HashSet<string>(StringComparer.Ordinal);
                 FolderProto.V3.ContinuationToken continuationToken = null;
 
                 do
@@ -137,6 +138,7 @@ namespace KeeperSecurity.Vault
                             {
                                 resultFolderUid = result.FolderUid;
                                 resultFolderUidB64 = CryptoUtils.Base64UrlEncode(resultFolderUid.ToByteArray());
+                                returnedFolderUids.Add(resultFolderUidB64);
                             }
 
                             if (result.Error != null)
@@ -181,6 +183,18 @@ namespace KeeperSecurity.Vault
                     continuationToken = rs.HasMore ? rs.ContinuationToken : null;
                 }
                 while (continuationToken != null);
+
+                if (errorsByFolderUid != null)
+                {
+                    foreach (var requestedFolderUid in batch)
+                    {
+                        if (!returnedFolderUids.Contains(requestedFolderUid)
+                            && !errorsByFolderUid.ContainsKey(requestedFolderUid))
+                        {
+                            errorsByFolderUid[requestedFolderUid] = "Server returned no folder access result.";
+                        }
+                    }
+                }
             }
 
             return allAccessors;
@@ -411,7 +425,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Batch-evaluates share permission for the current user on many records.
-        /// Uses local cache when the current user is present; otherwise one batched access API call.
+        /// Uses the server access API so cached ACL state cannot authorize a stale mutation.
         /// </summary>
         /// <returns>Map of record UID → denial message. UIDs not present are allowed.</returns>
         internal static async Task<IReadOnlyDictionary<string, string>> EvaluateKeeperNSFRecordSharePermissionsAsync(
@@ -439,34 +453,7 @@ namespace KeeperSecurity.Vault
             const string permissionKey = "can_update_access";
             const string errorMessage = "You do not have permission to share this record.";
             var accountUidB64 = GetCurrentUserAccountUidB64(vault);
-            var needsApi = new List<string>();
-
-            foreach (var recordUid in uids)
-            {
-                var localAccessors = vault.Storage.KdRecordAccesses
-                    .GetLinksForSubject(recordUid)
-                    .Select(FromStoredRecordAccess)
-                    .ToList();
-
-                if (localAccessors.Count > 0
-                    && localAccessors.Any(a => IsCurrentUserNsfAccessor(a, vault, accountUidB64)))
-                {
-                    if (!TryEvaluateRecordPermission(
-                            localAccessors, vault, accountUidB64, permissionKey, errorMessage, out var denyMessage))
-                    {
-                        denied[recordUid] = denyMessage;
-                    }
-
-                    continue;
-                }
-
-                needsApi.Add(recordUid);
-            }
-
-            if (needsApi.Count == 0)
-            {
-                return denied;
-            }
+            var needsApi = uids;
 
             RecordDetailsProto.RecordAccessResponse accessRs;
             try
@@ -615,19 +602,14 @@ namespace KeeperSecurity.Vault
                 return;
             }
 
-            if (IsKeeperNSFFolderOwnerUser(vault, folderUid))
-            {
-                return;
-            }
-
-            var accessors = await CollectKeeperNSFFolderAccessorsAsync(vault, folderUid).ConfigureAwait(false);
+            var accessors = await CollectKeeperNSFFolderAccessorsAsync(
+                vault, folderUid, forceRefresh: true).ConfigureAwait(false);
             if (accessors.Count == 0)
             {
                 throw new VaultException($"No accessors data found for folder {folderUid}.");
             }
 
             var accountUidB64 = GetCurrentUserAccountUidB64(vault);
-            var (ownerUsername, ownerAccountUid) = GetFolderOwnerInfo(vault, folderUid);
             var foundCurrentUser = false;
 
             foreach (var accessor in accessors)
@@ -644,9 +626,7 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                if (accessor.Owner
-                    || IsAccessTypeOwner(accessor.AccessType)
-                    || IsKeeperNSFFolderAccessorOwner(accessor.AccessTypeUid, accessor.Username, ownerAccountUid, ownerUsername))
+                if (accessor.Owner || IsAccessTypeOwner(accessor.AccessType))
                 {
                     return;
                 }
@@ -679,7 +659,8 @@ namespace KeeperSecurity.Vault
             string permissionKey,
             string errorMessage)
         {
-            var accessors = await CollectKeeperNSFRecordAccessorsAsync(vault, recordUid).ConfigureAwait(false);
+            var accessors = await CollectKeeperNSFRecordAccessorsAsync(
+                vault, recordUid, forceRefresh: true).ConfigureAwait(false);
             if (accessors.Count == 0)
             {
                 throw new VaultException($"No accessors data found for record {recordUid}.");
@@ -723,8 +704,14 @@ namespace KeeperSecurity.Vault
 
         internal static async Task<IReadOnlyList<KeeperNSFAccessorInfo>> CollectKeeperNSFFolderAccessorsAsync(
             VaultOnline vault,
-            string folderUid)
+            string folderUid,
+            bool forceRefresh = false)
         {
+            if (forceRefresh)
+            {
+                return await FetchFolderAccessorsFromApiAsync(vault, folderUid).ConfigureAwait(false);
+            }
+
             var accessors = vault.Storage.KdFolderAccesses
                 .GetLinksForSubject(folderUid)
                 .Select(FromStoredFolderAccess)
@@ -751,8 +738,14 @@ namespace KeeperSecurity.Vault
 
         internal static async Task<IReadOnlyList<KeeperNSFAccessorInfo>> CollectKeeperNSFRecordAccessorsAsync(
             VaultOnline vault,
-            string recordUid)
+            string recordUid,
+            bool forceRefresh = false)
         {
+            if (forceRefresh)
+            {
+                return await FetchRecordAccessorsFromApiAsync(vault, recordUid).ConfigureAwait(false);
+            }
+
             var accessors = vault.Storage.KdRecordAccesses
                 .GetLinksForSubject(recordUid)
                 .Select(FromStoredRecordAccess)
@@ -784,6 +777,22 @@ namespace KeeperSecurity.Vault
             var (ownerUsername, ownerAccountUid) = GetFolderOwnerInfo(vault, folderUid);
 
             return IsKeeperNSFFolderAccessorOwner(accountUidB64, username, ownerAccountUid, ownerUsername);
+        }
+
+        internal static bool IsKeeperNSFFolderOwner(
+            VaultOnline vault, string folderUid, NsfShareRecipient recipient, ByteString accessTypeUid)
+        {
+            if (recipient.Kind != NsfShareRecipientKind.User || accessTypeUid == null || accessTypeUid.IsEmpty)
+            {
+                return false;
+            }
+
+            var (ownerUsername, ownerAccountUid) = GetFolderOwnerInfo(vault, folderUid);
+            return IsKeeperNSFFolderAccessorOwner(
+                CryptoUtils.Base64UrlEncode(accessTypeUid.ToByteArray()),
+                recipient.Identifier,
+                ownerAccountUid,
+                ownerUsername);
         }
 
         internal static bool IsKeeperNSFFolderAccessorOwner(
@@ -1013,6 +1022,19 @@ namespace KeeperSecurity.Vault
             return accessType == (int)FolderProto.AccessType.AtOwner;
         }
 
+        private static (string OwnerUsername, string OwnerAccountUid) GetFolderOwnerInfo(
+            VaultOnline vault,
+            string folderUid)
+        {
+            var row = vault.Storage.KdFolders.GetEntity(folderUid);
+            if (row == null)
+            {
+                return (null, null);
+            }
+
+            return (row.OwnerUsername, row.OwnerAccountUid);
+        }
+
         private static bool StoredFolderAccessNeedsPermissionRefresh(
             VaultOnline vault,
             string folderUid,
@@ -1034,17 +1056,6 @@ namespace KeeperSecurity.Vault
             }
 
             return true;
-        }
-
-        private static (string OwnerUsername, string OwnerAccountUid) GetFolderOwnerInfo(VaultOnline vault, string folderUid)
-        {
-            var row = vault.Storage.KdFolders.GetEntity(folderUid);
-            if (row == null)
-            {
-                return (null, null);
-            }
-
-            return (row.OwnerUsername, row.OwnerAccountUid);
         }
 
         private static string GetCurrentUserAccountUidB64(VaultOnline vault)

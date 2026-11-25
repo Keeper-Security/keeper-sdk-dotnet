@@ -18,6 +18,8 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public partial class VaultOnline : VaultData, IVault
     {
+        private const string ShareDoesNotExistStatus = "doesnt_exist";
+
         /// <summary>
         /// Instantiate <see cref="VaultOnline"/> instance.
         /// </summary>
@@ -165,19 +167,36 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public void AuditLogRecordOpen(string recordUid)
         {
-            _ = Task.Run(async () =>
-            {
-                await Auth.AuditEventLogging("open_record", new AuditEventInput { RecordUid = recordUid });
-            });
+            LogRecordAuditEvent("open_record", recordUid);
         }
 
         /// <inheritdoc/>
         public void AuditLogRecordCopyPassword(string recordUid)
         {
-            _ = Task.Run(async () =>
+            LogRecordAuditEvent("copy_password", recordUid);
+        }
+
+        /// <inheritdoc/>
+        public void AuditLogRecordRevealPassword(string recordUid)
+        {
+            LogRecordAuditEvent("revealed_password", recordUid);
+        }
+
+        private void LogRecordAuditEvent(string eventType, string recordUid)
+        {
+            if (string.IsNullOrWhiteSpace(recordUid)) return;
+
+            Auth.ScheduleAuditEventLogging(eventType, new AuditEventInput { RecordUid = recordUid });
+            // Wait for delivery without running async continuations on a caller's synchronization context.
+            try
             {
-                await Auth.AuditEventLogging("copy_password", new AuditEventInput { RecordUid = recordUid });
-            });
+                Task.Run(() => Auth.FlushAuditEvents()).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                // The failed batch stays queued for the next audit call or the final flush.
+                Trace.TraceWarning($"Unable to send client audit event: {e.Message}");
+            }
         }
 
 
@@ -374,15 +393,6 @@ namespace KeeperSecurity.Vault
             }
 
             var parent = this.GetFolder(parentFolderUid);
-            var nameExists = parent.Subfolders
-                .Select(x => this.TryGetFolder(x, out var v) ? v : null)
-                .Any(x => x != null && string.Compare(x.Name, folderName, StringComparison.InvariantCultureIgnoreCase) == 0);
-            if (nameExists)
-            {
-                throw new VaultException($"Folder with name {folderName} already exists in {parent.Name}");
-            }
-
-
             return this.AddFolder(folderName, parentFolderUid, sharedFolderOptions);
         }
 
@@ -544,6 +554,55 @@ namespace KeeperSecurity.Vault
             }
 
             return results;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<KeeperNSFRecordConversionResult>> ConvertClassicRecordsToKeeperNSF(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            if (recordUids == null || recordUids.Count == 0)
+            {
+                throw new ArgumentException("At least one classic record UID is required.", nameof(recordUids));
+            }
+
+            var results = new List<KeeperNSFRecordConversionResult>(recordUids.Count);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var offset = 0; offset < recordUids.Count; offset += MaxClassicRecordConversions)
+            {
+                var batch = recordUids.Skip(offset).Take(MaxClassicRecordConversions).ToArray();
+                var batchResults = await ConvertClassicRecordsToKeeperNSFInternal(batch, folderUid, seen).ConfigureAwait(false);
+                results.AddRange(batchResults);
+            }
+
+            if (results.Any(x => x.Success || x.ServerOutcomeUncertain))
+            {
+                try
+                {
+                    await ScheduleSyncDown(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning($"KeeperNSF: Vault refresh after conversion failed ({ex.GetType().Name}).");
+                    foreach (var result in results.Where(x => x.Success || x.ServerOutcomeUncertain))
+                    {
+                        result.RefreshWarning = "Vault refresh failed after the conversion response. Refresh the vault and verify record state before relying on cached data.";
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// PowerCommander-only bridge for Windows PowerShell 5.1, which cannot await the SDK task.
+        /// The conversion runs without the PowerShell host's synchronization context.
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IReadOnlyList<KeeperNSFRecordConversionResult> ConvertClassicRecordsToKeeperNSFForPowerCommander(
+            IReadOnlyList<string> recordUids, string folderUid = null)
+        {
+            return Task.Run(() => ConvertClassicRecordsToKeeperNSF(recordUids, folderUid))
+                .GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
@@ -857,16 +916,25 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options)
         {
+            await ShareRecordWithUser(recordUid, username, options, forceAdd: false);
+        }
+
+        /// <summary>
+        /// Grants or updates a direct record share. forceAdd is used for an expired or stale
+        /// permission: the server no longer has that share, so an Add with a newly encrypted
+        /// record key is required instead of an Update.
+        /// </summary>
+        private async Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options,
+            bool forceAdd)
+        {
             this.ValidateRotateOnExpirationForRecordGrant(recordUid, options);
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
 
-            var recordShares = (await GetSharesForRecords(new[] { recordUid })).FirstOrDefault(x => x.RecordUid == recordUid);
-
-            var targetPermission = recordShares?.UserPermissions
-                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            var targetPermission = await GetRecordPermissionAsync(recordUid, username).ConfigureAwait(false);
+            ThrowIfRecordOwner(targetPermission, username);
 
             var accessPath = new RecordAccessPath
             {
@@ -889,7 +957,8 @@ namespace KeeperSecurity.Vault
                 ro.TeamUid = ByteString.CopyFrom(accessPath.TeamUid.Base64UrlDecode());
             }
 
-            if (targetPermission == null)
+            var isAdd = targetPermission == null || forceAdd;
+            if (isAdd)
             {
                 await Auth.LoadUsersKeys(Enumerable.Repeat(username, 1));
                 if (Auth.TryGetUserKeys(username, out var keys))
@@ -923,10 +992,17 @@ namespace KeeperSecurity.Vault
             }
 
             var rsuRs = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, RecordShareUpdateResponse>("vault/records_share_update", request);
-            var statuses = targetPermission == null ? rsuRs.AddSharedRecordStatus : rsuRs.UpdateSharedRecordStatus;
+            var statuses = isAdd ? rsuRs.AddSharedRecordStatus : rsuRs.UpdateSharedRecordStatus;
             var status = statuses.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
             if (status != null && status.Status != "success")
             {
+                if (!isAdd && string.Equals(status.Status, ShareDoesNotExistStatus, StringComparison.OrdinalIgnoreCase))
+                {
+                    // The share disappeared after it was read (usually an expired share in a
+                    // stale local view). Rebuild once as Add, including an encrypted record key.
+                    await ShareRecordWithUser(recordUid, username, options, forceAdd: true);
+                    return;
+                }
                 throw new KeeperApiException(status.Status, status.Message);
             }
         }
@@ -1099,6 +1175,10 @@ namespace KeeperSecurity.Vault
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
+
+            var targetPermission = await GetRecordPermissionAsync(recordUid, username).ConfigureAwait(false);
+            ThrowIfRecordOwner(targetPermission, username);
+
             var accessPath = new RecordAccessPath
             {
                 RecordUid = recordUid,
@@ -1129,6 +1209,22 @@ namespace KeeperSecurity.Vault
             if (status != null && status.Status != "success")
             {
                 throw new KeeperApiException(status.Status, status.Message);
+            }
+        }
+
+        private async Task<UserRecordPermissions> GetRecordPermissionAsync(string recordUid, string username)
+        {
+            var recordShares = (await GetSharesForRecords(new[] { recordUid }).ConfigureAwait(false))
+                .FirstOrDefault(x => x.RecordUid == recordUid);
+            return recordShares?.UserPermissions
+                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        private static void ThrowIfRecordOwner(UserRecordPermissions permission, string username)
+        {
+            if (permission?.Owner == true)
+            {
+                throw ShareOwnerValidation.RecordOwner(username);
             }
         }
 

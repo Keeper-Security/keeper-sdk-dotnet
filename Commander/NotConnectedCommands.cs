@@ -80,6 +80,11 @@ namespace Commander
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c18.0.0" } 
             };
 
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                _auth.SecurityKeyUI = new WindowsSecurityKeyUI(() => _auth.Endpoint.Server);
+            }
+
 #if NET472_OR_GREATER
             _auth.BiometricLoginProvider = new KeeperBiometrics.BiometricLoginProviderAdapter();
 #endif
@@ -329,6 +334,9 @@ namespace Commander
 
         private async Task DoLogin(LoginOptions options)
         {
+            var inputManager = Program.GetInputManager();
+            _auth.PostLoginTaskUI = new CommanderPostLoginTaskUI(inputManager);
+
             var username = options.Username;
             var isSsoProvider = options.IsSsoProvider;
             if (isSsoProvider)
@@ -336,7 +344,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter SSO Provider: ");
-                    username = await Program.GetInputManager().ReadLine();
+                    username = await inputManager.ReadLine();
                 }
             }
             else
@@ -344,7 +352,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter Username: ");
-                    username = await Program.GetInputManager().ReadLine();
+                    username = await inputManager.ReadLine();
                 }
             }
 
@@ -357,7 +365,7 @@ namespace Commander
             {
                 if (isSsoProvider)
                 {
-                    await KeeperLoginFlow.LoginToSsoProvider(_auth, Program.GetInputManager(), username);
+                    await KeeperLoginFlow.LoginToSsoProvider(_auth, inputManager, username);
                 }
                 else
                 {
@@ -380,11 +388,17 @@ namespace Commander
                         passwords.Add(uc.Password);
                     }
 
-                    await KeeperLoginFlow.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
+                    await KeeperLoginFlow.LoginToKeeper(_auth, inputManager, username, passwords.ToArray());
                 }
 
                 if (_auth.IsAuthenticated())
                 {
+                    if (_auth.Endpoint is KeeperEndpoint endpoint
+                        && !string.IsNullOrEmpty(endpoint.LastEncryptionMode))
+                    {
+                        Console.WriteLine(endpoint.LastEncryptionMode);
+                    }
+
                     var connectedCommands = new ConnectedContext(_auth);
                     NextStateCommands = connectedCommands;
                 }

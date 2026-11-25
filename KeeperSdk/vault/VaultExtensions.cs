@@ -788,6 +788,8 @@ namespace KeeperSecurity.Vault
                     Uid = u.UserId,
                     Name = name,
                     UserType = (UserType) u.UserType,
+                    Owner = u.UserType == (int) UserType.User &&
+                            string.Equals(u.UserId, sf.OwnerAccountUid, StringComparison.Ordinal),
                     ManageRecords = u.ManageRecords,
                     ManageUsers = u.ManageUsers,
                     Expiration = expiration,

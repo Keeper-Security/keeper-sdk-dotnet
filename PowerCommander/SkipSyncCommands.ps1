@@ -116,6 +116,42 @@ function __TestSharedFolderOwnerIsCurrentUserSkipSync {
     [string]::Equals($owner.Trim(), $myUid.Trim(), [StringComparison]::OrdinalIgnoreCase)
 }
 
+function __AssertSharedFolderUserNotOwnerSkipSync {
+    param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Authentication.IAuthentication] $Auth,
+        [Parameter(Mandatory = $true)][string] $SharedFolderUid,
+        [Parameter(Mandatory = $true)][string] $User
+    )
+
+    $folderResponse = __AwaitSkipSyncTask ([KeeperSecurity.Vault.SharedFolderSkipSyncDown]::GetSharedFolderAsync($Auth, $SharedFolderUid))
+    $sharedFolder = __GetSharedFolderObjectFromResponseSkipSync $folderResponse $SharedFolderUid
+    if (-not $sharedFolder -or [string]::IsNullOrWhiteSpace($sharedFolder.Owner)) {
+        return
+    }
+
+    $request = [Authentication.GetPublicKeysRequest]::new()
+    $request.Usernames.Add($User)
+    $response = __AwaitSkipSyncTask ($Auth.ExecuteAuthRest(
+        'vault/get_public_keys', $request, [Authentication.GetPublicKeysResponse]))
+    $publicKey = $response.KeyResponses | Select-Object -First 1
+    if (-not $publicKey) {
+        return
+    }
+
+    $owner = $sharedFolder.Owner.Trim()
+    $accountUid = if ($publicKey.AccountUid -and -not $publicKey.AccountUid.IsEmpty) {
+        [KeeperSecurity.Utils.CryptoUtils]::Base64UrlEncode($publicKey.AccountUid.ToByteArray())
+    } else {
+        $null
+    }
+    $isOwner = [string]::Equals($owner, $accountUid, [StringComparison]::Ordinal) -or
+        [string]::Equals($owner, $User, [StringComparison]::OrdinalIgnoreCase) -or
+        [string]::Equals($owner, $publicKey.Username, [StringComparison]::OrdinalIgnoreCase)
+    if ($isOwner) {
+        throw "'$User' is the owner of this shared folder and already has full access. Share permissions cannot be granted, changed, or revoked for the owner."
+    }
+}
+
 function __WriteRecordDetailsSkipSyncResult {
     param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.RecordDetailsSkipSyncResult] $Result,
@@ -682,6 +718,14 @@ function Grant-KeeperSharedFolderUserSkipSync {
     $didGrant = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Grant shared folder access to $email")) {
         $auth = getKeeperAuth
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::PutUserToSharedFolderAsync($auth, $sfUid, $email, $options)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email added or updated."
@@ -721,6 +765,14 @@ function Revoke-KeeperSharedFolderUserSkipSync {
     $didRevoke = $false
     if ($PSCmdlet.ShouldProcess("$sfUid", "Remove shared folder access for $email")) {
         $auth = getKeeperAuth
+        try {
+            __AssertSharedFolderUserNotOwnerSkipSync -Auth $auth -SharedFolderUid $sfUid -User $email
+        }
+        catch {
+            if (Write-KeeperShareFailure -Exception $_.Exception -Stop) {
+                return
+            }
+        }
         $task = [KeeperSecurity.Vault.SharedFolderSkipSyncDown]::RemoveUserFromSharedFolderAsync($auth, $sfUid, $email)
         [void](__AwaitSkipSyncTask $task)
         Write-Host "OK: Shared folder $sfUid - user $email removed."
@@ -839,16 +891,15 @@ function Revoke-KeeperSharedFolderTeamSkipSync {
 function New-KeeperOneTimeShareSkipSync {
     <#
     .SYNOPSIS
-    Create a temporary share link for a record you own - no full sync required
+    Create a temporary share link for a record you own or can access - no full sync required
 
     .DESCRIPTION
-    Quickly generate a secure one-time share link for records you own without syncing your entire vault.
-
-    IMPORTANT: Works ONLY for records you own. If you need to share records from shared folders,
-    use the standard New-KeeperOneTimeShare command instead.
+    Quickly generate a secure one-time share link without syncing your entire vault.
+    Use a classic record UID. Shared-folder access is resolved automatically.
+    Keeper NSF records are not supported.
 
     .PARAMETER RecordUid
-    The record ID (UID) of the record to share. Must be a record you own.
+    The record ID (UID) of the record to share.
 
     .PARAMETER ExpireIn
     Optional. Expiration offset (TimeSpan, string, or integer in minutes)
@@ -860,7 +911,8 @@ function New-KeeperOneTimeShareSkipSync {
     Optional. Custom label for the one-time share.
 
     .PARAMETER Editable
-    Optional. Allows the share recipient to edit the record.
+    Optional. Creates an editable link if edit access is confirmed. Without edit access, the link is view-only.
+    The command fails if edit access cannot be confirmed.
 
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 30
@@ -869,6 +921,7 @@ function New-KeeperOneTimeShareSkipSync {
     .EXAMPLE
     New-KeeperOneTimeShareSkipSync -RecordUid "abc123def456" -ExpireIn 7d -ShareName "Team Access"
     Creates a share link that lasts 7 days with the name "Team Access".
+
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -892,10 +945,14 @@ function New-KeeperOneTimeShareSkipSync {
             throw "Expiration time must be in the future. The time you specified is in the past."
         }
 
-        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareAsync(
+        $task = [KeeperSecurity.Vault.OneTimeShareSkipSyncDown]::CreateExternalRecordShareWithStatusAsync(
             $auth, $RecordUid.Trim(), $expirationTimeSpan, $ShareName, $Editable.IsPresent)
+        $shareResult = __AwaitSkipSyncTask $task
+        if ($Editable.IsPresent -and $shareResult.CanEdit -eq $false) {
+            Write-Warning "You do not have edit permission for record '$($RecordUid.Trim())'. Creating a view-only share."
+        }
 
-        $shareUrl = __AwaitSkipSyncTask $task
+        $shareUrl = $shareResult.ShareUrl
         Write-Host ""
         Write-Host "  Share created successfully!" -ForegroundColor Green
         Write-Host "  Share URL:"
@@ -911,10 +968,10 @@ function New-KeeperOneTimeShareSkipSync {
 function Get-KeeperOneTimeShareSkipSync {
     <#
     .SYNOPSIS
-    View all active share links for a record you own
+    View all active share links for a record you own or can access
 
     .DESCRIPTION
-    Display all temporary share links created for one of your records without needing to sync your vault.
+    Display all temporary share links for a record without needing to sync your vault.
     Shows details like creation date, expiration date, and access history.
 
     .PARAMETER RecordUid

@@ -12,7 +12,7 @@ namespace Sample.PAMExamples.RotationExamples
     /// Uploads a local file and attaches it as a post-rotation script on a pamUser / pamDirectory record.
     /// Only the record owner can attach scripts.
     /// </summary>
-    public static class AddRotationScriptExample
+    public static class PamRotationScriptAddExample
     {
         /// <param name="vault">Authenticated vault (or null to authenticate).</param>
         /// <param name="recordId">pamUser / pamDirectory UID or title.</param>

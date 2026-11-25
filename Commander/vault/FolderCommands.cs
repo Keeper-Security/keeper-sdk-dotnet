@@ -30,6 +30,12 @@ namespace Commander
     {
         public static async Task MakeFolderCommand(this VaultContext context, MakeFolderOptions options)
         {
+            if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
+            {
+                Console.WriteLine("mkdir creates Classic folders. Use nsf-mkdir with --parent set to the current Keeper NSF folder UID.");
+                return;
+            }
+
             var sfOptions = options.Shared
                 ? new SharedFolderOptions
                 {
@@ -39,12 +45,20 @@ namespace Commander
                     CanShare = options.CanShare,
                 }
                 : null;
-            _ = await context.Vault.CreateFolder(options.FolderName, context.CurrentFolder, sfOptions);
+            var folder = await context.Vault.CreateFolder(options.FolderName, context.CurrentFolder, sfOptions);
+            if (folder != null)
+            {
+                Console.WriteLine($"Folder '{options.FolderName}' created successfully (UID: {folder.FolderUid}).");
+            }
+            else
+            {
+                Console.WriteLine($"Folder '{options.FolderName}' was created, but its UID is not yet in the local vault. Run sync-down and list the folder to retrieve it.");
+            }
         }
 
         public static async Task RemoveFolderCommand(this VaultContext context, FolderOptions options)
         {
-            if (context.TryResolvePath(options.FolderName, out var folder))
+            if (context.ResolvePath(options.FolderName, out var folder))
             {
                 await context.Vault.DeleteFolder(folder.FolderUid);
             }
@@ -56,7 +70,7 @@ namespace Commander
 
         public static async Task UpdateFolderCommand(this VaultContext context, UpdateFolderOptions options)
         {
-            if (context.TryResolvePath(options.FolderName, out var folder))
+            if (context.ResolvePath(options.FolderName, out var folder))
             {
                 SharedFolderOptions sharedFolderOptions = null;
                 if (folder.FolderType == FolderType.SharedFolder)
@@ -82,7 +96,7 @@ namespace Commander
         {
             if (!context.Vault.TryGetFolder(options.DestinationName, out var dstFolder))
             {
-                if (!context.TryResolvePath(options.DestinationName, out dstFolder))
+                if (!context.ResolvePath(options.DestinationName, out dstFolder))
                 {
                     Console.WriteLine($"Invalid destination folder path: {options.DestinationName}");
                     return;
@@ -115,7 +129,7 @@ namespace Commander
             }
             else
             {
-                if (!context.TryResolvePath(options.SourceName, out srcFolder, out string recordTitle))
+                if (!context.ResolvePath(options.SourceName, out srcFolder, out string recordTitle))
                 {
                     Console.WriteLine($"Invalid source path: {options.SourceName}");
                     return;
@@ -225,7 +239,7 @@ namespace Commander
             {
                 if (!context.Vault.TryGetFolder(options.FolderName, out var folder))
                 {
-                    if (!context.TryResolvePath(options.FolderName, out folder))
+                    if (!context.ResolvePath(options.FolderName, out folder))
                     {
                         Console.WriteLine($"Folder \'{options.FolderName}\' not found");
                         return;
@@ -386,6 +400,12 @@ namespace Commander
 
         public static async Task ShareFolderRecordPermissionCommand(this VaultContext context, ShareFolderRecordPermissionOptions options)
         {
+            if (options.ExpireAt != null || options.ExpireIn != null || options.RotateOnExpiration)
+            {
+                Console.WriteLine("Expiration is not supported for shared-folder records. Set expiration on the user or team access instead.");
+                return;
+            }
+
             if (!context.Vault.TryGetSharedFolder(options.FolderName, out var sf))
             {
                 var sfs = context.Vault.SharedFolders
@@ -402,7 +422,7 @@ namespace Commander
             {
                 if (!context.Vault.TryGetFolder(options.FolderName, out var folder))
                 {
-                    if (!context.TryResolvePath(options.FolderName, out folder))
+                    if (!context.ResolvePath(options.FolderName, out folder))
                     {
                         Console.WriteLine($"Folder \'{options.FolderName}\'");
                         return;
@@ -448,7 +468,7 @@ namespace Commander
                 }
                 else
                 {
-                    if (context.TryResolvePath(options.Record, out var folder, out var title))
+                    if (context.ResolvePath(options.Record, out var folder, out var title))
                     {
                         recordUid = folder.Records.Select(x => context.Vault.GetRecord(x)).FirstOrDefault(x =>
                             string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0)?.Uid;
@@ -474,32 +494,6 @@ namespace Commander
                     CanEdit = options.CanEdit ?? recordPermission.CanEdit,
                     CanShare = options.CanShare ?? recordPermission.CanShare,
                 };
-                if (!string.IsNullOrEmpty(options.ExpireAt))
-                {
-                    var formats = new[]
-                    {
-                        "yyyy-MM-dd HH:mm:ss",
-                        "yyyy-MM-dd hh:mm:ss tt",
-                        "yyyy-MM-dd h:mm:ss tt",
-                        "yyyy-MM-dd",
-                        "yyyy-MM-ddTHH:mm:ssZ",
-                        "yyyy-MM-ddTHH:mm:sszzz"
-                    };
-                    shareOptions.Expiration = DateTimeOffset.ParseExact(
-                        options.ExpireAt,
-                        formats,
-                        CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
-                    );
-                }
-                else if (!string.IsNullOrEmpty(options.ExpireIn))
-                {
-                    var ts = ParseUtils.ParseTimePeriod(options.ExpireIn);
-                    shareOptions.Expiration = DateTimeOffset.Now + ts;
-                }
-
-                shareOptions.RotateOnExpiration = options.RotateOnExpiration;
-
                 await context.Vault.ChangeRecordInSharedFolder(sf.Uid, recordUid, shareOptions);
             }
         }
@@ -570,15 +564,14 @@ namespace Commander
         [Option('e', "can-edit", Required = false, Default = null, HelpText = "record permission: can be edited. 'true' or 'false'")]
         public bool? CanEdit { get; set; }
 
-        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at ISO time: YYYY-MM-DD HH:mm:SS")]
+        [Option("expire-at", Required = false, Default = null, HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public string ExpireAt { get; set; }
 
-        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
+        [Option("expire-in", Required = false, Default = null, HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public string ExpireIn { get; set; }
 
         [Option("rotate-on-expiration", Required = false, Default = false,
-            HelpText = "Rotate the password when the share access expires. " +
-                       "Requires a future expiration and a pamUser record with rotation configured in the folder.")]
+            HelpText = "not supported for shared-folder records; set expiration with sf-user instead")]
         public bool RotateOnExpiration { get; set; }
     }
 

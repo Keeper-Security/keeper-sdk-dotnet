@@ -932,17 +932,7 @@ namespace KeeperSecurity.Vault
                         Title = resolvedTitle,
                         Type = data?.Type,
                         Notes = data?.Notes,
-                        Fields = data == null
-                            ? null
-                            : (data.Fields ?? Enumerable.Empty<NsfRecordFieldData>())
-                                .Concat(data.Custom ?? Enumerable.Empty<NsfRecordFieldData>())
-                                .Select(f => new KeeperNSFField
-                                {
-                                    Type = f.Type,
-                                    Label = f.Label,
-                                    Value = f.Value?.Select(CoerceFieldValueToString).ToList(),
-                                })
-                                .ToList(),
+                        Fields = ProjectNsfFields(data),
                         FolderUid = folderUid,
                         FolderName = folderName,
                         Revision = kdRecord.Revision,
@@ -963,6 +953,24 @@ namespace KeeperSecurity.Vault
                     Trace.TraceError($"KeeperNSF: Error rebuilding record {kdRecord.RecordUid}: {e.Message}");
                 }
             }
+        }
+
+        internal static IReadOnlyList<KeeperNSFField> ProjectNsfFields(NsfRecordData data)
+        {
+            if (data == null) return null;
+
+            return (data.Fields ?? Enumerable.Empty<NsfRecordFieldData>())
+                .Select(f => (Field: f, IsCustom: false))
+                .Concat((data.Custom ?? Enumerable.Empty<NsfRecordFieldData>())
+                    .Select(f => (Field: f, IsCustom: true)))
+                .Where(x => x.Field != null)
+                .Select(x => new KeeperNSFField
+                {
+                    Type = x.Field.Type,
+                    Label = x.Field.Label,
+                    Value = x.Field.Value?.Select(CoerceFieldValueToString).ToList(),
+                    IsCustom = x.IsCustom,
+                }).ToList();
         }
 
         private static string CoerceFieldValueToString(object value)
@@ -1027,6 +1035,7 @@ namespace KeeperSecurity.Vault
         public string Type { get; internal set; }
         public string Label { get; internal set; }
         public IReadOnlyList<string> Value { get; internal set; }
+        public bool IsCustom { get; internal set; }
     }
 
     public class KeeperNSFRecord
@@ -1081,6 +1090,7 @@ namespace KeeperSecurity.Vault
         public int AccessType { get; internal set; }
         public bool Owner { get; internal set; }
         public bool Inherited { get; internal set; }
+        public bool DeniedAccess { get; internal set; }
         public int AccessRoleType { get; internal set; }
         public bool CanEdit { get; internal set; }
         public bool CanView { get; internal set; }
@@ -1167,7 +1177,9 @@ namespace KeeperSecurity.Vault
                         AccessType = (int)accessor.AccessType,
                         Owner = owner,
                         Inherited = accessor.Inherited,
+                        DeniedAccess = accessor.DeniedAccess,
                         AccessRoleType = (int)accessor.AccessRoleType,
+                        // Folder ACL data has no record-style CanEdit capability flag.
                         CanEdit = false,
                         CanView = !accessor.DeniedAccess,
                         CanUpdateAccess = false,
@@ -1230,6 +1242,7 @@ namespace KeeperSecurity.Vault
                         AccessType = (int)accessor.AccessType,
                         Owner = accessor.Owner,
                         Inherited = accessor.Inherited,
+                        DeniedAccess = accessor.DeniedAccess,
                         AccessRoleType = (int)accessor.AccessRoleType,
                         CanEdit = accessor.CanEdit,
                         CanView = accessor.CanView,
@@ -1297,7 +1310,9 @@ namespace KeeperSecurity.Vault
                     RecordUid = uid, AccessorName = "", AccessTypeUid = a.AccessTypeUid, AccessType = a.AccessType,
                     Owner = a.AccessType == (int)FolderProto.AccessType.AtOwner ||
                         (!string.IsNullOrEmpty(ownerUid) && a.AccessTypeUid == ownerUid),
-                    Inherited = a.Inherited, AccessRoleType = a.AccessRoleType, CanEdit = false,
+                    Inherited = a.Inherited, DeniedAccess = a.DeniedAccess,
+                    // Folder ACL data has no record-style CanEdit capability flag.
+                    AccessRoleType = a.AccessRoleType, CanEdit = false,
                     CanView = !a.DeniedAccess, CanUpdateAccess = false, CanDelete = false
                 }).ToList();
                 EnsureFolderOwnerEntry(vault, uid, entries, null);
@@ -1316,7 +1331,8 @@ namespace KeeperSecurity.Vault
                 var entries = vault.Storage.KdRecordAccesses.GetLinksForSubject(uid).Select(a => new KeeperNSFAccessEntry
                 {
                     RecordUid = uid, AccessorName = "", AccessTypeUid = a.AccessTypeUid, AccessType = a.AccessType, Owner = a.Owner,
-                    Inherited = a.Inherited, AccessRoleType = a.AccessRoleType, CanEdit = a.CanEdit,
+                    Inherited = a.Inherited, DeniedAccess = a.DeniedAccess,
+                    AccessRoleType = a.AccessRoleType, CanEdit = a.CanEdit,
                     CanView = a.CanView, CanUpdateAccess = a.CanUpdateAccess, CanDelete = a.CanDelete
                 }).ToList();
                 result[uid] = entries;

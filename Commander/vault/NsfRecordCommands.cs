@@ -13,21 +13,181 @@ namespace Commander
 {
     internal static class NsfRecordCommandExtensions
     {
+        public static async Task NsfConvertCommand(this VaultContext context, NsfConvertOptions options)
+        {
+            if (!TrySelectClassicRecords(context, options.Record, out var records, out var alreadyNsf, out var error))
+            {
+                Console.WriteLine(error);
+                return;
+            }
+
+            var vault = context.Vault;
+            string folderUid = null;
+            if (!string.IsNullOrWhiteSpace(options.Folder))
+            {
+                if (!vault.TryResolveKeeperNSFFolderReference(options.Folder, out var folder))
+                {
+                    Console.WriteLine($"Keeper NSF folder '{options.Folder}' was not found or is ambiguous. Specify its UID or full path.");
+                    return;
+                }
+                folderUid = folder.FolderUid;
+            }
+
+            if (records.Count == 0)
+            {
+                Console.WriteLine($"No classic records remain to convert ({alreadyNsf.Count} already NSF).");
+                return;
+            }
+
+            foreach (var uid in alreadyNsf)
+            {
+                Console.WriteLine($"Record '{uid}' is already an NSF record; skipped.");
+            }
+
+            if (!options.Force)
+            {
+                Console.WriteLine("WARNING: Conversion is permanent. Classic shared-folder membership and additional classic folder placements are not retained.");
+                Console.WriteLine($"Destination: {(folderUid ?? "Vault (root)")}");
+                foreach (var record in records) Console.WriteLine($"  {record.Uid}: {record.Title}");
+                if (!await NsfHelpers.ConfirmAsync("Continue? (yes/No) ").ConfigureAwait(false))
+                {
+                    Console.WriteLine("Conversion cancelled.");
+                    return;
+                }
+            }
+
+            try
+            {
+                var results = await vault.ConvertClassicRecordsToKeeperNSF(records.Select(x => x.Uid).ToList(), folderUid)
+                    .ConfigureAwait(false);
+                foreach (var result in results)
+                {
+                    if (result.Success)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' converted to a Keeper NSF record.");
+                    }
+                    else if (result.OutcomeUncertain)
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' conversion outcome is uncertain: {result.Message} (status: {result.Status}).");
+                    }
+                    else if (result.Skipped)
+                    {
+                        Console.WriteLine($"WARNING: Classic record '{result.RecordUid}' skipped: {result.Message}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Classic record '{result.RecordUid}' was not converted: {result.Message} (status: {result.Status}).");
+                    }
+                }
+                if (results.Any(x => !string.IsNullOrEmpty(x.RefreshWarning)))
+                {
+                    Console.WriteLine($"WARNING: {results.First(x => !string.IsNullOrEmpty(x.RefreshWarning)).RefreshWarning}");
+                }
+                Console.WriteLine($"Conversion complete: {results.Count(x => x.Success)} confirmed converted, "
+                    + $"{results.Count(x => x.OutcomeUncertain)} uncertain, "
+                    + $"{results.Count(x => !x.Success && !x.OutcomeUncertain && !x.Skipped)} failed; "
+                    + $"{results.Count(x => x.Skipped) + alreadyNsf.Count} skipped.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error converting records: {ex.Message}");
+            }
+        }
+
+        private static bool TrySelectClassicRecords(VaultContext context, IEnumerable<string> recordRefs,
+            out List<KeeperRecord> records, out List<string> alreadyNsf, out string error)
+        {
+            records = new List<KeeperRecord>();
+            alreadyNsf = new List<string>();
+            error = null;
+            var references = recordRefs?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+            if (references == null || references.Count == 0)
+            {
+                error = "At least one classic record UID, title, or path is required.";
+                return false;
+            }
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var recordRef in references)
+            {
+                if (context.Vault.TryGetKeeperNSFRecord(recordRef, out var nsfRecord))
+                {
+                    if (!seen.Add(nsfRecord.RecordUid))
+                    {
+                        Console.WriteLine($"WARNING: Record '{nsfRecord.RecordUid}' was selected more than once; duplicate skipped.");
+                        continue;
+                    }
+                    alreadyNsf.Add(nsfRecord.RecordUid);
+                    continue;
+                }
+
+                if (!TryResolveClassicRecord(context, recordRef, out var record, out error))
+                {
+                    return false;
+                }
+
+                if (!seen.Add(record.Uid))
+                {
+                    Console.WriteLine($"WARNING: Record '{record.Uid}' was selected more than once; duplicate skipped.");
+                    continue;
+                }
+
+                records.Add(record);
+            }
+
+            return true;
+        }
+
+        private static bool TryResolveClassicRecord(VaultContext context, string recordRef,
+            out KeeperRecord record, out string error)
+        {
+            error = null;
+            if (context.Vault.TryGetKeeperRecord(recordRef, out record))
+            {
+                return true;
+            }
+
+            if (!context.ResolvePath(recordRef, out var folder, out var title))
+            {
+                error = $"Classic record '{recordRef}' was not found. Specify its UID or path.";
+                return false;
+            }
+
+            var matches = folder.Records
+                .Select(uid => context.Vault.TryGetKeeperRecord(uid, out var candidate) ? candidate : null)
+                .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
+                .Take(2).ToList();
+            if (matches.Count != 1)
+            {
+                error = $"Classic record '{recordRef}' was not found or is ambiguous. Specify its UID.";
+                return false;
+            }
+
+            record = matches[0];
+            return true;
+        }
+
         public static async Task NsfRecordAddCommand(this VaultContext context, NsfRecordAddOptions options)
         {
             Dictionary<string, object> fieldDict = null;
             if ((options.Fields != null && options.Fields.Any()) || options.GeneratePassword)
             {
-                fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out _);
+                try
+                {
+                    fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out _);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
             }
 
             try
             {
                 string folderUid = options.FolderUid;
-                if (!string.IsNullOrWhiteSpace(folderUid)
-                    && !context.Vault.TryGetKeeperNSFFolder(folderUid, out _)
-                    && context.Vault.TryResolveKeeperNSFFolder(folderUid, out var folderNode)
-                    && folderNode != null)
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(context.Vault, folderUid);
+                if (folderNode != null)
                 {
                     folderUid = folderNode.FolderUid;
                 }
@@ -62,7 +222,16 @@ namespace Commander
             Dictionary<string, object> fieldDict = null;
             if (hasFields || options.GeneratePassword)
             {
-                fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out var parsedCount);
+                int parsedCount;
+                try
+                {
+                    fieldDict = NsfHelpers.ParseFieldSpecs(options.Fields, options.GeneratePassword, out parsedCount);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return;
+                }
                 if (parsedCount == 0 && !options.GeneratePassword)
                 {
                     Console.WriteLine("Error: No valid field values were parsed. Use key=value (e.g. login=a12).");
@@ -96,11 +265,28 @@ namespace Commander
             }
 
             var action = options.Action ?? "grant";
-            foreach (var user in options.Email ?? Array.Empty<string>())
+            var isGrant = string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase);
+            var isRevoke = string.Equals(action, "revoke", StringComparison.OrdinalIgnoreCase);
+            if (!isGrant && !isRevoke)
+            {
+                Console.WriteLine("--action must be either grant or revoke.");
+                return;
+            }
+
+            var users = (options.Email ?? Array.Empty<string>()).ToArray();
+            if (isRevoke
+                && !options.Force
+                && !await NsfHelpers.ConfirmAsync(
+                    $"Are you sure you want to revoke access to record '{options.RecordUid}' from {users.Length} user(s)? (yes/No) "))
+            {
+                return;
+            }
+
+            foreach (var user in users)
             {
                 try
                 {
-                    if (string.Equals(action, "grant", StringComparison.OrdinalIgnoreCase))
+                    if (isGrant)
                     {
                         await vault.ShareKeeperNSFRecord(options.RecordUid, user, options.Role ?? "viewer");
                         Console.WriteLine($"Granted '{options.Role ?? "viewer"}' access to '{user}' on record '{options.RecordUid}'.");
@@ -129,17 +315,22 @@ namespace Commander
             }
 
             var folderUid = options.FolderUid;
-            if (!string.IsNullOrEmpty(folderUid) && !vault.TryGetKeeperNSFFolder(folderUid, out _))
+            var folderDisplay = "root";
+
+            if (!string.IsNullOrEmpty(folderUid))
             {
-                var match = vault.KeeperNSFFolderNodes
-                    .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, folderUid, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
+                var permFolderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
+                if (permFolderMatch != null)
                 {
-                    folderUid = match.FolderUid;
+                    folderUid = permFolderMatch.FolderUid;
+                    folderDisplay = folderUid;
+                }
+                else
+                {
+                    Console.WriteLine($"Error: Folder '{folderUid}' not found.");
+                    return;
                 }
             }
-
-            var folderDisplay = string.IsNullOrEmpty(folderUid) ? "root" : folderUid;
             var roleLabel = !string.IsNullOrEmpty(options.Role) ? $"'{options.Role}'" : "all";
             var scopeLabel = options.Recursive ? "recursively" : "only";
             Console.WriteLine();
@@ -226,16 +417,22 @@ namespace Commander
                 }
                 else
                 {
-                    var recordMatch = vault.KeeperNSFRecordEntries
-                        .FirstOrDefault(r => r.Title != null && string.Equals(r.Title, options.Target, StringComparison.OrdinalIgnoreCase));
-                    if (recordMatch != null)
+                    var recordMatches = vault.KeeperNSFRecordEntries
+                        .Where(r => r.Title != null && string.Equals(r.Title, options.Target, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                    if (recordMatches.Count > 1)
                     {
-                        recordUid = recordMatch.RecordUid;
+                        var titles = string.Join(", ", recordMatches.Select(r => $"\"{r.Title}\""));
+                        Console.WriteLine($"Error: Multiple records matching \"{options.Target}\": {titles}.");
+                        return Task.CompletedTask;
+                    }
+                    if (recordMatches.Count == 1)
+                    {
+                        recordUid = recordMatches[0].RecordUid;
                     }
                     else
                     {
-                        var folderMatch = vault.KeeperNSFFolderNodes
-                            .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, options.Target, StringComparison.OrdinalIgnoreCase));
+                        var folderMatch = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Target);
                         if (folderMatch != null)
                         {
                             folderUid = folderMatch.FolderUid;
@@ -352,11 +549,18 @@ namespace Commander
 
             if (!vault.TryGetKeeperNSFRecord(recordUid, out _))
             {
-                var match = vault.KeeperNSFRecordEntries
-                    .FirstOrDefault(r => r.Title != null && string.Equals(r.Title, recordUid, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
+                var matches = vault.KeeperNSFRecordEntries
+                    .Where(r => r.Title != null && string.Equals(r.Title, recordUid, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (matches.Count > 1)
                 {
-                    recordUid = match.RecordUid;
+                    var titles = string.Join(", ", matches.Select(r => $"\"{r.Title}\""));
+                    Console.WriteLine($"Error: Multiple records matching \"{options.RecordUid}\": {titles}.");
+                    return;
+                }
+                if (matches.Count == 1)
+                {
+                    recordUid = matches[0].RecordUid;
                 }
                 else
                 {
@@ -367,8 +571,7 @@ namespace Commander
 
             if (!vault.TryGetKeeperNSFFolder(folderUid, out _))
             {
-                var match = vault.KeeperNSFFolderNodes
-                    .FirstOrDefault(f => f.Name != null && string.Equals(f.Name, folderUid, StringComparison.OrdinalIgnoreCase));
+                var match = NsfHelpers.ResolveNsfFolderByUidOrName(vault, folderUid);
                 if (match != null)
                 {
                     folderUid = match.FolderUid;
@@ -457,7 +660,8 @@ namespace Commander
             string resolvedFolderUid = null;
             if (!string.IsNullOrEmpty(options.Folder))
             {
-                if (!vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+                var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Folder);
+                if (folderNode == null)
                 {
                     Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
                     return;
@@ -465,9 +669,9 @@ namespace Commander
 
                 resolvedFolderUid = folderNode.FolderUid;
             }
-            else if (!string.IsNullOrEmpty(context.CurrentFolder))
+            else if (!string.IsNullOrEmpty(context.CurrentNsfFolder))
             {
-                if (vault.TryResolveKeeperNSFFolder(context.CurrentFolder, out var currentFolder))
+                if (vault.TryResolveKeeperNSFFolder(context.CurrentNsfFolder, out var currentFolder))
                 {
                     resolvedFolderUid = currentFolder.FolderUid;
                 }
@@ -480,12 +684,26 @@ namespace Commander
                 return;
             }
 
+            // Resolve every record before removing anything: a destructive batch either runs in full or not at all,
+            // so one ambiguous/missing identifier can't result in a half-done delete of the others.
             var removals = new List<KeeperNSFRecordRemoval>();
+            var resolveErrors = new List<string>();
             foreach (var name in records)
             {
-                if (!vault.TryResolveKeeperNSFRecord(name, out var kdRecord))
+                KeeperNSFRecord kdRecord;
+                try
                 {
-                    Console.WriteLine($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
+                    kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, name);
+                }
+                catch (AmbiguousNsfRecordException ex)
+                {
+                    resolveErrors.Add(ex.Message);
+                    continue;
+                }
+
+                if (kdRecord == null)
+                {
+                    resolveErrors.Add($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
                     continue;
                 }
 
@@ -495,7 +713,7 @@ namespace Commander
                     var folderUids = vault.GetKeeperNSFFoldersForRecord(kdRecord.RecordUid).ToList();
                     if (folderUids.Count == 0)
                     {
-                        Console.WriteLine($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
+                        resolveErrors.Add($"No folder context for record \"{name}\". Use --folder or --operation owner-trash.");
                         continue;
                     }
 
@@ -508,6 +726,16 @@ namespace Commander
                     FolderUid = folderUid,
                     Operation = op
                 });
+            }
+
+            if (resolveErrors.Count > 0)
+            {
+                foreach (var error in resolveErrors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+                Console.WriteLine($"Aborted: {resolveErrors.Count} of {records.Count} record(s) could not be resolved. No records were removed.");
+                return;
             }
 
             if (removals.Count == 0)
@@ -595,13 +823,15 @@ namespace Commander
         public static async Task NsfLnCommand(this VaultContext context, NsfLnOptions options)
         {
             var vault = context.Vault;
-            if (!vault.TryResolveKeeperNSFRecord(options.Record, out var kdRecord))
+            var kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, options.Record);
+            if (kdRecord == null)
             {
                 Console.WriteLine($"Keeper NSF record \"{options.Record}\" was not found. Run sync-down or nsf-list first.");
                 return;
             }
 
-            if (!vault.TryResolveKeeperNSFFolder(options.Folder, out var folderNode))
+            var folderNode = NsfHelpers.ResolveNsfFolderByUidOrName(vault, options.Folder);
+            if (folderNode == null)
             {
                 Console.WriteLine($"Keeper NSF folder \"{options.Folder}\" was not found. Run sync-down or nsf-list first.");
                 return;
@@ -648,7 +878,8 @@ namespace Commander
             var resolvedRecords = new List<string>();
             foreach (var name in recordArgs)
             {
-                if (!vault.TryResolveKeeperNSFRecord(name, out var kdRecord))
+                var kdRecord = NsfHelpers.ResolveNsfRecordByUidOrTitle(vault, name);
+                if (kdRecord == null)
                 {
                     Console.WriteLine($"Keeper NSF record \"{name}\" was not found. Run sync-down or nsf-list first.");
                     return;
@@ -724,7 +955,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
@@ -745,11 +976,23 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value")]
+        [Value(1, Required = false, HelpText = "Field values as key=value (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
-    class NsfShareRecordOptions
+    class NsfConvertOptions
+    {
+        [Value(0, Min = 1, Required = true, HelpText = "Classic record UID(s), title(s), or path(s) to convert (automatically batched in groups of 100)")]
+        public IEnumerable<string> Record { get; set; }
+
+        [Option("folder", Required = false, HelpText = "Existing Keeper NSF folder UID, name, or path; omit for Vault (root)")]
+        public string Folder { get; set; }
+
+        [Option('f', "force", Required = false, HelpText = "Skip permanent-conversion confirmation")]
+        public bool Force { get; set; }
+    }
+
+    class NsfShareRecordOptions : VaultForceOptions
     {
         [Value(0, Required = true, HelpText = "Record UID")]
         public string RecordUid { get; set; }
@@ -764,7 +1007,7 @@ namespace Commander
         public string Role { get; set; }
     }
 
-    class NsfRecordPermissionOptions
+    class NsfRecordPermissionOptions : VaultForceOptions
     {
         [Value(0, Required = false, HelpText = "Folder UID or name (root if omitted)")]
         public string FolderUid { get; set; }
@@ -777,9 +1020,6 @@ namespace Commander
 
         [Option('r', "recursive", Required = false, HelpText = "Include subfolders")]
         public bool Recursive { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
 
         [Option("dry-run", Required = false, HelpText = "Preview only")]
         public bool DryRun { get; set; }
@@ -797,19 +1037,16 @@ namespace Commander
         public string Output { get; set; }
     }
 
-    class NsfShortcutKeepOptions
+    class NsfShortcutKeepOptions : VaultForceOptions
     {
         [Value(0, Required = true, HelpText = "Record UID or title")]
         public string RecordUid { get; set; }
 
         [Value(1, Required = true, HelpText = "Folder UID or name to keep")]
         public string FolderUid { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
-    class NsfRmOptions
+    class NsfRmOptions : VaultForceOptions
     {
         [Value(0, Min = 1, Required = true, HelpText = "Record UID(s) or title(s)")]
         public IEnumerable<string> Record { get; set; }
@@ -819,9 +1056,6 @@ namespace Commander
 
         [Option('o', "operation", Required = false, Default = "owner-trash", HelpText = "owner-trash, folder-trash, unlink")]
         public string Operation { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
 
         [Option("dry-run", Required = false, HelpText = "Preview only")]
         public bool DryRun { get; set; }
@@ -836,13 +1070,10 @@ namespace Commander
         public string Folder { get; set; }
     }
 
-    class NsfTransferRecordOptions
+    class NsfTransferRecordOptions : VaultForceOptions
     {
         [Value(0, Min = 2, Required = true, HelpText = "Record UID(s) and new owner email")]
         public IEnumerable<string> Arguments { get; set; }
-
-        [Option('f', "force", Required = false, HelpText = "Skip confirmation")]
-        public bool Force { get; set; }
     }
 
 }
