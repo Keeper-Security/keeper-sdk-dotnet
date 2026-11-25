@@ -214,8 +214,10 @@ function Script:Resolve-KeeperNSFFieldValue {
 
     $fieldType = $FieldKey.Split(':', 2)[0]
     if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
-        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
-            return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+        if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken -or
+            $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken + ':', [System.StringComparison]::Ordinal)) {
+            # Resolve after the record URL and enterprise policy are known.
+            return $RawValue
         }
 
         throw "Unsupported password generation token '$RawValue'. Use $script:KdNsfGenerateFieldValueToken or -GeneratePassword."
@@ -282,7 +284,9 @@ function Script:Parse-KeeperNSFFieldSpecs {
         if ($fieldType -ieq 'password' -and [string]::IsNullOrEmpty($val)) {
             throw "Password value cannot be empty. Use -GeneratePassword or '$($script:KdNsfGenerateFieldValueToken)' in single quotes."
         }
-        if ($fieldType -ieq 'password' -and $val -ceq $script:KdNsfGenerateFieldValueToken) {
+        if ($fieldType -ieq 'password' -and
+            ($val -ceq $script:KdNsfGenerateFieldValueToken -or
+             $val.StartsWith($script:KdNsfGenerateFieldValueToken + ':', [System.StringComparison]::Ordinal))) {
             $hasGenerateToken = $true
         }
 
@@ -407,6 +411,10 @@ function Add-KeeperNSFRecord {
         Write-Host "Error getting vault: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
+    if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+        Write-Host "Error: Record type '$RecordType' is restricted by your enterprise role policy and cannot be created." -ForegroundColor Red
+        return
+    }
 
     $fieldDict = $null
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
@@ -421,14 +429,19 @@ function Add-KeeperNSFRecord {
                 $fieldDict[$key] = $parsed.Dictionary[$key]
             }
         }
+        $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault -Url (Get-KeeperPolicyUrl -Fields $fieldDict)
         if ($GeneratePassword.IsPresent) {
-            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+            Remove-KeeperPasswordFields -Fields $fieldDict
+            $options = New-KeeperPolicyPasswordOptions -Policy $passwordPolicy
+            $fieldDict['password'] = New-KeeperGeneratedPassword -Policy $passwordPolicy -Options $options
         }
         elseif ($generatePassphrase) {
-            if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
+            Remove-KeeperPasswordFields -Fields $fieldDict
+            if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues -Policy $passwordPolicy)) {
                 return
             }
         }
+        elseif (-not (Resolve-KeeperGeneratedFieldValues -Fields $fieldDict -Policy $passwordPolicy)) { return }
     }
 
     try {
@@ -815,6 +828,18 @@ function Edit-KeeperNSFRecord {
         return
     }
 
+    if ($hasType) {
+        [KeeperSecurity.Vault.RecordType]$recordTypeInfo = $null
+        if (-not $vault.TryGetRecordTypeByName($RecordType, [ref]$recordTypeInfo)) {
+            Write-Host "Error: Record type '$RecordType' not found." -ForegroundColor Red
+            return
+        }
+        if (Test-KeeperRestrictedRecordType -Vault $vault -RecordType $RecordType) {
+            Write-Host "Error: Record type '$RecordType' is restricted by your enterprise role policy and cannot be used." -ForegroundColor Red
+            return
+        }
+    }
+
     [KeeperSecurity.Vault.KeeperNSFRecord]$resolvedRecord = $null
     try {
         $resolvedRecord = resolveKeeperNSFRecord -Identifier $RecordUid -Vault $vault
@@ -850,14 +875,18 @@ function Edit-KeeperNSFRecord {
                 return
             }
         }
+        $passwordPolicy = Get-KeeperGeneratedPasswordPolicy -Vault $vault -Url (Get-KeeperPolicyUrl -Fields $fieldDict -Record $resolvedRecord)
         if ($GeneratePassword.IsPresent) {
-            $fieldDict['password'] = [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
+            Remove-KeeperPasswordFields -Fields $fieldDict
+            $fieldDict['password'] = New-KeeperGeneratedPassword -Policy $passwordPolicy -Options (New-KeeperPolicyPasswordOptions -Policy $passwordPolicy)
         }
         elseif ($generatePassphrase) {
-            if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues)) {
+            Remove-KeeperPasswordFields -Fields $fieldDict
+            if (-not (Set-KeeperPassphraseField -FieldDict $fieldDict -PassphraseRuleValues $PassphraseRuleValues -Policy $passwordPolicy)) {
                 return
             }
         }
+        elseif (-not (Resolve-KeeperGeneratedFieldValues -Fields $fieldDict -Policy $passwordPolicy)) { return }
     }
 
     try {

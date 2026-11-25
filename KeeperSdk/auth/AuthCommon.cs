@@ -708,7 +708,7 @@ namespace KeeperSecurity.Authentication
         {
             var rq = new AccountSummaryRequest
             {
-                SummaryVersion = 1
+                SummaryVersion = 3
             };
             var accountSummaryResponse = await this.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
             
@@ -773,6 +773,10 @@ namespace KeeperSecurity.Authentication
                             case "master_password_reentry":
                                 var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
                                 enforcements[kvp.Key] = mpr;
+                                break;
+                            case "generated_password_complexity":
+                            case "restrict_record_types":
+                                enforcements[kvp.Key] = kvp.Value;
                                 break;
                         }
                     }

@@ -86,22 +86,25 @@ namespace Commander
             return options;
         }
 
-        public static bool RotateRecordPassword(this IVault vault, KeeperRecord record)
+        public static bool RotateRecordPassword(this IVault vault, KeeperRecord record,
+            PasswordGenerationOptions defaultOptions = null,
+            Func<PasswordGenerationOptions, string> generator = null)
         {
             if (record == null)
             {
                 return false;
             }
-            PasswordGenerationOptions options = null;
+            PasswordGenerationOptions options = defaultOptions;
             if (record is PasswordRecord password)
             {
-                options = RestoreRules(password.Password);
-                password.Password = CryptoUtils.GeneratePassword(options);
+                options ??= RestoreRules(password.Password);
+                password.Password = generator?.Invoke(options) ?? CryptoUtils.GeneratePassword(options);
                 return true;
             }
             if (record is TypedRecord typed)
             {
                 ITypedField passwordField = null;
+                var addPasswordField = false;
                 if (!string.IsNullOrEmpty(typed.TypeName))
                 {
                     if (vault.TryGetRecordTypeByName(typed.TypeName, out var recordType))
@@ -112,11 +115,11 @@ namespace Commander
                             if (!typed.Fields.FindTypedField(passwordFieldType, out passwordField))
                             {
                                 passwordField = new TypedField<string>(passwordFieldType.FieldName, passwordFieldType.FieldLabel);
-                                typed.Fields.Add(passwordField);
+                                addPasswordField = true;
                             }
                             if (passwordFieldType is RecordTypePasswordField rtpf)
                             {
-                                options = rtpf.PasswordOptions;
+                                options ??= rtpf.PasswordOptions;
                             }
                         }
                     }
@@ -134,7 +137,9 @@ namespace Commander
                             options = RestoreRules(pwd);
                         }
                     }
-                    passwordField.ObjectValue = CryptoUtils.GeneratePassword(options);
+                    var generatedPassword = generator?.Invoke(options) ?? CryptoUtils.GeneratePassword(options);
+                    if (addPasswordField) typed.Fields.Add(passwordField);
+                    passwordField.ObjectValue = generatedPassword;
                     return true;
                 }
             }
