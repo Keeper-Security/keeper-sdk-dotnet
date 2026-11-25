@@ -330,6 +330,8 @@ function ConvertTo-KeeperClassicRecordJson {
         [switch] $Unmask
     )
 
+    $ErrorActionPreference = 'Stop'
+
     $json = [ordered]@{
         record_uid  = $Record.Uid
         source      = 'classic'
@@ -391,8 +393,10 @@ function ConvertTo-KeeperClassicRecordJson {
     $json['shared'] = [bool]$Record.Shared
     $json['client_modified_time'] = $Record.ClientModified.LocalDateTime.ToString('yyyy-MM-ddTHH:mm:ss')
 
-    $shares = @($Vault.GetSharesForRecords(@($Record.Uid)).GetAwaiter().GetResult() |
-        Where-Object { $_.RecordUid -eq $Record.Uid }) | Select-Object -First 1
+    $recordUids = [System.Collections.Generic.List[string]]::new()
+    $recordUids.Add($Record.Uid)
+    $shares = $Vault.GetSharesForRecords($recordUids).GetAwaiter().GetResult() |
+        Where-Object { $_.RecordUid -eq $Record.Uid } | Select-Object -First 1
     if ($shares) {
         if ($null -ne $shares.UserPermissions) {
             $json['user_permissions'] = @($shares.UserPermissions | ForEach-Object {
