@@ -489,7 +489,9 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
 
     For JSON, use `Get-KeeperFolder '<folder-uid>' -Format json` or `kr -Uid <record-uid> -Format json`. Classic items use Python Commander-style fields; NSF items use the existing `nsf-get -Format json` schema. Hidden record values are masked unless `-Unmask` is supplied.
-    `kr -Format json` and `kr -Filter <pattern> -Format json` retain complete descriptions. Classic shared-folder JSON uses the same parent folder location shape as folder JSON.
+    Classic JSON folder paths use `/` on every platform, matching .NET Commander. Classic shared folders include the same sharing fields in both commands.
+    The interactive `kr -Uid <classic-record-uid>` view also shows the record UID, notes, last modification time, user shares, and shared folders alongside the fields, matching the information displayed by .NET Commander's `get` view.
+    `kr -Format json` and `kr -Filter <pattern> -Format json` retain complete descriptions.
 
 9. List all enterprise users
     ```

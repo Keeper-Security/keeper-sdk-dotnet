@@ -386,7 +386,16 @@ function Get-KeeperFolder {
     }
 
     if ($Format -eq 'json') {
-        ConvertTo-KeeperFolderJson -Folder $folder -Vault $vault
+        if ($folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::SharedFolder) {
+            [KeeperSecurity.Vault.SharedFolder]$sharedFolder = $null
+            if (-not $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) {
+                Write-Error -Message "Shared folder '$Uid' was not found or not accessible." -ErrorAction Stop
+            }
+            ConvertTo-KeeperSharedFolderJson -SharedFolder $sharedFolder -Vault $vault -IncludeDag:$false
+        }
+        else {
+            ConvertTo-KeeperFolderJson -Folder $folder -Vault $vault
+        }
         return
     }
 

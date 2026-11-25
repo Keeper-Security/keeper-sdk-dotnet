@@ -422,9 +422,90 @@ function ConvertTo-KeeperClassicRecordJson {
     $folder = $Vault.Folders | Where-Object { $_.Records.Contains($Record.Uid) } | Select-Object -First 1
     $json['folder'] = [ordered]@{
         uid = if ($folder) { $folder.FolderUid } else { $null }
-        path = if ($folder) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $folder.FolderUid } else { [string]$Script:PathDelimiter }
+        path = if ($folder) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $folder.FolderUid } else { '/' }
     }
     ConvertTo-Json -InputObject $json -Depth 10
+}
+
+function Show-KeeperClassicRecordDetail {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.KeeperRecord] $Record,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [switch] $Unmask
+    )
+
+    function Write-DetailRow([string]$Label, $Value) {
+        Write-Host ('    {0,25}: {1}' -f $Label, $Value)
+    }
+    function Get-ShareStatus([bool]$CanEdit, [bool]$CanShare) {
+        if ($CanEdit -and $CanShare) { return 'Can Edit & Share' }
+        if ($CanEdit) { return 'Can Edit' }
+        if ($CanShare) { return 'Can Share' }
+        return 'Read Only'
+    }
+
+    Write-Host ''
+    Write-DetailRow 'Record UID' $Record.Uid
+    Write-DetailRow 'Type' ([KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($Record))
+    Write-DetailRow 'Title' $Record.Title
+    Write-DetailRow 'Notes' $Record.Notes
+
+    if ($Record -is [KeeperSecurity.Vault.PasswordRecord]) {
+        Write-DetailRow '$login' $Record.Login
+        Write-DetailRow '$password' ([KeeperSecurity.Vault.RecordSecurity]::Mask($Record.Password, $Unmask.IsPresent))
+        Write-DetailRow '$url' $Record.Link
+        foreach ($custom in $Record.Custom) {
+            $value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($custom.Name)) {
+                [KeeperSecurity.Vault.RecordSecurity]::Mask($custom.Value, $Unmask.IsPresent)
+            } else { $custom.Value }
+            Write-DetailRow $custom.Name $value
+        }
+        if ($Record.Totp) {
+            Write-DetailRow '$oneTimeCode' ([KeeperSecurity.Vault.RecordSecurity]::Mask($Record.Totp, $Unmask.IsPresent))
+        }
+    }
+    elseif ($Record -is [KeeperSecurity.Vault.TypedRecord]) {
+        foreach ($field in @($Record.Fields) + @($Record.Custom)) {
+            $label = [KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldName($field)
+            $values = @([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldValues($field))
+            for ($i = 0; $i -lt [Math]::Max($values.Count, 1); $i++) {
+                $value = if ($i -lt $values.Count) { $values[$i] } else { '' }
+                if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field)) {
+                    $value = [KeeperSecurity.Vault.RecordSecurity]::Mask([string]$value, $Unmask.IsPresent)
+                }
+                Write-DetailRow $(if ($i -eq 0) { $label } else { '' }) $value
+            }
+        }
+    }
+
+    Write-DetailRow 'Last Modified' $Record.ClientModified.LocalDateTime.ToString('F')
+    $recordUids = [System.Collections.Generic.List[string]]::new()
+    $recordUids.Add($Record.Uid)
+    $shares = $Vault.GetSharesForRecords($recordUids).GetAwaiter().GetResult() |
+        Where-Object { $_.RecordUid -eq $Record.Uid } | Select-Object -First 1
+    if ($shares.UserPermissions.Count -gt 0) {
+        Write-Host ''
+        Write-DetailRow 'User Shares' ''
+        foreach ($user in $shares.UserPermissions) {
+            $status = if ($user.Owner) { 'Owner' } elseif ($user.AwaitingApproval) { 'Awaiting Approval' } else {
+                Get-ShareStatus $user.CanEdit $user.CanShare
+            }
+            if ($user.Expiration) { $status += ' (Expires: ' + $user.Expiration.LocalDateTime.ToString('g') + ')' }
+            Write-DetailRow $user.Username $status
+        }
+    }
+    if ($null -ne $shares.SharedFolderPermissions) {
+        Write-Host ''
+        Write-DetailRow 'Shared Folders' ''
+        foreach ($permission in $shares.SharedFolderPermissions) {
+            [KeeperSecurity.Vault.SharedFolder]$folder = $null
+            $name = if ($Vault.TryGetSharedFolder($permission.SharedFolderUid, [ref]$folder)) {
+                $folder.Name
+            } else { $permission.SharedFolderUid }
+            Write-DetailRow $name (Get-ShareStatus $permission.CanEdit $permission.CanShare)
+        }
+    }
+    Write-Host ''
 }
 
 function Test-KeeperRecordFormattedListOutput {
@@ -544,7 +625,12 @@ function Get-KeeperRecord {
             $interactive = Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation
             $reveal = $Unmask.IsPresent -or (Get-KeeperPasswordVisible)
             if ($interactive) {
-                Show-RecordDetails -RecordData $record -Unmask:$reveal
+                if ($record -is [KeeperSecurity.Vault.PasswordRecord] -or $record -is [KeeperSecurity.Vault.TypedRecord]) {
+                    Show-KeeperClassicRecordDetail -Record $record -Vault $vault -Unmask:$reveal
+                }
+                else {
+                    Show-RecordDetails -RecordData $record -Unmask:$reveal
+                }
             }
             else {
                 $record

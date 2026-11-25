@@ -853,17 +853,24 @@ New-Alias -Name ktree -Value Get-KeeperTree
 function ConvertTo-KeeperSharedFolderJson {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.SharedFolder] $SharedFolder,
-        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [bool] $IncludeDag = $true
     )
 
     [KeeperSecurity.Vault.FolderNode]$folder = $null
     $Vault.TryGetFolder($SharedFolder.Uid, [ref]$folder) | Out-Null
 
-    [ordered]@{
+    $json = [ordered]@{
         folder_uid = $SharedFolder.Uid
         type = 'classic_folder'
         name = $SharedFolder.Name
+        path = Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $SharedFolder.Uid
+        parent_uid = if ($folder -and $folder.ParentUid) { $folder.ParentUid } else { $null }
         folder = ConvertTo-KeeperFolderLocation -Folder $folder -Vault $Vault
+        manage_users = [bool]$SharedFolder.DefaultManageUsers
+        manage_records = [bool]$SharedFolder.DefaultManageRecords
+        can_edit = [bool]$SharedFolder.DefaultCanEdit
+        can_share = [bool]$SharedFolder.DefaultCanShare
         users = @(
             $SharedFolder.UsersPermissions |
             Where-Object { $_.UserType -eq [KeeperSecurity.Vault.UserType]::User } |
@@ -891,19 +898,19 @@ function ConvertTo-KeeperSharedFolderJson {
             } |
             ForEach-Object { $_.Name }
         )
-        records = @(
-            $SharedFolder.RecordPermissions |
-            ForEach-Object {
-                [ordered]@{
-                    record_uid = $_.RecordUid
-                    record_name = $(
-                        [KeeperSecurity.Vault.KeeperRecord]$record = $null
-                        if ($Vault.TryGetKeeperRecord($_.RecordUid, [ref]$record) -and $record.Title) { $record.Title } else { $_.RecordUid }
-                    )
-                }
+    }
+    if ($IncludeDag) {
+        $json['records'] = @($SharedFolder.RecordPermissions | ForEach-Object {
+            [ordered]@{
+                record_uid = $_.RecordUid
+                record_name = $(
+                    [KeeperSecurity.Vault.KeeperRecord]$record = $null
+                    if ($Vault.TryGetKeeperRecord($_.RecordUid, [ref]$record) -and $record.Title) { $record.Title } else { $_.RecordUid }
+                )
             }
-        )
-    } | ConvertTo-Json -Depth 10
+        })
+    }
+    ConvertTo-Json -InputObject $json -Depth 10
 }
 
 function ConvertTo-KeeperFolderLocation {
@@ -915,7 +922,7 @@ function ConvertTo-KeeperFolderLocation {
     $parentUid = if ($Folder) { $Folder.ParentUid } else { $null }
     [ordered]@{
         uid  = if ($parentUid) { $parentUid } else { $null }
-        path = if ($parentUid) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $parentUid } else { [string]$Script:PathDelimiter }
+        path = if ($parentUid) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $parentUid } else { '/' }
     }
 }
 
@@ -926,16 +933,17 @@ function Get-KeeperJsonFolderPath {
     )
 
     $names = [System.Collections.Generic.List[string]]::new()
+    # JSON paths follow Python Commander's slash-delimited wire format on every OS.
+    $delimiter = '/'
     while ($FolderUid) {
         [KeeperSecurity.Vault.FolderNode]$node = $null
         if (-not $Vault.TryGetFolder($FolderUid, [ref]$node)) { break }
         if (-not [string]::IsNullOrEmpty($node.Name)) {
-            $delimiter = [string]$Script:PathDelimiter
             $names.Insert(0, $node.Name.Replace($delimiter, $delimiter + $delimiter))
         }
         $FolderUid = $node.ParentUid
     }
-    $names -join [string]$Script:PathDelimiter
+    $names -join $delimiter
 }
 
 function ConvertTo-KeeperFolderJson {

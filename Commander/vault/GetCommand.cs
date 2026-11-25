@@ -601,7 +601,14 @@ namespace Commander
                 ["folder_uid"] = sf.Uid,
                 ["type"] = "classic_folder",
                 ["name"] = sf.Name,
+                ["path"] = GetFolderPath(context, sf.Uid),
+                ["parent_uid"] = context.Vault.TryGetFolder(sf.Uid, out var node) && !string.IsNullOrEmpty(node.ParentUid)
+                    ? node.ParentUid : null,
                 ["folder"] = GetFolderLocation(context, sf.Uid),
+                ["manage_users"] = sf.DefaultManageUsers,
+                ["manage_records"] = sf.DefaultManageRecords,
+                ["can_edit"] = sf.DefaultCanEdit,
+                ["can_share"] = sf.DefaultCanShare,
                 ["users"] = users,
                 ["share_admins"] = sf.UsersPermissions
                     .Where(x => x.UserType == UserType.User && x.ManageUsers)
