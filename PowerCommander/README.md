@@ -51,7 +51,7 @@ Implementation: SQLite assemblies are loaded from `StorageUtils` with `AssemblyR
 | [Set-KeeperLocation](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/folder-commands#power-commander-6)                                      | kcd              | Change Keeper folder
 | [Get-KeeperChildItem](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-1)                                     | kdir             | Display subfolder and record names in the current Keeper folder
 | [Get-KeeperObject](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-1)                                        | ko               | Get Keeper object by Uid
-| [Get-KeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-1)                                        | kr               | Enumerate all records
+| [Get-KeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/miscellaneous-commands#power-commander-1)                                        | kr               | Enumerate records; use `-Filter <pattern> -Format json` or `-Format json` for a JSON array of UID, Name, Type, Category, Description, Version, Revision, and Shared. For example: `kr -Filter database -Format json`.
 | [Get-KeeperSharedFolder](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/shared-folder-commands#power-commander)                                 | ksf              | Enumerate all shared folders
 | [Add-KeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#powercommander)                                        | kadd             | Add/Modify Keeper record
 | [Remove-KeeperRecord](https://docs.keeper.io/en/keeperpam/commander-sdk/keeper-commander-sdks/sdk-command-reference/record-commands#powercommander-2)                                     | kdel             | Delete Keeper record
@@ -487,6 +487,8 @@ Official documentation (**Keeper Docs / GitBook**): **[Shared folder — without
     ```
     PS > Get-KeeperFolder '/Shared Folder/SubFolder'
     ```
+
+    For Python Commander-style JSON, use `Get-KeeperFolder 'Shared Folder' -Format json`. For a classic record, use `kr -Uid <record-uid> -Format json`. Hidden record values are masked unless `-Unmask` is supplied.
 
 9. List all enterprise users
     ```

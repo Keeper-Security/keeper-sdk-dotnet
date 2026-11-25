@@ -299,6 +299,127 @@ function Get-KeeperRecordListItems {
     return $records
 }
 
+function ConvertTo-KeeperRecordListRow {
+    Param([Parameter(Mandatory = $true)][KeeperRecordListItem] $Item)
+
+    $desc = $Item.Description
+    if (-not [string]::IsNullOrEmpty($desc)) {
+        $desc = ($desc -replace '\s+', ' ').Trim()
+        if ($desc.Length -gt 36) { $desc = $desc.Substring(0, 33) + '...' }
+    }
+
+    [PSCustomObject]@{
+        UID         = $Item.RecordUid
+        Name        = $Item.Name
+        Type        = $Item.Type
+        Category    = $Item.Category
+        Description = $desc
+        Version     = $Item.Version
+        Revision    = $Item.Revision
+        Shared      = $Item.Shared
+    }
+}
+
+function ConvertTo-KeeperClassicRecordJson {
+    Param(
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.KeeperRecord] $Record,
+        [Parameter(Mandatory = $true)][KeeperSecurity.Vault.VaultOnline] $Vault,
+        [switch] $Unmask
+    )
+
+    $json = [ordered]@{
+        record_uid  = $Record.Uid
+        source      = 'classic'
+    }
+    if ($Record -is [KeeperSecurity.Vault.PasswordRecord]) {
+        $json['title'] = $Record.Title
+        $json['record_type'] = 'general'
+        if ($Record.Login) { $json['login'] = $Record.Login }
+        if ($Record.Password) {
+            $json['password'] = [KeeperSecurity.Vault.RecordSecurity]::Mask($Record.Password, $Unmask.IsPresent)
+        }
+        if ($Record.Link) { $json['login_url'] = $Record.Link }
+        if ($Record.Custom.Count -gt 0) {
+            $json['custom_fields'] = @($Record.Custom | ForEach-Object {
+                [ordered]@{
+                    name  = $_.Name
+                    value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($_.Name) -or
+                        $_.Type -in @('note', 'json', 'paymentCard', 'bankAccount', 'securityQuestion')) {
+                        [KeeperSecurity.Vault.RecordSecurity]::Mask($_.Value, $Unmask.IsPresent)
+                    } else { $_.Value }
+                    type  = $_.Type
+                }
+            })
+        }
+        if ($Record.Totp) {
+            $json['totp'] = [KeeperSecurity.Vault.RecordSecurity]::Mask($Record.Totp, $Unmask.IsPresent)
+        }
+        if ($Record.Attachments.Count -gt 0) {
+            $json['attachments'] = @($Record.Attachments | ForEach-Object {
+                [ordered]@{ id = $_.Id; name = $_.Name; size = $_.Size }
+            })
+        }
+        if ($Record.Notes) { $json['notes'] = $Record.Notes }
+    }
+    elseif ($Record -is [KeeperSecurity.Vault.TypedRecord]) {
+        $json['type'] = $Record.TypeName
+        $json['title'] = $Record.Title
+        foreach ($group in @('Fields', 'Custom')) {
+            $json[$group.ToLowerInvariant()] = @($Record.$group | ForEach-Object {
+                $field = $_
+                $values = @(
+                    for ($i = 0; $i -lt $field.Count; $i++) {
+                        $value = $field.GetValueAt($i)
+                        if (([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field) -or
+                            $field.FieldName -in @('note', 'json', 'paymentCard', 'bankAccount', 'securityQuestion')) -and
+                            -not $Unmask.IsPresent) {
+                            [KeeperSecurity.Vault.RecordSecurity]::Mask([string]$value, $false)
+                        } else { $value }
+                    }
+                )
+                $entry = [ordered]@{ type = $field.FieldName; value = $values }
+                if ($field.FieldLabel) { $entry['label'] = $field.FieldLabel }
+                $entry
+            })
+        }
+        if ($Record.Notes) { $json['notes'] = $Record.Notes }
+    }
+    $json['version'] = $Record.Version
+    $json['shared'] = [bool]$Record.Shared
+    $json['client_modified_time'] = $Record.ClientModified.LocalDateTime.ToString('yyyy-MM-ddTHH:mm:ss')
+
+    $shares = @($Vault.GetSharesForRecords(@($Record.Uid)).GetAwaiter().GetResult() |
+        Where-Object { $_.RecordUid -eq $Record.Uid }) | Select-Object -First 1
+    if ($shares) {
+        if ($null -ne $shares.UserPermissions) {
+            $json['user_permissions'] = @($shares.UserPermissions | ForEach-Object {
+                [ordered]@{
+                    username = $_.Username
+                    owner = [bool]$_.Owner
+                    sharable = [bool]$_.CanShare
+                    editable = [bool]$_.CanEdit
+                }
+            })
+        }
+        if ($null -ne $shares.SharedFolderPermissions) {
+            $json['shared_folder_permissions'] = @($shares.SharedFolderPermissions | ForEach-Object {
+                [ordered]@{
+                    shared_folder_uid = $_.SharedFolderUid
+                    can_edit = [bool]$_.CanEdit
+                    can_share = [bool]$_.CanShare
+                }
+            })
+        }
+    }
+    $json['revision'] = $Record.Revision
+    $folder = $Vault.Folders | Where-Object { $_.Records.Contains($Record.Uid) } | Select-Object -First 1
+    $json['folder'] = [ordered]@{
+        uid = if ($folder) { $folder.FolderUid } else { $null }
+        path = if ($folder) { Get-KeeperJsonFolderPath -Vault $Vault -FolderUid $folder.FolderUid } else { '/' }
+    }
+    ConvertTo-Json -InputObject $json -Depth 10
+}
+
 function Test-KeeperRecordFormattedListOutput {
     Param(
         [Parameter(Mandatory = $true)][System.Management.Automation.InvocationInfo] $Invocation
@@ -367,6 +488,9 @@ function Get-KeeperRecord {
 	.Parameter Filter
 	Return matching classic records only as KeeperRecord objects
 
+	.Parameter Format
+	Output table (default) or JSON. -Filter and the default list view return arrays; -Uid returns a classic record object.
+
 	.Parameter AsObject
 	Return unified list rows (KeeperRecordListItem) for scripting
 
@@ -375,12 +499,19 @@ function Get-KeeperRecord {
 
 	.Parameter Unmask
 	Display hidden fields in formatted output. Object output exposes the record password to the pipeline.
+
+	.Example
+	kr -Filter "database" -Format json
+
+	.Example
+	kr -Uid "ABC123" -Format json
 #>
     [CmdletBinding()]
     [OutputType([KeeperSecurity.Vault.KeeperRecord[]])]
     Param (
         [string] $Uid,
         [string] $Filter,
+        [Parameter()][ValidateSet('table','json')][string] $Format = 'table',
         [Parameter()][switch] $AsObject,
         [Parameter()][switch] $ClassicOnly,
         [switch] $Unmask
@@ -390,6 +521,15 @@ function Get-KeeperRecord {
     if ($Uid) {
         $record = Get-KeeperRecordByUid -Uid $uid -Vault $vault
         if ($null -ne $record) {
+            if ($Format -eq 'json' -and ($record -is [KeeperSecurity.Vault.PasswordRecord] -or
+                $record -is [KeeperSecurity.Vault.TypedRecord])) {
+                ConvertTo-KeeperClassicRecordJson -Record $record -Vault $vault -Unmask:$Unmask
+                $vault.AuditLogRecordOpen($record.Uid)
+                if ($Unmask.IsPresent -and [KeeperSecurity.Vault.RecordSecurity]::HasPassword($record)) {
+                    $vault.AuditLogRecordRevealPassword($record.Uid)
+                }
+                return
+            }
             $interactive = Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation
             $reveal = $Unmask.IsPresent -or (Get-KeeperPasswordVisible)
             if ($interactive) {
@@ -409,15 +549,42 @@ function Get-KeeperRecord {
         }
     }
     elseif ($Filter) {
+        if ($Format -eq 'json') {
+            $rows = [System.Collections.Generic.List[object]]::new()
+        }
         foreach ($record in $vault.KeeperRecords) {
             $match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
             if (-not $match) {
                 continue
             }
+            if ($Format -eq 'json') {
+                $item = [KeeperRecordListItem]::new()
+                $item.RecordUid = $record.Uid
+                $item.Name = if ($record.Title) { $record.Title } else { '' }
+                $item.Type = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($record)
+                $item.Category = 'classic'
+                $item.Description = if ($record.Notes) { $record.Notes.Trim() } else { '' }
+                $item.Version = $record.Version
+                $item.Revision = $record.Revision
+                $item.Shared = $record.Shared
+                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item)) | Out-Null
+                continue
+            }
             $record
+        }
+        if ($Format -eq 'json') {
+            ConvertTo-Json -InputObject ([object[]]$rows.ToArray()) -Depth 4
         }
     }
     else {
+        if ($Format -eq 'json') {
+            $rows = [System.Collections.Generic.List[object]]::new()
+            foreach ($item in (Get-KeeperRecordListItems -Vault $vault -ClassicOnly:$ClassicOnly.IsPresent | Sort-Object -Property Name)) {
+                $rows.Add((ConvertTo-KeeperRecordListRow -Item $item)) | Out-Null
+            }
+            ConvertTo-Json -InputObject ([object[]]$rows.ToArray()) -Depth 4
+            return
+        }
         $useListOutput = $AsObject.IsPresent -or (Test-KeeperRecordFormattedListOutput -Invocation $MyInvocation)
         if ($useListOutput) {
             $items = [System.Collections.Generic.List[KeeperRecordListItem]]::new()
@@ -436,21 +603,7 @@ function Get-KeeperRecord {
                 Write-Host ""
 
                 $rows = foreach ($item in $items) {
-                    $desc = $item.Description
-                    if (-not [string]::IsNullOrEmpty($desc)) {
-                        $desc = ($desc -replace '\s+', ' ').Trim()
-                        if ($desc.Length -gt 36) { $desc = $desc.Substring(0, 33) + '...' }
-                    }
-                    [PSCustomObject]@{
-                        UID         = $item.RecordUid
-                        Name        = $item.Name
-                        Type        = $item.Type
-                        Category    = $item.Category
-                        Description = $desc
-                        Version     = $item.Version
-                        Revision    = $item.Revision
-                        Shared      = $item.Shared
-                    }
+                    ConvertTo-KeeperRecordListRow -Item $item
                 }
                 return $rows
             }

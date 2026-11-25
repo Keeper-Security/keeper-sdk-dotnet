@@ -345,12 +345,19 @@ function Get-KeeperFolder {
 
 	.Parameter AsObject
 	Return the folder object instead of displaying formatted information
+
+	.Parameter Format
+	Output format: table (default) or Python Commander-compatible JSON for a classic folder.
+
+	.Example
+	Get-KeeperFolder 'Engineering' -Format json
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
         [Parameter(Position = 0, Mandatory = $true)][string] $Uid,
-        [Parameter()][switch] $AsObject
+        [Parameter()][switch] $AsObject,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table'
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -368,6 +375,11 @@ function Get-KeeperFolder {
 
     if ($AsObject.IsPresent) {
         return $folder
+    }
+
+    if ($Format -eq 'json') {
+        ConvertTo-KeeperFolderJson -Folder $folder -Vault $vault
+        return
     }
 
     Write-Host ""
