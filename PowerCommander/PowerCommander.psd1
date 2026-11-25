@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.7'
+    ModuleVersion        = '1.1.8'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -216,24 +216,44 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Version 1.1.7
-                    PAM workflow management:
-                    - New-KeeperPamWorkflow, Get-KeeperPamWorkflow, Update-KeeperPamWorkflow, and Remove-KeeperPamWorkflow manage PAM workflows.
-                    - Add-KeeperPamWorkflowApprover and Remove-KeeperPamWorkflowApprover manage workflow approvers.
-                    - Get-KeeperPamWorkflowState and Get-KeeperPamWorkflowMyAccess report workflow status and the current user access.
-                    - Get-KeeperPamWorkflowPending, Approve-KeeperPamWorkflowAccess, and Deny-KeeperPamWorkflowAccess manage pending access requests.
-                    - Request-KeeperPamWorkflowAccess requests, escalates, or cancels access; Start-KeeperPamWorkflow and Stop-KeeperPamWorkflow check records out and in.
-                    PAM operations:
-                    - Invoke-KeeperPamActionRotate schedules on-demand credential rotation; Get-KeeperPamActionJobInfo reports its job status.
-                    - Set-KeeperPamConnection configures PAM connection settings, Set-KeeperPamRbi configures Remote Browser Isolation, and Invoke-KeeperPamLaunch runs launch preflight.
-                    - PAM configuration cmdlets support Keeper NSF folders.
+            ReleaseNotes = 'Version 1.1.8
+                    Authentication and account:
+                    - Connect-Keeper supports WebAuthn/FIDO2 security keys (YubiKey) for two-factor authentication; Set-KeeperDeviceSettings adds -NoYubiKeyPin and -IpAutoApprove.
+                    - Quantum-resistant (QRC, ML-KEM hybrid) encryption with automatic fallback to EC; requires BouncyCastle.Cryptography.dll and System.Numerics.Vectors.dll.
+                    - Master password strength is estimated with zxcvbn (zxcvbn-core.dll is loaded before KeeperSdk.dll).
+                    - Set-KeeperAccountRecovery generates, verifies, or snoozes the account recovery phrase.
+                    - Server region names are supported; corrected the keepersecurity.eu host name.
+                    - Self-hosted Keeper instances: Connect-Keeper -IgnoreCertificateErrors, Resolve-KeeperServer accepts host names, and server public keys are discovered automatically.
+                    Vault:
+                    - Get-KeeperTree (ktree) displays the folder tree, including NSF folders, shares, and JSON output.
+                    - Get-KeeperDeviceList (device-list), Invoke-KeeperDeviceAction (device-action), and Rename-KeeperDevice (device-rename) manage the current user devices.
+                    - Record commands display OTP codes; record history supports list, show, diff, and restore with -Unmask.
+                    - Shared folder and folder commands support JSON output.
+                    - Folder and record name ambiguity is reported instead of picking an arbitrary match.
+                    Keeper NSF:
+                    - Move-KeeperNSFItem (nsf-move), Move-KeeperNSFFolders (nsf-move-folders), and Move-KeeperNSFRecords (nsf-move-records) move NSF folders and records.
+                    - ConvertTo-KeeperNSFRecord (nsf-convert) converts classic records to NSF records.
+                    - Trash commands support NSF records and folders.
+                    - nsf-get adds -ShowInherited and -ShowDenied; access changes no longer alter folder inheritance.
+                    - NSF record fields can generate passwords; empty folder names and record titles are rejected.
+                    - PAM workflow commands support NSF records.
+                    Enterprise:
+                    - Invoke-KeeperEnterprisePush (kep) and Invoke-KeeperTeamApprove (kta).
+                    - Get-KeeperAdminUserDevice and Invoke-KeeperAdminUserDeviceAction manage enterprise user devices.
+                    - New-KeeperEnterpriseRole supports -AddAdmin and -Cascade; role names are length-validated.
+                    - Convert-KeeperMspNode (msp-convert-node) converts a node into a managed company.
+                    - Get-KeeperEnterpriseInfoRole reports enforcements and managed nodes; -Pattern filters use literal substring matching.
+                    - Get-KeeperAuditReport includes compliance data (record titles) for users with compliance report privileges.
+                    - EPM policies resolve user and machine collection filters by name and validate required parameters.
                     Sharing:
-                    - Set-KeeperSharedFolderRecordPermission (ksfr) updates a shared-folder record edit/share permissions and optional expiration or rotation-on-expiration settings.
-                    - New-KeeperOneTimeShareSkipSync, Get-KeeperOneTimeShareSkipSync, and Remove-KeeperOneTimeShareSkipSync create, list, and revoke one-time shares for owned records without a full vault sync; list output includes a ShareLink column.
-                    - New-KeeperOneTimeShare and New-KeeperOneTimeShareSkipSync support the -Editable switch for editable shares.
+                    - New-KeeperOneTimeShareSkipSync supports directly shared and shared-folder records.
+                    - Share commands validate ownership and prompt for confirmation (use -Force to skip).
                     Fixes:
-                    - Corrected BreachWatch status mapping in Get-KeeperSecurityScoreDeltas.
-                    - Attachment downloads sanitize file names and constrain output paths to the selected destination folder.
+                    - Duplicate enterprise node creation is prevented.
+                    - Shared-folder record expiration handling.
+                    - PAM workflow delete and "Checkout By" display in my-access.
+                    - Team permission removal in nsf-share-sub-folder.
+                    - Trash item status labels.
                 '
         }
     }
