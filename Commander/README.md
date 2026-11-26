@@ -209,6 +209,10 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `record-history` | | Display record version history |
 | `record-type-info` | `rti` | Get record type information |
 | `share-record` | | Manage record sharing permissions |
+| `nsf-record-add` | | Add an NSF record (`--folder`, `-t/--type`, `--title`, optional fields) |
+| `nsf-share-record` | | Grant or revoke NSF record access (`-e`, `-a`, `-r`, `-R`, `--dry-run`, expiration options) |
+
+NSF CLI compatibility: `nsf-record-add` now requires `--title` and `-t/--type` instead of a positional title and an implicit `login` type. `nsf-share-record` requires `-r/--role` for grants instead of defaulting to `viewer`; existing scripts should add `-r viewer` where appropriate. Sharing also accepts `--contacts-only` and `--rotate-on-expiration`.
 
 ### Attachment Management
 
