@@ -69,7 +69,7 @@ namespace KeeperSecurity.Vault
             return FetchFolderAccessDataAsync(vault, new[] { folderUid }, pageSize: 100);
         }
 
-        // Loads who has access to the given NSF folders (up to 100 UIDs per request).
+        // Loads who has access to the given NSF folders (up to 20 UIDs per request).
         // Used by folder-access batch prepare and permission checks.
         // If a row is missing its folder UID, we copy it from the parent result so callers can group by folder.
         // Optional errorsByFolderUid gets per-folder fetch failures — don't treat those as an empty ACL.
@@ -88,7 +88,8 @@ namespace KeeperSecurity.Vault
             if (pageSize > 1000) pageSize = 1000;
 
             var foldersList = folderUids.Where(f => !string.IsNullOrEmpty(f)).ToList();
-            const int MaxFoldersPerRequest = 100;
+            // Larger ACL requests can omit accessors even when the server returns a folder result.
+            const int MaxFoldersPerRequest = 20;
             for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)
             {
                 var batch = foldersList.Skip(i).Take(MaxFoldersPerRequest).ToList();

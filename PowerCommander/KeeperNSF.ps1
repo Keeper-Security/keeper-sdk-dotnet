@@ -959,8 +959,8 @@ function Test-KdIsDirectAccess {
     Param($access, $includeInherited = $false, $includeDeniedAccess = $false)
 
     if ($null -eq $access) { return $false }
-    return [bool]($access.Owner -or (-not $access.Inherited -and -not $access.DeniedAccess) -or
-        ($includeInherited -and $access.Inherited) -or ($includeDeniedAccess -and $access.DeniedAccess))
+    if ($access.DeniedAccess) { return [bool]$includeDeniedAccess }
+    return [bool]($access.Owner -or (-not $access.Inherited) -or $includeInherited)
 }
 
 function Get-KdUserPermissions {

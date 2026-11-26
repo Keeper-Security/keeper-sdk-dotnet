@@ -105,16 +105,25 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        private static void SplitNsfFieldKey(string fieldKey, out string fieldType, out string fieldLabel)
+        private static void SplitNsfFieldKey(string fieldKey, out string fieldType, out string fieldLabel,
+            out bool isCustom)
         {
             fieldType = fieldKey ?? string.Empty;
             fieldLabel = null;
+            isCustom = false;
             if (string.IsNullOrEmpty(fieldKey))
             {
                 return;
             }
 
-            var separator = fieldKey.IndexOf(':');
+            isCustom = fieldKey.StartsWith("c.", StringComparison.OrdinalIgnoreCase);
+            if (isCustom)
+            {
+                fieldKey = fieldKey.Substring(2);
+                fieldType = fieldKey;
+            }
+
+            var separator = isCustom ? fieldKey.IndexOf('.') : fieldKey.IndexOf(':');
             if (separator <= 0)
             {
                 return;
@@ -165,14 +174,20 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                SplitNsfFieldKey(kvp.Key, out var fieldType, out var fieldLabel);
+                SplitNsfFieldKey(kvp.Key, out var fieldType, out var fieldLabel, out var isCustom);
                 if (string.IsNullOrEmpty(fieldType))
                 {
                     continue;
                 }
 
-                var existing = FindNsfField(dataObj.Fields, fieldType, fieldLabel);
-                if (existing == null)
+                if (isCustom && dataObj.Custom == null)
+                {
+                    dataObj.Custom = new List<NsfRecordFieldData>();
+                }
+
+                var targetFields = isCustom ? dataObj.Custom : dataObj.Fields;
+                var existing = FindNsfField(targetFields, fieldType, fieldLabel);
+                if (existing == null && !isCustom)
                 {
                     existing = FindNsfField(dataObj.Custom, fieldType, fieldLabel);
                 }
@@ -187,7 +202,7 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    dataObj.Fields.Add(new NsfRecordFieldData
+                    targetFields.Add(new NsfRecordFieldData
                     {
                         Type = fieldType,
                         Label = string.IsNullOrEmpty(fieldLabel) ? null : fieldLabel,

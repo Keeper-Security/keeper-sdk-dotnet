@@ -308,6 +308,10 @@ namespace Commander
 
                     var key = spec.Substring(0, eqIdx).Trim();
                     var val = spec.Substring(eqIdx + 1).Trim();
+                    if (val.Length >= 2 && val[0] == '"' && val[val.Length - 1] == '"')
+                    {
+                        val = val.Substring(1, val.Length - 2).Replace("\\\"", "\"");
+                    }
                     if (string.IsNullOrEmpty(key))
                     {
                         continue;

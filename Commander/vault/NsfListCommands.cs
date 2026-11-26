@@ -986,10 +986,9 @@ namespace Commander
 
         private static bool IsDirectAccess(NsfAccessView access, bool includeInherited = false, bool includeDeniedAccess = false)
         {
-            return access != null && (access.Owner
-                || (!access.Inherited && !access.DeniedAccess)
-                || (includeInherited && access.Inherited)
-                || (includeDeniedAccess && access.DeniedAccess));
+            if (access == null) return false;
+            if (access.DeniedAccess) return includeDeniedAccess;
+            return access.Owner || !access.Inherited || includeInherited;
         }
 
         private static async Task<List<NsfAccessView>> GetRecordAccessesAsync(VaultOnline vault, KeeperNSFRecord record,

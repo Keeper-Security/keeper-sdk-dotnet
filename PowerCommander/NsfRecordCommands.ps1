@@ -259,6 +259,9 @@ function Script:Parse-KeeperNSFFieldSpecs {
         if ($eqIdx -gt 0) {
             $key = $f.Substring(0, $eqIdx).Trim()
             $val = $f.Substring($eqIdx + 1).Trim()
+            if ($val.Length -ge 2 -and $val[0] -eq '"' -and $val[$val.Length - 1] -eq '"') {
+                $val = $val.Substring(1, $val.Length - 2).Replace('\"', '"')
+            }
         }
         else {
             $colonIdx = $f.IndexOf(':')
@@ -717,6 +720,7 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+	Use c.type.Label=value for custom fields, e.g. 'c.text.Environment=Production'.
 	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
