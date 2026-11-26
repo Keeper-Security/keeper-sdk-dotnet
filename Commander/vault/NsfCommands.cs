@@ -100,7 +100,7 @@ namespace Commander
                 new ParseableCommand<NsfRecordAddOptions>
                 {
                     Order = 47,
-                    Description = "Create a Keeper NSF record",
+                    Description = "Add a record to folder.",
                     Action = context.NsfRecordAddCommand
                 });
 
@@ -129,7 +129,7 @@ namespace Commander
                 new ParseableCommand<NsfShareRecordOptions>
                 {
                     Order = 47,
-                    Description = "Grant or revoke Keeper NSF record access",
+                    Description = "Change the sharing permissions of an individual record",
                     Action = context.NsfShareRecordCommand
                 });
 

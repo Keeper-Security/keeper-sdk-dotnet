@@ -110,6 +110,31 @@ function resolveKeeperNSFFolderOrRoot {
     }
 }
 
+function script:Resolve-KeeperNSFFolderReference {
+    Param([string]$Identifier, [KeeperSecurity.Vault.VaultOnline]$Vault)
+    [KeeperSecurity.Vault.FolderNode]$folder = $null
+    if ($Vault.TryResolveKeeperNSFFolderReference($Identifier, [ref]$folder)) { return $folder }
+    if ($Identifier -and $Identifier -notmatch '[\\/]') {
+        return resolveKeeperNSFFolder -Identifier $Identifier -Vault $Vault
+    }
+    return $null
+}
+
+function script:Get-KeeperNSFRecordUidsInFolder {
+    Param([string]$FolderUid, [KeeperSecurity.Vault.VaultOnline]$Vault, [switch]$Recursive)
+    $folderUids = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    [void]$folderUids.Add($FolderUid)
+    if ($Recursive.IsPresent) {
+        do {
+            $changed = $false
+            foreach ($child in $Vault.KeeperNSFFolderNodes) {
+                if ($folderUids.Contains($child.ParentUid)) { $changed = $folderUids.Add($child.FolderUid) -or $changed }
+            }
+        } while ($changed)
+    }
+    return @($Vault.Storage.KdFolderRecords.GetAllLinks() | Where-Object { $folderUids.Contains($_.FolderUid) } | ForEach-Object { $_.RecordUid } | Select-Object -Unique)
+}
+
 function resolveKeeperNSFRecord {
     <#
     .Synopsis
