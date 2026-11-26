@@ -125,15 +125,12 @@ namespace KeeperSecurity.Vault
                 fieldType = fieldKey;
                 if (string.IsNullOrEmpty(fieldKey) || fieldKey[0] == '.' || fieldKey[0] == ':')
                 {
-                    throw new ArgumentException("Missing field type or label.", nameof(fieldKey));
+                    throw new ArgumentException("Missing field type or label.");
                 }
             }
 
-            var dot = fieldKey.IndexOf('.');
-            var colon = fieldKey.IndexOf(':');
             var separator = isCustom || isStandard
-                ? dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon)
-                : colon;
+                ? FindNsfFieldSeparator(fieldKey) : fieldKey.IndexOf(':');
             if (separator <= 0)
             {
                 if (isCustom && !RecordTypesConstants.TryGetRecordField(fieldKey, out _))
@@ -148,8 +145,15 @@ namespace KeeperSecurity.Vault
             fieldLabel = fieldKey.Substring(separator + 1);
             if ((isCustom || isStandard) && string.IsNullOrEmpty(fieldLabel))
             {
-                throw new ArgumentException("Missing field type or label.", nameof(fieldKey));
+                throw new ArgumentException("Missing field type or label.");
             }
+        }
+
+        private static int FindNsfFieldSeparator(string fieldKey)
+        {
+            var dot = fieldKey.IndexOf('.');
+            var colon = fieldKey.IndexOf(':');
+            return dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon);
         }
 
         private static NsfRecordFieldData FindNsfField(
@@ -210,7 +214,7 @@ namespace KeeperSecurity.Vault
                     && (kvp.Value is not string stringValue
                         || !stringValue.StartsWith("$JSON", StringComparison.Ordinal)))
                 {
-                    throw new ArgumentException($"Field type {fieldType} is not supported.", nameof(fields));
+                    throw new ArgumentException($"Field type {fieldType} is not supported.");
                 }
 
                 if (isCustom && dataObj.Custom == null)
@@ -227,7 +231,7 @@ namespace KeeperSecurity.Vault
 
                 if (isStandard && existing == null)
                 {
-                    throw new ArgumentException($"Field type {fieldType} not found for record type {dataObj.Type}.", nameof(fields));
+                    throw new ArgumentException($"Field type {fieldType} not found for record type {dataObj.Type}.");
                 }
 
                 if (existing != null)
@@ -3180,7 +3184,22 @@ namespace KeeperSecurity.Vault
             if (request.Title != null) dataObj.Title = request.Title;
             if (request.RecordType != null) dataObj.Type = request.RecordType;
             if (request.Notes != null) dataObj.Notes = request.Notes;
-            ApplyNsfFieldUpdates(dataObj, request.Fields);
+            try
+            {
+                ApplyNsfFieldUpdates(dataObj, request.Fields);
+            }
+            catch (ArgumentException ex)
+            {
+                failure = new KeeperNSFRecordUpdateResult
+                {
+                    RecordUid = recordUid,
+                    Title = request.Title ?? record.Title,
+                    Status = "invalid_field",
+                    Message = ex.Message,
+                    Success = false,
+                };
+                return false;
+            }
 
             titleForResult = dataObj.Title ?? request.Title;
 

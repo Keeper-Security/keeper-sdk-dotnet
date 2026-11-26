@@ -246,11 +246,19 @@ function Script:Get-KeeperNSFFieldType {
         $FieldKey.StartsWith('f.', [System.StringComparison]::OrdinalIgnoreCase)) {
         $FieldKey = $FieldKey.Substring(2)
     }
-    $separator = $FieldKey.IndexOf('.')
-    $colon = $FieldKey.IndexOf(':')
-    if ($separator -lt 0 -or ($colon -ge 0 -and $colon -lt $separator)) { $separator = $colon }
+    $separator = Get-KeeperNSFFieldSeparator -FieldKey $FieldKey
     if ($separator -ge 0) { return $FieldKey.Substring(0, $separator) }
     return $FieldKey
+}
+
+function Script:Get-KeeperNSFFieldSeparator {
+    Param([Parameter(Mandatory = $true)][string] $FieldKey)
+
+    $dot = $FieldKey.IndexOf('.')
+    $colon = $FieldKey.IndexOf(':')
+    if ($dot -lt 0) { return $colon }
+    if ($colon -lt 0) { return $dot }
+    return [Math]::Min($dot, $colon)
 }
 
 function Script:Parse-KeeperNSFFieldSpecs {

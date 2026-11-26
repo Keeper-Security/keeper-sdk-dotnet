@@ -1129,6 +1129,7 @@ function Add-KeeperRecord {
         $saveRecord = $false
 
         $fields = @{}
+        $emptyFields = @{}
         $fieldName = $null
         foreach ($var in $Extra) {
             if ($var -match '^-') {
@@ -1145,8 +1146,11 @@ function Add-KeeperRecord {
                 if ($var -match '^([^=]+)=(.*)?') {
                     $n = $Matches[1].Trim()
                     $v = $Matches[2].Trim()
-                    if ($n -and $null -ne $v) {
+                    if ($n -and $v) {
                         $fields[$n] = $v
+                    }
+                    elseif ($n -and $null -ne $v) {
+                        $emptyFields[$n] = $v
                     }
                 }
             }
@@ -1195,6 +1199,11 @@ function Add-KeeperRecord {
             else {
                 $record = New-Object KeeperSecurity.Vault.TypedRecord $RecordType
                 [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
+            }
+        }
+        if ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+            foreach ($name in $emptyFields.Keys) {
+                $fields[$name] = $emptyFields[$name]
             }
         }
         if ($Title) {
@@ -1255,6 +1264,7 @@ function Add-KeeperRecord {
 
         foreach ($fieldName in $fields.Keys) {
             $fieldValue = $fields[$fieldName]
+            $rawFieldName = $fieldName
             $fieldLabel = ''
             $customSection = $null
             if ($fieldName -match '^([^.]+)(\..+)?$') {
@@ -1263,14 +1273,14 @@ function Add-KeeperRecord {
                     $fieldLabel = $Matches[2].Trim().Substring(1)
                 }
             }
-            if ($record -is [KeeperSecurity.Vault.TypedRecord] -and ($fieldName -ieq 'c' -or $fieldName -ieq 'f')) {
+            if ($record -is [KeeperSecurity.Vault.TypedRecord] -and
+                ($rawFieldName.StartsWith('c.', [System.StringComparison]::OrdinalIgnoreCase) -or
+                 $rawFieldName.StartsWith('f.', [System.StringComparison]::OrdinalIgnoreCase))) {
                 $customSection = $fieldName -ieq 'c'
                 if ([string]::IsNullOrEmpty($fieldLabel) -or $fieldLabel[0] -eq '.' -or $fieldLabel[0] -eq ':') {
                     throw [System.ArgumentException]::new('Missing field type or label.')
                 }
-                $separator = $fieldLabel.IndexOf('.')
-                $colon = $fieldLabel.IndexOf(':')
-                if ($separator -lt 0 -or ($colon -ge 0 -and $colon -lt $separator)) { $separator = $colon }
+                $separator = Get-KeeperNSFFieldSeparator -FieldKey $fieldLabel
                 if ($separator -ge 0) {
                     $fieldName = $fieldLabel.Substring(0, $separator)
                     $fieldLabel = $fieldLabel.Substring($separator + 1)

@@ -274,7 +274,7 @@ namespace KeeperSecurity.Vault
 
         private const int MaxFolderAccessUidsPerRequest = 20;
         // Record access API limits
-        private const int MaxRecordAccessUidsPerRequest = 10;
+        private const int MaxRecordAccessUidsPerRequest = 100;
         private const int DefaultRecordAccessPageNumber = 0;
         private const int DefaultRecordAccessPageSize = 500;
         private const int MaxRecordAccessPageSize = 500;

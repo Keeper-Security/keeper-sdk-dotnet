@@ -396,10 +396,15 @@ namespace Commander
                 fieldKey = fieldKey.Substring(2);
             }
 
+            var separator = FindNsfFieldSeparator(fieldKey);
+            return separator >= 0 ? fieldKey.Substring(0, separator) : fieldKey;
+        }
+
+        internal static int FindNsfFieldSeparator(string fieldKey)
+        {
             var dot = fieldKey.IndexOf('.');
             var colon = fieldKey.IndexOf(':');
-            var separator = dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon);
-            return separator >= 0 ? fieldKey.Substring(0, separator) : fieldKey;
+            return dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon);
         }
 
         internal static void WriteRemoveImpact(RemoveResponse response, string itemLabel = "Record")

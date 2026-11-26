@@ -60,8 +60,8 @@ namespace Commander
                     crf.Value = crf.Value.Trim('"').Replace("\\\"", "\"");
                 }
 
-                if (string.Equals(crf.FieldName, "c", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(crf.FieldName, "f", StringComparison.OrdinalIgnoreCase))
+                if (equals >= 0 && (field.StartsWith("c.", StringComparison.OrdinalIgnoreCase)
+                    || field.StartsWith("f.", StringComparison.OrdinalIgnoreCase)))
                 {
                     crf.CustomSection = string.Equals(crf.FieldName, "c", StringComparison.OrdinalIgnoreCase);
                     var name = crf.FieldLabel;
@@ -70,9 +70,7 @@ namespace Commander
                         throw new ArgumentException("Missing field type or label.");
                     }
 
-                    var dot = name.IndexOf('.');
-                    var colon = name.IndexOf(':');
-                    var separator = dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon);
+                    var separator = NsfHelpers.FindNsfFieldSeparator(name);
                     if (separator >= 0)
                     {
                         crf.FieldName = name.Substring(0, separator);
@@ -91,7 +89,7 @@ namespace Commander
                     else
                     {
                         crf.FieldName = name;
-                        crf.FieldLabel = null;
+                        crf.FieldLabel = crf.CustomSection == true ? string.Empty : null;
                     }
                 }
 
