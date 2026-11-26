@@ -232,7 +232,7 @@ namespace KeeperSecurity.Configuration
             {
                 try
                 {
-                    var configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                    var configuration = ParseConfiguration(data, out _flat);
                     DecryptConfiguration(configuration);
                     _configuration = configuration;
                     _readEpochMillis = nowMillis;
@@ -323,16 +323,17 @@ namespace KeeperSecurity.Configuration
             }
         }
 
-        private void EncryptConfiguration(JsonConfiguration configuration)
+        private void EncryptConfiguration(JsonConfiguration configuration, string securityAlgorithm = null)
         {
-            if (ConfigurationProtection != null && !string.IsNullOrEmpty(SecurityAlgorithm) && !SkipSecurity)
+            var algorithm = securityAlgorithm ?? SecurityAlgorithm;
+            if (ConfigurationProtection != null && !string.IsNullOrEmpty(algorithm) && !SkipSecurity)
             {
-                var protector = ConfigurationProtection.Resolve(SecurityAlgorithm);
+                var protector = ConfigurationProtection.Resolve(algorithm);
                 if (protector != null)
                 {
-                    if (_configuration.devices != null)
+                    if (configuration.devices != null)
                     {
-                        foreach (var d in _configuration.devices)
+                        foreach (var d in configuration.devices)
                         {
                             try
                             {
@@ -352,9 +353,9 @@ namespace KeeperSecurity.Configuration
                             }
                         }
                     }
-                    if (_configuration.users != null)
+                    if (configuration.users != null)
                     {
-                        foreach (var u in _configuration.users)
+                        foreach (var u in configuration.users)
                         {
                             if (!string.IsNullOrEmpty(u.user_password))
                             {
@@ -370,7 +371,7 @@ namespace KeeperSecurity.Configuration
                             }
                         }
                     }
-                    _configuration.security = SecurityAlgorithm;
+                    configuration.security = algorithm;
                 }
             }
         }
@@ -380,12 +381,13 @@ namespace KeeperSecurity.Configuration
             byte[] data;
             if (_configuration == null)
             {
+                _flat = null;
                 data = _loader.LoadJson();
                 if (data != null && data.Length > 0)
                 {
                     try
                     {
-                        _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                        _configuration = ParseConfiguration(data, out _flat);
                         DecryptConfiguration(_configuration);
                     }
                     catch (Exception e)
@@ -398,10 +400,53 @@ namespace KeeperSecurity.Configuration
             }
 
             _configuration.Assign(configuration);
-            EncryptConfiguration(_configuration);
-            data = JsonUtils.DumpJson(_configuration);
+            if (_flat != null)
+            {
+                // Flat format (e.g. config1.json): keep the file in the same format.
+                if (SkipSecurity)
+                {
+                    if (string.IsNullOrEmpty(_configuration.security))
+                    {
+                        _flat.security = null;
+                    }
+                }
+                else
+                {
+                    EncryptConfiguration(_configuration,
+                        string.IsNullOrEmpty(SecurityAlgorithm) ? _flat.security : SecurityAlgorithm);
+                    if (!string.IsNullOrEmpty(_configuration.security))
+                    {
+                        _flat.security = _configuration.security;
+                    }
+                }
+                _flat.UpdateFrom(_configuration);
+                data = JsonUtils.DumpJson(_flat);
+            }
+            else
+            {
+                EncryptConfiguration(_configuration);
+                data = JsonUtils.DumpJson(_configuration);
+            }
             _loader.StoreJson(data);
             _configuration = null;
+        }
+
+        private FlatJsonConfiguration _flat;
+
+        /// <summary>
+        /// Parses either the standard format (config.json) or the flat single-user format (config1.json).
+        /// </summary>
+        private static JsonConfiguration ParseConfiguration(byte[] data, out FlatJsonConfiguration flat)
+        {
+            var probe = JsonUtils.ParseJson<FlatJsonConfiguration>(data);
+            if (probe != null && probe.IsFlat)
+            {
+                flat = probe;
+                return probe.ToConfiguration();
+            }
+
+            flat = null;
+            return JsonUtils.ParseJson<JsonConfiguration>(data);
         }
 
         /// <summary>
@@ -704,6 +749,112 @@ namespace KeeperSecurity.Configuration
         }
 
         public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <summary>
+    /// Flat single-user configuration format:
+    /// <c>{ "config_storage", "user", "server", "device_token", "private_key", "clone_code" }</c>.
+    /// </summary>
+    [DataContract]
+    internal class FlatJsonConfiguration : IExtensibleDataObject
+    {
+        [DataMember(Name = "config_storage", EmitDefaultValue = false)]
+        public string configStorage;
+
+        [DataMember(Name = "user", EmitDefaultValue = false)]
+        public string user;
+
+        [DataMember(Name = "server", EmitDefaultValue = false)]
+        public string server;
+
+        [DataMember(Name = "device_token", EmitDefaultValue = false)]
+        public string deviceToken;
+
+        [DataMember(Name = "private_key", EmitDefaultValue = false)]
+        public string privateKey;
+
+        [DataMember(Name = "clone_code", EmitDefaultValue = false)]
+        public string cloneCode;
+
+        [DataMember(Name = "security", EmitDefaultValue = false)]
+        public string security;
+
+        public ExtensionDataObject ExtensionData { get; set; }
+
+        // The standard format never has these keys at the top level.
+        public bool IsFlat => configStorage != null || deviceToken != null;
+
+        public JsonConfiguration ToConfiguration()
+        {
+            var cfg = new JsonConfiguration { LastServer = server, LastLogin = user, security = security };
+            if (!string.IsNullOrEmpty(deviceToken))
+            {
+                var device = new JsonDeviceConfiguration
+                {
+                    deviceToken = deviceToken,
+                    privateKey = privateKey,
+                    secured = string.IsNullOrEmpty(security) ? (bool?)null : true
+                };
+                if (!string.IsNullOrEmpty(cloneCode) && !string.IsNullOrEmpty(server))
+                {
+                    device.serverInfo = new List<JsonDeviceServerConfiguration>
+                    {
+                        new JsonDeviceServerConfiguration { server = server, cloneCode = cloneCode }
+                    };
+                }
+                cfg.devices = new List<JsonDeviceConfiguration> { device };
+            }
+
+            if (!string.IsNullOrEmpty(user))
+            {
+                cfg.users = new List<JsonUserConfiguration>
+                {
+                    new JsonUserConfiguration
+                    {
+                        user = user,
+                        _server = server,
+                        _last_device = string.IsNullOrEmpty(deviceToken)
+                            ? null
+                            : new JsonUserDeviceConfiguration { device_token = deviceToken }
+                    }
+                };
+            }
+
+            return cfg;
+        }
+
+        public void UpdateFrom(JsonConfiguration cfg)
+        {
+            var u = cfg.users?.FirstOrDefault(x => x.user == cfg.LastLogin) ?? cfg.users?.FirstOrDefault();
+            if (u != null)
+            {
+                user = u.user;
+                server = u._server ?? cfg.LastServer ?? server;
+            }
+            else
+            {
+                user = null;
+                if (!string.IsNullOrEmpty(cfg.LastServer))
+                {
+                    server = cfg.LastServer;
+                }
+            }
+
+            var token = u?._last_device?.device_token;
+            var d = cfg.devices?.FirstOrDefault(x => token != null && x.deviceToken == token) ?? cfg.devices?.FirstOrDefault();
+            if (d == null)
+            {
+                deviceToken = null;
+                privateKey = null;
+                cloneCode = null;
+                return;
+            }
+
+            deviceToken = d.deviceToken;
+            privateKey = d.privateKey;
+            var si = d.serverInfo?.FirstOrDefault(x => x.server == server) ?? d.serverInfo?.FirstOrDefault();
+            cloneCode = si?.cloneCode;
+        }
     }
 
     [DataContract]

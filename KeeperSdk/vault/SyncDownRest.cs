@@ -726,7 +726,7 @@ namespace KeeperSecurity.Vault
                         storage.ClearKeeperNSF();
                     }
                     KeeperNSFSync.ProcessKeeperNSFData(rs.KeeperDriveData, storage);
-                    // NSF rotations: fold keeperDriveData.recordRotationData into rotation cache
+                    // NSF rotations: fold the NSF sync record rotation data into rotation cache
                     if (rs.KeeperDriveData.RecordRotationData.Count > 0)
                     {
                         vault.UpdateRecordRotationCache(rs.KeeperDriveData.RecordRotationData);

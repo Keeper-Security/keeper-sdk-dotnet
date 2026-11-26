@@ -576,7 +576,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Permanently converts classic records to Keeper NSF records. The caller must own every
         /// source record. When <paramref name="folderUid"/> is omitted the records are placed at
-        /// the Keeper Drive root; otherwise it must identify a cached Keeper NSF folder.
+        /// the Keeper NSF root; otherwise it must identify a cached Keeper NSF folder.
         /// </summary>
         /// <param name="recordUids">Classic record UIDs to convert (sent in batches of up to 100).</param>
         /// <param name="folderUid">Optional destination Keeper NSF folder UID.</param>

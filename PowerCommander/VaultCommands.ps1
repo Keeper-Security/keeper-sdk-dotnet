@@ -93,7 +93,7 @@ function resolveKeeperNSFFolder {
 function resolveKeeperNSFFolderOrRoot {
     <#
     .Synopsis
-    Internal helper. Same as resolveKeeperNSFFolder, but also accepts '', '/' or 'root' to mean the Keeper Drive root.
+    Internal helper. Same as resolveKeeperNSFFolder, but also accepts '', '/' or 'root' to mean the Keeper NSF root.
     #>
     Param(
         [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Identifier,

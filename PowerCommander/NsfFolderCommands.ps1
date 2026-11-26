@@ -1440,7 +1440,7 @@ function Move-KeeperNSFItem {
             return
         }
         # A folder UID from a record's folder link that isn't a known local NSF folder
-        # represents the Keeper Drive root (the server's per-account root sentinel).
+        # represents the Keeper NSF root (the server's per-account root sentinel).
         [KeeperSecurity.Vault.FolderNode]$existingFolder = $null
         $sourceFolderUidOrRoot = if ($vault.TryGetKeeperNSFFolder($folderUids[0], [ref]$existingFolder)) { $folderUids[0] } else { 'root' }
 

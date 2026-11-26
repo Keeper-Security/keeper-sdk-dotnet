@@ -600,7 +600,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive folder.
+    /// Defines storage for a Keeper NSF folder.
     /// </summary>
     public interface IStorageKdFolder : IUid
     {
@@ -618,7 +618,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive folder key entry.
+    /// Defines storage for a Keeper NSF folder key entry.
     /// </summary>
     public interface IStorageKdFolderKey : IUidLink
     {
@@ -629,7 +629,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive record.
+    /// Defines storage for a Keeper NSF record.
     /// </summary>
     public interface IStorageKdRecord : IUid
     {
@@ -644,7 +644,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive record key (from folder-record associations).
+    /// Defines storage for a Keeper NSF record key (from folder-record associations).
     /// </summary>
     public interface IStorageKdRecordKey : IUidLink
     {
@@ -656,7 +656,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive folder-record link.
+    /// Defines storage for a Keeper NSF folder-record link.
     /// </summary>
     public interface IStorageKdFolderRecord : IUidLink
     {
@@ -665,7 +665,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive folder access entry.
+    /// Defines storage for a Keeper NSF folder access entry.
     /// </summary>
     public interface IStorageKdFolderAccess : IUidLink
     {
@@ -684,7 +684,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive record access entry.
+    /// Defines storage for a Keeper NSF record access entry.
     /// </summary>
     public interface IStorageKdRecordAccess : IUidLink
     {
@@ -710,7 +710,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive record link (parent/child relationship).
+    /// Defines storage for a Keeper NSF record link (parent/child relationship).
     /// </summary>
     public interface IStorageKdRecordLink : IUidLink
     {
@@ -721,7 +721,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive folder sharing state.
+    /// Defines storage for a Keeper NSF folder sharing state.
     /// </summary>
     public interface IStorageKdFolderSharingState : IUid
     {
@@ -731,7 +731,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines storage for a Keeper Drive record sharing state.
+    /// Defines storage for a Keeper NSF record sharing state.
     /// </summary>
     public interface IStorageKdRecordSharingState : IUid
     {
@@ -742,7 +742,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Defines Keeper Drive storage on <see cref="IKeeperStorage"/>.
+    /// Defines Keeper NSF storage on <see cref="IKeeperStorage"/>.
     /// </summary>
     public interface IKeeperNSFStorage
     {

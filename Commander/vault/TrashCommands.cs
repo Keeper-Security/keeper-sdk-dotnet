@@ -233,13 +233,13 @@ namespace Commander
                 var totalRestored = 0;
                 if (result.RestoredRecordUids.Count > 0)
                 {
-                    Console.WriteLine($"Restored {result.RestoredRecordUids.Count} Drive record(s): {string.Join(", ", result.RestoredRecordUids)}");
+                    Console.WriteLine($"Restored {result.RestoredRecordUids.Count} NSF record(s): {string.Join(", ", result.RestoredRecordUids)}");
                     totalRestored += result.RestoredRecordUids.Count;
                 }
 
                 if (result.RestoredFolderUids.Count > 0)
                 {
-                    Console.WriteLine($"Restored {result.RestoredFolderUids.Count} Drive folder(s): {string.Join(", ", result.RestoredFolderUids)}");
+                    Console.WriteLine($"Restored {result.RestoredFolderUids.Count} NSF folder(s): {string.Join(", ", result.RestoredFolderUids)}");
                     totalRestored += result.RestoredFolderUids.Count;
                 }
 
@@ -260,7 +260,7 @@ namespace Commander
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"No Keeper NSF/Drive items restored: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"No Keeper NSF items restored: {ex.Message}");
                 return 0;
             }
         }
@@ -1150,7 +1150,7 @@ namespace Commander
         [Option('f', "force", Required = false, HelpText = "Do not prompt for confirmation")]
         public bool Force { get; set; }
 
-        [Option("target-folder", Required = false, HelpText = "Keeper NSF/Drive folder UID to restore matching Drive items into instead of their original location")]
+        [Option("target-folder", Required = false, HelpText = "Keeper NSF folder UID to restore matching NSF items into instead of their original location")]
         public string TargetFolder { get; set; }
 
         [Value(0, MetaName = "records", Required = true, HelpText = "Record UID or search pattern")]
