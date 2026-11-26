@@ -1382,7 +1382,7 @@ function Remove-KeeperRecord {
 	.Description
 	By default the record is removed only from your vault. Other users the record is shared with keep access to it.
 	Use -Purge to permanently delete the record for ALL users. Only the record owner can purge a record.
-	If the record is owned by you and shared, and neither -Purge nor -Force is specified,
+	In an interactive session, if the record is owned by you and shared, and neither -Purge nor -Force is specified,
 	you are asked to choose between "Remove from my vault" and "Delete for all shared users".
 
 	.Parameter Name
@@ -1442,7 +1442,8 @@ function Remove-KeeperRecord {
         $folderUid = $Script:Context.CurrentFolder
     }
 
-    if (-not $Purge -and -not $Force) {
+    $interactive = Test-InteractiveSession
+    if (-not $Purge -and -not $Force -and $interactive) {
         [KeeperSecurity.Vault.KeeperRecord] $target = $null
         if ($vault.TryGetKeeperRecord($recordUid, [ref]$target) -and $target.Owner -and $target.Shared) {
             Write-Host "Record `"$($target.Title)`" is shared with other users."
@@ -1454,7 +1455,7 @@ function Remove-KeeperRecord {
                 $Purge = [switch]::new($true)
             }
             elseif ($answer -ne '1') {
-                Write-Host "Cancelled."
+                Write-Error -Message "Cancelled. Record `"$($target.Title)`" was not deleted."
                 return
             }
         }
@@ -1462,9 +1463,13 @@ function Remove-KeeperRecord {
 
     if ($Purge) {
         if (-not $Force) {
+            if (-not $interactive) {
+                Write-Error -Message "Use -Force together with -Purge to permanently delete a record in a non-interactive session."
+                return
+            }
             $answer = Read-Host "This will permanently delete the record for ALL users. Do you want to proceed? (y/N)"
             if ($answer -notin @('y', 'yes')) {
-                Write-Host "Cancelled."
+                Write-Error -Message "Cancelled. Record was not deleted."
                 return
             }
         }

@@ -848,7 +848,8 @@ namespace Commander
             // UIDs to purge when the user picked "Delete for all shared users" at the prompt.
             // Only the shared records are purged; the other matches are just removed from the vault.
             HashSet<string> chosenPurgeUids = null;
-            if (!purge && !options.Force)
+            var removeConfirmed = false;
+            if (!purge && !options.Force && !Console.IsInputRedirected)
             {
                 var sharedOwned = targets
                     .Select(x => context.Vault.TryGetKeeperRecord(x.RecordUid, out var r) ? r : null)
@@ -881,6 +882,10 @@ namespace Commander
                     {
                         Console.WriteLine("Cancelled.");
                         return;
+                    }
+                    else
+                    {
+                        removeConfirmed = true;
                     }
                 }
             }
@@ -933,13 +938,13 @@ namespace Commander
                     : targets.Where(x => !chosenPurgeUids.Contains(x.RecordUid)).ToList();
                 if (remaining.Count > 0)
                 {
-                    await context.Vault.DeleteRecords(remaining.ToArray(), options.Force);
+                    await context.Vault.DeleteRecords(remaining.ToArray(), options.Force || chosenPurgeUids != null);
                 }
 
                 return;
             }
 
-            await context.Vault.DeleteRecords(targets.ToArray(), options.Force);
+            await context.Vault.DeleteRecords(targets.ToArray(), options.Force || removeConfirmed);
         }
 
         public static async Task ShareRecordShareCommand(this VaultContext context, ShareRecordShareOptions options)
