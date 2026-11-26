@@ -413,9 +413,9 @@ dotnet test
 ## Release Notes
 
 ### 1.1.8
-- **Keeper Drive (NSF) support**: Full Keeper Drive (Non-Shared Folder) integration including folder creation, rename, and removal; record create, update, delete, and link-to-folder operations; granular access management (grant/revoke user access, ownership transfer via batch API). New public types: `KeeperNSFRecord`, `KeeperNSFField`, `KeeperNSFAccessEntry`, `KeeperNSFPermissionResult`, `KeeperNSFShortcutEntry`, `KeeperNSFShortcutKeepResult`, and related data classes in `KeeperSecurity.Vault`.
-- **Keeper Drive sync-down**: `SyncDown` now processes `KeeperDriveData` payloads and keeps in-memory, snapshot, and SQL storage up to date with folder keys, record bodies, access entries, and sharing states.
-- **Storage layer updates**: `MemoryStorage`, `SqlKeeperStorage`, and `SnapshotKeeperStorage` extended with Keeper Drive entity tables/collections (`KdFolders`, `KdFolderKeys`, `KdRecords`, `KdFolderRecords`, `KdFolderAccesses`, `KdRecordAccesses`, `KdRecordLinks`).
+- **Keeper NSF support**: Full Keeper NSF (Non-Shared Folder) integration including folder creation, rename, and removal; record create, update, delete, and link-to-folder operations; granular access management (grant/revoke user access, ownership transfer via batch API). New public types: `KeeperNSFRecord`, `KeeperNSFField`, `KeeperNSFAccessEntry`, `KeeperNSFPermissionResult`, `KeeperNSFShortcutEntry`, `KeeperNSFShortcutKeepResult`, and related data classes in `KeeperSecurity.Vault`.
+- **Keeper NSF sync-down**: `SyncDown` now processes `KeeperDriveData` payloads and keeps in-memory, snapshot, and SQL storage up to date with folder keys, record bodies, access entries, and sharing states.
+- **Storage layer updates**: `MemoryStorage`, `SqlKeeperStorage`, and `SnapshotKeeperStorage` extended with Keeper NSF entity tables/collections (`KdFolders`, `KdFolderKeys`, `KdRecords`, `KdFolderRecords`, `KdFolderAccesses`, `KdRecordAccesses`, `KdRecordLinks`).
 - **Client version**: API client version updated to `c18.0.0`.
 
 ### 1.1.7

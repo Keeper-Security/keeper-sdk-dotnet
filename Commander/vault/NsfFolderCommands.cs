@@ -133,7 +133,7 @@ namespace Commander
                     }
 
                     // A folder UID from a record's folder link that isn't a known local NSF folder
-                    // represents the Keeper Drive root (the server's per-account root sentinel).
+                    // represents the Keeper NSF root (the server's per-account root sentinel).
                     var sourceFolderUidOrRoot = vault.TryGetKeeperNSFFolder(folderUids[0], out _) ? folderUids[0] : "root";
 
                     if (!vault.TryResolveKeeperNSFFolderOrRoot(sourceFolderUidOrRoot, out var sourceFolder))

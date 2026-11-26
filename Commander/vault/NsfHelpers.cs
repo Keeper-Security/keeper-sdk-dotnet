@@ -105,7 +105,7 @@ namespace Commander
         }
 
         /// <summary>
-        /// Same as <see cref="ResolveNsfFolderByUidOrName"/>, but also accepts "", "/" or "root" to mean the Keeper Drive root.
+        /// Same as <see cref="ResolveNsfFolderByUidOrName"/>, but also accepts "", "/" or "root" to mean the Keeper NSF root.
         /// </summary>
         internal static FolderNode ResolveNsfFolderOrRootByUidOrName(VaultOnline vault, string uidOrName)
         {

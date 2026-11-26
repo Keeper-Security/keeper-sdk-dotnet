@@ -288,7 +288,7 @@ namespace KeeperSecurity.Vault
             {
                 case ConvertRecordStatus.Unspecified: return ("CONVERT_RECORD_STATUS_UNSPECIFIED", "The server did not return a conversion status. Refresh the vault and verify its current state before retrying.");
                 case ConvertRecordStatus.Ok: return ("OK", "Converted successfully.");
-                case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper Drive enabled.");
+                case ConvertRecordStatus.EnterpriseNotKeeperDriveEnabled: return ("ENTERPRISE_NOT_KEEPER_DRIVE_ENABLED", "The enterprise is not Keeper NSF enabled.");
                 case ConvertRecordStatus.NotRecordOwner: return ("NOT_RECORD_OWNER", "The record is not owned by the caller.");
                 case ConvertRecordStatus.RecordNotFound: return ("RECORD_NOT_FOUND", "No active owned record was found.");
                 case ConvertRecordStatus.RecordAlreadyConverted: return ("RECORD_ALREADY_CONVERTED", "The record is already an NSF record.");
@@ -1515,7 +1515,7 @@ namespace KeeperSecurity.Vault
 
         /// <summary>
         /// Same as <see cref="ResolveKeeperNSFFolderStrict"/>, but also accepts an empty string, "/" or "root"
-        /// to mean the Keeper Drive root.
+        /// to mean the Keeper NSF root.
         /// </summary>
         public FolderNode ResolveKeeperNSFFolderOrRootStrict(string folderUidOrName)
         {

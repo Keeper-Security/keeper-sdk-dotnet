@@ -9,7 +9,7 @@ using KeeperSecurity.Utils;
 namespace KeeperSecurity.Vault
 {
     /// <summary>
-    /// A single record in the Drive (NSF) trashcan.
+    /// A single record in the Keeper NSF trashcan.
     /// </summary>
     internal class NsfTrashcanRecord
     {
@@ -21,7 +21,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// A single folder in the Drive (NSF) trashcan.
+    /// A single folder in the Keeper NSF trashcan.
     /// </summary>
     internal class NsfTrashcanFolderEntry
     {
@@ -37,7 +37,7 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Keeps a local copy of the Drive (NSF) trashcan in sync with the server.
+    /// Keeps a local copy of the Keeper NSF trashcan in sync with the server.
     /// This trashcan is tracked separately from the regular vault sync stream.
     internal static class NsfTrashcanSync
     {

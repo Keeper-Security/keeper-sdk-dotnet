@@ -499,7 +499,7 @@ namespace Commander
                     .FirstOrDefault(x => x.RecordUid == applicationUid).UserPermissions;
             var appInfo = (await GetAppInfo(vault, applicationUid))
                 .FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(applicationRecord.Uid.Base64UrlDecode()));
-            // NSF app shares use AT_APPLICATION / Drive APIs; cascading user grants apply only to classic vault objects.
+            // NSF app shares use AT_APPLICATION / NSF APIs; cascading user grants apply only to classic vault objects.
             var shareUids = appInfo.Shares
                 .Select(x => x.SecretUid.ToByteArray().Base64UrlEncode())
                 .Where(uid => vault.TryGetKeeperRecord(uid, out _) || vault.TryGetSharedFolder(uid, out _))

@@ -204,7 +204,7 @@ function Get-KeeperFolders {
 	Return the folders as objects instead of displaying formatted information
 
 	.Parameter ClassicOnly
-	Exclude nested shared (NSF) folders from KeeperDrive sync.
+	Exclude nested shared (NSF) folders from Keeper NSF sync.
 
 	.Example
 	Get-KeeperFolders
