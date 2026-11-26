@@ -959,8 +959,8 @@ function Test-KdIsDirectAccess {
     Param($access, $includeInherited = $false, $includeDeniedAccess = $false)
 
     if ($null -eq $access) { return $false }
-    return [bool]($access.Owner -or (-not $access.Inherited -and -not $access.DeniedAccess) -or
-        ($includeInherited -and $access.Inherited) -or ($includeDeniedAccess -and $access.DeniedAccess))
+    if ($access.DeniedAccess) { return [bool]$includeDeniedAccess }
+    return [bool]($access.Owner -or (-not $access.Inherited) -or $includeInherited)
 }
 
 function Get-KdUserPermissions {
@@ -1285,18 +1285,22 @@ function Show-KdPermissions {
             Write-Host ""
             foreach ($perm in $userPerms) {
                 Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "User", $perm.Username)
-                if ($perm.Owner) {
+                if ($perm.DeniedAccess) {
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1} (denied)" -f "Role", $perm.Role)
+                }
+                elseif ($perm.Owner) {
                     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Owner", "Yes")
                 }
                 else {
                     Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Role", $perm.Role)
                 }
-                if ($perm.Inherited -or $perm.DeniedAccess) {
-                    $state = if ($perm.DeniedAccess) { 'denied' } else { 'inherited' }
-                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Access", $state)
+                if ($perm.Inherited -and -not $perm.DeniedAccess) {
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Access", 'inherited')
                 }
-                Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Shareable", $(if ($perm.CanEdit -or $perm.Owner) { 'Yes' } else { 'No' }))
-                Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Read-Only", $(if (-not $perm.CanEdit -and -not $perm.Owner) { 'Yes' } else { 'No' }))
+                if (-not $perm.DeniedAccess) {
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Shareable", $(if ($perm.CanEdit -or $perm.Owner) { 'Yes' } else { 'No' }))
+                    Write-Host ("{0,$script:KD_LABEL_WIDTH}: {1}" -f "Read-Only", $(if (-not $perm.CanEdit -and -not $perm.Owner) { 'Yes' } else { 'No' }))
+                }
                 Write-Host ""
             }
         }

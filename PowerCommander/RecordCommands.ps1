@@ -1129,6 +1129,7 @@ function Add-KeeperRecord {
         $saveRecord = $false
 
         $fields = @{}
+        $emptyFields = @{}
         $fieldName = $null
         foreach ($var in $Extra) {
             if ($var -match '^-') {
@@ -1148,6 +1149,9 @@ function Add-KeeperRecord {
                     if ($n -and $v) {
                         $fields[$n] = $v
                     }
+                    elseif ($n -and $null -ne $v) {
+                        $emptyFields[$n] = $v
+                    }
                 }
             }
         }
@@ -1162,9 +1166,20 @@ function Add-KeeperRecord {
 
         if ($Uid) {
             if (-not $vault.TryGetKeeperRecord($Uid, [ref]$record)) {
-                $objs = Get-KeeperChildItem -ObjectType Record | Where-Object Name -eq $Uid
-                if ($objs.Length -gt 1) {
-                    $vault.TryGetKeeperRecord($objs[0].Uid, [ref]$record)
+                [KeeperSecurity.Vault.KeeperNSFRecord]$nsfRecord = $null
+                if ($vault.TryGetKeeperNSFRecord($Uid, [ref]$nsfRecord)) {
+                    [KeeperSecurity.Vault.TypedRecord]$typedRecord = $null
+                    if (-not [KeeperSecurity.Vault.VaultExtensions]::TryConvertKeeperNSFRecordToTypedRecord($nsfRecord, [ref]$typedRecord)) {
+                        Write-Error -Message "Record $Uid could not be loaded for edit" -ErrorAction Stop
+                        return
+                    }
+                    $record = $typedRecord
+                }
+                else {
+                    $objs = Get-KeeperChildItem -ObjectType Record | Where-Object Name -eq $Uid
+                    if ($objs.Length -gt 1) {
+                        $vault.TryGetKeeperRecord($objs[0].Uid, [ref]$record)
+                    }
                 }
             }
             if (-not $record) {
@@ -1184,6 +1199,11 @@ function Add-KeeperRecord {
             else {
                 $record = New-Object KeeperSecurity.Vault.TypedRecord $RecordType
                 [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
+            }
+        }
+        if ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+            foreach ($name in $emptyFields.Keys) {
+                $fields[$name] = $emptyFields[$name]
             }
         }
         if ($Title) {
@@ -1244,11 +1264,38 @@ function Add-KeeperRecord {
 
         foreach ($fieldName in $fields.Keys) {
             $fieldValue = $fields[$fieldName]
+            $rawFieldName = $fieldName
             $fieldLabel = ''
+            $customSection = $null
             if ($fieldName -match '^([^.]+)(\..+)?$') {
                 if ($Matches[1] -and $Matches[2]) {
                     $fieldName = $Matches[1].Trim()
                     $fieldLabel = $Matches[2].Trim().Substring(1)
+                }
+            }
+            if ($record -is [KeeperSecurity.Vault.TypedRecord] -and
+                ($rawFieldName.StartsWith('c.', [System.StringComparison]::OrdinalIgnoreCase) -or
+                 $rawFieldName.StartsWith('f.', [System.StringComparison]::OrdinalIgnoreCase))) {
+                $customSection = $fieldName -ieq 'c'
+                if ([string]::IsNullOrEmpty($fieldLabel) -or $fieldLabel[0] -eq '.' -or $fieldLabel[0] -eq ':') {
+                    throw [System.ArgumentException]::new('Missing field type or label.')
+                }
+                $separator = Get-KeeperNSFFieldSeparator -FieldKey $fieldLabel
+                if ($separator -ge 0) {
+                    $fieldName = $fieldLabel.Substring(0, $separator)
+                    $fieldLabel = $fieldLabel.Substring($separator + 1)
+                    if ([string]::IsNullOrEmpty($fieldLabel)) {
+                        throw [System.ArgumentException]::new('Missing field type or label.')
+                    }
+                }
+                else {
+                    $fieldName = $fieldLabel
+                    $fieldLabel = ''
+                    [KeeperSecurity.Vault.RecordField]$knownField = $null
+                    if ($customSection -and -not [KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$knownField)) {
+                        $fieldLabel = $fieldName
+                        $fieldName = 'text'
+                    }
                 }
             }
             if ($fieldName -match '^\$') {
@@ -1286,18 +1333,35 @@ function Add-KeeperRecord {
                 }
             }
             elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
-                if (-not $fieldLabel) {
-                    [KeeperSecurity.Vault.RecordField]$recordField = $null
-                    if (-not [KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$recordField)) {
+                [KeeperSecurity.Vault.RecordField]$recordField = $null
+                if ([KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$recordField)) {
+                    $fieldName = $recordField.Name
+                }
+                elseif (-not $fieldLabel) {
+                    if ($null -eq $customSection) {
                         $fieldLabel = $fieldName
                         $fieldName = 'text'
                     }
                 }
+                elseif ($fieldValue) {
+                    throw [System.ArgumentException]::new("Field type $fieldName is not supported.")
+                }
                 $recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldName, $fieldLabel
                 [KeeperSecurity.Vault.ITypedField]$typedField = $null
-                if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$typedField)) {
+                $lookupFields = $record.Fields
+                if ($customSection -eq $true) { $lookupFields = $record.Custom }
+                if ($null -eq $customSection) {
+                    $foundField = [KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$typedField)
                 }
                 else {
+                    $foundField = [KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($lookupFields, $recordTypeField, [ref]$typedField)
+                }
+                if ($foundField) {
+                }
+                else {
+                    if ($customSection -eq $false) {
+                        throw [System.ArgumentException]::new("Field type $fieldName not found for record type $($record.TypeName).")
+                    }
                     if ($fieldValue) {
                         $typedField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
                         if ($typedField) {

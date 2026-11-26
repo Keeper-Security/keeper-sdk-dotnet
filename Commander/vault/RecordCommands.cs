@@ -34,10 +34,21 @@ namespace Commander
             {
                 var field = f;
                 var crf = new CmdLineRecordField();
+                var equals = field.IndexOf('=');
+                if (equals >= 0)
+                {
+                    var key = field.Substring(0, equals);
+                    if ((key.StartsWith("c.", StringComparison.OrdinalIgnoreCase)
+                        || key.StartsWith("f.", StringComparison.OrdinalIgnoreCase))
+                        && (key.Length == 2 || key[2] == '.' || key[2] == ':'))
+                    {
+                        throw new ArgumentException("Missing field type or label.");
+                    }
+                }
                 var match = rx.Match(field);
                 if (!match.Success || match.Groups.Count < 5)
                 {
-                    throw new Exception($"Invalid field parameter: {f}");
+                    throw new ArgumentException("Invalid field parameter. Expected key=value.");
                 }
 
                 crf.FieldName = match.Groups[1].Value.Trim();
@@ -47,6 +58,39 @@ namespace Commander
                 if (crf.Value.Length >= 2 && crf.Value.StartsWith("\"") && crf.Value.EndsWith("\""))
                 {
                     crf.Value = crf.Value.Trim('"').Replace("\\\"", "\"");
+                }
+
+                if (equals >= 0 && (field.StartsWith("c.", StringComparison.OrdinalIgnoreCase)
+                    || field.StartsWith("f.", StringComparison.OrdinalIgnoreCase)))
+                {
+                    crf.CustomSection = string.Equals(crf.FieldName, "c", StringComparison.OrdinalIgnoreCase);
+                    var name = crf.FieldLabel;
+                    if (string.IsNullOrEmpty(name) || name[0] == '.' || name[0] == ':')
+                    {
+                        throw new ArgumentException("Missing field type or label.");
+                    }
+
+                    var separator = NsfHelpers.FindNsfFieldSeparator(name);
+                    if (separator >= 0)
+                    {
+                        crf.FieldName = name.Substring(0, separator);
+                        crf.FieldLabel = name.Substring(separator + 1);
+                        if (string.IsNullOrEmpty(crf.FieldLabel))
+                        {
+                            throw new ArgumentException("Missing field type or label.");
+                        }
+                    }
+                    else if (crf.CustomSection == true
+                        && !RecordTypesConstants.TryGetRecordField(name, out _))
+                    {
+                        crf.FieldName = "text";
+                        crf.FieldLabel = name;
+                    }
+                    else
+                    {
+                        crf.FieldName = name;
+                        crf.FieldLabel = crf.CustomSection == true ? string.Empty : null;
+                    }
                 }
 
                 yield return crf;
@@ -119,9 +163,18 @@ namespace Commander
                     }
                     else
                     {
-                        if (!typed.FindTypedField(field, out var typedField))
+                        var sourceFields = field.CustomSection == true ? typed.Custom
+                            : field.CustomSection == false ? typed.Fields : null;
+                        var found = sourceFields == null
+                            ? typed.FindTypedField(field, out var typedField)
+                            : sourceFields.FindTypedField(field, out typedField);
+                        if (!found)
                         {
                             if (string.IsNullOrEmpty(field.Value)) continue;
+                            if (field.CustomSection == false)
+                            {
+                                throw new ArgumentException($"Field type {field.FieldName} not found for record type {typed.TypeName}.");
+                            }
                             typedField = field.CreateTypedField();
                             typed.Custom.Add(typedField);
                         }
@@ -226,8 +279,12 @@ namespace Commander
                     }
                     else
                     {
-                        throw new Exception($"Record field \"{field.FieldName}\" is not supported.");
+                        throw new ArgumentException($"Record field \"{field.FieldName}\" is not supported.");
                     }
+                }
+                else
+                {
+                    field.FieldName = recordField.Name;
                 }
 
                 if (string.IsNullOrEmpty(field.FieldIndex)) continue;
@@ -485,6 +542,7 @@ namespace Commander
 
         public static async Task UpdateRecordCommand(this VaultContext context, UpdateRecordOptions options)
         {
+            KeeperNSFRecord nsfRecord = null;
             if (context.Vault.TryGetKeeperRecord(options.RecordId, out var record))
             {
             }
@@ -492,12 +550,55 @@ namespace Commander
             {
                 foreach (var uid in node.Records)
                 {
-                    if (!context.Vault.TryGetKeeperRecord(uid, out var r)) continue;
-                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+                    if (context.Vault.TryGetKeeperRecord(uid, out var classic)
+                        && string.CompareOrdinal(title, classic.Title) == 0)
+                    {
+                        record = classic;
+                        break;
+                    }
 
-                    record = r;
-                    break;
+                    if (context.Vault.TryGetKeeperNSFRecord(uid, out var candidate)
+                        && string.CompareOrdinal(title, candidate.Title) == 0)
+                    {
+                        nsfRecord = candidate;
+                        break;
+                    }
                 }
+            }
+
+            if (record == null && nsfRecord == null)
+            {
+                context.Vault.TryGetKeeperNSFRecord(options.RecordId, out nsfRecord);
+            }
+
+            if (record == null && nsfRecord == null)
+            {
+                var separator = options.RecordId.LastIndexOfAny(new[] { '/', '\\' });
+                if (separator > 0
+                    && context.Vault.TryResolveKeeperNSFFolderReference(
+                        options.RecordId.Substring(0, separator), out var nsfFolder))
+                {
+                    var title = options.RecordId.Substring(separator + 1);
+                    var matches = nsfFolder.Records
+                        .Select(uid => context.Vault.TryGetKeeperNSFRecord(uid, out var candidate) ? candidate : null)
+                        .Where(candidate => candidate != null && string.Equals(candidate.Title, title, StringComparison.OrdinalIgnoreCase))
+                        .Take(2).ToList();
+                    if (matches.Count == 1)
+                    {
+                        nsfRecord = matches[0];
+                    }
+                }
+            }
+
+            if (record == null && nsfRecord != null)
+            {
+                if (!VaultExtensions.TryConvertKeeperNSFRecordToTypedRecord(nsfRecord, out var typed))
+                {
+                    Console.WriteLine($"Record {nsfRecord.RecordUid} could not be loaded for edit.");
+                    return;
+                }
+
+                record = typed;
             }
 
             if (record == null)
@@ -1752,7 +1853,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
+        [Value(0, Required = true, MetaName = "record", HelpText = "Classic or Keeper Drive record path or UID")]
         public string RecordId { get; set; }
 
         [Value(1, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
@@ -1882,6 +1983,7 @@ namespace Commander
         public string FieldLabel { get; set; }
         public string FieldIndex { get; set; }
         public string Value { get; set; }
+        public bool? CustomSection { get; set; }
     }
 
     class RecordTypeAddOptions

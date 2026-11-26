@@ -986,10 +986,9 @@ namespace Commander
 
         private static bool IsDirectAccess(NsfAccessView access, bool includeInherited = false, bool includeDeniedAccess = false)
         {
-            return access != null && (access.Owner
-                || (!access.Inherited && !access.DeniedAccess)
-                || (includeInherited && access.Inherited)
-                || (includeDeniedAccess && access.DeniedAccess));
+            if (access == null) return false;
+            if (access.DeniedAccess) return includeDeniedAccess;
+            return access.Owner || !access.Inherited || includeInherited;
         }
 
         private static async Task<List<NsfAccessView>> GetRecordAccessesAsync(VaultOnline vault, KeeperNSFRecord record,
@@ -1317,7 +1316,11 @@ namespace Commander
                     foreach (var perm in userPerms)
                     {
                         Console.WriteLine($"{PadLabel("User", NsfHelpers.LabelWidth)}: {perm.Username}");
-                        if (perm.Owner)
+                        if (perm.DeniedAccess)
+                        {
+                            Console.WriteLine($"{PadLabel("Role", NsfHelpers.LabelWidth)}: {perm.Role} (denied)");
+                        }
+                        else if (perm.Owner)
                         {
                             Console.WriteLine($"{PadLabel("Owner", NsfHelpers.LabelWidth)}: Yes");
                         }
@@ -1326,14 +1329,16 @@ namespace Commander
                             Console.WriteLine($"{PadLabel("Role", NsfHelpers.LabelWidth)}: {perm.Role}");
                         }
 
-                        if (perm.Inherited || perm.DeniedAccess)
+                        if (perm.Inherited && !perm.DeniedAccess)
                         {
-                            var state = perm.DeniedAccess ? "denied" : "inherited";
-                            Console.WriteLine($"{PadLabel("Access", NsfHelpers.LabelWidth)}: {state}");
+                            Console.WriteLine($"{PadLabel("Access", NsfHelpers.LabelWidth)}: inherited");
                         }
 
-                        Console.WriteLine($"{PadLabel("Shareable", NsfHelpers.LabelWidth)}: {(perm.CanEdit || perm.Owner ? "Yes" : "No")}");
-                        Console.WriteLine($"{PadLabel("Read-Only", NsfHelpers.LabelWidth)}: {(!perm.CanEdit && !perm.Owner ? "Yes" : "No")}");
+                        if (!perm.DeniedAccess)
+                        {
+                            Console.WriteLine($"{PadLabel("Shareable", NsfHelpers.LabelWidth)}: {(perm.CanEdit || perm.Owner ? "Yes" : "No")}");
+                            Console.WriteLine($"{PadLabel("Read-Only", NsfHelpers.LabelWidth)}: {(!perm.CanEdit && !perm.Owner ? "Yes" : "No")}");
+                        }
                         Console.WriteLine();
                     }
                 }

@@ -212,7 +212,7 @@ function Script:Resolve-KeeperNSFFieldValue {
 
     if ([string]::IsNullOrEmpty($RawValue)) { return $RawValue }
 
-    $fieldType = $FieldKey.Split(':', 2)[0]
+    $fieldType = Get-KeeperNSFFieldType -FieldKey $FieldKey
     if ($fieldType -ieq 'password' -and $RawValue.StartsWith($script:KdNsfGenerateFieldValueToken, [System.StringComparison]::Ordinal)) {
         if ($RawValue -ceq $script:KdNsfGenerateFieldValueToken) {
             return [KeeperSecurity.Utils.CryptoUtils]::GeneratePassword($null)
@@ -239,6 +239,28 @@ function Script:Resolve-KeeperNSFFieldValue {
     return $RawValue
 }
 
+function Script:Get-KeeperNSFFieldType {
+    Param([Parameter(Mandatory = $true)][string] $FieldKey)
+
+    if ($FieldKey.StartsWith('c.', [System.StringComparison]::OrdinalIgnoreCase) -or
+        $FieldKey.StartsWith('f.', [System.StringComparison]::OrdinalIgnoreCase)) {
+        $FieldKey = $FieldKey.Substring(2)
+    }
+    $separator = Get-KeeperNSFFieldSeparator -FieldKey $FieldKey
+    if ($separator -ge 0) { return $FieldKey.Substring(0, $separator) }
+    return $FieldKey
+}
+
+function Script:Get-KeeperNSFFieldSeparator {
+    Param([Parameter(Mandatory = $true)][string] $FieldKey)
+
+    $dot = $FieldKey.IndexOf('.')
+    $colon = $FieldKey.IndexOf(':')
+    if ($dot -lt 0) { return $colon }
+    if ($colon -lt 0) { return $dot }
+    return [Math]::Min($dot, $colon)
+}
+
 function Script:Parse-KeeperNSFFieldSpecs {
     Param(
         [Parameter(Mandatory = $true)]
@@ -246,7 +268,7 @@ function Script:Parse-KeeperNSFFieldSpecs {
         [string[]] $FieldSpecs
     )
 
-    $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([System.StringComparer]::OrdinalIgnoreCase)
     $skipped = New-Object 'System.Collections.Generic.List[string]'
     $hasGenerateToken = $false
 
@@ -259,6 +281,9 @@ function Script:Parse-KeeperNSFFieldSpecs {
         if ($eqIdx -gt 0) {
             $key = $f.Substring(0, $eqIdx).Trim()
             $val = $f.Substring($eqIdx + 1).Trim()
+            if ($val.Length -ge 2 -and $val[0] -eq '"' -and $val[$val.Length - 1] -eq '"') {
+                $val = $val.Substring(1, $val.Length - 2).Replace('\"', '"')
+            }
         }
         else {
             $colonIdx = $f.IndexOf(':')
@@ -266,19 +291,19 @@ function Script:Parse-KeeperNSFFieldSpecs {
                 $key = $f.Substring(0, $colonIdx).Trim()
                 $val = $f.Substring($colonIdx + 1).Trim()
                 if ($val.Length -ge 2 -and $val[0] -eq '"' -and $val[$val.Length - 1] -eq '"') {
-                    $val = $val.Substring(1, $val.Length - 2)
+                    $val = $val.Substring(1, $val.Length - 2).Replace('\"', '"')
                 }
-                Write-Host "Warning: Field '$f' uses ':' as delimiter; prefer key=value (e.g. ${key}=${val})." -ForegroundColor Yellow
+                Write-Host "Warning: Field '$key' uses ':' as delimiter; prefer key=value." -ForegroundColor Yellow
             }
         }
 
         if ([string]::IsNullOrEmpty($key)) {
             $skipped.Add($f) | Out-Null
-            Write-Host "Warning: Skipping invalid field '$f'. Expected format: key=value" -ForegroundColor Yellow
+            Write-Host "Warning: Skipping invalid field. Expected format: key=value" -ForegroundColor Yellow
             continue
         }
 
-        $fieldType = $key.Split(':', 2)[0]
+        $fieldType = Get-KeeperNSFFieldType -FieldKey $key
         if ($fieldType -ieq 'password' -and [string]::IsNullOrEmpty($val)) {
             throw "Password value cannot be empty. Use -GeneratePassword or '$($script:KdNsfGenerateFieldValueToken)' in single quotes."
         }
@@ -324,6 +349,8 @@ function Add-KeeperNSFRecord {
 
 	.Parameter Fields
 	Optional field values as key=value pairs (e.g. login=admin password=secret url=https://example.com).
+	Use c.<type>.<label>=value (or c.<type>:<label>) for custom fields, f.<type>=value for standard fields only,
+	or c.<label>=value to create a text custom field. An empty value clears an existing field.
 	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
@@ -410,7 +437,7 @@ function Add-KeeperNSFRecord {
 
     $fieldDict = $null
     if (($Fields -and $Fields.Count -gt 0) -or $GeneratePassword.IsPresent -or $generatePassphrase) {
-        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([System.StringComparer]::OrdinalIgnoreCase)
         if ($Fields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
             if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
@@ -717,6 +744,8 @@ function Edit-KeeperNSFRecord {
 
 	.Parameter Fields
 	Field values to add or update as key=value pairs (e.g. login=newuser password=newpass).
+	Use c.<type>.<label>=value (or c.<type>:<label>) for custom fields, f.<type>=value for standard fields only,
+	or c.<label>=value to create a text custom field. An empty value clears an existing field.
 	In PowerShell, use 'password=$GEN' to generate a random password instead of storing the token literally.
 
 	Complex (object-typed) fields can be supplied with the $JSON:<json> indirection token,
@@ -835,7 +864,7 @@ function Edit-KeeperNSFRecord {
 
     $fieldDict = $null
     if ($hasFields -or $GeneratePassword.IsPresent -or $generatePassphrase) {
-        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+        $fieldDict = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([System.StringComparer]::OrdinalIgnoreCase)
         if ($hasFields) {
             $parsed = Parse-KeeperNSFFieldSpecs -FieldSpecs $Fields
             if ($GeneratePassword.IsPresent -and $parsed.HasGenerateToken) {
