@@ -955,7 +955,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value; use c.type.Label=value for custom fields (password=$GEN generates a password)")]
+        [Value(1, Required = false, HelpText = "Fields: c.<type>.<label>=value (or c.<type>:<label>) for custom; f.<type>=value for standard only; c.<label>=value creates custom text; empty value clears (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 
@@ -976,7 +976,7 @@ namespace Commander
         [Option('g', "generate", Required = false, HelpText = "Generate random password")]
         public bool GeneratePassword { get; set; }
 
-        [Value(1, Required = false, HelpText = "Field values as key=value; use c.type.Label=value for custom fields (password=$GEN generates a password)")]
+        [Value(1, Required = false, HelpText = "Fields: c.<type>.<label>=value (or c.<type>:<label>) for custom; f.<type>=value for standard only; c.<label>=value creates custom text; empty value clears (password=$GEN generates a password)")]
         public IEnumerable<string> Fields { get; set; }
     }
 

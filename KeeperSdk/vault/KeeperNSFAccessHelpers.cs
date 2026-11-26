@@ -89,10 +89,9 @@ namespace KeeperSecurity.Vault
 
             var foldersList = folderUids.Where(f => !string.IsNullOrEmpty(f)).ToList();
             // Larger ACL requests can omit accessors even when the server returns a folder result.
-            const int MaxFoldersPerRequest = 20;
-            for (int i = 0; i < foldersList.Count; i += MaxFoldersPerRequest)
+            for (int i = 0; i < foldersList.Count; i += MaxFolderAccessUidsPerRequest)
             {
-                var batch = foldersList.Skip(i).Take(MaxFoldersPerRequest).ToList();
+                var batch = foldersList.Skip(i).Take(MaxFolderAccessUidsPerRequest).ToList();
                 var returnedFolderUids = new HashSet<string>(StringComparer.Ordinal);
                 FolderProto.V3.ContinuationToken continuationToken = null;
 
@@ -273,8 +272,9 @@ namespace KeeperSecurity.Vault
             return merged;
         }
 
-        // Record access API limits 
-        private const int MaxRecordAccessUidsPerRequest = 100;
+        private const int MaxFolderAccessUidsPerRequest = 20;
+        // Record access API limits
+        private const int MaxRecordAccessUidsPerRequest = 10;
         private const int DefaultRecordAccessPageNumber = 0;
         private const int DefaultRecordAccessPageSize = 500;
         private const int MaxRecordAccessPageSize = 500;

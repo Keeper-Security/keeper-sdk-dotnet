@@ -302,23 +302,18 @@ namespace Commander
                     var eqIdx = spec.IndexOf('=');
                     if (eqIdx <= 0)
                     {
-                        Console.WriteLine($"Warning: Skipping invalid field '{spec}'. Expected format: key=value");
+                        Console.WriteLine("Warning: Skipping invalid field. Expected format: key=value");
                         continue;
                     }
 
                     var key = spec.Substring(0, eqIdx).Trim();
                     var val = spec.Substring(eqIdx + 1).Trim();
-                    if (val.Length >= 2 && val[0] == '"' && val[val.Length - 1] == '"')
-                    {
-                        val = val.Substring(1, val.Length - 2).Replace("\\\"", "\"");
-                    }
                     if (string.IsNullOrEmpty(key))
                     {
                         continue;
                     }
 
-                    var fieldTypeEnd = key.IndexOf(':');
-                    var fieldType = fieldTypeEnd > 0 ? key.Substring(0, fieldTypeEnd) : key;
+                    var fieldType = GetNsfFieldType(key);
                     if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
                         && string.IsNullOrEmpty(val))
                     {
@@ -349,8 +344,7 @@ namespace Commander
                 return rawValue;
             }
 
-            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
-            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            var fieldType = GetNsfFieldType(fieldKey);
             if (string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
                 && rawValue.StartsWith(GenerateFieldValueToken, StringComparison.Ordinal))
             {
@@ -388,10 +382,24 @@ namespace Commander
 
         private static bool IsPasswordGenerationToken(string fieldKey, string rawValue)
         {
-            var fieldTypeEnd = fieldKey?.IndexOf(':') ?? -1;
-            var fieldType = fieldTypeEnd > 0 ? fieldKey.Substring(0, fieldTypeEnd) : fieldKey;
+            var fieldType = GetNsfFieldType(fieldKey);
             return string.Equals(fieldType, "password", StringComparison.OrdinalIgnoreCase)
                 && string.Equals(rawValue, GenerateFieldValueToken, StringComparison.Ordinal);
+        }
+
+        private static string GetNsfFieldType(string fieldKey)
+        {
+            if (fieldKey == null) return null;
+            if (fieldKey.StartsWith("c.", StringComparison.OrdinalIgnoreCase)
+                || fieldKey.StartsWith("f.", StringComparison.OrdinalIgnoreCase))
+            {
+                fieldKey = fieldKey.Substring(2);
+            }
+
+            var dot = fieldKey.IndexOf('.');
+            var colon = fieldKey.IndexOf(':');
+            var separator = dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon);
+            return separator >= 0 ? fieldKey.Substring(0, separator) : fieldKey;
         }
 
         internal static void WriteRemoveImpact(RemoveResponse response, string itemLabel = "Record")

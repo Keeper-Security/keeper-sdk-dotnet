@@ -106,31 +106,50 @@ namespace KeeperSecurity.Vault
         }
 
         private static void SplitNsfFieldKey(string fieldKey, out string fieldType, out string fieldLabel,
-            out bool isCustom)
+            out bool isCustom, out bool isStandard)
         {
             fieldType = fieldKey ?? string.Empty;
             fieldLabel = null;
             isCustom = false;
+            isStandard = false;
             if (string.IsNullOrEmpty(fieldKey))
             {
                 return;
             }
 
             isCustom = fieldKey.StartsWith("c.", StringComparison.OrdinalIgnoreCase);
-            if (isCustom)
+            isStandard = fieldKey.StartsWith("f.", StringComparison.OrdinalIgnoreCase);
+            if (isCustom || isStandard)
             {
                 fieldKey = fieldKey.Substring(2);
                 fieldType = fieldKey;
+                if (string.IsNullOrEmpty(fieldKey) || fieldKey[0] == '.' || fieldKey[0] == ':')
+                {
+                    throw new ArgumentException("Missing field type or label.", nameof(fieldKey));
+                }
             }
 
-            var separator = isCustom ? fieldKey.IndexOf('.') : fieldKey.IndexOf(':');
+            var dot = fieldKey.IndexOf('.');
+            var colon = fieldKey.IndexOf(':');
+            var separator = isCustom || isStandard
+                ? dot < 0 ? colon : colon < 0 ? dot : Math.Min(dot, colon)
+                : colon;
             if (separator <= 0)
             {
+                if (isCustom && !RecordTypesConstants.TryGetRecordField(fieldKey, out _))
+                {
+                    fieldType = "text";
+                    fieldLabel = fieldKey;
+                }
                 return;
             }
 
             fieldType = fieldKey.Substring(0, separator);
             fieldLabel = fieldKey.Substring(separator + 1);
+            if ((isCustom || isStandard) && string.IsNullOrEmpty(fieldLabel))
+            {
+                throw new ArgumentException("Missing field type or label.", nameof(fieldKey));
+            }
         }
 
         private static NsfRecordFieldData FindNsfField(
@@ -174,10 +193,24 @@ namespace KeeperSecurity.Vault
                     continue;
                 }
 
-                SplitNsfFieldKey(kvp.Key, out var fieldType, out var fieldLabel, out var isCustom);
+                SplitNsfFieldKey(kvp.Key, out var fieldType, out var fieldLabel, out var isCustom, out var isStandard);
                 if (string.IsNullOrEmpty(fieldType))
                 {
                     continue;
+                }
+
+                var isEmpty = kvp.Value is string text && text.Length == 0;
+                if (RecordTypesConstants.TryGetRecordField(fieldType, out var recordField))
+                {
+                    fieldType = recordField.Name;
+                }
+                else if (!isEmpty
+                    && kvp.Value is not System.Collections.IDictionary
+                    && kvp.Value is not object[]
+                    && (kvp.Value is not string stringValue
+                        || !stringValue.StartsWith("$JSON", StringComparison.Ordinal)))
+                {
+                    throw new ArgumentException($"Field type {fieldType} is not supported.", nameof(fields));
                 }
 
                 if (isCustom && dataObj.Custom == null)
@@ -187,20 +220,25 @@ namespace KeeperSecurity.Vault
 
                 var targetFields = isCustom ? dataObj.Custom : dataObj.Fields;
                 var existing = FindNsfField(targetFields, fieldType, fieldLabel);
-                if (existing == null && !isCustom)
+                if (existing == null && !isCustom && !isStandard)
                 {
                     existing = FindNsfField(dataObj.Custom, fieldType, fieldLabel);
                 }
 
+                if (isStandard && existing == null)
+                {
+                    throw new ArgumentException($"Field type {fieldType} not found for record type {dataObj.Type}.", nameof(fields));
+                }
+
                 if (existing != null)
                 {
-                    existing.Value = ToNsfFieldValues(fieldType, kvp.Value);
+                    existing.Value = isEmpty ? Array.Empty<object>() : ToNsfFieldValues(fieldType, kvp.Value);
                     if (!string.IsNullOrEmpty(fieldLabel))
                     {
                         existing.Label = fieldLabel;
                     }
                 }
-                else
+                else if (!isEmpty)
                 {
                     targetFields.Add(new NsfRecordFieldData
                     {
