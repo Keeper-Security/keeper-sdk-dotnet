@@ -323,6 +323,21 @@ function ConvertTo-KeeperRecordListRow {
     }
 }
 
+function Test-KeeperGetFieldSensitive {
+    Param([string] $Name)
+
+    if (-not $Name) { return $false }
+    $fieldType = $Name.Split(':')[0]
+    $normalized = $fieldType -replace '[^a-zA-Z0-9]', ''
+    if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($normalized)) { return $true }
+    return $normalized -in @(
+        'note', 'json', 'paymentCard', 'bankAccount', 'securityQuestion',
+        'accountNumber', 'cardNumber', 'cardSecurityCode', 'routingNumber',
+        'securityAnswer', 'recoveryCode', 'recoveryCodes', 'backupCode', 'backupCodes',
+        'socialSecurityNumber', 'ssn', 'cvv', 'cvc', 'secretKey', 'accessKey'
+    )
+}
+
 function ConvertTo-KeeperClassicRecordJson {
     Param(
         [Parameter(Mandatory = $true)][KeeperSecurity.Vault.KeeperRecord] $Record,
@@ -349,7 +364,7 @@ function ConvertTo-KeeperClassicRecordJson {
                 [ordered]@{
                     name  = $_.Name
                     value = if ([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($_.Name) -or
-                        $_.Type -in @('note', 'json', 'paymentCard', 'bankAccount', 'securityQuestion')) {
+                        (Test-KeeperGetFieldSensitive $_.Name) -or (Test-KeeperGetFieldSensitive $_.Type)) {
                         [KeeperSecurity.Vault.RecordSecurity]::Mask($_.Value, $Unmask.IsPresent)
                     } else { $_.Value }
                     type  = $_.Type
@@ -376,7 +391,8 @@ function ConvertTo-KeeperClassicRecordJson {
                     for ($i = 0; $i -lt $field.Count; $i++) {
                         $value = $field.GetValueAt($i)
                         if (([KeeperSecurity.Vault.RecordSecurity]::IsSensitive($field) -or
-                            $field.FieldName -in @('note', 'json', 'paymentCard', 'bankAccount', 'securityQuestion')) -and
+                            (Test-KeeperGetFieldSensitive $field.FieldName) -or
+                            (Test-KeeperGetFieldSensitive $field.FieldLabel)) -and
                             -not $Unmask.IsPresent) {
                             [KeeperSecurity.Vault.RecordSecurity]::Mask([string]$value, $false)
                         } else { $value }

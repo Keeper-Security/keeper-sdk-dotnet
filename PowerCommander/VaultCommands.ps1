@@ -933,7 +933,7 @@ function Get-KeeperJsonFolderPath {
     )
 
     $names = [System.Collections.Generic.List[string]]::new()
-    # JSON paths follow Python Commander's slash-delimited wire format on every OS.
+    # JSON paths use '/' on every OS for consistent output.
     $delimiter = '/'
     while ($FolderUid) {
         [KeeperSecurity.Vault.FolderNode]$node = $null

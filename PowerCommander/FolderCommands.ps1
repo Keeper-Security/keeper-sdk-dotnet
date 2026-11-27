@@ -345,7 +345,7 @@ function Get-KeeperFolder {
 	Folder UID, Name, or Path
 
 	.Parameter AsObject
-	Return the folder object instead of displaying formatted information
+	Return the folder object instead of displaying formatted information. Cannot be combined with -Format.
 
 	.Parameter Format
 	Output format: table (default) or JSON for a classic or NSF folder.
@@ -361,10 +361,11 @@ function Get-KeeperFolder {
         [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table'
     )
 
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    if ($AsObject.IsPresent -and $Format -eq 'json') {
-        Write-Error -Message '-AsObject cannot be combined with -Format json.' -ErrorAction Stop
+    if ($AsObject.IsPresent -and $PSBoundParameters.ContainsKey('Format')) {
+        Write-Error -Message '-AsObject cannot be combined with -Format.' -ErrorAction Stop
     }
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     $folder = tryResolveKeeperFolder -Identifier $Uid -Vault $vault -SupportPaths
     if (-not $folder) {

@@ -359,7 +359,7 @@ namespace Commander
                     json["custom_fields"] = legacy.Custom.Select(x => new Dictionary<string, object>
                     {
                         ["name"] = x.Name,
-                        ["value"] = RecordSecurity.IsSensitive(x.Name) || IsGetFieldSensitive(x.Type)
+                        ["value"] = RecordSecurity.IsSensitive(x.Name) || IsGetFieldSensitive(x.Name) || IsGetFieldSensitive(x.Type)
                             ? RecordSecurity.Mask(x.Value, unmask) : x.Value,
                         ["type"] = x.Type
                     }).ToArray();
@@ -423,7 +423,7 @@ namespace Commander
         {
             var values = Enumerable.Range(0, field.Count)
                 .Select(i => field.GetValueAt(i))
-                .Select(value => (RecordSecurity.IsSensitive(field) || IsGetFieldSensitive(field.FieldName)) && !unmask
+                .Select(value => (RecordSecurity.IsSensitive(field) || IsGetFieldSensitive(field.FieldName) || IsGetFieldSensitive(field.FieldLabel)) && !unmask
                     ? (object)RecordSecurity.Mask(value?.ToString(), false) : value)
                 .ToArray();
             var json = new Dictionary<string, object>
@@ -435,10 +435,19 @@ namespace Commander
             return json;
         }
 
-        private static bool IsGetFieldSensitive(string type)
+        private static bool IsGetFieldSensitive(string name)
         {
-            return new[] { "note", "json", "paymentCard", "bankAccount", "securityQuestion" }
-                .Contains(type, StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(name)) return false;
+            var fieldType = name.Split(':')[0];
+            var normalized = new string(fieldType.Where(char.IsLetterOrDigit).ToArray());
+            if (RecordSecurity.IsSensitive(normalized)) return true;
+            return new[]
+            {
+                "note", "json", "paymentcard", "bankaccount", "securityquestion",
+                "accountnumber", "cardnumber", "cardsecuritycode", "routingnumber",
+                "securityanswer", "recoverycode", "recoverycodes", "backupcode", "backupcodes",
+                "socialsecuritynumber", "ssn", "cvv", "cvc", "secretkey", "accesskey"
+            }.Contains(normalized, StringComparer.OrdinalIgnoreCase);
         }
 
         private static string FormatUserRecordShareStatus(UserRecordPermissions permission)
