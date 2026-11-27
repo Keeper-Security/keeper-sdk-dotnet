@@ -11,6 +11,7 @@ using CommandLine;
 using KeeperSecurity.BreachWatch;
 using System.Diagnostics;
 using System.IO;
+using ZeroDep;
 
 
 namespace Commander
@@ -526,6 +527,14 @@ namespace Commander
 
         private static Task SearchCommand(this VaultContext context, SearchCommandOptions options)
         {
+            var format = (options.Format ?? "table").Trim();
+            if (!string.Equals(format, "table", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Invalid format: {options.Format}. Expected table or json.");
+                return Task.FromResult(false);
+            }
+
             if (options.Limit <= 0)
             {
                 options.Limit = 100;
@@ -592,6 +601,22 @@ namespace Commander
                 })
                 .Take(options.Limit)
                 .ToArray();
+
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                var rows = matchedRecords
+                    .OrderBy(r => r.Title, StringComparer.InvariantCultureIgnoreCase)
+                    .Select(r => new Dictionary<string, object>
+                    {
+                        ["record_uid"] = r.Uid,
+                        ["title"] = r.Title,
+                        ["type"] = r.KeeperRecordType(),
+                        ["info"] = r.KeeperRecordPublicInformation()
+                    })
+                    .ToArray();
+                Console.WriteLine(Json.WriteFormatted(rows));
+                return Task.FromResult(true);
+            }
 
             if (matchedRecords.Length > 0)
             {
@@ -1589,6 +1614,9 @@ namespace Commander
 
         [Option("limit", Required = false, Default = 0, HelpText = "limit output")]
         public int Limit { get; set; }
+
+        [Option("format", Required = false, Default = "table", HelpText = "output format: table or json")]
+        public string Format { get; set; }
 
         [Value(0, Required = false, MetaName = "pattern", HelpText = "search pattern")]
         public string Pattern { get; set; }

@@ -52,6 +52,7 @@ function Add-KeeperFolder {
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
     if ([string]::IsNullOrWhiteSpace($Name)) {
         Write-Host "Error: Folder name cannot be empty."
         return
@@ -344,14 +345,25 @@ function Get-KeeperFolder {
 	Folder UID, Name, or Path
 
 	.Parameter AsObject
-	Return the folder object instead of displaying formatted information
+	Return the folder object instead of displaying formatted information. Cannot be combined with -Format.
+
+	.Parameter Format
+	Output format: table (default) or JSON for a classic or NSF folder.
+
+	.Example
+	Get-KeeperFolder 'Engineering' -Format json
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
         [Parameter(Position = 0, Mandatory = $true)][string] $Uid,
-        [Parameter()][switch] $AsObject
+        [Parameter()][switch] $AsObject,
+        [Parameter()][ValidateSet('table', 'json')][string] $Format = 'table'
     )
+
+    if ($AsObject.IsPresent -and $PSBoundParameters.ContainsKey('Format')) {
+        Write-Error -Message '-AsObject cannot be combined with -Format.' -ErrorAction Stop
+    }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
@@ -359,6 +371,10 @@ function Get-KeeperFolder {
     if (-not $folder) {
         $nsfFolder = resolveKeeperNSFFolder -Identifier $Uid -Vault $vault
         if ($nsfFolder) {
+            if ($Format -eq 'json') {
+                Get-KeeperNSFRecord -Uid $nsfFolder.FolderUid -Format json
+                return
+            }
             if ($AsObject.IsPresent) { return $nsfFolder }
             Get-KeeperNSFRecord -Uid $Uid
             return
@@ -368,6 +384,20 @@ function Get-KeeperFolder {
 
     if ($AsObject.IsPresent) {
         return $folder
+    }
+
+    if ($Format -eq 'json') {
+        if ($folder.FolderType -eq [KeeperSecurity.Vault.FolderType]::SharedFolder) {
+            [KeeperSecurity.Vault.SharedFolder]$sharedFolder = $null
+            if (-not $vault.TryGetSharedFolder($folder.FolderUid, [ref]$sharedFolder)) {
+                Write-Error -Message "Shared folder '$Uid' was not found or not accessible." -ErrorAction Stop
+            }
+            ConvertTo-KeeperSharedFolderJson -SharedFolder $sharedFolder -Vault $vault -IncludeDag:$false
+        }
+        else {
+            ConvertTo-KeeperFolderJson -Folder $folder -Vault $vault
+        }
+        return
     }
 
     Write-Host ""

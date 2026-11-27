@@ -41,6 +41,23 @@ namespace Commander
 
                 if (record != null)
                 {
+                    if (string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase) &&
+                        record is not PasswordRecord && record is not TypedRecord)
+                    {
+                        Console.WriteLine($"JSON output is not supported for record type {record.GetType().Name}.");
+                        return;
+                    }
+
+                    if ((record is PasswordRecord || record is TypedRecord) &&
+                        string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await DisplayClassicRecordJsonInfo(context, record, options.Unmask);
+                        context.Vault.AuditLogRecordOpen(record.Uid);
+                        if (options.Unmask && RecordSecurity.HasPassword(record))
+                            context.Vault.AuditLogRecordRevealPassword(record.Uid);
+                        return;
+                    }
+
                     await DisplayRecordInfo(context, record, tab, options.Unmask);
                     Console.WriteLine();
                     tab.SetColumnRightAlign(0, true);
@@ -323,6 +340,116 @@ namespace Commander
 
         }
 
+        private static async Task DisplayClassicRecordJsonInfo(VaultContext context, KeeperRecord record, bool unmask)
+        {
+            var json = new Dictionary<string, object>
+            {
+                ["record_uid"] = record.Uid,
+                ["source"] = "classic"
+            };
+            if (record is PasswordRecord legacy)
+            {
+                json["title"] = legacy.Title;
+                json["record_type"] = "general";
+                if (!string.IsNullOrEmpty(legacy.Login)) json["login"] = legacy.Login;
+                if (!string.IsNullOrEmpty(legacy.Password)) json["password"] = RecordSecurity.Mask(legacy.Password, unmask);
+                if (!string.IsNullOrEmpty(legacy.Link)) json["login_url"] = legacy.Link;
+                if (legacy.Custom.Count > 0)
+                {
+                    json["custom_fields"] = legacy.Custom.Select(x => new Dictionary<string, object>
+                    {
+                        ["name"] = x.Name,
+                        ["value"] = RecordSecurity.IsSensitive(x.Name) || IsGetFieldSensitive(x.Name) || IsGetFieldSensitive(x.Type)
+                            ? RecordSecurity.Mask(x.Value, unmask) : x.Value,
+                        ["type"] = x.Type
+                    }).ToArray();
+                }
+                if (!string.IsNullOrEmpty(legacy.Totp)) json["totp"] = RecordSecurity.Mask(legacy.Totp, unmask);
+                if (legacy.Attachments.Count > 0)
+                {
+                    json["attachments"] = legacy.Attachments.Select(x => new Dictionary<string, object>
+                    {
+                        ["id"] = x.Id, ["name"] = x.Name, ["size"] = x.Size
+                    }).ToArray();
+                }
+                if (!string.IsNullOrEmpty(legacy.Notes)) json["notes"] = legacy.Notes;
+            }
+            else if (record is TypedRecord typed)
+            {
+                json["type"] = typed.TypeName;
+                json["title"] = typed.Title;
+                json["fields"] = typed.Fields.Select(x => BuildTypedFieldJson(x, unmask)).ToArray();
+                json["custom"] = typed.Custom.Select(x => BuildTypedFieldJson(x, unmask)).ToArray();
+                if (!string.IsNullOrEmpty(typed.Notes)) json["notes"] = typed.Notes;
+            }
+            json["version"] = record.Version;
+            json["shared"] = record.Shared;
+            json["client_modified_time"] = record.ClientModified.LocalDateTime.ToString("yyyy-MM-ddTHH:mm:ss");
+
+            var shares = (await context.Vault.GetSharesForRecords(new[] { record.Uid }))
+                .FirstOrDefault(x => x.RecordUid == record.Uid);
+            if (shares?.UserPermissions != null)
+            {
+                json["user_permissions"] = shares.UserPermissions.Select(x => new Dictionary<string, object>
+                {
+                    ["username"] = x.Username,
+                    ["owner"] = x.Owner,
+                    ["sharable"] = x.CanShare,
+                    ["editable"] = x.CanEdit
+                }).ToArray();
+            }
+            if (shares?.SharedFolderPermissions != null)
+            {
+                json["shared_folder_permissions"] = shares.SharedFolderPermissions.Select(x => new Dictionary<string, object>
+                {
+                    ["shared_folder_uid"] = x.SharedFolderUid,
+                    ["can_edit"] = x.CanEdit,
+                    ["can_share"] = x.CanShare
+                }).ToArray();
+            }
+            json["revision"] = record.Revision;
+            var folder = context.Vault.Folders.FirstOrDefault(x => x.Records.Contains(record.Uid));
+            json["folder"] = new Dictionary<string, object>
+            {
+                ["uid"] = folder?.FolderUid,
+                ["path"] = folder == null ? "/" : GetFolderPath(context, folder.FolderUid)
+            };
+
+            Json.WriteFormatted(Console.Out, json);
+            Console.WriteLine();
+        }
+
+        private static Dictionary<string, object> BuildTypedFieldJson(ITypedField field, bool unmask)
+        {
+            var values = Enumerable.Range(0, field.Count)
+                .Select(i => field.GetValueAt(i))
+                .Select(value => (RecordSecurity.IsSensitive(field) || IsGetFieldSensitive(field.FieldName) || IsGetFieldSensitive(field.FieldLabel)) && !unmask
+                    ? (object)RecordSecurity.Mask(value?.ToString(), false) : value)
+                .ToArray();
+            var json = new Dictionary<string, object>
+            {
+                ["type"] = field.FieldName,
+                ["value"] = values
+            };
+            if (!string.IsNullOrEmpty(field.FieldLabel)) json["label"] = field.FieldLabel;
+            return json;
+        }
+
+        private static bool IsGetFieldSensitive(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var fieldType = name.Split(':')[0];
+            var normalized = new string(fieldType.Where(char.IsLetterOrDigit).ToArray());
+            if (RecordSecurity.IsSensitive(normalized)) return true;
+            return new[]
+            {
+                "note", "json", "paymentcard", "bankaccount", "securityquestion",
+                "accountnumber", "cardnumber", "cardsecuritycode", "routingnumber",
+                "securityanswer", "recoverycode", "recoverycodes", "backupcode", "backupcodes",
+                "socialsecuritynumber", "ssn", "cvv", "cvc", "secretkey", "accesskey"
+            }.Contains(normalized, StringComparer.OrdinalIgnoreCase);
+        }
+
         private static string FormatUserRecordShareStatus(UserRecordPermissions permission)
         {
             string status;
@@ -483,7 +610,14 @@ namespace Commander
                 ["folder_uid"] = sf.Uid,
                 ["type"] = "classic_folder",
                 ["name"] = sf.Name,
+                ["path"] = GetFolderPath(context, sf.Uid),
+                ["parent_uid"] = context.Vault.TryGetFolder(sf.Uid, out var node) && !string.IsNullOrEmpty(node.ParentUid)
+                    ? node.ParentUid : null,
                 ["folder"] = GetFolderLocation(context, sf.Uid),
+                ["manage_users"] = sf.DefaultManageUsers,
+                ["manage_records"] = sf.DefaultManageRecords,
+                ["can_edit"] = sf.DefaultCanEdit,
+                ["can_share"] = sf.DefaultCanShare,
                 ["users"] = users,
                 ["share_admins"] = sf.UsersPermissions
                     .Where(x => x.UserType == UserType.User && x.ManageUsers)
@@ -510,22 +644,28 @@ namespace Commander
         {
             var records = folder.Records
                 .Where(recordUid => !string.IsNullOrEmpty(recordUid))
-                .Select(recordUid => new Dictionary<string, object>
+                .Select(recordUid =>
                 {
-                    ["record_uid"] = recordUid,
-                    ["record_name"] = GetRecordName(context, recordUid)
+                    var entry = new Dictionary<string, object> { ["record_uid"] = recordUid };
+                    if (context.Vault.TryGetKeeperRecord(recordUid, out var record))
+                        entry["record_name"] = record.Title;
+                    return entry;
                 })
                 .ToList();
 
             var json = new Dictionary<string, object>
             {
                 ["folder_uid"] = folder.FolderUid,
-                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_shared_folder",
+                ["type"] = folder.FolderType == FolderType.UserFolder ? "user_folder" : "classic_folder",
                 ["name"] = folder.Name,
                 ["path"] = GetFolderPath(context, folder.FolderUid),
-                ["folder"] = GetFolderLocation(context, folder.FolderUid),
-                ["records"] = records
+                ["parent_uid"] = string.IsNullOrEmpty(folder.ParentUid) ? null : folder.ParentUid,
+                ["folder"] = GetFolderLocation(context, folder.FolderUid)
             };
+            if (folder.FolderType == FolderType.SharedFolderFolder)
+                json["shared_folder_uid"] = folder.SharedFolderUid;
+            if (folder.FolderType == FolderType.UserFolder)
+                json["records"] = records;
 
             Json.WriteFormatted(Console.Out, json);
             Console.WriteLine();
@@ -538,15 +678,15 @@ namespace Commander
             {
                 return new Dictionary<string, object>
                 {
-                    ["uid"] = folder.ParentUid ?? "",
-                    ["path"] = GetFolderPath(context, folder.ParentUid ?? string.Empty)
+                    ["uid"] = string.IsNullOrEmpty(folder.ParentUid) ? null : folder.ParentUid,
+                    ["path"] = string.IsNullOrEmpty(folder.ParentUid) ? "/" : GetFolderPath(context, folder.ParentUid)
                 };
             }
 
             return new Dictionary<string, object>
             {
-                ["uid"] = "",
-                ["path"] = ""
+                ["uid"] = null,
+                ["path"] = "/"
             };
         }
 
@@ -560,7 +700,7 @@ namespace Commander
             {
                 if (!string.IsNullOrEmpty(folder.Name))
                 {
-                    components.Add(folder.Name);
+                    components.Add(folder.Name.Replace("/", "//"));
                 }
                 currentUid = folder.ParentUid;
             }
