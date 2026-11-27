@@ -856,5 +856,134 @@ namespace KeeperSecurity.Vault
 
             await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
+
+        /// <summary>
+        /// Permanently deletes records for all users they are shared with.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Unlike <see cref="IVault.DeleteRecords"/>, which only unlinks records from the current user's vault,
+        /// this sends <c>record_update</c> with <c>delete_records</c>, which deletes the record for every user.
+        /// The server does not require a pre-delete token for this request.
+        /// </para>
+        /// <para>
+        /// Because the operation is irreversible for the other users, <see cref="VaultOnline.VaultUi"/> is asked
+        /// to confirm it (same rule as <c>DeleteVaultObjects</c>: no confirmation when <paramref name="force"/>
+        /// is <c>true</c> or no <see cref="VaultOnline.VaultUi"/> is set). Hosts that confirm on their own
+        /// should pass <c>force: true</c>.
+        /// </para>
+        /// <para>
+        /// Only the record owner can delete a record for all users.
+        /// Non-owned records are skipped and reported as <c>not_owner</c>.
+        /// A failure of one request does not discard the statuses of the others: affected records are reported
+        /// with the status <c>error</c> and records that were not attempted with <c>not_processed</c>.
+        /// </para>
+        /// </remarks>
+        /// <param name="vault">Vault.</param>
+        /// <param name="recordUids">Record UIDs.</param>
+        /// <param name="force"><c>true</c> to skip the <see cref="VaultOnline.VaultUi"/> confirmation.</param>
+        /// <returns>Deletion status for each record.</returns>
+        public static async Task<IList<RecordUpdateStatus>> PurgeRecords(this VaultOnline vault, IEnumerable<string> recordUids, bool force)
+        {
+            if (recordUids == null)
+            {
+                throw new ArgumentNullException(nameof(recordUids));
+            }
+
+            var results = new List<RecordUpdateStatus>();
+            var toDelete = new List<string>();
+            foreach (var recordUid in recordUids.Where(x => !string.IsNullOrEmpty(x)).Distinct())
+            {
+                if (!vault.TryGetKeeperRecord(recordUid, out var record))
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = recordUid,
+                        Status = "not_found",
+                        Message = $"Record \"{recordUid}\" not found.",
+                    });
+                }
+                else if (!record.Owner)
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = recordUid,
+                        Status = "not_owner",
+                        Message = $"Cannot permanently delete \"{record.Title}\" ({recordUid}): you are not the record owner.",
+                    });
+                }
+                else
+                {
+                    toDelete.Add(recordUid);
+                }
+            }
+
+            if (toDelete.Count > 0 && !force && vault.VaultUi != null)
+            {
+                var approved = await vault.VaultUi.Confirmation(
+                    $"{toDelete.Count} record(s) will be permanently deleted for ALL users. This cannot be undone.");
+                if (!approved)
+                {
+                    results.AddRange(toDelete.Select(uid => new RecordUpdateStatus
+                    {
+                        RecordUid = uid,
+                        Status = "canceled",
+                        Message = "Canceled by user.",
+                    }));
+                    return results;
+                }
+            }
+
+            var anySucceeded = false;
+            try
+            {
+                const int chunkSize = 999;
+                for (var i = 0; i < toDelete.Count; i += chunkSize)
+                {
+                    var chunk = toDelete.Skip(i).Take(chunkSize).ToArray();
+                    try
+                    {
+                        var command = new RecordUpdateCommand
+                        {
+                            deviceId = vault.Auth.Endpoint.DeviceName,
+                            DeleteRecords = chunk,
+                        };
+                        var rs = await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+                        var statuses = rs.DeleteRecords ?? Array.Empty<RecordUpdateStatus>();
+                        results.AddRange(statuses);
+                        foreach (var status in statuses.Where(x => x.Status == "success"))
+                        {
+                            anySucceeded = true;
+                            vault.ScheduleForAudit(status.RecordUid);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        results.AddRange(chunk.Select(uid => new RecordUpdateStatus
+                        {
+                            RecordUid = uid,
+                            Status = "error",
+                            Message = e.Message,
+                        }));
+                        results.AddRange(toDelete.Skip(i + chunk.Length).Select(uid => new RecordUpdateStatus
+                        {
+                            RecordUid = uid,
+                            Status = "not_processed",
+                            Message = "Not processed because a previous request failed.",
+                        }));
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                if (anySucceeded)
+                {
+                    await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+                }
+            }
+
+            return results;
+        }
     }
 }
