@@ -311,6 +311,18 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public Task DeleteRecords(RecordPath[] records)
         {
+            return DeleteRecords(records, false);
+        }
+
+        /// <summary>
+        /// Removes records from the current user's vault. Users the records are shared with keep access to them.
+        /// </summary>
+        /// <param name="records">an array of record paths.</param>
+        /// <param name="force"><c>true</c> to skip the confirmation.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <seealso cref="PurgeRecords"/>
+        public Task DeleteRecords(RecordPath[] records, bool force)
+        {
             foreach (var path in records)
             {
                 if (string.IsNullOrEmpty(path.RecordUid))
@@ -325,7 +337,35 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            return this.DeleteVaultObjects(records);
+            return this.DeleteVaultObjects(records, force);
+        }
+
+        /// <summary>
+        /// Permanently deletes records for ALL users they are shared with.
+        /// </summary>
+        /// <remarks>
+        /// Asks <see cref="VaultUi"/> for confirmation when it is set.
+        /// Only the record owner can purge a record. Records the user does not own are not sent
+        /// to the server and are reported with the status <c>not_owner</c>.
+        /// </remarks>
+        /// <param name="recordUids">Record UIDs.</param>
+        /// <returns>A task returning the status of every record.</returns>
+        /// <seealso cref="DeleteRecords(RecordPath[], bool)"/>
+        public Task<IList<RecordUpdateStatus>> PurgeRecords(IEnumerable<string> recordUids)
+        {
+            return VaultOnlineFunctions.PurgeRecords(this, recordUids, false);
+        }
+
+        /// <summary>
+        /// Permanently deletes records for ALL users they are shared with.
+        /// </summary>
+        /// <param name="recordUids">Record UIDs.</param>
+        /// <param name="force"><c>true</c> to skip the <see cref="VaultUi"/> confirmation.</param>
+        /// <returns>A task returning the status of every record.</returns>
+        /// <seealso cref="PurgeRecords(IEnumerable{string})"/>
+        public Task<IList<RecordUpdateStatus>> PurgeRecords(IEnumerable<string> recordUids, bool force)
+        {
+            return VaultOnlineFunctions.PurgeRecords(this, recordUids, force);
         }
 
         /// <inheritdoc/>
