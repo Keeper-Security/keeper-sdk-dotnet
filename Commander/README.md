@@ -192,10 +192,12 @@ Work/Production> share-record "API Server" --email user@company.com --write
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `search` | `list` | Search vault (supports regex patterns) |
+| `search [--format table\|json] [--limit N] [pattern]` | `list` | Search vault (supports regex patterns). JSON returns an array of `record_uid`, `title`, `type`, and `info`; `list` accepts the same options. |
 | `ls` | | List current folder contents |
 | `cd` | | Change current folder |
 | `tree` | | Display folder structure as tree |
+
+For JSON search results, use `search --format json database` or `list --format json`. Both return a JSON array; `--limit N` still limits the records returned.
 
 ### Record Management
 
@@ -213,6 +215,9 @@ Work/Production> share-record "API Server" --email user@company.com --write
 | `nsf-share-record` | | Grant or revoke NSF record access (`-e`, `-a`, `-r`, `-R`, `--dry-run`, expiration options) |
 
 NSF CLI compatibility: `nsf-record-add` now requires `--title` and `-t/--type` instead of a positional title and an implicit `login` type. `nsf-share-record` requires `-r/--role` for grants instead of defaulting to `viewer`; existing scripts should add `-r viewer` where appropriate. Sharing also accepts `--contacts-only` and `--rotate-on-expiration`.
+
+Use `get --format json <record-uid>` for a classic record object, or `get --format json --folder <folder-uid>` for a classic folder object. These use consistent field names and slash-delimited folder paths. Hidden record values are masked unless `--unmask` is supplied.
+Classic shared-folder JSON uses the same parent folder location shape (`uid: null`, `path: "/"` at the vault root). Unsupported record types return a clear error when JSON is requested.
 
 ### Attachment Management
 

@@ -538,7 +538,7 @@ function Get-KeeperNSFRecord {
         return
     }
 
-    $reveal = $Unmask.IsPresent -or (Get-KeeperPasswordVisible)
+    $reveal = $Unmask.IsPresent -or ($Format -ne 'json' -and (Get-KeeperPasswordVisible))
     if ($Format -eq 'json') {
         $jsonObj = if ($kdRecord) {
             Build-KdRecordJson $vault $storage $kdRecord $currentAccountUid `
